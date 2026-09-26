@@ -1,0 +1,23 @@
+{
+  "name": "abyssal",
+  "version": "0.2.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "vite --host 127.0.0.1",
+    "build": "vite build",
+    "preview": "vite preview --host 127.0.0.1",
+    "test": "node --test tests/*.test.js",
+    "format": "prettier --write src tests scripts index.html docs README.md vite.config.js",
+    "check": "prettier --check src tests scripts index.html docs README.md vite.config.js",
+    "test:browser": "node scripts/verify_game.mjs"
+  },
+  "dependencies": {
+    "three": "0.180.0"
+  },
+  "devDependencies": {
+    "@playwright/test": "1.63.0",
+    "prettier": "3.6.2",
+    "vite": "8.3.1"
+  }
+}
