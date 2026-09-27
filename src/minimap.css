@@ -1,0 +1,113 @@
+.minimap {
+  color: #b7dcd8;
+  pointer-events: none;
+  contain: layout style;
+  font-variant-numeric: tabular-nums;
+}
+
+.minimap-chart {
+  display: block;
+  width: 100%;
+  height: auto;
+  overflow: visible;
+}
+
+.minimap-frame {
+  fill: #06151cdc;
+  stroke: #8ecccb28;
+  stroke-width: 0.65;
+}
+
+.minimap-basin {
+  stroke: #91dfd036;
+  stroke-width: 0.5;
+}
+
+.minimap-contours {
+  fill: none;
+  stroke: #9bdddf38;
+  stroke-width: 0.6;
+}
+
+.minimap-meridian {
+  stroke-dasharray: 1.5 3;
+  opacity: 0.55;
+}
+
+.minimap-north,
+.minimap-zone {
+  fill: #aad5d1;
+  font-size: 7px;
+  font-family: inherit;
+}
+
+.minimap-zone {
+  opacity: 0.65;
+}
+
+.minimap-home-route {
+  fill: none;
+  stroke: #c3e6b6;
+  stroke-width: 0.65;
+  stroke-dasharray: 1.5 3;
+  opacity: 0.48;
+}
+
+.minimap-home {
+  fill: #c8e0ba2b;
+  stroke: #cee0b0;
+  stroke-width: 0.9;
+}
+
+.minimap-player circle {
+  fill: #b8fff215;
+}
+
+.minimap-player path {
+  fill: #d9fff6;
+  stroke: #0b333d;
+  stroke-width: 0.7;
+}
+
+.minimap-contact {
+  fill: #c3cbd7;
+  opacity: 0.9;
+}
+
+.minimap-contact.is-prey {
+  fill: #83efd2;
+}
+
+.minimap-contact.is-danger {
+  fill: #f6a879;
+}
+
+.minimap-contact.is-boss {
+  fill: #f18aca;
+  stroke: #ffe0f0;
+  stroke-width: 0.5;
+}
+
+.minimap[data-sonar-active="true"] .minimap-frame {
+  stroke: #75efdc99;
+}
+
+.minimap-caption {
+  display: grid;
+  grid-template-rows: 10px 10px;
+  height: 20px;
+  font-size: 10px;
+  line-height: 10px;
+  letter-spacing: 0;
+  text-align: center;
+}
+
+.minimap-caption span {
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.minimap-depth-label {
+  color: #9aacb8;
+}

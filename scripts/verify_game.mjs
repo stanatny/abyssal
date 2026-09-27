@@ -4,8 +4,11 @@ import { mkdir, writeFile } from "node:fs/promises";
 await mkdir(".local", { recursive: true });
 const browser = await chromium.launch({ channel: "chrome", headless: true });
 const page = await browser.newPage({ viewport: { width: 1440, height: 900 } });
+page.setDefaultTimeout(30000);
 const errors = [],
-  checks = [];
+  checks = [],
+  measurements = {};
+let hits = 0;
 page.on("pageerror", (e) => errors.push(e.message));
 page.on("console", (m) => {
   if (m.type() === "error") errors.push(m.text());
@@ -16,36 +19,132 @@ const state = () =>
     mode: window.__ABYSSAL__.mode,
     position: window.__ABYSSAL__.position,
   }));
-const center = () => page.mouse.move(720, 450);
+const clearWater = () =>
+  page.evaluate(() => {
+    const g = window.__ABYSSAL__;
+    g.startGame();
+    g.entities.forEach((e) => (e.hiddenFor = 999));
+    g.encounters.bosses.forEach((b) => (b.enabled = false));
+    // 在海床、岩柱和船只之外验证输入，仍由实际移动与碰撞循环推进。
+    g.setPosition(180, -90, -320);
+  });
 try {
   await page.goto(process.env.ABYSSAL_DEV_URL || "http://127.0.0.1:5178");
   await page.waitForFunction(() => window.__ABYSSAL__);
-  await page.screenshot({ path: ".local/v2_menu.png" });
+  await page.screenshot({ path: ".local/v3_menu.png" });
   await page.click("#quality");
-  await page.click("#start");
-  await center();
+  await page.locator("#start").focus();
+  await page.keyboard.press("Space");
   assert.equal((await state()).mode, "playing");
+  assert.equal(
+    await page.evaluate(() => document.activeElement.tagName),
+    "CANVAS",
+  );
   assert.equal(
     await page.evaluate(() => window.__ABYSSAL__.audio.context.state),
     "running",
   );
-  checks.push("开始游戏，配乐由用户手势激活");
+  checks.push(
+    "Space starts the game, activates audio, and returns focus to the canvas",
+  );
+  await clearWater();
+  const beforeMouse = await page.evaluate(() => window.__ABYSSAL__.controls);
+  await page.mouse.move(80, 80);
+  await page.waitForTimeout(200);
+  await page.mouse.move(1350, 810);
+  await page.waitForTimeout(200);
+  const afterMouse = await page.evaluate(() => window.__ABYSSAL__.controls);
+  assert.ok(Math.abs(afterMouse.yaw - beforeMouse.yaw) < 0.001);
+  assert.ok(Math.abs(afterMouse.pitch - beforeMouse.pitch) < 0.001);
+  checks.push("Mouse movement does not steer the keyboard-controlled orca");
+  for (const [key, axis, sign] of [
+    ["KeyD", "yaw", -1],
+    ["KeyA", "yaw", 1],
+    ["KeyW", "pitch", 1],
+    ["KeyS", "pitch", -1],
+  ]) {
+    const initial = await page.evaluate(
+      (axis) => window.__ABYSSAL__.controls[axis],
+      axis,
+    );
+    await page.keyboard.down(key);
+    await page.waitForFunction(
+      ({ axis, sign, initial }) =>
+        (window.__ABYSSAL__.controls[axis] - initial) * sign > 0.15,
+      { axis, sign, initial },
+    );
+    await page.keyboard.up(key);
+  }
+  checks.push("WASD independently changes vertical and horizontal heading");
+  await clearWater();
   await page.keyboard.down("Space");
-  await page.waitForTimeout(1100);
+  await page.waitForFunction(
+    () =>
+      window.__ABYSSAL__.controls.speed > 40 &&
+      window.__ABYSSAL__.player.stamina < 95,
+  );
+  measurements.sprint = await page.evaluate(() => ({
+    speed: window.__ABYSSAL__.controls.speed,
+    stamina: window.__ABYSSAL__.player.stamina,
+  }));
   await page.keyboard.up("Space");
-  assert.ok((await state()).player.stamina < 95);
-  checks.push("冲刺消耗体力");
+  checks.push(
+    "Orca sprint reaches above 40 m/s toward 41.6 (+30%) and consumes stamina",
+  );
+  await page.keyboard.down("KeyK");
+  await page.waitForFunction(() => window.__ABYSSAL__.controls.speed < 6);
+  measurements.slowSpeed = await page.evaluate(
+    () => window.__ABYSSAL__.controls.speed,
+  );
+  await page.keyboard.up("KeyK");
+  checks.push("K slows swimming toward 5 m/s");
   await page.keyboard.press("Escape");
   const paused = await state();
   await page.waitForTimeout(300);
   assert.deepEqual((await state()).position, paused.position);
+  assert.equal((await state()).player.elapsed, paused.player.elapsed);
   assert.equal(
     await page.evaluate(() => window.__ABYSSAL__.audio.context.state),
     "suspended",
   );
-  await page.click("#resume");
-  await center();
-  checks.push("暂停同步冻结世界与音乐并可恢复");
+  await page.keyboard.press("Space");
+  assert.equal((await state()).mode, "playing");
+  assert.equal(
+    await page.evaluate(() => document.activeElement.tagName),
+    "CANVAS",
+  );
+  checks.push("Pause freezes the world, round clock, and audio; Space resumes");
+  await clearWater();
+  assert.equal(
+    await page.evaluate(() => window.__ABYSSAL__.markersEnabled),
+    true,
+  );
+  assert.equal(
+    await page.evaluate(() => typeof window.__ABYSSAL__.activateSonar),
+    "function",
+  );
+  await page.evaluate(() => {
+    const g = window.__ABYSSAL__;
+    const fish = g.entities.find((e) => e.species.kind === "tuna");
+    fish.hiddenFor = 0;
+    fish.mesh.position.copy(g.position);
+    fish.mesh.position.z -= 35;
+    fish.velocity.set(0, 0, -1);
+  });
+  await page.waitForFunction(() => !document.querySelector("#target").hidden);
+  measurements.defaultTarget = await page.locator("#target").innerText();
+  assert.ok(
+    (measurements.defaultTarget.match(/\d+(?:\.\d+)?\s*m/g) || []).length >= 2,
+  );
+  await page.keyboard.press("KeyL");
+  assert.equal(
+    await page.evaluate(() => window.__ABYSSAL__.markersEnabled),
+    true,
+  );
+  assert.equal(await page.locator("#touch-markers, #pause-markers").count(), 0);
+  checks.push(
+    "Visible prey markers include distance; marker settings are outside gameplay and L has no effect",
+  );
   await page.evaluate(() => {
     const g = window.__ABYSSAL__;
     g.startGame();
@@ -77,8 +176,8 @@ try {
   );
   assert.equal(new Set(rewardInfo.map((p) => p.kind)).size, 3);
   assert.ok(rewardInfo.every((p) => p.label));
-  assert.match(await page.locator("#reward-legend").innerText(), /回满体力/);
-  checks.push("三类奖励带独立图形、名称和用途");
+  assert.equal(await page.locator("#reward-legend").count(), 0);
+  checks.push("三类奖励带独立图形和名称，HUD不再常驻奖励说明");
   await page.evaluate(() => {
     const g = window.__ABYSSAL__;
     g.collectPickup("flow");
@@ -93,9 +192,9 @@ try {
     const g = window.__ABYSSAL__;
     g.startGame();
     g.entities.forEach((e) => (e.hiddenFor = 999));
-    g.setPosition(0, -1, 55);
+    // 从足够深的无遮挡水域起跳，避开新增海床和船体碰撞。
+    g.setPosition(200, -35, -100);
   });
-  await center();
   await page.keyboard.down("KeyW");
   await page.keyboard.down("Space");
   await page.waitForFunction(
@@ -104,8 +203,8 @@ try {
     { timeout: 12000 },
   );
   await page.waitForFunction(() => window.__ABYSSAL__.position.y > 7);
-  await page.screenshot({ path: ".local/v2_breach.png" });
-  checks.push("向上冲刺触发实际破水抛物线与天空");
+  await page.screenshot({ path: ".local/v3_breach.png" });
+  checks.push("水下连续蓄势后向上冲刺，触发实际破水抛物线与天空");
   const beforeBird = (await state()).player.eaten;
   await page.evaluate(() => {
     const g = window.__ABYSSAL__,
@@ -141,7 +240,14 @@ try {
     shark.mesh.position.set(0, -100, -248);
   });
   await page.waitForFunction(() => !document.querySelector("#threat").hidden);
-  checks.push("中级猎手追击与警报");
+  await page.evaluate(() => window.__ABYSSAL__.setMarkers(false));
+  assert.equal(
+    await page.evaluate(() => window.__ABYSSAL__.markersEnabled),
+    false,
+  );
+  assert.equal(await page.locator("#threat").isVisible(), true);
+  await page.evaluate(() => window.__ABYSSAL__.setMarkers(true));
+  checks.push("海洋霸主追击与警报");
   await page.evaluate(() => {
     const g = window.__ABYSSAL__;
     const shark = g.entities.find((e) => e.species.kind === "shark");
@@ -158,9 +264,13 @@ try {
     g.takeDamage(200);
   });
   await page.waitForFunction(() => window.__ABYSSAL__.mode === "dead");
-  await page.click("#resume");
-  await center();
-  checks.push("死亡结算可重新开始");
+  await page.keyboard.press("Space");
+  assert.equal((await state()).mode, "playing");
+  assert.equal((await state()).player.timedOut, false);
+  assert.ok((await state()).player.elapsed < 1);
+  checks.push(
+    "Death settlement restarts through Space and resets the round clock",
+  );
   assert.equal(
     await page.evaluate(
       () =>
@@ -173,7 +283,7 @@ try {
     const g = window.__ABYSSAL__;
     g.entities.forEach((e) => (e.hiddenFor = 999));
     const b = g.encounters.bosses.find((e) => e.enabled);
-    g.setLength(30);
+    g.setLength(6);
     g.player.invulnerable = 999;
     g.setPosition(b.home.x, b.home.y, b.home.z + 50);
   });
@@ -183,62 +293,165 @@ try {
     {},
     { timeout: 12000 },
   );
-  await page.screenshot({ path: ".local/v2_boss.png" });
+  await page.screenshot({ path: ".local/v3_boss.png" });
+  await page.evaluate(() => window.__ABYSSAL__.setMarkers(false));
+  assert.equal(
+    await page.evaluate(() => window.__ABYSSAL__.markersEnabled),
+    false,
+  );
+  assert.equal(await page.locator("#boss-panel").isVisible(), true);
+  await page.evaluate(() => window.__ABYSSAL__.setMarkers(true));
   checks.push("进入领地触发主宰血条与技能前摇");
+  checks.push(
+    "Hiding passive markers keeps predator and boss warnings visible",
+  );
   await page.waitForFunction(
     () => window.__ABYSSAL__.activeBoss?.state.phase === "recover",
     {},
     { timeout: 12000 },
   );
   checks.push("主宰技能结束产生3秒弱点窗口");
+  const untouchedHealth = await page.evaluate(async () => {
+    const { findBossContact } = await import("/src/encounters.js");
+    const g = window.__ABYSSAL__,
+      b = g.encounters.bosses.find((e) => e.state.species.kind === "kraken");
+    // 固定种类与无遮挡位置，避免随机领地、巨兽朝向和岩石改变接触夹具。
+    g.encounters.bosses.forEach((entry) => (entry.enabled = entry === b));
+    window.__testBoss = b;
+    g.setLength(30);
+    b.mesh.position.set(180, -90, -320);
+    b.home.copy(b.mesh.position);
+    b.heading.set(0, 0, -1);
+    b.mesh.quaternion.identity();
+    b.state.health = b.state.maxHealth;
+    b.state.phase = "recover";
+    b.previousPhase = "recover";
+    b.state.timer = 0;
+    b.state.phaseDuration = 99;
+    b.state.biteCooldown = 0;
+    g.player.biteCooldown = 0;
+    window.__placeTestBossContact = () => {
+      const mouth = b.mesh.position.clone();
+      // 只用几何助手寻找真实表面，实际伤害必须由游戏帧循环结算。
+      g.setFacing(Math.PI / 2, 0);
+      b.heading.set(0, 0, -1);
+      b.mesh.quaternion.identity();
+      for (let side = b.state.species.length * 0.8; side >= 0; side -= 0.1) {
+        mouth.copy(b.mesh.position);
+        mouth.x += side;
+        mouth.z += b.state.species.length * 0.15;
+        if (!findBossContact(b.mesh, mouth, g.player.length * 0.06)) continue;
+        const point = mouth.addScaledVector(g.forward, -g.player.length * 0.38);
+        g.setPosition(point.x, point.y, point.z);
+        return true;
+      }
+      throw new Error("No actual boss surface contact fixture was found");
+    };
+    // 先停在领地内、接触范围外，验证旧咬击输入和声呐均不会隔空攻击。
+    g.setPosition(b.mesh.position.x, b.mesh.position.y, b.mesh.position.z + 85);
+    return b.state.health;
+  });
+  await page.keyboard.down("KeyK");
+  await page.keyboard.down("KeyF");
+  await page.mouse.click(720, 450);
+  await page.keyboard.press("KeyJ");
+  await page.waitForFunction(() => window.__ABYSSAL__.sonar.snapshot.active);
+  await page.waitForTimeout(400);
+  await page.keyboard.up("KeyF");
+  assert.equal(
+    await page.evaluate(() => window.__testBoss.state.health),
+    untouchedHealth,
+  );
+  checks.push("F, left click, and the J sonar key cannot bite a distant boss");
+  // 接触才触发攻击：不按任何咬击键，K只用于低速保持近身。
   await page.evaluate(() => {
     const g = window.__ABYSSAL__,
-      b = g.encounters.bosses.find((e) => e.enabled && !e.state.defeated);
-    window.__testBoss = b;
+      b = window.__testBoss;
     b.state.phase = "recover";
     b.state.timer = 0;
     b.state.phaseDuration = 99;
     b.state.biteCooldown = 0;
     g.player.biteCooldown = 0;
-    g.setPosition(b.mesh.position.x, b.mesh.position.y, b.mesh.position.z + 20);
+    window.__placeTestBossContact();
   });
-  await center();
-  await page.mouse.down();
   await page.waitForFunction(
-    () =>
-      window.__testBoss.state.health < window.__testBoss.state.maxHealth * 0.7,
-    {},
+    (health) => window.__testBoss.state.health < health,
+    untouchedHealth,
     { timeout: 12000 },
   );
-  await page.mouse.up();
-  checks.push("鼠标长按咬击跨越HUD刷新并连续命中");
+  const firstBite = await page.evaluate(() => ({
+    health: window.__testBoss.state.health,
+    maximum: window.__testBoss.state.maxHealth,
+    cooldown: window.__ABYSSAL__.player.biteCooldown,
+    defeated: window.__testBoss.state.defeated,
+  }));
+  assert.ok(firstBite.health >= firstBite.maximum * 0.76 - 1e-9);
+  assert.ok(firstBite.cooldown > 0.5);
+  assert.equal(firstBite.defeated, false);
+  // 冷却期持续重新接触表面，确认不是因游离目标而暂时停止掉血。
+  for (let attempt = 0; attempt < 4; attempt += 1) {
+    await page.waitForTimeout(80);
+    await page.evaluate(() => window.__placeTestBossContact());
+  }
+  assert.equal(
+    await page.evaluate(() => window.__testBoss.state.health),
+    firstBite.health,
+  );
   await page.evaluate(() => {
-    const b = window.__testBoss;
-    b.state.health = b.state.maxHealth;
+    const g = window.__ABYSSAL__,
+      b = window.__testBoss;
+    g.setPosition(b.mesh.position.x, b.mesh.position.y, b.mesh.position.z + 85);
   });
-  // 固定遭遇位置验证真实按键咬击，终局不宣称自然通关。
-  let hits = 0;
+  await page.waitForFunction(
+    () =>
+      window.__ABYSSAL__.player.biteCooldown === 0 &&
+      window.__testBoss.state.contactArmed,
+  );
+  await page.evaluate(() => window.__placeTestBossContact());
+  await page.waitForFunction(
+    (health) => window.__testBoss.state.health < health,
+    firstBite.health,
+  );
+  await page.keyboard.up("KeyK");
+  measurements.contactBite = firstBite;
+  checks.push(
+    "Flank contact bites once, requires disengaging, and respects the 1.2-second cooldown",
+  );
+  await page.evaluate(() => {
+    const g = window.__ABYSSAL__,
+      b = window.__testBoss;
+    b.state.health = b.state.maxHealth;
+    g.setPosition(b.mesh.position.x, b.mesh.position.y, b.mesh.position.z + 85);
+  });
+  // 固定遭遇位置验证多次真实接触咬击，终局不宣称自然通关。
   for (let i = 0; i < 8; i++) {
     await page.evaluate(() => {
+      const b = window.__testBoss;
+      window.__ABYSSAL__.setPosition(
+        b.mesh.position.x + 85,
+        b.mesh.position.y,
+        b.mesh.position.z,
+      );
+    });
+    await page.waitForFunction(
+      () =>
+        window.__testBoss.state.contactArmed &&
+        window.__ABYSSAL__.player.biteCooldown === 0,
+    );
+    const old = await page.evaluate(() => {
       const g = window.__ABYSSAL__,
-        b = g.encounters.bosses.find((e) => e.enabled && !e.state.defeated);
-      window.__testBoss = b;
+        b = window.__testBoss;
       b.state.phase = "recover";
       b.state.timer = 0;
       b.state.phaseDuration = 3;
       b.state.biteCooldown = 0;
       g.player.biteCooldown = 0;
       g.player.invulnerable = 999;
-      g.setPosition(
-        b.mesh.position.x,
-        b.mesh.position.y,
-        b.mesh.position.z + 20,
-      );
+      const health = b.state.health;
+      window.__placeTestBossContact();
+      return health;
     });
-    const old = await page.evaluate(() => window.__testBoss.state.health);
-    await page.keyboard.down("KeyF");
     await page.waitForFunction((h) => window.__testBoss.state.health < h, old);
-    await page.keyboard.up("KeyF");
     hits++;
     if (i === 0) {
       assert.ok(await page.evaluate(() => !window.__testBoss.state.defeated));
@@ -249,9 +462,10 @@ try {
   assert.ok(hits >= 5);
   assert.equal((await state()).mode, "won");
   assert.ok((await state()).player.bossesDefeated >= 1);
-  checks.push("多次F咬击击败主宰，30米加战绩触发胜利");
+  checks.push(
+    "Repeated contact bites defeat a boss without an attack button; 30 m plus a boss victory wins the round",
+  );
   await page.click("#resume");
-  await center();
   await page.evaluate(() => {
     const g = window.__ABYSSAL__;
     g.setPosition(50, -680, -1090);
@@ -259,23 +473,54 @@ try {
   });
   await page.waitForTimeout(1400);
   assert.ok(Number(await page.locator("#depth").innerText()) > 2500);
-  await page.screenshot({ path: ".local/v2_deep.png" });
+  await page.screenshot({ path: ".local/v3_deep.png" });
   checks.push("可到达2500米以下的新深海区域");
+  await clearWater();
+  await page.evaluate(() => {
+    window.__ABYSSAL__.player.elapsed = 1799.7;
+  });
+  await page.waitForFunction(() => window.__ABYSSAL__.mode === "timeup");
+  const expired = await state();
+  assert.equal(expired.player.elapsed, 1800);
+  assert.equal(expired.player.timedOut, true);
+  assert.equal(expired.player.dead, false);
+  assert.equal(expired.player.won, false);
+  await page.waitForTimeout(300);
+  assert.deepEqual((await state()).position, expired.position);
+  assert.equal((await state()).player.elapsed, 1800);
+  measurements.timeup = expired.player;
+  await page.keyboard.press("Space");
+  assert.equal((await state()).mode, "playing");
+  assert.equal((await state()).player.timedOut, false);
+  assert.ok((await state()).player.elapsed < 1);
+  checks.push(
+    "The actual loop ends the expedition at 30 minutes without granting victory; restart resets it",
+  );
   await page.setViewportSize({ width: 390, height: 844 });
   await page.keyboard.press("Escape");
-  await page.screenshot({ path: ".local/v2_mobile.png" });
+  await page.screenshot({ path: ".local/v3_mobile.png" });
   assert.ok(await page.locator("#resume").isVisible());
   checks.push("窄屏暂停与恢复操作可见");
   assert.deepEqual(errors, []);
+  console.log(JSON.stringify({ checks, errors, hits, measurements }, null, 2));
+} catch (error) {
+  measurements.failure = { message: error.message, stack: error.stack };
+  await page.screenshot({ path: ".local/v3_game_failure.png" }).catch(() => {});
+  throw error;
+} finally {
   await writeFile(
-    ".local/verification_v0_2.json",
+    ".local/verification_v0_3.json",
     JSON.stringify(
-      { checks, errors, hits, verifiedAt: new Date().toISOString() },
+      {
+        checks,
+        errors,
+        hits,
+        measurements,
+        verifiedAt: new Date().toISOString(),
+      },
       null,
       2,
     ),
   );
-  console.log(JSON.stringify({ checks, errors, hits }, null, 2));
-} finally {
   await browser.close();
 }

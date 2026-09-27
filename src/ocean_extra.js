@@ -17,7 +17,7 @@ export const LANDMARK_CLEARINGS = [
  */
 export function createOceanExtra(
   parent,
-  { seabedHeight, obstacles, worldUniforms },
+  { seabedHeight, obstacles, colliders = [], worldUniforms },
 ) {
   const root = new THREE.Group();
   root.name = "ocean_landmarks";
@@ -37,19 +37,27 @@ export function createOceanExtra(
   const box = track(new THREE.BoxGeometry(1, 1, 1));
   const sphere = track(new THREE.IcosahedronGeometry(1, 1));
   const cylinder = track(new THREE.CylinderGeometry(1, 1, 1, 7));
-  const wood = material("#34413d");
-  const iron = material("#405057", { metalness: 0.25 });
-  const sail = material("#778f87", { side: THREE.DoubleSide });
-  const bone = material("#b8c2ad", { roughness: 0.7 });
-  const dark = material("#0c2027");
-  const stone = material("#24444a", { flatShading: true });
-  const jade = material("#36595a");
-  const glow = material("#68dcc8", {
-    emissive: "#29bda9",
-    emissiveIntensity: 1.4,
-    roughness: 0.52,
+  const wood = material("#2b3833", { roughness: 0.92 });
+  const iron = material("#46555c", { metalness: 0.3, roughness: 0.6 });
+  const sail = material("#63796c", { side: THREE.DoubleSide, roughness: 0.95 });
+  const bone = material("#c2cbb6", {
+    roughness: 0.62,
+    emissive: "#232e28",
+    emissiveIntensity: 0.5,
   });
-  const basalt = material("#192b32", { roughness: 1, flatShading: true });
+  const dark = material("#0c2027");
+  const stone = material("#2a4b54", { flatShading: true, roughness: 0.9 });
+  const jade = material("#4a8172", {
+    roughness: 0.68,
+    emissive: "#16332b",
+    emissiveIntensity: 0.55,
+  });
+  const glow = material("#7df2da", {
+    emissive: "#36e0c3",
+    emissiveIntensity: 2.1,
+    roughness: 0.45,
+  });
+  const basalt = material("#152328", { roughness: 1, flatShading: true });
 
   const add = (group, geometry, mat, position, scale, rotation) => {
     track(geometry);
@@ -58,7 +66,40 @@ export function createOceanExtra(
     if (scale) mesh.scale.set(...scale);
     if (rotation) mesh.rotation.set(...rotation);
     group.add(mesh);
+    // 只把主体结构变为实体；符文、海带、薄帆布等装饰不拦截游泳。
+    if (
+      position &&
+      scale &&
+      (geometry === box || geometry === cylinder) &&
+      [wood, iron, stone, jade].includes(mat)
+    ) {
+      registerMeshCollider(mesh, geometry === cylinder ? "pillar" : "landmark");
+    }
+    if (geometry === sphere && mat === bone && scale?.[2] > 3)
+      registerMeshCollider(mesh, "skull", true);
     return mesh;
+  };
+  const registerMeshCollider = (mesh, kind, ellipsoid = false) => {
+    mesh.updateWorldMatrix(true, false);
+    const position = new THREE.Vector3(),
+      rotation = new THREE.Quaternion(),
+      scale = new THREE.Vector3();
+    mesh.matrixWorld.decompose(position, rotation, scale);
+    const isCylinder = mesh.geometry === cylinder;
+    const size = {
+      x: Math.abs(scale.x) * (isCylinder || ellipsoid ? 1 : 0.5),
+      y: Math.abs(scale.y) * (ellipsoid ? 1 : 0.5),
+      z: Math.abs(scale.z) * (isCylinder || ellipsoid ? 1 : 0.5),
+    };
+    colliders.push({
+      type: ellipsoid ? "ellipsoid" : "box",
+      kind,
+      x: position.x,
+      y: position.y,
+      z: position.z,
+      ...(ellipsoid ? { axes: size } : { halfSize: size }),
+      rotation: { x: rotation.x, y: rotation.y, z: rotation.z, w: rotation.w },
+    });
   };
   const beam = (group, start, end, radius, mat = wood) => {
     const a = new THREE.Vector3(...start),
@@ -70,6 +111,14 @@ export function createOceanExtra(
       b.clone().sub(a).normalize(),
     );
     mesh.scale.set(radius, a.distanceTo(b), radius);
+    group.updateWorldMatrix(true, false);
+    colliders.push({
+      type: "capsule",
+      kind: "beam",
+      a: group.localToWorld(a.clone()),
+      b: group.localToWorld(b.clone()),
+      radius,
+    });
     return mesh;
   };
   const landmark = (name, x, z, radius = 250) => {
@@ -477,6 +526,13 @@ export function createOceanExtra(
     hotRings.setMatrixAt(index, dummy.matrix);
     smokers.push(new THREE.Vector3(x, y + height, z));
     obstacles.push({ x, y: y + height * 0.5, z, radius: 1.8 });
+    colliders.push({
+      type: "capsule",
+      kind: "chimney",
+      a: { x, y, z },
+      b: { x, y: y + height, z },
+      radius: 1.8,
+    });
   }
   root.add(chimneys, hotRings);
   const smokeGeometry = track(new THREE.BufferGeometry());
@@ -540,6 +596,8 @@ export function createOceanExtra(
           group.position.distanceToSquared(playerPosition) <
           group.userData.visibilityRadius ** 2;
       }
+      // 符文、热泉环与遗迹刻痕共用同一发光材质，缓慢呼吸提示地标活性。
+      glow.emissiveIntensity = 1.9 + Math.sin(time * 0.8) * 0.5;
     },
     dispose() {
       parent.remove(root);

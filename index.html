@@ -6,10 +6,10 @@
       name="viewport"
       content="width=device-width, initial-scale=1.0, viewport-fit=cover"
     />
-    <meta name="theme-color" content="#041d28" />
+    <meta name="theme-color" content="#020a12" />
     <meta
       name="description"
-      content="深渊猎游：从一只年轻虎鲸，成长为深海的顶级掠食者。沉浸式 3D 海洋生存游戏。"
+      content="深渊猎游：选择虎鲸或大王乌贼，成长为深海的顶级掠食者。沉浸式 3D 海洋生存游戏。"
     />
     <title>ABYSSAL · 深渊猎游</title>
     <link
@@ -18,15 +18,18 @@
     />
   </head>
   <body>
-    <canvas id="ocean" aria-label="深海生存游戏三维场景"></canvas>
+    <canvas id="ocean" tabindex="-1" aria-label="深海生存游戏三维场景"></canvas>
     <div id="vignette"></div>
     <div id="damage"></div>
+    <div id="ink-overlay" aria-hidden="true"></div>
+    <div id="lure-flash" aria-hidden="true"></div>
     <header>
       <a class="wordmark" href="./" aria-label="深渊猎游首页"
-        ><span class="brand-icon">⋀</span> ABYSSAL <small>深渊猎游</small></a
+        ><span class="brand-icon">⋀</span
+        ><span class="brand-name">ABYSSAL <small>深渊猎游</small></span></a
       >
       <div class="header-tools">
-        <span class="edition">DEEPER WATERS / 02</span
+        <span class="edition">EXPEDITIONS / 05.1</span
         ><button id="quality" title="切换画质">画质 · 高</button
         ><button id="sound" aria-label="切换声音">声音 · 开</button
         ><button id="pause" hidden>暂停</button>
@@ -37,10 +40,24 @@
         <div class="eyebrow"><span></span> AN OCEAN SURVIVAL EXPERIENCE</div>
         <h1>向深处。<br /><em>向食物链顶端。</em></h1>
         <p class="intro">阳光照不到的地方，<br />有些东西，正在等待你长大。</p>
-        <button id="start" class="primary">潜入海洋 <span>↗</span></button>
+        <div id="expedition-setup"></div>
+        <div class="menu-actions">
+          <button id="start" class="primary">潜入海洋 <span>↗</span></button>
+          <button id="open-guide" class="guide-open">
+            海洋图鉴 <small>猎物 · 猎手 · 领主</small>
+          </button>
+        </div>
+        <div class="menu-stats">
+          <div><b>28</b><span>收录生物</span></div>
+          <div><b>04</b><span>深渊领主</span></div>
+          <div>
+            <b>2500<i>+</i></b
+            ><span>垂直海沟 / m</span>
+          </div>
+        </div>
         <div class="menu-controls">
-          <span><kbd>鼠标</kbd> 转向</span><span><kbd>SPACE</kbd> 冲刺</span
-          ><span><kbd>E</kbd> 声呐</span>
+          <span><kbd>WASD</kbd> 转向</span><span><kbd>SPACE</kbd> 冲刺</span
+          ><span><kbd>K</kbd> 慢游</span><span><kbd>J</kbd> 角色技能</span>
         </div>
         <div class="journey">
           <b>01 <span>珊瑚浅海</span></b
@@ -48,77 +65,92 @@
           ><i></i><b>03 <span>火山深渊</span></b>
         </div>
       </div>
-      <div class="specimen">
-        <span>ORCINUS ORCA</span><strong>虎鲸 · 幼年个体</strong>
+      <aside class="specimen">
+        <span>ORCINUS ORCA · PLAYER</span><strong>虎鲸 · 幼年个体</strong>
         <p>
           从鱼群中成长，向主宰发起挑战。<br />30 米 + 一枚深渊印记，成为霸主。
         </p>
-      </div>
+      </aside>
       <footer class="menu-footer">
         <span>耳机体验更佳 · 推荐电脑全屏游玩</span
-        ><span>领地与破浪 / v0.2</span>
+        ><span>万象海洋 / v0.5.1</span>
       </footer>
     </main>
     <section id="hud" hidden aria-label="生存状态">
-      <div class="location">
-        <div class="eyebrow" id="zone-code">SUNLIT REEF</div>
-        <h2 id="zone-name">珊瑚浅海</h2>
-        <div class="depth">
-          <span id="depth">72</span><small>m / 深度</small>
+      <div id="hud-overview">
+        <div class="location">
+          <div class="eyebrow" id="zone-code">SUNLIT REEF</div>
+          <h2 id="zone-name">珊瑚浅海</h2>
+          <div class="depth">
+            <span id="depth">72</span><small>m / 深度</small>
+          </div>
+        </div>
+        <div class="mission">
+          <span class="mission-label">食物链进化</span
+          ><strong id="objective">捕食小鱼，成长至 10 米</strong>
+          <div class="growth-track"><i id="growth"></i></div>
+          <small class="mission-meta"
+            ><b id="length">6.0</b> / 30 m
+            <span id="eaten">已捕食 0</span></small
+          >
+          <small class="round-clock" id="round-clock">远征 30:00</small>
         </div>
       </div>
-      <div class="mission">
-        <span>食物链进化</span
-        ><strong id="objective">捕食小鱼，成长至 10 米</strong>
-        <div class="growth-track"><i id="growth"></i></div>
-        <small
-          ><b id="length">6.0</b> / 30 m <span id="eaten">已捕食 0</span></small
-        >
-      </div>
-      <div id="threat" hidden>
-        <i></i>
-        <div>
-          <strong id="threat-title">大白鲨正在追击</strong
-          ><span id="threat-detail">冲刺拉开距离，借岩石切断视线</span>
+      <div id="minimap" aria-label="海域雷达与返航方向"></div>
+      <div id="combat-status">
+        <div id="threat" hidden>
+          <i></i>
+          <div>
+            <strong id="threat-title">大白鲨正在追击</strong
+            ><span id="threat-detail">冲刺拉开距离，借岩石切断视线</span>
+          </div>
+          <b id="threat-distance"></b>
         </div>
-        <b id="threat-distance"></b>
-      </div>
-      <div id="boss-panel" hidden>
-        <div>
-          <span id="boss-phase">领地主宰</span><strong id="boss-name"></strong
-          ><b id="boss-hp"></b>
+        <div id="boss-panel" hidden>
+          <div class="boss-head">
+            <span id="boss-phase">领地主宰</span><strong id="boss-name"></strong
+            ><b id="boss-hp"></b>
+          </div>
+          <div class="boss-meter"><i id="boss-health"></i></div>
+          <p id="boss-tip"></p>
         </div>
-        <div class="boss-meter"><i id="boss-health"></i></div>
-        <p id="boss-tip"></p>
+        <div id="ink-status" hidden role="status">墨云遮蔽 · 横向游出云团</div>
+        <div id="notification" role="status" aria-live="polite"></div>
       </div>
-      <div id="reward-legend">
-        <span class="mint">＋ 体力泉 <small>回满体力</small></span
-        ><span class="blue">» 洋流之息 <small>12s 免费冲刺</small></span
-        ><span class="gold">⌁ 深渊狂食 <small>10s 越级捕食</small></span>
-      </div>
-      <div id="breach-hint">近水面向上冲刺 · 跃起捕食海鸥</div>
+      <div id="breach-hint">先在水下冲刺蓄势，再向上破浪</div>
       <div id="reticle"><i></i><span></span></div>
       <div id="target" hidden></div>
-      <div id="notification" role="status" aria-live="polite"></div>
+      <div id="sonar-markers" aria-hidden="true"></div>
+      <section id="sonar-panel" hidden aria-label="虎鲸声呐探测"></section>
+      <button
+        id="sonar-control"
+        class="skill-button"
+        type="button"
+        title="J · 探测10秒，冷却60秒"
+      >
+        J 声呐 · 就绪
+      </button>
       <div id="buffs"></div>
       <div class="bottom-hud">
         <div class="vitals">
           <div class="vital health">
-            <div>
+            <div class="vital-head">
               <span>生命 <small id="feeding-mode">健康成长</small></span
               ><b id="health-value">100</b>
             </div>
             <div class="meter"><i id="health-bar"></i></div>
           </div>
           <div class="vital stamina">
-            <div>
+            <div class="vital-head">
               <span>体力 <small>SPACE</small></span
               ><b id="stamina-value">100</b>
             </div>
             <div class="meter"><i id="stamina-bar"></i></div>
           </div>
           <div class="vital hunger">
-            <div><span>饱食</span><b id="hunger-value">100</b></div>
+            <div class="vital-head">
+              <span>饱食</span><b id="hunger-value">100</b>
+            </div>
             <div class="meter"><i id="hunger-bar"></i></div>
           </div>
         </div>
@@ -127,9 +159,9 @@
           ><small id="movement-mode">巡游</small>
         </div>
         <div class="key-guide">
-          <span><kbd>鼠标 / WASD</kbd> 转向</span
-          ><span><kbd>空格</kbd> 冲刺 <kbd>SHIFT</kbd> 慢游</span
-          ><span><kbd>E</kbd> 声呐 <kbd>F / 左键</kbd> 咬击主宰</span>
+          <span><kbd>WASD</kbd> 转向</span
+          ><span><kbd>空格</kbd> 冲刺 <kbd>K</kbd> 慢游</span
+          ><span><kbd>J</kbd> 角色技能 · 接触自动捕食</span>
         </div>
       </div>
       <div class="depth-rail">
@@ -137,13 +169,29 @@
       </div>
       <div id="touch-controls">
         <div id="joystick"><i></i></div>
-        <button id="touch-bite">咬击</button
-        ><button id="touch-sonar">声呐</button
-        ><button id="touch-boost">冲刺</button>
+        <div id="touch-skills" aria-label="角色特殊技能">
+          <button
+            id="touch-sonar"
+            class="skill-button"
+            type="button"
+            aria-label="虎鲸声呐，就绪"
+          >
+            <span>声呐</span><small id="touch-sonar-status">就绪</small>
+          </button>
+        </div>
+        <button id="touch-boost">冲刺</button>
       </div>
     </section>
-    <section id="overlay" class="screen modal" hidden>
-      <div>
+    <section
+      id="overlay"
+      class="screen modal"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="overlay-title"
+      aria-describedby="overlay-body"
+      hidden
+    >
+      <div class="modal-card">
         <div class="eyebrow" id="overlay-kicker">EXPEDITION PAUSED</div>
         <h2 id="overlay-title">海洋在等你。</h2>
         <p id="overlay-body">休息一下，再继续下潜。</p>

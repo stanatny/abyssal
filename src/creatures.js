@@ -1,6 +1,10 @@
 import * as THREE from "three";
 import { mergeGeometries } from "three/addons/utils/BufferGeometryUtils.js";
 import { buildExtraCreature, EXTRA_CREATURE_KINDS } from "./creature_extra.js";
+import {
+  buildEcosystemCreature,
+  ECOSYSTEM_CREATURE_KINDS,
+} from "./creature_ecosystem.js";
 
 /**
  * 创建原创程序化海洋生物，所有模型朝向 -Z，Y 轴向上。
@@ -18,14 +22,17 @@ export function createCreature(kind, length = 6, seed = 1) {
   let previousTime;
   let swimTime = phase;
 
-  if (kind === "orca") buildOrca(root, motions);
-  else if (kind === "shark") buildShark(root, motions, false);
-  else if (kind === "leviathan") buildShark(root, motions, true);
+  if (ECOSYSTEM_CREATURE_KINDS.has(kind))
+    buildEcosystemCreature(kind, root, motions);
+  else if (kind === "orca") buildOrca(root, motions);
+  else if (kind === "shark") buildShark(root, motions);
+  else if (kind === "leviathan") buildLeviathan(root, motions);
   else if (EXTRA_CREATURE_KINDS.has(kind))
     buildExtraCreature(kind, root, motions);
   else if (kind === "ray") buildRay(root, motions);
   else if (kind === "angler") buildAngler(root, motions);
-  else buildFish(root, motions, kind === "tuna", random);
+  else if (kind === "tuna") buildTuna(root, motions);
+  else buildFish(root, motions, random);
 
   mergeStaticParts(root, kind);
   root.scale.setScalar(length);
@@ -46,21 +53,27 @@ export function createCreature(kind, length = 6, seed = 1) {
 }
 
 const MATERIALS = {
-  orca: material("#10212a", 0.3),
+  orca: material("#0d1c24", 0.34),
   white: material("#e2f1e7", 0.4),
   body: material("#ffffff", 0.4, { vertexColors: true }),
   eye: material("#03080b", 0.12),
   mouth: material("#08151c", 0.7),
   gum: material("#291523", 0.55),
-  tooth: material("#b9c9b4", 0.5),
-  shark: material("#617e8b", 0.38),
-  ray: material("#20394b", 0.5),
+  tooth: material("#cfd8c2", 0.45),
+  shark: material("#36505c", 0.42),
+  ray: material("#1d3448", 0.5),
   fin: material("#4c8b9b", 0.45),
+  finlet: material("#d9b24c", 0.5),
   angler: material("#394b55", 0.67),
   kraken: material("#401f4b", 0.48),
   suckers: material("#b575ae", 0.55),
-  leviathan: material("#1f3c4a", 0.48),
-  armor: material("#395967", 0.58),
+  leviathan: material("#12242f", 0.44),
+  armor: material("#33505e", 0.55),
+  bone: material("#cfc9a8", 0.5),
+  glowCore: material("#eafef8", 0.25, {
+    emissive: "#c8fff0",
+    emissiveIntensity: 3.2,
+  }),
   aqua: material("#73e6e0", 0.3, {
     emissive: "#25deca",
     emissiveIntensity: 2.4,
@@ -78,383 +91,776 @@ const MATERIALS = {
 const SPHERE = new THREE.SphereGeometry(1, 14, 10);
 const SMALL_SPHERE = new THREE.SphereGeometry(1, 8, 6);
 const GEOMETRY_CACHE = new Map();
+const SADDLE = new THREE.Color("#6d828a");
 
 // 每个截面依次为 Z、横向半径、竖向半径、竖向偏移。
 const ORCA_PROFILE = [
-  [-0.46, 0.012, 0.025, -0.015],
-  [-0.43, 0.064, 0.071, -0.006],
-  [-0.35, 0.115, 0.119, 0.012],
-  [-0.21, 0.148, 0.143, 0.01],
-  [-0.05, 0.145, 0.142, 0],
-  [0.12, 0.108, 0.116, -0.012],
-  [0.27, 0.049, 0.058, -0.023],
-  [0.37, 0.017, 0.028, -0.026],
-  [0.405, 0.006, 0.013, -0.026],
+  [-0.475, 0.01, 0.016, -0.006],
+  [-0.45, 0.054, 0.056, -0.004],
+  [-0.4, 0.098, 0.101, 0.004],
+  [-0.32, 0.133, 0.135, 0.01],
+  [-0.2, 0.153, 0.151, 0.006],
+  [-0.04, 0.151, 0.148, 0],
+  [0.1, 0.127, 0.129, -0.004],
+  [0.22, 0.085, 0.091, -0.01],
+  [0.32, 0.05, 0.06, -0.014],
+  [0.4, 0.022, 0.03, -0.016],
+  [0.435, 0.005, 0.011, -0.016],
 ];
 
 const SHARK_PROFILE = [
-  [-0.49, 0.004, 0.008, -0.015],
-  [-0.44, 0.055, 0.04, -0.005],
-  [-0.35, 0.103, 0.09, 0],
-  [-0.19, 0.12, 0.115, 0],
-  [0.02, 0.095, 0.095, 0],
-  [0.18, 0.052, 0.053, 0],
-  [0.32, 0.021, 0.026, 0],
-  [0.39, 0.009, 0.011, 0],
+  [-0.48, 0.004, 0.007, -0.003],
+  [-0.44, 0.031, 0.033, -0.002],
+  [-0.36, 0.076, 0.083, 0.002],
+  [-0.24, 0.116, 0.123, 0.004],
+  [-0.06, 0.133, 0.133, 0.002],
+  [0.1, 0.109, 0.111, 0],
+  [0.24, 0.061, 0.065, 0],
+  [0.35, 0.025, 0.031, 0.002],
+  [0.41, 0.008, 0.013, 0.004],
 ];
 
-function buildOrca(root, motions) {
-  const body = cached("orca_body", () =>
-    bodyGeometry(ORCA_PROFILE, "#071720", "#e4f4ec", "orca"),
-  );
-  mesh(root, body, MATERIALS.body);
+const LEVIATHAN_PROFILE = [
+  [-0.485, 0.006, 0.01, -0.002],
+  [-0.45, 0.048, 0.056, 0],
+  [-0.37, 0.099, 0.109, 0.004],
+  [-0.24, 0.139, 0.143, 0.006],
+  [-0.05, 0.143, 0.139, 0.002],
+  [0.13, 0.113, 0.109, -0.002],
+  [0.27, 0.063, 0.061, -0.002],
+  [0.37, 0.027, 0.031, 0],
+  [0.425, 0.009, 0.013, 0.002],
+];
 
-  // 眼斑贴合体表，避免从侧面观察时呈现浮起的白色球体。
+function orcaColors(z, y, shade, upper, lower) {
+  // 下颌白区、胸腹白区向后沿体侧上卷，是虎鲸最易辨认的体色特征。
+  let threshold;
+  if (z < -0.34) threshold = -0.05;
+  else if (z < -0.05) threshold = -0.4;
+  else if (z < 0.16) threshold = -0.36;
+  else if (z < 0.34) threshold = -0.36 + ((z - 0.16) / 0.18) * 0.52;
+  else threshold = -0.55;
+  shade
+    .copy(upper)
+    .lerp(
+      lower,
+      1 - THREE.MathUtils.smoothstep(y, threshold - 0.09, threshold + 0.09),
+    );
+  if (z > 0.135 && z < 0.24 && y > 0.28) {
+    const saddle =
+      Math.sin(((z - 0.135) / 0.105) * Math.PI) *
+      0.5 *
+      THREE.MathUtils.smoothstep(y, 0.28, 0.55);
+    shade.lerp(SADDLE, saddle);
+  }
+}
+
+function orcaSection(z, theta) {
+  const s = Math.abs(Math.sin(theta));
+  const keel =
+    THREE.MathUtils.smoothstep(z, 0.22, 0.32) *
+    (1 - THREE.MathUtils.smoothstep(z, 0.38, 0.44)) *
+    THREE.MathUtils.smoothstep(s, 0.68, 0.95) *
+    0.22;
+  return [1, 1 + keel];
+}
+
+function buildOrca(root, motions) {
+  const inner = new THREE.Group();
+  root.add(inner);
+  mesh(
+    inner,
+    cached("orca_body", () =>
+      bodyGeometry(ORCA_PROFILE, "#0a181f", "#e6f2ea", {
+        rings: 54,
+        sides: 34,
+        colorFn: orcaColors,
+        sectionFn: orcaSection,
+      }),
+    ),
+    MATERIALS.body,
+  );
+
+  // 眼斑贴合体表，向后上方倾斜拉长。
   for (const side of [-1, 1]) {
     mesh(
-      root,
+      inner,
       cached(`orca_patch_${side}`, () =>
-        surfacePatch(ORCA_PROFILE, -0.295, 0.012, 0.058, 0.035, side),
+        surfacePatch(ORCA_PROFILE, -0.305, 0.052, 0.052, 0.026, side, -0.42),
       ),
       MATERIALS.white,
     );
     ellipsoid(
-      root,
+      inner,
       MATERIALS.eye,
-      [side * 0.098, 0.022, -0.361],
-      [0.01, 0.01, 0.012],
+      [side * 0.099, 0.014, -0.364],
+      [0.0105, 0.0105, 0.0125],
     );
     ellipsoid(
-      root,
+      inner,
       MATERIALS.white,
-      [side * 0.104, 0.025, -0.363],
-      [0.002, 0.002, 0.003],
+      [side * 0.105, 0.019, -0.368],
+      [0.003, 0.003, 0.0035],
     );
-    const mouthPoints = [
-      [side * 0.035, -0.04, -0.448],
-      [side * 0.073, -0.057, -0.408],
-      [side * 0.092, -0.064, -0.354],
-      [side * 0.093, -0.057, -0.311],
-    ];
-    mesh(root, tube(mouthPoints, 0.0024), MATERIALS.mouth);
+    mesh(
+      inner,
+      tube(
+        [
+          [side * 0.018, -0.052, -0.455],
+          [side * 0.062, -0.072, -0.415],
+          [side * 0.089, -0.08, -0.352],
+          [side * 0.094, -0.072, -0.3],
+        ],
+        0.0026,
+      ),
+      MATERIALS.mouth,
+    );
+    // 宽大桨状胸鳍，游动时轻缓划水，冲刺时向后收拢。
     const flipper = new THREE.Group();
-    flipper.position.set(side * 0.092, -0.05, -0.19);
-    root.add(flipper);
+    flipper.position.set(side * 0.095, -0.055, -0.185);
+    inner.add(flipper);
     mesh(
       flipper,
-      blade(
-        [
-          [0, 0, -0.045],
-          [side * 0.103, -0.06, -0.013],
-          [side * 0.174, -0.089, 0.09],
-          [side * 0.17, -0.077, 0.14],
-          [side * 0.12, -0.039, 0.13],
-          [side * 0.025, 0.005, 0.045],
-        ],
-        0.013,
-        "y",
+      cached(`orca_flipper_${side}`, () =>
+        finSolid(
+          mirrorOutline(
+            [
+              [0.0, 0.02],
+              [-0.05, 0.055],
+              [-0.06, 0.13],
+              [-0.02, 0.21],
+              [0.04, 0.225],
+              [0.075, 0.155],
+              [0.06, 0.06],
+            ],
+            side,
+          ),
+          0.016,
+          "horizontal",
+          { bevel: 0.007 },
+        ),
       ),
       MATERIALS.orca,
     );
-    motions.push((t) => {
-      flipper.rotation.z = side * (0.06 + Math.sin(t * 0.55) * 0.07);
-      flipper.rotation.x = Math.sin(t * 0.55 + 0.8) * 0.05;
+    motions.push((t, effort) => {
+      const sprint = THREE.MathUtils.smoothstep(effort, 1.25, 2.3);
+      flipper.rotation.z =
+        -side * (0.34 + Math.sin(t * 1.12 + 1.2) * 0.07 * (1 - sprint * 0.6));
+      flipper.rotation.x = Math.sin(t * 1.12 + 0.6) * 0.05;
+      flipper.rotation.y = side * (0.18 + sprint * 0.22);
     });
   }
+  // 高大镰刀形背鳍，从正后方也能立刻认出虎鲸。
   mesh(
-    root,
-    blade(
-      [
-        [0, 0.111, -0.07],
-        [0, 0.285, -0.04],
-        [0, 0.343, 0.002],
-        [0, 0.325, 0.028],
-        [0, 0.179, 0.069],
-        [0, 0.092, 0.137],
-      ],
-      0.016,
-      "x",
+    inner,
+    cached("orca_dorsal", () =>
+      finSolid(
+        [
+          [-0.115, 0.12],
+          [-0.055, 0.235],
+          [0.01, 0.345],
+          [0.055, 0.415],
+          [0.088, 0.4],
+          [0.108, 0.3],
+          [0.135, 0.175],
+          [0.125, 0.124],
+        ],
+        0.016,
+        "vertical",
+        { bevel: 0.006 },
+      ),
     ),
     MATERIALS.orca,
   );
 
   const tail = new THREE.Group();
-  tail.position.set(0, -0.026, 0.335);
-  root.add(tail);
-  for (const side of [-1, 1]) {
-    mesh(
-      tail,
-      blade(
+  tail.position.set(0, -0.016, 0.4);
+  inner.add(tail);
+  mesh(
+    tail,
+    cached("orca_flukes", () =>
+      finSolid(
         [
-          [0, 0, 0.015],
-          [side * 0.098, 0.003, 0.032],
-          [side * 0.232, 0.01, 0.112],
-          [side * 0.221, 0.007, 0.138],
-          [side * 0.132, -0.002, 0.12],
-          [side * 0.036, -0.004, 0.124],
-          [0, -0.002, 0.103],
+          [0.0, 0.0],
+          [0.05, 0.1],
+          [0.125, 0.185],
+          [0.155, 0.26],
+          [0.125, 0.245],
+          [0.08, 0.13],
+          [0.05, 0.02],
+          [0.038, 0.0],
+          [0.05, -0.02],
+          [0.08, -0.13],
+          [0.125, -0.245],
+          [0.155, -0.26],
+          [0.125, -0.185],
+          [0.05, -0.1],
         ],
-        0.008,
-        "y",
+        0.013,
+        "horizontal",
+        { bevel: 0.005 },
       ),
-      MATERIALS.orca,
-    );
-  }
+    ),
+    MATERIALS.orca,
+  );
   motions.push((t, effort) => {
-    tail.rotation.x = Math.sin(t) * (0.14 + effort * 0.05);
-    tail.position.y = -0.026 + Math.sin(t - 0.5) * 0.009;
+    const sprint = THREE.MathUtils.smoothstep(effort, 1.25, 2.3);
+    const beat = t * 1.12;
+    // 尾鳍上下摆动推进；冲刺时摆幅加大、身体绷紧前压。
+    tail.rotation.x = Math.sin(beat) * (0.13 + effort * 0.05);
+    tail.rotation.y = Math.sin(beat - 0.4) * 0.02;
+    tail.position.y = -0.016 + Math.sin(beat - 0.55) * 0.009;
+    inner.position.y = Math.sin(beat - 1.05) * 0.007;
+    inner.rotation.x = Math.sin(beat - 0.8) * 0.02 - sprint * 0.05;
+    inner.rotation.z = Math.sin(t * 0.42) * 0.04 * (1 - sprint * 0.75);
+    inner.rotation.y = Math.sin(beat) * 0.014;
   });
 }
 
-function buildShark(root, motions, monster) {
-  const skin = monster ? MATERIALS.leviathan : MATERIALS.shark;
+function countershaded(threshold, softness = 0.12) {
+  return (z, y, shade, upper, lower) => {
+    shade
+      .copy(upper)
+      .lerp(
+        lower,
+        1 -
+          THREE.MathUtils.smoothstep(
+            y,
+            threshold - softness,
+            threshold + softness,
+          ),
+      );
+  };
+}
+
+function buildShark(root, motions) {
+  const inner = new THREE.Group();
+  root.add(inner);
   mesh(
-    root,
-    cached(monster ? "leviathan_body" : "shark_body", () =>
-      bodyGeometry(
-        SHARK_PROFILE,
-        monster ? "#153444" : "#536f80",
-        monster ? "#4c6670" : "#dae5dd",
-      ),
+    inner,
+    cached("shark_body", () =>
+      bodyGeometry(SHARK_PROFILE, "#3e5765", "#e0e8e0", {
+        colorFn: countershaded(-0.12),
+        sectionFn: (z, theta) => [1, Math.sin(theta) < 0 ? 0.94 : 1],
+      }),
     ),
     MATERIALS.body,
   );
   for (const side of [-1, 1]) {
     ellipsoid(
-      root,
+      inner,
       MATERIALS.eye,
-      [side * 0.087, 0.028, -0.367],
-      [0.012, 0.012, 0.015],
+      [side * 0.086, 0.026, -0.355],
+      [0.0135, 0.0135, 0.016],
     );
-    if (monster)
-      ellipsoid(
-        root,
-        MATERIALS.amber,
-        [side * 0.096, 0.029, -0.371],
-        [0.003, 0.009, 0.01],
-      );
+    ellipsoid(
+      inner,
+      MATERIALS.white,
+      [side * 0.09, 0.031, -0.36],
+      [0.0035, 0.0035, 0.004],
+    );
+    // 鳃裂贴合体表，不再悬空。
     for (let index = 0; index < 5; index++) {
-      const z = -0.248 + index * 0.021;
-      mesh(
-        root,
-        tube(
-          [
-            [side * 0.107, 0.05, z],
-            [side * 0.124, 0.008, z + 0.006],
-            [side * 0.105, -0.052, z + 0.012],
-          ],
-          0.0022,
-        ),
+      const slit = ellipsoid(
+        inner,
         MATERIALS.mouth,
+        [side * (0.104 - index * 0.002), 0.01, -0.208 - index * 0.017],
+        [0.002, 0.021, 0.0085],
       );
+      slit.rotation.x = 0.35;
+      slit.rotation.y = -side * 0.25;
     }
-    mesh(
-      root,
-      blade(
-        [
-          [side * 0.085, -0.055, -0.19],
-          [side * 0.267, -0.085, -0.015],
-          [side * 0.307, -0.092, 0.08],
-          [side * 0.19, -0.044, 0.047],
-          [side * 0.084, -0.039, -0.023],
-        ],
-        0.008,
-        "y",
-      ),
-      skin,
+    ellipsoid(
+      inner,
+      MATERIALS.mouth,
+      [side * 0.016, -0.022, -0.448],
+      [0.003, 0.002, 0.004],
     );
+    const pectoral = new THREE.Group();
+    pectoral.position.set(side * 0.07, -0.055, -0.1);
+    inner.add(pectoral);
     mesh(
-      root,
-      blade(
+      pectoral,
+      cached(`shark_pectoral_${side}`, () =>
+        finSolid(
+          mirrorOutline(
+            [
+              [-0.155, 0.085],
+              [-0.075, 0.19],
+              [0.065, 0.305],
+              [0.085, 0.283],
+              [0.02, 0.16],
+              [0.0, 0.09],
+            ],
+            side,
+          ),
+          0.01,
+          "horizontal",
+          { bevel: 0.004 },
+        ),
+      ),
+      MATERIALS.shark,
+    );
+    motions.push((t, effort) => {
+      pectoral.rotation.z =
+        -side * (0.16 + Math.sin(t * 1.3 + 1.4) * 0.04 * (2 - effort));
+      pectoral.rotation.y =
+        side * THREE.MathUtils.smoothstep(effort, 1.4, 2.6) * 0.15;
+    });
+    mesh(
+      inner,
+      cached(`shark_pelvic_${side}`, () =>
+        finSolid(
+          mirrorOutline(
+            [
+              [0.16, 0.02],
+              [0.205, 0.075],
+              [0.255, 0.02],
+            ],
+            side,
+          ),
+          0.005,
+          "horizontal",
+          { bevel: 0.002 },
+        ),
+      ),
+      MATERIALS.shark,
+    ).position.set(side * 0.03, -0.085, 0.0);
+  }
+  mesh(
+    inner,
+    cached("shark_dorsal", () =>
+      finSolid(
         [
-          [side * 0.056, -0.029, 0.125],
-          [side * 0.13, -0.039, 0.222],
-          [side * 0.043, -0.037, 0.201],
+          [-0.1, 0.118],
+          [-0.03, 0.235],
+          [0.035, 0.295],
+          [0.068, 0.268],
+          [0.05, 0.19],
+          [0.1, 0.124],
+        ],
+        0.013,
+        "vertical",
+        { bevel: 0.005 },
+      ),
+    ),
+    MATERIALS.shark,
+  );
+  mesh(
+    inner,
+    cached("shark_dorsal2", () =>
+      finSolid(
+        [
+          [0.245, 0.052],
+          [0.27, 0.1],
+          [0.298, 0.05],
+        ],
+        0.005,
+        "vertical",
+        { bevel: 0.002 },
+      ),
+    ),
+    MATERIALS.shark,
+  );
+  mesh(
+    inner,
+    cached("shark_anal", () =>
+      finSolid(
+        [
+          [0.27, -0.048],
+          [0.31, -0.1],
+          [0.335, -0.042],
         ],
         0.004,
-        "y",
+        "vertical",
+        { bevel: 0.002 },
       ),
-      skin,
+    ),
+    MATERIALS.shark,
+  );
+
+  // 吻下腹位的弧形嘴与隐约齿列。
+  mesh(
+    inner,
+    cached("shark_mouth", () =>
+      tube(
+        [
+          [-0.062, -0.046, -0.405],
+          [0, -0.066, -0.392],
+          [0.062, -0.046, -0.405],
+        ],
+        0.0042,
+      ),
+    ),
+    MATERIALS.gum,
+  );
+  const teeth = [];
+  for (let index = -3; index <= 3; index++) {
+    const x = index * 0.0145;
+    const arc = Math.sqrt(Math.max(0, 1 - (index / 3.6) ** 2));
+    teeth.push(
+      coneGeometry(
+        [x, -0.048 - 0.012 * arc, -0.402],
+        [x * 0.4, -1, 0.15],
+        0.0032,
+        0.012,
+      ),
     );
   }
   mesh(
-    root,
-    blade(
-      [
-        [0, 0.1, -0.1],
-        [0, 0.271, 0.004],
-        [0, 0.114, 0.081],
-        [0, 0.071, 0.14],
-      ],
-      0.01,
-      "x",
-    ),
-    skin,
-  );
-  mesh(
-    root,
-    blade(
-      [
-        [0, 0.049, 0.18],
-        [0, 0.099, 0.227],
-        [0, 0.021, 0.267],
-      ],
-      0.004,
-      "x",
-    ),
-    skin,
+    inner,
+    cached("shark_teeth", () => mergeAndDispose(teeth)),
+    MATERIALS.tooth,
   );
 
   const tail = new THREE.Group();
-  tail.position.z = 0.327;
-  root.add(tail);
+  tail.position.set(0, 0.004, 0.385);
+  inner.add(tail);
   mesh(
     tail,
-    blade(
-      [
-        [0, 0, 0],
-        [0, 0.191, 0.155],
-        [0, 0.205, 0.18],
-        [0, 0.078, 0.148],
-        [0, 0.008, 0.091],
-        [0, -0.123, 0.16],
-        [0, -0.14, 0.15],
-        [0, -0.06, 0.047],
-      ],
-      0.009,
-      "x",
-    ),
-    skin,
-  );
-  motions.push((t, effort) => {
-    tail.rotation.y = Math.sin(t) * (0.18 + effort * 0.05);
-  });
-
-  // 黑色口腔和两排不规则齿形成从前方接近时的捕食者轮廓。
-  ellipsoid(root, MATERIALS.gum, [0, -0.043, -0.432], [0.054, 0.023, 0.025]);
-  const teeth = [];
-  for (let index = -4; index <= 4; index++) {
-    const x = index * 0.01;
-    const arc = Math.sqrt(1 - (index / 5) ** 2);
-    teeth.push(
-      coneGeometry(
-        [x, -0.031 - 0.004 * arc, -0.45],
-        [0, -1, -0.25],
-        0.004,
-        monster ? 0.022 : 0.013,
+    cached("shark_tail", () =>
+      finSolid(
+        [
+          [-0.02, -0.03],
+          [0.01, 0.05],
+          [0.075, 0.155],
+          [0.115, 0.205],
+          [0.126, 0.184],
+          [0.065, 0.03],
+          [0.055, -0.01],
+          [0.095, -0.085],
+          [0.106, -0.1],
+          [0.06, -0.045],
+        ],
+        0.009,
+        "vertical",
+        { bevel: 0.003 },
       ),
-    );
-    teeth.push(coneGeometry([x, -0.058, -0.445], [0, 1, -0.25], 0.003, 0.009));
-  }
-  mesh(root, mergeGeometries(teeth), MATERIALS.tooth);
-
-  if (monster) {
-    for (const side of [-1, 1]) {
-      mesh(
-        root,
-        tube(
-          [
-            [side * 0.096, 0.055, -0.26],
-            [side * 0.153, 0.08, -0.18],
-            [side * 0.175, 0.138, -0.28],
-            [side * 0.165, 0.205, -0.42],
-          ],
-          0.012,
-        ),
-        MATERIALS.armor,
-      );
-      mesh(
-        root,
-        tube(
-          [
-            [side * 0.096, 0.017, -0.3],
-            [side * 0.123, 0.015, -0.18],
-            [side * 0.112, 0.005, -0.06],
-            [side * 0.081, 0.005, 0.09],
-            [side * 0.04, 0, 0.255],
-          ],
-          0.003,
-        ),
-        MATERIALS.aqua,
-      );
-      for (let index = 0; index < 7; index++) {
-        const z = -0.17 + index * 0.06;
-        const radius = sampleProfile(SHARK_PROFILE, z)[0];
-        mesh(
-          root,
-          blade(
+    ),
+    MATERIALS.shark,
+  );
+  for (const side of [-1, 1]) {
+    mesh(
+      tail,
+      cached(`shark_keel_${side}`, () =>
+        finSolid(
+          mirrorOutline(
             [
-              [side * radius * 0.62, 0.048, z - 0.016],
-              [side * (radius + 0.063), 0.117, z + 0.027],
-              [side * radius * 0.69, 0.023, z + 0.042],
+              [-0.045, 0.028],
+              [-0.015, 0.058],
+              [0.015, 0.03],
             ],
-            0.005,
-            "x",
+            side,
           ),
-          index % 3 === 0 ? MATERIALS.aqua : MATERIALS.armor,
-        );
-      }
-    }
+          0.004,
+          "horizontal",
+          { bevel: 0.0015 },
+        ),
+      ),
+      MATERIALS.shark,
+    );
   }
+  motions.push((t, effort) => {
+    const beat = t * 1.3;
+    // 鲨鱼尾鳍左右侧摆，身体小幅反向扭动。
+    tail.rotation.y = Math.sin(beat) * (0.16 + effort * 0.05);
+    inner.rotation.y = -Math.sin(beat) * 0.028;
+    inner.rotation.z = Math.sin(t * 0.5) * 0.03;
+    inner.position.y = Math.sin(beat - 0.9) * 0.004;
+  });
 }
 
-function buildFish(root, motions, tuna, random) {
-  const colorId = Math.floor(random() * 5);
-  const palettes = tuna
-    ? ["#25485d", "#b8d3ce"]
-    : [
-        ["#208ca9", "#b3e2d5"],
-        ["#e9a048", "#f8e2a8"],
-        ["#648fc5", "#d1d6f1"],
-        ["#b95178", "#e8b8a4"],
-        ["#64b2a2", "#d2e9b9"],
-      ][colorId];
-  const profile = [
-    [-0.45, 0.008, 0.012, 0],
-    [-0.33, 0.067, 0.105, 0],
-    [-0.12, tuna ? 0.092 : 0.074, tuna ? 0.126 : 0.15, 0],
-    [0.12, 0.05, 0.08, 0],
-    [0.31, 0.013, 0.023, 0],
-    [0.36, 0.006, 0.012, 0],
-  ];
+function buildLeviathan(root, motions) {
+  const inner = new THREE.Group();
+  root.add(inner);
   mesh(
-    root,
-    cached(`fish_${tuna}_${colorId}`, () => bodyGeometry(profile, ...palettes)),
+    inner,
+    cached("leviathan_body", () =>
+      bodyGeometry(LEVIATHAN_PROFILE, "#16303a", "#4a656e", {
+        rings: 50,
+        sides: 32,
+        colorFn: countershaded(-0.28, 0.16),
+      }),
+    ),
+    MATERIALS.body,
+  );
+  // 锯齿状连体脊冠而非散乱骨板，与大白鲨的三角背鳍形成剪影差异。
+  mesh(
+    inner,
+    cached("leviathan_ridge", () => {
+      const outline = [[-0.18, 0.125]];
+      for (let index = 0; index < 7; index++) {
+        const z = -0.16 + index * 0.088;
+        const height = 0.115 - index * 0.011;
+        const [, y] = sampleProfile(LEVIATHAN_PROFILE, z);
+        outline.push([z + 0.02, y + height * 0.38]);
+        outline.push([z + 0.05, y + height]);
+        outline.push([z + 0.088, y + height * 0.38]);
+      }
+      outline.push([0.44, 0.02]);
+      return finSolid(outline, 0.02, "vertical", {
+        smooth: false,
+        bevel: 0.004,
+      });
+    }),
+    MATERIALS.armor,
+  );
+  for (let index = 0; index < 4; index++) {
+    const z = -0.08 + index * 0.13;
+    const [, y] = sampleProfile(LEVIATHAN_PROFILE, z + 0.05);
+    ellipsoid(
+      inner,
+      MATERIALS.aqua,
+      [0, y + 0.04 - index * 0.007, z + 0.05],
+      [0.007, 0.009, 0.012],
+    );
+  }
+  for (const side of [-1, 1]) {
+    // 头部装甲眉脊与发光双目。
+    const brow = ellipsoid(
+      inner,
+      MATERIALS.armor,
+      [side * 0.075, 0.085, -0.35],
+      [0.075, 0.045, 0.1],
+    );
+    brow.rotation.x = -0.15;
+    brow.rotation.z = side * 0.12;
+    ellipsoid(
+      inner,
+      MATERIALS.eye,
+      [side * 0.093, 0.03, -0.36],
+      [0.017, 0.019, 0.021],
+    );
+    ellipsoid(
+      inner,
+      MATERIALS.amber,
+      [side * 0.099, 0.031, -0.366],
+      [0.009, 0.011, 0.012],
+    );
+    // 上下两对触须向后飘摆，是冲锋巨兽的标志轮廓。
+    mesh(
+      inner,
+      cached(`leviathan_whisker_low_${side}`, () =>
+        taperedTube(
+          curveFrom([
+            [side * 0.05, -0.012, -0.44],
+            [side * 0.13, -0.032, -0.36],
+            [side * 0.2, -0.058, -0.2],
+          ]),
+          0.009,
+          0.002,
+        ),
+      ),
+      MATERIALS.armor,
+    );
+    mesh(
+      inner,
+      cached(`leviathan_whisker_up_${side}`, () =>
+        taperedTube(
+          curveFrom([
+            [side * 0.07, 0.05, -0.4],
+            [side * 0.16, 0.09, -0.3],
+            [side * 0.22, 0.125, -0.12],
+          ]),
+          0.008,
+          0.0015,
+        ),
+      ),
+      MATERIALS.armor,
+    );
+    // 体侧发光侧线与光点。
+    mesh(
+      inner,
+      cached(`leviathan_glowline_${side}`, () =>
+        tube(
+          [
+            [side * 0.1, 0.02, -0.28],
+            [side * 0.126, 0.012, -0.05],
+            [side * 0.1, 0.01, 0.18],
+            [side * 0.05, 0.008, 0.36],
+          ],
+          0.0035,
+        ),
+      ),
+      MATERIALS.aqua,
+    );
+    const fin = new THREE.Group();
+    fin.position.set(side * 0.08, -0.05, -0.1);
+    inner.add(fin);
+    mesh(
+      fin,
+      cached(`leviathan_fin_${side}`, () =>
+        finSolid(
+          mirrorOutline(
+            [
+              [-0.14, 0.06],
+              [-0.02, 0.22],
+              [0.16, 0.335],
+              [0.18, 0.305],
+              [0.02, 0.14],
+            ],
+            side,
+          ),
+          0.011,
+          "horizontal",
+          { bevel: 0.004 },
+        ),
+      ),
+      MATERIALS.leviathan,
+    );
+    motions.push((t, effort) => {
+      fin.rotation.z =
+        -side * (0.2 + Math.sin(t * 0.9 + 1) * 0.035 * (2 - effort));
+      fin.rotation.y =
+        side * THREE.MathUtils.smoothstep(effort, 1.3, 2.4) * 0.3;
+    });
+  }
+  mesh(
+    inner,
+    cached("leviathan_mouth", () =>
+      tube(
+        [
+          [-0.075, -0.052, -0.41],
+          [0, -0.078, -0.395],
+          [0.075, -0.052, -0.41],
+        ],
+        0.005,
+      ),
+    ),
+    MATERIALS.gum,
+  );
+  const fangs = [];
+  for (let index = -3; index <= 3; index++) {
+    if (index === 0) continue;
+    const x = index * 0.019;
+    const long = Math.abs(index) % 2 === 1;
+    fangs.push(
+      coneGeometry(
+        [x, -0.062, -0.406],
+        [x * 0.3, -1, 0.12],
+        0.005,
+        long ? 0.03 : 0.018,
+      ),
+    );
+  }
+  mesh(
+    inner,
+    cached("leviathan_fangs", () => mergeAndDispose(fangs)),
+    MATERIALS.bone,
+  );
+
+  const tail = new THREE.Group();
+  tail.position.set(0, 0.002, 0.4);
+  inner.add(tail);
+  mesh(
+    tail,
+    cached("leviathan_tail", () =>
+      finSolid(
+        [
+          [-0.015, 0],
+          [0.03, 0.09],
+          [0.1, 0.2],
+          [0.116, 0.184],
+          [0.055, 0.02],
+          [0.045, 0],
+          [0.055, -0.02],
+          [0.116, -0.184],
+          [0.1, -0.2],
+          [0.03, -0.09],
+        ],
+        0.01,
+        "vertical",
+        { bevel: 0.003 },
+      ),
+    ),
+    MATERIALS.leviathan,
+  );
+  motions.push((t, effort) => {
+    const sprint = THREE.MathUtils.smoothstep(effort, 1.2, 2.2);
+    const beat = t * 0.95;
+    // 冲锋姿态：高速时收鳍低头，尾鳍大幅强力侧摆。
+    tail.rotation.y = Math.sin(beat) * (0.13 + effort * 0.05);
+    inner.rotation.y = -Math.sin(beat) * 0.022;
+    inner.rotation.x = -sprint * 0.055 + Math.sin(beat - 0.7) * 0.012;
+    inner.rotation.z = Math.sin(t * 0.4) * 0.02 * (1 - sprint * 0.6);
+  });
+}
+
+const FISH_PALETTES = [
+  ["#208ca9", "#b3e2d5"],
+  ["#e9a048", "#f8e2a8"],
+  ["#648fc5", "#d1d6f1"],
+  ["#b95178", "#e8b8a4"],
+  ["#64b2a2", "#d2e9b9"],
+];
+
+function buildFish(root, motions, random) {
+  const colorId = Math.floor(random() * FISH_PALETTES.length);
+  const profile = [
+    [-0.44, 0.006, 0.012, 0],
+    [-0.36, 0.036, 0.078, 0],
+    [-0.2, 0.053, 0.136, 0],
+    [-0.02, 0.049, 0.146, 0],
+    [0.14, 0.035, 0.106, 0],
+    [0.28, 0.014, 0.042, 0],
+    [0.345, 0.004, 0.015, 0],
+  ];
+  const inner = new THREE.Group();
+  root.add(inner);
+  mesh(
+    inner,
+    cached(`fish_body_${colorId}`, () =>
+      bodyGeometry(profile, ...FISH_PALETTES[colorId], {
+        rings: 26,
+        sides: 20,
+        colorFn: countershaded(-0.3, 0.18),
+      }),
+    ),
     MATERIALS.body,
   );
   mesh(
-    root,
+    inner,
     cached("fish_fins", () => {
       const fins = [
-        blade(
+        finSolid(
           [
-            [0, 0.105, -0.22],
-            [0, 0.219, -0.03],
-            [0, 0.093, 0.095],
+            [-0.2, 0.135],
+            [-0.1, 0.228],
+            [0.02, 0.148],
+          ],
+          0.004,
+          "vertical",
+          { bevel: 0.0015 },
+        ),
+        finSolid(
+          [
+            [0.08, -0.115],
+            [0.16, -0.188],
+            [0.22, -0.09],
           ],
           0.003,
-          "x",
-        ),
-        blade(
-          [
-            [0, -0.09, -0.01],
-            [0, -0.162, 0.15],
-            [0, -0.025, 0.23],
-          ],
-          0.002,
-          "x",
+          "vertical",
+          { bevel: 0.0012 },
         ),
       ];
       for (const side of [-1, 1]) {
         fins.push(
-          blade(
-            [
-              [side * 0.057, -0.018, -0.2],
-              [side * 0.15, -0.026, 0.036],
-              [side * 0.055, -0.011, -0.03],
-            ],
-            0.002,
-            "y",
+          placeGeometry(
+            finSolid(
+              mirrorOutline(
+                [
+                  [-0.13, 0.045],
+                  [-0.05, 0.1],
+                  [-0.02, 0.05],
+                ],
+                side,
+              ),
+              0.0025,
+              "horizontal",
+              { bevel: 0.001 },
+            ),
+            [side * 0.028, -0.045, -0.06],
+            [0.2, 0, -side * 0.5],
           ),
         );
       }
@@ -463,13 +869,13 @@ function buildFish(root, motions, tuna, random) {
     MATERIALS.fin,
   );
   mesh(
-    root,
+    inner,
     cached("fish_eyes", () => {
       const eyes = [];
       for (const side of [-1, 1]) {
         const geometry = SMALL_SPHERE.clone();
-        geometry.scale(0.01, 0.018, 0.018);
-        geometry.translate(side * 0.05, 0.026, -0.334);
+        geometry.scale(0.014, 0.017, 0.017);
+        geometry.translate(side * 0.042, 0.03, -0.325);
         eyes.push(geometry);
       }
       return mergeAndDispose(eyes);
@@ -477,167 +883,537 @@ function buildFish(root, motions, tuna, random) {
     MATERIALS.eye,
   );
   const tail = new THREE.Group();
-  tail.position.z = 0.305;
-  root.add(tail);
+  tail.position.z = 0.3;
+  inner.add(tail);
   mesh(
     tail,
     cached("fish_tail", () =>
-      blade(
+      finSolid(
         [
-          [0, 0, 0],
-          [0, 0.17, 0.19],
-          [0, 0.029, 0.13],
-          [0, 0, 0.103],
-          [0, -0.029, 0.13],
-          [0, -0.17, 0.19],
+          [0, 0],
+          [0.035, 0.05],
+          [0.1, 0.12],
+          [0.09, 0.1],
+          [0.05, 0.015],
+          [0.05, -0.015],
+          [0.09, -0.1],
+          [0.1, -0.12],
+          [0.035, -0.05],
         ],
-        0.003,
-        "x",
+        0.0035,
+        "vertical",
+        { bevel: 0.0012 },
       ),
     ),
     MATERIALS.fin,
   );
   motions.push((t, effort) => {
-    tail.rotation.y = Math.sin(t * 1.6) * (0.23 + effort * 0.07);
+    const beat = t * 2.05;
+    tail.rotation.y = Math.sin(beat) * (0.24 + effort * 0.07);
+    inner.rotation.y = Math.sin(beat - 0.5) * 0.045;
+    inner.rotation.z = Math.sin(t * 0.7) * 0.05;
+  });
+}
+
+function buildTuna(root, motions) {
+  const profile = [
+    [-0.46, 0.004, 0.008, 0],
+    [-0.4, 0.038, 0.056, 0],
+    [-0.28, 0.083, 0.119, 0],
+    [-0.08, 0.097, 0.133, 0],
+    [0.1, 0.079, 0.111, 0],
+    [0.24, 0.041, 0.059, 0],
+    [0.34, 0.015, 0.025, 0],
+    [0.385, 0.005, 0.01, 0],
+  ];
+  const inner = new THREE.Group();
+  root.add(inner);
+  mesh(
+    inner,
+    cached("tuna_body", () =>
+      bodyGeometry(profile, "#1d3d5c", "#d2dad6", {
+        colorFn: countershaded(-0.32),
+        sectionFn: (z, theta) => [1, Math.sin(theta) < 0 ? 0.95 : 1],
+      }),
+    ),
+    MATERIALS.body,
+  );
+  // 尾柄前后一排金黄小鳍（finlet），金枪鱼的科属标志。
+  mesh(
+    inner,
+    cached("tuna_finlets", () => {
+      const finlets = [];
+      for (let index = 0; index < 6; index++) {
+        const z = 0.15 + index * 0.032;
+        const [, top] = sampleProfile(profile, z);
+        finlets.push(
+          placeGeometry(
+            finSolid(
+              [
+                [-0.012, 0],
+                [0.0, 0.026],
+                [0.014, 0],
+              ],
+              0.004,
+              "vertical",
+              { smooth: false, bevel: 0.001 },
+            ),
+            [0, top - 0.002, z],
+          ),
+        );
+      }
+      for (let index = 0; index < 5; index++) {
+        const z = 0.17 + index * 0.034;
+        const [, top] = sampleProfile(profile, z);
+        finlets.push(
+          placeGeometry(
+            finSolid(
+              [
+                [-0.012, 0],
+                [0.0, 0.023],
+                [0.014, 0],
+              ],
+              0.004,
+              "vertical",
+              { smooth: false, bevel: 0.001 },
+            ),
+            [0, -(top * 0.95 - 0.002), z],
+            [Math.PI, 0, 0],
+          ),
+        );
+      }
+      return mergeAndDispose(finlets);
+    }),
+    MATERIALS.finlet,
+  );
+  mesh(
+    inner,
+    cached("tuna_dorsal", () =>
+      finSolid(
+        [
+          [-0.22, 0.115],
+          [-0.12, 0.21],
+          [-0.05, 0.215],
+          [-0.02, 0.13],
+        ],
+        0.006,
+        "vertical",
+        { bevel: 0.002 },
+      ),
+    ),
+    MATERIALS.shark,
+  );
+  mesh(
+    inner,
+    cached("tuna_dorsal2", () =>
+      finSolid(
+        [
+          [0.08, 0.1],
+          [0.12, 0.145],
+          [0.16, 0.095],
+        ],
+        0.005,
+        "vertical",
+        { bevel: 0.0015 },
+      ),
+    ),
+    MATERIALS.shark,
+  );
+  for (const side of [-1, 1]) {
+    mesh(
+      inner,
+      cached(`tuna_pectoral_${side}`, () =>
+        placeGeometry(
+          finSolid(
+            mirrorOutline(
+              [
+                [-0.16, 0.05],
+                [-0.06, 0.14],
+                [0.06, 0.155],
+                [0.02, 0.06],
+              ],
+              side,
+            ),
+            0.005,
+            "horizontal",
+            { bevel: 0.002 },
+          ),
+          [side * 0.055, -0.045, -0.08],
+          [0.15, 0, -side * 0.35],
+        ),
+      ),
+      MATERIALS.shark,
+    );
+    ellipsoid(
+      inner,
+      MATERIALS.eye,
+      [side * 0.062, 0.028, -0.35],
+      [0.012, 0.013, 0.014],
+    );
+  }
+  const tail = new THREE.Group();
+  tail.position.z = 0.36;
+  inner.add(tail);
+  mesh(
+    tail,
+    cached("tuna_tail", () =>
+      finSolid(
+        [
+          [-0.015, 0],
+          [0.03, 0.075],
+          [0.1, 0.165],
+          [0.112, 0.15],
+          [0.05, 0.015],
+          [0.05, -0.015],
+          [0.112, -0.15],
+          [0.1, -0.165],
+          [0.03, -0.075],
+        ],
+        0.006,
+        "vertical",
+        { bevel: 0.002 },
+      ),
+    ),
+    MATERIALS.shark,
+  );
+  motions.push((t, effort) => {
+    const beat = t * 2.3;
+    // 金枪鱼刚体快摆，只尾柄以后大幅运动。
+    tail.rotation.y = Math.sin(beat) * (0.19 + effort * 0.06);
+    inner.rotation.y = Math.sin(beat - 0.4) * 0.018;
+    inner.position.y = Math.sin(beat - 1) * 0.003;
   });
 }
 
 function buildRay(root, motions) {
-  ellipsoid(root, MATERIALS.ray, [0, 0, -0.17], [0.12, 0.042, 0.28]);
+  const inner = new THREE.Group();
+  root.add(inner);
+  const profile = [
+    [-0.46, 0.012, 0.014, 0],
+    [-0.38, 0.075, 0.028, 0],
+    [-0.15, 0.115, 0.045, 0],
+    [0.08, 0.095, 0.038, 0],
+    [0.26, 0.045, 0.02, 0],
+    [0.34, 0.01, 0.01, 0],
+  ];
+  mesh(
+    inner,
+    cached("ray_body", () =>
+      bodyGeometry(profile, "#1c3242", "#b9ccc8", {
+        rings: 36,
+        sides: 24,
+        colorFn: countershaded(-0.05, 0.35),
+      }),
+    ),
+    MATERIALS.body,
+  );
   for (const side of [-1, 1]) {
-    const wing = new THREE.Group();
-    root.add(wing);
+    // 头鳍（头鳍是蝠鲼的标志性卷须）。
     mesh(
-      wing,
-      blade(
-        [
-          [0, 0.012, -0.42],
-          [side * 0.15, 0.013, -0.3],
-          [side * 0.44, 0.015, -0.07],
-          [side * 0.53, 0.005, 0.065],
-          [side * 0.21, -0.01, -0.005],
-          [side * 0.075, 0, 0.12],
-          [0, 0, 0.11],
-        ],
-        0.015,
-        "y",
+      inner,
+      cached(`ray_cephalic_${side}`, () =>
+        taperedTube(
+          curveFrom([
+            [side * 0.045, -0.01, -0.4],
+            [side * 0.052, -0.016, -0.5],
+            [side * 0.04, -0.004, -0.555],
+          ]),
+          0.012,
+          0.004,
+        ),
       ),
       MATERIALS.ray,
     );
     ellipsoid(
-      root,
+      inner,
       MATERIALS.eye,
-      [side * 0.056, 0.041, -0.322],
-      [0.016, 0.013, 0.016],
+      [side * 0.085, 0.026, -0.3],
+      [0.011, 0.009, 0.013],
     );
-    motions.push((t) => {
-      wing.rotation.z = side * Math.sin(t * 0.7) * 0.22;
+    // 双翼分内外两段，外段滞后内段，模拟行波式扇动。
+    const wing = new THREE.Group();
+    wing.position.set(side * 0.09, 0.004, 0);
+    inner.add(wing);
+    mesh(
+      wing,
+      cached(`ray_wing_inner_${side}`, () =>
+        finSolid(
+          mirrorOutline(
+            [
+              [-0.455, -0.04],
+              [-0.34, 0.11],
+              [-0.16, 0.19],
+              [0.1, 0.19],
+              [0.24, 0.03],
+              [0.02, -0.04],
+            ],
+            side,
+          ),
+          0.019,
+          "horizontal",
+          { bevel: 0.009 },
+        ),
+      ),
+      MATERIALS.ray,
+    );
+    const tip = new THREE.Group();
+    tip.position.set(side * 0.19, 0, 0);
+    wing.add(tip);
+    mesh(
+      tip,
+      cached(`ray_wing_outer_${side}`, () =>
+        finSolid(
+          mirrorOutline(
+            [
+              [-0.16, 0.0],
+              [-0.06, 0.16],
+              [0.03, 0.27],
+              [0.055, 0.26],
+              [0.1, 0.16],
+              [0.16, 0.02],
+              [0.1, 0.0],
+            ],
+            side,
+          ),
+          0.011,
+          "horizontal",
+          { bevel: 0.005 },
+        ),
+      ),
+      MATERIALS.ray,
+    );
+    motions.push((t, effort) => {
+      const flap = 1 + effort * 0.35;
+      wing.rotation.z = side * Math.sin(t * 1.05) * 0.13 * flap + side * 0.02;
+      tip.rotation.z = side * Math.sin(t * 1.05 - 0.85) * 0.17 * flap;
     });
   }
   mesh(
-    root,
-    tube(
-      [
-        [0, 0, 0.02],
-        [0, -0.007, 0.2],
-        [0.019, 0.005, 0.41],
-        [0.025, 0.02, 0.53],
-      ],
-      0.009,
+    inner,
+    cached("ray_tail", () =>
+      taperedTube(
+        curveFrom([
+          [0, 0, 0.3],
+          [0, 0.004, 0.52],
+          [0.012, 0.008, 0.62],
+        ]),
+        0.01,
+        0.0018,
+      ),
     ),
     MATERIALS.ray,
   );
+  motions.push((t) => {
+    inner.position.y = Math.sin(t * 1.05 - 1.2) * 0.008;
+    inner.rotation.x = Math.sin(t * 1.05 - 0.9) * 0.03;
+    inner.rotation.z = Math.sin(t * 0.3) * 0.06;
+  });
 }
 
 function buildAngler(root, motions) {
   const profile = [
-    [-0.4, 0.08, 0.08, 0],
-    [-0.31, 0.17, 0.19, 0.01],
-    [-0.08, 0.2, 0.21, 0.025],
-    [0.14, 0.12, 0.13, 0.02],
-    [0.31, 0.029, 0.039, 0],
-    [0.36, 0.01, 0.02, 0],
+    [-0.42, 0.1, 0.11, 0.01],
+    [-0.36, 0.17, 0.2, 0.02],
+    [-0.18, 0.21, 0.235, 0.03],
+    [0.02, 0.16, 0.17, 0.02],
+    [0.16, 0.09, 0.095, 0.01],
+    [0.3, 0.035, 0.045, 0],
+    [0.36, 0.01, 0.018, 0],
   ];
+  const inner = new THREE.Group();
+  root.add(inner);
   mesh(
-    root,
-    cached("angler_body", () => bodyGeometry(profile, "#263d49", "#687776")),
+    inner,
+    cached("angler_body", () =>
+      bodyGeometry(profile, "#263d49", "#5d6f6e", {
+        colorFn: countershaded(-0.35, 0.2),
+        sectionFn: (z, theta) => {
+          const headness = 1 - THREE.MathUtils.smoothstep(z, -0.1, 0.15);
+          const s = Math.sin(theta);
+          return [1, s < 0 ? 1 + headness * 0.28 : 1 - headness * 0.12];
+        },
+      }),
+    ),
     MATERIALS.body,
   );
-  ellipsoid(root, MATERIALS.mouth, [0, -0.01, -0.389], [0.108, 0.12, 0.022]);
+  // 巨大的斜口与参差不齐的针齿。
+  const mouthDisc = ellipsoid(
+    inner,
+    MATERIALS.gum,
+    [0, -0.008, -0.4],
+    [0.125, 0.135, 0.032],
+  );
+  mouthDisc.rotation.x = -0.1;
   const teeth = [];
-  for (let index = -4; index <= 4; index++) {
-    const x = index * 0.023;
-    const rim = Math.sqrt(1 - (index / 5) ** 2) * 0.095;
+  const lengths = [
+    0.075, 0.042, 0.084, 0.036, 0.068, 0.05, 0.08, 0.038, 0.07, 0.045, 0.065,
+  ];
+  for (let index = 0; index < 11; index++) {
+    const angle = -1.15 + (index / 10) * 2.3;
+    const x = Math.sin(angle) * 0.112;
+    const y = Math.cos(angle) * 0.122 - 0.015;
     teeth.push(
-      coneGeometry([x, rim - 0.025, -0.402], [0, -1, -0.03], 0.004, 0.055),
-    );
-    teeth.push(
-      coneGeometry([x, -rim - 0.018, -0.407], [0, 1, -0.03], 0.003, 0.064),
+      coneGeometry(
+        [x, y - 0.012, -0.416],
+        [x * 0.25, -1, 0.3],
+        0.004,
+        lengths[index],
+      ),
     );
   }
-  mesh(root, mergeGeometries(teeth), MATERIALS.tooth);
+  mesh(
+    inner,
+    cached("angler_teeth_up", () => mergeAndDispose(teeth)),
+    MATERIALS.tooth,
+  );
+  const jaw = new THREE.Group();
+  jaw.position.set(0, -0.115, -0.3);
+  inner.add(jaw);
+  ellipsoid(jaw, MATERIALS.angler, [0, -0.005, -0.09], [0.1, 0.035, 0.11]);
+  const jawTeeth = [];
+  for (let index = 0; index < 9; index++) {
+    const angle = -1.05 + (index / 8) * 2.1;
+    const x = Math.sin(angle) * 0.1;
+    jawTeeth.push(
+      coneGeometry(
+        [x, 0.008, -0.105 - Math.cos(angle) * 0.02],
+        [x * 0.25, 1, 0.25],
+        0.0034,
+        0.04 + (index % 3) * 0.016,
+      ),
+    );
+  }
+  mesh(
+    jaw,
+    cached("angler_teeth_low", () => mergeAndDispose(jawTeeth)),
+    MATERIALS.tooth,
+  );
+  motions.push((t, effort) => {
+    jaw.rotation.x = 0.05 + Math.sin(t * 0.5) * 0.05 + effort * 0.035;
+  });
   for (const side of [-1, 1]) {
     ellipsoid(
-      root,
+      inner,
+      MATERIALS.eye,
+      [side * 0.115, 0.085, -0.315],
+      [0.02, 0.02, 0.017],
+    );
+    ellipsoid(
+      inner,
       MATERIALS.aqua,
-      [side * 0.13, 0.107, -0.307],
-      [0.017, 0.018, 0.014],
+      [side * 0.121, 0.088, -0.319],
+      [0.009, 0.009, 0.008],
     );
     mesh(
-      root,
-      blade(
-        [
-          [side * 0.13, -0.03, -0.12],
-          [side * 0.32, -0.09, 0.08],
-          [side * 0.14, -0.01, 0.17],
-        ],
-        0.005,
-        "y",
+      inner,
+      cached(`angler_pectoral_${side}`, () =>
+        placeGeometry(
+          finSolid(
+            mirrorOutline(
+              [
+                [-0.06, 0.02],
+                [-0.03, 0.1],
+                [0.05, 0.115],
+                [0.07, 0.03],
+              ],
+              side,
+            ),
+            0.007,
+            "horizontal",
+            { bevel: 0.003 },
+          ),
+          [side * 0.155, -0.05, -0.06],
+          [0.25, 0, -side * 0.45],
+        ),
       ),
       MATERIALS.angler,
     );
   }
   mesh(
-    root,
-    tube(
-      [
-        [0, 0.16, -0.14],
-        [0, 0.4, -0.25],
-        [0, 0.43, -0.42],
-        [0, 0.3, -0.49],
-      ],
-      0.006,
+    inner,
+    cached("angler_ridge", () =>
+      finSolid(
+        [
+          [-0.05, 0.19],
+          [0.0, 0.235],
+          [0.05, 0.185],
+          [0.1, 0.215],
+          [0.15, 0.16],
+          [0.2, 0.175],
+          [0.24, 0.12],
+        ],
+        0.008,
+        "vertical",
+        { smooth: false, bevel: 0.003 },
+      ),
+    ),
+    MATERIALS.angler,
+  );
+  // 钓竿与发光饵：双层光球加缓速摆动，黑暗水域中远远可读。
+  const rod = new THREE.Group();
+  rod.position.set(0, 0.19, -0.26);
+  inner.add(rod);
+  mesh(
+    rod,
+    cached("angler_rod", () =>
+      taperedTube(
+        curveFrom([
+          [0, 0, 0],
+          [0, 0.13, -0.03],
+          [0, 0.21, -0.14],
+          [0, 0.155, -0.26],
+        ]),
+        0.005,
+        0.0025,
+      ),
     ),
     MATERIALS.angler,
   );
   const lure = ellipsoid(
-    root,
+    rod,
     MATERIALS.aqua,
-    [0, 0.3, -0.49],
-    [0.027, 0.032, 0.027],
+    [0, 0.15, -0.26],
+    [0.03, 0.034, 0.03],
   );
-  lure.userData.keepSeparate = true;
+  const core = ellipsoid(
+    rod,
+    MATERIALS.glowCore,
+    [0, 0.15, -0.26],
+    [0.015, 0.017, 0.015],
+  );
   const tail = new THREE.Group();
-  tail.position.z = 0.31;
-  root.add(tail);
+  tail.position.z = 0.33;
+  inner.add(tail);
   mesh(
     tail,
-    blade(
-      [
-        [0, 0, 0],
-        [0, 0.12, 0.18],
-        [0, -0.12, 0.18],
-      ],
-      0.004,
-      "x",
+    cached("angler_tail", () =>
+      finSolid(
+        [
+          [0, -0.09],
+          [0.02, -0.13],
+          [0.1, -0.12],
+          [0.13, -0.06],
+          [0.135, 0],
+          [0.13, 0.06],
+          [0.1, 0.12],
+          [0.02, 0.13],
+          [0, 0.09],
+        ],
+        0.006,
+        "vertical",
+        { bevel: 0.002 },
+      ),
     ),
     MATERIALS.angler,
   );
-  motions.push((t) => {
-    tail.rotation.y = Math.sin(t) * 0.2;
-    lure.scale
-      .set(0.027, 0.032, 0.027)
-      .multiplyScalar(1 + Math.sin(t * 0.4) * 0.09);
+  motions.push((t, effort) => {
+    tail.rotation.y = Math.sin(t * 1.1) * (0.18 + effort * 0.05);
+    rod.rotation.x = Math.sin(t * 0.6) * 0.08;
+    rod.rotation.z = Math.sin(t * 0.45) * 0.06;
+    const pulse = 1 + Math.sin(t * 1.8) * 0.1 + Math.sin(t * 3.1) * 0.05;
+    lure.scale.set(0.03, 0.034, 0.03).multiplyScalar(pulse);
+    core.scale.set(0.015, 0.017, 0.015).multiplyScalar(pulse);
+    inner.rotation.y = Math.sin(t * 1.1 - 0.4) * 0.03;
   });
 }
 
@@ -696,15 +1472,81 @@ function sampleProfile(profile, z) {
   });
 }
 
-function bodyGeometry(profile, upperColor, lowerColor, pattern = "") {
+function curveFrom(points) {
+  return new THREE.CatmullRomCurve3(
+    points.map((point) => new THREE.Vector3(...point)),
+  );
+}
+
+// 平滑重采样封闭轮廓，供挤出成带倒角的实体鳍。
+function smoothOutline(points, segments = 6) {
+  const curve = new THREE.CatmullRomCurve3(
+    points.map((point) => new THREE.Vector3(point[0], point[1], 0)),
+    true,
+    "centripetal",
+  );
+  return curve
+    .getPoints(points.length * segments)
+    .slice(0, -1)
+    .map((point) => [point.x, point.y]);
+}
+
+function mirrorOutline(outline, side) {
+  if (side > 0) return outline;
+  return outline.map((point) => [point[0], -point[1]]).reverse();
+}
+
+// 把二维轮廓挤出成有厚度、边缘圆润的实体鳍；vertical 立于中纵面，horizontal 平铺。
+function finSolid(outline, thickness, orientation, options = {}) {
+  const { smooth = true, bevel = thickness * 0.4 } = options;
+  const points = smooth ? smoothOutline(outline) : outline;
+  const shape = new THREE.Shape(
+    points.map((point) => new THREE.Vector2(point[0], point[1])),
+  );
+  const geometry = new THREE.ExtrudeGeometry(shape, {
+    depth: thickness,
+    steps: 1,
+    bevelEnabled: true,
+    bevelThickness: thickness * 0.45,
+    bevelSize: bevel,
+    bevelSegments: 2,
+  });
+  geometry.translate(0, 0, -thickness / 2);
+  const basis =
+    orientation === "horizontal"
+      ? new THREE.Matrix4().makeBasis(
+          new THREE.Vector3(0, 0, 1),
+          new THREE.Vector3(1, 0, 0),
+          new THREE.Vector3(0, 1, 0),
+        )
+      : new THREE.Matrix4().makeBasis(
+          new THREE.Vector3(0, 0, 1),
+          new THREE.Vector3(0, 1, 0),
+          new THREE.Vector3(-1, 0, 0),
+        );
+  geometry.applyMatrix4(basis);
+  return geometry;
+}
+
+function placeGeometry(geometry, position, rotation = [0, 0, 0]) {
+  const clone = geometry.clone();
+  const object = new THREE.Object3D();
+  object.position.set(...position);
+  object.rotation.set(...rotation);
+  object.updateMatrix();
+  clone.applyMatrix4(object.matrix);
+  geometry.dispose();
+  return clone;
+}
+
+function bodyGeometry(profile, upperColor, lowerColor, options = {}) {
+  const { rings = 44, sides = 30, colorFn = null, sectionFn = null } = options;
   const positions = [];
   const colors = [];
   const indices = [];
   const upper = new THREE.Color(upperColor);
   const lower = new THREE.Color(lowerColor);
   const shade = new THREE.Color();
-  const rings = 48;
-  const sides = 32;
   for (let ring = 0; ring <= rings; ring++) {
     const z = THREE.MathUtils.lerp(
       profile[0][0],
@@ -715,20 +1557,18 @@ function bodyGeometry(profile, upperColor, lowerColor, pattern = "") {
     for (let side = 0; side <= sides; side++) {
       const theta = (side / sides) * Math.PI * 2;
       const y = Math.sin(theta);
-      positions.push(Math.cos(theta) * width, y * height + offset, z);
-      let blend = THREE.MathUtils.smoothstep(-y, 0.05, 0.65);
-      if (pattern === "orca") {
-        // 下颌到腹部形成连贯白区，后半身的白色向两侧卷起。
-        const threshold =
-          z < -0.32 ? -0.3 : z > -0.01 && z < 0.15 ? -0.15 : -0.58;
-        blend =
-          1 -
-          THREE.MathUtils.smoothstep(y, threshold - 0.065, threshold + 0.065);
-      }
-      shade.copy(upper).lerp(lower, blend);
-      if (pattern === "orca" && z > 0.045 && z < 0.145 && y > 0.45) {
-        const saddle = Math.sin(((z - 0.045) / 0.1) * Math.PI) * 0.27;
-        shade.lerp(new THREE.Color("#72848a"), saddle);
+      let scaleX = 1,
+        scaleY = 1;
+      if (sectionFn) [scaleX, scaleY] = sectionFn(z, theta);
+      positions.push(
+        Math.cos(theta) * width * scaleX,
+        y * height * scaleY + offset,
+        z,
+      );
+      if (colorFn) colorFn(z, y, shade, upper, lower);
+      else {
+        const blend = THREE.MathUtils.smoothstep(-y, 0.05, 0.65);
+        shade.copy(upper).lerp(lower, blend);
       }
       colors.push(shade.r, shade.g, shade.b);
       if (ring < rings && side < sides) {
@@ -749,17 +1589,29 @@ function bodyGeometry(profile, upperColor, lowerColor, pattern = "") {
   return geometry;
 }
 
-function surfacePatch(profile, centerZ, centerY, radiusZ, radiusY, side) {
+function surfacePatch(
+  profile,
+  centerZ,
+  centerY,
+  radiusZ,
+  radiusY,
+  side,
+  tilt = 0,
+) {
   const positions = [];
   const indices = [];
   const rings = 6;
   const segments = 28;
+  const cosT = Math.cos(tilt);
+  const sinT = Math.sin(tilt);
   for (let ring = 0; ring <= rings; ring++) {
     for (let segment = 0; segment <= segments; segment++) {
       const angle = (segment / segments) * Math.PI * 2;
       const distance = ring / rings;
-      const z = centerZ + Math.cos(angle) * radiusZ * distance;
-      const y = centerY + Math.sin(angle) * radiusY * distance;
+      const ellipseZ = Math.cos(angle) * radiusZ * distance;
+      const ellipseY = Math.sin(angle) * radiusY * distance;
+      const z = centerZ + ellipseZ * cosT - ellipseY * sinT;
+      const y = centerY + ellipseZ * sinT + ellipseY * cosT;
       const [width, height, offset] = sampleProfile(profile, z);
       const x =
         width * Math.sqrt(Math.max(0, 1 - ((y - offset) / height) ** 2)) +
@@ -783,45 +1635,8 @@ function surfacePatch(profile, centerZ, centerY, radiusZ, radiusY, side) {
   return geometry;
 }
 
-function blade(points, thickness, axis) {
-  const center = new THREE.Vector3();
-  for (const point of points) center.add(new THREE.Vector3(...point));
-  center.divideScalar(points.length);
-  const normal = new THREE.Vector3(
-    axis === "x" ? 1 : 0,
-    axis === "y" ? 1 : 0,
-    axis === "z" ? 1 : 0,
-  );
-  const vertices = [];
-  const addTriangle = (a, b, c) =>
-    vertices.push(...a.toArray(), ...b.toArray(), ...c.toArray());
-  const top = center.clone().addScaledVector(normal, thickness);
-  const bottom = center.clone().addScaledVector(normal, -thickness);
-  for (let index = 0; index < points.length; index++) {
-    const a = new THREE.Vector3(...points[index]);
-    const b = new THREE.Vector3(...points[(index + 1) % points.length]);
-    const cross = b.clone().sub(a).cross(top.clone().sub(a));
-    if (cross.dot(normal) > 0) {
-      addTriangle(a, b, top);
-      addTriangle(b, a, bottom);
-    } else {
-      addTriangle(b, a, top);
-      addTriangle(a, b, bottom);
-    }
-  }
-  const geometry = new THREE.BufferGeometry();
-  geometry.setAttribute(
-    "position",
-    new THREE.Float32BufferAttribute(vertices, 3),
-  );
-  geometry.computeVertexNormals();
-  return geometry;
-}
-
 function tube(points, radius) {
-  const curve = new THREE.CatmullRomCurve3(
-    points.map((point) => new THREE.Vector3(...point)),
-  );
+  const curve = curveFrom(points);
   return new THREE.TubeGeometry(curve, points.length * 5, radius, 6, false);
 }
 

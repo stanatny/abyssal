@@ -1,0 +1,141 @@
+/* 只增加本轮需要的选择与设置，不替代后续完整视觉重绘。 */
+#menu {
+  overflow-y: auto;
+  overscroll-behavior: contain;
+}
+#menu .menu-copy {
+  position: relative;
+  top: auto;
+  left: auto;
+  right: auto;
+  transform: none;
+  margin: 105px 7vw 40px;
+}
+#menu .menu-footer {
+  position: relative;
+  left: auto;
+  right: auto;
+  bottom: auto;
+  margin: 0 7vw 26px;
+}
+.expedition-setup {
+  margin: 0 0 20px;
+  max-width: 540px;
+  padding: 16px;
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  background: rgba(4, 22, 30, 0.8);
+}
+.expedition-selects {
+  display: grid;
+  grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr);
+  gap: 12px;
+}
+.expedition-selects label {
+  display: grid;
+  gap: 7px;
+  min-width: 0;
+  color: var(--mint);
+  font-size: 12px;
+}
+.expedition-selects select {
+  width: 100%;
+  min-width: 0;
+  min-height: 44px;
+  font: inherit;
+  color: #e8f6f2;
+  border: 1px solid var(--line-bright);
+  border-radius: 8px;
+  background: #102b35;
+  padding: 8px;
+}
+.expedition-setup p,
+.expedition-setup small {
+  color: var(--muted);
+  font-size: 11px;
+  line-height: 1.8;
+  margin: 10px 0;
+}
+.expedition-options {
+  display: grid;
+  gap: 10px;
+  font-size: 11px;
+}
+.expedition-options > span {
+  color: var(--muted);
+}
+.marker-option {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 12px;
+  line-height: 1.6;
+  cursor: pointer;
+}
+.marker-option input {
+  width: 17px;
+  height: 17px;
+  accent-color: var(--mint);
+}
+@media (max-width: 700px) {
+  #menu .menu-copy {
+    margin: 90px 20px 28px;
+    max-width: none;
+  }
+  #menu h1 {
+    font-size: 31px;
+    margin: 14px 0;
+  }
+  #menu .intro {
+    margin-bottom: 18px;
+  }
+  #menu .menu-stats {
+    margin-top: 22px;
+  }
+  .expedition-setup {
+    padding: 12px;
+  }
+  .expedition-selects {
+    gap: 8px;
+  }
+  .expedition-selects select {
+    font-size: 12px;
+    padding: 7px 5px;
+  }
+}
+
+/* 首页设置拥有足够的触摸面积，不在游戏过程中重复占用空间。 */
+.expedition-options .marker-option {
+  min-height: 44px;
+}
+.expedition-selects select:focus-visible,
+.marker-option input:focus-visible {
+  outline: 2px solid var(--mint);
+  outline-offset: 3px;
+}
+@media (max-width: 360px) {
+  #menu .menu-copy {
+    margin-left: 14px;
+    margin-right: 14px;
+  }
+  #menu h1 {
+    font-size: 29px;
+  }
+  .expedition-setup {
+    padding: 10px;
+  }
+  .expedition-selects {
+    gap: 8px;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  }
+}
+
+#character-description {
+  border-top: 1px solid var(--line);
+  margin-top: 12px;
+  padding-top: 2px;
+}
+#character-description b {
+  color: var(--mint);
+  font-weight: 500;
+}

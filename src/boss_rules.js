@@ -19,6 +19,8 @@ export function createBossState(species) {
     timer: 0,
     phaseDuration: Infinity,
     biteCooldown: 0,
+    contactArmed: true,
+    contactReleaseTime: 0,
     ability: species.ability,
     attackCount: 0,
     defeated: false,
@@ -40,11 +42,19 @@ export function tickBoss(
     distance = Infinity,
     lineOfSight = true,
     playerAlive = true,
+    disoriented = false,
   } = {},
 ) {
   const elapsed = Number.isFinite(dt) ? Math.max(0, dt) : 0;
   boss.biteCooldown = Math.max(0, boss.biteCooldown - elapsed);
   if (boss.defeated) return boss;
+  if (disoriented) {
+    if (boss.phase !== "disoriented") setPhase(boss, "disoriented");
+    boss.timer += elapsed;
+    return boss;
+  }
+  if (boss.phase === "disoriented")
+    setPhase(boss, inTerritory ? "hunt" : "return");
 
   if (!inTerritory || !playerAlive) {
     if (boss.phase !== "dormant" && boss.phase !== "return")
@@ -70,7 +80,7 @@ export function tickBoss(
   for (let transitions = 0; transitions < 64; transitions += 1) {
     if (
       boss.phase === "hunt" &&
-      (!lineOfSight || distance > boss.species.length * 1.5 + 25)
+      (!lineOfSight || distance > boss.species.engageRange)
     ) {
       boss.timer = 0;
       break;
@@ -95,26 +105,94 @@ export function tickBoss(
 }
 
 /**
- * 尝试对主宰咬击；只有虚弱窗口可造成高伤害，狂食只降低体长门槛。
+ * 记录嘴部是否已离开实体；一次侧翼进攻之后须脱离至少0.35秒才能再次咬击。
+ * @param {object} boss 主宰状态。
+ * @param {boolean} touching 嘴部小球是否仍接触实际模型，不能使用宽相包围盒代替。
+ * @param {number} dt 本帧有效游戏秒数。
+ * @returns {boolean} 当前是否允许一次新的接触攻击。
+ */
+export function updateBossContact(boss, touching, dt) {
+  if (touching) boss.contactReleaseTime = 0;
+  else {
+    boss.contactReleaseTime += Number.isFinite(dt) ? Math.max(0, dt) : 0;
+    if (boss.contactReleaseTime >= 0.35) boss.contactArmed = true;
+  }
+  return boss.contactArmed;
+}
+
+/**
+ * 判断玩家位于领主左右侧翼且朝内进攻，排除正面、尾后及背部垂直贴靠。
+ * @param {object} context 世界坐标与单位朝向；可提供实际模型bossRight，支持领主垂直转身。
+ * @returns {boolean} 是否属于可以伤害领主的侧翼进攻方向。
+ */
+export function isBossFlankContact({
+  bossPosition,
+  bossForward,
+  bossRight,
+  playerPosition,
+  playerForward,
+}) {
+  const offset = {
+    x: playerPosition.x - bossPosition.x,
+    y: playerPosition.y - bossPosition.y,
+    z: playerPosition.z - bossPosition.z,
+  };
+  const distance = Math.hypot(offset.x, offset.y, offset.z);
+  const horizontal = Math.hypot(bossForward.x, bossForward.z);
+  if (distance < 0.001 || (!bossRight && horizontal < 0.001)) return false;
+  const side = Math.abs(
+    bossRight
+      ? (bossRight.x * offset.x +
+          bossRight.y * offset.y +
+          bossRight.z * offset.z) /
+          distance
+      : (-bossForward.z * offset.x + bossForward.x * offset.z) /
+          horizontal /
+          distance,
+  );
+  const longitudinal = Math.abs(
+    (bossForward.x * offset.x +
+      bossForward.y * offset.y +
+      bossForward.z * offset.z) /
+      distance,
+  );
+  const facing =
+    -(
+      playerForward.x * offset.x +
+      playerForward.y * offset.y +
+      playerForward.z * offset.z
+    ) / distance;
+  return side >= 0.6 && longitudinal <= 0.65 && facing >= 0.25;
+}
+
+/**
+ * 结算接触后的自动咬击；只有虚弱窗口可造成高伤害，狂食只降低体长门槛。
  * @param {object} player 玩家状态，将更新全局咬击冷却和最终战利品。
  * @param {object} boss 主宰状态，将更新生命、冷却和击败状态。
- * @param {{inRange?:boolean}} options 场景确认嘴部是否进入有效范围。
+ * @param {{inRange?:boolean,isFlank?:boolean}} options 场景确认嘴部接触实体、无遮挡且从侧翼朝内进攻。
  * @returns {{hit:boolean,damage:number,defeated:boolean,reason:string}} 本次实际攻击结果。
  */
-export function hitBoss(player, boss, { inRange = true } = {}) {
+export function hitBoss(
+  player,
+  boss,
+  { inRange = false, isFlank = false } = {},
+) {
   const failure = (reason) => ({
     hit: false,
     damage: 0,
     defeated: false,
     reason,
   });
-  if (player.dead || player.won) return failure("player_unavailable");
+  if (player.dead || player.won || player.timedOut)
+    return failure("player_unavailable");
   if (boss.defeated) return failure("boss_defeated");
-  if (!inRange) return failure("out_of_range");
   const minimum = player.buffs.frenzy > 0 ? 21 : boss.species.minAttackLength;
   if (player.length < minimum) return failure("too_small");
+  if (!inRange) return failure("out_of_range");
+  if (!isFlank) return failure("armored_angle");
   if (player.biteCooldown > 0 || boss.biteCooldown > 0)
     return failure("cooldown");
+  if (!boss.contactArmed) return failure("must_disengage");
 
   const weak = boss.phase === "recover";
   const strength =
@@ -124,6 +202,8 @@ export function hitBoss(player, boss, { inRange = true } = {}) {
   boss.health = Math.max(0, boss.health - damage);
   player.biteCooldown = 1.2;
   boss.biteCooldown = 1.2;
+  boss.contactArmed = false;
+  boss.contactReleaseTime = 0;
   if (boss.health > 0) {
     if (boss.phase === "dormant" || boss.phase === "return")
       setPhase(boss, "hunt");
@@ -155,7 +235,10 @@ export const BOSS_SPECIES = Object.freeze(
       length: 42,
       health: 180,
       minAttackLength: 24,
-      speed: 26,
+      speed: 37,
+      engageRange: 135,
+      lockWindow: 0.8,
+      abilityRadius: 42,
       damage: 40,
       ability: "vortex",
       depthMin: 360,
@@ -164,7 +247,7 @@ export const BOSS_SPECIES = Object.freeze(
       growth: 30,
       tier: 3,
       windupDuration: 2.1,
-      attackDuration: 1.4,
+      attackDuration: 2.5,
     },
     {
       kind: "mayan",
@@ -172,7 +255,10 @@ export const BOSS_SPECIES = Object.freeze(
       length: 48,
       health: 210,
       minAttackLength: 24,
-      speed: 27,
+      speed: 38,
+      engageRange: 145,
+      lockWindow: 0.75,
+      abilityRadius: 160,
       damage: 52,
       ability: "pulse",
       depthMin: 440,
@@ -181,7 +267,7 @@ export const BOSS_SPECIES = Object.freeze(
       growth: 34,
       tier: 3,
       windupDuration: 2.2,
-      attackDuration: 1,
+      attackDuration: 1.6,
     },
     {
       kind: "hydra",
@@ -189,7 +275,10 @@ export const BOSS_SPECIES = Object.freeze(
       length: 46,
       health: 220,
       minAttackLength: 24,
-      speed: 28,
+      speed: 39,
+      engageRange: 155,
+      lockWindow: 0.6,
+      projectileSpeed: 74,
       damage: 46,
       ability: "volley",
       depthMin: 480,
@@ -206,7 +295,10 @@ export const BOSS_SPECIES = Object.freeze(
       length: 55,
       health: 240,
       minAttackLength: 24,
-      speed: 30,
+      speed: 40,
+      engageRange: 130,
+      lockWindow: 0.7,
+      chargeSpeed: 100,
       damage: 65,
       ability: "charge",
       depthMin: 560,
@@ -215,7 +307,7 @@ export const BOSS_SPECIES = Object.freeze(
       growth: 40,
       tier: 3,
       windupDuration: 1.8,
-      attackDuration: 0.9,
+      attackDuration: 1.65,
     },
   ].map((species) => Object.freeze(species)),
 );
@@ -235,6 +327,7 @@ function setPhase(boss, phase) {
     recover: 3,
     return: 4,
     defeated: Infinity,
+    disoriented: Infinity,
   }[phase];
   if (phase === "attack") boss.attackCount += 1;
 }

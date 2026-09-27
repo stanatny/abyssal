@@ -1,7 +1,7 @@
 /**
- * OceanAudio 用 Web Audio 合成原创海洋配乐与游戏音效。
- * 参数：可选 options.context 用于离线验音；默认在用户手势后创建 AudioContext。
- * 所有节奏由 update 推进，无后台定时器；重复 start 不会创建第二套声部。
+ * OceanAudio 合成原创海洋配乐与分层水下音效，无外部音频资源或后台定时器。
+ * 参数：options.context 可传入 OfflineAudioContext，便于真实离线验音。
+ * 音频图仅在用户手势后创建，start 可重复调用，所有节拍由 update 推进。
  */
 export class OceanAudio {
   constructor({ context = null } = {}) {
@@ -16,27 +16,32 @@ export class OceanAudio {
     this.boss = false;
     this.depth = 0;
     this.aboveWater = false;
+    this.ink = 0;
     this.voices = new Set();
-    this.beat = 60 / 76;
+    this.cooldowns = new Map();
+    this.beat = 60 / 80;
+    this.randomState = 82197;
   }
 
-  /** start 激活音频并继续调度；无参数，无返回值，允许重复调用。 */
+  /** start 激活或恢复音频，复用已有音频图；无参数，无返回值。 */
   start() {
     if (!this.context) {
       const Audio = globalThis.AudioContext || globalThis.webkitAudioContext;
       if (!Audio) return;
       this.context = new Audio();
     }
+    if (this.context.state === "closed") return;
     if (!this.ready) this.createGraph();
     this.setPaused(false);
     this.update(0, this.lastDanger, {
       boss: this.boss,
       depth: this.depth,
       aboveWater: this.aboveWater,
+      ink: this.ink,
     });
   }
 
-  /** toggle 切换声音；首次点击直接激活声音，返回切换后的启用状态。 */
+  /** toggle 切换声音，首次使用时直接激活；返回当前是否启用声音。 */
   toggle() {
     if (!this.ready) {
       this.enabled = true;
@@ -45,63 +50,138 @@ export class OceanAudio {
     }
     this.enabled = !this.enabled;
     this.master.gain.setTargetAtTime(
-      this.enabled ? 0.68 : 0,
+      this.enabled ? 0.76 : 0,
       this.context.currentTime,
-      0.09,
+      0.035,
     );
-    if (this.enabled && !this.paused) this.resumeContext();
+    if (this.enabled && !this.paused) {
+      this.nextStep = this.context.currentTime + 0.035;
+      this.step -= this.step % 16;
+      this.resumeContext();
+    }
     return this.enabled;
   }
 
-  /** setPaused 暂停或恢复音频时钟；参数为暂停状态，无返回值。 */
+  /** setPaused 暂停或继续声音时钟，参数为暂停状态，无返回值。 */
   setPaused(paused) {
     this.paused = Boolean(paused);
-    if (!this.context || this.isOffline()) return;
+    if (!this.context || !this.ready) return;
+    this.pauseGate.gain.setValueAtTime(
+      this.paused ? 0 : 1,
+      this.context.currentTime,
+    );
+    if (this.isOffline()) return;
     if (this.paused) {
       if (this.context.state === "running")
         this.context.suspend().catch(() => {});
-    } else {
-      this.resumeContext();
+    } else this.resumeContext();
+  }
+
+  /** reset 清除上一局尾音和节拍，复用声音开关与主图；无参数，无返回值。 */
+  reset() {
+    this.lastDanger = 0;
+    this.boss = false;
+    this.depth = 0;
+    this.aboveWater = false;
+    this.ink = 0;
+    this.step = 0;
+    this.cooldowns.clear();
+    if (!this.ready) return;
+    const now = this.context.currentTime;
+    for (const source of this.voices) {
+      try {
+        source.stop(now);
+      } catch {
+        /* 已结束的声部可以直接回收。 */
+      }
     }
+    this.voices.clear();
+    this.nextStep = now + 0.035;
+    this.nextHeartbeat = now + 0.5;
+    for (const [node, value] of [
+      [this.calm, 1],
+      [this.chase, 0],
+      [this.bossLayer, 0],
+      [this.musicDuck, 1],
+    ]) {
+      node.gain.cancelScheduledValues(now);
+      node.gain.setValueAtTime(value, now);
+    }
+    // 替换卷积节点清掉上一局的混响缓存，输入与输出总线继续复用。
+    this.reverbInput.disconnect(this.convolver);
+    this.convolver.disconnect();
+    this.connectReverb();
   }
 
   /**
-   * update 推进配乐与混音；time 为游戏秒数，danger 为 0–1 危险程度。
-   * options 接收 boss、世界单位 depth 与 aboveWater；无返回值。
+   * update 更新分层配乐与水下混音；time 为游戏时间，danger 为 0–1 危险值。
+   * options 接收 boss、世界单位 depth、aboveWater 和 0–1 的 ink；无返回值。
    */
-  update(time, danger, { boss = false, depth = 0, aboveWater = false } = {}) {
+  update(
+    time,
+    danger,
+    { boss = false, depth = 0, aboveWater = false, ink = 0 } = {},
+  ) {
     void time;
     this.lastDanger = clamp(danger, 0, 1);
     this.boss = Boolean(boss);
     this.depth = Math.max(0, Number.isFinite(depth) ? depth : 0);
     this.aboveWater = Boolean(aboveWater);
+    this.ink = clamp(ink, 0, 1);
     if (!this.ready || this.paused) return;
     const now = this.context.currentTime;
     const intensity = Math.sqrt(this.lastDanger);
-    const bossLevel = this.boss ? Math.max(0.6, intensity) : 0;
-    const calmLevel = this.boss ? 0.12 : 1 - intensity * 0.9;
-    const chaseLevel = this.boss ? 0.64 : intensity;
-    this.calm.gain.setTargetAtTime(calmLevel, now, 0.55);
-    this.chase.gain.setTargetAtTime(chaseLevel, now, 0.34);
-    this.bossLayer.gain.setTargetAtTime(bossLevel, now, 0.42);
-    const depthRatio = clamp(this.depth / 270, 0, 1);
-    this.musicFilter.frequency.setTargetAtTime(
-      this.aboveWater ? 10500 : 6200 - depthRatio * 2100,
+    const depthRatio = clamp(this.depth / 740, 0, 1);
+    const muffling = 1 - this.ink * 0.67;
+    this.calm.gain.setTargetAtTime(
+      this.boss ? 0.22 : 0.86 * (1 - intensity * 0.55),
       now,
-      0.6,
+      0.8,
     );
-    this.waterFilter.frequency.setTargetAtTime(
-      this.aboveWater ? 1700 : 280 - depthRatio * 130,
+    this.chase.gain.setTargetAtTime(this.boss ? 0.6 : intensity, now, 0.38);
+    this.chaseFast.gain.setTargetAtTime(
+      this.boss ? 0.8 : this.lastDanger ** 2,
       now,
-      0.4,
+      0.35,
     );
-    this.waterGain.gain.setTargetAtTime(
-      this.aboveWater ? 0.045 : 0.022 + depthRatio * 0.006,
+    this.bossLayer.gain.setTargetAtTime(
+      this.boss ? Math.max(0.72, intensity) : 0,
       now,
       0.5,
     );
+    this.chaseFilter.frequency.setTargetAtTime(
+      520 + this.lastDanger * 1150,
+      now,
+      0.6,
+    );
+    this.musicFilter.frequency.setTargetAtTime(
+      (this.aboveWater ? 7800 : 3500 - depthRatio * 1600) * muffling,
+      now,
+      0.4,
+    );
+    this.effectsFilter.frequency.setTargetAtTime(
+      (this.aboveWater ? 8500 : 4300 - depthRatio * 1500) * muffling,
+      now,
+      0.18,
+    );
+    this.waterFilter.frequency.setTargetAtTime(
+      this.aboveWater ? 1700 : 340 - depthRatio * 150,
+      now,
+      0.55,
+    );
+    this.waterGain.gain.setTargetAtTime(
+      this.aboveWater ? 0.035 : 0.058 + depthRatio * 0.023 + this.ink * 0.01,
+      now,
+      0.6,
+    );
+    this.currentGain.gain.setTargetAtTime(
+      this.aboveWater ? 0.012 : 0.021 + intensity * 0.012,
+      now,
+      0.7,
+    );
+    if (!this.enabled) return;
 
-    // 大幅掉帧只跳过已错过的拍点，避免一次堆积许多音符。
+    // 跳过掉帧期间错过的拍点，避免恢复画面时堆叠大量音符。
     const subdivision = this.beat / 2;
     if (this.nextStep < now - subdivision) {
       const skipped = Math.ceil((now - this.nextStep) / subdivision);
@@ -113,133 +193,272 @@ export class OceanAudio {
       this.nextStep += subdivision;
       this.step += 1;
     }
-    if (this.lastDanger > 0.06 && now >= this.nextHeartbeat) {
-      const level = 0.11 + this.lastDanger * 0.12;
-      this.note(64, now + 0.01, 0.13, level, this.effects, { end: 38 });
-      this.note(56, now + 0.19, 0.14, level * 0.65, this.effects, { end: 32 });
-      this.nextHeartbeat = now + 1.05 - this.lastDanger * 0.43;
+    if (this.lastDanger > 0.23 && now >= this.nextHeartbeat) {
+      const level = 0.065 + this.lastDanger * 0.055;
+      this.note(61, now + 0.01, 0.16, level, this.effects, {
+        end: 38,
+        type: "bass",
+      });
+      this.note(53, now + 0.19, 0.15, level * 0.58, this.effects, { end: 33 });
+      this.nextHeartbeat = now + 1.15 - this.lastDanger * 0.44;
     }
   }
 
-  /** eat 播放清晰短促的吞食水泡与上行音；无参数、无返回值。 */
-  eat() {
-    if (!this.canPlay()) return;
-    const now = this.context.currentTime + 0.005;
-    this.noise(now, 0.12, 0.12, this.effects, 920, "bandpass");
-    this.note(210, now, 0.12, 0.27, this.effects, { end: 580 });
-    this.note(587.33, now + 0.075, 0.25, 0.14, this.effects, {
-      type: "triangle",
+  /** eat 播放咬合、水压与水泡；size 为可选的 0.5–2 捕食强度，无返回值。 */
+  eat(size = 1) {
+    if (!this.effectReady("eat", 0.075)) return;
+    const at = this.context.currentTime + 0.004;
+    const strength = clamp(size, 0.5, 2);
+    this.note(126, at, 0.18, 0.22 * strength, this.effects, {
+      end: 47,
+      type: "bass",
+      cutoff: 850,
     });
+    this.noise(
+      at,
+      0.075,
+      0.18 * strength,
+      this.effects,
+      690,
+      "bandpass",
+      0.003,
+      { end: 380, q: 0.7 },
+    );
+    this.noise(
+      at + 0.035,
+      0.38,
+      0.14 * strength,
+      this.effects,
+      460,
+      "lowpass",
+      0.024,
+      { end: 180 },
+    );
+    this.bubbles(at + 0.045, 4, 0.045 * strength, 330, 0.045);
+    this.duckMusic(0.82, 0.14);
   }
 
-  /** hit 播放受击低频与撞击噪声；无参数、无返回值。 */
-  hit() {
-    if (!this.canPlay()) return;
-    const now = this.context.currentTime + 0.005;
-    this.note(125, now, 0.48, 0.5, this.effects, { end: 33, type: "triangle" });
-    this.noise(now, 0.26, 0.36, this.effects, 680, "lowpass");
-    this.note(48, now + 0.04, 0.58, 0.31, this.effects);
+  /** hit 播放身体冲击、低频水压与震荡尾声；strength 为可选受击强度，无返回值。 */
+  hit(strength = 1) {
+    if (!this.effectReady("hit", 0.16)) return;
+    const at = this.context.currentTime + 0.004;
+    const level = clamp(strength, 0.5, 1.6);
+    this.note(148, at, 0.47, 0.35 * level, this.effects, {
+      end: 32,
+      type: "bass",
+      cutoff: 720,
+    });
+    this.note(48, at + 0.03, 0.84, 0.18 * level, this.effects, {
+      end: 35,
+      attack: 0.022,
+    });
+    this.noise(at, 0.16, 0.3 * level, this.effects, 780, "lowpass", 0.003, {
+      end: 320,
+    });
+    this.noise(
+      at + 0.055,
+      0.68,
+      0.2 * level,
+      this.effects,
+      220,
+      "bandpass",
+      0.045,
+      { end: 110, q: 0.8 },
+    );
+    this.duckMusic(0.54, 0.42);
   }
 
-  /** sonar 播放带回声的双频声呐；无参数、无返回值。 */
+  /** sonar 播放柔和声呐及两次衰减回声；无参数，无返回值。 */
   sonar() {
-    if (!this.canPlay()) return;
-    const now = this.context.currentTime + 0.005;
-    this.note(880, now, 0.9, 0.3, this.effects, { end: 830 });
-    this.note(1320, now + 0.045, 0.65, 0.09, this.effects);
-    this.note(880, now + 0.4, 0.7, 0.075, this.effects, { end: 830 });
-  }
-
-  /** breach 播放冲出水面的上扬气流；无参数、无返回值。 */
-  breach() {
-    if (!this.canPlay()) return;
-    const now = this.context.currentTime + 0.005;
-    this.noise(now, 0.65, 0.35, this.effects, 1800, "highpass", 0.055);
-    this.note(180, now, 0.48, 0.15, this.effects, {
-      end: 620,
-      type: "triangle",
-    });
-  }
-
-  /** splash 播放落水的低频冲击和水花尾声；无参数、无返回值。 */
-  splash() {
-    if (!this.canPlay()) return;
-    const now = this.context.currentTime + 0.005;
-    this.noise(now, 0.95, 0.53, this.effects, 1450, "lowpass", 0.006);
-    this.noise(now + 0.06, 0.72, 0.2, this.effects, 3600, "highpass", 0.04);
-    this.note(105, now, 0.42, 0.34, this.effects, { end: 34 });
-    for (let i = 0; i < 4; i += 1) {
-      this.note(330 + i * 93, now + 0.22 + i * 0.1, 0.12, 0.06, this.effects, {
-        end: 130 + i * 35,
+    if (!this.effectReady("sonar", 0.4)) return;
+    const at = this.context.currentTime + 0.006;
+    for (const [delay, volume] of [
+      [0, 0.2],
+      [0.43, 0.055],
+      [0.86, 0.025],
+    ]) {
+      this.note(660, at + delay, 1.14, volume, this.effects, {
+        end: 636,
+        attack: 0.025,
+        cutoff: 1400,
+        pan: delay ? -0.18 : 0.18,
+      });
+      this.note(990, at + delay + 0.012, 0.56, volume * 0.11, this.effects, {
+        end: 971,
+        attack: 0.024,
       });
     }
   }
 
-  /** pickup 播放奖励提示；kind 为 stamina、flow 或 frenzy，无返回值。 */
+  /** breach 播放从低通水流打开到空气的破水声；无参数，无返回值。 */
+  breach() {
+    if (!this.effectReady("breach", 0.3)) return;
+    const at = this.context.currentTime + 0.005;
+    this.noise(at, 0.68, 0.32, this.effects, 390, "lowpass", 0.065, {
+      end: 4900,
+      hold: 0.12,
+      pan: -0.16,
+    });
+    this.noise(at + 0.12, 0.55, 0.17, this.effects, 1900, "bandpass", 0.075, {
+      end: 3300,
+      q: 0.48,
+      pan: 0.18,
+    });
+    this.note(95, at, 0.25, 0.14, this.effects, { end: 44 });
+    this.bubbles(at + 0.08, 5, 0.037, 380, 0.06);
+  }
+
+  /** splash 播放落水撞击、翻涌水花和闭合的水下滤波；无参数，无返回值。 */
+  splash() {
+    if (!this.effectReady("splash", 0.3)) return;
+    const at = this.context.currentTime + 0.005;
+    this.note(138, at, 0.49, 0.29, this.effects, { end: 35, type: "bass" });
+    this.noise(at, 0.22, 0.37, this.effects, 3600, "lowpass", 0.007, {
+      end: 780,
+      pan: -0.12,
+    });
+    this.noise(at + 0.035, 1.14, 0.3, this.effects, 1850, "lowpass", 0.055, {
+      end: 180,
+      hold: 0.11,
+      pan: 0.14,
+    });
+    this.bubbles(at + 0.18, 8, 0.038, 420, 0.075);
+    this.duckMusic(0.7, 0.38);
+  }
+
+  /** pickup 播放奖励和声；kind 为 stamina、flow 或 frenzy，无返回值。 */
   pickup(kind) {
-    if (!this.canPlay()) return;
-    const now = this.context.currentTime + 0.005;
-    const phrase =
+    if (!this.effectReady("pickup", 0.16)) return;
+    const at = this.context.currentTime + 0.006;
+    const chord =
       kind === "frenzy"
-        ? [62, 65, 69, 74]
+        ? [50, 57, 62, 65]
         : kind === "flow"
-          ? [69, 74, 76, 81]
-          : [74, 78, 81];
-    phrase.forEach((pitch, index) => {
-      this.note(midi(pitch), now + index * 0.095, 0.65, 0.21, this.effects, {
-        type: "triangle",
+          ? [57, 64, 69, 74]
+          : [62, 69, 74];
+    chord.forEach((pitch, index) => {
+      this.note(midi(pitch), at + index * 0.11, 1.05, 0.12, this.effects, {
+        type: "felt",
+        attack: 0.055,
+        cutoff: 2100,
+        pan: (index - 1.5) * 0.16,
       });
     });
+    this.bubbles(at, 4, 0.03, 290, 0.06);
     if (kind === "frenzy")
-      this.note(73.42, now, 0.85, 0.22, this.effects, {
-        type: "sawtooth",
-        cutoff: 340,
+      this.note(73.42, at, 1.2, 0.2, this.effects, {
+        type: "warm",
+        attack: 0.1,
+        cutoff: 470,
+        end: 55,
       });
   }
 
-  /** bossAttack 播放巨兽攻击前兆；kind 接收巨兽标识，无返回值。 */
-  bossAttack(kind) {
-    if (!this.canPlay()) return;
-    const now = this.context.currentTime + 0.005;
-    const root = kind === "kraken" ? 55 : kind === "leviathan" ? 41.2 : 49;
-    this.note(root * 2.6, now, 1.15, 0.25, this.effects, {
-      type: "sawtooth",
-      end: root,
+  /** hunter 播放捕食者逼近声；kind 决定共鸣频段，同类自动限频，无返回值。 */
+  hunter(kind = "shark") {
+    if (!this.effectReady(`hunter_${kind}`, 2.6)) return;
+    const at = this.context.currentTime + 0.006;
+    const root =
+      {
+        shark: 83,
+        dunkleosteus: 69,
+        angler: 112,
+        squid: 61,
+        octopus: 67,
+        kraken: 44,
+        leviathan: 36.71,
+        mayan: 52,
+        hydra: 48,
+      }[kind] || 76;
+    this.note(root * 1.5, at, 1.32, 0.15, this.effects, {
+      type: "reed",
+      end: root * 0.83,
       cutoff: 520,
-      attack: 0.12,
+      attack: 0.13,
+      hold: 0.12,
+      pan: -0.14,
     });
-    this.note(root * 1.03, now + 0.05, 1.25, 0.25, this.effects, {
-      type: "triangle",
-      end: root * 0.8,
+    this.note(root * 1.015, at + 0.1, 1.46, 0.14, this.effects, {
+      type: "warm",
+      end: root * 0.72,
       attack: 0.16,
+      pan: 0.14,
     });
-    this.noise(now + 0.08, 1.15, 0.22, this.effects, 410, "bandpass", 0.16);
-    this.note(90, now + 0.38, 0.65, 0.28, this.effects, { end: 28 });
+    this.noise(
+      at + 0.025,
+      1.08,
+      0.19,
+      this.effects,
+      root * 4.1,
+      "bandpass",
+      0.15,
+      { end: root * 2, q: 1.2, hold: 0.18 },
+    );
+    this.duckMusic(0.69, 0.7);
   }
 
-  /** victory 播放原创上行胜利乐句；无参数、无返回值。 */
-  victory() {
-    if (!this.canPlay()) return;
-    const now = this.context.currentTime + 0.025;
-    [62, 66, 69, 74, 78, 81, 86].forEach((pitch, index) => {
-      this.note(
-        midi(pitch),
-        now + index * 0.17,
-        1.5,
-        index === 6 ? 0.28 : 0.2,
-        this.effects,
-        { type: "triangle", attack: 0.015 },
-      );
+  /** bossAttack 播放领主攻击前兆，kind 决定共鸣基音；无返回值。 */
+  bossAttack(kind) {
+    if (!this.effectReady("boss_attack", 0.7)) return;
+    const at = this.context.currentTime + 0.006;
+    const root =
+      kind === "kraken"
+        ? 43.65
+        : kind === "leviathan"
+          ? 36.71
+          : kind === "hydra"
+            ? 48.99
+            : 51.91;
+    this.note(root * 2.8, at, 1.65, 0.19, this.effects, {
+      type: "reed",
+      end: root * 1.13,
+      attack: 0.22,
+      cutoff: 610,
+      hold: 0.28,
+      pan: -0.21,
     });
-    [50, 57, 62, 66, 69].forEach((pitch) => {
-      this.note(midi(pitch), now + 0.5, 3.1, 0.09, this.effects, {
-        type: "triangle",
-        attack: 0.2,
+    this.note(root * 1.035, at + 0.12, 1.85, 0.19, this.effects, {
+      type: "warm",
+      end: root * 0.78,
+      attack: 0.26,
+      hold: 0.19,
+      pan: 0.19,
+    });
+    this.noise(at + 0.06, 1.5, 0.25, this.effects, 490, "bandpass", 0.2, {
+      end: 180,
+      q: 0.95,
+      hold: 0.24,
+    });
+    this.drum(at + 0.48, 0.27, this.effects, 0.67);
+    this.duckMusic(0.48, 1.1);
+  }
+
+  /** victory 播放温暖而舒展的终局和声；无参数，无返回值。 */
+  victory() {
+    if (!this.effectReady("victory", 2)) return;
+    const at = this.context.currentTime + 0.025;
+    [62, 66, 69, 74, 78, 81].forEach((pitch, index) => {
+      this.note(midi(pitch), at + index * 0.22, 2.2, 0.12, this.effects, {
+        type: "felt",
+        attack: 0.07,
+        cutoff: 2800,
+        pan: (index - 2.5) * 0.12,
       });
     });
+    [50, 57, 62, 66, 69].forEach((pitch, index) =>
+      this.pad(
+        midi(pitch),
+        at + 0.35,
+        4.4,
+        0.045,
+        this.effects,
+        (index - 2) * 0.22,
+      ),
+    );
+    this.duckMusic(0.65, 2.2);
   }
 
-  /** tone 保留原有通用音效接口；参数依次为频率、秒数、音量与结束频率。 */
+  /** tone 保留通用接口，参数依次为频率、时长、音量及结束频率；无返回值。 */
   tone(frequency, duration = 0.3, volume = 0.2, end = frequency) {
     if (!this.canPlay()) return;
     this.note(
@@ -248,78 +467,114 @@ export class OceanAudio {
       duration,
       volume,
       this.effects,
-      { end },
+      { end, type: "felt", cutoff: 2200 },
     );
   }
 
   /*********************************************
-   * 内部合成与调度
+   * 内部声部、空间与调度
    ********************************************/
 
   createGraph() {
     const context = this.context;
+    this.mix = context.createGain();
+    const rumbleCut = context.createBiquadFilter();
+    rumbleCut.type = "highpass";
+    rumbleCut.frequency.value = 24;
+    rumbleCut.Q.value = 0.5;
+    this.compressor = context.createDynamicsCompressor();
+    this.compressor.threshold.value = -16;
+    this.compressor.knee.value = 18;
+    this.compressor.ratio.value = 5;
+    this.compressor.attack.value = 0.005;
+    this.compressor.release.value = 0.22;
+    const safety = context.createWaveShaper();
+    const curve = new Float32Array(4097);
+    for (let index = 0; index < curve.length; index++) {
+      const input = (index / (curve.length - 1)) * 2 - 1;
+      curve[index] = Math.tanh(input * 1.14) * 0.94;
+    }
+    safety.curve = curve;
+    safety.oversample = "2x";
     this.master = context.createGain();
-    this.master.gain.value = this.enabled ? 0.68 : 0;
-    const compressor = context.createDynamicsCompressor();
-    compressor.threshold.value = -15;
-    compressor.knee.value = 18;
-    compressor.ratio.value = 6;
-    compressor.attack.value = 0.008;
-    compressor.release.value = 0.28;
-    this.master.connect(compressor).connect(context.destination);
+    this.master.gain.value = this.enabled ? 0.76 : 0;
+    this.pauseGate = context.createGain();
+    this.mix
+      .connect(rumbleCut)
+      .connect(this.compressor)
+      .connect(safety)
+      .connect(this.master)
+      .connect(this.pauseGate)
+      .connect(context.destination);
 
-    this.music = context.createGain();
-    this.music.gain.value = 0.72;
+    this.music = this.makeBus(0.69);
+    this.musicDuck = this.makeBus(1);
     this.musicFilter = context.createBiquadFilter();
     this.musicFilter.type = "lowpass";
-    this.musicFilter.frequency.value = 6200;
-    this.musicFilter.Q.value = 0.4;
-    this.music.connect(this.musicFilter).connect(this.master);
-    this.effects = context.createGain();
-    this.effects.gain.value = 0.8;
-    this.effects.connect(this.master);
-    this.calm = this.makeBus(1, this.music);
-    this.chase = this.makeBus(0, this.music);
+    this.musicFilter.frequency.value = 3500;
+    this.musicFilter.Q.value = 0.45;
+    this.music
+      .connect(this.musicDuck)
+      .connect(this.musicFilter)
+      .connect(this.mix);
+    this.effects = this.makeBus(0.86);
+    this.effectsFilter = context.createBiquadFilter();
+    this.effectsFilter.type = "lowpass";
+    this.effectsFilter.frequency.value = 4300;
+    this.effectsFilter.Q.value = 0.45;
+    this.effects.connect(this.effectsFilter).connect(this.mix);
+    this.calm = this.makeBus(0.86, this.music);
+    this.chaseFilter = context.createBiquadFilter();
+    this.chaseFilter.type = "lowpass";
+    this.chaseFilter.frequency.value = 520;
+    this.chaseFilter.Q.value = 0.55;
+    this.chaseFilter.connect(this.music);
+    this.chase = this.makeBus(0, this.chaseFilter);
+    this.chaseFast = this.makeBus(0, this.chase);
     this.bossLayer = this.makeBus(0, this.music);
 
-    // 共用一条短混响，提供空间感，又避免把节拍和提示声淹没。
-    const convolver = context.createConvolver();
-    const impulseLength = Math.floor(context.sampleRate * 1.8);
-    const impulse = context.createBuffer(2, impulseLength, context.sampleRate);
-    let noiseSeed = 6187;
-    const random = () => {
-      noiseSeed = (noiseSeed * 1664525 + 1013904223) >>> 0;
-      return noiseSeed / 4294967296;
+    this.waves = {
+      warm: this.harmonicWave([1, 0.2, 0.095, 0.028, 0.012]),
+      bass: this.harmonicWave([1, 0.31, 0.075, 0.019]),
+      felt: this.harmonicWave([1, 0.29, 0.12, 0.048, 0.012]),
+      reed: this.harmonicWave([1, 0.13, 0.29, 0.047, 0.085]),
     };
-    for (let channel = 0; channel < 2; channel += 1) {
-      const samples = impulse.getChannelData(channel);
-      for (let i = 0; i < impulseLength; i += 1) {
-        samples[i] = (random() * 2 - 1) * (1 - i / impulseLength) ** 3;
-      }
-    }
-    convolver.buffer = impulse;
-    const reverb = this.makeBus(0.2, this.master);
-    this.music.connect(convolver);
-    this.effects.connect(convolver);
-    convolver.connect(reverb);
+    this.reverbInput = this.makeBus(1);
+    this.musicWet = this.makeBus(0.26, this.reverbInput);
+    this.effectsWet = this.makeBus(0.14, this.reverbInput);
+    this.musicFilter.connect(this.musicWet);
+    this.effectsFilter.connect(this.effectsWet);
+    this.reverbFilter = context.createBiquadFilter();
+    this.reverbFilter.type = "lowpass";
+    this.reverbFilter.frequency.value = 1700;
+    this.reverbFilter.Q.value = 0.4;
+    this.reverbFilter.connect(this.mix);
+    this.reverbImpulse = this.createImpulse(2.6);
+    this.connectReverb();
 
     this.noiseBuffer = context.createBuffer(
       1,
-      context.sampleRate * 2,
+      context.sampleRate * 3,
       context.sampleRate,
     );
-    const noiseSamples = this.noiseBuffer.getChannelData(0);
-    for (let i = 0; i < noiseSamples.length; i += 1)
-      noiseSamples[i] = random() * 2 - 1;
+    const samples = this.noiseBuffer.getChannelData(0);
+    for (let index = 0; index < samples.length; index++)
+      samples[index] = this.random() * 2 - 1;
     this.waterSource = context.createBufferSource();
     this.waterSource.buffer = this.noiseBuffer;
     this.waterSource.loop = true;
     this.waterFilter = context.createBiquadFilter();
     this.waterFilter.type = "lowpass";
-    this.waterFilter.frequency.value = 240;
-    this.waterFilter.Q.value = 0.4;
-    this.waterGain = this.makeBus(0.022, this.master);
+    this.waterFilter.frequency.value = 340;
+    this.waterFilter.Q.value = 0.6;
+    this.waterGain = this.makeBus(0.058, this.mix);
     this.waterSource.connect(this.waterFilter).connect(this.waterGain);
+    this.currentFilter = context.createBiquadFilter();
+    this.currentFilter.type = "bandpass";
+    this.currentFilter.frequency.value = 720;
+    this.currentFilter.Q.value = 0.4;
+    this.currentGain = this.makeBus(0.021, this.mix);
+    this.waterSource.connect(this.currentFilter).connect(this.currentGain);
     this.waterSource.start();
     this.nextStep = context.currentTime + 0.035;
     this.ready = true;
@@ -327,119 +582,155 @@ export class OceanAudio {
 
   scheduleMusicStep(at, step) {
     const subdivision = this.beat / 2;
-    const inBar = step % 8;
-    const bar = Math.floor(step / 8) % 4;
-    const phrase = Math.floor(step / 32) % 2;
+    const bar = Math.floor(step / 16) % 4;
+    const inPhrase = step % 16;
     const harmony = [
-      [50, 57, 60, 64],
-      [46, 53, 57, 60],
+      [50, 57, 60, 65],
+      [46, 53, 57, 62],
       [53, 60, 64, 69],
-      [48, 55, 62, 67],
+      [48, 55, 62, 65],
     ][bar];
     const bass = harmony[0] - 12;
 
-    // 舒缓声部：四小节和声、清晰的钟琴旋律与柔和低音。
-    if (inBar === 0) {
-      harmony.forEach((pitch, index) => {
-        this.note(
+    // 舒缓层以长起音的双振荡和声铺底，旋律只在留白处出现。
+    if (inPhrase === 0) {
+      harmony.forEach((pitch, index) =>
+        this.pad(
           midi(pitch),
-          at + index * 0.018,
-          this.beat * 4.35,
-          0.1,
+          at + index * 0.04,
+          this.beat * 8.9,
+          0.044,
           this.calm,
-          { type: "triangle", attack: 0.3, cutoff: 2000 },
-        );
-      });
-      this.note(midi(bass), at, this.beat * 3.7, 0.17, this.calm, {
-        attack: 0.08,
-      });
-    }
-    const melody = [
-      [74, null, 69, 72, 76, null, 74, 69],
-      [72, null, 69, null, 65, 69, 72, null],
-      [77, null, 76, 72, 69, null, 72, 76],
-      [74, null, 79, null, 76, 74, 72, null],
-    ][bar][inBar];
-    if (melody !== null) {
-      const pitch = melody + (phrase && inBar === 4 ? 12 : 0);
-      this.note(midi(pitch), at, subdivision * 2.35, 0.2, this.calm, {
-        type: "sine",
-        attack: 0.009,
-      });
-      this.note(midi(pitch) * 2, at, subdivision * 0.8, 0.038, this.calm, {
-        attack: 0.004,
+          (index - 1.5) * 0.31,
+        ),
+      );
+      this.note(midi(bass), at, this.beat * 7.4, 0.1, this.calm, {
+        type: "warm",
+        attack: 0.5,
+        hold: this.beat * 3.4,
+        cutoff: 680,
       });
     }
-    if (inBar % 2 === 1) {
+    if (inPhrase === 5 || inPhrase === 13) {
+      const pitch = [
+        [69, 74],
+        [65, 69],
+        [72, 76],
+        [67, 74],
+      ][bar][inPhrase === 5 ? 0 : 1];
+      this.note(midi(pitch), at, 2.6, 0.1, this.calm, {
+        type: "felt",
+        attack: 0.17,
+        hold: 0.17,
+        cutoff: 1500,
+        pan: inPhrase === 5 ? -0.32 : 0.3,
+      });
+      this.noise(at + 0.035, 1.4, 0.016, this.calm, 1150, "bandpass", 0.21, {
+        q: 0.7,
+        pan: inPhrase === 5 ? 0.23 : -0.23,
+      });
+    }
+
+    if (this.lastDanger > 0.015 || this.boss) {
+      const pitch = bass + [0, 0, 7, 0, 3, 0, 7, -1][step % 8];
+      this.note(midi(pitch), at, 0.29, 0.19, this.chase, {
+        type: "bass",
+        attack: 0.019,
+        hold: 0.052,
+        cutoff: 1050,
+      });
       this.note(
-        midi(harmony[(inBar + bar) % 4] + 12),
-        at,
-        0.52,
-        0.055,
-        this.calm,
-        { type: "triangle" },
+        midi(pitch + (step % 2 ? 0 : 7)),
+        at + subdivision * 0.5,
+        0.17,
+        0.105,
+        this.chaseFast,
+        {
+          type: "felt",
+          attack: 0.015,
+          hold: 0.026,
+          cutoff: 1300,
+          pan: step % 2 ? -0.16 : 0.16,
+        },
       );
-    }
-
-    // 追击声部保持同一和声，双倍细分的低弦音型和鼓点带来紧张感。
-    for (let half = 0; half < 2; half += 1) {
-      const moment = at + half * subdivision * 0.5;
-      const pitch = bass + [0, 7, 12, 7][(step * 2 + half) % 4];
-      this.note(midi(pitch), moment, subdivision * 0.46, 0.17, this.chase, {
-        type: "sawtooth",
-        cutoff: 760,
-        attack: 0.012,
-      });
+      if (step % 4 === 0 || step % 8 === 7)
+        this.drum(at, 0.27, this.chase, 0.9);
+      if (step % 4 === 2) {
+        this.noise(at, 0.17, 0.09, this.chase, 730, "bandpass", 0.006, {
+          end: 410,
+          q: 0.6,
+        });
+        this.note(138, at + 0.01, 0.22, 0.065, this.chase, {
+          end: 82,
+          type: "felt",
+        });
+      }
       this.noise(
-        moment,
-        0.065,
-        half ? 0.028 : 0.045,
-        this.chase,
-        5700,
-        "highpass",
+        at + subdivision * 0.5,
+        0.09,
+        0.025,
+        this.chaseFast,
+        1400,
+        "bandpass",
+        0.01,
+        { q: 0.5, pan: step % 2 ? 0.3 : -0.3 },
       );
-    }
-    if (inBar % 4 === 0 || inBar === 7) this.drum(at, 0.32, this.chase);
-    if (inBar === 2 || inBar === 6) {
-      this.noise(at, 0.16, 0.14, this.chase, 1450, "bandpass");
-      this.note(170, at, 0.12, 0.07, this.chase, {
-        end: 105,
-        type: "triangle",
-      });
-    }
-    if (inBar === 0 || inBar === 4) {
-      this.note(midi(harmony[2] + 12), at, this.beat * 1.7, 0.08, this.chase, {
-        type: "sawtooth",
-        cutoff: 1700,
-        attack: 0.16,
-      });
+      if (inPhrase === 0)
+        this.pad(midi(bass + 19), at, this.beat * 7.5, 0.044, this.chase, 0.13);
     }
 
-    // 巨兽声部添加沉重战鼓、低八度和半音摩擦，保留清楚的节奏脉冲。
-    this.note(midi(bass - 12), at, subdivision * 0.9, 0.2, this.bossLayer, {
-      type: "triangle",
-      attack: 0.012,
-    });
-    if (inBar % 2 === 0) {
-      this.drum(at, 0.4, this.bossLayer, 0.72);
-      this.noise(at + 0.012, 0.24, 0.11, this.bossLayer, 650, "lowpass");
+    // 领主使用独立的六拍战鼓型与低共鸣，而非把追逐旋律简单加响。
+    if (this.boss) {
+      const bossStep = step % 12;
+      if ([0, 3, 4, 8, 10].includes(bossStep)) {
+        this.drum(
+          at,
+          bossStep === 0 ? 0.37 : 0.24,
+          this.bossLayer,
+          bossStep % 2 ? 0.79 : 0.61,
+        );
+        this.noise(
+          at + 0.035,
+          0.45,
+          0.13,
+          this.bossLayer,
+          340,
+          "lowpass",
+          0.035,
+          { end: 170 },
+        );
+      }
+      if (step % 4 === 1)
+        this.note(midi(bass + 7), at, 0.65, 0.12, this.bossLayer, {
+          type: "reed",
+          cutoff: 620,
+          attack: 0.05,
+          pan: step % 8 ? -0.2 : 0.2,
+        });
+      if (inPhrase === 0) {
+        this.pad(midi(bass), at, this.beat * 8.5, 0.09, this.bossLayer, -0.1);
+        this.note(
+          midi(bass + 13),
+          at + 0.14,
+          this.beat * 7.5,
+          0.075,
+          this.bossLayer,
+          { type: "reed", attack: 0.8, hold: 1.3, cutoff: 490, pan: 0.16 },
+        );
+      }
     }
-    const tensionPitch = harmony[2] + 12 + (inBar % 4 === 3 ? 1 : 0);
-    this.note(
-      midi(tensionPitch),
-      at,
-      subdivision * 0.72,
-      0.12,
-      this.bossLayer,
-      { type: "sawtooth", cutoff: 1500, attack: 0.025 },
-    );
-    if (inBar === 0) {
-      this.note(midi(bass + 7), at, this.beat * 3.8, 0.13, this.bossLayer, {
-        type: "sawtooth",
-        cutoff: 480,
-        attack: 0.35,
+  }
+
+  pad(frequency, at, duration, volume, destination, pan = 0) {
+    for (const sign of [-1, 1])
+      this.note(frequency, at, duration, volume, destination, {
+        type: "warm",
+        attack: Math.min(1.15, duration * 0.25),
+        hold: duration * 0.43,
+        cutoff: 1250,
+        detune: sign * 4.1,
+        pan: clamp(pan + sign * 0.15, -0.8, 0.8),
       });
-    }
   }
 
   note(
@@ -448,40 +739,49 @@ export class OceanAudio {
     duration,
     volume,
     destination,
-    { type = "sine", end = frequency, attack = 0.008, cutoff = 0 } = {},
+    {
+      type = "sine",
+      end = frequency,
+      attack = 0.012,
+      hold = 0,
+      cutoff = 0,
+      pan = 0,
+      detune = 0,
+    } = {},
   ) {
     const context = this.context;
     const oscillator = context.createOscillator();
     const envelope = context.createGain();
     const onset = Math.max(context.currentTime, at);
-    const finish = onset + Math.max(0.04, duration);
-    const rise = Math.min(attack, duration * 0.35);
-    oscillator.type = type;
-    oscillator.frequency.setValueAtTime(Math.max(12, frequency), onset);
+    const length = Math.max(0.04, duration);
+    if (this.waves[type]) oscillator.setPeriodicWave(this.waves[type]);
+    else
+      oscillator.type = ["sine", "triangle", "sawtooth", "square"].includes(
+        type,
+      )
+        ? type
+        : "sine";
+    oscillator.detune.value = detune;
+    oscillator.frequency.setValueAtTime(clamp(frequency, 18, 12000), onset);
     if (end !== frequency)
       oscillator.frequency.exponentialRampToValueAtTime(
-        Math.max(12, end),
-        finish,
+        clamp(end, 18, 12000),
+        onset + length,
       );
-    envelope.gain.setValueAtTime(0.0001, onset);
-    envelope.gain.exponentialRampToValueAtTime(
-      Math.max(0.0002, volume),
-      onset + Math.max(0.002, rise),
-    );
-    envelope.gain.exponentialRampToValueAtTime(0.0001, finish);
+    this.envelope(envelope.gain, onset, length, volume, attack, hold);
     const nodes = [oscillator, envelope];
     if (cutoff > 0) {
       const filter = context.createBiquadFilter();
       filter.type = "lowpass";
       filter.frequency.value = cutoff;
-      filter.Q.value = 0.5;
+      filter.Q.value = 0.45;
       oscillator.connect(filter).connect(envelope);
       nodes.push(filter);
     } else oscillator.connect(envelope);
-    envelope.connect(destination);
+    this.connectVoice(envelope, destination, pan, nodes);
     this.releaseWhenEnded(oscillator, nodes);
     oscillator.start(onset);
-    oscillator.stop(finish + 0.025);
+    oscillator.stop(onset + length + 0.02);
   }
 
   noise(
@@ -491,38 +791,165 @@ export class OceanAudio {
     destination,
     frequency = 1200,
     filterType = "bandpass",
-    attack = 0.006,
+    attack = 0.01,
+    { end = frequency, q = 0.55, pan = 0, hold = 0 } = {},
   ) {
     const context = this.context;
     const source = context.createBufferSource();
     source.buffer = this.noiseBuffer;
+    source.loop = true;
     const filter = context.createBiquadFilter();
     filter.type = filterType;
-    filter.frequency.value = frequency;
-    filter.Q.value = 0.75;
+    filter.Q.value = q;
     const envelope = context.createGain();
     const onset = Math.max(context.currentTime, at);
-    envelope.gain.setValueAtTime(0.0001, onset);
-    envelope.gain.exponentialRampToValueAtTime(
-      Math.max(0.0002, volume),
-      onset + Math.min(attack, duration * 0.4),
-    );
-    envelope.gain.exponentialRampToValueAtTime(0.0001, onset + duration);
-    source.connect(filter).connect(envelope).connect(destination);
-    this.releaseWhenEnded(source, [source, filter, envelope]);
-    source.start(onset, (at * 0.731) % 0.5);
-    source.stop(onset + duration + 0.025);
+    const length = Math.max(0.04, duration);
+    filter.frequency.setValueAtTime(clamp(frequency, 25, 10000), onset);
+    if (end !== frequency)
+      filter.frequency.exponentialRampToValueAtTime(
+        clamp(end, 25, 10000),
+        onset + length,
+      );
+    this.envelope(envelope.gain, onset, length, volume, attack, hold);
+    source.connect(filter).connect(envelope);
+    const nodes = [source, filter, envelope];
+    this.connectVoice(envelope, destination, pan, nodes);
+    this.releaseWhenEnded(source, nodes);
+    source.start(onset, this.random() * 1.8);
+    source.stop(onset + length + 0.02);
+  }
+
+  bubbles(at, count, volume, frequency, gap) {
+    for (let index = 0; index < count; index++) {
+      const pitch = frequency * (0.74 + this.random() * 0.82);
+      this.note(
+        pitch,
+        at + index * gap + this.random() * 0.012,
+        0.075 + this.random() * 0.07,
+        volume * (1 - index / (count + 2)),
+        this.effects,
+        {
+          end: pitch * 0.43,
+          attack: 0.006,
+          cutoff: 1100,
+          pan: (this.random() - 0.5) * 0.8,
+        },
+      );
+    }
   }
 
   drum(at, volume, destination, pitch = 1) {
-    this.note(135 * pitch, at, 0.36, volume, destination, { end: 42 * pitch });
-    this.noise(at, 0.055, volume * 0.18, destination, 1800, "lowpass");
+    this.note(123 * pitch, at, 0.59, volume, destination, {
+      end: 42 * pitch,
+      type: "bass",
+      cutoff: 720,
+      attack: 0.007,
+    });
+    this.note(171 * pitch, at + 0.008, 0.27, volume * 0.24, destination, {
+      end: 86 * pitch,
+      type: "felt",
+      attack: 0.009,
+    });
+    this.noise(
+      at + 0.003,
+      0.09,
+      volume * 0.31,
+      destination,
+      660,
+      "lowpass",
+      0.004,
+      { end: 310 },
+    );
   }
 
-  makeBus(gain, destination) {
+  envelope(parameter, onset, duration, volume, attack, hold) {
+    const rise = Math.max(0.002, Math.min(attack, duration * 0.35));
+    const sustain = Math.min(Math.max(0, hold), duration - rise - 0.018);
+    parameter.setValueAtTime(0.00001, onset);
+    parameter.linearRampToValueAtTime(
+      clamp(volume, 0.00002, 1.2),
+      onset + rise,
+    );
+    if (sustain > 0)
+      parameter.linearRampToValueAtTime(
+        clamp(volume * 0.87, 0.00002, 1.2),
+        onset + rise + sustain,
+      );
+    parameter.exponentialRampToValueAtTime(0.00001, onset + duration);
+  }
+
+  connectVoice(envelope, destination, pan, nodes) {
+    if (
+      Math.abs(pan) > 0.01 &&
+      typeof this.context.createStereoPanner === "function"
+    ) {
+      const panner = this.context.createStereoPanner();
+      panner.pan.value = clamp(pan, -1, 1);
+      envelope.connect(panner).connect(destination);
+      nodes.push(panner);
+    } else envelope.connect(destination);
+  }
+
+  duckMusic(level, hold) {
+    const at = this.context.currentTime;
+    const gain = this.musicDuck.gain;
+    if (typeof gain.cancelAndHoldAtTime === "function")
+      gain.cancelAndHoldAtTime(at);
+    else {
+      gain.cancelScheduledValues(at);
+      gain.setValueAtTime(gain.value, at);
+    }
+    gain.setTargetAtTime(level, at, 0.018);
+    gain.setTargetAtTime(1, at + hold, 0.27);
+  }
+
+  harmonicWave(partials) {
+    const real = new Float32Array(partials.length + 1);
+    const imaginary = new Float32Array(partials.length + 1);
+    partials.forEach((value, index) => {
+      imaginary[index + 1] = value;
+    });
+    return this.context.createPeriodicWave(real, imaginary);
+  }
+
+  createImpulse(duration) {
+    const length = Math.floor(this.context.sampleRate * duration);
+    const buffer = this.context.createBuffer(
+      2,
+      length,
+      this.context.sampleRate,
+    );
+    for (let channel = 0; channel < 2; channel++) {
+      const samples = buffer.getChannelData(channel);
+      let smooth = 0;
+      for (let index = 0; index < length; index++) {
+        smooth = smooth * 0.62 + (this.random() * 2 - 1) * 0.38;
+        const progress = index / length;
+        samples[index] =
+          smooth *
+          (1 - progress) ** 2.8 *
+          Math.min(1, index / (this.context.sampleRate * 0.014));
+      }
+      for (const [delay, amplitude] of [
+        [0.039 + channel * 0.007, 0.2],
+        [0.091 - channel * 0.009, 0.12],
+        [0.163 + channel * 0.014, 0.055],
+      ])
+        samples[Math.floor(delay * this.context.sampleRate)] += amplitude;
+    }
+    return buffer;
+  }
+
+  connectReverb() {
+    this.convolver = this.context.createConvolver();
+    this.convolver.buffer = this.reverbImpulse;
+    this.reverbInput.connect(this.convolver).connect(this.reverbFilter);
+  }
+
+  makeBus(gain, destination = null) {
     const node = this.context.createGain();
     node.gain.value = gain;
-    node.connect(destination);
+    if (destination) node.connect(destination);
     return node;
   }
 
@@ -534,8 +961,26 @@ export class OceanAudio {
     };
   }
 
+  effectReady(name, interval) {
+    if (!this.canPlay()) return false;
+    const now = this.context.currentTime;
+    if (now < (this.cooldowns.get(name) ?? -Infinity)) return false;
+    this.cooldowns.set(name, now + interval);
+    return true;
+  }
+
+  random() {
+    this.randomState = (this.randomState * 1664525 + 1013904223) >>> 0;
+    return this.randomState / 4294967296;
+  }
+
   canPlay() {
-    return this.ready && this.enabled && !this.paused;
+    return (
+      this.ready &&
+      this.enabled &&
+      !this.paused &&
+      this.context.state !== "closed"
+    );
   }
 
   isOffline() {
@@ -548,12 +993,12 @@ export class OceanAudio {
   }
 }
 
-/** midi 将 MIDI 音高换算为赫兹，仅用于内部原创乐句。 */
+/** midi 将原创乐句的音高换算为赫兹。 */
 function midi(pitch) {
   return 440 * 2 ** ((pitch - 69) / 12);
 }
 
-/** clamp 约束有限数值，避免无效危险程度进入音频自动化。 */
+/** clamp 限制有限数值，避免无效游戏状态进入音频参数。 */
 function clamp(value, minimum, maximum) {
   return Math.max(
     minimum,

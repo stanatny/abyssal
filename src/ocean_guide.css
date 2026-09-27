@@ -1,0 +1,606 @@
+.ocean-guide {
+  --specimen: #a1e8d5;
+  width: min(1180px, 94vw);
+  max-width: none;
+  height: min(860px, 93dvh);
+  max-height: 93dvh;
+  padding: 28px 34px 20px;
+  color: #e2f1f5;
+  background: linear-gradient(165deg, #081c28 0%, #050f18 70%);
+  border: 1px solid rgba(127, 181, 186, 0.32);
+  border-radius: 20px;
+  box-shadow: 0 40px 120px rgba(0, 0, 0, 0.72);
+  overflow: hidden;
+  font-family: inherit;
+}
+.ocean-guide[open] {
+  display: flex;
+  flex-direction: column;
+}
+.ocean-guide::backdrop {
+  background: rgba(1, 9, 15, 0.82);
+  backdrop-filter: blur(10px);
+}
+.ocean-guide button {
+  cursor: pointer;
+  transition:
+    filter 0.15s,
+    background-color 0.15s,
+    border-color 0.15s;
+}
+.ocean-guide button:hover {
+  filter: brightness(1.1);
+}
+.ocean-guide button:focus-visible,
+.ocean-guide input:focus-visible {
+  outline: 2px solid var(--specimen);
+  outline-offset: 3px;
+}
+
+/* 头部 */
+.guide-heading {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 16px;
+  flex-shrink: 0;
+}
+.guide-eyebrow {
+  font-size: 9.5px;
+  letter-spacing: 3px;
+  color: #7ba9b4;
+}
+.guide-heading h2 {
+  font-size: 30px;
+  font-weight: 550;
+  letter-spacing: 6px;
+  margin: 8px 0 0;
+  color: #f2fbf9;
+  text-shadow: 0 0 30px rgba(125, 240, 205, 0.2);
+}
+.guide-close {
+  padding: 9px 15px;
+  border: 1px solid rgba(171, 202, 210, 0.2);
+  border-radius: 999px;
+  background: rgba(18, 42, 53, 0.6);
+  color: #c3d8e2;
+  font: inherit;
+  font-size: 12px;
+  letter-spacing: 1px;
+}
+.guide-close:hover {
+  border-color: rgba(171, 202, 210, 0.45);
+}
+.guide-close kbd {
+  font-size: 9px;
+  margin-left: 8px;
+  border: 1px solid rgba(170, 210, 205, 0.3);
+  border-radius: 4px;
+  padding: 2px 5px;
+}
+
+/* 分类筛选 */
+.guide-filters {
+  display: flex;
+  gap: 8px;
+  overflow-x: auto;
+  padding: 16px 0 15px;
+  margin-bottom: 18px;
+  border-bottom: 1px solid rgba(160, 192, 205, 0.1);
+  flex-shrink: 0;
+  scrollbar-width: none;
+}
+.guide-filters::-webkit-scrollbar {
+  display: none;
+}
+.guide-filters button {
+  white-space: nowrap;
+  font-size: 12px;
+  letter-spacing: 1.5px;
+  padding: 8px 16px;
+  border: 1px solid rgba(171, 202, 210, 0.18);
+  border-radius: 999px;
+  background: rgba(14, 34, 44, 0.5);
+  color: #a9c3cf;
+  font-family: inherit;
+}
+.guide-filters button:hover {
+  border-color: rgba(171, 202, 210, 0.4);
+  color: #d5e8ee;
+}
+.guide-filters button[aria-pressed="true"] {
+  color: #06231f;
+  background: linear-gradient(120deg, #9deed3, #6ed3bc);
+  border-color: transparent;
+  font-weight: 600;
+  box-shadow: 0 4px 18px rgba(110, 235, 200, 0.25);
+}
+
+/* 主体布局 */
+.guide-content {
+  display: grid;
+  grid-template-columns: 268px minmax(0, 1fr);
+  flex: 1;
+  gap: 26px;
+  min-height: 0;
+}
+.guide-sidebar {
+  border-right: 1px solid rgba(160, 192, 205, 0.12);
+  padding-right: 22px;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+}
+.guide-sidebar label {
+  font-size: 9.5px;
+  letter-spacing: 2.5px;
+  color: #7ba9b4;
+  margin: 0 0 9px;
+}
+.guide-sidebar input {
+  width: 100%;
+  background: rgba(10, 28, 38, 0.7)
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 24 24' fill='none' stroke='%236d94a1' stroke-width='2.4' stroke-linecap='round'%3E%3Ccircle cx='11' cy='11' r='7'/%3E%3Cpath d='M21 21l-4.5-4.5'/%3E%3C/svg%3E")
+    no-repeat 13px center;
+  border: 1px solid rgba(139, 183, 198, 0.22);
+  border-radius: 10px;
+  padding: 11px 13px 11px 36px;
+  color: #e7f3fa;
+  font: inherit;
+  font-size: 12.5px;
+  margin-bottom: 13px;
+}
+.guide-sidebar input::placeholder {
+  color: #5d7f8c;
+}
+.guide-sidebar input:focus {
+  border-color: rgba(139, 183, 198, 0.5);
+}
+.guide-list {
+  overflow: auto;
+  min-height: 0;
+  padding-right: 4px;
+  scrollbar-width: thin;
+  scrollbar-color: #33505e transparent;
+  color: #8fb0bd;
+  font-size: 12px;
+}
+.guide-list::-webkit-scrollbar {
+  width: 5px;
+}
+.guide-list::-webkit-scrollbar-thumb {
+  background: #33505e;
+  border-radius: 4px;
+}
+.guide-entry {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  border: 1px solid transparent;
+  border-radius: 11px;
+  background: transparent;
+  color: #ccdce5;
+  text-align: left;
+  padding: 10px 11px;
+  margin-bottom: 5px;
+  font: inherit;
+}
+.guide-entry i {
+  flex-shrink: 0;
+  width: 4px;
+  height: 32px;
+  border-radius: 4px;
+  background: var(--specimen);
+  opacity: 0.55;
+}
+.guide-entry span {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  flex: 1;
+  min-width: 0;
+}
+.guide-entry b {
+  font-size: 13.5px;
+  font-weight: 500;
+  letter-spacing: 0.5px;
+}
+.guide-entry small {
+  font-size: 9.5px;
+  letter-spacing: 0.5px;
+  color: #7f9fae;
+}
+.guide-entry em {
+  font-size: 10px;
+  font-style: normal;
+  color: #6f96a6;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+.guide-entry:hover {
+  background: rgba(21, 45, 56, 0.65);
+}
+.guide-entry[aria-pressed="true"] {
+  border-color: rgba(137, 188, 196, 0.3);
+  background: rgba(22, 48, 60, 0.8);
+}
+.guide-entry[aria-pressed="true"] i {
+  opacity: 1;
+  box-shadow: 0 0 12px var(--specimen);
+}
+
+/* 详情区 */
+.guide-detail {
+  min-height: 0;
+  overflow: auto;
+  scrollbar-width: thin;
+  scrollbar-color: #33505e transparent;
+}
+.guide-detail::-webkit-scrollbar {
+  width: 5px;
+}
+.guide-detail::-webkit-scrollbar-thumb {
+  background: #33505e;
+  border-radius: 4px;
+}
+.guide-preview {
+  position: relative;
+  width: 100%;
+  height: 292px;
+  border-radius: 16px;
+  border: 1px solid rgba(160, 192, 205, 0.14);
+  background:
+    radial-gradient(
+      ellipse at 50% 68%,
+      rgba(60, 130, 150, 0.3),
+      transparent 62%
+    ),
+    radial-gradient(
+      ellipse at 50% 110%,
+      rgba(40, 90, 110, 0.24),
+      transparent 55%
+    ),
+    rgba(6, 20, 29, 0.55);
+  box-shadow: inset 0 0 60px rgba(10, 40, 55, 0.4);
+  touch-action: none;
+  cursor: grab;
+  overflow: hidden;
+}
+.guide-preview:active {
+  cursor: grabbing;
+}
+.guide-preview canvas {
+  display: block;
+}
+.guide-specimen-tag {
+  position: absolute;
+  top: 12px;
+  left: 14px;
+  font-size: 8.5px;
+  letter-spacing: 2.5px;
+  color: #6f97a8;
+  pointer-events: none;
+  z-index: 1;
+}
+/* 奖励共用档案详情，静态符号与游戏内拾取物保持颜色、图形一致。 */
+.guide-preview.is-reward {
+  cursor: default;
+  touch-action: pan-y;
+  background:
+    radial-gradient(ellipse at 50% 50%, #183744 0%, transparent 64%),
+    rgba(6, 20, 29, 0.7);
+}
+.guide-preview.is-reward canvas,
+.guide-preview.is-reward .guide-specimen-tag,
+.guide-reward-display[hidden] {
+  display: none;
+}
+.guide-reward-display {
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-direction: column;
+  gap: 12px;
+  padding: 20px 12px;
+  text-align: center;
+}
+.guide-reward-display .guide-eyebrow {
+  color: #9ab7c0;
+  letter-spacing: 2px;
+}
+.guide-reward-orb {
+  position: relative;
+  display: grid;
+  place-items: center;
+  width: 112px;
+  height: 112px;
+  margin: 4px 0;
+  border: 1px solid var(--specimen);
+  border-radius: 50%;
+  color: var(--specimen);
+  background: radial-gradient(circle, #193b47 0%, #0d2431 65%);
+  box-shadow:
+    0 0 36px color-mix(in srgb, var(--specimen) 20%, transparent),
+    inset 0 0 24px color-mix(in srgb, var(--specimen) 15%, transparent);
+}
+.guide-reward-orb::before,
+.guide-reward-orb::after {
+  content: "";
+  position: absolute;
+  inset: -9px;
+  border: 1px solid var(--specimen);
+  border-radius: 50%;
+  opacity: 0.2;
+}
+.guide-reward-orb::after {
+  inset: 8px;
+  opacity: 0.35;
+}
+.guide-reward-orb span {
+  font-size: 58px;
+  line-height: 1;
+  font-weight: 400;
+  text-shadow: 0 0 18px var(--specimen);
+}
+.guide-reward-effect {
+  color: var(--specimen);
+  font-size: 15px;
+  font-weight: 500;
+  letter-spacing: 1px;
+}
+.guide-reward-display > small {
+  color: #8babb8;
+  font-size: 10px;
+  letter-spacing: 2px;
+}
+
+.guide-info {
+  padding: 18px 6px 12px 2px;
+}
+.guide-name-row {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  margin: 6px 0 14px;
+}
+.guide-name-row h3 {
+  font-size: 27px;
+  font-weight: 550;
+  letter-spacing: 3px;
+  margin: 0;
+  color: var(--specimen);
+  text-shadow: 0 0 18px var(--specimen);
+}
+.guide-name-row span {
+  font-size: 10px;
+  letter-spacing: 1.5px;
+  border: 1px solid rgba(190, 212, 219, 0.22);
+  padding: 4px 10px;
+  border-radius: 999px;
+  color: #9db4bd;
+  background: rgba(14, 34, 44, 0.4);
+}
+.guide-facts {
+  display: flex;
+  gap: 54px;
+  margin-bottom: 16px;
+  padding: 11px 16px;
+  border: 1px solid rgba(160, 192, 205, 0.12);
+  border-radius: 12px;
+  background: rgba(9, 24, 33, 0.45);
+  width: fit-content;
+}
+.guide-facts div {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.guide-facts small {
+  font-size: 9px;
+  letter-spacing: 2px;
+  color: #77969f;
+}
+.guide-facts b {
+  font-size: 16px;
+  font-weight: 450;
+  letter-spacing: 0.5px;
+  color: #ecf7f9;
+  font-variant-numeric: tabular-nums;
+}
+.guide-info h4 {
+  font-size: 15px;
+  font-weight: 550;
+  letter-spacing: 1.5px;
+  margin: 0 0 10px;
+  color: #e3eef0;
+  display: flex;
+  align-items: center;
+  gap: 9px;
+}
+.guide-info h4::before {
+  content: "◈";
+  font-size: 11px;
+  color: var(--specimen);
+}
+.guide-info p {
+  font-size: 13px;
+  line-height: 1.95;
+  color: #a9c2cf;
+  margin: 0 0 14px;
+  max-width: 640px;
+}
+.guide-advice {
+  border-left: 2px solid var(--specimen);
+  border-radius: 0 12px 12px 0;
+  padding: 10px 16px;
+  background: rgba(23, 53, 65, 0.42);
+  max-width: 640px;
+}
+.guide-advice b {
+  font-size: 10px;
+  letter-spacing: 2px;
+  color: var(--specimen);
+}
+.guide-advice p {
+  margin: 7px 0 0;
+  font-size: 12.5px;
+}
+.guide-combat {
+  font-size: 10px;
+  letter-spacing: 1px;
+  color: #6c98a9;
+  display: block;
+  margin-top: 14px;
+  padding-top: 11px;
+  border-top: 1px solid rgba(160, 192, 205, 0.1);
+  font-variant-numeric: tabular-nums;
+}
+.guide-footer {
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+  margin-top: 14px;
+  padding-top: 13px;
+  border-top: 1px solid rgba(160, 192, 205, 0.1);
+  font-size: 9.5px;
+  letter-spacing: 1.5px;
+  color: #5f8291;
+  flex-shrink: 0;
+}
+
+/* 移动端：子项允许收窄，横向标本列表只在自身滚动，不撑宽整个图鉴。 */
+@media (max-width: 650px) {
+  .ocean-guide {
+    padding: 16px 14px 12px;
+    width: 94vw;
+    height: 94dvh;
+    max-height: 94dvh;
+    border-radius: 14px;
+  }
+  .guide-heading h2 {
+    font-size: 22px;
+    letter-spacing: 4px;
+  }
+  .guide-heading .guide-eyebrow {
+    font-size: 7.5px;
+    letter-spacing: 1.5px;
+  }
+  .guide-close {
+    font-size: 11px;
+    padding: 8px 12px;
+  }
+  .guide-close kbd {
+    display: none;
+  }
+  .guide-filters {
+    padding: 12px 0 11px;
+    margin-bottom: 12px;
+    gap: 6px;
+  }
+  .guide-filters button {
+    font-size: 10.5px;
+    padding: 7px 12px;
+  }
+  .guide-content {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 12px;
+    overflow: auto;
+  }
+  .guide-sidebar {
+    border-right: 0;
+    padding-right: 0;
+    display: block;
+  }
+  .guide-sidebar label {
+    display: none;
+  }
+  .guide-sidebar input {
+    margin-bottom: 9px;
+    font-size: 12px;
+    padding-top: 9px;
+    padding-bottom: 9px;
+  }
+  .guide-list {
+    display: flex;
+    gap: 7px;
+    max-height: 84px;
+    overflow-x: auto;
+    overflow-y: hidden;
+    padding-bottom: 4px;
+  }
+  .guide-entry {
+    min-width: 142px;
+    margin: 0;
+    padding: 8px 9px;
+    gap: 8px;
+    border-color: rgba(171, 202, 210, 0.12);
+    background: rgba(14, 34, 44, 0.4);
+  }
+  .guide-entry em {
+    display: none;
+  }
+  .guide-entry b {
+    font-size: 12px;
+  }
+  .guide-entry small {
+    font-size: 8.5px;
+  }
+  .guide-detail {
+    overflow: visible;
+  }
+  .guide-preview {
+    height: 210px;
+    border-radius: 12px;
+  }
+  .guide-reward-display {
+    padding: 12px;
+    gap: 10px;
+  }
+  .guide-reward-display .guide-eyebrow {
+    font-size: 8px;
+    letter-spacing: 1px;
+  }
+  .guide-reward-orb {
+    width: 76px;
+    height: 76px;
+  }
+  .guide-reward-orb span {
+    font-size: 42px;
+  }
+  .guide-reward-effect {
+    font-size: 12px;
+    letter-spacing: 0.5px;
+  }
+  .guide-info {
+    padding-top: 16px;
+  }
+  .guide-name-row h3 {
+    font-size: 22px;
+  }
+  .guide-facts {
+    gap: 34px;
+    padding: 11px 14px;
+    width: 100%;
+  }
+  .guide-facts b {
+    font-size: 14px;
+  }
+  .guide-info p {
+    font-size: 12px;
+  }
+  .guide-footer {
+    margin-top: 10px;
+    font-size: 8px;
+  }
+  .guide-footer span {
+    display: none;
+  }
+}
+
+.guide-sidebar,
+.guide-detail,
+.guide-preview {
+  min-width: 0;
+}

@@ -20,13 +20,14 @@ export function seabedHeight(x, z) {
 
 /**
  * createOcean 创建三层海域与可用于遮挡的障碍物。
- * 参数：scene 为 Three.js 场景；返回 update、obstacles 与 dispose。
+ * 参数：scene 为 Three.js 场景；返回 update、colliders（实体）、obstacles（兼容遮挡球）与 dispose。
  */
 export function createOcean(scene) {
   const root = new THREE.Group();
   root.name = "ocean_environment";
   scene.add(root);
   const obstacles = [];
+  const colliders = [];
   const disposables = new Set();
   const rand = seededRandom(9371);
   const dummy = new THREE.Object3D();
@@ -60,9 +61,9 @@ export function createOcean(scene) {
   terrainGeometry.translate(0, 0, (WORLD.minZ + WORLD.maxZ) * 0.5);
   const terrainPosition = terrainGeometry.attributes.position;
   const terrainColors = [];
-  const sand = new THREE.Color("#729d91");
-  const shelfRock = new THREE.Color("#244b59");
-  const abyssRock = new THREE.Color("#102b3a");
+  const sand = new THREE.Color("#7aa392");
+  const shelfRock = new THREE.Color("#234a58");
+  const abyssRock = new THREE.Color("#0a1f2e");
   for (let i = 0; i < terrainPosition.count; i += 1) {
     const x = terrainPosition.getX(i);
     const z = terrainPosition.getZ(i);
@@ -109,11 +110,14 @@ export function createOcean(scene) {
         float ripple = sin(sandUv.x * 2.3 + sin(sandUv.y * 0.24) * 3.0);
         float detail = sin(sandUv.x * 17.0 + sandUv.y * 23.0) * sin(sandUv.y * 14.0);
         float shallow = 1.0 - smoothstep(35.0, 110.0, -vOceanWorld.y);
-        diffuseColor.rgb *= 0.92 + ripple * 0.07 * shallow + detail * 0.025;
-        float c1 = sin(sandUv.x * 0.38 + oceanTime * 0.37 + sin(sandUv.y * 0.2));
-        float c2 = cos(sandUv.y * 0.43 - oceanTime * 0.24 + cos(sandUv.x * 0.18));
-        float caustic = pow(max(0.0, 1.0 - abs(c1 + c2)), 13.0);
-        diffuseColor.rgb += vec3(0.20, 0.45, 0.32) * caustic * shallow;
+        diffuseColor.rgb *= 0.93 + ripple * 0.05 * shallow + detail * 0.022;
+        float c1 = sin(sandUv.x * 0.92 + oceanTime * 0.5 + sin(sandUv.y * 0.53));
+        float c2 = cos(sandUv.y * 1.05 - oceanTime * 0.33 + cos(sandUv.x * 0.46));
+        float caustic = pow(max(0.0, 1.0 - abs(c1 + c2)), 15.0);
+        float d1 = sin(sandUv.x * 3.2 + oceanTime * 0.82 + sin(sandUv.y * 2.1));
+        float d2 = cos(sandUv.y * 2.8 - oceanTime * 0.58 + cos(sandUv.x * 1.8));
+        float fine = pow(max(0.0, 1.0 - abs(d1 + d2)), 9.0);
+        diffuseColor.rgb += vec3(0.17, 0.4, 0.31) * (caustic * 0.18 + fine * 0.12) * shallow;
         float deep = smoothstep(640.0, 820.0, -vOceanWorld.z);
         float fault = abs(sin(sandUv.x * 0.13 + sin(sandUv.y * 0.12) * 2.5));
         float lava = pow(max(0.0, 1.0 - fault), 28.0) * deep;
@@ -134,7 +138,28 @@ export function createOcean(scene) {
       vertexColors: false,
     }),
   );
-  const rockGeometry = track(new THREE.IcosahedronGeometry(1, 1));
+  // 岩石几何先做确定性噪声鼓包，实例化后每块仍保持有机轮廓而非光滑多面体。
+  const rockGeometry = track(new THREE.IcosahedronGeometry(1, 2));
+  {
+    const positions = rockGeometry.attributes.position;
+    const vertex = new THREE.Vector3();
+    for (let i = 0; i < positions.count; i += 1) {
+      vertex.fromBufferAttribute(positions, i);
+      const lump =
+        1 +
+        0.23 *
+          Math.sin(vertex.x * 5.1 + vertex.y * 3.7) *
+          Math.cos(vertex.y * 4.3 + vertex.z * 5.9) +
+        0.11 * Math.sin(vertex.z * 9.1 + vertex.x * 7.3);
+      vertex.multiplyScalar(lump);
+      positions.setXYZ(i, vertex.x, vertex.y, vertex.z);
+    }
+    rockGeometry.computeVertexNormals();
+  }
+  rockGeometry.computeBoundingSphere();
+  const rockEnvelope =
+    rockGeometry.boundingSphere.radius +
+    rockGeometry.boundingSphere.center.length();
   const rocks = new THREE.InstancedMesh(rockGeometry, rockMaterial, 280);
   rocks.name = "reef_rocks";
   for (let i = 0; i < 280; i += 1) {
@@ -157,14 +182,33 @@ export function createOcean(scene) {
     dummy.scale.set(radius, height, radius * (0.75 + rand() * 0.7));
     dummy.updateMatrix();
     rocks.setMatrixAt(i, dummy.matrix);
-    color.set(z > -110 ? "#456f70" : z > -310 ? "#294957" : "#26383f");
-    color.multiplyScalar(0.8 + rand() * 0.45);
+    // 用真实实例的朝向、缩放和最大鼓包包住礁石，不能只取中心小球。
+    colliders.push({
+      type: "ellipsoid",
+      kind: "reef",
+      x,
+      y,
+      z,
+      axes: {
+        x: dummy.scale.x * rockEnvelope,
+        y: dummy.scale.y * rockEnvelope,
+        z: dummy.scale.z * rockEnvelope,
+      },
+      rotation: {
+        x: dummy.quaternion.x,
+        y: dummy.quaternion.y,
+        z: dummy.quaternion.z,
+        w: dummy.quaternion.w,
+      },
+    });
+    color.set(z > -110 ? "#5d8a80" : z > -310 ? "#2a4a5c" : "#16232e");
+    color.multiplyScalar(0.78 + rand() * 0.5);
     rocks.setColorAt(i, color);
     if (Math.abs(x) < 275) obstacles.push({ x, y, z, radius: radius * 0.82 });
   }
   root.add(rocks);
 
-  // 岩拱以数个小碰撞球表示，中央留出能逃脱追击的通道。
+  // 岩拱用连续胶囊段包住拱身，保留中央逃生通道；旧遮挡球继续供 NPC 使用。
   const arches = [
     { x: -3, z: 9, radius: 15, tube: 3.3, angle: -0.12 },
     { x: 31, z: -104, radius: 19, tube: 4, angle: 0.37 },
@@ -181,6 +225,25 @@ export function createOcean(scene) {
       [arch.x, baseY, arch.z],
     );
     mesh.rotation.y = arch.angle;
+    let previous = null;
+    for (let segment = 0; segment <= 26; segment++) {
+      const theta = (segment / 26) * Math.PI;
+      const horizontal = Math.cos(theta) * arch.radius;
+      const point = {
+        x: arch.x + horizontal * Math.cos(arch.angle),
+        y: baseY + Math.sin(theta) * arch.radius,
+        z: arch.z - horizontal * Math.sin(arch.angle),
+      };
+      if (previous)
+        colliders.push({
+          type: "capsule",
+          kind: "arch",
+          a: previous,
+          b: point,
+          radius: arch.tube * 1.015,
+        });
+      previous = point;
+    }
     for (let i = 0; i <= 9; i += 1) {
       const theta = (i / 9) * Math.PI;
       const horizontal = Math.cos(theta) * arch.radius;
@@ -229,9 +292,14 @@ export function createOcean(scene) {
 
   const coralColors = ["#d76a6f", "#e29577", "#bd76a7", "#eac486", "#72bec1"];
   const coralMaterial = track(
-    new THREE.MeshStandardMaterial({ roughness: 0.78, metalness: 0.03 }),
+    new THREE.MeshStandardMaterial({
+      roughness: 0.72,
+      metalness: 0.03,
+      emissive: "#2a1410",
+      emissiveIntensity: 0.35,
+    }),
   );
-  const coralGeometry = track(new THREE.CylinderGeometry(0.13, 0.23, 1, 5));
+  const coralGeometry = track(new THREE.CylinderGeometry(0.08, 0.26, 1, 5));
   const coralCount = 880;
   const coral = new THREE.InstancedMesh(
     coralGeometry,
@@ -305,6 +373,34 @@ export function createOcean(scene) {
   }
   root.add(fans);
 
+  // 海绵与海葵丘补足浅海底被的中层细节，实例化一次绘制。
+  const spongeGeometry = track(new THREE.IcosahedronGeometry(1, 1));
+  const spongeMaterial = track(
+    new THREE.MeshStandardMaterial({
+      roughness: 0.86,
+      metalness: 0.02,
+      emissive: "#1d1410",
+      emissiveIntensity: 0.3,
+    }),
+  );
+  const spongeColors = ["#c9825a", "#b65f78", "#7f9a68", "#5f8f96", "#a97fb4"];
+  const sponges = new THREE.InstancedMesh(spongeGeometry, spongeMaterial, 150);
+  for (let i = 0; i < 150; i += 1) {
+    const x = (rand() - 0.5) * 180;
+    const z = 128 - rand() * 250;
+    const size = 0.5 + rand() * 1.6;
+    dummy.position.set(x, seabedHeight(x, z) + size * 0.32, z);
+    dummy.rotation.set(rand() * 0.4, rand() * Math.PI, rand() * 0.3);
+    dummy.scale.set(size, size * (0.55 + rand() * 0.5), size);
+    dummy.updateMatrix();
+    sponges.setMatrixAt(i, dummy.matrix);
+    color
+      .set(spongeColors[Math.floor(rand() * spongeColors.length)])
+      .multiplyScalar(0.8 + rand() * 0.4);
+    sponges.setColorAt(i, color);
+  }
+  root.add(sponges);
+
   // 海面在水下呈现游动的细碎亮纹，光柱负责传达水体厚度。
   const surfaceMaterial = track(
     new THREE.ShaderMaterial({
@@ -314,7 +410,9 @@ export function createOcean(scene) {
       varying vec3 vWorld;
       void main() {
         vec3 p = position;
-        p.z += sin(p.x * 0.055 + oceanTime * 0.3) * 0.35;
+        float swell = sin(p.x * 0.055 + oceanTime * 0.3) * 0.35
+          + sin(p.x * 0.021 - oceanTime * 0.17 + p.y * 0.013) * 0.55;
+        p.z += swell;
         vec4 world = modelMatrix * vec4(p, 1.0);
         vWorld = world.xyz;
         gl_Position = projectionMatrix * viewMatrix * world;
@@ -323,17 +421,28 @@ export function createOcean(scene) {
       uniform float oceanTime;
       varying vec3 vWorld;
       void main() {
-        vec2 p = vWorld.xz * 0.095;
-        float a = sin(p.x + sin(p.y * 1.5 + oceanTime * 0.19));
-        float b = cos(p.y * 1.32 + cos(p.x * 0.82 - oceanTime * 0.22));
-        float light = pow(max(0.0, 1.0 - abs(a + b)), 7.0);
-        float swell = sin(p.x * 0.31 + p.y * 0.19 + oceanTime * 0.09) * 0.5 + 0.5;
-        float distanceFade = exp(-distance(cameraPosition, vWorld) * 0.006);
-        vec3 base = mix(vec3(0.025, 0.25, 0.33), vec3(0.32, 0.74, 0.70), swell);
+        vec2 p = vWorld.xz * 0.075;
+        float a = sin(p.x + sin(p.y * 1.7 + oceanTime * 0.21));
+        float b = cos(p.y * 1.31 + cos(p.x * 0.83 - oceanTime * 0.24));
+        float web = pow(max(0.0, 1.0 - abs(a + b)), 6.0);
+        vec2 q = vWorld.xz * 0.16;
+        float g1 = sin(q.x * 1.3 + oceanTime * 0.72 + sin(q.y));
+        float g2 = cos(q.y * 1.1 - oceanTime * 0.56 + cos(q.x * 0.9));
+        float glint = pow(max(0.0, 1.0 - abs(g1 + g2)), 10.0);
+        float swell = sin(p.x * 0.4 + p.y * 0.23 + oceanTime * 0.1) * 0.5 + 0.5;
+        float dist = distance(cameraPosition, vWorld);
+        float distanceFade = exp(-dist * 0.006);
         float above = step(4.0, cameraPosition.y);
-        vec3 oceanTop = mix(vec3(0.012,0.12,0.17), vec3(0.035,0.29,0.34), swell);
-        vec3 waterColor = mix(base + vec3(0.35,0.7,0.65)*light, oceanTop + vec3(0.08,0.18,0.18)*light, above);
-        gl_FragColor = vec4(waterColor, mix((0.21+light*0.18)*distanceFade, 0.97, above));
+        vec3 below = mix(vec3(0.03, 0.27, 0.35), vec3(0.36, 0.76, 0.72), swell);
+        below += vec3(0.3, 0.6, 0.56) * (web * 0.42 + glint * 0.55);
+        vec3 top = mix(vec3(0.016, 0.13, 0.19), vec3(0.05, 0.33, 0.41), swell);
+        top += vec3(0.06, 0.13, 0.15) * web * (0.15 + swell * 0.2) + vec3(0.5, 0.68, 0.66) * glint * 0.32;
+        top = mix(top, vec3(0.36, 0.56, 0.62), smoothstep(120.0, 620.0, dist) * 0.85);
+        vec3 waterColor = mix(below, top, above);
+        float grazing = 1.0 - abs(normalize(vWorld - cameraPosition).y);
+        float alphaBelow = mix(0.3, 0.88, pow(grazing, 2.0)) + web * 0.08 + glint * 0.08;
+        float alpha = mix(alphaBelow * distanceFade, 0.96, above);
+        gl_FragColor = vec4(waterColor, alpha);
         #include <tonemapping_fragment>
         #include <colorspace_fragment>
       }`,
@@ -377,7 +486,7 @@ export function createOcean(scene) {
         float vertical = sin(vUv.y * 3.14159265) * (0.25 + vUv.y * 0.75);
         float pulse = 0.7 + 0.3 * sin(oceanTime * 0.2 + vWorld.x * 0.07);
         float distanceFade = exp(-distance(cameraPosition, vWorld) * 0.013);
-        gl_FragColor = vec4(0.25, 0.74, 0.74, edge * vertical * pulse * distanceFade * 0.035);
+        gl_FragColor = vec4(0.31, 0.78, 0.76, edge * vertical * pulse * distanceFade * 0.05);
         #include <tonemapping_fragment>
         #include <colorspace_fragment>
       }`,
@@ -470,6 +579,16 @@ export function createOcean(scene) {
       [x, y + height * 0.5, z],
     );
     pillar.rotation.z = (rand() - 0.5) * 0.17;
+    const pillarAxis = new THREE.Vector3(0, height * 0.5, 0).applyQuaternion(
+      pillar.quaternion,
+    );
+    colliders.push({
+      type: "capsule",
+      kind: "pillar",
+      a: pillar.position.clone().sub(pillarAxis),
+      b: pillar.position.clone().add(pillarAxis),
+      radius: 3,
+    });
     const rune = addMesh(
       new THREE.TorusGeometry(2.35, 0.075, 4, 5),
       runeMaterial,
@@ -557,6 +676,19 @@ export function createOcean(scene) {
     lakeGeometry.computeVertexNormals();
     addMesh(lakeGeometry, lavaMaterial, [lakeX, y, lakeZ]);
     obstacles.push({ x, y: y + height * 0.34, z, radius: radius * 0.79 });
+    // 分层薄椭球包络锥形火山，保持顶端收窄，不用贯穿全高的大球。
+    for (let layer = 0; layer < 8; layer++) {
+      const fraction = layer / 8;
+      const layerRadius = radius * (1 - fraction * 0.71);
+      colliders.push({
+        type: "ellipsoid",
+        kind: "volcano",
+        x,
+        y: y + height * (fraction - 0.08 + 1 / 16),
+        z,
+        axes: { x: layerRadius * 1.09, y: height / 8, z: layerRadius * 1.09 },
+      });
+    }
     ventSources.push({ x, y: y + height, z });
   }
   for (let i = 0; i < 2; i += 1) {
@@ -584,6 +716,13 @@ export function createOcean(scene) {
       z,
     ]);
     ventSources.push({ x, y: y + height, z });
+    colliders.push({
+      type: "capsule",
+      kind: "vent",
+      a: { x, y: y - height * 0.05, z },
+      b: { x, y: y + height * 0.95, z },
+      radius: 1.8,
+    });
   }
 
   const moteCount = 1100;
@@ -646,11 +785,13 @@ export function createOcean(scene) {
   const extra = createOceanExtra(root, {
     seabedHeight,
     obstacles,
+    colliders,
     worldUniforms,
   });
 
   return {
     obstacles,
+    colliders,
     landmarks: extra.landmarks,
     update(time, playerPosition) {
       worldUniforms.oceanTime.value = time;

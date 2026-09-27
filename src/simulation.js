@@ -3,19 +3,25 @@
  * 模块不依赖渲染器，所有时间均以秒计，所有长度均为游戏内米数。
  */
 
+import { ECOSYSTEM_SPECIES } from "./ecosystem_config.js";
+import { REWARDS } from "./reward_config.js";
+
 /*********************************************
  * Public API
  ********************************************/
 
 /** 创建一条幼年虎鲸；无参数，返回可由游戏循环更新的玩家状态。 */
-export function createPlayer() {
+export function createPlayer(characterId = "orca") {
   return {
+    characterId,
     health: 100,
     stamina: 100,
     hunger: 100,
     mass: 1,
     length: 6,
     eaten: 0,
+    elapsed: 0,
+    timedOut: false,
     bossesDefeated: 0,
     biteCooldown: 0,
     lastMeal: { healed: 0, growth: 0, nutrition: 0 },
@@ -28,15 +34,31 @@ export function createPlayer() {
 }
 
 /**
- * 推进生存状态，返回本帧结尾是否仍可冲刺。
+ * 推进生存状态及远征用时，返回本帧结尾是否仍可冲刺；暂停时不调用。
  * @param {object} player 玩家状态，将原地更新。
  * @param {number} dt 经过的秒数，非正数与非有限值不会推进时间。
- * @param {object} options 冲刺意图与当前深度；深度保留给场景接口。
+ * @param {object} options 冲刺意图、当前深度与roundDt远征活跃秒数；roundDt默认等于dt。
  * @returns {{boosting: boolean}} 可用于选择普通速度或冲刺速度。
  */
-export function tickVitals(player, dt, { boosting = false, depth = 18 } = {}) {
-  const elapsed = Number.isFinite(dt) ? Math.max(0, dt) : 0;
-  if (player.dead || player.won) return { boosting: false };
+export function tickVitals(
+  player,
+  dt,
+  { boosting = false, depth = 18, roundDt = dt } = {},
+) {
+  if (player.dead || player.won || player.timedOut) return { boosting: false };
+  const remaining = Math.max(0, ROUND_DURATION - player.elapsed);
+  const activeStep = Number.isFinite(roundDt) ? Math.max(0, roundDt) : 0;
+  const roundElapsed = Math.min(activeStep, remaining);
+  // 远征时钟不受物理步长上限影响；最后一帧只扣截止前对应份额的资源。
+  // 无效时钟不推进本帧，无效资源步长不影响另行传入的有效远征时钟。
+  const elapsed =
+    activeStep > 0
+      ? Math.min(
+          (Number.isFinite(dt) ? Math.max(0, dt) : 0) *
+            (roundElapsed / activeStep),
+          remaining,
+        )
+      : 0;
 
   // 深度改变遇敌难度，生存数值只受体型影响，避免额外的隐性深水惩罚。
   void depth;
@@ -44,15 +66,23 @@ export function tickVitals(player, dt, { boosting = false, depth = 18 } = {}) {
   const paidTime = elapsed - flowTime;
 
   if (boosting && !player.exhausted && player.stamina > 0) {
-    player.stamina = Math.max(0, player.stamina - paidTime * 22);
+    player.stamina = Math.max(
+      0,
+      player.stamina - paidTime * PLAYER_MOVEMENT.staminaDrain,
+    );
     if (player.stamina === 0) player.exhausted = true;
   } else if (!boosting || flowTime < elapsed) {
     const recoveryTime = boosting ? paidTime : elapsed;
-    player.stamina = Math.min(100, player.stamina + recoveryTime * 16);
+    player.stamina = Math.min(
+      100,
+      player.stamina + recoveryTime * PLAYER_MOVEMENT.staminaRecovery,
+    );
   }
   if (player.exhausted && player.stamina >= 25) player.exhausted = false;
 
-  const hungerRate = 0.65 + Math.max(0, player.length - 6) * 0.1175;
+  // 24米满饱约可支撑90秒，给转场和一次领主交战留出空间。
+  // 大体型仍需换吃大猎物：小鱼的营养衰减规则不因成长放缓而取消。
+  const hungerRate = 0.3 + Math.max(0, player.length - 6) * 0.045;
   const fedTime = Math.min(elapsed, player.hunger / hungerRate);
   player.hunger = Math.max(0, player.hunger - hungerRate * elapsed);
   const starvingTime = elapsed - fedTime;
@@ -66,11 +96,16 @@ export function tickVitals(player, dt, { boosting = false, depth = 18 } = {}) {
   player.biteCooldown = Math.max(0, player.biteCooldown - elapsed);
   player.buffs.flow = Math.max(0, player.buffs.flow - elapsed);
   player.buffs.frenzy = Math.max(0, player.buffs.frenzy - elapsed);
+  player.elapsed = Math.min(ROUND_DURATION, player.elapsed + roundElapsed);
+  // 长时间小步累加会留下亚微秒浮点余量，不应因此多延后一帧结算。
+  if (ROUND_DURATION - player.elapsed < 1e-8) player.elapsed = ROUND_DURATION;
+  player.timedOut = !player.dead && player.elapsed >= ROUND_DURATION;
 
   return {
     boosting:
       boosting &&
       !player.dead &&
+      !player.timedOut &&
       (player.buffs.flow > 0 || (!player.exhausted && player.stamina > 0)),
   };
 }
@@ -82,7 +117,8 @@ export function tickVitals(player, dt, { boosting = false, depth = 18 } = {}) {
  * @returns {boolean} 是否满足普通鱼的体长条件；主宰另走多阶段战斗规则。
  */
 export function canEat(player, preyLength) {
-  if (player.dead || player.won || !isPositive(preyLength)) return false;
+  if (player.dead || player.won || player.timedOut || !isPositive(preyLength))
+    return false;
   return player.buffs.frenzy > 0
     ? preyLength <= player.length * 1.6
     : preyLength < player.length;
@@ -98,7 +134,14 @@ export function consumePrey(player, prey) {
   if (!prey || prey.tier === 3 || !canEat(player, prey.length)) return false;
 
   // 猎物小于自身一半后，收益按比例平方衰减，迫使大鱼前往更深海域觅食。
-  const efficiency = Math.min(1, (prey.length / (player.length * 0.5)) ** 2);
+  const sizeEfficiency = Math.min(
+    1,
+    (prey.length / (player.length * 0.5)) ** 2,
+  );
+  // 小鱼保持真实体长；幼年可穿过密群补给，大体型阶段收益快速递减。
+  const schoolEfficiency =
+    prey.length < 1 && prey.schoolSize > 1 ? 0.7 * (6 / player.length) ** 4 : 0;
+  const efficiency = Math.max(sizeEfficiency, schoolEfficiency);
   applyNutrition(player, prey, efficiency);
   player.eaten += 1;
   return true;
@@ -112,7 +155,7 @@ export function consumePrey(player, prey) {
  * @returns {{healed:number,growth:number,nutrition:number}|null} 实际收益，无法获得时返回null。
  */
 export function applyNutrition(player, reward, efficiency = 1) {
-  if (player.dead || player.won) return null;
+  if (player.dead || player.won || player.timedOut) return null;
   const safeEfficiency = Math.min(1, nonNegative(efficiency, 1));
   const preyLength = nonNegative(reward.length, 6);
   const nutrition =
@@ -149,6 +192,7 @@ export function takeDamage(player, amount) {
   if (
     player.dead ||
     player.won ||
+    player.timedOut ||
     player.invulnerable > 0 ||
     !isPositive(amount)
   ) {
@@ -167,14 +211,17 @@ export function takeDamage(player, amount) {
  * @returns {boolean} 是否成功收集有效奖励。
  */
 export function collectPickup(player, kind) {
-  if (player.dead || player.won) return false;
+  if (player.dead || player.won || player.timedOut) return false;
   if (kind === "stamina") {
     player.stamina = 100;
     player.exhausted = false;
   } else if (kind === "flow") {
-    player.buffs.flow = Math.max(12, player.buffs.flow);
+    player.buffs.flow = Math.max(REWARDS.flow.duration, player.buffs.flow);
   } else if (kind === "frenzy") {
-    player.buffs.frenzy = Math.max(10, player.buffs.frenzy);
+    player.buffs.frenzy = Math.max(
+      REWARDS.frenzy.duration,
+      player.buffs.frenzy,
+    );
   } else {
     return false;
   }
@@ -196,104 +243,20 @@ export function getProgress(player) {
  * Types and Data Structures
  ********************************************/
 
-/**
- * 可生成的海洋生物；growth为质量增量，nutrition为基础饥饿恢复量。
- * depthMin/depthMax为活动海深，speed为巡游速度；tier2追击速度低于玩家冲刺速度。
- * schoolSize为默认鱼群规模，schoolSizeMin/Max可供场景随机选择；主宰配置另行管理。
- */
-export const SPECIES = Object.freeze(
-  [
-    {
-      kind: "fish",
-      label: "珊瑚鱼",
-      length: 2,
-      nutrition: 12,
-      growth: 0.12,
-      speed: 5,
-      tier: 1,
-      schoolSize: 12,
-      schoolSizeMin: 10,
-      schoolSizeMax: 14,
-      predator: false,
-      depthMin: 5,
-      depthMax: 90,
-    },
-    {
-      kind: "tuna",
-      label: "蓝鳍金枪鱼",
-      length: 4,
-      nutrition: 18,
-      growth: 0.3,
-      speed: 10,
-      tier: 1,
-      schoolSize: 6,
-      predator: false,
-      depthMin: 15,
-      depthMax: 170,
-    },
-    {
-      kind: "ray",
-      label: "巨型蝠鲼",
-      length: 7,
-      nutrition: 24,
-      growth: 0.8,
-      speed: 8,
-      tier: 1,
-      schoolSize: 3,
-      predator: false,
-      depthMin: 40,
-      depthMax: 240,
-    },
-    {
-      kind: "shark",
-      label: "大白鲨",
-      length: 10,
-      nutrition: 32,
-      growth: 2.2,
-      speed: 17,
-      tier: 2,
-      predator: true,
-      depthMin: 65,
-      depthMax: 280,
-    },
-    {
-      kind: "angler",
-      label: "深渊鮟鱇",
-      length: 14,
-      nutrition: 40,
-      growth: 5.8,
-      speed: 13,
-      tier: 2,
-      predator: true,
-      depthMin: 140,
-      depthMax: 400,
-    },
-    {
-      kind: "squid",
-      label: "大王乌贼",
-      length: 18,
-      nutrition: 52,
-      growth: 10,
-      speed: 16,
-      tier: 2,
-      predator: true,
-      depthMin: 180,
-      depthMax: 470,
-    },
-    {
-      kind: "dunkleosteus",
-      label: "邓氏鱼",
-      length: 21,
-      nutrition: 68,
-      growth: 19,
-      speed: 15,
-      tier: 2,
-      predator: true,
-      depthMin: 250,
-      depthMax: 590,
-    },
-  ].map((species) => Object.freeze(species)),
-);
+/** 单次远征最多30分钟有效游玩时间；到时独立结算，不等同于死亡或胜利。 */
+export const ROUND_DURATION = 30 * 60;
+
+/** 玩家移动共享配置；速度以世界单位/秒计，体力以每秒变化量计。 */
+export const PLAYER_MOVEMENT = Object.freeze({
+  cruiseSpeed: 12,
+  sprintSpeed: 32,
+  slowSpeed: 5,
+  staminaDrain: 14,
+  staminaRecovery: 19,
+});
+
+/** 现代与远古生物共享同一生态目录；主宰继续使用独立多阶段战斗配置。 */
+export const SPECIES = ECOSYSTEM_SPECIES;
 
 const ZONES = Object.freeze([
   Object.freeze({

@@ -1,0 +1,73 @@
+.sonar-world-markers {
+  position: fixed;
+  inset: 0;
+  z-index: 1;
+  pointer-events: none;
+  overflow: hidden;
+  color: #a9ffed;
+  user-select: none;
+  -webkit-user-select: none;
+  font-variant-numeric: tabular-nums;
+}
+.sonar-world-markers[hidden] {
+  display: none;
+}
+.sonar-world-anchors,
+.sonar-world-labels {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+}
+.sonar-world-anchor {
+  position: absolute;
+  display: block;
+  width: 4px;
+  height: 4px;
+  border: 1px solid currentColor;
+  background: currentColor;
+  border-radius: 50%;
+  box-shadow: 0 0 5px currentColor;
+  transform: translate(-50%, -50%);
+}
+.sonar-world-anchor.echo-boss {
+  width: 6px;
+  height: 6px;
+  border-radius: 1px;
+}
+.sonar-world-label {
+  position: absolute;
+  display: block;
+  box-sizing: border-box;
+  padding: 3px 5px;
+  transform: translate(-50%, -50%);
+  border: 1px solid currentColor;
+  border-radius: 4px;
+  background: #03151dcf;
+  font-size: 11px;
+  line-height: 14px;
+  font-weight: 500;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  overflow: hidden;
+  text-shadow: 0 1px 3px #001015;
+}
+.sonar-world-markers .echo-prey {
+  color: #8ffbd5;
+}
+.sonar-world-markers .echo-danger {
+  color: #ffac8f;
+}
+.sonar-world-markers .echo-boss {
+  color: #dca6ff;
+}
+.sonar-world-markers .echo-neutral {
+  color: #c6ddeb;
+}
+@media (max-width: 700px), (max-height: 500px) {
+  .sonar-world-label {
+    font-size: 10px;
+    line-height: 12px;
+    padding: 3px 5px;
+  }
+}
