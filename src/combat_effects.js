@@ -1,4 +1,5 @@
 import * as THREE from "three";
+import { createFluidTexture } from "./effect_textures.js";
 
 /**
  * 创建捕食血雾、咬合水流、受击冲击与乌贼墨云；粒子池限定总量并可随重开清空。
@@ -9,7 +10,9 @@ export function createCombatEffects(scene) {
   const group = new THREE.Group();
   group.name = "combat_effects";
   scene.add(group);
-  const texture = cloudTexture();
+  const texture = createFluidTexture("mist");
+  const inkTexture = createFluidTexture("ink");
+  const bubbleTexture = createFluidTexture("bubble");
   const pool = Array.from({ length: 80 }, () => {
     const material = new THREE.SpriteMaterial({
       map: texture,
@@ -31,6 +34,7 @@ export function createCombatEffects(scene) {
       spin: 0.12,
       stretch: 1,
       grow: 1.9,
+      phase: Math.random() * Math.PI * 2,
       velocity: new THREE.Vector3(),
     };
   });
@@ -68,6 +72,7 @@ export function createCombatEffects(scene) {
       stretch = 1,
       grow = 1.9,
       spread = 0,
+      bubble = false,
     },
   ) {
     for (let i = 0; i < count; i++) {
@@ -96,6 +101,10 @@ export function createCombatEffects(scene) {
             (Math.random() - 0.5) * spread,
           ),
         );
+      p.sprite.material.map = bubble ? bubbleTexture : texture;
+      p.sprite.material.blending = bubble
+        ? THREE.AdditiveBlending
+        : THREE.NormalBlending;
       p.sprite.material.color.set(color);
       p.sprite.material.rotation = Math.random() * Math.PI;
       p.sprite.material.opacity = alpha;
@@ -151,6 +160,7 @@ export function createCombatEffects(scene) {
       spread: 2.4 * reach,
     });
     emit(point, {
+      bubble: true,
       color: 0xd6f2f4,
       count: 6,
       size: 0.65,
@@ -178,6 +188,7 @@ export function createCombatEffects(scene) {
       ring.mesh.visible = true;
     }
     emit(point, {
+      bubble: true,
       color: 0xe8fbff,
       count: 4,
       size: 0.5,
@@ -192,6 +203,7 @@ export function createCombatEffects(scene) {
   function hurt(point, length) {
     blood(point, length, 0.7);
     emit(point, {
+      bubble: true,
       color: 0xc5e4e5,
       count: 6,
       size: 0.7,
@@ -240,7 +252,7 @@ export function createCombatEffects(scene) {
       for (let i = 0; i < layer.count; i++) {
         const sprite = new THREE.Sprite(
           new THREE.SpriteMaterial({
-            map: texture,
+            map: inkTexture,
             color: layer.color,
             opacity: layer.opacity,
             transparent: true,
@@ -297,6 +309,9 @@ export function createCombatEffects(scene) {
       p.sprite.visible = t < 1;
       p.velocity.y += p.rise * dt;
       p.sprite.position.addScaledVector(p.velocity, dt);
+      // 轻微横向涡流使丝缕在水中卷动，参数受粒子寿命约束。
+      p.sprite.position.x += Math.sin(p.age * 2.2 + p.phase) * dt * 0.22;
+      p.sprite.position.z += Math.cos(p.age * 1.7 + p.phase) * dt * 0.17;
       p.velocity.multiplyScalar(Math.exp(-dt * p.damp));
       const spread = 0.45 + t * p.grow;
       p.sprite.scale.set(p.size * spread, p.size * spread * p.stretch, 1);
@@ -378,6 +393,19 @@ export function createCombatEffects(scene) {
     inkDensity,
     update,
     reset,
+    dispose() {
+      reset();
+      scene.remove(group);
+      for (const p of pool) p.sprite.material.dispose();
+      for (const ring of rings) {
+        ring.mesh.geometry.dispose();
+        ring.mesh.material.dispose();
+      }
+      texture.dispose();
+      inkTexture.dispose();
+      bubbleTexture.dispose();
+      group.clear();
+    },
     clouds,
     group,
     get ink() {
@@ -387,37 +415,4 @@ export function createCombatEffects(scene) {
       return pool.filter((p) => p.sprite.visible).length;
     },
   };
-}
-
-function cloudTexture() {
-  const canvas = document.createElement("canvas");
-  canvas.width = canvas.height = 128;
-  const context = canvas.getContext("2d");
-  // 不规则软边团块取代实心圆，扩散时保留水中悬浮物的层次。
-  for (let i = 0; i < 12; i++) {
-    const angle = i * 2.09,
-      reach = 13 + (i % 3) * 7;
-    const x = 64 + Math.cos(angle) * reach,
-      y = 64 + Math.sin(angle) * reach;
-    const gradient = context.createRadialGradient(
-      x,
-      y,
-      1,
-      x,
-      y,
-      34 + (i % 4) * 6,
-    );
-    gradient.addColorStop(0, "rgba(255,255,255,0.3)");
-    gradient.addColorStop(0.45, "rgba(255,255,255,0.17)");
-    gradient.addColorStop(1, "rgba(255,255,255,0)");
-    context.fillStyle = gradient;
-    context.fillRect(0, 0, 128, 128);
-  }
-  const core = context.createRadialGradient(64, 64, 2, 64, 64, 52);
-  core.addColorStop(0, "rgba(255,255,255,0.4)");
-  core.addColorStop(0.5, "rgba(255,255,255,0.18)");
-  core.addColorStop(1, "rgba(255,255,255,0)");
-  context.fillStyle = core;
-  context.fillRect(0, 0, 128, 128);
-  return new THREE.CanvasTexture(canvas);
 }

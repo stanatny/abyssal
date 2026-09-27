@@ -1,4 +1,7 @@
 import * as THREE from "three";
+import { RoundedBoxGeometry } from "three/addons/geometries/RoundedBoxGeometry.js";
+import { mergeGeometries } from "three/addons/utils/BufferGeometryUtils.js";
+import { addSurfaceDetail } from "./ocean_visuals.js";
 import { WORLD } from "./world_config.js";
 
 /**
@@ -18,24 +21,24 @@ export function createShips(scene) {
   const materials = {
     hull: keep(
       new THREE.MeshStandardMaterial({
-        color: "#1b4258",
-        roughness: 0.48,
-        metalness: 0.2,
+        color: "#163b50",
+        roughness: 0.27,
+        metalness: 0.28,
       }),
     ),
     band: keep(
       new THREE.MeshStandardMaterial({ color: "#0c1826", roughness: 0.6 }),
     ),
     white: keep(
-      new THREE.MeshStandardMaterial({ color: "#f0ead9", roughness: 0.6 }),
+      new THREE.MeshStandardMaterial({ color: "#e7e6da", roughness: 0.38 }),
     ),
     glass: keep(
       new THREE.MeshStandardMaterial({
-        color: "#0d415c",
+        color: "#163c48",
         roughness: 0.18,
         metalness: 0.3,
         emissive: "#2a6b7d",
-        emissiveIntensity: 0.5,
+        emissiveIntensity: 0.13,
       }),
     ),
     trim: keep(
@@ -50,7 +53,7 @@ export function createShips(scene) {
       }),
     ),
     wood: keep(
-      new THREE.MeshStandardMaterial({ color: "#6e5a38", roughness: 0.8 }),
+      new THREE.MeshStandardMaterial({ color: "#b28c5d", roughness: 0.76 }),
     ),
     sail: keep(
       new THREE.MeshStandardMaterial({
@@ -76,6 +79,9 @@ export function createShips(scene) {
       }),
     ),
   };
+  addSurfaceDetail(materials.wood, "wood", 1.0);
+  addSurfaceDetail(materials.hull, "metal", 0.5);
+  addSurfaceDetail(materials.white, "metal", 0.4);
   const timeUniform = { value: 0 };
   const wakeMaterial = keep(
     new THREE.ShaderMaterial({
@@ -86,9 +92,10 @@ export function createShips(scene) {
       void main() {
         float edge = pow(max(0.0, sin(vUv.x * 3.14159)), 0.65);
         float tail = 1.0 - smoothstep(0.4, 1.0, vUv.y);
-        float streak = 0.48 + 0.52 * sin(vUv.y * 57.0 - time * 2.1 + sin(vUv.x * 23.0));
+        float streak = pow(0.5 + 0.5 * sin(vUv.y * 67.0 - time * 2.6 + sin(vUv.x * 19.0 + time * 0.2) * 2.0), 2.0);
+        streak = mix(streak, 0.13, vUv.y);
         float distanceFade = exp(-distance(cameraPosition, vWorld) * 0.0035);
-        gl_FragColor = vec4(0.82, 0.99, 0.97, edge * tail * streak * distanceFade * 0.5);
+        gl_FragColor = vec4(0.79, 0.89, 0.84, edge * tail * streak * distanceFade * 0.53);
         #include <tonemapping_fragment>
         #include <colorspace_fragment>
       }`,
@@ -153,6 +160,8 @@ export function createShips(scene) {
     buildHull(root, ship, materials, keep);
     if (config.kind === "cruise") buildCruise(root, ship, materials, keep);
     else buildSailboat(root, ship, materials, keep);
+    addShipDetails(root, ship, materials, keep);
+    batchShipMeshes(root, keep);
     const wake = new THREE.Mesh(
       keep(makeWakeGeometry(config.length, config.width)),
       wakeMaterial,
@@ -298,7 +307,17 @@ function mesh(root, geometry, material, keep, position, scale) {
 }
 
 function box(root, material, keep, size, position) {
-  return mesh(root, new THREE.BoxGeometry(...size), material, keep, position);
+  return mesh(
+    root,
+    new RoundedBoxGeometry(
+      ...size,
+      2,
+      Math.min(0.16, Math.min(...size) * 0.18),
+    ),
+    material,
+    keep,
+    position,
+  );
 }
 
 function buildHull(root, ship, materials, keep) {
@@ -312,40 +331,41 @@ function buildHull(root, ship, materials, keep) {
     [-0.36, 0.72],
     [-0.51, 0.04],
   ];
+  // 分段截面仍在原碰撞盒内，圆弧龙骨替换硬折线，法线沿船体连续。
+  const profile = [
+    [-1, 1.3],
+    [-0.99, 0.7],
+    [-0.95, 0],
+    [-0.83, -0.8],
+    [-0.62, -1.4],
+    [-0.33, -1.72],
+    [0, -1.8],
+    [0.33, -1.72],
+    [0.62, -1.4],
+    [0.83, -0.8],
+    [0.95, 0],
+    [0.99, 0.7],
+    [1, 1.3],
+  ];
   for (const [z, beam] of stations) {
     const half = width * beam * 0.5;
     const bowLift = z < -0.35 ? 0.5 : 0;
-    positions.push(
-      -half,
-      1.3 + bowLift,
-      z * length,
-      -half * 0.88,
-      -0.5,
-      z * length,
-      -half * 0.55,
-      -1.8,
-      z * length,
-      half * 0.55,
-      -1.8,
-      z * length,
-      half * 0.88,
-      -0.5,
-      z * length,
-      half,
-      1.3 + bowLift,
-      z * length,
-    );
+    for (const [x, y] of profile)
+      positions.push(x * half, y + bowLift * Math.max(0, y / 1.3), z * length);
   }
-  for (let station = 0; station < stations.length - 1; station += 1) {
-    for (let side = 0; side < 6; side += 1) {
-      const a = station * 6 + side,
-        b = station * 6 + ((side + 1) % 6),
-        c = a + 6,
-        d = b + 6;
-      indices.push(a, c, b, b, c, d);
+  const count = profile.length;
+  for (let station = 0; station < stations.length - 1; station++) {
+    for (let side = 0; side < count; side++) {
+      const a = station * count + side,
+        b = station * count + ((side + 1) % count);
+      indices.push(a, a + count, b, b, a + count, b + count);
     }
   }
-  indices.push(0, 1, 5, 1, 4, 5, 1, 2, 4, 2, 3, 4);
+  for (let i = 1; i < count - 1; i++) indices.push(0, i, i + 1);
+  for (let i = 1; i < count - 1; i++) {
+    const a = (stations.length - 1) * count;
+    indices.push(a, a + i + 1, a + i);
+  }
   const geometry = new THREE.BufferGeometry();
   geometry.setAttribute(
     "position",
@@ -369,20 +389,36 @@ function buildHull(root, ship, materials, keep) {
     [0, 1.63, length * 0.03],
   );
   for (const side of [-1, 1]) {
-    box(
-      root,
-      materials.trim,
-      keep,
-      [0.1, 0.26, length * 0.52],
-      [side * width * 0.47, 0.88, length * 0.06],
-    );
-    box(
-      root,
-      materials.band,
-      keep,
-      [0.12, 0.62, length * 0.86],
-      [side * width * 0.44, -0.05, length * 0.02],
-    );
+    const strip = (y, height, mat) => {
+      const vertices = [],
+        ids = [];
+      for (const [z, beam] of stations) {
+        const x = side * width * beam * 0.5 * (y > 0.5 ? 0.996 : 0.95);
+        vertices.push(
+          x,
+          y - height / 2,
+          z * length,
+          x,
+          y + height / 2,
+          z * length,
+        );
+      }
+      for (let i = 0; i < stations.length - 1; i++) {
+        const a = i * 2;
+        if (side > 0) ids.push(a, a + 2, a + 1, a + 1, a + 2, a + 3);
+        else ids.push(a, a + 1, a + 2, a + 1, a + 3, a + 2);
+      }
+      const stripe = new THREE.BufferGeometry();
+      stripe.setAttribute(
+        "position",
+        new THREE.Float32BufferAttribute(vertices, 3),
+      );
+      stripe.setIndex(ids);
+      stripe.computeVertexNormals();
+      mesh(root, stripe, mat, keep);
+    };
+    strip(0.93, 0.16, materials.trim);
+    strip(0.02, 0.28, materials.band);
   }
 }
 
@@ -429,7 +465,8 @@ function buildCruise(root, ship, materials, keep) {
   box(root, materials.white, keep, [6, 1.5, 6.8], [0, 7.2, -13]);
   box(root, materials.glass, keep, [6.2, 0.67, 0.14], [0, 7.43, -16.45]);
   // 顶层泳池、雷达罩与烟囱条纹补充游轮剪影。
-  box(root, materials.pool, keep, [4.6, 0.2, 6.4], [0, 7.28, 9]);
+  box(root, materials.white, keep, [4.85, 0.12, 6.65], [0, 6.47, -3]);
+  box(root, materials.pool, keep, [4.6, 0.08, 6.4], [0, 6.53, -3]);
   mesh(
     root,
     new THREE.SphereGeometry(0.8, 10, 8),
@@ -606,29 +643,44 @@ function makeSailTexture() {
 }
 
 function makeSail(a, b, c) {
-  const center = [
-    (a[0] + b[0] + c[0]) / 3 + 0.8,
-    (a[1] + b[1] + c[1]) / 3,
-    (a[2] + b[2] + c[2]) / 3,
-  ];
-  const points = [a, b, c, center];
-  const ys = points.map((p) => p[1]),
-    zs = points.map((p) => p[2]);
-  const minY = Math.min(...ys),
-    rangeY = Math.max(...ys) - minY || 1;
-  const minZ = Math.min(...zs),
-    rangeZ = Math.max(...zs) - minZ || 1;
-  const uvs = points.flatMap((p) => [
-    (p[2] - minZ) / rangeZ,
-    (p[1] - minY) / rangeY,
-  ]);
+  const positions = [],
+    uvs = [],
+    indices = [],
+    rows = 12,
+    offsets = [];
+  for (let row = 0; row <= rows; row++) {
+    offsets.push(positions.length / 3);
+    for (let column = 0; column <= rows - row; column++) {
+      const u = row / rows,
+        v = column / rows,
+        w = 1 - u - v;
+      const billow =
+        Math.sin(Math.PI * u) *
+        Math.sin(Math.PI * v) *
+        Math.sin(Math.PI * w) *
+        1.9;
+      positions.push(
+        a[0] * w + b[0] * u + c[0] * v + billow,
+        a[1] * w + b[1] * u + c[1] * v,
+        a[2] * w + b[2] * u + c[2] * v,
+      );
+      uvs.push(u, v);
+    }
+  }
+  for (let row = 0; row < rows; row++)
+    for (let column = 0; column < rows - row; column++) {
+      const p = offsets[row] + column,
+        q = offsets[row + 1] + column;
+      indices.push(p, q, p + 1);
+      if (column < rows - row - 1) indices.push(p + 1, q, q + 1);
+    }
   const geometry = new THREE.BufferGeometry();
   geometry.setAttribute(
     "position",
-    new THREE.Float32BufferAttribute([...a, ...b, ...c, ...center], 3),
+    new THREE.Float32BufferAttribute(positions, 3),
   );
   geometry.setAttribute("uv", new THREE.Float32BufferAttribute(uvs, 2));
-  geometry.setIndex([0, 1, 3, 1, 2, 3, 2, 0, 3]);
+  geometry.setIndex(indices);
   geometry.computeVertexNormals();
   return geometry;
 }
@@ -687,4 +739,174 @@ function makeWakeGeometry(length, width) {
   geometry.setIndex(indices);
   geometry.computeVertexNormals();
   return geometry;
+}
+
+// 小型附着件按材质合批，不为每根栏杆、每个舷窗增加绘制调用。
+function addShipDetails(root, ship, materials, keep) {
+  const { length, width, kind } = ship;
+  const rail = [];
+  const points = [
+    [0.44, 0.63],
+    [0.31, 0.91],
+    [-0.17, 0.91],
+    [-0.35, 0.65],
+    [-0.48, 0.05],
+  ];
+  for (const side of [-1, 1]) {
+    for (let i = 0; i < points.length - 1; i++) {
+      const [z0, b0] = points[i],
+        [z1, b1] = points[i + 1];
+      for (const y of [1.94, 2.28])
+        rail.push(
+          side * width * b0 * 0.5,
+          y,
+          z0 * length,
+          side * width * b1 * 0.5,
+          y,
+          z1 * length,
+        );
+      const steps = Math.ceil(((z0 - z1) * length) / 2.2);
+      for (let j = 0; j <= steps; j++) {
+        const t = j / steps,
+          x = side * width * (b0 + (b1 - b0) * t) * 0.5,
+          z = (z0 + (z1 - z0) * t) * length;
+        rail.push(x, 1.55, z, x, 2.28, z);
+      }
+    }
+  }
+  const railGeometry = keep(new THREE.BufferGeometry());
+  railGeometry.setAttribute(
+    "position",
+    new THREE.Float32BufferAttribute(rail, 3),
+  );
+  root.add(new THREE.LineSegments(railGeometry, materials.ropes));
+  const frameGeometry = keep(
+    new THREE.TorusGeometry(kind === "cruise" ? 0.22 : 0.16, 0.035, 5, 14),
+  );
+  const glassGeometry = keep(
+    new THREE.CircleGeometry(kind === "cruise" ? 0.18 : 0.12, 14),
+  );
+  for (const side of [-1, 1])
+    for (let i = 0; i < (kind === "cruise" ? 15 : 6); i++) {
+      const z = length * (-0.12 + i * (kind === "cruise" ? 0.025 : 0.065));
+      const frame = mesh(root, frameGeometry, materials.white, keep, [
+        side * width * 0.496,
+        0.7,
+        z,
+      ]);
+      frame.rotation.y = (side * Math.PI) / 2;
+      const glass = mesh(root, glassGeometry, materials.glass, keep, [
+        side * width * 0.498,
+        0.7,
+        z,
+      ]);
+      glass.rotation.y = (side * Math.PI) / 2;
+    }
+  if (kind === "cruise") {
+    const framing = keep(new THREE.BoxGeometry(0.035, 0.64, 0.84));
+    const frames = new THREE.InstancedMesh(framing, materials.band, 96),
+      dummy = new THREE.Object3D();
+    let i = 0;
+    for (let deck = 0; deck < 3; deck++)
+      for (const side of [-1, 1])
+        for (let window = 0; window < 16; window++) {
+          dummy.position.set(
+            side * (width * [0.83, 0.74, 0.62][deck] * 0.5 + 0.01),
+            2.5 + deck * 1.62,
+            (window - 7.5) * 1.85 + 1,
+          );
+          dummy.updateMatrix();
+          frames.setMatrixAt(i++, dummy.matrix);
+        }
+    const endWindows = new THREE.InstancedMesh(
+      keep(new THREE.BoxGeometry(0.7, 0.5, 0.045)),
+      materials.glass,
+      36,
+    );
+    let endIndex = 0;
+    for (let deck = 0; deck < 3; deck++)
+      for (const side of [-1, 1])
+        for (let window = 0; window < 6; window++) {
+          dummy.position.set(
+            (window - 2.5) * 0.96,
+            2.5 + deck * 1.62,
+            length * 0.025 +
+              side * (length * (0.66 - deck * 0.075) * 0.5 + 0.025),
+          );
+          dummy.updateMatrix();
+          endWindows.setMatrixAt(endIndex++, dummy.matrix);
+        }
+    root.add(endWindows);
+    root.add(frames);
+    // 顶层日光甲板及躺椅保持在既有甲板轮廓里。
+    box(
+      root,
+      materials.wood,
+      keep,
+      [width * 0.6, 0.025, length * 0.47],
+      [0, 6.427, length * 0.025],
+    );
+    for (const side of [-1, 1])
+      for (const z of [-6, -3, 0, 3]) {
+        box(
+          root,
+          materials.white,
+          keep,
+          [0.68, 0.09, 1.6],
+          [side * 2.45, 6.49, z],
+        );
+        const back = box(
+          root,
+          materials.wood,
+          keep,
+          [0.58, 0.06, 0.72],
+          [side * 2.45, 6.72, z + 0.48],
+        );
+        back.rotation.x = -0.45;
+      }
+  } else {
+    for (const side of [-1, 1])
+      for (const z of [-length * 0.24, length * 0.25])
+        mesh(
+          root,
+          new THREE.TorusGeometry(0.22, 0.065, 6, 18),
+          materials.white,
+          keep,
+          [side * width * 0.38, 1.87, z],
+        ).rotation.y = Math.PI / 2;
+    for (const side of [-1, 1])
+      mesh(
+        root,
+        new THREE.CylinderGeometry(0.14, 0.18, 0.3, 12),
+        materials.band,
+        keep,
+        [side * width * 0.27, 1.85, length * 0.22],
+      );
+  }
+}
+
+function batchShipMeshes(root, keep) {
+  const groups = new Map();
+  for (const child of root.children) {
+    if (!child.isMesh || child.isInstancedMesh) continue;
+    if (!groups.has(child.material)) groups.set(child.material, []);
+    groups.get(child.material).push(child);
+  }
+  for (const [material, children] of groups) {
+    const geometries = children.map((child) => {
+      child.updateMatrix();
+      const g = child.geometry.index
+        ? child.geometry.toNonIndexed()
+        : child.geometry.clone();
+      g.applyMatrix4(child.matrix);
+      if (!material.map) g.deleteAttribute("uv");
+      return g;
+    });
+    const merged = keep(mergeGeometries(geometries));
+    for (const g of geometries) g.dispose();
+    for (const child of children) root.remove(child);
+    const batch = new THREE.Mesh(merged, material);
+    batch.name = "ship_detail_batch";
+    root.add(batch);
+  }
 }

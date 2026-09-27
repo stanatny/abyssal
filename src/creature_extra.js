@@ -1,4 +1,9 @@
 import * as THREE from "three";
+import {
+  skinMaterial,
+  sampleSection,
+  sculptedFin,
+} from "./creature_surface.js";
 
 export const EXTRA_CREATURE_KINDS = new Set([
   "squid",
@@ -26,14 +31,15 @@ export function buildExtraCreature(kind, root, motions) {
 }
 
 const CACHE = new Map();
-const SPHERE = new THREE.SphereGeometry(1, 14, 10);
+const SPHERE = new THREE.SphereGeometry(1, 20, 14);
+const SUCKER = new THREE.TorusGeometry(0.72, 0.28, 4, 8);
 const FACET = new THREE.IcosahedronGeometry(1, 1);
 const BOX = new THREE.BoxGeometry(1, 1, 1);
 const M = {
   body: material("#ffffff", 0.45, "#000000", 0, { vertexColors: true }),
-  squid: material("#9d5f68", 0.5),
-  squidFin: material("#c08b92", 0.55),
-  sucker: material("#e0bfcc", 0.6),
+  squid: material("#a5634b", 0.43),
+  squidFin: material("#bb8065", 0.48),
+  sucker: material("#d9b89a", 0.52),
   kraken: material("#2a2340", 0.46),
   krakenRidge: material("#4a3f66", 0.55),
   krakenSucker: material("#c49bc4", 0.6),
@@ -49,7 +55,7 @@ const M = {
   gray: material("#9aa8ab", 0.68),
   wingtip: material("#2b3a42", 0.65),
   yellow: material("#deab49", 0.5),
-  black: material("#040a11", 0.4),
+  black: material("#040a11", 0.18),
   glow: material("#7ee6cf", 0.32, "#25cdbb", 1.7),
   amber: material("#ffcb77", 0.3, "#ff8d24", 1.8),
   violet: material("#a886e2", 0.4, "#7947d7", 1.3),
@@ -71,8 +77,8 @@ function buildSquid(root, motions) {
           [0.0, 0.036, 0.043],
           [0.08, 0.026, 0.03],
         ],
-        "#8d4f58",
-        "#d3a5a8",
+        "#985039",
+        "#cfaa88",
       ),
     ),
     M.body,
@@ -99,11 +105,62 @@ function buildSquid(root, motions) {
       ),
       M.squidFin,
     ).rotation.z = -side * 0.24;
-    // 大王乌贼的巨眼：肤色眼窝包裹黑色晶状体。
-    blob(inner, M.squid, [side * 0.042, 0, 0.034], [0.036, 0.039, 0.033]);
-    blob(inner, M.black, [side * 0.054, 0, 0.044], [0.026, 0.029, 0.025]);
-    blob(inner, M.white, [side * 0.064, 0.012, 0.034], [0.006, 0.006, 0.006]);
+    // 虹膜嵌入连续头部，眼球仅略高于皮肤，避免球形眼柄。
+    blob(inner, M.squidFin, [side * 0.041, 0, 0.047], [0.008, 0.025, 0.027]);
+    blob(inner, M.black, [side * 0.047, 0, 0.047], [0.004, 0.02, 0.023]);
   }
+  // 头领从外套膜平滑过渡到腕冠，腹面的漏斗用于喷流。
+  add(
+    inner,
+    cached("squid_head", () =>
+      formColored(
+        [
+          [-0.015, 0.027, 0.03],
+          [0.023, 0.042, 0.037],
+          [0.067, 0.037, 0.03],
+          [0.105, 0.026, 0.025],
+        ],
+        "#a5634b",
+        "#cfaa88",
+      ),
+    ),
+    M.body,
+  );
+  blob(inner, M.squidFin, [0, -0.029, 0.034], [0.013, 0.012, 0.036]);
+  blob(inner, M.black, [0, -0.032, 0.067], [0.008, 0.006, 0.003]);
+  add(
+    inner,
+    cached("squid_arm_web", () => {
+      const positions = [],
+        indices = [];
+      for (let segment = 0; segment <= 64; segment++) {
+        const angle = (segment / 64) * Math.PI * 2;
+        const reach = 0.057 + 0.017 * Math.cos((segment / 8) * Math.PI * 2);
+        for (let ring = 0; ring <= 4; ring++) {
+          const t = ring / 4,
+            r = 0.021 + t * reach;
+          positions.push(
+            Math.cos(angle) * r,
+            Math.sin(angle) * r * 0.9 - 0.004,
+            0.081 + t * (0.075 + reach * 0.2),
+          );
+          if (segment < 64 && ring < 4) {
+            const a = segment * 5 + ring;
+            indices.push(a, a + 1, a + 5, a + 1, a + 6, a + 5);
+          }
+        }
+      }
+      const g = new THREE.BufferGeometry();
+      g.setAttribute(
+        "position",
+        new THREE.Float32BufferAttribute(positions, 3),
+      );
+      g.setIndex(indices);
+      g.computeVertexNormals();
+      return g;
+    }),
+    M.squid,
+  );
   // 八条细腕成束拖曳，各自带相位差的缓慢扭动。
   for (let index = 0; index < 8; index++) {
     const angle = (index / 8) * Math.PI * 2;
@@ -129,6 +186,34 @@ function buildSquid(root, motions) {
       ),
       M.squid,
     );
+    const cupCurve = curveFrom([
+      [0, 0, 0],
+      [c * 0.07, s * 0.065, 0.13],
+      [c * 0.1 + curl, s * 0.09, 0.28],
+      [c * 0.085 + curl * 1.6, s * 0.08 + curl * 0.5, 0.38],
+    ]);
+    for (let cup = 0; cup < 7; cup++) {
+      const progress = 0.12 + cup * 0.105,
+        center = cupCurve.getPointAt(progress);
+      const radius = THREE.MathUtils.lerp(0.013, 0.0018, progress);
+      for (const row of [-1, 1]) {
+        const sucker = add(arm, SUCKER, M.sucker);
+        sucker.position
+          .copy(center)
+          .add(
+            new THREE.Vector3(
+              -c * radius + s * radius * row * 0.33,
+              -s * radius - c * radius * row * 0.33,
+              0,
+            ),
+          );
+        sucker.quaternion.setFromUnitVectors(
+          new THREE.Vector3(0, 0, 1),
+          new THREE.Vector3(-c, -s, 0),
+        );
+        sucker.scale.setScalar(radius * 0.47);
+      }
+    }
     motions.push((t, effort) => {
       arm.rotation.z = Math.sin(t * 0.55 + angle) * (0.13 + effort * 0.03);
       arm.rotation.x = Math.cos(t * 0.48 + angle * 1.3) * 0.08;
@@ -1085,12 +1170,12 @@ function material(
   emissiveIntensity = 0,
   options = {},
 ) {
-  return new THREE.MeshStandardMaterial({
+  return skinMaterial({
     color,
     roughness,
     emissive,
     emissiveIntensity,
-    metalness: 0.09,
+    metalness: 0.015,
     ...options,
   });
 }
@@ -1119,7 +1204,7 @@ function curveFrom(points) {
 
 function tendril(points, startRadius, endRadius, segments = 28) {
   const curve = curveFrom(points);
-  const sides = 7;
+  const sides = 10;
   const geometry = new THREE.TubeGeometry(curve, segments, 1, sides, false);
   const positions = geometry.attributes.position;
   for (let ring = 0; ring <= segments; ring++) {
@@ -1143,52 +1228,13 @@ function tendril(points, startRadius, endRadius, segments = 28) {
   return geometry;
 }
 
-function smoothOutline(points, segments = 6) {
-  const curve = new THREE.CatmullRomCurve3(
-    points.map((point) => new THREE.Vector3(point[0], point[1], 0)),
-    true,
-    "centripetal",
-  );
-  return curve
-    .getPoints(points.length * segments)
-    .slice(0, -1)
-    .map((point) => [point.x, point.y]);
-}
-
 function mirrorOutline(outline, side) {
   if (side > 0) return outline;
   return outline.map((point) => [point[0], -point[1]]).reverse();
 }
 
 function finSolid(outline, thickness, orientation, options = {}) {
-  const { smooth = true, bevel = thickness * 0.4 } = options;
-  const points = smooth ? smoothOutline(outline) : outline;
-  const shape = new THREE.Shape(
-    points.map((point) => new THREE.Vector2(point[0], point[1])),
-  );
-  const geometry = new THREE.ExtrudeGeometry(shape, {
-    depth: thickness,
-    steps: 1,
-    bevelEnabled: true,
-    bevelThickness: thickness * 0.45,
-    bevelSize: bevel,
-    bevelSegments: 2,
-  });
-  geometry.translate(0, 0, -thickness / 2);
-  const basis =
-    orientation === "horizontal"
-      ? new THREE.Matrix4().makeBasis(
-          new THREE.Vector3(0, 0, 1),
-          new THREE.Vector3(1, 0, 0),
-          new THREE.Vector3(0, 1, 0),
-        )
-      : new THREE.Matrix4().makeBasis(
-          new THREE.Vector3(0, 0, 1),
-          new THREE.Vector3(0, 1, 0),
-          new THREE.Vector3(-1, 0, 0),
-        );
-  geometry.applyMatrix4(basis);
-  return geometry;
+  return sculptedFin(outline, thickness, orientation, options);
 }
 
 function formColored(
@@ -1212,14 +1258,7 @@ function formColored(
       profile.at(-1)[0],
       ring / rings,
     );
-    let section = 0;
-    while (section < profile.length - 2 && z > profile[section + 1][0])
-      section++;
-    const a = profile[section],
-      b = profile[section + 1];
-    const progress = THREE.MathUtils.smoothstep(z, a[0], b[0]);
-    const width = THREE.MathUtils.lerp(a[1], b[1], progress);
-    const height = THREE.MathUtils.lerp(a[2], b[2], progress);
+    const [width, height] = sampleSection(profile, z);
     for (let side = 0; side <= sides; side++) {
       const theta = (side / sides) * Math.PI * 2;
       const y = Math.sin(theta);

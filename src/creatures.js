@@ -1,4 +1,9 @@
 import * as THREE from "three";
+import {
+  bindAxialMotion,
+  skinMaterial,
+  sculptedFin,
+} from "./creature_surface.js";
 import { mergeGeometries } from "three/addons/utils/BufferGeometryUtils.js";
 import { buildExtraCreature, EXTRA_CREATURE_KINDS } from "./creature_extra.js";
 import {
@@ -88,6 +93,30 @@ const MATERIALS = {
   }),
 };
 
+// 虎鲸黑白分区在片元中求值，近景不会露出低分辨率顶点色的锯齿边。
+const ORCA_SKIN = skinMaterial({
+  color: "#ffffff",
+  roughness: 0.4,
+  pattern: 0.006,
+});
+const compileOrcaSkin = ORCA_SKIN.onBeforeCompile;
+ORCA_SKIN.onBeforeCompile = (shader) => {
+  compileOrcaSkin(shader);
+  shader.fragmentShader = shader.fragmentShader.replace(
+    "#include <color_fragment>",
+    `#include <color_fragment>
+    float chin = 1.0 - smoothstep(-0.405, -0.32, vSkinPosition.z);
+    float flank = exp(-pow((vSkinPosition.z - 0.255) / 0.074, 2.0));
+    float border = -0.065 + chin * 0.050 + flank * 0.047;
+    float belly = 1.0 - smoothstep(border - 0.002, border + 0.002, vSkinPosition.y);
+    diffuseColor.rgb = mix(vec3(0.003,0.009,0.014), vec3(0.79,0.86,0.8), belly);
+    float saddle = exp(-pow((vSkinPosition.z-0.18)/0.038,2.0)) * smoothstep(0.035,0.08,vSkinPosition.y);
+    diffuseColor.rgb = mix(diffuseColor.rgb,vec3(0.13,0.18,0.20),saddle*0.52);
+  `,
+  );
+};
+ORCA_SKIN.customProgramCacheKey = () => "orca_skin_v6";
+
 const SPHERE = new THREE.SphereGeometry(1, 14, 10);
 const SMALL_SPHERE = new THREE.SphereGeometry(1, 8, 6);
 const GEOMETRY_CACHE = new Map();
@@ -95,8 +124,9 @@ const SADDLE = new THREE.Color("#6d828a");
 
 // 每个截面依次为 Z、横向半径、竖向半径、竖向偏移。
 const ORCA_PROFILE = [
-  [-0.475, 0.01, 0.016, -0.006],
-  [-0.45, 0.054, 0.056, -0.004],
+  [-0.478, 0.014, 0.02, -0.012],
+  [-0.463, 0.043, 0.043, -0.011],
+  [-0.442, 0.072, 0.064, -0.003],
   [-0.4, 0.098, 0.101, 0.004],
   [-0.32, 0.133, 0.135, 0.01],
   [-0.2, 0.153, 0.151, 0.006],
@@ -168,7 +198,7 @@ function orcaSection(z, theta) {
 function buildOrca(root, motions) {
   const inner = new THREE.Group();
   root.add(inner);
-  mesh(
+  const torso = mesh(
     inner,
     cached("orca_body", () =>
       bodyGeometry(ORCA_PROFILE, "#0a181f", "#e6f2ea", {
@@ -178,8 +208,13 @@ function buildOrca(root, motions) {
         sectionFn: orcaSection,
       }),
     ),
-    MATERIALS.body,
+    ORCA_SKIN,
   );
+  bindAxialMotion(torso, motions, {
+    axis: "x",
+    frequency: 1.12,
+    amplitude: 0.055,
+  });
 
   // 眼斑贴合体表，向后上方倾斜拉长。
   for (const side of [-1, 1]) {
@@ -193,14 +228,14 @@ function buildOrca(root, motions) {
     ellipsoid(
       inner,
       MATERIALS.eye,
-      [side * 0.099, 0.014, -0.364],
-      [0.0105, 0.0105, 0.0125],
+      [side * 0.114, 0.014, -0.364],
+      [0.006, 0.0065, 0.008],
     );
     ellipsoid(
       inner,
       MATERIALS.white,
-      [side * 0.105, 0.019, -0.368],
-      [0.003, 0.003, 0.0035],
+      [side * 0.118, 0.016, -0.367],
+      [0.0014, 0.0014, 0.002],
     );
     mesh(
       inner,
@@ -250,6 +285,8 @@ function buildOrca(root, motions) {
       flipper.rotation.y = side * (0.18 + sprint * 0.22);
     });
   }
+  // 呼吸孔嵌在头顶，黑白体色之外保留近景解剖尺度。
+  ellipsoid(inner, MATERIALS.mouth, [0, 0.145, -0.225], [0.013, 0.0025, 0.009]);
   // 高大镰刀形背鳍，从正后方也能立刻认出虎鲸。
   mesh(
     inner,
@@ -336,7 +373,7 @@ function countershaded(threshold, softness = 0.12) {
 function buildShark(root, motions) {
   const inner = new THREE.Group();
   root.add(inner);
-  mesh(
+  const torso = mesh(
     inner,
     cached("shark_body", () =>
       bodyGeometry(SHARK_PROFILE, "#3e5765", "#e0e8e0", {
@@ -346,6 +383,11 @@ function buildShark(root, motions) {
     ),
     MATERIALS.body,
   );
+  bindAxialMotion(torso, motions, {
+    axis: "y",
+    frequency: 1.3,
+    amplitude: 0.06,
+  });
   for (const side of [-1, 1]) {
     ellipsoid(
       inner,
@@ -359,16 +401,25 @@ function buildShark(root, motions) {
       [side * 0.09, 0.031, -0.36],
       [0.0035, 0.0035, 0.004],
     );
-    // 鳃裂贴合体表，不再悬空。
+    // 鳃裂上端短、下端向嘴后弯，宽度小于体长千分之二。
     for (let index = 0; index < 5; index++) {
-      const slit = ellipsoid(
+      const z = -0.278 + index * 0.018;
+      const reach = 1 - index * 0.07;
+      const points = [0.48, 0.27, -0.04, -0.4].map((y, i) => {
+        const at = z + [-0.003, 0, 0.004, 0.011][i];
+        const [width, height, offset] = sampleProfile(SHARK_PROFILE, at);
+        const yy = y * reach;
+        return [
+          side * (width * Math.sqrt(1 - yy * yy) + 0.00025),
+          height * yy + offset,
+          at,
+        ];
+      });
+      mesh(
         inner,
+        cached(`shark_gill_${side}_${index}`, () => tube(points, 0.00085)),
         MATERIALS.mouth,
-        [side * (0.104 - index * 0.002), 0.01, -0.208 - index * 0.017],
-        [0.002, 0.021, 0.0085],
       );
-      slit.rotation.x = 0.35;
-      slit.rotation.y = -side * 0.25;
     }
     ellipsoid(
       inner,
@@ -479,38 +530,26 @@ function buildShark(root, motions) {
     MATERIALS.shark,
   );
 
-  // 吻下腹位的弧形嘴与隐约齿列。
-  mesh(
-    inner,
-    cached("shark_mouth", () =>
-      tube(
-        [
-          [-0.062, -0.046, -0.405],
-          [0, -0.066, -0.392],
-          [0.062, -0.046, -0.405],
-        ],
-        0.0042,
-      ),
-    ),
-    MATERIALS.gum,
-  );
-  const teeth = [];
-  for (let index = -3; index <= 3; index++) {
-    const x = index * 0.0145;
-    const arc = Math.sqrt(Math.max(0, 1 - (index / 3.6) ** 2));
-    teeth.push(
-      coneGeometry(
-        [x, -0.048 - 0.012 * arc, -0.402],
-        [x * 0.4, -1, 0.15],
-        0.0032,
-        0.012,
-      ),
-    );
+  // 完整的吻下口裂向两侧嘴角后延，齿列收在唇内而非独立挂在鼻尖。
+  const jawArc = [];
+  for (let i = 0; i <= 24; i++) {
+    const angle = -Math.PI / 2 + (i / 24) * Math.PI;
+    const z = -0.421 + Math.abs(Math.sin(angle)) * 0.102;
+    const [width, height, offset] = sampleProfile(SHARK_PROFILE, z);
+    const y = -0.995 + Math.abs(Math.sin(angle)) * 0.62;
+    const x = Math.sign(angle) * width * Math.sqrt(1 - y * y);
+    jawArc.push([x, height * y + offset - 0.001, z]);
   }
   mesh(
     inner,
-    cached("shark_teeth", () => mergeAndDispose(teeth)),
-    MATERIALS.tooth,
+    cached("shark_mouth", () => tube(jawArc, 0.0018)),
+    MATERIALS.mouth,
+  );
+  const lowerLip = jawArc.map(([x, y, z]) => [x * 0.997, y - 0.003, z + 0.001]);
+  mesh(
+    inner,
+    cached("shark_lower_lip", () => tube(lowerLip, 0.0014)),
+    MATERIALS.white,
   );
 
   const tail = new THREE.Group();
@@ -928,7 +967,7 @@ function buildTuna(root, motions) {
   ];
   const inner = new THREE.Group();
   root.add(inner);
-  mesh(
+  const torso = mesh(
     inner,
     cached("tuna_body", () =>
       bodyGeometry(profile, "#1d3d5c", "#d2dad6", {
@@ -938,6 +977,11 @@ function buildTuna(root, motions) {
     ),
     MATERIALS.body,
   );
+  bindAxialMotion(torso, motions, {
+    axis: "y",
+    frequency: 2.3,
+    amplitude: 0.035,
+  });
   // 尾柄前后一排金黄小鳍（finlet），金枪鱼的科属标志。
   mesh(
     inner,
@@ -1418,10 +1462,10 @@ function buildAngler(root, motions) {
 }
 
 function material(color, roughness, options = {}) {
-  return new THREE.MeshStandardMaterial({
+  return skinMaterial({
     color,
     roughness,
-    metalness: 0.08,
+    metalness: 0.015,
     ...options,
   });
 }
@@ -1479,17 +1523,6 @@ function curveFrom(points) {
 }
 
 // 平滑重采样封闭轮廓，供挤出成带倒角的实体鳍。
-function smoothOutline(points, segments = 6) {
-  const curve = new THREE.CatmullRomCurve3(
-    points.map((point) => new THREE.Vector3(point[0], point[1], 0)),
-    true,
-    "centripetal",
-  );
-  return curve
-    .getPoints(points.length * segments)
-    .slice(0, -1)
-    .map((point) => [point.x, point.y]);
-}
 
 function mirrorOutline(outline, side) {
   if (side > 0) return outline;
@@ -1498,34 +1531,7 @@ function mirrorOutline(outline, side) {
 
 // 把二维轮廓挤出成有厚度、边缘圆润的实体鳍；vertical 立于中纵面，horizontal 平铺。
 function finSolid(outline, thickness, orientation, options = {}) {
-  const { smooth = true, bevel = thickness * 0.4 } = options;
-  const points = smooth ? smoothOutline(outline) : outline;
-  const shape = new THREE.Shape(
-    points.map((point) => new THREE.Vector2(point[0], point[1])),
-  );
-  const geometry = new THREE.ExtrudeGeometry(shape, {
-    depth: thickness,
-    steps: 1,
-    bevelEnabled: true,
-    bevelThickness: thickness * 0.45,
-    bevelSize: bevel,
-    bevelSegments: 2,
-  });
-  geometry.translate(0, 0, -thickness / 2);
-  const basis =
-    orientation === "horizontal"
-      ? new THREE.Matrix4().makeBasis(
-          new THREE.Vector3(0, 0, 1),
-          new THREE.Vector3(1, 0, 0),
-          new THREE.Vector3(0, 1, 0),
-        )
-      : new THREE.Matrix4().makeBasis(
-          new THREE.Vector3(0, 0, 1),
-          new THREE.Vector3(0, 1, 0),
-          new THREE.Vector3(-1, 0, 0),
-        );
-  geometry.applyMatrix4(basis);
-  return geometry;
+  return sculptedFin(outline, thickness, orientation, options);
 }
 
 function placeGeometry(geometry, position, rotation = [0, 0, 0]) {
@@ -1576,6 +1582,19 @@ function bodyGeometry(profile, upperColor, lowerColor, options = {}) {
         const b = a + sides + 1;
         indices.push(a, a + 1, b, b, a + 1, b + 1);
       }
+    }
+  }
+  // 封闭吻端与尾柄端面，避免前侧三分之四视角直接看进躯干。
+  for (const end of [0, 1]) {
+    const center = positions.length / 3,
+      section = profile[end ? profile.length - 1 : 0];
+    positions.push(0, section[3] || 0, section[0] + (end ? 0.001 : -0.002));
+    shade.copy(upper);
+    colors.push(shade.r, shade.g, shade.b);
+    const base = end ? rings * (sides + 1) : 0;
+    for (let side = 0; side < sides; side++) {
+      if (end) indices.push(center, base + side, base + side + 1);
+      else indices.push(center, base + side + 1, base + side);
     }
   }
   const geometry = new THREE.BufferGeometry();

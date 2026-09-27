@@ -51,6 +51,7 @@ try {
     await page.screenshot({
       path: `.local/v4_menu_${viewport.width}_${viewport.height}.png`,
     });
+    await page.locator(".expedition-settings summary").click();
     await page.locator("#menu-markers").uncheck();
     await page.reload();
     await page.waitForFunction(() => !!window.__ABYSSAL__);
@@ -59,6 +60,7 @@ try {
       await page.evaluate(() => window.__ABYSSAL__.markersEnabled),
       false,
     );
+    await page.locator(".expedition-settings summary").click();
     await page.locator("#menu-markers").check();
     await page.click("#open-guide");
     await page.click('.guide-filters [data-category="player"]');

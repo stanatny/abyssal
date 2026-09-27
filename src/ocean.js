@@ -1,4 +1,14 @@
 import * as THREE from "three";
+import {
+  addSurfaceDetail,
+  ribbonGeometry,
+  coralBranchGeometry,
+  seaFanGeometry,
+  moundCoralGeometry,
+  smoothCoincidentNormals,
+  clusterInstances,
+  addLeafDetail,
+} from "./ocean_visuals.js";
 import { WORLD } from "./world_config.js";
 import { createOceanExtra, LANDMARK_CLEARINGS } from "./ocean_extra.js";
 
@@ -61,9 +71,9 @@ export function createOcean(scene) {
   terrainGeometry.translate(0, 0, (WORLD.minZ + WORLD.maxZ) * 0.5);
   const terrainPosition = terrainGeometry.attributes.position;
   const terrainColors = [];
-  const sand = new THREE.Color("#7aa392");
-  const shelfRock = new THREE.Color("#234a58");
-  const abyssRock = new THREE.Color("#0a1f2e");
+  const sand = new THREE.Color("#c2b48b");
+  const shelfRock = new THREE.Color("#4f6b65");
+  const abyssRock = new THREE.Color("#263f49");
   for (let i = 0; i < terrainPosition.count; i += 1) {
     const x = terrainPosition.getX(i);
     const z = terrainPosition.getZ(i);
@@ -117,7 +127,7 @@ export function createOcean(scene) {
         float d1 = sin(sandUv.x * 3.2 + oceanTime * 0.82 + sin(sandUv.y * 2.1));
         float d2 = cos(sandUv.y * 2.8 - oceanTime * 0.58 + cos(sandUv.x * 1.8));
         float fine = pow(max(0.0, 1.0 - abs(d1 + d2)), 9.0);
-        diffuseColor.rgb += vec3(0.17, 0.4, 0.31) * (caustic * 0.18 + fine * 0.12) * shallow;
+        diffuseColor.rgb += vec3(0.50, 0.64, 0.45) * (caustic * 0.12 + fine * 0.075) * shallow;
         float deep = smoothstep(640.0, 820.0, -vOceanWorld.z);
         float fault = abs(sin(sandUv.x * 0.13 + sin(sandUv.y * 0.12) * 2.5));
         float lava = pow(max(0.0, 1.0 - fault), 28.0) * deep;
@@ -132,12 +142,13 @@ export function createOcean(scene) {
 
   const rockMaterial = track(
     new THREE.MeshStandardMaterial({
-      color: "#42616a",
+      color: "#a3ada0",
       roughness: 0.97,
-      flatShading: true,
+      flatShading: false,
       vertexColors: false,
     }),
   );
+  addSurfaceDetail(rockMaterial, "stone", 1.2);
   // 岩石几何先做确定性噪声鼓包，实例化后每块仍保持有机轮廓而非光滑多面体。
   const rockGeometry = track(new THREE.IcosahedronGeometry(1, 2));
   {
@@ -156,6 +167,7 @@ export function createOcean(scene) {
     }
     rockGeometry.computeVertexNormals();
   }
+  smoothCoincidentNormals(rockGeometry);
   rockGeometry.computeBoundingSphere();
   const rockEnvelope =
     rockGeometry.boundingSphere.radius +
@@ -201,7 +213,7 @@ export function createOcean(scene) {
         w: dummy.quaternion.w,
       },
     });
-    color.set(z > -110 ? "#5d8a80" : z > -310 ? "#2a4a5c" : "#16232e");
+    color.set(z > -110 ? "#ada887" : z > -310 ? "#697e7a" : "#4b5863");
     color.multiplyScalar(0.78 + rand() * 0.5);
     rocks.setColorAt(i, color);
     if (Math.abs(x) < 275) obstacles.push({ x, y, z, radius: radius * 0.82 });
@@ -257,8 +269,8 @@ export function createOcean(scene) {
   }
 
   // 海草与珊瑚均使用实例化，丰富近景而不增加成百上千次绘制。
-  const grassGeometry = track(new THREE.ConeGeometry(0.65, 1, 4, 4, true));
-  grassGeometry.translate(0, 0.5, 0);
+  const grassGeometry = track(ribbonGeometry(true));
+
   const grassMaterial = track(
     new THREE.MeshStandardMaterial({
       color: "#2b8581",
@@ -267,6 +279,7 @@ export function createOcean(scene) {
     }),
   );
   addSway(grassMaterial, worldUniforms, 0.17, 1.0);
+  addLeafDetail(grassMaterial);
   const grass = new THREE.InstancedMesh(grassGeometry, grassMaterial, 920);
   for (let i = 0; i < 920; i += 1) {
     const z = 135 - rand() * 325;
@@ -288,9 +301,9 @@ export function createOcean(scene) {
     );
     grass.setColorAt(i, color);
   }
-  root.add(grass);
+  root.add(clusterInstances(grass));
 
-  const coralColors = ["#d76a6f", "#e29577", "#bd76a7", "#eac486", "#72bec1"];
+  const coralColors = ["#ba7d70", "#d1aa81", "#9c7788", "#dac697", "#7f9e91"];
   const coralMaterial = track(
     new THREE.MeshStandardMaterial({
       roughness: 0.72,
@@ -299,7 +312,8 @@ export function createOcean(scene) {
       emissiveIntensity: 0.35,
     }),
   );
-  const coralGeometry = track(new THREE.CylinderGeometry(0.08, 0.26, 1, 5));
+  addSurfaceDetail(coralMaterial, "coral", 1.4);
+  const coralGeometry = track(coralBranchGeometry());
   const coralCount = 880;
   const coral = new THREE.InstancedMesh(
     coralGeometry,
@@ -346,18 +360,17 @@ export function createOcean(scene) {
       branchIndex += 1;
     }
   }
-  root.add(coral);
+  root.add(clusterInstances(coral));
 
   const fanMaterial = track(
     new THREE.MeshStandardMaterial({
       color: "#d87975",
       roughness: 0.85,
       side: THREE.DoubleSide,
-      transparent: true,
-      opacity: 0.78,
+      transparent: false,
     }),
   );
-  const fanGeometry = track(createFanGeometry());
+  const fanGeometry = track(seaFanGeometry());
   const fans = new THREE.InstancedMesh(fanGeometry, fanMaterial, 100);
   for (let i = 0; i < 100; i += 1) {
     const x = (rand() - 0.5) * 175;
@@ -371,10 +384,10 @@ export function createOcean(scene) {
     color.set(coralColors[Math.floor(rand() * 4)]);
     fans.setColorAt(i, color);
   }
-  root.add(fans);
+  root.add(clusterInstances(fans));
 
   // 海绵与海葵丘补足浅海底被的中层细节，实例化一次绘制。
-  const spongeGeometry = track(new THREE.IcosahedronGeometry(1, 1));
+  const spongeGeometry = track(moundCoralGeometry());
   const spongeMaterial = track(
     new THREE.MeshStandardMaterial({
       roughness: 0.86,
@@ -383,6 +396,7 @@ export function createOcean(scene) {
       emissiveIntensity: 0.3,
     }),
   );
+  addSurfaceDetail(spongeMaterial, "coral", 1.1);
   const spongeColors = ["#c9825a", "#b65f78", "#7f9a68", "#5f8f96", "#a97fb4"];
   const sponges = new THREE.InstancedMesh(spongeGeometry, spongeMaterial, 150);
   for (let i = 0; i < 150; i += 1) {
@@ -399,9 +413,9 @@ export function createOcean(scene) {
       .multiplyScalar(0.8 + rand() * 0.4);
     sponges.setColorAt(i, color);
   }
-  root.add(sponges);
+  root.add(clusterInstances(sponges));
 
-  // 海面在水下呈现游动的细碎亮纹，光柱负责传达水体厚度。
+  // 小幅长涌浪叠加经过像素足迹过滤的随机细波，避免远处整齐亮带与闪烁。
   const surfaceMaterial = track(
     new THREE.ShaderMaterial({
       uniforms: { oceanTime: worldUniforms.oceanTime },
@@ -410,8 +424,8 @@ export function createOcean(scene) {
       varying vec3 vWorld;
       void main() {
         vec3 p = position;
-        float swell = sin(p.x * 0.055 + oceanTime * 0.3) * 0.35
-          + sin(p.x * 0.021 - oceanTime * 0.17 + p.y * 0.013) * 0.55;
+        float swell = sin(p.x * 0.055 + oceanTime * 0.3) * 0.12
+          + sin(p.x * 0.021 - oceanTime * 0.17 + p.y * 0.013) * 0.18;
         p.z += swell;
         vec4 world = modelMatrix * vec4(p, 1.0);
         vWorld = world.xyz;
@@ -420,29 +434,56 @@ export function createOcean(scene) {
       fragmentShader: `
       uniform float oceanTime;
       varying vec3 vWorld;
+      float rippleHash(vec2 p) {
+        vec3 q = fract(vec3(p.xyx) * 0.1031);
+        q += dot(q, q.yzx + 33.33);
+        return fract((q.x + q.y) * q.z);
+      }
+      // 同时求连续噪声和解析梯度，不用低频正弦条带模拟高光。
+      vec3 rippleNoise(vec2 p) {
+        vec2 i = floor(p), f = fract(p);
+        vec2 u = f * f * (3.0 - 2.0 * f), du = 6.0 * f * (1.0 - f);
+        float a = rippleHash(i), b = rippleHash(i + vec2(1, 0));
+        float c = rippleHash(i + vec2(0, 1)), d = rippleHash(i + vec2(1, 1));
+        float k = a - b - c + d;
+        return vec3(a + (b-a)*u.x + (c-a)*u.y + k*u.x*u.y,
+          ((b-a) + k*u.y)*du.x, ((c-a) + k*u.x)*du.y);
+      }
       void main() {
-        vec2 p = vWorld.xz * 0.075;
-        float a = sin(p.x + sin(p.y * 1.7 + oceanTime * 0.21));
-        float b = cos(p.y * 1.31 + cos(p.x * 0.83 - oceanTime * 0.24));
-        float web = pow(max(0.0, 1.0 - abs(a + b)), 6.0);
-        vec2 q = vWorld.xz * 0.16;
-        float g1 = sin(q.x * 1.3 + oceanTime * 0.72 + sin(q.y));
-        float g2 = cos(q.y * 1.1 - oceanTime * 0.56 + cos(q.x * 0.9));
-        float glint = pow(max(0.0, 1.0 - abs(g1 + g2)), 10.0);
-        float swell = sin(p.x * 0.4 + p.y * 0.23 + oceanTime * 0.1) * 0.5 + 0.5;
+        vec2 p = vWorld.xz;
         float dist = distance(cameraPosition, vWorld);
-        float distanceFade = exp(-dist * 0.006);
+        float footprint = max(length(dFdx(p)), length(dFdy(p)));
+        mat2 rotation = mat2(0.8, -0.6, 0.6, 0.8);
+        mat2 inverseRotation = mat2(0.8, 0.6, -0.6, 0.8);
+        vec3 longRipple = rippleNoise(p * vec2(0.70, 0.37) + vec2(oceanTime * 0.12, -oceanTime * 0.045));
+        vec3 midRipple = rippleNoise(rotation * p * vec2(2.7, 1.6) + vec2(-oceanTime * 0.24, oceanTime * 0.08));
+        vec3 fineRipple = rippleNoise(inverseRotation * p * vec2(7.2, 3.8) + vec2(oceanTime * 0.35, oceanTime * 0.14));
+        float longFilter = 1.0 - smoothstep(0.35, 1.4, footprint * 0.70);
+        float midFilter = 1.0 - smoothstep(0.35, 1.4, footprint * 2.7);
+        float fineFilter = 1.0 - smoothstep(0.35, 1.4, footprint * 7.2);
+        vec2 slope = longRipple.yz * vec2(0.70, 0.37) * 0.075 * longFilter;
+        slope += inverseRotation * (midRipple.yz * vec2(2.7, 1.6)) * 0.027 * midFilter;
+        slope += rotation * (fineRipple.yz * vec2(7.2, 3.8)) * 0.009 * fineFilter;
+        vec3 n = normalize(vec3(-slope.x, 1.0, -slope.y));
+        vec3 eye = normalize(cameraPosition - vWorld);
         float above = step(4.0, cameraPosition.y);
-        vec3 below = mix(vec3(0.03, 0.27, 0.35), vec3(0.36, 0.76, 0.72), swell);
-        below += vec3(0.3, 0.6, 0.56) * (web * 0.42 + glint * 0.55);
-        vec3 top = mix(vec3(0.016, 0.13, 0.19), vec3(0.05, 0.33, 0.41), swell);
-        top += vec3(0.06, 0.13, 0.15) * web * (0.15 + swell * 0.2) + vec3(0.5, 0.68, 0.66) * glint * 0.32;
-        top = mix(top, vec3(0.36, 0.56, 0.62), smoothstep(120.0, 620.0, dist) * 0.85);
-        vec3 waterColor = mix(below, top, above);
-        float grazing = 1.0 - abs(normalize(vWorld - cameraPosition).y);
-        float alphaBelow = mix(0.3, 0.88, pow(grazing, 2.0)) + web * 0.08 + glint * 0.08;
-        float alpha = mix(alphaBelow * distanceFade, 0.96, above);
-        gl_FragColor = vec4(waterColor, alpha);
+        float ndv = clamp(abs(dot(n, eye)), 0.0, 1.0);
+        float fresnel = 0.025 + 0.975 * pow(1.0 - ndv, 5.0);
+        vec3 reflected = reflect(-eye, n);
+        // 柔和连续的蓝灰天空反射；不把远处水面额外混成白雾。
+        float skyElevation = smoothstep(-0.18, 0.85, reflected.y);
+        vec3 sky = mix(vec3(0.145, 0.255, 0.285), vec3(0.095, 0.185, 0.255), skyElevation);
+        float sun = max(0.0, dot(reflected, normalize(vec3(-0.5, 0.85, 0.25))));
+        float glint = pow(sun, 380.0) * (0.30 + 0.70 * fineFilter);
+        sky += vec3(0.35, 0.32, 0.23) * glint;
+        vec3 top = mix(vec3(0.016, 0.086, 0.115), sky, 0.20 + fresnel * 0.65);
+        top = mix(top, vec3(0.11, 0.22, 0.26), smoothstep(180.0, 720.0, dist) * 0.16);
+        // 水下主要保留透光窗口，细波只轻微影响亮度，保持角色与近处海域可读。
+        float windowMask = smoothstep(0.54, 0.78, ndv);
+        vec3 below = mix(vec3(0.024, 0.115, 0.155), vec3(0.19, 0.34, 0.36), windowMask);
+        below += vec3(0.016, 0.023, 0.020) * (longRipple.x - 0.5) * longFilter;
+        float alphaBelow = mix(0.54, 0.25, windowMask) * exp(-dist * 0.0035);
+        gl_FragColor = vec4(mix(below, top, above), mix(alphaBelow, 0.97, above));
         #include <tonemapping_fragment>
         #include <colorspace_fragment>
       }`,
@@ -556,11 +597,12 @@ export function createOcean(scene) {
 
   const ruinsMaterial = track(
     new THREE.MeshStandardMaterial({
-      color: "#29454e",
+      color: "#65796e",
       roughness: 0.94,
       flatShading: true,
     }),
   );
+  addSurfaceDetail(ruinsMaterial, "stone", 1.3);
   const runeMaterial = track(
     new THREE.MeshBasicMaterial({
       color: "#48c7c6",
@@ -611,10 +653,29 @@ export function createOcean(scene) {
       varying vec2 vUv;
       varying vec3 vWorld;
       void main() {
-        vec2 uv = vUv * 13.0;
-        float hot = sin(uv.x + oceanTime * 0.22) * cos(uv.y - oceanTime * 0.19);
-        float crust = smoothstep(0.18, 0.42, abs(hot + sin(uv.x * 1.4 + uv.y) * 0.24));
-        vec3 glow = mix(vec3(2.2, 0.4, 0.015), vec3(0.11, 0.016, 0.012), crust);
+        // 冷却岩壳之间只有狭窄裂隙发光，细胞边界替代大片规则橙色斑块。
+        vec2 uv = vWorld.xz * 0.57;
+        uv += vec2(sin(uv.y * 0.61 + oceanTime * 0.035), cos(uv.x * 0.43)) * 0.43;
+        vec2 cell = floor(uv), local = fract(uv);
+        float first = 9.0, second = 9.0;
+        for (int y = -1; y <= 1; y++) {
+          for (int x = -1; x <= 1; x++) {
+            vec2 offset = vec2(float(x), float(y));
+            vec2 seed = cell + offset;
+            vec2 jitter = fract(sin(vec2(dot(seed, vec2(127.1, 311.7)), dot(seed, vec2(269.5, 183.3)))) * 43758.5453);
+            float distanceToCell = length(offset + 0.18 + jitter * 0.64 - local);
+            if (distanceToCell < first) { second = first; first = distanceToCell; }
+            else second = min(second, distanceToCell);
+          }
+        }
+        float edge = second - first;
+        float grain = sin(uv.x * 31.0 + sin(uv.y * 13.0)) * sin(uv.y * 29.0);
+        float crack = 1.0 - smoothstep(0.018, 0.095, edge + grain * 0.014);
+        float core = 1.0 - smoothstep(0.003, 0.025, edge);
+        float rimFade = 1.0 - smoothstep(0.36, 0.5, length(vUv - 0.5));
+        float pulse = 0.72 + 0.28 * sin(oceanTime * 0.55 + uv.x * 0.7 + uv.y * 0.6);
+        vec3 crust = vec3(0.018, 0.023, 0.024) * (0.8 + first * 0.4 + grain * 0.13);
+        vec3 glow = crust + (vec3(1.6, 0.19, 0.014) * crack + vec3(1.7, 0.48, 0.035) * core) * rimFade * pulse;
         float mist = 1.0 - exp(-distance(cameraPosition, vWorld) * 0.009);
         glow = mix(glow, vec3(0.003, 0.018, 0.025), mist);
         gl_FragColor = vec4(glow, 1.0);
@@ -626,11 +687,12 @@ export function createOcean(scene) {
   );
   const basaltMaterial = track(
     new THREE.MeshStandardMaterial({
-      color: "#282f31",
+      color: "#41484b",
       roughness: 1,
       flatShading: true,
     }),
   );
+  addSurfaceDetail(basaltMaterial, "stone", 1.8);
   const volcanoes = [
     { x: -42, z: -555, radius: 18, height: 24 },
     { x: 137, z: -728, radius: 24, height: 34 },
@@ -844,6 +906,9 @@ export function createOcean(scene) {
     dispose() {
       scene.remove(root);
       extra.dispose();
+      root.traverse((node) => {
+        if (node.isInstancedMesh) node.dispose();
+      });
       for (const resource of disposables) resource.dispose();
     },
   };
@@ -885,31 +950,6 @@ function addSway(material, uniforms, strength, rate) {
       );
   };
   material.customProgramCacheKey = () => `abyssal_sway_${strength}_${rate}`;
-}
-
-function createFanGeometry() {
-  const positions = [];
-  const indices = [];
-  const segments = 16;
-  positions.push(0, 0, 0);
-  for (let i = 0; i <= segments; i += 1) {
-    const theta = (i / segments) * Math.PI;
-    const scallop = 0.9 + (i % 2) * 0.13;
-    positions.push(
-      Math.cos(theta) * scallop,
-      0.5 + Math.sin(theta) * 1.45,
-      Math.sin(i * 1.7) * 0.12,
-    );
-    if (i > 0) indices.push(0, i, i + 1);
-  }
-  const geometry = new THREE.BufferGeometry();
-  geometry.setAttribute(
-    "position",
-    new THREE.Float32BufferAttribute(positions, 3),
-  );
-  geometry.setIndex(indices);
-  geometry.computeVertexNormals();
-  return geometry;
 }
 
 function makeParticleTexture() {

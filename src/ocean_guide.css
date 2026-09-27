@@ -1,15 +1,19 @@
+/* 海洋档案以浅色展陈页承载实时三维标本，资料和索引不压住模型。 */
 .ocean-guide {
-  --specimen: #a1e8d5;
-  width: min(1180px, 94vw);
+  --specimen: #91bbab;
+  --archive-ink: #193d40;
+  --archive-muted: #617c79;
+  --archive-line: #2c595526;
+  width: min(1360px, calc(100vw - 64px));
   max-width: none;
-  height: min(860px, 93dvh);
-  max-height: 93dvh;
-  padding: 28px 34px 20px;
-  color: #e2f1f5;
-  background: linear-gradient(165deg, #081c28 0%, #050f18 70%);
-  border: 1px solid rgba(127, 181, 186, 0.32);
-  border-radius: 20px;
-  box-shadow: 0 40px 120px rgba(0, 0, 0, 0.72);
+  height: min(850px, calc(100dvh - 64px));
+  max-height: none;
+  padding: 28px 32px 19px;
+  color: var(--archive-ink);
+  background: #e9ede4;
+  border: 1px solid #e2e9dd;
+  border-radius: 3px;
+  box-shadow: 0 22px 110px #021b2180;
   overflow: hidden;
   font-family: inherit;
 }
@@ -18,75 +22,81 @@
   flex-direction: column;
 }
 .ocean-guide::backdrop {
-  background: rgba(1, 9, 15, 0.82);
-  backdrop-filter: blur(10px);
+  background: #031b22c2;
+  backdrop-filter: blur(9px);
 }
 .ocean-guide button {
+  color: inherit;
   cursor: pointer;
+  font: inherit;
   transition:
-    filter 0.15s,
-    background-color 0.15s,
-    border-color 0.15s;
+    background-color 0.16s,
+    border-color 0.16s;
 }
 .ocean-guide button:hover {
-  filter: brightness(1.1);
+  filter: none;
 }
 .ocean-guide button:focus-visible,
 .ocean-guide input:focus-visible {
-  outline: 2px solid var(--specimen);
+  outline: 2px solid #34776c;
   outline-offset: 3px;
 }
-
-/* 头部 */
 .guide-heading {
   display: flex;
+  align-items: center;
   justify-content: space-between;
-  align-items: flex-start;
-  gap: 16px;
+  gap: 20px;
   flex-shrink: 0;
 }
 .guide-eyebrow {
-  font-size: 9.5px;
-  letter-spacing: 3px;
-  color: #7ba9b4;
+  font-size: 9px;
+  color: #6b827b;
+  letter-spacing: 2px;
 }
 .guide-heading h2 {
-  font-size: 30px;
-  font-weight: 550;
-  letter-spacing: 6px;
-  margin: 8px 0 0;
-  color: #f2fbf9;
-  text-shadow: 0 0 30px rgba(125, 240, 205, 0.2);
+  font-family: "Songti SC", "STSong", "SimSun", serif;
+  margin: 7px 0 0;
+  font-size: 33px;
+  font-weight: 400;
+  letter-spacing: 3px;
+  color: #244842;
 }
 .guide-close {
-  padding: 9px 15px;
-  border: 1px solid rgba(171, 202, 210, 0.2);
-  border-radius: 999px;
-  background: rgba(18, 42, 53, 0.6);
-  color: #c3d8e2;
-  font: inherit;
-  font-size: 12px;
+  min-height: 44px;
+  padding: 8px 1px 8px 14px;
+  background: transparent;
+  border: 0;
+  border-radius: 0;
+  font-size: 11px !important;
   letter-spacing: 1px;
+  color: #4e6c65 !important;
 }
-.guide-close:hover {
-  border-color: rgba(171, 202, 210, 0.45);
+.guide-close::after {
+  content: "×";
+  display: inline-block;
+  margin-left: 18px;
+  font-size: 27px;
+  line-height: 20px;
+  vertical-align: -3px;
+  font-weight: 300;
+  color: #325b53;
 }
 .guide-close kbd {
-  font-size: 9px;
-  margin-left: 8px;
-  border: 1px solid rgba(170, 210, 205, 0.3);
-  border-radius: 4px;
-  padding: 2px 5px;
+  color: #70847b;
+  background: transparent;
+  border-color: #81978b55;
+  border-radius: 2px;
+  margin: 0 0 0 8px;
+  font-size: 8px;
 }
-
-/* 分类筛选 */
 .guide-filters {
   display: flex;
-  gap: 8px;
+  gap: 25px;
   overflow-x: auto;
-  padding: 16px 0 15px;
-  margin-bottom: 18px;
-  border-bottom: 1px solid rgba(160, 192, 205, 0.1);
+  overflow-y: hidden;
+  padding: 16px 0 0;
+  margin-bottom: 25px;
+  border-bottom: 1px solid var(--archive-line);
   flex-shrink: 0;
   scrollbar-width: none;
 }
@@ -94,202 +104,311 @@
   display: none;
 }
 .guide-filters button {
-  white-space: nowrap;
+  flex-shrink: 0;
+  min-height: 43px;
+  padding: 9px 0 13px;
+  border: 0;
+  border-bottom: 2px solid transparent;
+  border-radius: 0;
+  background: transparent;
   font-size: 12px;
-  letter-spacing: 1.5px;
-  padding: 8px 16px;
-  border: 1px solid rgba(171, 202, 210, 0.18);
-  border-radius: 999px;
-  background: rgba(14, 34, 44, 0.5);
-  color: #a9c3cf;
-  font-family: inherit;
+  font-weight: 400;
+  color: #647e75;
+  letter-spacing: 0.4px;
+  white-space: nowrap;
 }
 .guide-filters button:hover {
-  border-color: rgba(171, 202, 210, 0.4);
-  color: #d5e8ee;
+  color: #254e43;
 }
 .guide-filters button[aria-pressed="true"] {
-  color: #06231f;
-  background: linear-gradient(120deg, #9deed3, #6ed3bc);
-  border-color: transparent;
+  color: #204d40;
+  border-bottom-color: #446f58;
   font-weight: 600;
-  box-shadow: 0 4px 18px rgba(110, 235, 200, 0.25);
 }
-
-/* 主体布局 */
 .guide-content {
   display: grid;
-  grid-template-columns: 268px minmax(0, 1fr);
-  flex: 1;
+  grid-template-columns: 212px minmax(0, 1fr);
   gap: 26px;
+  flex: 1;
   min-height: 0;
 }
 .guide-sidebar {
-  border-right: 1px solid rgba(160, 192, 205, 0.12);
-  padding-right: 22px;
+  min-width: 0;
+  min-height: 0;
   display: flex;
   flex-direction: column;
-  min-height: 0;
+  border-right: 1px solid var(--archive-line);
+  padding-right: 20px;
 }
 .guide-sidebar label {
-  font-size: 9.5px;
-  letter-spacing: 2.5px;
-  color: #7ba9b4;
+  font-size: 9px;
+  letter-spacing: 1.3px;
   margin: 0 0 9px;
+  color: #73897f;
 }
 .guide-sidebar input {
   width: 100%;
-  background: rgba(10, 28, 38, 0.7)
-    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 24 24' fill='none' stroke='%236d94a1' stroke-width='2.4' stroke-linecap='round'%3E%3Ccircle cx='11' cy='11' r='7'/%3E%3Cpath d='M21 21l-4.5-4.5'/%3E%3C/svg%3E")
-    no-repeat 13px center;
-  border: 1px solid rgba(139, 183, 198, 0.22);
-  border-radius: 10px;
-  padding: 11px 13px 11px 36px;
-  color: #e7f3fa;
+  min-height: 41px;
+  margin-bottom: 14px;
+  padding: 9px 11px 9px 31px;
+  border: 0;
+  border-bottom: 1px solid #55766d59;
+  border-radius: 0;
+  background: #ffffff38
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%23688077' stroke-width='1.6'%3E%3Ccircle cx='10' cy='10' r='7'/%3E%3Cpath d='m15 15 6 6'/%3E%3C/svg%3E")
+    no-repeat 10px center;
   font: inherit;
-  font-size: 12.5px;
-  margin-bottom: 13px;
+  font-size: 12px;
+  color: #264d40;
 }
 .guide-sidebar input::placeholder {
-  color: #5d7f8c;
-}
-.guide-sidebar input:focus {
-  border-color: rgba(139, 183, 198, 0.5);
+  color: #8b9b91;
 }
 .guide-list {
-  overflow: auto;
   min-height: 0;
+  overflow: auto;
   padding-right: 4px;
   scrollbar-width: thin;
-  scrollbar-color: #33505e transparent;
-  color: #8fb0bd;
+  scrollbar-color: #7893864d transparent;
   font-size: 12px;
-}
-.guide-list::-webkit-scrollbar {
-  width: 5px;
-}
-.guide-list::-webkit-scrollbar-thumb {
-  background: #33505e;
-  border-radius: 4px;
+  color: #657f73;
 }
 .guide-entry {
   display: flex;
   align-items: center;
-  gap: 12px;
+  gap: 9px;
   width: 100%;
-  border: 1px solid transparent;
-  border-radius: 11px;
+  min-height: 63px;
+  padding: 10px 9px;
+  border: 0;
+  border-bottom: 1px solid #496e4f14;
+  border-radius: 0;
   background: transparent;
-  color: #ccdce5;
   text-align: left;
-  padding: 10px 11px;
-  margin-bottom: 5px;
-  font: inherit;
+  margin: 0;
 }
 .guide-entry i {
   flex-shrink: 0;
-  width: 4px;
-  height: 32px;
-  border-radius: 4px;
-  background: var(--specimen);
-  opacity: 0.55;
+  width: 5px;
+  height: 5px;
+  background: #97b3a6;
+  border-radius: 50%;
 }
 .guide-entry span {
   display: flex;
-  flex-direction: column;
-  gap: 4px;
   flex: 1;
   min-width: 0;
+  flex-direction: column;
+  gap: 5px;
 }
 .guide-entry b {
-  font-size: 13.5px;
+  font-size: 12px;
   font-weight: 500;
-  letter-spacing: 0.5px;
+  letter-spacing: 0.2px;
+  color: #385b4f;
 }
 .guide-entry small {
-  font-size: 9.5px;
-  letter-spacing: 0.5px;
-  color: #7f9fae;
+  font-size: 9px;
+  color: #86988c;
+  letter-spacing: 0;
 }
 .guide-entry em {
-  font-size: 10px;
   font-style: normal;
-  color: #6f96a6;
-  font-variant-numeric: tabular-nums;
+  font-size: 9px;
+  color: #7b9182;
   white-space: nowrap;
+  font-variant-numeric: tabular-nums;
 }
 .guide-entry:hover {
-  background: rgba(21, 45, 56, 0.65);
+  background: #dbe3d3;
 }
 .guide-entry[aria-pressed="true"] {
-  border-color: rgba(137, 188, 196, 0.3);
-  background: rgba(22, 48, 60, 0.8);
+  background: #d1ddce;
 }
 .guide-entry[aria-pressed="true"] i {
-  opacity: 1;
-  box-shadow: 0 0 12px var(--specimen);
+  background: #476c51;
+  border-radius: 0;
+  transform: rotate(45deg);
 }
-
-/* 详情区 */
+.guide-entry[aria-pressed="true"] b {
+  color: #254932;
+}
 .guide-detail {
+  min-width: 0;
   min-height: 0;
-  overflow: auto;
-  scrollbar-width: thin;
-  scrollbar-color: #33505e transparent;
-}
-.guide-detail::-webkit-scrollbar {
-  width: 5px;
-}
-.guide-detail::-webkit-scrollbar-thumb {
-  background: #33505e;
-  border-radius: 4px;
+  display: grid;
+  grid-template-columns: minmax(0, 1.1fr) minmax(265px, 0.9fr);
+  gap: 25px;
+  overflow: hidden;
 }
 .guide-preview {
   position: relative;
-  width: 100%;
-  height: 292px;
-  border-radius: 16px;
-  border: 1px solid rgba(160, 192, 205, 0.14);
-  background:
-    radial-gradient(
-      ellipse at 50% 68%,
-      rgba(60, 130, 150, 0.3),
-      transparent 62%
-    ),
-    radial-gradient(
-      ellipse at 50% 110%,
-      rgba(40, 90, 110, 0.24),
-      transparent 55%
-    ),
-    rgba(6, 20, 29, 0.55);
-  box-shadow: inset 0 0 60px rgba(10, 40, 55, 0.4);
+  min-width: 0;
+  height: 100%;
+  min-height: 300px;
+  border: 1px solid #61897d1c;
+  border-radius: 1px;
+  background: radial-gradient(
+    ellipse at 44% 40%,
+    #eef4e7 0%,
+    #d5e2d6 65%,
+    #c9d9cd 100%
+  );
   touch-action: none;
   cursor: grab;
   overflow: hidden;
+}
+.guide-preview::before {
+  content: "";
+  position: absolute;
+  inset: 20% 10%;
+  border: 1px solid #7095871a;
+  border-radius: 50%;
+  pointer-events: none;
+}
+.guide-preview::after {
+  content: "ABYSSAL / FIELD OBSERVATION";
+  position: absolute;
+  left: 18px;
+  bottom: 17px;
+  color: #7b9384;
+  font-size: 8px;
+  letter-spacing: 1.5px;
+  pointer-events: none;
 }
 .guide-preview:active {
   cursor: grabbing;
 }
 .guide-preview canvas {
   display: block;
+  position: relative;
 }
 .guide-specimen-tag {
   position: absolute;
-  top: 12px;
-  left: 14px;
-  font-size: 8.5px;
-  letter-spacing: 2.5px;
-  color: #6f97a8;
+  top: 17px;
+  left: 18px;
+  color: #648273;
+  font-size: 8px;
+  letter-spacing: 1.4px;
   pointer-events: none;
   z-index: 1;
 }
-/* 奖励共用档案详情，静态符号与游戏内拾取物保持颜色、图形一致。 */
+.guide-info {
+  min-width: 0;
+  min-height: 0;
+  overflow-y: auto;
+  padding: 15px 7px 12px 0;
+  scrollbar-width: thin;
+  scrollbar-color: #7893864d transparent;
+}
+.guide-info > .guide-eyebrow {
+  font-size: 8px;
+  line-height: 1.6;
+  letter-spacing: 1.2px;
+  overflow-wrap: anywhere;
+  color: #7b8d7d;
+}
+.guide-name-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 10px;
+  margin: 13px 0 22px;
+}
+.guide-name-row h3 {
+  font-family: "Songti SC", "STSong", "SimSun", serif;
+  font-size: 31px;
+  font-weight: 400;
+  letter-spacing: 1px;
+  color: #244e3f;
+  margin: 0;
+}
+.guide-name-row span {
+  display: inline-block;
+  color: #6b8575;
+  font-size: 9px;
+  letter-spacing: 0.5px;
+  padding: 2px 0;
+}
+.guide-facts {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 15px;
+  padding: 16px 0;
+  margin-bottom: 23px;
+  border-top: 1px solid var(--archive-line);
+  border-bottom: 1px solid var(--archive-line);
+}
+.guide-facts div {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.guide-facts small {
+  color: #839789;
+  font-size: 10px;
+  letter-spacing: 1px;
+}
+.guide-facts b {
+  color: #2e5143;
+  font-size: 15px;
+  font-weight: 400;
+  font-variant-numeric: tabular-nums;
+}
+.guide-info h4 {
+  font-size: 13px;
+  font-weight: 500;
+  line-height: 1.7;
+  letter-spacing: 0.4px;
+  color: #325a45;
+  margin: 0 0 9px;
+}
+.guide-info p {
+  font-size: 12px;
+  line-height: 1.9;
+  margin: 0 0 18px;
+  color: #678071;
+}
+.guide-advice {
+  border-left: 2px solid #739381;
+  margin: 20px 0 0;
+  padding: 1px 0 1px 13px;
+}
+.guide-advice b {
+  font-size: 9px;
+  letter-spacing: 1.5px;
+  font-weight: 500;
+  color: #56785f;
+}
+.guide-advice p {
+  margin: 7px 0 0;
+  font-size: 11px;
+}
+.guide-combat {
+  display: block;
+  margin-top: 20px;
+  padding-top: 13px;
+  border-top: 1px solid var(--archive-line);
+  font-size: 10px;
+  line-height: 1.8;
+  color: #849683;
+}
+.guide-footer {
+  display: flex;
+  flex-shrink: 0;
+  justify-content: space-between;
+  gap: 12px;
+  margin-top: 20px;
+  padding-top: 13px;
+  border-top: 1px solid var(--archive-line);
+  color: #839786;
+  font-size: 9px;
+  letter-spacing: 0.7px;
+}
 .guide-preview.is-reward {
   cursor: default;
   touch-action: pan-y;
-  background:
-    radial-gradient(ellipse at 50% 50%, #183744 0%, transparent 64%),
-    rgba(6, 20, 29, 0.7);
 }
 .guide-preview.is-reward canvas,
 .guide-preview.is-reward .guide-specimen-tag,
@@ -297,310 +416,266 @@
   display: none;
 }
 .guide-reward-display {
-  height: 100%;
   display: flex;
+  height: 100%;
+  flex-direction: column;
   align-items: center;
   justify-content: center;
-  flex-direction: column;
-  gap: 12px;
-  padding: 20px 12px;
+  gap: 21px;
+  padding: 24px 16px;
   text-align: center;
 }
 .guide-reward-display .guide-eyebrow {
-  color: #9ab7c0;
-  letter-spacing: 2px;
+  color: #678873;
+  font-size: 8px;
+  letter-spacing: 1.5px;
 }
 .guide-reward-orb {
   position: relative;
   display: grid;
   place-items: center;
-  width: 112px;
-  height: 112px;
-  margin: 4px 0;
-  border: 1px solid var(--specimen);
+  width: 128px;
+  height: 128px;
+  margin: 14px 0;
+  border: 1px solid #73927d70;
   border-radius: 50%;
   color: var(--specimen);
-  background: radial-gradient(circle, #193b47 0%, #0d2431 65%);
-  box-shadow:
-    0 0 36px color-mix(in srgb, var(--specimen) 20%, transparent),
-    inset 0 0 24px color-mix(in srgb, var(--specimen) 15%, transparent);
+  background: #193d39;
+  box-shadow: 0 15px 36px #6d94704d;
 }
 .guide-reward-orb::before,
 .guide-reward-orb::after {
   content: "";
   position: absolute;
-  inset: -9px;
-  border: 1px solid var(--specimen);
+  inset: -10px;
+  border: 1px solid #708d7161;
   border-radius: 50%;
-  opacity: 0.2;
 }
 .guide-reward-orb::after {
   inset: 8px;
-  opacity: 0.35;
+  border-color: #bbd7ac40;
 }
 .guide-reward-orb span {
-  font-size: 58px;
+  color: var(--specimen);
+  font-size: 65px;
+  font-weight: 300;
   line-height: 1;
-  font-weight: 400;
-  text-shadow: 0 0 18px var(--specimen);
 }
 .guide-reward-effect {
-  color: var(--specimen);
+  color: #3b6650;
   font-size: 15px;
-  font-weight: 500;
-  letter-spacing: 1px;
+  font-weight: 400;
 }
 .guide-reward-display > small {
-  color: #8babb8;
-  font-size: 10px;
-  letter-spacing: 2px;
-}
-
-.guide-info {
-  padding: 18px 6px 12px 2px;
-}
-.guide-name-row {
-  display: flex;
-  align-items: center;
-  gap: 14px;
-  margin: 6px 0 14px;
-}
-.guide-name-row h3 {
-  font-size: 27px;
-  font-weight: 550;
-  letter-spacing: 3px;
-  margin: 0;
-  color: var(--specimen);
-  text-shadow: 0 0 18px var(--specimen);
-}
-.guide-name-row span {
-  font-size: 10px;
-  letter-spacing: 1.5px;
-  border: 1px solid rgba(190, 212, 219, 0.22);
-  padding: 4px 10px;
-  border-radius: 999px;
-  color: #9db4bd;
-  background: rgba(14, 34, 44, 0.4);
-}
-.guide-facts {
-  display: flex;
-  gap: 54px;
-  margin-bottom: 16px;
-  padding: 11px 16px;
-  border: 1px solid rgba(160, 192, 205, 0.12);
-  border-radius: 12px;
-  background: rgba(9, 24, 33, 0.45);
-  width: fit-content;
-}
-.guide-facts div {
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-}
-.guide-facts small {
-  font-size: 9px;
-  letter-spacing: 2px;
-  color: #77969f;
-}
-.guide-facts b {
-  font-size: 16px;
-  font-weight: 450;
-  letter-spacing: 0.5px;
-  color: #ecf7f9;
-  font-variant-numeric: tabular-nums;
-}
-.guide-info h4 {
-  font-size: 15px;
-  font-weight: 550;
-  letter-spacing: 1.5px;
-  margin: 0 0 10px;
-  color: #e3eef0;
-  display: flex;
-  align-items: center;
-  gap: 9px;
-}
-.guide-info h4::before {
-  content: "◈";
-  font-size: 11px;
-  color: var(--specimen);
-}
-.guide-info p {
-  font-size: 13px;
-  line-height: 1.95;
-  color: #a9c2cf;
-  margin: 0 0 14px;
-  max-width: 640px;
-}
-.guide-advice {
-  border-left: 2px solid var(--specimen);
-  border-radius: 0 12px 12px 0;
-  padding: 10px 16px;
-  background: rgba(23, 53, 65, 0.42);
-  max-width: 640px;
-}
-.guide-advice b {
-  font-size: 10px;
-  letter-spacing: 2px;
-  color: var(--specimen);
-}
-.guide-advice p {
-  margin: 7px 0 0;
-  font-size: 12.5px;
-}
-.guide-combat {
+  color: #7a8f7a;
   font-size: 10px;
   letter-spacing: 1px;
-  color: #6c98a9;
-  display: block;
-  margin-top: 14px;
-  padding-top: 11px;
-  border-top: 1px solid rgba(160, 192, 205, 0.1);
-  font-variant-numeric: tabular-nums;
 }
-.guide-footer {
-  display: flex;
-  justify-content: space-between;
-  gap: 10px;
-  margin-top: 14px;
-  padding-top: 13px;
-  border-top: 1px solid rgba(160, 192, 205, 0.1);
-  font-size: 9.5px;
-  letter-spacing: 1.5px;
-  color: #5f8291;
-  flex-shrink: 0;
+@media (max-width: 1120px) {
+  .ocean-guide {
+    padding: 24px;
+  }
+  .guide-content {
+    grid-template-columns: 190px minmax(0, 1fr);
+    gap: 21px;
+  }
+  .guide-detail {
+    display: block;
+    overflow: auto;
+    scrollbar-width: thin;
+    scrollbar-color: #7893864d transparent;
+  }
+  .guide-preview {
+    height: 340px;
+    min-height: 0;
+  }
+  .guide-info {
+    overflow: visible;
+    padding-top: 25px;
+  }
+  .guide-name-row {
+    margin-bottom: 17px;
+  }
+  .guide-facts {
+    max-width: 430px;
+  }
 }
-
-/* 移动端：子项允许收窄，横向标本列表只在自身滚动，不撑宽整个图鉴。 */
 @media (max-width: 650px) {
   .ocean-guide {
-    padding: 16px 14px 12px;
-    width: 94vw;
-    height: 94dvh;
-    max-height: 94dvh;
-    border-radius: 14px;
+    width: 100vw;
+    height: 100dvh;
+    padding: max(20px, env(safe-area-inset-top)) 19px
+      max(13px, env(safe-area-inset-bottom));
+    margin: 0;
+    border: 0;
+    border-radius: 0;
+  }
+  .guide-heading {
+    gap: 12px;
   }
   .guide-heading h2 {
-    font-size: 22px;
-    letter-spacing: 4px;
+    font-size: 27px;
+    letter-spacing: 2px;
   }
   .guide-heading .guide-eyebrow {
-    font-size: 7.5px;
-    letter-spacing: 1.5px;
+    font-size: 7px;
+    letter-spacing: 1.4px;
   }
   .guide-close {
     font-size: 11px;
-    padding: 8px 12px;
+    padding: 8px 0 8px 8px;
   }
   .guide-close kbd {
     display: none;
   }
+  .guide-close::after {
+    margin-left: 10px;
+  }
   .guide-filters {
-    padding: 12px 0 11px;
-    margin-bottom: 12px;
-    gap: 6px;
+    padding-top: 9px;
+    margin-bottom: 15px;
+    gap: 23px;
   }
   .guide-filters button {
-    font-size: 10.5px;
-    padding: 7px 12px;
+    min-height: 44px;
+    padding: 12px 0 10px;
+    font-size: 11px;
   }
   .guide-content {
-    grid-template-columns: minmax(0, 1fr);
-    gap: 12px;
+    display: block;
     overflow: auto;
+    scrollbar-width: thin;
+    scrollbar-color: #7893864d transparent;
   }
   .guide-sidebar {
-    border-right: 0;
-    padding-right: 0;
     display: block;
+    border: 0;
+    padding: 0 0 15px;
   }
   .guide-sidebar label {
     display: none;
   }
   .guide-sidebar input {
-    margin-bottom: 9px;
-    font-size: 12px;
-    padding-top: 9px;
-    padding-bottom: 9px;
+    min-height: 42px;
+    margin-bottom: 12px;
   }
   .guide-list {
     display: flex;
-    gap: 7px;
-    max-height: 84px;
+    gap: 8px;
+    max-height: 68px;
     overflow-x: auto;
     overflow-y: hidden;
-    padding-bottom: 4px;
+    padding: 0 0 4px;
   }
   .guide-entry {
-    min-width: 142px;
-    margin: 0;
-    padding: 8px 9px;
-    gap: 8px;
-    border-color: rgba(171, 202, 210, 0.12);
-    background: rgba(14, 34, 44, 0.4);
+    width: 150px;
+    min-width: 150px;
+    min-height: 59px;
+    padding: 9px 10px;
+    border: 1px solid #607f6224;
   }
   .guide-entry em {
     display: none;
   }
-  .guide-entry b {
-    font-size: 12px;
-  }
   .guide-entry small {
-    font-size: 8.5px;
+    font-size: 8px;
   }
   .guide-detail {
     overflow: visible;
   }
   .guide-preview {
-    height: 210px;
-    border-radius: 12px;
+    height: 250px;
+    min-height: 0;
   }
-  .guide-reward-display {
-    padding: 12px;
-    gap: 10px;
+  .guide-specimen-tag {
+    top: 14px;
+    left: 14px;
+    font-size: 7px;
   }
-  .guide-reward-display .guide-eyebrow {
-    font-size: 8px;
-    letter-spacing: 1px;
-  }
-  .guide-reward-orb {
-    width: 76px;
-    height: 76px;
-  }
-  .guide-reward-orb span {
-    font-size: 42px;
-  }
-  .guide-reward-effect {
-    font-size: 12px;
-    letter-spacing: 0.5px;
+  .guide-preview::after {
+    left: 14px;
+    bottom: 14px;
+    font-size: 7px;
   }
   .guide-info {
-    padding-top: 16px;
+    padding: 22px 3px 14px;
   }
   .guide-name-row h3 {
-    font-size: 22px;
+    font-size: 30px;
   }
   .guide-facts {
-    gap: 34px;
-    padding: 11px 14px;
-    width: 100%;
-  }
-  .guide-facts b {
-    font-size: 14px;
+    margin-bottom: 21px;
   }
   .guide-info p {
     font-size: 12px;
   }
   .guide-footer {
-    margin-top: 10px;
+    margin-top: 12px;
+    padding-top: 11px;
     font-size: 8px;
   }
   .guide-footer span {
     display: none;
   }
+  .guide-reward-display {
+    gap: 12px;
+  }
+  .guide-reward-orb {
+    width: 90px;
+    height: 90px;
+    margin: 4px 0;
+  }
+  .guide-reward-orb span {
+    font-size: 50px;
+  }
+  .guide-reward-effect {
+    font-size: 13px;
+  }
 }
-
-.guide-sidebar,
-.guide-detail,
-.guide-preview {
-  min-width: 0;
+@media (max-width: 360px) {
+  .ocean-guide {
+    padding-left: 15px;
+    padding-right: 15px;
+  }
+  .guide-preview {
+    height: 215px;
+  }
+  .guide-heading h2 {
+    font-size: 24px;
+  }
+  .guide-name-row h3 {
+    font-size: 27px;
+  }
+}
+@media (max-height: 500px) and (min-width: 651px) {
+  .ocean-guide {
+    width: calc(100vw - 24px);
+    height: calc(100dvh - 20px);
+    padding: 13px 18px 10px;
+  }
+  .guide-heading h2 {
+    margin: 3px 0 0;
+    font-size: 22px;
+  }
+  .guide-filters {
+    padding-top: 3px;
+    margin-bottom: 12px;
+    gap: 23px;
+  }
+  .guide-filters button {
+    min-height: 40px;
+    padding: 9px 0;
+  }
+  .guide-content {
+    grid-template-columns: 175px minmax(0, 1fr);
+    gap: 18px;
+  }
+  .guide-preview {
+    height: 240px;
+  }
+  .guide-footer {
+    padding-top: 9px;
+    margin-top: 9px;
+    font-size: 8px;
+  }
 }

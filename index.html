@@ -25,11 +25,19 @@
     <div id="lure-flash" aria-hidden="true"></div>
     <header>
       <a class="wordmark" href="./" aria-label="深渊猎游首页"
-        ><span class="brand-icon">⋀</span
+        ><span class="brand-icon" aria-hidden="true"
+          ><svg viewBox="0 0 32 32" fill="none">
+            <path
+              d="M3 22c8-1 13-9 16-18 1 9 4 14 10 18M3 26c5 0 6-3 10-3s6 3 10 3 5-1 6-2"
+              stroke="currentColor"
+              stroke-width="1.4"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            /></svg></span
         ><span class="brand-name">ABYSSAL <small>深渊猎游</small></span></a
       >
       <div class="header-tools">
-        <span class="edition">EXPEDITIONS / 05.1</span
+        <span class="edition">EXPEDITIONS / 06</span
         ><button id="quality" title="切换画质">画质 · 高</button
         ><button id="sound" aria-label="切换声音">声音 · 开</button
         ><button id="pause" hidden>暂停</button>
@@ -37,14 +45,16 @@
     </header>
     <main id="menu" class="screen">
       <div class="menu-copy">
-        <div class="eyebrow"><span></span> AN OCEAN SURVIVAL EXPERIENCE</div>
-        <h1>向深处。<br /><em>向食物链顶端。</em></h1>
-        <p class="intro">阳光照不到的地方，<br />有些东西，正在等待你长大。</p>
+        <div class="eyebrow"><span></span> A JOURNEY INTO THE BLUE</div>
+        <h1>生于海洋。<br /><em>长成传说。</em></h1>
+        <p class="intro">
+          穿过阳光与鱼群，潜向未知。<br />从六米的生命，长成深渊的主宰。
+        </p>
         <div id="expedition-setup"></div>
         <div class="menu-actions">
-          <button id="start" class="primary">潜入海洋 <span>↗</span></button>
+          <button id="start" class="primary">开启远征 <span>→</span></button>
           <button id="open-guide" class="guide-open">
-            海洋图鉴 <small>猎物 · 猎手 · 领主</small>
+            海洋图鉴 <small>探索生物与它们的世界</small>
           </button>
         </div>
         <div class="menu-stats">
@@ -73,7 +83,7 @@
       </aside>
       <footer class="menu-footer">
         <span>耳机体验更佳 · 推荐电脑全屏游玩</span
-        ><span>万象海洋 / v0.5.1</span>
+        ><span>海洋远征 / v0.6.0</span>
       </footer>
     </main>
     <section id="hud" hidden aria-label="生存状态">

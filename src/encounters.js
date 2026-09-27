@@ -10,6 +10,7 @@ import {
 } from "./boss_rules.js";
 import { takeDamage } from "./simulation.js";
 import { makeLabel } from "./rewards.js";
+import { createFluidTexture } from "./effect_textures.js";
 
 /**
  * 检查嘴部小球是否触及领主实际网格或已进入闭合躯干；触腕间空隙不计接触。
@@ -138,38 +139,59 @@ const COLORS = {
  * 技能视觉层：只读状态机相位，不改判定、数值与计时。
  ********************************************/
 
-function makeDotTexture() {
-  const canvas = document.createElement("canvas");
-  canvas.width = canvas.height = 64;
-  const context = canvas.getContext("2d");
-  const gradient = context.createRadialGradient(32, 32, 1, 32, 32, 31);
-  gradient.addColorStop(0, "rgba(255,255,255,0.9)");
-  gradient.addColorStop(0.4, "rgba(255,255,255,0.4)");
-  gradient.addColorStop(1, "rgba(255,255,255,0)");
-  context.fillStyle = gradient;
-  context.fillRect(0, 0, 64, 64);
-  return new THREE.CanvasTexture(canvas);
+/** 从现有水沫噪声提取旋流细丝，只创建一次并在所有漩涡薄层间复用。 */
+function makeSwirlTexture() {
+  const texture = createFluidTexture("foam");
+  const { data, width, height } = texture.image;
+  for (let y = 0; y < height; y += 1)
+    for (let x = 0; x < width; x += 1) {
+      const dx = ((x + 0.5) / width) * 2 - 1;
+      const dy = ((y + 0.5) / height) * 2 - 1;
+      const radius = Math.hypot(dx, dy);
+      const angle = Math.atan2(dy, dx);
+      const filament = (0.5 + 0.5 * Math.cos(angle * 4 + radius * 22)) ** 3;
+      const core = THREE.MathUtils.smoothstep(radius, 0.02, 0.2);
+      const alpha = (y * width + x) * 4 + 3;
+      data[alpha] = Math.round(data[alpha] * (0.13 + filament * 0.87) * core);
+    }
+  texture.needsUpdate = true;
+  return texture;
 }
 
-function makeVeilTexture() {
-  const canvas = document.createElement("canvas");
-  canvas.width = 128;
-  canvas.height = 64;
-  const context = canvas.getContext("2d");
-  for (let i = 0; i < 30; i += 1) {
-    const x = Math.random() * 128,
-      width = 1.5 + Math.random() * 4;
-    const alpha = 0.08 + Math.random() * 0.26;
-    const gradient = context.createLinearGradient(x, 0, x, 64);
-    gradient.addColorStop(0, `rgba(255,255,255,${alpha})`);
-    gradient.addColorStop(0.65, `rgba(255,255,255,${alpha * 0.5})`);
-    gradient.addColorStop(1, "rgba(255,255,255,0)");
-    context.fillStyle = gradient;
-    context.fillRect(x - width / 2, 0, width, 64);
-  }
-  const texture = new THREE.CanvasTexture(canvas);
-  texture.wrapS = THREE.RepeatWrapping;
+/** 归一化边界的亮线位于半径1，外围渐隐不参与范围判定。 */
+function makeBoundaryTexture() {
+  const size = 128;
+  const data = new Uint8Array(size * size * 4);
+  for (let y = 0; y < size; y += 1)
+    for (let x = 0; x < size; x += 1) {
+      const dx = ((x + 0.5) / size) * 2 - 1;
+      const dy = ((y + 0.5) / size) * 2 - 1;
+      const radius = Math.hypot(dx, dy);
+      const edge =
+        Math.exp(-((radius - 1 / 1.03) ** 2) * 2600) *
+        (1 - THREE.MathUtils.smoothstep(radius, 0.98, 1));
+      const offset = (y * size + x) * 4;
+      data[offset] = data[offset + 1] = data[offset + 2] = 255;
+      data[offset + 3] = Math.round(edge * 255);
+    }
+  const texture = new THREE.DataTexture(data, size, size);
+  texture.minFilter = texture.magFilter = THREE.LinearFilter;
+  texture.needsUpdate = true;
   return texture;
+}
+
+/** 收尖的薄带代替方条，曲率和贴图只影响流线外观。 */
+function makeFlowGeometry() {
+  const geometry = new THREE.PlaneGeometry(1, 1, 12, 1);
+  const points = geometry.attributes.position;
+  for (let i = 0; i < points.count; i += 1) {
+    const x = points.getX(i);
+    const envelope = Math.sin((x + 0.5) * Math.PI);
+    points.setY(i, points.getY(i) * envelope * 0.27 + envelope * 0.09);
+    points.setZ(i, Math.sin((x + 0.5) * Math.PI * 2) * 0.025);
+  }
+  geometry.computeVertexNormals();
+  return geometry;
 }
 
 function makeRuneTexture() {
@@ -248,18 +270,19 @@ function createAbilityFx(scene, ability, color, textures) {
     fx.rings = [];
     for (let i = 0; i < 3; i += 1) {
       const mesh = new THREE.Mesh(
-        new THREE.TorusGeometry(1, 0.05, 6, 64),
-        additive({ opacity: 0.3 }),
+        new THREE.CircleGeometry(1, 64),
+        additive({ map: textures.swirl, opacity: 0.3 }),
       );
-      mesh.rotation.x = Math.PI / 2 + (i - 1) * 0.34;
+      mesh.rotation.x = -Math.PI / 2 + (i - 1) * 0.14;
       group.add(mesh);
       fx.rings.push(mesh);
     }
     fx.funnel = new THREE.Mesh(
-      new THREE.CylinderGeometry(0.55, 1, 1, 20, 1, true),
-      additive({ map: textures.veil, opacity: 0.16 }),
+      new THREE.CircleGeometry(1, 64),
+      additive({ map: textures.swirl, opacity: 0.16 }),
     );
-    fx.funnel.position.y = 0;
+    fx.funnel.rotation.x = -Math.PI / 2;
+    fx.funnel.position.y = -3;
     group.add(fx.funnel);
     fx.debris = [];
     for (let i = 0; i < 16; i += 1) {
@@ -281,11 +304,23 @@ function createAbilityFx(scene, ability, color, textures) {
     fx.disc.rotation.x = -Math.PI / 2;
     group.add(fx.disc);
     fx.shell = new THREE.Mesh(
-      new THREE.TorusGeometry(1, 0.11, 8, 72),
-      additive({ opacity: 0 }),
+      new THREE.CircleGeometry(1.03, 72),
+      additive({ map: textures.boundary, opacity: 0 }),
     );
     fx.shell.rotation.x = Math.PI / 2;
     group.add(fx.shell);
+    fx.echoes = [];
+    // 两道尾纹跟随主波前，始终落在原伤害带内部，避免虚构第二轮攻击。
+    for (let i = 0; i < 2; i += 1) {
+      const echo = new THREE.Mesh(
+        fx.shell.geometry,
+        additive({ map: textures.boundary, opacity: 0 }),
+      );
+      echo.rotation.x = -Math.PI / 2;
+      echo.position.y = (i === 0 ? 1 : -1) * 1.4;
+      group.add(echo);
+      fx.echoes.push(echo);
+    }
     fx.sparks = [];
     for (let i = 0; i < 10; i += 1) {
       const sprite = fxSprite(textures.dot, color, 0.55);
@@ -305,17 +340,18 @@ function createAbilityFx(scene, ability, color, textures) {
     }
   } else if (ability === "charge") {
     fx.streaks = [];
+    const flowGeometry = makeFlowGeometry();
     for (let i = 0; i < 12; i += 1) {
       const mesh = new THREE.Mesh(
-        new THREE.BoxGeometry(1, 0.1, 0.1),
-        additive({ opacity: 0 }),
+        flowGeometry,
+        additive({ map: textures.foam, opacity: 0 }),
       );
       group.add(mesh);
       fx.streaks.push(mesh);
     }
     fx.lockMark = new THREE.Mesh(
-      new THREE.TorusGeometry(1, 0.08, 6, 40),
-      additive({ opacity: 0 }),
+      new THREE.CircleGeometry(1.03, 48),
+      additive({ map: textures.boundary, opacity: 0 }),
     );
     fx.lockMark.rotation.x = Math.PI / 2;
     group.add(fx.lockMark);
@@ -354,19 +390,15 @@ function updateAbilityFx(fx, entry, dt, time, windup, attack, ringSize) {
       const ring = fx.rings[i];
       const radius = ringSize * (0.42 + i * 0.26);
       ring.scale.setScalar(radius);
-      ring.rotation.z = fx.spin * (i % 2 ? -1.2 : 1) + i * 2.1;
-      ring.position.y = (i - 1) * state.species.length * 0.09;
+      ring.rotation.z = fx.spin * (i % 2 ? -0.72 : 1) + i * 2.1;
+      ring.position.y = (i - 1) * state.species.length * 0.06;
       ring.material.opacity = attack
-        ? 0.5
-        : 0.16 + 0.14 * Math.sin(time * 9 + i * 2);
+        ? 0.52 + 0.12 * Math.sin(time * 2.4 + i)
+        : 0.16 + phaseT * 0.19;
     }
-    fx.funnel.scale.set(
-      ringSize * 0.5,
-      state.species.length * 0.8,
-      ringSize * 0.5,
-    );
-    fx.funnel.rotation.y = -fx.spin * 1.6;
-    fx.funnel.material.opacity = attack ? 0.22 : 0.08;
+    fx.funnel.scale.setScalar(ringSize * 0.62);
+    fx.funnel.rotation.z = -fx.spin * 1.35;
+    fx.funnel.material.opacity = attack ? 0.31 : 0.1;
     for (const sprite of fx.debris) {
       const d = sprite.userData;
       d.angle += dt * d.speed * (attack ? 2.2 : 0.9);
@@ -387,11 +419,18 @@ function updateAbilityFx(fx, entry, dt, time, windup, attack, ringSize) {
       state.species.abilityRadius * (0.35 + gather * 0.65),
     );
     fx.disc.material.opacity = windup
-      ? 0.14 + 0.18 * phaseT + 0.08 * Math.sin(time * 7)
-      : Math.max(0, 0.3 * (1 - phaseT));
+      ? 0.09 + 0.13 * phaseT + 0.03 * Math.sin(time * 4)
+      : Math.max(0, 0.22 * (1 - phaseT));
     fx.disc.rotation.z = time * 0.22;
     fx.shell.scale.setScalar(ringSize);
-    fx.shell.material.opacity = attack ? Math.max(0, 0.75 * (1 - phaseT)) : 0;
+    fx.shell.material.opacity = attack ? Math.max(0, 0.7 * (1 - phaseT)) : 0;
+    for (let i = 0; i < fx.echoes.length; i += 1) {
+      const echo = fx.echoes[i];
+      echo.scale.setScalar(Math.max(0.01, ringSize - (i + 1) * 2.4));
+      echo.material.opacity = attack
+        ? Math.max(0, (0.29 - i * 0.08) * (1 - phaseT))
+        : 0;
+    }
     for (const sprite of fx.sparks) {
       const d = sprite.userData;
       const orbit = windup
@@ -440,7 +479,7 @@ function updateAbilityFx(fx, entry, dt, time, windup, attack, ringSize) {
           .addScaledVector(side, Math.sin(i * 2.7) * 3.2)
           .add(new THREE.Vector3(0, Math.cos(i * 1.9) * 2.4, 0));
         mesh.quaternion.setFromUnitVectors(new THREE.Vector3(1, 0, 0), forward);
-        mesh.scale.set(3.4 + flow * 4.5, 1, 1);
+        mesh.scale.set(4 + flow * 7, 1 + phaseT * 0.5, 1);
         mesh.material.opacity = 0.1 + flow * 0.3 * (0.4 + phaseT * 0.6);
       }
       fx.lockMark.position.copy(target);
@@ -470,9 +509,24 @@ function updateAbilityFx(fx, entry, dt, time, windup, attack, ringSize) {
         puff.age += dt;
         const t = puff.age / puff.life;
         puff.sprite.visible = t < 1;
-        puff.sprite.scale.setScalar(4 + t * 9);
-        puff.sprite.material.opacity = 0.55 * (1 - t);
+        puff.sprite.scale.set(4 + t * 9, 2.2 + t * 5, 1);
+        puff.sprite.material.opacity = 0.35 * (1 - t);
       }
+    }
+  }
+}
+
+/** 重开时复用已有装饰池，清掉上一次冲锋留下的可见状态与发射余量。 */
+function resetAbilityFx(fx) {
+  fx.group.visible = false;
+  fx.spin = 0;
+  if (fx.trail) {
+    fx.trailCursor = 0;
+    fx.trailEmit = 0;
+    for (const puff of fx.trail) {
+      puff.sprite.visible = false;
+      puff.sprite.material.opacity = 0;
+      puff.age = puff.life = 0;
     }
   }
 }
@@ -485,12 +539,15 @@ export function createEncounters(
   const bosses = [],
     projectiles = [];
   let active = null;
+  let disposed = false;
   const previousPlayerPosition = new THREE.Vector3();
   const playerVelocity = new THREE.Vector3();
   let hasPlayerPosition = false;
   const fxTextures = {
-    dot: makeDotTexture(),
-    veil: makeVeilTexture(),
+    dot: createFluidTexture("mist"),
+    foam: createFluidTexture("foam"),
+    swirl: makeSwirlTexture(),
+    boundary: makeBoundaryTexture(),
     rune: makeRuneTexture(),
   };
   const ballGeo = new THREE.SphereGeometry(1, 10, 8),
@@ -507,9 +564,12 @@ export function createEncounters(
     );
     scene.add(mesh);
     const ring = new THREE.Mesh(
-      new THREE.TorusGeometry(1, 0.018, 6, 72),
+      new THREE.CircleGeometry(1.03, 72),
       new THREE.MeshBasicMaterial({
         color: COLORS[species.ability],
+        map: fxTextures.boundary,
+        side: THREE.DoubleSide,
+        blending: THREE.AdditiveBlending,
         transparent: true,
         opacity: 0.45,
         depthWrite: false,
@@ -592,6 +652,7 @@ export function createEncounters(
     entry.label.scale.set(30, 7.5, 1);
   }
   function reset(allowedKinds) {
+    if (disposed) return;
     for (const p of projectiles) removeProjectile(p);
     projectiles.length = 0;
     active = null;
@@ -609,9 +670,7 @@ export function createEncounters(
       entry.mesh.visible = false;
       entry.label.visible = false;
       entry.ring.visible = false;
-      entry.fx.group.visible = false;
-      if (entry.fx.ability === "charge")
-        for (const puff of entry.fx.trail) puff.sprite.visible = false;
+      resetAbilityFx(entry.fx);
     });
     shuffled.slice(0, 2).forEach((entry, index) => place(entry, index));
   }
@@ -758,6 +817,7 @@ export function createEncounters(
     return affected;
   }
   function update(dt, time, player, position, forward, { blockedBetween }) {
+    if (disposed) return null;
     active = null;
     if (player.dead || player.won || player.timedOut) return active;
     if (hasPlayerPosition && dt > 0) {
@@ -1081,11 +1141,38 @@ export function createEncounters(
     }
     return active;
   }
+  function dispose() {
+    if (disposed) return;
+    disposed = true;
+    for (const projectile of projectiles) removeProjectile(projectile);
+    projectiles.length = 0;
+    const geometries = new Set([ballGeo]);
+    const materials = new Set([fxMat]);
+    const textures = new Set(Object.values(fxTextures));
+    for (const entry of bosses) {
+      resetAbilityFx(entry.fx);
+      // 生物模型材质和几何由模型缓存共享；这里只释放本模块自己的表现资源。
+      scene.remove(entry.mesh, entry.ring, entry.label, entry.fx.group);
+      geometries.add(entry.ring.geometry);
+      materials.add(entry.ring.material);
+      materials.add(entry.label.material);
+      if (entry.label.material.map) textures.add(entry.label.material.map);
+      entry.fx.group.traverse((object) => {
+        if (object.isMesh) geometries.add(object.geometry);
+        if (object.material) materials.add(object.material);
+      });
+    }
+    for (const geometry of geometries) geometry.dispose();
+    for (const material of materials) material.dispose();
+    for (const texture of textures) texture.dispose();
+    active = null;
+  }
   reset();
   return {
     bosses,
     update,
     reset,
+    dispose,
     disorient,
     get active() {
       return active;

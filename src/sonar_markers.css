@@ -71,3 +71,27 @@
     padding: 3px 5px;
   }
 }
+
+/* 标签尺寸不变，保持投影模块的测量与局部避让契约。 */
+.sonar-world-label {
+  border-color: currentColor;
+  border-radius: 2px;
+  background: #06232bd1;
+  font-weight: 400;
+  text-shadow: 0 1px 3px #00191f;
+}
+.sonar-world-anchor {
+  box-shadow: 0 0 3px currentColor;
+}
+.sonar-world-markers .echo-prey {
+  color: #c1dfc3;
+}
+.sonar-world-markers .echo-danger {
+  color: #e6af93;
+}
+.sonar-world-markers .echo-boss {
+  color: #cabcdf;
+}
+.sonar-world-markers .echo-neutral {
+  color: #c1d2d0;
+}

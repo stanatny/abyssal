@@ -1,4 +1,10 @@
 import * as THREE from "three";
+import {
+  addSurfaceDetail,
+  ribbonGeometry,
+  clusterInstances,
+  addLeafDetail,
+} from "./ocean_visuals.js";
 import { mergeGeometries } from "three/addons/utils/BufferGeometryUtils.js";
 
 // 地标需要留出观看与穿行空间，随机岩石和热泉不得占据其主体。
@@ -37,7 +43,7 @@ export function createOceanExtra(
   const box = track(new THREE.BoxGeometry(1, 1, 1));
   const sphere = track(new THREE.IcosahedronGeometry(1, 1));
   const cylinder = track(new THREE.CylinderGeometry(1, 1, 1, 7));
-  const wood = material("#2b3833", { roughness: 0.92 });
+  const wood = material("#4f5142", { roughness: 0.92 });
   const iron = material("#46555c", { metalness: 0.3, roughness: 0.6 });
   const sail = material("#63796c", { side: THREE.DoubleSide, roughness: 0.95 });
   const bone = material("#c2cbb6", {
@@ -46,7 +52,7 @@ export function createOceanExtra(
     emissiveIntensity: 0.5,
   });
   const dark = material("#0c2027");
-  const stone = material("#2a4b54", { flatShading: true, roughness: 0.9 });
+  const stone = material("#65766e", { flatShading: true, roughness: 0.9 });
   const jade = material("#4a8172", {
     roughness: 0.68,
     emissive: "#16332b",
@@ -57,7 +63,13 @@ export function createOceanExtra(
     emissiveIntensity: 2.1,
     roughness: 0.45,
   });
-  const basalt = material("#152328", { roughness: 1, flatShading: true });
+  const basalt = material("#38474a", { roughness: 1, flatShading: true });
+
+  addSurfaceDetail(wood, "wood", 0.8);
+  addSurfaceDetail(stone, "stone", 0.75);
+  addSurfaceDetail(jade, "stone", 0.8);
+  addSurfaceDetail(basalt, "stone", 1.7);
+  addSurfaceDetail(bone, "stone", 2.1);
 
   const add = (group, geometry, mat, position, scale, rotation) => {
     track(geometry);
@@ -140,11 +152,12 @@ export function createOceanExtra(
   // 海带由实例化的弯曲叶片组成，与浅海低矮海草形成不同的植被层次。
   const kelpMaterial = material("#356858", { side: THREE.DoubleSide });
   applyOrganicSway(kelpMaterial, worldUniforms, 0.1);
+  addLeafDetail(kelpMaterial);
   const kelpStemGeometry = track(
     new THREE.CylinderGeometry(0.07, 0.11, 1, 5, 5),
   );
   kelpStemGeometry.translate(0, 0.5, 0);
-  const kelpLeafGeometry = track(leafGeometry());
+  const kelpLeafGeometry = track(ribbonGeometry());
   const kelpStemCount = 210;
   const kelpStems = new THREE.InstancedMesh(
     kelpStemGeometry,
@@ -190,7 +203,7 @@ export function createOceanExtra(
       kelpLeaves.setColorAt(index * 7 + leaf, color);
     }
   }
-  root.add(kelpStems, kelpLeaves);
+  root.add(clusterInstances(kelpStems), clusterInstances(kelpLeaves));
 
   // 水母统一实例化，钟形伞体和垂落触丝分别渲染，时间变化留在 GPU。
   const jellyMaterial = material("#a6dbe5", {
@@ -601,6 +614,9 @@ export function createOceanExtra(
     },
     dispose() {
       parent.remove(root);
+      root.traverse((node) => {
+        if (node.isInstancedMesh) node.dispose();
+      });
       for (const resource of resources) resource.dispose();
     },
   };
@@ -619,35 +635,6 @@ function tubeGeometry(points, radius, segments = 18, sides = 5) {
     points.map((p) => new THREE.Vector3(...p)),
   );
   return new THREE.TubeGeometry(curve, segments, radius, sides, false);
-}
-
-function leafGeometry() {
-  const positions = [],
-    indices = [];
-  for (let row = 0; row <= 8; row++) {
-    const p = row / 8;
-    const width = Math.sin(p * Math.PI) * (0.47 + Math.sin(p * 18) * 0.07);
-    positions.push(
-      -width,
-      p,
-      Math.sin(p * 3.8) * 0.3,
-      width,
-      p,
-      Math.sin(p * 3.8) * 0.3,
-    );
-    if (row < 8) {
-      const a = row * 2;
-      indices.push(a, a + 1, a + 2, a + 1, a + 3, a + 2);
-    }
-  }
-  const geometry = new THREE.BufferGeometry();
-  geometry.setAttribute(
-    "position",
-    new THREE.Float32BufferAttribute(positions, 3),
-  );
-  geometry.setIndex(indices);
-  geometry.computeVertexNormals();
-  return geometry;
 }
 
 function ragGeometry() {

@@ -1,4 +1,5 @@
 import * as THREE from "three";
+import { skinMaterial } from "./creature_surface.js";
 
 /**
  * 构建巨型章鱼模型：圆润外套膜、八条卷曲腕足，头部朝向 -Z。
@@ -13,10 +14,11 @@ export function buildOctopus(body, motions) {
   mantle.scale.set(0.19, 0.2, 0.245);
   body.add(mantle);
   blob(body, RUST, [0, -0.004, -0.071], [0.147, 0.105, 0.134]);
+  body.add(new THREE.Mesh(webGeometry(), RUST));
 
   for (const side of [-1, 1]) {
     // 眼睛位于头部两侧；章鱼的横向瞳孔与乌贼的巨大圆眼区别明显。
-    blob(body, RUST, [side * 0.123, 0.039, -0.1], [0.045, 0.047, 0.051]);
+    blob(body, RUST, [side * 0.123, 0.039, -0.1], [0.045, 0.028, 0.051]);
     blob(body, AMBER, [side * 0.156, 0.043, -0.117], [0.012, 0.026, 0.032]);
     blob(body, PUPIL, [side * 0.165, 0.043, -0.12], [0.006, 0.008, 0.026]);
     blob(body, CREAM, [side * 0.168, 0.053, -0.133], [0.003, 0.004, 0.006]);
@@ -65,22 +67,28 @@ export function buildOctopus(body, motions) {
 }
 
 const GEOMETRIES = new Map();
-const SPHERE = new THREE.SphereGeometry(1, 16, 12);
+const SPHERE = new THREE.SphereGeometry(1, 20, 14);
 const SUCKER = new THREE.TorusGeometry(0.73, 0.27, 5, 10);
 SUCKER.rotateX(Math.PI / 2);
-const SKIN = new THREE.MeshStandardMaterial({
+const SKIN = skinMaterial({
   vertexColors: true,
-  roughness: 0.64,
+  roughness: 0.46,
   metalness: 0.01,
 });
-const RUST = material("#bd553a"),
+const RUST = material("#a8583e"),
   DARK_RUST = material("#823e31"),
   CREAM = material("#edbe99"),
   AMBER = material("#d09b49"),
   PUPIL = material("#111418", 0.28);
 
 function material(color, roughness = 0.58) {
-  return new THREE.MeshStandardMaterial({ color, roughness, metalness: 0.01 });
+  return skinMaterial({
+    color,
+    roughness,
+    metalness: 0.01,
+    side: THREE.DoubleSide,
+    pattern: 0.12,
+  });
 }
 
 function blob(parent, mat, position, scale) {
@@ -93,12 +101,12 @@ function blob(parent, mat, position, scale) {
 
 function mantleGeometry() {
   if (GEOMETRIES.has("mantle")) return GEOMETRIES.get("mantle");
-  const geometry = new THREE.SphereGeometry(1, 24, 18);
+  const geometry = new THREE.SphereGeometry(1, 32, 24);
   const positions = geometry.getAttribute("position");
   const colors = [];
-  const rust = new THREE.Color("#c5603e"),
-    dark = new THREE.Color("#803e30"),
-    pale = new THREE.Color("#dda17a"),
+  const rust = new THREE.Color("#a8583e"),
+    dark = new THREE.Color("#693929"),
+    pale = new THREE.Color("#c08a62"),
     shade = new THREE.Color();
   for (let i = 0; i < positions.count; i++) {
     const x = positions.getX(i),
@@ -108,7 +116,7 @@ function mantleGeometry() {
       Math.sin(x * 19 + Math.sin(z * 9)) *
       Math.sin(y * 17 - z * 7) *
       Math.sin(z * 21 + y * 5);
-    const bump = 1 + Math.max(0, mottling) * 0.047;
+    const bump = 1 + Math.max(0, mottling) * 0.028;
     positions.setXYZ(i, x * bump, y * bump, z * bump);
     shade
       .copy(rust)
@@ -135,7 +143,7 @@ function armCurve(index) {
       [x * 0.2 + curl * 0.027, y * 0.1 - 0.014, -0.39],
       [x * 0.18 + curl * 0.045, y * 0.082 + 0.035, -0.45],
       [x * 0.135 + curl * 0.042, y * 0.065 + 0.064, -0.414],
-      [x * 0.13 + curl * 0.017, y * 0.061 + 0.047, -0.377],
+      [x * 0.13 + curl * 0.017, y * 0.061 + 0.028, -0.377],
     ].map((point) => new THREE.Vector3(...point)),
   );
 }
@@ -147,8 +155,8 @@ function armRadius(progress) {
 function armGeometry(index, curve) {
   const key = `arm_${index}`;
   if (GEOMETRIES.has(key)) return GEOMETRIES.get(key);
-  const segments = 32,
-    sides = 8;
+  const segments = 56,
+    sides = 10;
   const geometry = new THREE.TubeGeometry(curve, segments, 1, sides, false);
   const positions = geometry.getAttribute("position");
   for (let ring = 0; ring <= segments; ring++) {
@@ -168,4 +176,34 @@ function armGeometry(index, curve) {
   geometry.computeVertexNormals();
   GEOMETRIES.set(key, geometry);
   return geometry;
+}
+
+// 腕间膜只连接腕根，前端形成八个柔软弧口，保持独立腕尖的动作空间。
+function webGeometry() {
+  if (GEOMETRIES.has("web")) return GEOMETRIES.get("web");
+  const positions = [],
+    indices = [];
+  for (let segment = 0; segment <= 64; segment++) {
+    const angle = (segment / 64) * Math.PI * 2 + Math.PI / 8;
+    const scallop = (1 + Math.cos((segment / 8) * Math.PI * 2)) * 0.5;
+    for (let ring = 0; ring <= 4; ring++) {
+      const t = ring / 4,
+        radius = 0.076 + t * 0.032;
+      positions.push(
+        Math.cos(angle) * radius,
+        Math.sin(angle) * radius * 0.61 - 0.015,
+        -0.13 - t * (0.065 + scallop * 0.025),
+      );
+      if (segment < 64 && ring < 4) {
+        const a = segment * 5 + ring;
+        indices.push(a, a + 5, a + 1, a + 1, a + 5, a + 6);
+      }
+    }
+  }
+  const g = new THREE.BufferGeometry();
+  g.setAttribute("position", new THREE.Float32BufferAttribute(positions, 3));
+  g.setIndex(indices);
+  g.computeVertexNormals();
+  GEOMETRIES.set("web", g);
+  return g;
 }

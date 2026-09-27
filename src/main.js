@@ -1,6 +1,7 @@
 import * as THREE from "three";
 import "./style.css";
 import { createCreature } from "./creatures.js";
+import { createVisualPipeline } from "./visual_pipeline.js";
 import { createOcean, seabedHeight } from "./ocean.js";
 import {
   createPlayer,
@@ -67,27 +68,58 @@ try {
 renderer.setPixelRatio(Math.min(devicePixelRatio, 1.5));
 renderer.setSize(innerWidth, innerHeight);
 renderer.toneMapping = THREE.ACESFilmicToneMapping;
-renderer.toneMappingExposure = 1.15;
+renderer.toneMappingExposure = 1.03;
+renderer.shadowMap.enabled = true;
+renderer.shadowMap.type = THREE.PCFSoftShadowMap;
 const scene = new THREE.Scene();
-scene.background = new THREE.Color("#147a8b");
-scene.fog = new THREE.FogExp2("#147a8b", 0.013);
+scene.background = new THREE.Color("#155568");
+scene.fog = new THREE.FogExp2("#155568", 0.009);
 const camera = new THREE.PerspectiveCamera(
   60,
   innerWidth / innerHeight,
   0.15,
   650,
 );
-const ambient = new THREE.HemisphereLight(0xb1ffff, 0x102b46, 2.3);
-const sun = new THREE.DirectionalLight(0xc5f9ff, 3.2);
+const ambient = new THREE.HemisphereLight(0xc5e5ef, 0x3d463e, 1.35);
+const sun = new THREE.DirectionalLight(0xfff2d6, 2.7);
 sun.position.set(-60, 100, 60);
-const rim = new THREE.DirectionalLight(0x36a8ca, 1.7);
+sun.castShadow = true;
+sun.shadow.mapSize.set(1024, 1024);
+Object.assign(sun.shadow.camera, {
+  left: -65,
+  right: 65,
+  top: 65,
+  bottom: -65,
+  near: 1,
+  far: 230,
+});
+sun.shadow.bias = -0.00015;
+sun.shadow.normalBias = 0.08;
+sun.shadow.camera.updateProjectionMatrix();
+scene.add(sun.target);
+const rim = new THREE.DirectionalLight(0x699da9, 0.85);
 rim.position.set(80, -20, -100);
 scene.add(ambient, sun, rim);
 const playerLight = new THREE.PointLight(0x94ebdf, 12, 45, 1.2);
 scene.add(playerLight);
+const visuals = createVisualPipeline(renderer, scene, camera);
 const ocean = createOcean(scene);
+scene.getObjectByName("ocean_environment")?.traverse((mesh) => {
+  if (!mesh.isMesh || !mesh.material?.isMeshStandardMaterial) return;
+  mesh.receiveShadow = true;
+  mesh.castShadow =
+    !mesh.isInstancedMesh &&
+    !mesh.material.transparent &&
+    mesh.geometry.attributes.position.count < 20000;
+});
 let avatar = createCreature("orca", 6);
 const avatarCache = new Map([["orca", avatar]]);
+avatar.traverse((mesh) => {
+  if (mesh.isMesh) {
+    mesh.castShadow = true;
+    mesh.receiveShadow = true;
+  }
+});
 scene.add(avatar);
 const audio = new OceanAudio();
 const effects = createCombatEffects(scene);
@@ -198,6 +230,12 @@ function selectAvatar(character) {
   avatar = avatarCache.get(character.kind);
   if (!avatar) {
     avatar = createCreature(character.kind, 6);
+    avatar.traverse((mesh) => {
+      if (mesh.isMesh) {
+        mesh.castShadow = true;
+        mesh.receiveShadow = true;
+      }
+    });
     avatarCache.set(character.kind, avatar);
   }
   scene.add(avatar);
@@ -1250,25 +1288,29 @@ function updateCamera(dt) {
 function atmosphere(dt) {
   const depth = -position.y,
     blend = Clamp((depth - 25) / 350, 0, 1);
-  const color = new THREE.Color("#1a8091").lerp(
-    new THREE.Color("#030d25"),
+  const color = new THREE.Color("#155568").lerp(
+    new THREE.Color("#030e1c"),
     blend,
   );
   const aboveWater = camera.position.y > WORLD.surfaceY;
-  if (aboveWater) color.set("#82bdcf");
+  if (aboveWater) color.set("#a0c7d1");
   document.body.classList.toggle("above-water", aboveWater);
   scene.background.lerp(color, Math.min(1, dt * (aboveWater ? 10 : 3)));
   scene.fog.color.copy(scene.background);
   scene.fog.density = aboveWater
     ? 0.0018
-    : 0.01 + blend * 0.003 + effects.ink * 0.115;
+    : 0.008 + blend * 0.003 + effects.ink * 0.115;
   if (!aboveWater && effects.ink > 0.01) {
     scene.fog.color.lerp(new THREE.Color("#111120"), effects.ink);
     scene.background.lerp(new THREE.Color("#111120"), effects.ink);
   }
-  ambient.intensity = aboveWater ? 2.5 : 2.2 - blend * 0.85;
-  sun.intensity = aboveWater ? 3.5 : 3.0 - blend * 2.5;
-  playerLight.intensity = 9 + blend * 19;
+  ambient.intensity = aboveWater ? 1.6 : 1.35 - blend * 0.78;
+  sun.intensity = aboveWater ? 3.0 : 2.7 - blend * 2.45;
+  rim.intensity = 0.85 - blend * 0.35;
+  sun.position.set(position.x - 50, position.y + 105, position.z + 50);
+  sun.target.position.copy(position);
+  sun.castShadow = highQuality && depth < 100;
+  playerLight.intensity = 7 + blend * 21;
 }
 function updateHud() {
   for (const key of ["health", "stamina", "hunger"]) {
@@ -1434,12 +1476,19 @@ function frame(now) {
   if (guide.isOpen) return;
   if (mode === "menu") {
     elapsed += dt;
-    avatar.position.set(6, -18, 66);
+    // 首页展示独立构图；开始游戏后按真实体长恢复缩放。
+    avatar.position.set(
+      innerWidth >= 900 ? 9 : 6,
+      innerWidth >= 900 ? -15.5 : -18,
+      68,
+    );
+    avatar.scale.setScalar(innerWidth >= 900 ? 10 : 6);
     avatar.rotation.set(0.05, -0.65 + Math.sin(elapsed * 0.13) * 0.12, -0.05);
     avatar.userData.animate?.(elapsed, 0.6);
     camera.position.set(18, -12, 85);
     camera.lookAt(-0.5, -17, 61);
     position.set(0, -18, 75);
+    atmosphere(dt);
     for (const e of entities) {
       e.mesh.visible = e.mesh.position.distanceTo(position) < 120;
       if (e.mesh.visible) e.mesh.userData.animate?.(elapsed + e.seed, 0.5);
@@ -1452,7 +1501,7 @@ function frame(now) {
     if (player.timedOut) {
       showOverlay("timeup");
       updateHud();
-      renderer.render(scene, camera);
+      visuals.render();
       return;
     }
     const beforeEntities = position.clone();
@@ -1524,7 +1573,14 @@ function frame(now) {
     hitFlash = Math.max(0, hitFlash - dt * 1.6);
     $("damage").style.opacity = hitFlash;
   }
-  renderer.render(scene, camera);
+  visuals.update({
+    time: elapsed,
+    depth: -position.y,
+    position,
+    aboveWater: camera.position.y > WORLD.surfaceY,
+    ink: effects.ink,
+  });
+  visuals.render();
 }
 
 $("start").addEventListener("click", startGame);
@@ -1537,6 +1593,8 @@ $("sound").addEventListener("click", () => {
 $("quality").addEventListener("click", () => {
   highQuality = !highQuality;
   renderer.setPixelRatio(highQuality ? Math.min(devicePixelRatio, 1.5) : 0.8);
+  renderer.shadowMap.enabled = highQuality;
+  visuals.setQuality(highQuality);
   $("quality").textContent = highQuality ? "画质 · 高" : "画质 · 流畅";
 });
 window.addEventListener("resize", () => {
@@ -1544,6 +1602,7 @@ window.addEventListener("resize", () => {
   camera.aspect = innerWidth / innerHeight;
   camera.updateProjectionMatrix();
   renderer.setSize(innerWidth, innerHeight);
+  visuals.resize();
 });
 window.addEventListener("keydown", (e) => {
   if (guide.isOpen) return;
@@ -1683,6 +1742,7 @@ if (import.meta.env.DEV)
     },
     position,
     renderer,
+    visuals,
     scene,
     startGame,
     toggleMarkers,

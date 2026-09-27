@@ -1,4 +1,10 @@
 import * as THREE from "three";
+import {
+  bindAxialMotion,
+  skinMaterial,
+  sampleSection,
+  sculptedFin,
+} from "./creature_surface.js";
 import { buildOctopus } from "./creature_octopus.js";
 
 /** 新生态模型拥有独立剪影；几何与材质按物种缓存，群游实例不重复创建资产。 */
@@ -102,7 +108,7 @@ const SMALL_FISH = {
 
 function buildSchoolFish(kind, body, motions, root) {
   const config = SMALL_FISH[kind];
-  add(
+  const torso = add(
     body,
     cached(`${kind}_body`, () =>
       loft(
@@ -116,11 +122,47 @@ function buildSchoolFish(kind, body, motions, root) {
         ],
         config.back,
         config.belly,
+        { school: true },
       ),
     ),
-    vertexMaterial(),
+    schoolMaterial(kind),
   );
-  eyes(body, 0.039, 0.018, -0.36, kind === "anchovy" ? 0.014 : 0.017);
+  bindAxialMotion(torso, motions, {
+    axis: "y",
+    frequency: 2.2,
+    amplitude: 0.065,
+  });
+  eyes(
+    body,
+    config.width * 0.78,
+    0.018,
+    -0.36,
+    kind === "anchovy" ? 0.011 : 0.014,
+  );
+  for (const side of [-1, 1]) {
+    tube(
+      body,
+      `${kind}_operculum_${side}`,
+      [
+        [side * config.width * 0.87, config.height * 0.42, -0.275],
+        [side * config.width * 0.985, 0, -0.252],
+        [side * config.width * 0.82, -config.height * 0.5, -0.269],
+      ],
+      0.0013,
+      EYE,
+    );
+    tube(
+      body,
+      `${kind}_lip_${side}`,
+      [
+        [0, -0.008, -0.49],
+        [side * config.width * 0.24, -0.016, -0.458],
+        [side * config.width * 0.42, -0.019, -0.424],
+      ],
+      0.0013,
+      EYE,
+    );
+  }
   const tail = pivot(body, [0, 0, 0.34]);
   fin(
     tail,
@@ -188,16 +230,6 @@ function buildSchoolFish(kind, body, motions, root) {
       );
     }
   }
-  if (kind === "sardine") {
-    for (const side of [-1, 1])
-      for (let i = 0; i < 6; i++)
-        ellipsoid(
-          body,
-          DARK,
-          [side * (0.074 - i * 0.004), 0.02, -0.17 + i * 0.065],
-          [0.003, 0.012, 0.012],
-        );
-  }
   if (kind === "anchovy") {
     for (const side of [-1, 1])
       tube(
@@ -228,20 +260,6 @@ function buildSchoolFish(kind, body, motions, root) {
       );
   }
   if (kind === "mackerel") {
-    for (let i = 0; i < 10; i++) {
-      const z = -0.2 + i * 0.044;
-      tube(
-        body,
-        `mackerel_stripe_${i}`,
-        [
-          [-0.076, 0.076, z],
-          [0, 0.13, z - 0.025],
-          [0.076, 0.076, z],
-        ],
-        0.0045,
-        DARK,
-      );
-    }
     for (let i = 0; i < 4; i++)
       fin(
         body,
@@ -257,34 +275,84 @@ function buildSchoolFish(kind, body, motions, root) {
 }
 
 function buildTurtle(body, motions) {
-  const shell = material("#607d48", 0.53),
-    skin = material("#92a56a", 0.62);
-  ellipsoid(body, shell, [0, 0.025, 0], [0.32, 0.16, 0.37]);
+  const shell = material("#505c37", 0.57),
+    skin = material("#7f8860", 0.6);
+  const carapace = add(
+    body,
+    cached("turtle_carapace", () => {
+      const g = new THREE.SphereGeometry(1, 40, 24),
+        p = g.attributes.position;
+      for (let i = 0; i < p.count; i++)
+        if (p.getY(i) < 0) p.setY(i, p.getY(i) * 0.25);
+      g.computeVertexNormals();
+      return g;
+    }),
+    shell,
+  );
+  carapace.position.set(0, 0.025, 0);
+  carapace.scale.set(0.32, 0.16, 0.37);
   ellipsoid(
     body,
     material("#c0b887", 0.65),
-    [0, -0.07, 0],
-    [0.29, 0.065, 0.34],
+    [0, -0.025, 0],
+    [0.29, 0.037, 0.34],
   );
-  // 隆起盾片单独成形，俯视时仍能看见龟甲的分区结构。
+  // 盾片边界沿同一连续背甲投影，避免把龟甲拼成一排悬浮椭球。
+  const seam = material("#3b4329", 0.62);
+  const shellY = (x, z) =>
+    0.026 +
+    0.162 * Math.sqrt(Math.max(0.02, 1 - (x / 0.32) ** 2 - (z / 0.37) ** 2));
   for (let i = 0; i < 5; i++) {
-    const z = -0.25 + i * 0.12;
-    ellipsoid(
+    const z = -0.255 + i * 0.126;
+    const width = 0.083 * Math.sqrt(Math.max(0.3, 1 - (z / 0.38) ** 2));
+    const shield = [
+      [0, z - 0.073],
+      [-width, z - 0.031],
+      [-width, z + 0.036],
+      [0, z + 0.071],
+      [width, z + 0.036],
+      [width, z - 0.031],
+      [0, z - 0.073],
+    ];
+    tube(
       body,
-      material(i % 2 ? "#708b50" : "#798955"),
-      [0, 0.165 - Math.abs(z) * 0.17, z],
-      [0.098, 0.018, 0.073],
+      `turtle_shield_${i}`,
+      shield.map(([x, pz]) => [x, shellY(x, pz), pz]),
+      0.0022,
+      seam,
     );
-    for (const side of [-1, 1])
-      ellipsoid(
+    for (const side of [-1, 1]) {
+      const x = side * width,
+        outerX = side * 0.27 * Math.sqrt(Math.max(0.1, 1 - (z / 0.37) ** 2));
+      tube(
         body,
-        shell,
-        [side * 0.145, 0.12 - Math.abs(z) * 0.13, z],
-        [0.091, 0.018, 0.071],
+        `turtle_lateral_${side}_${i}`,
+        [
+          [x, shellY(x, z), z],
+          [outerX * 0.85, shellY(outerX * 0.85, z + 0.025), z + 0.025],
+          [outerX, shellY(outerX, z + 0.06), z + 0.06],
+        ],
+        0.002,
+        seam,
       );
+    }
   }
   ellipsoid(body, skin, [0, 0, -0.395], [0.088, 0.075, 0.13]);
-  eyes(body, 0.069, 0.023, -0.44, 0.014);
+  eyes(body, 0.075, 0.023, -0.44, 0.011);
+  for (const side of [-1, 1]) {
+    tube(
+      body,
+      `turtle_beak_${side}`,
+      [
+        [0, -0.022, -0.519],
+        [side * 0.06, -0.028, -0.484],
+        [side * 0.078, -0.014, -0.43],
+      ],
+      0.0025,
+      DARK,
+    );
+    ellipsoid(body, DARK, [side * 0.026, 0.028, -0.503], [0.007, 0.005, 0.004]);
+  }
   for (const side of [-1, 1]) {
     const front = pivot(body, [side * 0.21, -0.02, -0.21]);
     fin(
@@ -394,7 +462,7 @@ function buildPredatoryShark(kind, body, motions) {
   const mega = kind === "megalodon",
     back = mega ? "#43596a" : "#497581",
     width = mega ? 0.16 : 0.09;
-  add(
+  const torso = add(
     body,
     cached(`${kind}_body`, () =>
       loft(
@@ -412,6 +480,11 @@ function buildPredatoryShark(kind, body, motions) {
     ),
     vertexMaterial(),
   );
+  bindAxialMotion(torso, motions, {
+    axis: "y",
+    frequency: 1.1,
+    amplitude: 0.045,
+  });
   if (!mega) {
     add(
       body,
@@ -487,39 +560,72 @@ function buildPredatoryShark(kind, body, motions) {
 }
 
 function buildSpermWhale(body, motions) {
-  add(
+  const torso = add(
     body,
     cached("sperm_whale_body", () =>
       loft(
         [
-          [-0.5, 0.055, 0.105],
-          [-0.47, 0.14, 0.16],
+          [-0.502, 0.075, 0.123, 0.016],
+          [-0.485, 0.131, 0.158, 0.014],
+          [-0.45, 0.145, 0.163, 0.012],
           [-0.27, 0.15, 0.17],
           [-0.1, 0.145, 0.15],
           [0.16, 0.1, 0.09],
           [0.36, 0.026, 0.028],
           [0.44, 0.012, 0.015],
         ],
-        "#465563",
-        "#8e999a",
+        "#424e54",
+        "#8c9290",
+        { squareFront: true },
       ),
     ),
     vertexMaterial(),
   );
+  bindAxialMotion(torso, motions, {
+    axis: "x",
+    frequency: 0.8,
+    amplitude: 0.045,
+  });
   ellipsoid(
     body,
     material("#7c888b"),
-    [0, -0.115, -0.3],
-    [0.045, 0.029, 0.195],
+    [0, -0.161, -0.3],
+    [0.045, 0.024, 0.195],
   );
-  eyes(body, 0.143, -0.015, -0.15, 0.012);
-  for (let i = 0; i < 5; i++)
-    ellipsoid(
+  for (const side of [-1, 1])
+    ellipsoid(body, EYE, [side * 0.135, -0.072, -0.15], [0.008, 0.007, 0.01]);
+  for (const side of [-1, 1])
+    tube(
       body,
-      material("#586673"),
-      [0, 0.08 - i * 0.011, 0.1 + i * 0.047],
-      [0.022, 0.039 - i * 0.004, 0.043],
+      `sperm_lip_${side}`,
+      [
+        [side * 0.047, -0.126, -0.49],
+        [side * 0.07, -0.138, -0.37],
+        [side * 0.114, -0.123, -0.22],
+        [side * 0.14, -0.092, -0.12],
+      ],
+      0.003,
+      DARK,
     );
+  // 左前侧单鼻孔是抹香鲸辨识点，不以发光点代替真实解剖。
+  ellipsoid(body, DARK, [-0.042, 0.172, -0.443], [0.016, 0.003, 0.025]);
+  fin(
+    body,
+    "sperm_dorsal_ridge",
+    [
+      [0, 0.096, 0.065],
+      [0, 0.13, 0.11],
+      [0, 0.106, 0.155],
+      [0, 0.083, 0.18],
+      [0, 0.086, 0.205],
+      [0, 0.065, 0.23],
+      [0, 0.065, 0.258],
+      [0, 0.042, 0.3],
+      [0, 0.032, 0.33],
+      [0, 0.024, 0.35],
+    ],
+    material("#424e54"),
+  );
   for (const side of [-1, 1]) {
     const flipper = pivot(body, [side * 0.125, -0.08, -0.08]);
     fin(
@@ -536,18 +642,6 @@ function buildSpermWhale(body, motions) {
     motions.push((t) => {
       flipper.rotation.z = side * Math.sin(t * 0.6) * 0.12;
     });
-    for (let i = 0; i < 6; i++)
-      tube(
-        body,
-        `sperm_fold_${side}_${i}`,
-        [
-          [side * (0.127 - i * 0.01), 0.035, 0.0 + i * 0.035],
-          [side * (0.14 - i * 0.011), -0.01, 0.01 + i * 0.035],
-          [side * (0.112 - i * 0.009), -0.058, 0.025 + i * 0.035],
-        ],
-        0.0025,
-        material("#374953"),
-      );
   }
   const tail = pivot(body, [0, 0, 0.35]);
   fin(
@@ -793,23 +887,62 @@ function material(color, roughness = 0.46) {
   if (!MATERIALS.has(key))
     MATERIALS.set(
       key,
-      new THREE.MeshStandardMaterial({
+      skinMaterial({
         color,
         roughness,
-        metalness: 0.08,
+        metalness: 0.015,
         side: THREE.DoubleSide,
       }),
     );
   return MATERIALS.get(key);
 }
+function schoolMaterial(kind) {
+  const key = `school_skin_${kind}`;
+  if (!MATERIALS.has(key)) {
+    const mat = skinMaterial({
+      vertexColors: true,
+      roughness: 0.31,
+      metalness: 0.1,
+      clearcoat: 0.25,
+      pattern: 0.005,
+    });
+    const compile = mat.onBeforeCompile;
+    mat.onBeforeCompile = (shader) => {
+      compile(shader);
+      const pattern =
+        kind === "mackerel"
+          ? `
+        float stripe = 1.0 - smoothstep(0.38,0.68,abs(sin(vSkinPosition.z*142.0+sin(vSkinPosition.x*72.0)*1.9)));
+        stripe *= smoothstep(0.025,0.078,vSkinPosition.y)*smoothstep(-0.3,-0.2,vSkinPosition.z)*(1.0-smoothstep(0.2,0.3,vSkinPosition.z));
+        diffuseColor.rgb *= 1.0 - stripe*0.56;
+      `
+          : kind === "sardine"
+            ? `
+        float spotZ=mod(vSkinPosition.z+0.17,0.065)-0.0325;
+        float spot=1.0-smoothstep(0.006,0.011,length(vec2(spotZ,vSkinPosition.y-0.026)));
+        spot*=smoothstep(-0.22,-0.16,vSkinPosition.z)*(1.0-smoothstep(0.17,0.22,vSkinPosition.z));
+        diffuseColor.rgb*=1.0-spot*0.65;
+      `
+            : "";
+      shader.fragmentShader = shader.fragmentShader.replace(
+        "#include <roughnessmap_fragment>",
+        pattern + "\n#include <roughnessmap_fragment>",
+      );
+    };
+    mat.customProgramCacheKey = () => key;
+    MATERIALS.set(key, mat);
+  }
+  return MATERIALS.get(key);
+}
+
 function vertexMaterial() {
   if (!MATERIALS.has("vertex"))
     MATERIALS.set(
       "vertex",
-      new THREE.MeshStandardMaterial({
+      skinMaterial({
         vertexColors: true,
         roughness: 0.43,
-        metalness: 0.09,
+        metalness: 0.015,
       }),
     );
   return MATERIALS.get("vertex");
@@ -853,16 +986,30 @@ function eyes(parent, x, y, z, radius) {
 }
 function fin(parent, key, points, mat) {
   const geometry = cached(key, () => {
-    const positions = [];
-    for (let i = 1; i < points.length - 1; i++)
-      positions.push(...points[0], ...points[i], ...points[i + 1]);
-    const g = new THREE.BufferGeometry();
-    g.setAttribute("position", new THREE.Float32BufferAttribute(positions, 3));
-    g.computeVertexNormals();
+    const horizontal = Math.max(...points.map((p) => Math.abs(p[0]))) > 0.001;
+    const outline = points.map((p) => [p[2], horizontal ? p[0] : p[1]]);
+    const g = sculptedFin(
+      outline,
+      0.009,
+      horizontal ? "horizontal" : "vertical",
+      {
+        camber: 0.006,
+        detail: /^(sardine|anchovy|herring|mackerel|flying_fish|fly_)/.test(key)
+          ? 1
+          : 2,
+      },
+    );
+    if (horizontal)
+      g.translate(
+        0,
+        points.reduce((sum, p) => sum + p[1], 0) / points.length,
+        0,
+      );
     return g;
   });
   return add(parent, geometry, mat);
 }
+
 function tube(parent, key, points, radius, mat) {
   return add(
     parent,
@@ -873,9 +1020,9 @@ function tube(parent, key, points, radius, mat) {
           new THREE.CatmullRomCurve3(
             points.map((p) => new THREE.Vector3(...p)),
           ),
-          Math.max(4, points.length * 3),
+          /operculum|_lip_/.test(key) ? 4 : Math.max(4, points.length * 3),
           radius,
-          4,
+          /operculum|_lip_/.test(key) ? 3 : 4,
           false,
         ),
     ),
@@ -900,28 +1047,36 @@ function jaw(parent, key, width, y, z, halfLength, teeth) {
       tooth.rotation.z = Math.PI;
     }
 }
-function loft(profile, upper, lower) {
+function loft(profile, upper, lower, options = {}) {
   const positions = [],
     colors = [],
     indices = [],
-    sides = 16,
-    rings = (profile.length - 1) * 4;
+    sides = options.school ? 18 : 24,
+    rings = (profile.length - 1) * (options.school ? 5 : 6);
   const top = new THREE.Color(upper),
     bottom = new THREE.Color(lower),
     color = new THREE.Color();
   for (let ring = 0; ring <= rings; ring++) {
-    const at = (ring / rings) * (profile.length - 1),
-      index = Math.min(profile.length - 2, Math.floor(at)),
-      t = at - index;
-    const a = profile[index],
-      b = profile[index + 1];
-    const z = THREE.MathUtils.lerp(a[0], b[0], t),
-      rx = THREE.MathUtils.lerp(a[1], b[1], t),
-      ry = THREE.MathUtils.lerp(a[2], b[2], t);
+    const z = THREE.MathUtils.lerp(
+      profile[0][0],
+      profile.at(-1)[0],
+      ring / rings,
+    );
+    const [rx, ry, offset] = sampleSection(profile, z);
     for (let side = 0; side <= sides; side++) {
       const angle = (side / sides) * Math.PI * 2,
         y = Math.sin(angle);
-      positions.push(Math.cos(angle) * rx, y * ry, z);
+      const exponent = options.squareFront
+        ? THREE.MathUtils.lerp(
+            0.66,
+            1,
+            THREE.MathUtils.smoothstep(z, -0.25, -0.08),
+          )
+        : 1;
+      const xSection =
+        Math.sign(Math.cos(angle)) * Math.abs(Math.cos(angle)) ** exponent;
+      const ySection = Math.sign(y) * Math.abs(y) ** exponent;
+      positions.push(xSection * rx, ySection * ry + offset, z);
       color
         .copy(top)
         .lerp(bottom, 1 - THREE.MathUtils.smoothstep(y, -0.48, 0.18));

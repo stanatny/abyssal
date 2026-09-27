@@ -8,6 +8,7 @@ import { WORLD } from "./world_config.js";
 import { CHARACTERS } from "./expedition_config.js";
 import { HUNTER_ABILITIES } from "./hunter_rules.js";
 import { REWARDS } from "./reward_config.js";
+import { createMarineEnvironment } from "./visual_pipeline.js";
 import "./ocean_guide.css";
 
 const DESCRIPTIONS = {
@@ -197,6 +198,7 @@ export function createOceanGuide(trigger) {
     selected = OCEAN_CATALOG[0],
     visible = OCEAN_CATALOG,
     renderer,
+    environment,
     scene,
     camera,
     model,
@@ -266,13 +268,16 @@ export function createOceanGuide(trigger) {
       renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
       renderer.setPixelRatio(Math.min(devicePixelRatio, 1.5));
       renderer.toneMapping = THREE.ACESFilmicToneMapping;
-      renderer.toneMappingExposure = 1.05;
+      renderer.toneMappingExposure = 1;
       scene = new THREE.Scene();
-      scene.add(new THREE.HemisphereLight(0xa7e6ff, 0x22354a, 2.5));
-      const light = new THREE.DirectionalLight(0xe1f3ff, 3.7);
+      environment = createMarineEnvironment(renderer);
+      scene.environment = environment.texture;
+      scene.environmentIntensity = 0.35;
+      scene.add(new THREE.HemisphereLight(0xc9e3e1, 0x677b71, 1.3));
+      const light = new THREE.DirectionalLight(0xfff3dc, 2.4);
       light.position.set(4, 6, -5);
       scene.add(light);
-      const rim = new THREE.DirectionalLight(0x67cabe, 3);
+      const rim = new THREE.DirectionalLight(0x87cbd0, 1.2);
       rim.position.set(-4, 2, 5);
       scene.add(rim);
       camera = new THREE.OrthographicCamera(-1, 1, 1, -1, 0.01, 100);
@@ -434,6 +439,10 @@ export function createOceanGuide(trigger) {
       dragging = false;
     });
   new ResizeObserver(resize).observe(preview);
+  window.addEventListener("pagehide", (event) => {
+    // 图鉴关闭保留模型和环境缓存；页面真正离开时释放独立的反射渲染目标。
+    if (!event.persisted) environment?.dispose();
+  });
   return {
     open,
     close,

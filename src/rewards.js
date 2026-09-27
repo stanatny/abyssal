@@ -7,10 +7,16 @@ export { REWARDS } from "./reward_config.js";
 export function createReward(kind) {
   const info = REWARDS[kind],
     group = new THREE.Group();
-  const material = new THREE.MeshBasicMaterial({ color: info.color });
+  const material = new THREE.MeshStandardMaterial({
+    color: info.color,
+    emissive: info.color,
+    emissiveIntensity: 0.55,
+    roughness: 0.25,
+    metalness: 0.18,
+  });
   const core = new THREE.Group();
   // 中心宝石锚定轮廓，旋转时各角度都有可读形体。
-  const gem = new THREE.Mesh(new THREE.IcosahedronGeometry(0.55, 0), material);
+  const gem = new THREE.Mesh(new THREE.IcosahedronGeometry(0.55, 1), material);
   core.add(gem);
   if (kind === "stamina") {
     core.add(new THREE.Mesh(new THREE.BoxGeometry(0.45, 2, 0.45), material));
@@ -27,7 +33,10 @@ export function createReward(kind) {
         new THREE.Mesh(
           new THREE.ExtrudeGeometry(shape, {
             depth: 0.18,
-            bevelEnabled: false,
+            bevelEnabled: true,
+            bevelSize: 0.035,
+            bevelThickness: 0.025,
+            bevelSegments: 2,
           }),
           material,
         ),
@@ -65,16 +74,16 @@ export function createReward(kind) {
       map: glowTexture(),
       color: info.color,
       transparent: true,
-      opacity: 0.42,
+      opacity: 0.24,
       depthWrite: false,
       blending: THREE.AdditiveBlending,
     }),
   );
-  halo.scale.setScalar(6.5);
+  halo.scale.setScalar(4.5);
   group.add(core, ring, halo);
   const label = makeLabel(`${info.symbol} ${info.name}`, "", info.color);
-  label.position.y = 3;
-  label.scale.set(8, 1.25, 1);
+  label.position.y = 2.5;
+  label.scale.set(5.8, 0.91, 1);
   group.add(label);
   group.userData.core = core;
   group.userData.label = label;

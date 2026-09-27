@@ -12,6 +12,7 @@ page.on("pageerror", (error) => errors.push(error.message));
 try {
   await page.goto(process.env.ABYSSAL_DEV_URL || "http://127.0.0.1:5178");
   await page.waitForFunction(() => !!window.__ABYSSAL__);
+  await page.locator(".expedition-settings summary").click();
   await page.locator("#menu-markers").uncheck();
   await page.click("#start");
   assert.equal(await page.locator("#touch-markers").count(), 0);
@@ -21,6 +22,8 @@ try {
   );
   await page.keyboard.down("KeyK");
   measurements.fixture = await createOccludedFixture(page);
+  // 必须经历真实游动/栖息约束后仍被礁石遮挡，不能依赖按键先于下一帧更新的时序。
+  await page.waitForTimeout(350);
   await page.keyboard.press("KeyJ");
   await page.waitForFunction(() => {
     const g = window.__ABYSSAL__;
@@ -42,8 +45,17 @@ try {
       blocked: f.segmentBlocked(g.position, f.prey.mesh.position, f.colliders),
       hunterVisible: f.hunter.mesh.visible,
       markers: g.markersEnabled,
+      position: g.position.toArray(),
+      preyPosition: f.prey.mesh.position.toArray(),
+      preyVelocity: f.prey.velocity.toArray(),
+      preyHabitat: {
+        min: f.prey.species.depthMin,
+        max: f.prey.species.depthMax,
+      },
+      collision: g.lastCollision,
     };
   });
+  measurements.first = first;
   assert.equal(first.markers, false);
   assert.equal(first.blocked, true);
   const prey = first.scan.contacts.find((e) => e.kind === "fish");
@@ -61,7 +73,6 @@ try {
   checks.push(
     "J detects occluded prey, rear hunters and lords with normal markers off; the world labels show only the narrow forward view",
   );
-  measurements.first = first;
   const presented = await readPresentation(page);
   assertDirectionalPresentation(presented);
   assertContactAbsent(presented, hunter.id);
@@ -180,11 +191,13 @@ try {
   mobile.on("pageerror", (error) => errors.push(error.message));
   await mobile.goto(process.env.ABYSSAL_DEV_URL || "http://127.0.0.1:5178");
   await mobile.waitForFunction(() => !!window.__ABYSSAL__);
+  await mobile.locator(".expedition-settings summary").click();
   await mobile.locator("#menu-markers").uncheck();
   await mobile.locator("#start").tap();
   await mobile.waitForFunction(() => window.__ABYSSAL__.mode === "playing");
   await mobile.keyboard.down("KeyK");
   measurements.mobileFixture = await createOccludedFixture(mobile);
+  await mobile.waitForTimeout(350);
   const ability = mobile.locator("#touch-sonar");
   await ability.tap();
   await mobile.waitForFunction(() => {
@@ -197,6 +210,17 @@ try {
       g.sonarMarkers.snapshot.contacts.some((entry) => entry.id === prey?.id)
     );
   });
+  measurements.mobileOcclusion = await mobile.evaluate(() => {
+    const g = window.__ABYSSAL__,
+      f = window.__SONAR_FIXTURE__;
+    return {
+      position: g.position.toArray(),
+      preyPosition: f.prey.mesh.position.toArray(),
+      blocked: f.segmentBlocked(g.position, f.prey.mesh.position, f.colliders),
+      collision: g.lastCollision,
+    };
+  });
+  assert.equal(measurements.mobileOcclusion.blocked, true);
   const mobilePresentation = await readPresentation(mobile);
   assertDirectionalPresentation(mobilePresentation);
   const mobileHunter = mobilePresentation.scan.contacts.find(
@@ -455,6 +479,9 @@ async function createOccludedFixture(targetPage) {
     const { seabedHeight } = await import("/src/ocean.js");
     const { WORLD } = await import("/src/world_config.js");
     const colliders = [...g.ocean.colliders, ...g.surface.colliders];
+    const preySpecies = g.entities.find(
+      (entry) => entry.species.kind === "fish",
+    ).species;
     g.entities.forEach((entry) => (entry.hiddenFor = 999));
     g.encounters.bosses.forEach((entry) => (entry.enabled = false));
     g.player.invulnerable = 999;
@@ -466,18 +493,20 @@ async function createOccludedFixture(targetPage) {
         entry.z > -250 &&
         Math.abs(entry.x) < 180,
     )) {
-      const y = reef.y + reef.axes.y * 0.5;
-      const start = { x: reef.x, y, z: reef.z + reef.axes.z + 12 };
-      const behind = { x: reef.x, y, z: reef.z - reef.axes.z - 12 };
+      const start = { x: reef.x, y: 0, z: reef.z + reef.axes.z + 12 };
+      const behind = { x: reef.x, y: 0, z: reef.z - reef.axes.z - 12 };
       // 为后方猎手留出真实世界边界余量，避免下一帧被边界钳回玩家附近。
       if (start.z > WORLD.maxZ - 120 || behind.z < WORLD.minZ + 12) continue;
-      // 前侧上坡海床可能比岩石中部更高；抬高玩家保留身体净空，仍以真实射线验证遮挡。
-      start.y = Math.max(start.y, seabedHeight(start.x, start.z) + 7);
-      if (
-        start.y > -5 ||
-        Math.atan2(start.y - behind.y, start.z - behind.z) > Math.PI / 8
-      )
+      // 珊瑚鱼必须处于真实栖息深度，避免被主循环从深海快速抬回浅水而游离遮挡。
+      const y = Math.max(
+        reef.y + reef.axes.y * 0.35,
+        -preySpecies.depthMax + 4,
+        seabedHeight(start.x, start.z) + 7,
+        seabedHeight(behind.x, behind.z) + 4,
+      );
+      if (y > -preySpecies.depthMin - 4 || y > reef.y + reef.axes.y - 2)
         continue;
+      start.y = behind.y = y;
       if (
         isPositionBlocked(start, {
           colliders,
@@ -487,7 +516,26 @@ async function createOccludedFixture(targetPage) {
         })
       )
         continue;
-      if (!segmentBlocked(start, behind, colliders)) continue;
+      if (
+        isPositionBlocked(behind, {
+          colliders,
+          radius: bodyRadius(preySpecies.length),
+          length: preySpecies.length,
+          forward: g.forward,
+        })
+      )
+        continue;
+      // 给自然游动留出横向与纵向余量，不选只擦过礁石顶端的射线。
+      if (
+        ![-2, 0, 2].every((offset) =>
+          segmentBlocked(
+            { ...start, x: start.x + offset, y: y + 2 },
+            { ...behind, x: behind.x + offset, y: y + 2 },
+            colliders,
+          ),
+        )
+      )
+        continue;
       origin = start;
       hiddenPoint = behind;
       break;
@@ -499,6 +547,7 @@ async function createOccludedFixture(targetPage) {
       entry.hiddenFor = 0;
       entry.school = null;
       entry.chase = 0;
+      entry.heading = 0;
       entry.velocity.set(0, 0, 0);
       entry.mesh.position.copy(point);
       entry.mesh.visible = false;

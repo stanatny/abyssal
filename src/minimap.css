@@ -111,3 +111,41 @@
 .minimap-depth-label {
   color: #9aacb8;
 }
+
+/* 导航以半透明海图呈现，边缘刻度保留方向感而不形成独立仪表卡。 */
+.minimap-frame {
+  fill: #0a273484;
+  stroke: #b3ccc057;
+  stroke-width: 0.55;
+}
+.minimap-basin {
+  stroke: #93bfae33;
+}
+.minimap-contours {
+  stroke: #a9c5b347;
+  stroke-width: 0.45;
+}
+.minimap-north,
+.minimap-zone {
+  fill: #bfd1be;
+}
+.minimap-home-route {
+  stroke: #d1d5b7;
+  stroke-width: 0.6;
+}
+.minimap-home {
+  fill: #d1d5b71f;
+  stroke: #c1cba5;
+}
+.minimap-player path {
+  fill: #e6ebd6;
+  stroke: #204844;
+}
+.minimap-caption {
+  color: #b8cdc0;
+  font-size: 9px;
+  text-shadow: 0 1px 4px #00262b;
+}
+.minimap-depth-label {
+  color: #88a89e;
+}

@@ -4,6 +4,7 @@ import { WORLD } from "./world_config.js";
 import { consumePrey } from "./simulation.js";
 import { createSurfaceState, stepSurface } from "./surface_rules.js";
 import { createShips } from "./ships.js";
+import { createFluidTexture } from "./effect_textures.js";
 
 /**
  * 创建破水、海鸥、船舶与水面效果；第四参数可提供 onEat(point, length)。
@@ -29,10 +30,20 @@ export function createSurface(scene, audio, notify, { onEat } = {}) {
   const rippleGeometry = keep(new THREE.RingGeometry(0.82, 1, 64));
   const dropletGeometry = keep(new THREE.SphereGeometry(0.11, 5, 4));
   const sheetGeometry = keep(
-    new THREE.CylinderGeometry(1, 0.7, 1, 22, 1, true),
+    new THREE.CylinderGeometry(1, 0.7, 1, 48, 4, true),
   );
-  const discGeometry = keep(new THREE.CircleGeometry(1, 26));
+  const crownPosition = sheetGeometry.attributes.position;
+  for (let i = 0; i < crownPosition.count; i++) {
+    const angle = Math.atan2(crownPosition.getZ(i), crownPosition.getX(i));
+    const height = crownPosition.getY(i) + 0.5;
+    const scallop =
+      0.75 + Math.sin(angle * 9) * 0.14 + Math.sin(angle * 17 + 0.4) * 0.1;
+    crownPosition.setY(i, -0.5 + height * scallop);
+  }
+  sheetGeometry.computeVertexNormals();
+  const discGeometry = keep(new THREE.CircleGeometry(1, 48));
   const streakTexture = keep(makeStreakTexture());
+  const foamTexture = keep(createFluidTexture("foam"));
   const localAnchors = [
     [0, 8, 57],
     [-10, 8.4, 50],
@@ -75,37 +86,37 @@ export function createSurface(scene, audio, notify, { onEat } = {}) {
   root.add(sun);
   const clouds = new THREE.Group();
   const cloudMaterial = keep(
-    new THREE.MeshBasicMaterial({
-      color: 0xecf8fc,
+    new THREE.SpriteMaterial({
+      map: keep(createFluidTexture("mist")),
+      color: 0xf4f3e7,
       transparent: true,
-      opacity: 0.5,
+      opacity: 0.65,
+      depthWrite: false,
       fog: false,
     }),
   );
-  const cloudGeometry = keep(new THREE.SphereGeometry(1, 9, 6));
   for (let i = 0; i < 24; i += 1) {
-    const cloud = new THREE.Mesh(cloudGeometry, cloudMaterial);
+    const cloud = new THREE.Sprite(cloudMaterial);
     cloud.position.set(
       Math.sin(i * 2.4) * 550,
       100 + (i % 4) * 22,
       Math.cos(i * 1.7) * 620,
     );
-    cloud.scale.set(42 + (i % 3) * 18, 5, 14);
+    cloud.scale.set(90 + (i % 3) * 32, 22 + (i % 4) * 4, 1);
     clouds.add(cloud);
   }
   clouds.visible = false;
   root.add(clouds);
 
   // 分散的细小白沫让水面可以辨识，实例化避免逐片绘制。
-  const foamGeometry = keep(
-    new THREE.RingGeometry(0.92, 1, 15, 1, 0, Math.PI * 1.58),
-  );
+  const foamGeometry = keep(new THREE.PlaneGeometry(2, 2));
   foamGeometry.rotateX(-Math.PI / 2);
   const foamMaterial = keep(
     new THREE.MeshBasicMaterial({
-      color: 0xd9f8ed,
+      map: foamTexture,
+      color: 0xe1eee7,
       transparent: true,
-      opacity: 0.16,
+      opacity: 0.3,
       side: THREE.DoubleSide,
       depthWrite: false,
     }),
@@ -175,7 +186,9 @@ export function createSurface(scene, audio, notify, { onEat } = {}) {
     ripple.rotation.x = -Math.PI / 2;
     ripple.renderOrder = 2;
     group.add(ripple);
-    const foamDisc = new THREE.Mesh(discGeometry, material);
+    const foamMaterial = material.clone();
+    foamMaterial.map = foamTexture;
+    const foamDisc = new THREE.Mesh(discGeometry, foamMaterial);
     foamDisc.rotation.x = -Math.PI / 2;
     foamDisc.renderOrder = 2;
     group.add(foamDisc);
@@ -212,6 +225,7 @@ export function createSurface(scene, audio, notify, { onEat } = {}) {
       particles,
       material,
       veilMaterial,
+      foamMaterial,
       age: 0,
       life: 1.6,
       landing,
@@ -326,7 +340,7 @@ export function createSurface(scene, audio, notify, { onEat } = {}) {
       const originX = Math.floor(position.x / 24) * 24;
       const originZ = Math.floor(position.z / 24) * 24;
       foamMaterial.opacity =
-        0.14 + Math.min(0.08, Math.max(0, position.y) * 0.012);
+        0.28 + Math.min(0.12, Math.max(0, position.y) * 0.016);
       for (let i = 0; i < 128; i += 1) {
         const phase = i * 2.399;
         dummy.position.set(
@@ -335,7 +349,7 @@ export function createSurface(scene, audio, notify, { onEat } = {}) {
           originZ + (Math.floor(i / 16) - 3.5) * 27 + Math.cos(phase) * 7,
         );
         dummy.rotation.set(0, phase, 0);
-        const width = 1.5 + (i % 5) * 0.8;
+        const width = 1.2 + (i % 5) * 0.55;
         dummy.scale.set(
           width,
           1,
@@ -356,7 +370,8 @@ export function createSurface(scene, audio, notify, { onEat } = {}) {
       effect.foamDisc.scale.setScalar(
         Math.max(0.01, effect.scale * (0.8 + progress * 1.4)),
       );
-      effect.material.opacity = Math.max(0, effect.life / 1.6) * 0.6;
+      effect.foamMaterial.opacity = effect.material.opacity =
+        Math.max(0, effect.life / 1.6) * 0.6;
       effect.foamDisc.position.y = 0.02;
       effect.sheet.scale.set(
         effect.scale * (0.55 + progress * 1.5),
@@ -395,6 +410,7 @@ export function createSurface(scene, audio, notify, { onEat } = {}) {
         root.remove(effect.group);
         effect.material.dispose();
         effect.veilMaterial.dispose();
+        effect.foamMaterial.dispose();
         effect.droplets.dispose();
         splashes.splice(i, 1);
       }
@@ -451,6 +467,7 @@ export function createSurface(scene, audio, notify, { onEat } = {}) {
       root.remove(effect.group);
       effect.material.dispose();
       effect.veilMaterial.dispose();
+      effect.foamMaterial.dispose();
       effect.droplets.dispose();
     }
     splashes.length = 0;

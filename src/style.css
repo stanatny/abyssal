@@ -2033,3 +2033,823 @@ canvas,
   user-select: none;
   -webkit-touch-callout: none;
 }
+
+/* ---------- v0.6：海洋远征的纸色文字、细线与开放式信息层 ---------- */
+:root {
+  font-family:
+    "Avenir Next", "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif;
+  --mint: #b7d7c5;
+  --mint-dim: #b7d7c580;
+  --cyan: #95c8d8;
+  --gold: #dcc18e;
+  --danger: #ef8b70;
+  --ink: #edf0e4;
+  --muted: #a7bfbb;
+  --faint: #819e9b;
+  --panel: #0b262633;
+  --panel-strong: #092321c4;
+  --line: #c1d7cb26;
+  --line-bright: #c1d7cb5c;
+  --radius: 3px;
+  --glow-mint: none;
+}
+header {
+  height: 76px;
+  padding: 0 5vw;
+  background: linear-gradient(#05191c80, #05191c00);
+  border-bottom-color: #c9ded312;
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
+}
+.brand-icon {
+  width: 31px;
+  height: 31px;
+  text-shadow: none;
+}
+.brand-icon svg {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+.brand-name {
+  font-size: 16px;
+  font-weight: 500;
+  letter-spacing: 5px;
+}
+.wordmark small {
+  font-size: 10px;
+  letter-spacing: 2px;
+}
+.header-tools {
+  gap: 14px;
+}
+.header-tools button {
+  background: transparent;
+  border: 0;
+  border-bottom: 1px solid transparent;
+  border-radius: 0;
+  padding: 8px 2px;
+  color: #c4d2c8;
+  font-size: 11px;
+}
+.header-tools button:hover {
+  border-bottom-color: #b4cbb7;
+}
+.edition {
+  font-size: 9px;
+  letter-spacing: 2px;
+  color: #8ca7a1;
+  margin-right: 16px;
+}
+.eyebrow {
+  color: #abc7b9;
+  letter-spacing: 2.8px;
+  font-size: 9px;
+  font-weight: 400;
+}
+.eyebrow > span {
+  background: #a3c2b2;
+  box-shadow: none;
+}
+kbd {
+  background: #0b2c284d;
+  border: 1px solid #bdd6c745;
+  border-radius: 2px;
+  font-size: 9px;
+  color: #dce6d8;
+  padding: 2px 5px;
+}
+#menu {
+  background: linear-gradient(
+    90deg,
+    #04191be6 0%,
+    #051a1cd4 24%,
+    #061c2063 50%,
+    #031b2000 77%
+  );
+}
+#menu h1 {
+  font-family: "Songti SC", "STSong", "Noto Serif CJK SC", "SimSun", serif;
+  font-size: clamp(48px, 4.8vw, 70px);
+  font-weight: 400;
+  line-height: 1.2;
+  letter-spacing: 0.04em;
+  margin: 24px 0 20px;
+  color: #f0f0df;
+  text-shadow: 0 3px 30px #001e2030;
+}
+#menu h1 em {
+  background: none;
+  color: #bbcbb4;
+  font-style: normal;
+}
+#menu .intro {
+  font-size: 13px;
+  letter-spacing: 1.4px;
+  line-height: 1.9;
+  color: #abbeb5;
+  margin: 0;
+}
+.menu-actions {
+  gap: 22px;
+  flex-wrap: nowrap;
+}
+.primary {
+  background: #e6e9d8;
+  color: #163a35;
+  border: 1px solid #e9eddc;
+  border-radius: 2px;
+  box-shadow: none;
+  min-height: 54px;
+  min-width: 225px;
+  padding: 16px 22px;
+  font-size: 13px;
+  font-weight: 500;
+  letter-spacing: 2px;
+}
+.primary:hover {
+  background: #f0f1e3;
+  box-shadow: 0 8px 28px #122f251a;
+  transform: translateY(-1px);
+}
+.primary span {
+  font-weight: 300;
+}
+.guide-open {
+  align-items: flex-start;
+  min-height: 54px;
+  padding: 8px 0;
+  background: none;
+  border: 0;
+  border-bottom: 1px solid #a6bead66;
+  border-radius: 0;
+  color: #d2ddcd;
+  letter-spacing: 1px;
+  white-space: nowrap;
+  font-size: 13px;
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
+}
+.guide-open:hover {
+  background: transparent;
+  border-bottom-color: #d6e1cb;
+}
+.guide-open small {
+  font-size: 9px;
+  letter-spacing: 0.4px;
+  color: #89a49a;
+}
+.menu-stats {
+  gap: 36px;
+  margin-top: 25px;
+  padding-top: 0;
+  border: 0;
+}
+.menu-stats div {
+  gap: 5px;
+}
+.menu-stats b {
+  color: #d3dfcd;
+  font-size: 23px;
+  font-weight: 300;
+  letter-spacing: 0;
+}
+.menu-stats b i {
+  color: #97b69f;
+  font-size: 13px;
+}
+.menu-stats span {
+  font-size: 9px;
+  letter-spacing: 1.6px;
+  color: #86a194;
+}
+.menu-controls {
+  gap: 10px 14px;
+  margin-top: 24px;
+  color: #809f96;
+  font-size: 9px;
+  letter-spacing: 0;
+}
+.journey {
+  display: none;
+}
+.specimen {
+  right: 8vw;
+  bottom: 13vh;
+  padding: 0 0 0 21px;
+  border: 0;
+  border-left: 1px solid #bbd5c46b;
+  border-radius: 0;
+  background: none;
+  box-shadow: none;
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
+  text-shadow: 0 2px 12px #032226;
+}
+.specimen > span {
+  color: #a0bdb2;
+  letter-spacing: 2px;
+  font-size: 9px;
+}
+.specimen strong {
+  font-family: "Songti SC", "STSong", serif;
+  font-size: 22px;
+  font-weight: 400;
+  color: #e3ebd8;
+  letter-spacing: 2px;
+}
+.specimen p {
+  color: #adc3b8;
+  font-size: 11px;
+  line-height: 1.9;
+}
+.menu-footer {
+  padding: 15px 0;
+  font-size: 9px;
+  letter-spacing: 1px;
+  color: #76988b;
+  border-top: 1px solid #adc6b51a;
+}
+/* 固定位置保持既有避让合同；撤掉大面积玻璃面板，用细线和轻暗底保证水上可读。 */
+.location,
+.mission,
+.vitals {
+  border: 0;
+  border-radius: 0;
+  background: linear-gradient(110deg, #051e246b, #051e2400);
+  box-shadow: none;
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
+  text-shadow: 0 1px 5px #001a24b3;
+}
+.location {
+  padding: 10px 0 10px 16px;
+  border-left: 1px solid #c3d9d36b;
+}
+.location .eyebrow {
+  color: #93b9b5;
+  font-size: 9px;
+  letter-spacing: 2px;
+}
+.location h2 {
+  font-family: "Songti SC", "STSong", serif;
+  font-size: 23px;
+  font-weight: 400;
+  letter-spacing: 3px;
+  color: #e3ece1;
+}
+.depth > span {
+  font-size: 36px;
+  font-weight: 300;
+  color: #ecf2e5;
+  text-shadow: none;
+}
+.depth small {
+  color: #93b4ae;
+}
+.mission {
+  padding: 12px 0 12px 16px;
+  border-left: 1px solid #c3d9d342;
+}
+.mission-label {
+  color: #8faeab;
+  letter-spacing: 2px;
+}
+.mission strong {
+  color: #dbe8d9;
+  font-weight: 400;
+}
+.growth-track {
+  height: 2px;
+  border-radius: 0;
+  background: #c5ded52b;
+}
+.growth-track i {
+  border-radius: 0;
+  background: #b7d1bc;
+  box-shadow: none;
+}
+.round-clock {
+  color: #9cbbb2;
+  font-size: 10px;
+  letter-spacing: 1px;
+}
+#threat,
+#boss-panel,
+#ink-status,
+#notification {
+  border-radius: 2px;
+  box-shadow: none;
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
+}
+#threat {
+  border: 0;
+  border-left: 2px solid #ed9e7c;
+  background: linear-gradient(90deg, #301a1dc9, #201c20a6);
+  animation: none;
+}
+#threat > i {
+  box-shadow: none;
+  background: #e5a38a;
+}
+#threat strong {
+  color: #ffdac5;
+  font-size: 12px;
+  font-weight: 500;
+  letter-spacing: 1px;
+}
+#threat span {
+  color: #ccafa4;
+}
+#threat > b {
+  font-size: 20px;
+  color: #edc5af;
+}
+#boss-panel {
+  border: 0;
+  border-top: 1px solid #c9bfc580;
+  background: linear-gradient(180deg, #202732c9, #121f2799);
+  text-align: left;
+}
+#boss-phase {
+  padding: 3px 0;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  color: #d6c5b0;
+  font-size: 9px;
+}
+#boss-name {
+  font-family: "Songti SC", "STSong", serif;
+  color: #e3e0d8;
+  font-size: 18px;
+  font-weight: 400;
+  letter-spacing: 2px;
+}
+.boss-meter {
+  height: 3px;
+  border-radius: 0;
+  background: #b3a0b52b;
+}
+.boss-meter i {
+  border-radius: 0;
+  background: linear-gradient(90deg, #aea2b7, #d1b9aa);
+  box-shadow: none;
+}
+#boss-tip {
+  color: #bcc7c7;
+}
+#combat-status #notification {
+  border: 0;
+  border-left: 1px solid #9cbbab73;
+  text-align: left;
+  color: #dce7d7;
+  background: linear-gradient(90deg, #0a2928b3, #0a292857);
+}
+#combat-status #ink-status {
+  border: 1px solid #a9a1b54d;
+  background: #252635b8;
+  color: #d0cdda;
+}
+#breach-hint {
+  border: 0;
+  border-radius: 1px;
+  background: #092a325c;
+  color: #a9c6c2;
+  font-size: 9px;
+  letter-spacing: 1px;
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
+}
+#buffs > span {
+  border-radius: 2px;
+  padding: 6px 12px;
+  background: #0b3034a6;
+  color: #c9dfd6;
+  border: 1px solid #a7c7b85c;
+  box-shadow: none;
+  text-shadow: none;
+  font-size: 10px;
+}
+#reticle {
+  width: 18px;
+  height: 18px;
+  opacity: 0.55;
+  border-color: #d0e8df40;
+}
+#reticle i {
+  width: 2px;
+  height: 2px;
+  background: #d0e8df;
+  box-shadow: none;
+}
+#reticle span {
+  display: none;
+}
+#target {
+  border-radius: 2px;
+  background: #06222ba3;
+  border-bottom-width: 1px;
+  font-size: 10px;
+  letter-spacing: 0.4px;
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
+}
+.vitals {
+  padding: 14px 16px;
+}
+.vital-head {
+  font-size: 10px;
+  color: #b2c8bd;
+  letter-spacing: 1px;
+}
+.vital-head b {
+  color: #e3ebdd;
+  font-weight: 400;
+}
+.vital-head small {
+  background: transparent;
+  color: #8fad9e;
+  padding: 0;
+}
+.meter {
+  height: 3px;
+  border-radius: 0;
+  background: #bfd8d029;
+}
+.meter i {
+  border-radius: 0;
+  box-shadow: none !important;
+}
+.health .meter i {
+  background: #b0caae;
+}
+.stamina .meter i {
+  background: #8fbecd;
+}
+.hunger .meter i {
+  background: #d1ba91;
+}
+.speed > b {
+  font-weight: 300;
+  font-size: 39px;
+  color: #e4eddf;
+  text-shadow: 0 1px 7px #00252c;
+}
+.speed small {
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  padding: 4px 0;
+  color: #adc5b6;
+}
+.key-guide {
+  font-size: 9px;
+  letter-spacing: 0.6px;
+  color: #9bb8af;
+}
+.depth-rail i {
+  width: 5px;
+  height: 5px;
+  left: -3px;
+  border-radius: 0;
+  background: #bdd1bb;
+  box-shadow: none;
+}
+.skill-button {
+  border-color: #acc9ba80;
+  background: #0c3037b3;
+  color: #d0e2d7;
+}
+#sonar-control {
+  border-radius: 2px;
+  font-size: 11px;
+  letter-spacing: 0.6px;
+}
+.skill-button[data-state="active"] {
+  background: #31594ebf;
+  color: #e3eddb;
+  border-color: #c2d7bf;
+  box-shadow: inset 0 -3px 0 #a7c5b9;
+}
+.skill-button[data-state="cooldown"] {
+  border-color: #7b9b9b73;
+  background: #102b32bf;
+  color: #b2c8c5;
+  box-shadow: none;
+}
+.skill-button::before {
+  background: linear-gradient(0deg, #12263199, #34473e57);
+}
+.modal {
+  background: #041b21c4;
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+}
+.modal-card {
+  border: 0;
+  border-top: 1px solid #bcd4c26b;
+  border-bottom: 1px solid #bcd4c22e;
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
+}
+.modal-card::before {
+  display: none;
+}
+.modal h2 {
+  font-family: "Songti SC", "STSong", serif;
+  font-size: 40px;
+  font-weight: 400;
+  color: #e5e9d8;
+}
+.modal p {
+  color: #b0c5bb;
+}
+.text-button {
+  color: #a2bdb1;
+  border-bottom-color: #9bb5a54d;
+}
+@media (min-width: 1000px) and (max-height: 850px) {
+  #menu h1 {
+    font-size: 54px;
+    margin: 20px 0 15px;
+  }
+  .menu-stats {
+    margin-top: 20px;
+  }
+}
+@media (max-width: 1000px) {
+  #menu {
+    background: linear-gradient(90deg, #061b21ed, #061b21a3 64%, #061b2130);
+  }
+  .specimen {
+    display: none;
+  }
+}
+@media (max-width: 700px) {
+  header {
+    height: calc(56px + env(safe-area-inset-top));
+    padding: env(safe-area-inset-top) 14px 0;
+  }
+  .brand-name {
+    font-size: 12px;
+    letter-spacing: 2px;
+  }
+  .brand-icon {
+    width: 25px;
+    height: 25px;
+  }
+  .header-tools {
+    gap: 7px;
+  }
+  .header-tools button {
+    padding: 6px 3px;
+    font-size: 10px;
+    min-width: 39px;
+    min-height: 44px;
+  }
+  #menu {
+    background: linear-gradient(90deg, #041c21eb, #07232bd6 58%, #07232b8c);
+  }
+  #menu h1 {
+    font-size: 48px;
+    line-height: 1.15;
+    letter-spacing: 1px;
+    margin: 22px 0 18px;
+  }
+  #menu .eyebrow {
+    font-size: 8px;
+    letter-spacing: 2px;
+  }
+  #menu .intro {
+    font-size: 12px;
+    line-height: 1.85;
+    letter-spacing: 0.8px;
+  }
+  .menu-actions {
+    gap: 18px;
+  }
+  .menu-actions .primary {
+    flex: 1;
+    min-width: 0;
+    min-height: 52px;
+    padding: 14px 17px;
+    font-size: 12px;
+    letter-spacing: 1px;
+  }
+  .guide-open {
+    padding: 9px 0;
+    min-height: 52px;
+    font-size: 12px;
+  }
+  .guide-open small {
+    font-size: 8px;
+    letter-spacing: 0;
+  }
+  .menu-stats {
+    gap: 32px;
+    margin-top: 24px;
+  }
+  .menu-stats b {
+    font-size: 21px;
+  }
+  .menu-stats span {
+    font-size: 8px;
+    letter-spacing: 1px;
+  }
+  #hud-overview .location,
+  #hud-overview .mission {
+    padding: 8px 9px;
+    border-radius: 0;
+    background: linear-gradient(110deg, #0826329c, #08263229);
+  }
+  .location h2 {
+    font-size: 17px;
+    letter-spacing: 1px;
+    margin: 5px 0 7px;
+  }
+  .location .eyebrow {
+    font-size: 9px;
+    letter-spacing: 0.8px;
+  }
+  .depth > span {
+    font-size: 24px;
+  }
+  .mission strong {
+    font-size: 11px;
+  }
+  .growth-track {
+    height: 2px;
+  }
+  #threat strong {
+    font-size: 11px;
+    letter-spacing: 0;
+  }
+  #threat > b {
+    font-size: 13px;
+  }
+  #boss-name {
+    font-family: inherit;
+    font-size: 12px;
+    letter-spacing: 0;
+  }
+  #boss-phase {
+    font-size: 10px;
+    padding: 2px 0;
+  }
+  #breach-hint {
+    font-size: 10px;
+    letter-spacing: 0;
+  }
+  .vitals {
+    padding: 9px 10px;
+    gap: 10px;
+    background: linear-gradient(0deg, #08242cba, #08242c47);
+    border-radius: 0;
+  }
+  .vital-head {
+    font-size: 11px;
+    letter-spacing: 0;
+  }
+  .meter {
+    height: 5px;
+  }
+  .speed > b {
+    font-size: 23px;
+  }
+  .speed small {
+    font-size: 10px;
+    padding: 2px 0;
+  }
+  #buffs > span {
+    padding: 4px 8px;
+    font-size: 10px;
+  }
+  .modal h2 {
+    font-size: 30px;
+  }
+}
+@media (pointer: coarse) {
+  #joystick {
+    background: radial-gradient(circle, #c4dfd014 25%, #12384452 65%);
+    border-color: #bdd8cd61;
+    box-shadow: none;
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
+  }
+  #joystick i {
+    background: #b9d3c833;
+    border-color: #c4ddce8c;
+    box-shadow: none;
+  }
+  #touch-controls button {
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
+  }
+  #touch-boost {
+    background: #284e58a6;
+    border-color: #c0d8cf8c;
+    box-shadow: inset 0 0 0 4px #bccfcf0d;
+    color: #dfebdf;
+    font-size: 13px;
+  }
+}
+@media (max-width: 360px) {
+  header {
+    padding-left: 10px;
+    padding-right: 10px;
+  }
+  .brand-name {
+    font-size: 10px;
+    letter-spacing: 1.5px;
+  }
+  .brand-icon {
+    width: 23px;
+    height: 23px;
+  }
+  .header-tools {
+    gap: 4px;
+  }
+  #menu h1 {
+    font-size: 43px;
+  }
+  .vitals {
+    gap: 6px;
+    padding: 8px;
+  }
+}
+@media (max-height: 500px) and (min-width: 701px) {
+  header {
+    height: 50px;
+    padding: 0 16px;
+  }
+  #menu h1 {
+    font-size: 45px;
+    margin: 18px 0 15px;
+  }
+  .location,
+  .mission {
+    padding: 8px 10px;
+  }
+  .location h2 {
+    font-size: 17px;
+    margin: 5px 0;
+  }
+  .depth > span {
+    font-size: 22px;
+  }
+  #boss-name {
+    font-family: inherit;
+    font-size: 12px;
+    letter-spacing: 0;
+  }
+  #threat strong {
+    font-size: 11px;
+    letter-spacing: 0;
+  }
+  #threat > b {
+    font-size: 13px;
+  }
+  .vitals {
+    padding: 9px 10px;
+  }
+  .vital-head {
+    font-size: 11px;
+    letter-spacing: 0;
+  }
+  .meter {
+    height: 5px;
+  }
+  .speed > b {
+    font-size: 25px;
+  }
+  .modal h2 {
+    font-size: 30px;
+  }
+}
+/* 短竖屏优先让角色选择和出发按钮留在首屏，统计信息可以向下滚动查看。 */
+@media (max-width: 360px) and (max-height: 620px) {
+  #menu .menu-copy {
+    margin-top: 78px;
+  }
+  #menu h1 {
+    font-size: 36px;
+    margin: 18px 0 14px;
+  }
+  #menu .intro {
+    font-size: 11px;
+    line-height: 1.8;
+  }
+  .expedition-setup {
+    margin-top: 18px;
+  }
+  .launch-heading {
+    padding: 11px 0;
+  }
+  #character-description {
+    padding-top: 7px;
+    padding-bottom: 7px;
+  }
+}

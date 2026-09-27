@@ -10,7 +10,7 @@ export function createSonarWave(scene) {
   group.name = "orca_sonar_wave";
   group.visible = false;
   scene.add(group);
-  const ringGeometry = new THREE.RingGeometry(0.986, 1, 96);
+  const ringGeometry = new THREE.RingGeometry(0.975, 1, 128);
   const shellGeometry = new THREE.SphereGeometry(1, 32, 16);
   const waves = Array.from({ length: 4 }, (_, index) => {
     const pulse = new THREE.Group();
@@ -26,6 +26,31 @@ export function createSonarWave(scene) {
       fog: false,
       toneMapped: false,
     });
+    // 波前中间清晰、两缘柔化，避免三条硬圆环压住生物轮廓。
+    ringMaterial.onBeforeCompile = (shader) => {
+      shader.vertexShader = shader.vertexShader
+        .replace(
+          "#include <common>",
+          "#include <common>\nvarying vec2 vWaveCoordinate;",
+        )
+        .replace(
+          "#include <begin_vertex>",
+          "#include <begin_vertex>\nvWaveCoordinate = position.xy;",
+        );
+      shader.fragmentShader = shader.fragmentShader
+        .replace(
+          "#include <common>",
+          "#include <common>\nvarying vec2 vWaveCoordinate;",
+        )
+        .replace(
+          "#include <color_fragment>",
+          `#include <color_fragment>
+        float waveRadius = length(vWaveCoordinate);
+        float waveEdge = smoothstep(0.975, 0.989, waveRadius) * (1.0 - smoothstep(0.992, 1.0, waveRadius));
+        diffuseColor.a *= waveEdge;`,
+        );
+    };
+    ringMaterial.customProgramCacheKey = () => "sonar_soft_wave_v6";
     for (const rotation of [
       [Math.PI / 2, 0, 0],
       [0, 0, 0],
@@ -109,7 +134,7 @@ export function createSonarWave(scene) {
         const radius = 2.8 + progress * 65;
         const fade = Math.pow(1 - progress, 1.25);
         wave.pulse.scale.setScalar(radius);
-        wave.ringMaterial.opacity = 0.46 * fade;
+        wave.ringMaterial.opacity = 0.36 * fade;
         wave.shellMaterial.uniforms.opacity.value = 0.15 * fade;
       }
     },

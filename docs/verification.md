@@ -244,3 +244,16 @@
 ## 复现
 
 运行 `npm ci`、`npm run dev`，在另一终端运行 `npm run test:browser`。脚本默认使用安装在本机的 Google Chrome，开发地址为本机5178端口，可通过 `ABYSSAL_DEV_URL` 覆盖。截图与结果写入忽略版本控制的 `.local/`。
+
+## 2026-09-27 · v0.6 视觉升级候选
+
+基线 `f20d6a5`，当前未提交。正式 Pages 保持 v0.5.1；本轮仅重建临时预览。改动范围、技能参考与表现边界见 [视觉升级记录](visual_upgrade_v0_6.md)。
+
+- 单元128/128、Prettier和构建通过；原生Chrome：主流程28、反馈13、控制6、生态扩展8、声呐11全部通过。日志为 `.local/v6_{unit,format,build,game_regression,feedback_regression,controls_regression,expansion_regression,sonar_regression}.log`。主流程包含真实连续冲刺破水/落水及至少五次领主侧击。
+- 声呐测试更新首页折叠设置的真实点击路径；旧夹具鱼处于非法深水层，真实游动约0.22秒后离开遮挡。用合法浅水礁石、等待350ms稳定与±2m遮挡裕量替代，保留桌面断言并增加手机真实遮挡断言。证据 `.local/v6_sonar_fixture_diagnosis.json` 与 `.local/sonar_v0_4_1_results.json`，声呐/栖息/碰撞规则无改动。
+- UI独立检查1440×900、390×667、320×568、844×390，生存条20态和HUD26态通过；`.local/v6_ui_review.json`、`.local/v6_ui_*` 留档。最终公开生产预览检查1440/390/320px：两角色、七类图鉴和奖励、乌贼技能、虎鲸声呐、倒计时、对齐生存条、暂停/恢复通过，JS/CSS资源哈希与本机dist一致，开发接口缺席；`.local/v6_public_verification.json` 及 `.local/preview_state.json`。
+- 全物种几何统计与共享资源检查 `.local/v6_creature_stats.json`；模型新增四项测试覆盖独立骨架、真实射线和极端动画时间。环境碰撞体/船轨迹快照精确相同；脚本 `.local/v6_environment_snapshot.mjs`，有效深海取景校验 `.local/v6_safe_viewpoints.mjs`。
+- 7轮重开与图鉴切换资源平台化，固定场景GPU timer/CPU profile见 `.local/v6_perf_findings.md`、`v6_gpu_review.json`、`v6_perf_review.json`、`v6_cpu_review.json`。新高画质GPU成本增加，旧有碰撞全表扫描仍主导CPU；测量不等于最终真机帧率。领主装饰资源销毁109项均一次、15轮重开对象不增长，源规则不变。
+- 最终海域截图 `.local/v6_final_{menu,reef,volcano,temple,ship,surface,submarine}.png` 与 `.local/v6_gallery_results.json`，无运行/着色错误。模型、技能与取景布景不代替自然整局试玩；真实手机多指手感及低端性能尚未验收。
+
+四领主技能另用独立取景验证：克拉肯/玛雅为攻击态、海德拉/利维坦为蓄势态，对应效果对象20/14/3/43，全部实际可见，运行及着色错误为空；`.local/v6_boss_visual_results.json` 与 `.local/v6_final_fx_*.png`。该取景固定相机与状态，战斗规则仍由前述真实主循环回归证明。
