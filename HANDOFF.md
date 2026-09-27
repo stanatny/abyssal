@@ -2,11 +2,11 @@
 
 ## 工作区与发布
 
-- 项目：ABYSSAL / 深渊猎游，公开仓库 [stanatny/abyssal](https://github.com/stanatny/abyssal)。正式网页 `https://stanatny.github.io/abyssal/` 仍对应已提交的 v0.2 基线 `96d57ff`。
+- 项目：ABYSSAL / 深渊猎游，公开仓库 [stanatny/abyssal](https://github.com/stanatny/abyssal)。正式试玩入口为 `https://stanatny.github.io/abyssal/`，由 `main` 分支通过 GitHub Actions 发布。v0.5.1 功能提交 `53808ae` 已部署成功，并通过正式站点三尺寸交互与资源一致性验证；本轮补齐面向玩家的 README 和首页实拍。
 - 当前版本为 **v0.5.1 角色与野生物种分离**。先读 [本轮补充](docs/feedback_v0_5_1.md)，再读 [本轮反馈](docs/feedback_v0_5.md) 和 [生态尺度与资料来源](docs/ecology_sources_v0_5.md)，实际验收证据以 [验证记录](docs/verification.md) 为准。不要重置、覆盖或把其他代理的未提交改动当作临时文件清理。
-- 用户本轮明确授权完成野生乌贼替换后做一次提交；提交范围为当前已交付的全部 v0.3—v0.5.1 改动。未要求推送，正式 Pages 仍是 v0.2。整体 UI 优化在此次提交后单独进行。
-- 临时预览服务 `dist`，地址、PID 和最新产物回执在被忽略的 `.local/preview_state.json`；修改后必须重建，默认复用已有隧道。v0.5.1 已重建并通过本机生产与公开预览核对（1440/390/320px、角色技能及图鉴，JS/CSS与dist一致）；不要把 v0.2 正式地址当作最新预览。
-- 发布工作流在 `.github/workflows/pages.yml`。获授权推送时需核对 Actions 提交、线上 JS/CSS 和实际交互。GitHub HTTPS 直连曾超时，系统代理可连但 gh OAuth 缺 workflow scope；现有 SSH 身份经官方指纹核验后曾成功推送。临时连接参数留在本机记录，不修改全局 Git 配置。
+- 用户已在完成野生乌贼替换和本地功能提交 `53808ae` 后，明确要求推送 GitHub、提供公开试玩链接并完善 README。本轮发布版本为 v0.5.1，包含全部 v0.3—v0.5.1 功能；整体 UI 优化仍是后续独立迭代。
+- 临时预览服务 `dist`，地址、PID 和最新产物回执在被忽略的 `.local/preview_state.json`；修改后必须重建，默认复用已有隧道。v0.5.1 已重建并通过本机生产与公开预览核对（1440/390/320px、角色技能及图鉴，JS/CSS与dist一致）；对外优先提供正式 Pages 链接；临时预览不作为正式发布凭据。
+- 发布工作流在 `.github/workflows/pages.yml`。每次推送需核对 Actions 提交、线上 JS/CSS 和实际交互。最新部署状态见 [Actions](https://github.com/stanatny/abyssal/actions/workflows/pages.yml)，本机正式发布回执与浏览器结果分别保存在 `.local/pages_deployment.json`、`.local/v5_1_pages_verification.json`。GitHub HTTPS 直连曾超时，系统代理可连但 gh OAuth 缺 workflow scope；现有 SSH 身份经官方指纹核验后曾成功推送。临时连接参数留在本机记录，不修改全局 Git 配置。
 
 ## v0.5 当前规则
 

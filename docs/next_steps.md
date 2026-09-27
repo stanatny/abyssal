@@ -4,7 +4,7 @@
 
 本轮开放虎鲸、大王乌贼两种角色，每种一个主动和一个被动；普通生物扩充为 21 种，包含浅海鱼群、现代猎手和远古巨兽；加入成人游泳者/潜水员、可冲撞破坏的潜艇、一次性接触鱼雷，并把四领主战改为多次侧翼接触。首页图鉴共 32 条记录，详情见 [反馈记录](feedback_v0_5.md) 与 [生态资料](ecology_sources_v0_5.md)。大王乌贼现仅作角色，野生种类已换为北太平洋巨型章鱼，见 [v0.5.1补充](feedback_v0_5_1.md)。夏威夷幻想海域仍是唯一开放地图，其余地区只是后续入口。
 
-用户已明确授权当前 v0.3—v0.5.1 工作区提交，下一步在该基线上单独做整体 UI 优化；未要求推送。正式 GitHub Pages 仍是 v0.2；本轮构建、临时预览与线上一致性以主代理维护的 [验证记录](verification.md) 和 `.local/preview_state.json` 为准，不沿用旧版本的通过状态。
+用户已授权提交当前 v0.3—v0.5.1 功能，并进一步要求推送 GitHub、公开试玩和完善 README。本轮发布版本为 v0.5.1，正式入口为 [GitHub Pages](https://stanatny.github.io/abyssal/)，部署状态见 [Actions](https://github.com/stanatny/abyssal/actions/workflows/pages.yml)。实际验证以 [验证记录](verification.md)、`.local/pages_deployment.json` 和 `.local/v5_1_pages_verification.json` 为准；临时预览记录仍在 `.local/preview_state.json`。后续在该基线上单独做整体 UI 优化。
 
 整体 UI 与美术再设计继续留待用户单独发起，不自动再次交棒 Kimi。新增物种模型不代表整体视觉问题已经解决。当前最需要补齐的是两角色的自然整局体验、真实手机多指输入及扩容后的低性能设备表现。
 

@@ -1,3 +1,17 @@
+# v0.5.1 GitHub Pages 公开发布
+
+验证日期：2026-09-27。用户在功能提交完成后明确要求推送 GitHub、公开试玩并完善 README；这一授权替代下文各历史阶段的“未要求推送”状态。
+
+- 功能提交 `53808ae` 已推送至公开仓库 `stanatny/abyssal` 的 `main`。[GitHub Actions 运行 36322697605](https://github.com/stanatny/abyssal/actions/runs/36322697605) 的安装、测试、格式检查、构建及 Pages 部署均成功。
+- 正式入口为 [https://stanatny.github.io/abyssal/](https://stanatny.github.io/abyssal/)，页面显示 `EXPEDITIONS / 05.1`，已从历史 v0.2 更新到 v0.5.1。仓库 About 已设置该试玩地址及双角色游戏介绍。
+- 发布前重新运行 124 项规则测试、格式检查和生产构建，全部通过。浏览器从正式 `/abyssal/` 子路径加载 JS/CSS，其 SHA-256 与本机产物完全一致；入口仍为 `index-XK79P16I.js` 与 `index-Dp5JX0tc.css`，保留既有大于 500KB 的体积提示。
+- 正式站点通过 1440×900、390×667、320×568 三尺寸实际交互：角色与海域选择、32 条图鉴及七类筛选数量、章鱼与角色乌贼分离、30 秒奖励说明、虎鲸 J 声呐及雷达、乌贼 J/触摸喷墨、技能冷却禁用、手机生存条对齐、暂停与继续。零浏览器控制台错误，生产页面不暴露开发接口；已查看桌面章鱼图鉴和 320px 游戏实拍。
+- README 改为面向玩家的公开入口，包含实际首页截图、胜利目标、双角色技能、键盘/手机操作、生存与奖励、图鉴及开发方法；详细数值与历史验证继续保存在专题文档。此文档提交不改变游戏产物。
+
+本机证据：`.local/v5_1_release_unit.log`、`v5_1_release_check.log`、`v5_1_release_build.log`、`v5_1_pages_game_actions.json`、`v5_1_pages_verification.json` 与 `v5_1_pages_*.png`。最终文档提交对应的部署回执留在 `.local/pages_deployment.json`，可对照 [Pages 工作流](https://github.com/stanatny/abyssal/actions/workflows/pages.yml) 的最新成功运行。正式站点交互验证使用本机 Chrome 的桌面与触屏模拟，不表示已完成真实手机或自然 30 分钟整局验收。
+
+---
+
 # v0.5.1 章鱼替换与提交前验证
 
 验证日期：2026-09-27。用户要求可选大王乌贼从野生种群移除，换为新生物，并明确授权完成后提交当前版本。此次将已交付的 v0.3—v0.5.1 工作一起保存为 UI 优化前基线；未要求推送，正式 GitHub Pages 仍为 v0.2。
