@@ -1,5 +1,11 @@
-// 物种、角色、海洋图鉴与奖励的英文文案；中文原文作为稳定键。
 export const CATALOG_EN = Object.freeze({
+  "带触角和红色警示灯的球形水雷静止悬浮在深海。碰到后爆炸并消失，命中可造成28点生命损失；它不是食物。":
+    "A spherical mine with contact horns and red warning lights floats motionless in deep water. Contact makes it explode and disappear, dealing 28 damage on a hit. It is not food.",
+  "留意球壳触角和红色警示环，留出距离绕行。水雷不会主动追踪角色。":
+    "Watch for its contact horns and red warning ring, and give it room. Mines do not track the player.",
+  "25米可交战 · 技能后3秒恢复窗 · 至少5次侧翼攻击，命中后需脱离再接近":
+    "Fight at 25m · 3s recovery after abilities · At least 5 flank hits, disengaging between attacks",
+  接触水雷: "Contact Mine",
   "已灭绝；本作复苏水层为幻想设定，不代表真实古海洋深度。":
     "Extinct. The game's revival depths are a fantasy setting, not a claim about real ancient ocean depths.",
   珊瑚鱼: "Coral Fish",
@@ -301,13 +307,8 @@ export const CATALOG_EN = Object.freeze({
     "Submarines cannot be swallowed. Reach 8 m and make three separate rams at a speed of at least 20 m/s to break the hull and release three divers.",
   "每次撞击后需要离开艇壳再冲刺接近。贴着潜艇游动不会连续造成伤害。":
     "Leave the hull after each hit, then sprint back in. Swimming pressed against the submarine does not deal continuous damage.",
-  接触鱼雷: "Contact Torpedo",
   深海危险物: "Deep-Sea Hazard",
   接触爆炸: "Contact Explosion",
-  "带红色闪灯的危险鱼雷静止悬浮在深海。碰到后爆炸并消失，命中可造成28点生命损失；它不是食物。":
-    "Dangerous torpedoes with flashing red lights hover motionless in deep water. They explode and disappear on contact, dealing 28 health damage on a hit. They are not food.",
-  "留意红色警示环，侧向绕行。鱼雷不会主动追踪虎鲸。":
-    "Watch for the red warning ring and go around it. Torpedoes do not actively track the orca.",
   海鸥: "Seagull",
   水面猎物: "Surface Prey",
   海面盘旋: "Circling the Surface",
@@ -375,12 +376,6 @@ export const CATALOG_EN = Object.freeze({
     "For {0} seconds after pickup, sprinting costs no stamina. You still need to hold the sprint key or touch button, making it useful for sustained pursuit or crossing dangerous waters quickly. Another pickup refreshes the duration to {1} seconds; durations do not stack.",
   "被猎手追击时利用这段时间转向、绕开礁石并拉开距离。领主有特殊技能，不宜只靠直线冲刺逃脱。":
     "During a chase, use this time to turn, avoid reefs, and create distance. Lords have special abilities, so a straight sprint alone is not a reliable escape.",
-  越级吞噬: "Oversized Prey",
-  "吞噬 狂食 越级 捕食": "swallow frenzy oversized feeding",
-  "拾取后的{0}秒内，可吞食体长不超过自身1.6倍的普通猎物。对领主，交战体长门槛降至21米；仍需从侧翼朝向躯干接触咬击，每次命中后退出再接近，至少五次有效攻击才能击败领主。重复拾取同类奖励会刷新为{1}秒，不累加时长。":
-    "For {0} seconds after pickup, you can swallow ordinary prey up to 1.6 times your length. The lord combat threshold drops to 21 m, but you must still bite inward from a flank, withdraw after each hit, and approach again. Defeating a lord takes at least five effective attacks. Another pickup refreshes the duration to {1} seconds; durations do not stack.",
-  "出生浅滩正前方略偏右设有固定狂食点，拾取后45秒原地刷新。先找好合适的猎物再拾取。奖励不会让角色无敌；挑战领主时仍需躲避技能，并留意生命与剩余时间。":
-    "A fixed frenzy pickup sits ahead and slightly right of the nursery spawn, respawning in place 45 seconds after collection. Find suitable prey before collecting it. The reward does not grant invulnerability; keep dodging lord abilities and watch your health and remaining time.",
   "{0} 秒": "{0} s",
   即时: "Instant",
   "THE OCEAN ARCHIVE / 海洋档案": "THE OCEAN ARCHIVE",
@@ -421,8 +416,6 @@ export const CATALOG_EN = Object.freeze({
   获取方式: "How to Collect",
   触碰拾取: "Touch to collect",
   使用建议: "Tips",
-  "24米可交战 · 技能后3秒恢复窗 · 至少5次侧翼攻击，命中后需脱离再接近":
-    "Fight at 24 m · 3 s recovery after abilities · At least 5 flank hits; withdraw and reapproach after each",
   "巡游 {0} m/s · 冲刺 {1} m/s": "Cruise {0} m/s · Sprint {1} m/s",
   "蓄力 {0} 秒 · 技能冷却 {1}—{2} 秒追击时间":
     "Windup {0} s · Ability cooldown: {1}–{2} s of pursuit",
@@ -435,5 +428,10 @@ export const CATALOG_EN = Object.freeze({
   洋流之息: "Ocean Current",
   "30 秒冲刺不耗体力": "30 s of stamina-free sprinting",
   深渊狂食: "Abyssal Frenzy",
-  "30 秒越级捕食": "30 s of feeding on larger prey",
+  近距吸食: "Close-Range Suction",
+  "吞噬 狂食 捕食 吸食 范围": "swallow frenzy feeding suction reach",
+  "持续{0}秒：扩大近身吞噬范围，将附近无遮挡、原本就可捕食的水下生物吸向嘴部。不会临时变大，也不能越级捕食；吃鱼仍按正常规则回血和成长。":
+    "For {0} seconds, feeding reach expands and nearby edible underwater creatures are drawn toward your mouth through clear water. It does not enlarge your body or let you eat larger creatures. Normal meals still restore health and add growth.",
+  "沿着鱼群边缘游过，吸食可以减少反复对准。浅滩固定补给45秒刷新，再次拾取只刷新30秒效果。大于或等于自己体长的生物、水雷、潜艇和领主不会被吸入；礁石与船体会阻挡吸食。领主仍需真实体长25米，并通过多次侧翼攻击击败。":
+    "Swim along a school to feed with less precise aiming. The fixed nursery pickup respawns after 45 seconds; collecting it again only refreshes the 30-second effect. Creatures at least as long as you, mines, submarines and lords cannot be pulled in; reefs and hulls block suction. Lords still require 25 real meters and repeated flank attacks.",
 });

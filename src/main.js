@@ -22,7 +22,12 @@ import {
 import { OceanAudio } from "./audio.js";
 import { steerWithinHabitat } from "./navigation.js";
 import { stepSurfaceSteering } from "./surface_steering.js";
-import { preyCaptureRadius, sweptCaptureFraction } from "./prey_capture.js";
+import {
+  preyCaptureRadius,
+  sweptCaptureFraction,
+  frenzyPullDistance,
+} from "./prey_capture.js";
+import { createFrenzyEffect } from "./frenzy_effect.js";
 import { WORLD } from "./world_config.js";
 import { createReward, REWARDS } from "./rewards.js";
 import {
@@ -152,6 +157,7 @@ const audio = new OceanAudio();
 void audio.preloadHumanVoices();
 void audio.preloadFishSounds();
 const effects = createCombatEffects(scene);
+const frenzyEffect = createFrenzyEffect(scene);
 const captureStart = new THREE.Vector3();
 const previousPreyPosition = new THREE.Vector3();
 const captureContact = new THREE.Vector3();
@@ -728,6 +734,7 @@ function startGame({ transition = false } = {}) {
   waterMotion = null;
   feeding.reset();
   effects.reset();
+  frenzyEffect.reset();
   sonar.reset();
   sonarMarkers.reset();
   sonarWave.reset();
@@ -1107,13 +1114,30 @@ function burst(point, count = 8) {
     });
   }
 }
-function eatEntity(entity, mouth, previousPrey = entity.mesh.position) {
+function eatEntity(entity, mouth, previousPrey = entity.mesh.position, dt = 0) {
   const { species, mesh } = entity;
   // 育幼区小鱼适度放宽接触范围，让幼年玩家穿过鱼群即可连贯进食。
   const learning =
     player.length < 4.5 && species.length < 1 && isNursery(position);
-  const biteRange = preyCaptureRadius(player.length, species.length, learning);
+  const activeFrenzy =
+    player.buffs.frenzy > 0 &&
+    !surface.airborne &&
+    mouth.y < WORLD.surfaceY &&
+    mesh.position.y < WORLD.surfaceY;
+  const biteRange = preyCaptureRadius(
+    player.length,
+    species.length,
+    learning,
+    activeFrenzy,
+  );
   if (entity.hiddenFor > 0 || !canEat(player, species.length)) return false;
+  // 狂食吸引仅作用于水下可食普通生物，先筛距离，再检查遮挡。
+  if (activeFrenzy) {
+    const distance = mouth.distanceTo(mesh.position);
+    const pull = frenzyPullDistance(distance, biteRange, player.length, dt);
+    if (pull > 0 && !blockedBetween(mouth, mesh.position))
+      mesh.position.lerp(mouth, pull / distance);
+  }
   // 末帧已接触时保留原判定；两端皆在外才补查同帧相对轨迹，不增加吞食半径。
   const direct = mouth.distanceToSquared(mesh.position) < biteRange * biteRange;
   const contact = direct
@@ -1222,14 +1246,14 @@ function updateEntities(dt) {
         entity.velocity,
       );
       mesh.userData.animate?.(elapsed + entity.seed, 1.4);
-      eatEntity(entity, mouth, previousPreyPosition);
+      eatEntity(entity, mouth, previousPreyPosition, dt);
       continue;
     }
     if (entity.disorientedUntil > player.elapsed) {
       mesh.visible = mesh.position.distanceTo(position) < 180;
       mesh.userData.animate?.(elapsed + entity.seed, 0.05);
       if (entity.telegraph) entity.telegraph.visible = false;
-      eatEntity(entity, mouth, previousPreyPosition);
+      eatEntity(entity, mouth, previousPreyPosition, dt);
       continue;
     }
     entity.mesh.userData.disoriented = false;
@@ -1471,7 +1495,7 @@ function updateEntities(dt) {
     if (distance < 180)
       mesh.userData.animate?.(elapsed + entity.seed, moveSpeed / 6);
     if (
-      !eatEntity(entity, mouth, previousPreyPosition) &&
+      !eatEntity(entity, mouth, previousPreyPosition, dt) &&
       predator &&
       sight &&
       distance < species.length * 0.43 + player.length * 0.2 &&
@@ -1671,20 +1695,21 @@ function updateHud() {
           ? "捕食鱼群，成长至 10 米"
           : player.length < 16
             ? "狩猎海洋霸主，探索深水区"
-            : player.length < 24
-              ? "挑战远古巨兽，成长至 24 米"
+            : player.length < 25
+              ? "挑战远古巨兽，成长至 25 米"
               : player.bossesDefeated
                 ? "深渊印记已得 · 成长至 30 米"
-                : "24 米后挑战主宰 · 接触咬击",
+                : "25 米后挑战主宰 · 接触咬击",
   );
   $("notification").style.opacity = elapsed < notificationUntil ? "1" : "0";
   setMarkup(
     $("buffs"),
     Object.entries(player.buffs)
       .filter(([, v]) => v > 0)
-      .map(
-        ([k, v]) =>
-          tr`<span>${k === "flow" ? "洋流之息" : "深渊狂食"} ${Math.ceil(v)}s</span>`,
+      .map(([k, v]) =>
+        k === "flow"
+          ? tr`<span>${"洋流之息"} ${Math.ceil(v)}s</span>`
+          : tr`<span>${"深渊狂食 · 吸食"} ${Math.ceil(v)}s</span>`,
       )
       .join(""),
   );
@@ -1741,7 +1766,7 @@ function updateHud() {
       Math.ceil(state.health) + " / " + state.maxHealth,
     );
     $("boss-tip").textContent = t(
-      player.length < 24 && !(player.buffs.frenzy > 0 && player.length >= 21)
+      player.length < state.species.minAttackLength
         ? "体型不足 · 借地形与技能间隙撤出领地"
         : tip,
     );
@@ -1888,6 +1913,18 @@ function frame(now) {
         .multiplyScalar(player.characterId === "squid" ? -1 : 1),
     });
     effects.update(dt, camera.position, position);
+    const intakePosition = capturePoint(captureContact);
+    frenzyEffect.update({
+      active:
+        player.buffs.frenzy > 0 &&
+        !surface.airborne &&
+        intakePosition.y < WORLD.surfaceY,
+      dt,
+      time: elapsed,
+      position: intakePosition,
+      length: player.length,
+      highQuality,
+    });
     updateSonar();
     $("ink-overlay").style.opacity = effects.ink * 0.83;
     lureFlash = Math.max(0, lureFlash - dt);
@@ -2111,6 +2148,7 @@ if (import.meta.env.DEV)
     entities,
     encounters,
     effects,
+    frenzyEffect,
     feeding,
     guide,
     surface,

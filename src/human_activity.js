@@ -15,7 +15,7 @@ import { HUMAN_CATALOG, createHumanModel } from "./vehicle_models.js";
 export { HUMAN_CATALOG, createHumanModel } from "./vehicle_models.js";
 
 /**
- * 创建有限数量的成人、潜艇和接触鱼雷，所有动画由主循环驱动。
+ * 创建有限数量的成人、潜艇和接触水雷，所有动画由主循环驱动。
  * @param {THREE.Scene} scene 主场景。
  * @param {object} options heightAt、worldColliders、audio、notify、effects、onEat、onDamage。
  * @returns {object} reset/update/onMovement、实体数组、动态碰撞数组与dispose。
@@ -46,7 +46,7 @@ export function createHumanActivity(
     models = [];
   const keep = (resource) => (resources.add(resource), resource);
   const sphere = keep(new THREE.SphereGeometry(0.22, 7, 5));
-  const ring = keep(new THREE.TorusGeometry(1, 0.035, 5, 40));
+  const ring = keep(new THREE.TorusGeometry(1, 0.009, 5, 64));
   let disposed = false,
     effectCursor = 0,
     nextWarning = 0,
@@ -142,7 +142,7 @@ export function createHumanActivity(
       new THREE.MeshBasicMaterial({
         color: 0xff6855,
         transparent: true,
-        opacity: 0.4,
+        opacity: 0.24,
         depthWrite: false,
       }),
     );
@@ -484,7 +484,12 @@ export function createHumanActivity(
     for (const hazard of hazards) {
       if (!hazard.active) continue;
       const point = hazard.mesh.position;
-      const target = { x: point.x, y: point.y, z: point.z, radius: 1.4 };
+      const target = {
+        x: point.x,
+        y: point.y,
+        z: point.z,
+        radius: hazard.mesh.userData.contactRadius,
+      };
       const touching = bodySweep(
         previous,
         desired,
@@ -501,7 +506,7 @@ export function createHumanActivity(
       audio?.hit?.(1.3);
       if (result.damaged)
         onDamage?.(HUMAN_RULES.torpedoDamage, point.clone(), hazard);
-      notify(result.damaged ? "鱼雷爆炸 · 生命 -28" : "鱼雷爆炸 · 已避开伤害");
+      notify(result.damaged ? "水雷爆炸 · 生命 -28" : "水雷爆炸 · 已避开伤害");
       contacts.push({ kind: "torpedo", entry: hazard, ...result });
     }
     for (const entity of entities) {
@@ -621,7 +626,7 @@ export function createHumanActivity(
       nearest = Math.min(nearest, distance);
       hazard.mesh.userData.animate?.(now + hazard.phase);
       hazard.warning.material.opacity =
-        0.23 + (Math.sin(now * 5 + hazard.phase) + 1) * 0.14;
+        0.18 + (Math.sin(now * 5 + hazard.phase) + 1) * 0.06;
       hazard.warning.scale.setScalar(
         5.5 + Math.sin(now * 2 + hazard.phase) * 0.6,
       );

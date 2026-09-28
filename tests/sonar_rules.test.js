@@ -8,7 +8,7 @@ import {
   detectSonarContacts,
   selectSonarContacts,
 } from "../src/sonar_rules.js";
-import { createPlayer, SPECIES } from "../src/simulation.js";
+import { canEat, createPlayer, SPECIES } from "../src/simulation.js";
 import { BOSS_SPECIES, createBossState } from "../src/boss_rules.js";
 
 const origin = { x: 0, y: -100, z: 0 };
@@ -139,16 +139,15 @@ test("仅探测启用且存活的领主，体型够大也只能多次接触交�
   const player = createPlayer();
   player.length = 30;
   assert.equal(detect([], [live], player)[0].status, "可交战 · 需多次接触");
-  player.length = 21;
+  player.length = 24;
   player.buffs.frenzy = 10;
+  assert.equal(detect([], [live], player)[0].eligible, false);
+  player.length = 25;
   assert.equal(detect([], [live], player)[0].eligible, true);
 });
 
-test("狂食捕食资格随玩家状态变化，未达到狂食门槛的猎手仍然危险", () => {
+test("声呐捕食资格始终按真实体长，狂食吸食不会把较大猎手标为可捕食", () => {
   const player = createPlayer();
-  // 该场景专测6米阶段的狂食边界，不依赖角色的幼年出生体长。
-  player.length = 6;
-  player.mass = 1;
   assert.equal(
     detect([fish("shark", 0, -100, 10)], [], player)[0].dangerous,
     true,
@@ -156,34 +155,42 @@ test("狂食捕食资格随玩家状态变化，未达到狂食门槛的猎手�
   player.buffs.frenzy = 5;
   assert.equal(
     detect([fish("shark", 0, -100, 10)], [], player)[0].status,
-    "可捕食",
+    "不可捕食",
   );
   assert.equal(
     detect([fish("sperm_whale", 0, -100, 10)], [], player)[0].dangerous,
     true,
   );
-  // 邓氏鱼为6米，与本场景玩家等长：狂食可捕食，普通状态仍不可吞食。
   assert.equal(
     detect([fish("dunkleosteus", 0, -100, 10)], [], player)[0].eligible,
-    true,
+    false,
   );
   player.buffs.frenzy = 0;
   assert.equal(
     detect([fish("dunkleosteus", 0, -100, 10)], [], player)[0].dangerous,
     true,
   );
-  player.buffs.frenzy = 5;
-  const whale = SPECIES.find((species) => species.kind === "sperm_whale");
-  player.length = whale.length / 1.6;
-  assert.equal(
-    detect([fish("sperm_whale", 0, -100, 10)], [], player)[0].eligible,
-    true,
-  );
-  player.length -= 0.001;
-  assert.equal(
-    detect([fish("sperm_whale", 0, -100, 10)], [], player)[0].dangerous,
-    true,
-  );
+  for (const length of [3, 23.99, 24, 25, 30]) {
+    player.length = length;
+    for (const frenzy of [0, 5]) {
+      player.buffs.frenzy = frenzy;
+      const entities = [
+        0.8, 2.999, 3, 6, 23.999, 24, 24.999, 25, 29.999, 30, 39,
+      ].map((preyLength) => ({
+        species: {
+          kind: `size-${preyLength}`,
+          length: preyLength,
+          predator: true,
+        },
+        position: { x: 0, y: -100, z: 10 },
+      }));
+      for (const contact of detect(entities, [], player)) {
+        assert.equal(contact.eligible, canEat(player, contact.length));
+        assert.equal(contact.eligible, contact.length < player.length);
+        assert.equal(contact.dangerous, !contact.eligible);
+      }
+    }
+  }
 });
 
 test("现代与古代24种普通生物均按目录体长与名称返回回声", () => {

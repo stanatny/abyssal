@@ -1,6 +1,12 @@
 # Current Development Handoff
 
-## Current update: English public presentation
+## Current update: vacation shoreline, mines, and suction-only Frenzy
+
+Baseline: published `4a3aa8a` on `main`. The user requested a Hawaii vacation background, horned spherical contact mines, and a Frenzy redesign. They then canceled all temporary-size and digestion behavior and requested removal of redundant code. The final candidate contains only a 30-second feeding reach/suction bonus. Ordinary eligibility and permanent growth use the original real-body rules; no temporary length, reserve state, or assimilation code remains. Abyss Lords require 25 real meters with no Frenzy bypass.
+
+Read [the current decisions](docs/feedback_v0_6_11.md) and [beach visual notes](docs/beach_visual_notes.md). Scene and guide share the mine model; its internal identifier remains `torpedo`. Beach adults are scenery beyond the swim boundary. Suction follows each character's established capture point and respects terrain occlusion. The candidate remains uncommitted and unpushed; official Pages still serves the baseline. Verification and local preview evidence belong in [verification](docs/verification.md).
+
+## Published update: English public presentation
 
 The user found Chinese copy in GitHub About and the README screenshot. The repository description is now English online. The local candidate replaces the README image with an actual English-interface capture and supplies English page-title, search-description, and Open Graph/Twitter metadata. Game menus and content remain bilingual. Root development rules now explicitly cover these public presentation surfaces.
 

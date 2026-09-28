@@ -113,7 +113,7 @@ export function tickVitals(
 }
 
 /**
- * 判断吞食资格；普通状态仅能吃更小的鱼，狂食状态可吃自身1.6倍长度以内的鱼。
+ * 判断吞食资格；始终只允许更小的普通猎物，狂食只改变近距吸食效果。
  * @param {object} player 玩家状态。
  * @param {number} preyLength 猎物长度，必须为正有限数。
  * @returns {boolean} 是否满足普通鱼的体长条件；主宰另走多阶段战斗规则。
@@ -121,9 +121,7 @@ export function tickVitals(
 export function canEat(player, preyLength) {
   if (player.dead || player.won || player.timedOut || !isPositive(preyLength))
     return false;
-  return player.buffs.frenzy > 0
-    ? preyLength <= player.length * 1.6
-    : preyLength < player.length;
+  return preyLength < player.length;
 }
 
 /**

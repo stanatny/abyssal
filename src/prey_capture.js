@@ -3,12 +3,14 @@
  * @param {number} playerLength 玩家体长。
  * @param {number} preyLength 猎物体长。
  * @param {boolean} nurseryLearning 是否沿用育幼区小鱼辅助。
+ * @param {boolean} frenzy 是否启用狂食近身范围奖励，仍使用真实体长。
  * @returns {number} 世界单位半径；领主侧击和敌方伤害不使用此规则。
  */
 export function preyCaptureRadius(
   playerLength,
   preyLength,
   nurseryLearning = false,
+  frenzy = false,
 ) {
   if (
     !Number.isFinite(playerLength) ||
@@ -20,7 +22,40 @@ export function preyCaptureRadius(
   const base =
     playerLength * 0.22 + preyLength * 0.28 + (nurseryLearning ? 0.25 : 0);
   // 前期约24%的接触容错，长成巨兽后增量封顶0.65米，避免远距离吸入。
-  return base + Math.min(0.65, base * 0.24);
+  const normal = base + Math.min(0.65, base * 0.24);
+  return normal + (frenzy ? Math.min(1.6, normal * 0.3) : 0);
+}
+
+/** 根据真实体长返回狂食接触区外的吸引宽度；不影响领主、伤害与刚体碰撞。 */
+export function frenzyReachBonus(playerLength) {
+  return Number.isFinite(playerLength) && playerLength > 0
+    ? Math.min(5, 2 + playerLength * 0.12)
+    : 0;
+}
+
+/**
+ * 计算一帧吸引距离，外缘柔和增强，靠近嘴部收束；调用方必须先检查资格与遮挡。
+ * @param {number} distance 当前猎物中心至捕获点的距离。
+ * @param {number} captureRadius 当前普通猎物接触半径。
+ * @param {number} playerLength 真实玩家体长。
+ * @param {number} dt 本帧活动秒数。
+ * @returns {number} 沿嘴部方向的移动距离，不会越过中心。
+ */
+export function frenzyPullDistance(distance, captureRadius, playerLength, dt) {
+  if (
+    ![distance, captureRadius, playerLength, dt].every(Number.isFinite) ||
+    distance <= captureRadius ||
+    captureRadius <= 0 ||
+    playerLength <= 0 ||
+    dt <= 0
+  )
+    return 0;
+  const reach = frenzyReachBonus(playerLength);
+  const weight = (captureRadius + reach - distance) / reach;
+  if (weight <= 0) return 0;
+  const speed =
+    12 + Math.min(12, playerLength * 0.6) + 10 * Math.min(1, weight);
+  return Math.min(distance, speed * Math.min(dt, 0.1));
 }
 
 /**

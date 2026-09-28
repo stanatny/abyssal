@@ -1,4 +1,10 @@
 export const UI_EN = Object.freeze({
+  "挑战远古巨兽，成长至 25 米": "Challenge ancient giants · Reach 25m",
+  "25 米后挑战主宰 · 接触咬击": "Challenge a lord at 25m · Attack on contact",
+  "水雷爆炸 · 生命 -28": "Mine exploded · Health -28",
+  "水雷爆炸 · 已避开伤害": "Mine exploded · Damage avoided",
+  "附近有接触水雷 · 避开红色警示圈":
+    "Contact mine nearby · Avoid the red warning ring",
   转向查看: "Turn",
   "生命 +{0}": "Health +{0}",
   "无法启动 3D 画面，请使用支持 WebGL 2 的浏览器并开启硬件加速。":
@@ -61,9 +67,7 @@ export const UI_EN = Object.freeze({
   "已能探索外礁 · 留意单独猎手": "Explore the outer reef · Watch for hunters",
   "捕食鱼群，成长至 10 米": "Feed on schools · Reach 10m",
   "狩猎海洋霸主，探索深水区": "Hunt predators · Explore deeper waters",
-  "挑战远古巨兽，成长至 24 米": "Challenge ancient giants · Reach 24m",
   "深渊印记已得 · 成长至 30 米": "Abyssal mark earned · Reach 30m",
-  "24 米后挑战主宰 · 接触咬击": "Challenge a lord at 24m · Attack on contact",
   洋流之息: "Ocean Current",
   深渊狂食: "Abyssal Frenzy",
   技能蓄力: "Winding up",
@@ -173,12 +177,8 @@ export const UI_EN = Object.freeze({
     "Armored hull · Back away, then sprint to ram",
   "潜艇艇壳破裂 · 3 名潜水员正在游出": "Hull breached · 3 divers escaping",
   "艇壳受损 · 还需 {0} 次冲撞": "Hull damaged · {0} more hits needed",
-  "鱼雷爆炸 · 生命 -28": "Torpedo explosion · Health -28",
-  "鱼雷爆炸 · 已避开伤害": "Torpedo explosion · Damage avoided",
   "上方海面有人类活动 · 向上游可以观察游泳者":
     "Human activity above · Rise to find swimmers",
-  "附近有接触鱼雷 · 避开红色警示圈":
-    "Contact torpedoes nearby · Avoid the red rings",
   "漩涡锁定游动路径 · 变向离开光圈，借岩柱阻断牵引":
     "Vortex tracks your path · Turn out of the ring; use pillars to block its pull",
   "快速上浮或下潜，避开脉冲所在水层":
@@ -266,4 +266,6 @@ export const UI_EN = Object.freeze({
   "休息一下，再继续下潜。": "Take a breath, then dive again.",
   重新开始: "Restart",
   "正在唤醒海洋…": "Waking the ocean…",
+  "深渊狂食 · 吸食": "Frenzy · Suction",
+  "30 秒近距吸食，捕食范围扩大": "30s suction with a wider feeding reach",
 });

@@ -164,11 +164,11 @@ function buildRewardDetails() {
     },
     frenzy: {
       latin: "ABYSSAL FRENZY",
-      role: "越级吞噬",
-      keywords: "吞噬 狂食 越级 捕食",
-      text: tr`拾取后的${REWARDS.frenzy.duration}秒内，可吞食体长不超过自身1.6倍的普通猎物。对领主，交战体长门槛降至21米；仍需从侧翼朝向躯干接触咬击，每次命中后退出再接近，至少五次有效攻击才能击败领主。重复拾取同类奖励会刷新为${REWARDS.frenzy.duration}秒，不累加时长。`,
+      role: "近距吸食",
+      keywords: "吞噬 狂食 捕食 吸食 范围",
+      text: tr`持续${REWARDS.frenzy.duration}秒：扩大近身吞噬范围，将附近无遮挡、原本就可捕食的水下生物吸向嘴部。不会临时变大，也不能越级捕食；吃鱼仍按正常规则回血和成长。`,
       counter:
-        "出生浅滩正前方略偏右设有固定狂食点，拾取后45秒原地刷新。先找好合适的猎物再拾取。奖励不会让角色无敌；挑战领主时仍需躲避技能，并留意生命与剩余时间。",
+        "沿着鱼群边缘游过，吸食可以减少反复对准。浅滩固定补给45秒刷新，再次拾取只刷新30秒效果。大于或等于自己体长的生物、水雷、潜艇和领主不会被吸入；礁石与船体会阻挡吸食。领主仍需真实体长25米，并通过多次侧翼攻击击败。",
     },
   };
 }
@@ -399,7 +399,7 @@ export function createOceanGuide(trigger) {
     }
     const combat =
       entry.category === "lord"
-        ? "24米可交战 · 技能后3秒恢复窗 · 至少5次侧翼攻击，命中后需脱离再接近"
+        ? "25米可交战 · 技能后3秒恢复窗 · 至少5次侧翼攻击，命中后需脱离再接近"
         : entry.category === "player"
           ? tr`巡游 ${characterMovement(entry.characterId).cruiseSpeed} m/s · 冲刺 ${characterMovement(entry.characterId).sprintSpeed} m/s`
           : HUNTER_ABILITIES[entry.kind]

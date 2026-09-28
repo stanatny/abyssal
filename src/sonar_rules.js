@@ -88,9 +88,7 @@ export function detectSonarContacts({
     const elevation = dy > 12 ? "上方" : dy < -12 ? "下方" : "同层";
     const playerAvailable = !player.dead && !player.won && !player.timedOut;
     const eligible = boss
-      ? playerAvailable &&
-        player.length >=
-          (player.buffs?.frenzy > 0 ? 21 : species.minAttackLength)
+      ? playerAvailable && player.length >= species.minAttackLength
       : canEat(player, species.length);
     const dangerous = boss || (species.predator && !eligible);
     contacts.push({

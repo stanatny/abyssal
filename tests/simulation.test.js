@@ -114,17 +114,21 @@ test("攻击无敌避免连续接触伤害，期满后可再次受伤", () => {
   assert.equal(player.health, 30);
 });
 
-test("普通吞食只允许更小的鱼，狂食允许1.6倍并在30秒后失效", () => {
+test("狂食持续30秒，开始和结束都不改变只能吃小鱼的资格", () => {
   const player = createAtLength(6);
   assert.equal(canEat(player, 5.9), true);
   assert.equal(canEat(player, 6), false);
   assert.equal(canEat(player, 8), false);
   collectPickup(player, "frenzy");
-  assert.equal(canEat(player, 9.6), true);
-  assert.equal(canEat(player, 9.61), false);
+  assert.equal(canEat(player, 5.9), true);
+  assert.equal(canEat(player, 6), false);
+  assert.equal(canEat(player, 8), false);
   tickVitals(player, 29.9);
-  assert.equal(canEat(player, 8), true);
+  assert.ok(player.buffs.frenzy > 0);
+  assert.equal(canEat(player, 8), false);
   tickVitals(player, 0.11);
+  assert.equal(player.buffs.frenzy, 0);
+  assert.equal(canEat(player, 5.9), true);
   assert.equal(canEat(player, 8), false);
 });
 
@@ -390,12 +394,12 @@ test("胜利或死亡后不再累计时间，新远征清除到时状态", () =>
   assert.equal(fresh.timedOut, false);
 });
 
-test("24米满饱留出一次75秒领主战窗口，小鱼仍无法长期满足大体型需求", () => {
+test("25米满饱留出一次75秒领主战窗口，小鱼仍无法长期满足大体型需求", () => {
   const player = createPlayer();
-  player.length = 24;
-  player.mass = 64;
+  player.length = 25;
+  player.mass = (25 / 6) ** 3;
   tickVitals(player, 75);
-  approximately(player.hunger, 16.75);
+  approximately(player.hunger, 13.375);
   assert.equal(player.health, 100);
 
   player.hunger = 20;
@@ -404,7 +408,7 @@ test("24米满饱留出一次75秒领主战窗口，小鱼仍无法长期满足�
   for (let index = 0; index < 12; index++) consumePrey(player, reefFish);
   tickVitals(player, 12);
   assert.ok(player.hunger < start);
-  assert.ok(player.length < 24.1);
+  assert.ok(player.length < 25.1);
 });
 
 test("幼年首口长约7厘米，首群12尾达到3.6至3.9米且还不能捕食锤头鲨", () => {
@@ -505,7 +509,7 @@ test("3米幼年参考路线约17分52秒，慢25%的路线跨20分钟后继续�
   }
   approximately(quick.player.elapsed, 857.6);
   approximately(normal.player.elapsed, 1072);
-  approximately(completed.player.elapsed, 1415);
+  approximately(completed.player.elapsed, 1440);
   assert.ok(quick.player.elapsed < normal.player.elapsed);
   assert.ok(normal.player.elapsed < completed.player.elapsed);
   const { player: atTwentyMinutes } = referenceExpedition(1.25, 20 * 60);
@@ -526,11 +530,11 @@ test("3米幼年参考路线约17分52秒，慢25%的路线跨20分钟后继续�
   );
 });
 
-test("显式6米基线的快慢参考路线与幼年改动前完全相同", () => {
+test("显式6米基线仍可完成快慢参考路线，慢速路线包括25米领主门槛", () => {
   for (const [pace, expected] of [
     [0.8, 829.6],
     [1, 1037],
-    [1.25, 1371.25],
+    [1.25, 1396.25],
   ]) {
     const { player } = referenceExpedition(pace, Infinity, 6);
     assert.equal(player.won, true);
@@ -540,7 +544,7 @@ test("显式6米基线的快慢参考路线与幼年改动前完全相同", () =
 });
 
 // 事件节奏模型，不代表真实导航试玩：有效捕食间隔已包含寻找与追逐；
-// 另计两次转场及战损，24米后假定75秒内抓住五次虚弱窗口击败克拉肯。
+// 另计两次转场及战损，25米后假定75秒内抓住五次虚弱窗口击败克拉肯。
 // 沿用金枪鱼7秒、蝠鲼12秒、白鲨10秒、鮟鱇11秒、章鱼13秒、邓氏鱼16秒；
 // 新增相近猎手取10/16秒，只有两只的龙王鲸与巨齿鲨假设20秒。
 // 这些间隔没有模拟地图刷新与稀有领地，不能当作自然整局试玩时长。
@@ -614,7 +618,7 @@ function referenceExpedition(paceScale, stopAt = Infinity, startLength) {
     meals < 500 && !player.won && !player.dead && !player.timedOut;
     meals++
   ) {
-    if (player.length >= 24 && !player.bossesDefeated) {
+    if (player.length >= 25 && !player.bossesDefeated) {
       if (!advance(30)) return report;
       takeDamage(player, 40);
       if (!advance(45)) return report;

@@ -10,6 +10,7 @@ import {
   addLeafDetail,
 } from "./ocean_visuals.js";
 import { WORLD } from "./world_config.js";
+import { createBeachEnvironment, islandHeight } from "./beach_environment.js";
 import { createOceanExtra, LANDMARK_CLEARINGS } from "./ocean_extra.js";
 
 /**
@@ -25,7 +26,7 @@ export function seabedHeight(x, z) {
   const shelf = Math.sin(x * 0.034 + z * 0.018) * 3.4;
   const ridges = Math.sin(x * 0.077) * Math.cos(z * 0.041) * 2.1;
   const trenchWall = Math.max(0, Math.abs(x) - 94) * 0.16;
-  return slope + shelf + ridges + trenchWall;
+  return islandHeight(x, z, slope + shelf + ridges + trenchWall);
 }
 
 /**
@@ -62,13 +63,13 @@ export function createOcean(scene) {
   const terrainGeometry = track(
     new THREE.PlaneGeometry(
       WORLD.maxX - WORLD.minX + 120,
-      WORLD.maxZ - WORLD.minZ + 160,
+      WORLD.maxZ - WORLD.minZ + 80,
       140,
       280,
     ),
   );
   terrainGeometry.rotateX(-Math.PI / 2);
-  terrainGeometry.translate(0, 0, (WORLD.minZ + WORLD.maxZ) * 0.5);
+  terrainGeometry.translate(0, 0, (WORLD.minZ + WORLD.maxZ - 80) * 0.5);
   const terrainPosition = terrainGeometry.attributes.position;
   const terrainColors = [];
   const sand = new THREE.Color("#c2b48b");
@@ -493,7 +494,7 @@ export function createOcean(scene) {
     }),
   );
   const surface = addMesh(
-    new THREE.PlaneGeometry(1100, 1800, 52, 84),
+    new THREE.PlaneGeometry(1100, 2600, 52, 120),
     surfaceMaterial,
     [0, WORLD.surfaceY, (WORLD.minZ + WORLD.maxZ) * 0.5],
   );
@@ -851,6 +852,8 @@ export function createOcean(scene) {
     worldUniforms,
   });
 
+  const beach = createBeachEnvironment(root, { seabedHeight });
+
   return {
     obstacles,
     colliders,
@@ -858,6 +861,7 @@ export function createOcean(scene) {
     update(time, playerPosition) {
       worldUniforms.oceanTime.value = time;
       extra.update(time, playerPosition);
+      beach.update(time);
       for (let i = 0; i < moteCount; i += 1) {
         const seed = i * 4;
         const point = i * 3;
@@ -906,6 +910,7 @@ export function createOcean(scene) {
     dispose() {
       scene.remove(root);
       extra.dispose();
+      beach.dispose();
       root.traverse((node) => {
         if (node.isInstancedMesh) node.dispose();
       });

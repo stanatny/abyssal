@@ -1021,8 +1021,7 @@ export function createEncounters(
       const mouth = position
         .clone()
         .addScaledVector(forward, player.length * 0.38);
-      const minimumLength =
-        player.buffs.frenzy > 0 ? 21 : state.species.minAttackLength;
+      const minimumLength = state.species.minAttackLength;
       const canAttempt =
         inTerritory &&
         !player.dead &&

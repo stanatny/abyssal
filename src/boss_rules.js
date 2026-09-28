@@ -166,7 +166,7 @@ export function isBossFlankContact({
 }
 
 /**
- * 结算接触后的自动咬击；只有虚弱窗口可造成高伤害，狂食只降低体长门槛。
+ * 结算接触后的自动咬击；只有虚弱窗口可造成高伤害，交战始终使用真实体长。
  * @param {object} player 玩家状态，将更新全局咬击冷却和最终战利品。
  * @param {object} boss 主宰状态，将更新生命、冷却和击败状态。
  * @param {{inRange?:boolean,isFlank?:boolean}} options 场景确认嘴部接触实体、无遮挡且从侧翼朝内进攻。
@@ -186,7 +186,7 @@ export function hitBoss(
   if (player.dead || player.won || player.timedOut)
     return failure("player_unavailable");
   if (boss.defeated) return failure("boss_defeated");
-  const minimum = player.buffs.frenzy > 0 ? 21 : boss.species.minAttackLength;
+  const minimum = boss.species.minAttackLength;
   if (player.length < minimum) return failure("too_small");
   if (!inRange) return failure("out_of_range");
   if (!isFlank) return failure("armored_angle");
@@ -234,7 +234,7 @@ export const BOSS_SPECIES = Object.freeze(
       label: "漩涡主宰 · 克拉肯",
       length: 42,
       health: 180,
-      minAttackLength: 24,
+      minAttackLength: 25,
       speed: 37,
       engageRange: 135,
       lockWindow: 0.8,
@@ -254,7 +254,7 @@ export const BOSS_SPECIES = Object.freeze(
       label: "遗迹主宰 · 玛雅巨兽",
       length: 48,
       health: 210,
-      minAttackLength: 24,
+      minAttackLength: 25,
       speed: 38,
       engageRange: 145,
       lockWindow: 0.75,
@@ -274,7 +274,7 @@ export const BOSS_SPECIES = Object.freeze(
       label: "三首主宰 · 海德拉",
       length: 46,
       health: 220,
-      minAttackLength: 24,
+      minAttackLength: 25,
       speed: 39,
       engageRange: 155,
       lockWindow: 0.6,
@@ -294,7 +294,7 @@ export const BOSS_SPECIES = Object.freeze(
       label: "深渊主宰 · 利维坦",
       length: 55,
       health: 240,
-      minAttackLength: 24,
+      minAttackLength: 25,
       speed: 40,
       engageRange: 130,
       lockWindow: 0.7,

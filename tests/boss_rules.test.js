@@ -87,15 +87,21 @@ test("离开领地或死亡会终止攻击，回巢后保留已造成的伤害",
   assert.equal(boss.phase, "dormant");
 });
 
-test("普通攻击门槛24米，狂食降至21米但不会允许直接吞噬主宰", () => {
-  const boss = createBossState(BOSS_SPECIES[0]);
-  const player = grownPlayer(23);
-  assert.equal(hitBoss(player, boss, FLANK).reason, "too_small");
-  collectPickup(player, "frenzy");
-  assert.equal(hitBoss(player, boss, FLANK).hit, true);
-  const tiny = grownPlayer(20.9);
-  collectPickup(tiny, "frenzy");
-  assert.equal(hitBoss(tiny, boss, FLANK).reason, "too_small");
+test("四位领主始终要求真实25米，狂食不会降低门槛或允许直接吞噬", () => {
+  for (const species of BOSS_SPECIES) {
+    assert.equal(species.minAttackLength, 25);
+    for (const frenzy of [false, true]) {
+      const boss = createBossState(species);
+      const player = grownPlayer(24);
+      if (frenzy) collectPickup(player, "frenzy");
+      assert.equal(hitBoss(player, boss, FLANK).reason, "too_small");
+      player.length = 24.999;
+      assert.equal(hitBoss(player, boss, FLANK).reason, "too_small");
+      player.length = 25;
+      player.mass = (25 / 6) ** 3;
+      assert.equal(hitBoss(player, boss, FLANK).hit, true);
+    }
+  }
   const full = grownPlayer(30);
   collectPickup(full, "frenzy");
   const before = structuredClone(full);
@@ -206,8 +212,8 @@ test("虚弱期间咬击伤害显著增加，所有主宰均需至少五次攻�
   }
 });
 
-test("击败奖励只结算一次，24米先击败主宰后还需继续成长", () => {
-  const player = grownPlayer(24);
+test("击败奖励只结算一次，25米先击败主宰后还需继续成长", () => {
+  const player = grownPlayer(25);
   player.health = 20;
   player.hunger = 10;
   const boss = createBossState(BOSS_SPECIES[0]);

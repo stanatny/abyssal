@@ -4,8 +4,9 @@ import { addSurfaceDetail } from "./ocean_visuals.js";
 import { mergeGeometries } from "three/addons/utils/BufferGeometryUtils.js";
 import { WORLD } from "./world_config.js";
 import { createArticulatedHuman } from "./human_models.js";
+import { createContactMine } from "./contact_mine.js";
 
-/** 图鉴与场景共用的成人、潜艇与鱼雷资料；人类角色全部为成年人。 */
+/** 图鉴与场景共用的成人、潜艇与水雷资料；人类角色全部为成年人。 */
 export const HUMAN_CATALOG = Object.freeze([
   {
     id: "swimmer",
@@ -57,8 +58,8 @@ export const HUMAN_CATALOG = Object.freeze([
   {
     id: "torpedo",
     kind: "torpedo",
-    name: "接触鱼雷",
-    latin: "CONTACT TORPEDO",
+    name: "接触水雷",
+    latin: "CONTACT MINE",
     category: "human",
     role: "深海危险物",
     color: "#ff826e",
@@ -66,8 +67,8 @@ export const HUMAN_CATALOG = Object.freeze([
     size: "3.6 m",
     habitat: `${220 * WORLD.displayDepthScale}—${550 * WORLD.displayDepthScale} m`,
     ability: "接触爆炸",
-    text: "带红色闪灯的危险鱼雷静止悬浮在深海。碰到后爆炸并消失，命中可造成28点生命损失；它不是食物。",
-    counter: "留意红色警示环，侧向绕行。鱼雷不会主动追踪虎鲸。",
+    text: "带触角和红色警示灯的球形水雷静止悬浮在深海。碰到后爆炸并消失，命中可造成28点生命损失；它不是食物。",
+    counter: "留意球壳触角和红色警示环，留出距离绕行。水雷不会主动追踪角色。",
   },
 ]);
 
@@ -81,6 +82,7 @@ export const HUMAN_CATALOG = Object.freeze([
 export function createHumanModel(kind, length = 1, sex = "male") {
   if (kind === "swimmer" || kind === "diver")
     return createArticulatedHuman(kind, length, sex);
+  if (kind === "torpedo") return createContactMine(length);
   const root = new THREE.Group();
   root.name = kind;
   const resources = new Set();
@@ -218,22 +220,6 @@ export function createHumanModel(kind, length = 1, sex = "male") {
       blade.rotation.y = 0.32;
     }
     animated.push({ propeller });
-  } else if (kind === "torpedo") {
-    part(sphere, "#526679", [0.12, 0.12, 0.47], [0, 0, 0]);
-    part(sphere, "#b54835", [0.115, 0.115, 0.16], [0, 0, -0.34]);
-    const light = part(
-      sphere,
-      "#ff4c35",
-      [0.06, 0.045, 0.1],
-      [0, 0.12, -0.18],
-      root,
-      true,
-    );
-    for (let i = 0; i < 4; i++) {
-      const fin = part(box, "#adb3aa", [0.025, 0.32, 0.15], [0, 0, 0.32]);
-      fin.rotation.z = (i * Math.PI) / 2;
-    }
-    animated.push({ light });
   } else throw new Error(`Unknown human activity model: ${kind}`);
   batchVehicleParts(root, keep);
   root.scale.setScalar(length);
@@ -242,9 +228,6 @@ export function createHumanModel(kind, length = 1, sex = "male") {
   root.userData.animate = (time) => {
     for (const item of animated) {
       if (item.propeller) item.propeller.rotation.z = time * 3;
-      if (item.light)
-        item.light.material.emissiveIntensity =
-          0.6 + (Math.sin(time * 7) + 1) * 1.1;
     }
   };
   let disposed = false;
@@ -265,7 +248,7 @@ function batchVehicleParts(root, keep) {
       groups.get(child.material).push(child);
     }
   for (const [material, children] of groups) {
-    // 鱼雷闪灯材质仍由原对象引用驱动；合批共享同一个材质对象。
+    // 同材质的静态艇壳部件合并，独立螺旋桨仍由父级驱动。
     const geometries = children.map((child) => {
       child.updateMatrix();
       const g = child.geometry.index

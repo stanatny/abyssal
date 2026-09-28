@@ -6,6 +6,8 @@ A third-person ocean survival game for the browser. Choose an Orca or Giant Squi
 
 Published version: **v0.6.10**. GitHub Actions deploys `main` to the play URL above. This release brings together the visual redraw, nursery shallows, audio improvements, free swimming, and feeding animations for both characters.
 
+Working candidate (not yet published): a vacation shoreline, spherical Contact Mines, and suction-only Frenzy. The rules below describe this candidate; see the [current update](docs/feedback_v0_6_11.md).
+
 ![ABYSSAL v0.6.10 English interface: Hawaii fantasy region and character selection](docs/images/abyssal_v0_6_10.png)
 
 Play in a modern desktop or phone browser with WebGL 2 support—no account or download required. Select a character on the home screen and start an expedition. Music activates after the first interaction. Fish feeding uses short water-Foley intake, bite, and bubble tails, with three variants that avoid consecutive repetition. Adult male/female swimmers and divers use corresponding performed human recordings at their original pitch, gradually muffled later in the clip to suggest submersion. Prey-gathering transitions and blood clouds remain. Sound can be disabled at any time. Assets are CC0; see [audio sources](docs/audio_sources.md).
@@ -25,8 +27,8 @@ Start as a **3-meter juvenile**, eat smaller creatures, and avoid larger hunters
 - **Safe shallows:** Dense small-fish schools surround spawn. Hunters cannot enter or follow you in from offshore. Grow to about 4 meters before exploring the outer reef, where one hammerhead and one white shark patrol separate areas. The full hunter ecosystem lies farther down.
 - **Food and survival:** Feeding replenishes hunger, repairs health first, then spends the remaining benefit on growth. Tiny fish become less useful as you grow, encouraging deeper exploration.
 - **Sprint and escape:** Sprint drains stamina; releasing it allows recovery. Empty stamina does not directly damage health, but empty hunger does. Use reefs, rock columns, and hulls to break pursuit. Solid terrain cannot be crossed directly.
-- **Surface and deep water:** Build momentum by sprinting underwater, then cross upward through the surface to breach and catch gulls. Ruins, volcanoes, submarines, and contact-explosive torpedoes await below.
-- **Lord battles:** Two lords appear randomly each round. Normally you must reach 24 meters to damage them, attack inward from a flank, leave contact, and approach again. At least five effective attacks are required; they cannot be swallowed whole.
+- **Surface and deep water:** Build momentum by sprinting underwater, then cross upward through the surface to breach and catch gulls. Ruins, volcanoes, submarines, and spherical contact mines await below.
+- **Lord battles:** Two lords appear randomly each round. You must reach 25 meters to damage them, attack inward from a flank, leave contact, and approach again. At least five effective attacks are required; they cannot be swallowed whole.
 - **Find the nursery again:** Persistent radar shows location, heading, shallow/deep zones, and the direction of spawn. Pursuit and lord encounters change the music, while ability warnings signal danger.
 
 ## Choose your character
@@ -66,7 +68,7 @@ The **Hawaii fantasy region** is currently open. Mariana Trench, Bermuda Triangl
 | Ocean Predators      | Deep-sea anglerfish, hammerhead, Giant Pacific Octopus, great white shark, and sperm whale, with distinct sizes, depth ranges, and behavior                  |
 | Ancient Giants       | Dunkleosteus, pliosaur, plesiosaur, mosasaur, Basilosaurus, and megalodon                                                                                    |
 | Abyss Lords          | Kraken, an original Maya-inspired monster, Three-Headed Hydra, and Leviathan, using vortices, pulses, repeated breath attacks, and high-speed charges        |
-| Human activity       | Adult swimmers, adult divers, submarines, and torpedoes; submarines require three separate rams meeting size and speed thresholds                            |
+| Human activity       | Adult swimmers, adult divers, submarines, and horned contact mines; submarines require three separate rams meeting size and speed thresholds                 |
 
 The home-screen **Ocean Guide** contains **35 character, creature, and human-activity entries**, including **24 ordinary marine species**, plus a separate rewards section. It follows system light/dark appearance and responds to changes while open. Swimmer/diver details offer male/female model previews. **Giant Squid is playable only; the wild cephalopod is the Giant Pacific Octopus.**
 
@@ -76,11 +78,13 @@ This region mixes modern animals, Ancient Giants, and fantasy lords; it is not a
 
 The guide explains rewards, and active effects appear in the HUD after pickup. Repeating a timed reward refreshes its duration rather than stacking it. A fixed Frenzy pickup sits ahead and slightly right of nursery spawn and respawns in place 45 seconds after collection.
 
-| Reward         | Appearance         | Effect                                                                                                                                            |
-| -------------- | ------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Stamina Spring | Green cross        | Instantly restores full stamina and clears exhaustion.                                                                                            |
-| Ocean Current  | Blue double arrows | Sprint costs no stamina for 30 seconds.                                                                                                           |
-| Abyssal Frenzy | Orange fangs       | For 30 seconds, ordinary prey up to 1.6× your length is edible. Lord attack threshold falls to 21 meters, still requiring repeated flank attacks. |
+| Reward         | Appearance         | Effect                                                                                                                                                                                                              |
+| -------------- | ------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Stamina Spring | Green cross        | Instantly restores full stamina and clears exhaustion.                                                                                                                                                              |
+| Ocean Current  | Blue double arrows | Sprint costs no stamina for 30 seconds.                                                                                                                                                                             |
+| Abyssal Frenzy | Orange fangs       | For 30 seconds, close-range feeding expands and nearby edible underwater prey are drawn toward your mouth. It does not enlarge your body or let you eat larger creatures; normal feeding still heals and grows you. |
+
+Frenzy changes only capture reach and suction. It does not alter feeding eligibility, body size, or growth rewards. Rocks and hulls block suction; creatures at least as long as you, lords, submarines, and mines cannot be pulled in. Collecting it again refreshes its 30-second duration, and growth from normal meals remains after it expires.
 
 ## Local development
 

@@ -19,6 +19,6 @@ export const REWARDS = Object.freeze({
     symbol: "⌁",
     color: "#ffba70",
     duration: 30,
-    effect: "30 秒越级捕食",
+    effect: "30 秒近距吸食，捕食范围扩大",
   },
 });
