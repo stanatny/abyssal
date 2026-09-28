@@ -1,4 +1,5 @@
 import * as THREE from "three";
+import { bindPlayerAppendage, addFeedingMouth } from "./player_motion.js";
 import {
   skinMaterial,
   sampleSection,
@@ -63,9 +64,13 @@ const M = {
 
 function buildSquid(root, motions) {
   const inner = new THREE.Group();
+  inner.name = "squid_swimming_frame";
+  // 默认采用外套膜尾端领先、腕足拖后的 tail-first 游姿；大王乌贼也能腕端领先游动。
+  inner.rotation.y = 0;
   root.add(inner);
-  // 纤细火箭形外套膜，喷流推进时腕足拖在身后。
-  add(
+  addFeedingMouth(root, inner, [0, -0.004, 0.09]);
+  // 巡游、冲刺和喷射保持相同朝向，依靠鳍与外套膜表达推进。
+  const mantle = add(
     inner,
     cached("squid_mantle", () =>
       formColored(
@@ -83,10 +88,15 @@ function buildSquid(root, motions) {
     ),
     M.body,
   );
+  mantle.name = "squid_mantle";
+  mantle.userData.keepSeparate = true;
   for (const side of [-1, 1]) {
-    // 菱形的末端鳍长在外套膜尖端，微微外张。
+    // 独立鳍骨骼让波沿鳍缘传播，冲刺时逐渐收拢。
+    const fin = new THREE.Group();
+    fin.name = `squid_fin_${side}`;
+    inner.add(fin);
     add(
-      inner,
+      fin,
       cached(`squid_fin_${side}`, () =>
         finSolid(
           mirrorOutline(
@@ -104,7 +114,24 @@ function buildSquid(root, motions) {
         ),
       ),
       M.squidFin,
-    ).rotation.z = -side * 0.24;
+    );
+    const finBones = bindPlayerAppendage(
+      fin,
+      `squid_fin_${side}`,
+      [-0.5, -0.4, -0.3, -0.2],
+    );
+    motions.push((t, effort, state) => {
+      const folded = Math.max(state.boost, state.jet);
+      fin.rotation.z = -side * (0.22 + folded * 0.64);
+      finBones.forEach((bone, index) => {
+        bone.rotation.x =
+          Math.sin(t * 1.35 - index * 0.95) *
+          (0.16 - folded * 0.1) *
+          (index ? 1 : 0.35);
+        bone.rotation.z =
+          side * Math.sin(t * 1.35 - index * 0.85) * (0.15 - folded * 0.09);
+      });
+    });
     // 虹膜嵌入连续头部，眼球仅略高于皮肤，避免球形眼柄。
     blob(inner, M.squidFin, [side * 0.041, 0, 0.047], [0.008, 0.025, 0.027]);
     blob(inner, M.black, [side * 0.047, 0, 0.047], [0.004, 0.02, 0.023]);
@@ -161,7 +188,8 @@ function buildSquid(root, motions) {
     }),
     M.squid,
   );
-  // 八条细腕成束拖曳，各自带相位差的缓慢扭动。
+  blob(inner, M.black, [0, -0.004, 0.099], [0.013, 0.012, 0.015]);
+  // 八条腕足以连续蒙皮变形，吸盘与腕部共享权重，根部保持稳定。
   for (let index = 0; index < 8; index++) {
     const angle = (index / 8) * Math.PI * 2;
     const c = Math.cos(angle),
@@ -214,9 +242,29 @@ function buildSquid(root, motions) {
         sucker.scale.setScalar(radius * 0.47);
       }
     }
-    motions.push((t, effort) => {
-      arm.rotation.z = Math.sin(t * 0.55 + angle) * (0.13 + effort * 0.03);
-      arm.rotation.x = Math.cos(t * 0.48 + angle * 1.3) * 0.08;
+    const bones = bindPlayerAppendage(
+      arm,
+      `squid_arm_${index}`,
+      [0, 0.08, 0.17, 0.27, 0.38],
+    );
+    motions.push((t, effort, state) => {
+      const folded = Math.max(state.boost, state.jet);
+      bones.forEach((bone, joint) => {
+        const distal = joint / (bones.length - 1);
+        const wave =
+          Math.sin(t - joint * 0.8 + angle) *
+          (0.04 + distal * 0.15) *
+          (1 - folded * 0.48);
+        const curl = state.feed * distal * 0.52;
+        const narrow = folded * 0.055;
+        bone.rotation.x =
+          -s * wave +
+          c * Math.sin(t - joint * 0.9 + angle) * distal * 0.035 +
+          s * (narrow + curl) -
+          state.pitchInput * distal * 0.035;
+        bone.rotation.y =
+          c * wave - c * (narrow + curl) + state.turn * distal * 0.075;
+      });
     });
   }
   // 两条捕食触腕显著更长，末端带穗状吸盘球。
@@ -254,14 +302,41 @@ function buildSquid(root, motions) {
         [0.005, 0.003, 0.005],
       );
     }
-    motions.push((t, effort) => {
-      tentacle.rotation.y = Math.sin(t * 0.45 + side) * (0.1 + effort * 0.02);
-      tentacle.rotation.x = Math.cos(t * 0.38 + side * 2) * 0.06;
+    const bones = bindPlayerAppendage(
+      tentacle,
+      `squid_tentacle_${side}`,
+      [0, 0.1, 0.21, 0.33, 0.44, 0.54],
+    );
+    motions.push((t, effort, state) => {
+      const folded = Math.max(state.boost, state.jet);
+      bones.forEach((bone, joint) => {
+        const distal = joint / (bones.length - 1);
+        bone.rotation.x =
+          Math.sin(t * 0.9 - joint * 0.82 + side * 0.4) *
+            (0.025 + distal * 0.17) *
+            (1 - folded * 0.48) +
+          state.feed * distal * 0.62;
+        bone.rotation.y =
+          side * Math.sin(t * 0.9 - joint * 0.85) * distal * 0.095 -
+          side * (folded * 0.025 + state.feed * distal * 0.3) +
+          state.turn * distal * 0.075;
+      });
     });
   }
-  motions.push((t) => {
-    inner.rotation.x = Math.sin(t * 0.5) * 0.02;
-    inner.position.y = Math.sin(t * 0.7) * 0.004;
+  motions.push((t, effort, state) => {
+    const pulse = Math.sin(t * 1.4);
+    const contraction =
+      (0.025 + state.power * 0.025 + state.jet * 0.065) * (0.5 + pulse * 0.5);
+    mantle.scale.set(1 - contraction, 1 - contraction, 1 + contraction * 0.24);
+    mantle.position.z = -0.08 * contraction * 0.24;
+    inner.rotation.z = state.turn * 0.12;
+    Object.assign(root.userData.pose, {
+      mantleContraction: contraction,
+      finFold: Math.max(state.boost, state.jet),
+      bank: inner.rotation.z,
+      armPhase: t,
+      feed: state.feed,
+    });
   });
 }
 

@@ -489,13 +489,16 @@ try {
       const point = {
         x: ship.root.position.x,
         y: -24,
-        z: ship.root.position.z + 36,
+        z: ship.root.position.z + 4,
       };
+      // 自由俯仰上限提高后，旧的36米斜向起点会从船尾外侧上浮；
+      // 在真实艇底正下方保持80度游向，验证冲刺被船底连续碰撞阻挡。
+      game.setFacing(0, (Math.PI * 80) / 180);
       game.setPosition(point.x, point.y, point.z);
       return { ship: ship.kind, position: point };
     });
     await startTrace();
-    await drive(["KeyW", "Space"], 2.2);
+    await drive(["Space"], 2.2);
     const trace = await stopTrace(),
       summary = summarize(trace);
     assertClear(summary);
@@ -519,10 +522,9 @@ try {
         "/src/surface_rules.js"
       );
       const { characterMovement } = await import("/src/character_rules.js");
-      const sprintSpeed = characterMovement(
-        game.player.characterId,
-        true,
-      ).sprintSpeed;
+      const { stepSteering } = await import("/src/steering_rules.js");
+      const movement = characterMovement(game.player.characterId, true);
+      const sprintSpeed = movement.sprintSpeed;
       const state = createSurfaceState();
       let position = { x: 0, y: -24, z: 0 },
         speed = 12,
@@ -532,7 +534,12 @@ try {
       const dt = 1 / 240;
       // 纯规则只用于估算起跳点；不会直接推进游戏状态或代替主循环位移。
       while (time < 9) {
-        pitch += (0.86 - pitch) * (1 - Math.exp(-3.2 * dt));
+        ({ pitch } = stepSteering(
+          { yaw: Math.PI, pitch },
+          { x: 0, y: 1 },
+          movement,
+          dt,
+        ));
         if (!state.airborne)
           speed += (sprintSpeed - speed) * (1 - Math.exp(-3 * dt));
         const forward = { x: 0, y: Math.sin(pitch), z: Math.cos(pitch) };

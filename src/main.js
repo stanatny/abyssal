@@ -18,11 +18,18 @@ import {
 } from "./simulation.js";
 import { OceanAudio } from "./audio.js";
 import { steerWithinHabitat } from "./navigation.js";
+import { stepSurfaceSteering } from "./surface_steering.js";
+import { preyCaptureRadius, sweptCaptureFraction } from "./prey_capture.js";
 import { WORLD } from "./world_config.js";
 import { createReward, REWARDS } from "./rewards.js";
+import {
+  NURSERY_FRENZY_PICKUP,
+  nurseryFrenzyPosition,
+} from "./pickup_placement.js";
 import { createSurface } from "./surface.js";
 import { createEncounters } from "./encounters.js";
 import { createCombatEffects } from "./combat_effects.js";
+import { createFeedingTransition } from "./feeding_transition.js";
 import { createHunterState, tickHunter } from "./hunter_rules.js";
 import { createOceanGuide } from "./ocean_guide.js";
 import { createSonar } from "./sonar.js";
@@ -32,7 +39,21 @@ import { createMinimap } from "./minimap.js";
 import { createExpeditionSetup } from "./menu_selection.js";
 import { getExpedition } from "./expedition_config.js";
 import { stepFlyingFish } from "./flying_fish.js";
+import {
+  habitatPosition,
+  initialSchoolAnchor,
+  initialSpeciesAnchor,
+  schoolSlot,
+  sharesHabitat,
+  speciesVisibilityDistance,
+} from "./ecosystem_population.js";
 import { createHumanActivity } from "./human_activity.js";
+import {
+  isNursery,
+  predatorTerritory,
+  canPredatorHunt,
+  constrainPredatorTerritory,
+} from "./nursery_rules.js";
 import {
   characterMovement,
   createInkState,
@@ -122,15 +143,27 @@ avatar.traverse((mesh) => {
 });
 scene.add(avatar);
 const audio = new OceanAudio();
+void audio.preloadHumanVoices();
+void audio.preloadFishSounds();
 const effects = createCombatEffects(scene);
+const captureStart = new THREE.Vector3();
+const previousPreyPosition = new THREE.Vector3();
+const captureContact = new THREE.Vector3();
+const preyContact = new THREE.Vector3();
+const swallowPoint = new THREE.Vector3();
+const feedingDirection = new THREE.Vector3();
+const feeding = createFeedingTransition({
+  onMist: (point, length) => effects.mealMist(point, length),
+});
 const guide = createOceanGuide($("open-guide"));
 const sonar = createSonar($("sonar-panel"));
 const sonarMarkers = createSonarMarkers($("sonar-markers"));
 const sonarWave = createSonarWave(scene);
 const minimap = createMinimap($("minimap"));
 const surface = createSurface(scene, audio, notify, {
-  onEat(point, length) {
-    effects.blood(point, length);
+  isSwallowing: (mesh) => feeding.has(mesh),
+  onEat(point, length, bird) {
+    feeding.start(bird.mesh, length);
     effects.bite(point, forward, player.length);
   },
 });
@@ -157,8 +190,9 @@ const humans = createHumanActivity(scene, {
   effects,
   heightAt: seabedHeight,
   worldColliders: ocean.colliders,
-  onEat(point, length) {
-    effects.blood(point, length);
+  isSwallowing: (mesh) => feeding.has(mesh),
+  onEat(point, length, entity) {
+    feeding.start(entity.mesh, length);
   },
   onDamage() {
     hitFlash = 0.85;
@@ -190,7 +224,8 @@ let player = createPlayer(),
   speed = 0;
 let lastTime = performance.now(),
   notificationUntil = 0,
-  lastZone = "";
+  lastZone = "",
+  lastNursery = null;
 let threat = null,
   touchBoost = false,
   highQuality = true,
@@ -211,16 +246,20 @@ let expedition = getExpedition();
 let inkAbility = createInkState();
 const jetDirection = new THREE.Vector3(0, 0, -1);
 let markersEnabled = true;
+let invertVertical = false;
 let bestLength = 6;
 try {
   bestLength = Number(localStorage.getItem("abyssal_best")) || 6;
   markersEnabled = localStorage.getItem("abyssal_markers") !== "off";
+  invertVertical = localStorage.getItem("abyssal_invert_y") === "on";
 } catch {
   /* 隐私模式仍可游玩。 */
 }
 
 const setup = createExpeditionSetup($("expedition-setup"), {
   markers: markersEnabled,
+  invertVertical,
+  onInvertVerticalChange: setInvertVertical,
   onMarkersChange: setMarkers,
   onCharacterChange: selectAvatar,
 });
@@ -255,6 +294,16 @@ function setMarkers(enabled) {
   if (!enabled) $("target").hidden = true;
   try {
     localStorage.setItem("abyssal_markers", enabled ? "on" : "off");
+  } catch {
+    /* 隐私模式只保存本次设置。 */
+  }
+}
+function setInvertVertical(enabled) {
+  invertVertical = Boolean(enabled);
+  const input = $("menu-invert-y");
+  if (input) input.checked = invertVertical;
+  try {
+    localStorage.setItem("abyssal_invert_y", invertVertical ? "on" : "off");
   } catch {
     /* 隐私模式只保存本次设置。 */
   }
@@ -452,62 +501,48 @@ function speciesList() {
     expedition.region.speciesKinds.includes(species.kind),
   );
 }
-function spawnPosition(species, near = false) {
-  const minimum = species.depthMin ?? 5,
-    maximum = Math.min(species.depthMax ?? 710, 715);
-  const point = new THREE.Vector3();
-  for (let attempt = 0; attempt < 40; attempt++) {
-    if (near) {
-      const angle = random(-Math.PI, Math.PI),
-        radius = random(40, 110);
-      point.set(
-        Clamp(
-          position.x + Math.sin(angle) * radius,
-          WORLD.minX + 15,
-          WORLD.maxX - 15,
-        ),
-        Clamp(position.y + random(-30, 25), -maximum, -minimum),
-        Clamp(
-          position.z + Math.cos(angle) * radius,
-          WORLD.minZ + 15,
-          WORLD.maxZ - 15,
-        ),
-      );
-    } else {
-      point.set(
-        random(WORLD.minX + 40, WORLD.maxX - 40),
-        -random(minimum, maximum),
-        random(WORLD.minZ + 40, WORLD.maxZ - 30),
-      );
-    }
-    if (
-      point.y > floorAt(point.x, point.z, species.length * 0.35 + 3) &&
-      point.y < -Math.min(5, Math.max(0.3, minimum))
-    )
-      return point;
-  }
-  const depth = (minimum + maximum) * 0.5;
-  point.set(
-    random(-170, 170),
-    -depth,
-    Clamp(-200 - (depth + 45 - 140) / 0.72, WORLD.minZ + 20, 90),
-  );
-  point.y = Math.max(
-    point.y,
-    floorAt(point.x, point.z, species.length * 0.35 + 3),
-  );
-  return point;
+function spawnPosition(
+  species,
+  near = false,
+  anchor = null,
+  populationIndex = 0,
+) {
+  const context = {
+    heightAt: seabedHeight,
+    colliders: ocean.colliders,
+    playerPosition: position,
+    forward,
+    highQuality,
+    populationIndex,
+  };
+  const point = habitatPosition(species, {
+    ...context,
+    near,
+    anchor: anchor || initialSpeciesAnchor(species, populationIndex),
+  });
+  if (point) return point;
+  // 玩家水层不合适时回到该物种合法栖息点，不能把深海动物抬进浅滩。
+  const fallback = habitatPosition(species, {
+    ...context,
+    anchor: initialSpeciesAnchor(species, populationIndex),
+  });
+  if (!fallback)
+    throw new Error(`No valid habitat position for ${species.kind}`);
+  return fallback;
 }
-function addEntity(species, location) {
+function addEntity(species, location, populationIndex = 0) {
   const mesh = createCreature(
     species.kind,
     species.length,
     entities.length + 1,
   );
-  mesh.position.copy(location || spawnPosition(species));
+  mesh.position.copy(
+    location || spawnPosition(species, false, null, populationIndex),
+  );
   scene.add(mesh);
   const entity = {
     species,
+    populationIndex,
     mesh,
     heading: random(-Math.PI, Math.PI),
     chase: 0,
@@ -539,11 +574,22 @@ function seedPopulation() {
       const count =
         species.population ??
         (species.schoolSize ? 18 : species.category === "ancient" ? 2 : 4);
-      for (let i = 0; i < count; i++) addEntity(species);
+      for (let i = 0; i < count; i++) addEntity(species, null, i);
     }
   schools.length = 0;
+  const speciesIndices = new Map();
   for (const entity of entities) {
-    entity.mesh.position.copy(spawnPosition(entity.species));
+    const index = speciesIndices.get(entity.species.kind) || 0;
+    speciesIndices.set(entity.species.kind, index + 1);
+    entity.populationIndex = index;
+    entity.mesh.position.copy(
+      spawnPosition(
+        entity.species,
+        false,
+        initialSpeciesAnchor(entity.species, index),
+        index,
+      ),
+    );
     entity.mesh.visible = true;
     entity.chase = 0;
     entity.cooldown = 0;
@@ -564,54 +610,41 @@ function seedPopulation() {
       groupSize = members[0]?.species.schoolSize || 6;
     if (!members.length) continue;
     for (let i = 0; i < members.length; i += groupSize) {
-      const species = members[i].species,
-        center = spawnPosition(species);
-      if (kind === "fish")
-        center.set(
-          (((i / groupSize) % 3) - 1) * 28,
-          -18 - Math.floor(i / groupSize / 2) * 12,
-          55 - Math.floor(i / groupSize / 2) * 65,
-        );
-      else if (kind === "tuna")
-        center.set(
-          ((i / groupSize) % 2 ? 1 : -1) * 30,
-          -30 - (i / groupSize) * 16,
-          5 - (i / groupSize) * 70,
-        );
-      if (!["fish", "tuna"].includes(kind)) {
-        const index = speciesList()
-          .filter((entry) => entry.schoolSize > 1)
-          .findIndex((entry) => entry.kind === kind);
-        center.set(
-          (index % 2 ? 1 : -1) * (24 + index * 8),
-          -Math.min(
-            species.depthMax - 1,
-            Math.max(species.depthMin + 1, 4 + index * 3),
-          ),
-          74 - index * 24 - i * 2,
-        );
-      }
-      center.y = Math.max(center.y, floorAt(center.x, center.z, 5));
-      if (kind === "fish" && i === 0) center.set(0, -18, 54);
-      const school = { center, seed: random(0, 9), kind };
+      const species = members[i].species;
+      const groupMembers = members.slice(i, i + groupSize);
+      const center = spawnPosition(
+        species,
+        false,
+        initialSchoolAnchor(species, Math.floor(i / groupSize)),
+      );
+      const school = {
+        center,
+        seed: random(0, 9),
+        kind,
+        species,
+        members: groupMembers,
+        nextMigration: random(16, 30),
+      };
       schools.push(school);
       members.slice(i, i + groupSize).forEach((entity, index) => {
         entity.school = school;
-        entity.slot = new THREE.Vector3(
-          ((index % 4) - 1.5) * 2.4,
-          Math.sin(index * 2) * 1.5,
-          (Math.floor(index / 4) - 1) * 3,
-        );
-        entity.mesh.position.copy(center).add(entity.slot);
+        entity.slot = schoolSlot(species, index);
+        const preferred = center.clone().add(entity.slot);
+        entity.mesh.position.copy(spawnPosition(species, false, preferred));
+        entity.slot.copy(entity.mesh.position).sub(center);
       });
     }
   }
-  const shark = entities.find((e) => e.species.kind === "shark");
-  if (shark) shark.mesh.position.set(45, -75, -150);
 }
 function seedPickups() {
+  const nurseryPoint = nurseryFrenzyPosition(expedition.region.id);
   if (pickups.length) {
     for (const item of pickups) {
+      // 固定奖励重开恢复完整锚点，不保留上一局的漂浮高度。
+      if (item.id === NURSERY_FRENZY_PICKUP.id && nurseryPoint) {
+        item.mesh.position.copy(nurseryPoint);
+        item.baseY = nurseryPoint.y;
+      }
       item.cooldown = 0;
       item.mesh.visible = true;
     }
@@ -623,10 +656,31 @@ function seedPickups() {
     const point =
       i < 3
         ? new THREE.Vector3((i - 1) * 13, -19 - i * 5, 40 - i * 28)
-        : spawnPosition({ depthMin: 20, depthMax: 710, length: 2 });
+        : spawnPosition(
+            { depthMin: 20, depthMax: 710, length: 2 },
+            false,
+            // 奖励没有物种栖息锚点，独立随机分布，避免共用默认点而堆在一处。
+            new THREE.Vector3(
+              random(WORLD.minX + 18, WORLD.maxX - 18),
+              -random(20, 710),
+              random(WORLD.minZ + 18, WORLD.maxZ - 18),
+            ),
+          );
     mesh.position.copy(point);
     scene.add(mesh);
     pickups.push({ kind, mesh, baseY: point.y, cooldown: 0 });
+  }
+  if (nurseryPoint) {
+    const mesh = createReward(NURSERY_FRENZY_PICKUP.kind);
+    mesh.position.copy(nurseryPoint);
+    scene.add(mesh);
+    pickups.push({
+      id: NURSERY_FRENZY_PICKUP.id,
+      kind: NURSERY_FRENZY_PICKUP.kind,
+      mesh,
+      baseY: nurseryPoint.y,
+      cooldown: 0,
+    });
   }
 }
 function notify(message, duration = 3) {
@@ -646,11 +700,13 @@ function startGame() {
   speed = PLAYER_MOVEMENT.cruiseSpeed;
   elapsed = 0;
   lastZone = "";
+  lastNursery = null;
   lastCollision = null;
   notificationUntil = 0;
   hitFlash = 0;
   lureFlash = 0;
   waterMotion = null;
+  feeding.reset();
   effects.reset();
   sonar.reset();
   sonarMarkers.reset();
@@ -675,6 +731,9 @@ function startGame() {
   seedPopulation();
   seedPickups();
   avatar.scale.setScalar(player.length);
+  avatar.rotation.set(pitch, yaw, 0, "YXZ");
+  avatar.userData.resetMotion?.();
+  capturePoint(captureStart);
   avatar.visible = true;
   mode = "playing";
   lastTime = performance.now();
@@ -682,12 +741,12 @@ function startGame() {
   $("overlay").hidden = true;
   $("hud").hidden = false;
   $("pause").hidden = false;
-  camera.position.set(0, -12, 93);
+  camera.position.copy(position).add(new THREE.Vector3(0, 2.6, 7.1));
   lookTarget.copy(position);
   audio.start();
   audio.reset?.();
   audio.setPaused(false);
-  notify("追逐成群的小鱼，快速成长\n先在水下持续冲刺蓄势，再上冲破水", 6);
+  notify("这里是安全浅滩 · 穿过鱼群补给成长\n长到约4米，再探索外礁", 6);
   canvas.focus({ preventScroll: true });
 }
 function showOverlay(kind) {
@@ -733,7 +792,7 @@ function showOverlay(kind) {
       ? `最终体长 ${player.length.toFixed(1)} 米 · 捕食 ${player.eaten} 次\n${player.hunger <= 0 ? "饥饿夺走了你的生命。长大后需要更大的猎物。" : activeBoss ? "主宰比冲刺更快。观察技能前摇、侧向闪避，并利用恢复期撤出领地。" : "保留一段冲刺体力，借助岩柱切断追击者的视线。"}`
       : timeup
         ? `30 分钟探索结束 · 最终体长 ${player.length.toFixed(1)} 米\n捕食 ${player.eaten} 次 · 击败领主 ${player.bossesDefeated} 位\n本次未达成深渊霸主；继续积累经验，再次出发。`
-        : "WASD 转向，空格冲刺，J 声呐，K 慢游。标记偏好在出发前设置。\n声呐探测10秒，冷却60秒；接触猎物或领主时自动咬击。水下蓄势后向上破水，受伤进食优先治疗。";
+        : "WASD 转向，空格冲刺，J 声呐，K 慢游。标记偏好在出发前设置。\n声呐探测20秒，冷却60秒；接触猎物或领主时自动咬击。水下蓄势后向上破水，受伤进食优先治疗。";
   $("resume").innerHTML =
     won || dead || timeup
       ? "再次潜入 <span>↗</span>"
@@ -813,11 +872,30 @@ function pushFromRocks(point, radius) {
       point.addScaledVector(temp, (limit - distance) / distance);
   }
 }
+// 判定遵循可见角色的转向，避免乌贼快速转向时逻辑朝向领先模型。
+function capturePoint(out) {
+  return (
+    out
+      // 乌贼默认外套膜领先，腕部在行进方向后侧；捕食范围仍与虎鲸相同。
+      .set(
+        0,
+        0,
+        player.length * 0.36 * (player.characterId === "squid" ? 1 : -1),
+      )
+      .applyQuaternion(avatar.quaternion)
+      .add(position)
+  );
+}
+function feedingMouth(out) {
+  return avatar.userData.getFeedingMouth?.(out) ?? capturePoint(out);
+}
 function updatePlayer(dt, roundDt) {
+  capturePoint(captureStart);
   const inputX =
     pointer.x + (keys.has("KeyD") ? 1 : 0) - (keys.has("KeyA") ? 1 : 0);
   const inputY =
-    -pointer.y + (keys.has("KeyW") ? 1 : 0) - (keys.has("KeyS") ? 1 : 0);
+    (-pointer.y + (keys.has("KeyW") ? 1 : 0) - (keys.has("KeyS") ? 1 : 0)) *
+    (invertVertical ? -1 : 1);
   const wasAirborne = surface.airborne;
   const jet =
     player.characterId === "squid" &&
@@ -830,13 +908,21 @@ function updatePlayer(dt, roundDt) {
   }).boosting;
   const movement = characterMovement(player.characterId, boosting || jet);
   if (!jet) {
-    yaw -= Clamp(inputX, -1, 1) * movement.yawRate * dt;
-    pitch = THREE.MathUtils.damp(
-      pitch,
-      Clamp(inputY, -1, 1) * movement.pitchLimit,
-      movement.pitchResponse,
+    ({ yaw, pitch } = stepSurfaceSteering(
+      { yaw, pitch },
+      { x: inputX, y: inputY },
+      movement,
       dt,
-    );
+      {
+        positionY: position.y,
+        length: player.length,
+        surfaceY: WORLD.surfaceY,
+        airborne: wasAirborne,
+        reentering: waterMotion?.reentering ?? false,
+        boosting,
+        divingRequired: surface.divingRequired,
+      },
+    ));
     forward.set(0, 0, -1).applyEuler(new THREE.Euler(pitch, yaw, 0, "YXZ"));
   } else forward.copy(jetDirection);
   if (player.timedOut) return;
@@ -885,7 +971,15 @@ function updatePlayer(dt, roundDt) {
   resolvePlayerMotion(previousPosition);
   avatar.position.copy(position);
   avatar.scale.setScalar(player.length);
-  avatar.userData.animate?.(elapsed, boosting ? 2.2 : 0.9);
+  avatar.userData.animate?.(elapsed, jet ? 2.8 : boosting ? 2.2 : 0.9, {
+    dt,
+    speed,
+    boosting,
+    jet,
+    turn: Clamp(inputX, -1, 1),
+    pitchInput: Clamp(inputY, -1, 1),
+    airborne: surface.airborne,
+  });
   avatar.visible = true;
   avatar.position.y +=
     player.invulnerable > 0 ? Math.sin(elapsed * 35) * 0.05 : 0;
@@ -927,23 +1021,39 @@ function burst(point, count = 8) {
     });
   }
 }
-function eatEntity(entity, mouth) {
+function eatEntity(entity, mouth, previousPrey = entity.mesh.position) {
   const { species, mesh } = entity;
-  const biteRange = player.length * 0.22 + species.length * 0.28;
+  // 育幼区小鱼适度放宽接触范围，让幼年玩家穿过鱼群即可连贯进食。
+  const learning =
+    player.length < 4.5 && species.length < 1 && isNursery(position);
+  const biteRange = preyCaptureRadius(player.length, species.length, learning);
+  if (entity.hiddenFor > 0 || !canEat(player, species.length)) return false;
+  // 末帧已接触时保留原判定；两端皆在外才补查同帧相对轨迹，不增加吞食半径。
+  const direct = mouth.distanceToSquared(mesh.position) < biteRange * biteRange;
+  const contact = direct
+    ? 1
+    : sweptCaptureFraction(
+        captureStart,
+        mouth,
+        previousPrey,
+        mesh.position,
+        biteRange,
+      );
+  if (contact === null) return false;
+  captureContact.copy(captureStart).lerp(mouth, contact);
+  preyContact.copy(previousPrey).lerp(mesh.position, contact);
   if (
-    entity.hiddenFor > 0 ||
-    !canEat(player, species.length) ||
-    mouth.distanceTo(mesh.position) >= biteRange ||
+    (!direct && blockedBetween(captureStart, mouth)) ||
+    blockedBetween(captureContact, preyContact) ||
     blockedBetween(mouth, mesh.position) ||
     !consumePrey(player, species)
   )
     return false;
-  audio.eat();
-  effects.blood(mesh.position, species.length);
-  effects.bite(mouth, forward, player.length);
-  burst(mesh.position, 4);
-  mesh.visible = false;
+  audio.eatFish(species.length);
+  avatar.userData.triggerFeed?.();
+  effects.bite(captureContact, forward, player.length);
   entity.hiddenFor = species.schoolSize > 1 ? 18 : 28;
+  feeding.start(mesh, species.length);
   entity.chase = 0;
   entity.flight = null;
   mesh.userData.setGliding?.(false);
@@ -953,22 +1063,66 @@ function eatEntity(entity, mouth) {
   );
   return true;
 }
+function updateSchools() {
+  for (const school of schools) {
+    // 基础鱼群与缓游礁鱼常驻育幼浅滩，出海后再返航也有稳定补给。
+    if (
+      ["fish", "sardine"].includes(school.kind) ||
+      school.species.nurseryResident
+    )
+      continue;
+    if (elapsed < school.nextMigration) continue;
+    school.nextMigration = elapsed + random(22, 38);
+    if (
+      school.center.distanceTo(position) < 220 ||
+      !sharesHabitat(school.species, position) ||
+      school.members.some((entity) => entity.hiddenFor > 0)
+    )
+      continue;
+    const next = habitatPosition(school.species, {
+      heightAt: seabedHeight,
+      colliders: ocean.colliders,
+      playerPosition: position,
+      forward,
+      near: true,
+      highQuality,
+      padding: 5,
+    });
+    if (!next) continue;
+    const placements = school.members.map((entity) =>
+      habitatPosition(entity.species, {
+        heightAt: seabedHeight,
+        colliders: ocean.colliders,
+        anchor: next.clone().add(entity.slot),
+      }),
+    );
+    if (placements.some((point) => !point)) continue;
+    school.center.copy(next);
+    school.members.forEach((entity, index) => {
+      entity.mesh.position.copy(placements[index]);
+      entity.slot.copy(placements[index]).sub(next);
+      entity.velocity.set(0, 0, 0);
+    });
+  }
+}
 function updateEntities(dt) {
+  updateSchools();
   threat = null;
   let bestThreat = Infinity;
-  const mouth = position.clone().addScaledVector(forward, player.length * 0.36);
+  const mouth = capturePoint(new THREE.Vector3());
   for (const entity of entities) {
+    previousPreyPosition.copy(entity.mesh.position);
     const { species, mesh } = entity;
     entity.cooldown = Math.max(0, entity.cooldown - dt);
     if (entity.telegraph) entity.telegraph.visible = false;
     if (entity.hiddenFor > 0) {
-      mesh.visible = false;
+      if (!feeding.has(mesh)) mesh.visible = false;
       entity.hiddenFor -= dt;
       if (entity.hiddenFor <= 0) {
         mesh.position.copy(
           entity.school
             ? entity.school.center.clone().add(entity.slot)
-            : spawnPosition(species, true),
+            : spawnPosition(species, true, null, entity.populationIndex),
         );
         mesh.visible = true;
         entity.hunter = createHunterState(species, entity.seed + elapsed);
@@ -982,26 +1136,43 @@ function updateEntities(dt) {
         entity.velocity,
       );
       mesh.userData.animate?.(elapsed + entity.seed, 1.4);
-      eatEntity(entity, mouth);
+      eatEntity(entity, mouth, previousPreyPosition);
       continue;
     }
     if (entity.disorientedUntil > player.elapsed) {
       mesh.visible = mesh.position.distanceTo(position) < 180;
       mesh.userData.animate?.(elapsed + entity.seed, 0.05);
       if (entity.telegraph) entity.telegraph.visible = false;
-      eatEntity(entity, mouth);
+      eatEntity(entity, mouth, previousPreyPosition);
       continue;
     }
     entity.mesh.userData.disoriented = false;
     const distance = mesh.position.distanceTo(position),
       edible = canEat(player, species.length);
-    mesh.visible =
-      distance < (species.length < 7 ? 85 : highQuality ? 165 : 110);
-    const predator = species.predator && !edible;
-    const sight = !blockedBetween(mesh.position, position);
+    mesh.visible = distance < speciesVisibilityDistance(species, highQuality);
+    const allowedHunt = canPredatorHunt(
+      species,
+      entity.populationIndex,
+      mesh.position,
+      position,
+    );
+    const predator = species.predator && !edible && allowedHunt;
+    if (!allowedHunt) entity.chase = 0;
+    const learning =
+      player.length < 4.5 && species.length < 1 && isNursery(position);
+    const territory = predatorTerritory(species, entity.populationIndex);
+    // 视线只服务猎手交互；小鱼捕食在eatEntity中独立检查，避免新增鱼群重复射线开销。
+    const sight =
+      species.predator &&
+      allowedHunt &&
+      !blockedBetween(mesh.position, position);
     // 章鱼即使可被当前角色捕食，也会在近距威胁下防御喷墨。
     const defensiveInk =
-      species.kind === "octopus" && edible && sight && distance < 26;
+      species.kind === "octopus" &&
+      edible &&
+      allowedHunt &&
+      sight &&
+      distance < 26;
     let moveSpeed = species.speed || 5;
     const direction = new THREE.Vector3();
     if (
@@ -1023,20 +1194,27 @@ function updateEntities(dt) {
       }
     } else if (
       edible &&
-      (distance < 12 || defensiveInk) &&
+      (distance < (learning ? 3.5 : species.nurseryResident ? 6 : 12) ||
+        defensiveInk) &&
       entity.cooldown <= 0
     ) {
       direction.copy(mesh.position).sub(position).normalize();
-      moveSpeed = Math.min(10, moveSpeed + 1.5);
+      moveSpeed = Math.min(
+        10,
+        moveSpeed + (species.nurseryResident ? 0.8 : 1.5),
+      );
     } else if (entity.school) {
       const target = entity.school.center
         .clone()
         .add(entity.slot)
         .add(
           new THREE.Vector3(
-            Math.sin(elapsed * 0.2 + entity.school.seed) * 8,
-            Math.sin(elapsed * 0.35 + entity.seed) * 1.5,
-            Math.cos(elapsed * 0.2 + entity.school.seed) * 8,
+            Math.sin(elapsed * 0.2 + entity.school.seed) *
+              (learning || species.nurseryResident ? 2.4 : 8),
+            Math.sin(elapsed * 0.35 + entity.seed) *
+              (learning || species.nurseryResident ? 0.45 : 1.5),
+            Math.cos(elapsed * 0.2 + entity.school.seed) *
+              (learning || species.nurseryResident ? 2.4 : 8),
           ),
         );
       direction.copy(target).sub(mesh.position).normalize();
@@ -1048,6 +1226,19 @@ function updateEntities(dt) {
         Math.sin(elapsed * 0.32 + entity.seed) * 0.08,
         -Math.cos(entity.heading),
       );
+    }
+    if (learning) moveSpeed = Math.min(moveSpeed, 2.6);
+    // 接近领地边缘时提前转回，最终钳制仅防止高速技能跨进安全区。
+    if (territory) {
+      const margin = 24;
+      direction.x +=
+        Clamp((territory.minX + margin - mesh.position.x) / margin, 0, 1) * 3;
+      direction.x -=
+        Clamp((mesh.position.x - territory.maxX + margin) / margin, 0, 1) * 3;
+      direction.z +=
+        Clamp((territory.minZ + margin - mesh.position.z) / margin, 0, 1) * 3;
+      direction.z -=
+        Clamp((mesh.position.z - territory.maxZ + margin) / margin, 0, 1) * 3;
     }
     const previousPhase = entity.hunter.phase;
     const hunter = tickHunter(entity.hunter, dt, {
@@ -1178,6 +1369,12 @@ function updateEntities(dt) {
       );
     }
     pushFromRocks(mesh.position, species.length * 0.12);
+    constrainPredatorTerritory(
+      species,
+      entity.populationIndex,
+      mesh.position,
+      entity.velocity,
+    );
     mesh.quaternion.slerp(
       new THREE.Quaternion().setFromUnitVectors(
         new THREE.Vector3(0, 0, -1),
@@ -1188,7 +1385,7 @@ function updateEntities(dt) {
     if (distance < 180)
       mesh.userData.animate?.(elapsed + entity.seed, moveSpeed / 6);
     if (
-      !eatEntity(entity, mouth) &&
+      !eatEntity(entity, mouth, previousPreyPosition) &&
       predator &&
       sight &&
       distance < species.length * 0.43 + player.length * 0.2 &&
@@ -1211,18 +1408,24 @@ function updateEntities(dt) {
       }
       entity.cooldown = 2.2;
     }
-    // 远处不可见的小型鱼重分布到同类栖息深度，保持探索途中有食物。
+    // 只在玩家已进入合法水层时补充附近猎手，远处生成点仍在可见半径之外。
     if (
       !entity.school &&
-      distance > 240 &&
-      species.length < 22 &&
-      Math.random() < dt * 0.04
-    )
-      mesh.position.copy(
-        entity.school
-          ? entity.school.center.clone().add(entity.slot)
-          : spawnPosition(species, true),
-      );
+      distance > 260 &&
+      sharesHabitat(species, position) &&
+      Math.random() < dt * 0.055
+    ) {
+      const next = habitatPosition(species, {
+        heightAt: seabedHeight,
+        colliders: ocean.colliders,
+        playerPosition: position,
+        forward,
+        near: true,
+        highQuality,
+        populationIndex: entity.populationIndex,
+      });
+      if (next) mesh.position.copy(next);
+    }
   }
 }
 function updatePickups(dt) {
@@ -1255,10 +1458,17 @@ function updatePickups(dt) {
 }
 function updateCamera(dt) {
   const ratio = player.length / 6;
+  // 幼年镜头按体型拉近；六米后的追尾距离保持原有尺度。
+  const juvenileRatio = Clamp(ratio, 0.4, 1);
+  const closeView = THREE.MathUtils.lerp(
+    0.88,
+    1,
+    Clamp((player.length - 3) / 3, 0, 1),
+  );
   const offset = new THREE.Vector3(
     0,
-    4.8 + ratio * 1.4,
-    13 + ratio * 4,
+    4.8 * juvenileRatio + ratio * 1.4,
+    (13 * juvenileRatio + ratio * 4) * closeView,
   ).applyEuler(
     new THREE.Euler((waterMotion?.posePitch ?? pitch) * 0.35, yaw, 0, "YXZ"),
   );
@@ -1277,7 +1487,7 @@ function updateCamera(dt) {
   lookTarget.lerp(
     position
       .clone()
-      .addScaledVector(forward, 9 + ratio * 2)
+      .addScaledVector(forward, 9 * juvenileRatio + ratio * 2)
       .add(new THREE.Vector3(0, 1.1, 0)),
     1 - Math.exp(-5 * dt),
   );
@@ -1330,14 +1540,26 @@ function updateHud() {
     if (lastZone) notify(`${zone.name}\n${zone.description}`, 4);
     lastZone = zone.id;
   }
-  $("zone-name").textContent = zone.name;
-  $("zone-code").textContent =
-    {
-      reef: "SUNLIT REEF",
-      twilight: "THE TWILIGHT",
-      abyss: "MIDNIGHT ZONE",
-      hadal: "VOLCANIC ABYSS",
-    }[zone.id] || "INTO THE BLUE";
+  const nursery = isNursery(position);
+  if (lastNursery !== null && lastNursery !== nursery) {
+    notify(
+      nursery
+        ? "回到安全浅滩 · 猎手停止追击"
+        : "离开安全浅滩 · 外礁有少量猎手，建议4米后探索",
+      4,
+    );
+  }
+  lastNursery = nursery;
+  $("hud").dataset.nursery = String(nursery);
+  $("zone-name").textContent = nursery ? "安全浅滩" : zone.name;
+  $("zone-code").textContent = nursery
+    ? "NURSERY LAGOON"
+    : {
+        reef: "SUNLIT REEF",
+        twilight: "THE TWILIGHT",
+        abyss: "MIDNIGHT ZONE",
+        hadal: "VOLCANIC ABYSS",
+      }[zone.id] || "INTO THE BLUE";
   $("depth").textContent = Math.max(
     0,
     Math.round(-position.y * WORLD.displayDepthScale),
@@ -1349,15 +1571,19 @@ function updateHud() {
   $("depth-dot").style.top =
     Clamp((-position.y / WORLD.maxDepth) * 100, 0, 100) + "%";
   $("objective").textContent =
-    player.length < 10
-      ? "捕食鱼群，成长至 10 米"
-      : player.length < 16
-        ? "狩猎海洋霸主，探索深水区"
-        : player.length < 24
-          ? "挑战远古巨兽，成长至 24 米"
-          : player.bossesDefeated
-            ? "深渊印记已得 · 成长至 30 米"
-            : "24 米后挑战主宰 · 接触咬击";
+    nursery && player.length < 4
+      ? "安心吃鱼群 · 成长至 4 米"
+      : nursery && player.length < 6
+        ? "已能探索外礁 · 留意单独猎手"
+        : player.length < 10
+          ? "捕食鱼群，成长至 10 米"
+          : player.length < 16
+            ? "狩猎海洋霸主，探索深水区"
+            : player.length < 24
+              ? "挑战远古巨兽，成长至 24 米"
+              : player.bossesDefeated
+                ? "深渊印记已得 · 成长至 30 米"
+                : "24 米后挑战主宰 · 接触咬击";
   $("notification").style.opacity = elapsed < notificationUntil ? "1" : "0";
   $("buffs").innerHTML = Object.entries(player.buffs)
     .filter(([, v]) => v > 0)
@@ -1399,9 +1625,13 @@ function updateHud() {
       edible = canEat(player, e.species.length);
     $("target").style.left = (p.x * 0.5 + 0.5) * innerWidth + "px";
     $("target").style.top = (-p.y * 0.5 + 0.5) * innerHeight - 18 + "px";
-    $("target").style.color = edible ? "#9ef5d3" : "#ffad8a";
+    $("target").style.color = edible
+      ? "#9ef5d3"
+      : e.species.predator
+        ? "#ffad8a"
+        : "#c1d8dd";
     $("target").textContent =
-      `${{ shoal: "Ⅰ 浅海鱼群", hunter: "Ⅱ 海洋霸主", ancient: "Ⅲ 远古巨兽" }[e.species.category] || "海洋生物"} · ${e.species.label} · ${e.species.length}m · ${edible ? "可捕食" : "危险"} / ${Math.round(d)}m`;
+      `${{ shoal: "Ⅰ 浅海鱼群", hunter: "Ⅱ 海洋霸主", ancient: "Ⅲ 远古巨兽" }[e.species.category] || "海洋生物"} · ${e.species.label} · ${e.species.length}m · ${edible ? "可捕食" : e.species.predator ? "危险" : "暂不可吞食"} / ${Math.round(d)}m`;
   }
   $("boss-panel").hidden = !activeBoss;
   if (activeBoss) {
@@ -1534,6 +1764,12 @@ function frame(now) {
     avatar.scale.setScalar(player.length);
     updateCamera(dt);
     surface.update(dt, elapsed, player, position, camera);
+    feeding.update(dt, {
+      mouth: feedingMouth(swallowPoint),
+      direction: feedingDirection
+        .copy(forward)
+        .multiplyScalar(player.characterId === "squid" ? -1 : 1),
+    });
     effects.update(dt, camera.position, position);
     updateSonar();
     $("ink-overlay").style.opacity = effects.ink * 0.83;
@@ -1730,6 +1966,7 @@ if (import.meta.env.DEV)
     entities,
     encounters,
     effects,
+    feeding,
     guide,
     surface,
     audio,
@@ -1766,6 +2003,9 @@ if (import.meta.env.DEV)
     get markersEnabled() {
       return markersEnabled;
     },
+    getCapturePoint: () => capturePoint(new THREE.Vector3()),
+    getCaptureStart: () => captureStart.clone(),
+    getFeedingMouth: () => feedingMouth(new THREE.Vector3()),
     get controls() {
       return { yaw, pitch, speed, pointer: { ...pointer } };
     },
@@ -1780,11 +2020,14 @@ if (import.meta.env.DEV)
       camera.position.set(x, y + 6, z + 18);
       lookTarget.set(x, y + 1, z - 10);
       avatar.position.copy(position);
+      capturePoint(captureStart);
     },
     setFacing(nextYaw, nextPitch = 0) {
       yaw = nextYaw;
       pitch = nextPitch;
       forward.set(0, 0, -1).applyEuler(new THREE.Euler(pitch, yaw, 0, "YXZ"));
+      avatar.rotation.set(pitch, yaw, 0, "YXZ");
+      capturePoint(captureStart);
     },
     setLength(length) {
       player.length = length;

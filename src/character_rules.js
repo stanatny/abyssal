@@ -1,3 +1,5 @@
+import { MAX_SWIM_PITCH } from "./steering_rules.js";
+
 /** 可选角色统一拥有一个主动技能与一个被动技能；数据与移动/冷却规则不依赖渲染器。 */
 export const PLAYER_CHARACTERS = Object.freeze([
   {
@@ -5,17 +7,17 @@ export const PLAYER_CHARACTERS = Object.freeze([
     kind: "orca",
     name: "虎鲸",
     available: true,
-    startLength: 6,
+    startLength: 3,
     description: "高速追猎 · 远距侦察",
-    ability: "回声定位 · 探测10秒，冷却60秒",
+    ability: "回声定位 · 探测20秒，冷却60秒",
     active: {
       id: "sonar",
       name: "回声定位",
-      duration: 10,
+      duration: 20,
       cooldown: 60,
       range: 260,
       description:
-        "探测周围生物10秒，前方显示体长与捕食资格，雷达保留周围回声。",
+        "探测周围生物20秒，前方显示体长与捕食资格，雷达保留周围回声。",
     },
     passive: {
       id: "pursuit",
@@ -28,7 +30,7 @@ export const PLAYER_CHARACTERS = Object.freeze([
     kind: "squid",
     name: "大王乌贼",
     available: true,
-    startLength: 6,
+    startLength: 3,
     description: "墨幕逃生 · 灵活转向",
     ability: "墨幕喷射 · 迷失10秒，冷却60秒",
     active: {
@@ -46,7 +48,7 @@ export const PLAYER_CHARACTERS = Object.freeze([
       id: "agility",
       name: "柔躯回旋",
       description:
-        "未冲刺时左右转向更快，上浮/下潜角度可达85°；冲刺时恢复常规转向。",
+        "未冲刺时左右转向和上浮/下潜转向更快；冲刺时恢复常规转向速度。松开方向仍保持当前游向。",
     },
   },
 ]);
@@ -66,8 +68,8 @@ export function characterMovement(id = "orca", boosting = false) {
     slowSpeed: 5,
     sprintSpeed: id === "orca" ? 32 * 1.3 : 32,
     yawRate: agile ? 2.1 : 1.15,
-    pitchLimit: agile ? (Math.PI * 85) / 180 : 0.86,
-    pitchResponse: agile ? 4.6 : 3.2,
+    pitchLimit: MAX_SWIM_PITCH,
+    pitchRate: agile ? 2.1 : 1.15,
   };
 }
 

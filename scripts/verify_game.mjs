@@ -159,7 +159,7 @@ try {
   const meal = (await state()).player;
   assert.ok(meal.health > 50);
   assert.ok(meal.lastMeal.healed > 0);
-  assert.ok(meal.length > 6);
+  assert.ok(meal.length > 3 && meal.length < 3.2);
   checks.push("吃鱼优先回血，同时保留部分成长");
   assert.ok(
     await page.evaluate(
@@ -192,6 +192,8 @@ try {
     const g = window.__ABYSSAL__;
     g.startGame();
     g.entities.forEach((e) => (e.hiddenFor = 999));
+    // 海鸥规则体长为2.6米，使用已成长个体验证空中捕食。
+    g.setLength(6);
     // 从足够深的无遮挡水域起跳，避开新增海床和船体碰撞。
     g.setPosition(200, -35, -100);
   });

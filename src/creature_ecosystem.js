@@ -6,9 +6,13 @@ import {
   sculptedFin,
 } from "./creature_surface.js";
 import { buildOctopus } from "./creature_octopus.js";
+import { buildReefCreature } from "./creature_reef.js";
 
 /** 新生态模型拥有独立剪影；几何与材质按物种缓存，群游实例不重复创建资产。 */
 export const ECOSYSTEM_CREATURE_KINDS = new Set([
+  "boxfish",
+  "parrotfish",
+  "wrasse",
   "sardine",
   "anchovy",
   "herring",
@@ -42,7 +46,9 @@ export function buildEcosystemCreature(kind, root, motions) {
   const body = new THREE.Group();
   body.name = `${kind}_anatomy`;
   root.add(body);
-  if (SMALL_FISH[kind]) buildSchoolFish(kind, body, motions, root);
+  if (["boxfish", "parrotfish", "wrasse"].includes(kind))
+    buildReefCreature(kind, body, motions);
+  else if (SMALL_FISH[kind]) buildSchoolFish(kind, body, motions, root);
   else if (kind === "turtle") buildTurtle(body, motions);
   else if (kind === "sunfish") buildSunfish(body, motions);
   else if (kind === "hammerhead" || kind === "megalodon")

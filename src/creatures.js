@@ -1,4 +1,15 @@
+import { createPlayerMotion, addFeedingMouth } from "./player_motion.js";
+import { SHOAL_CREATURE_KINDS, buildShoalCreature } from "./creature_shoal.js";
+import {
+  HUNTER_CREATURE_KINDS,
+  buildHunterCreature,
+} from "./creature_hunters.js";
 import * as THREE from "three";
+import { LORD_CREATURE_KINDS, buildLordCreature } from "./creature_lords.js";
+import {
+  ANCIENT_CREATURE_KINDS,
+  buildAncientCreature,
+} from "./creature_ancient.js";
 import {
   bindAxialMotion,
   skinMaterial,
@@ -16,7 +27,7 @@ import {
  * @param {string} kind 生物名称，包含虎鲸、鱼群、深海巨兽及海鸥等模型。
  * @param {number} length 包括尾鳍的近似全长，单位与场景一致。
  * @param {number} seed 外观与动作的确定性种子。
- * @returns {THREE.Group} 根节点；userData.animate(time, speed) 用于更新游泳动作。
+ * @returns {THREE.Group} 根节点；userData.animate(time, speed, motionState?) 用于更新游泳动作。
  */
 export function createCreature(kind, length = 6, seed = 1) {
   const root = new THREE.Group();
@@ -24,10 +35,29 @@ export function createCreature(kind, length = 6, seed = 1) {
   const random = seededRandom(seed);
   const phase = random() * Math.PI * 2;
   const motions = [];
+  const playerMotion = ["orca", "squid"].includes(kind)
+    ? createPlayerMotion(kind, phase)
+    : null;
+  if (playerMotion) {
+    root.userData.motionState = playerMotion.state;
+    root.userData.pose = {};
+    root.userData.triggerFeed = playerMotion.feed;
+    root.userData.resetMotion = () => {
+      const state = playerMotion.reset();
+      for (const motion of motions) motion(state.phase, state.effort, state);
+    };
+  }
   let previousTime;
   let swimTime = phase;
 
-  if (ECOSYSTEM_CREATURE_KINDS.has(kind))
+  if (SHOAL_CREATURE_KINDS.has(kind)) buildShoalCreature(kind, root, motions);
+  else if (HUNTER_CREATURE_KINDS.has(kind))
+    buildHunterCreature(kind, root, motions);
+  else if (LORD_CREATURE_KINDS.has(kind))
+    buildLordCreature(kind, root, motions);
+  else if (ANCIENT_CREATURE_KINDS.has(kind))
+    buildAncientCreature(kind, root, motions);
+  else if (ECOSYSTEM_CREATURE_KINDS.has(kind))
     buildEcosystemCreature(kind, root, motions);
   else if (kind === "orca") buildOrca(root, motions);
   else if (kind === "shark") buildShark(root, motions);
@@ -43,8 +73,13 @@ export function createCreature(kind, length = 6, seed = 1) {
   root.scale.setScalar(length);
   root.userData.kind = kind;
   root.userData.length = length;
-  root.userData.animate = (time, speed = 1) => {
+  root.userData.animate = (time, speed = 1, motionState) => {
     const effort = THREE.MathUtils.clamp(Math.abs(speed), 0.15, 3);
+    if (playerMotion) {
+      const state = playerMotion.update(time, effort, motionState);
+      for (const motion of motions) motion(state.phase, state.effort, state);
+      return;
+    }
     // 累积动作相位，冲刺切换和远距离休眠恢复时不会突然跳帧。
     const delta =
       previousTime === undefined
@@ -210,11 +245,9 @@ function buildOrca(root, motions) {
     ),
     ORCA_SKIN,
   );
-  bindAxialMotion(torso, motions, {
-    axis: "x",
-    frequency: 1.12,
-    amplitude: 0.055,
-  });
+  const body = bindAxialMotion(torso, [], { axis: "x" });
+  const [, peduncle, tailJoint] = body.skeleton.bones;
+  addFeedingMouth(root, inner, [0, -0.052, -0.43]);
 
   // 眼斑贴合体表，向后上方倾斜拉长。
   for (const side of [-1, 1]) {
@@ -277,12 +310,15 @@ function buildOrca(root, motions) {
       ),
       MATERIALS.orca,
     );
-    motions.push((t, effort) => {
-      const sprint = THREE.MathUtils.smoothstep(effort, 1.25, 2.3);
+    flipper.name = `orca_flipper_${side}`;
+    motions.push((t, effort, state) => {
+      const folded = Math.max(state.boost, state.airborne);
       flipper.rotation.z =
-        -side * (0.34 + Math.sin(t * 1.12 + 1.2) * 0.07 * (1 - sprint * 0.6));
-      flipper.rotation.x = Math.sin(t * 1.12 + 0.6) * 0.05;
-      flipper.rotation.y = side * (0.18 + sprint * 0.22);
+        -side *
+          (0.3 - folded * 0.12 + Math.sin(t - 0.8) * 0.065 * (1 - folded)) +
+        state.turn * 0.26;
+      flipper.rotation.x = Math.sin(t - 0.7) * 0.055 + state.pitchInput * 0.16;
+      flipper.rotation.y = -side * (0.08 + folded * 0.53);
     });
   }
   // 呼吸孔嵌在头顶，黑白体色之外保留近景解剖尺度。
@@ -311,27 +347,33 @@ function buildOrca(root, motions) {
   );
 
   const tail = new THREE.Group();
-  tail.position.set(0, -0.016, 0.4);
-  inner.add(tail);
+  tail.name = "orca_flukes";
+  tail.position.set(0, -0.016, 0.15);
+  tailJoint.add(tail);
   mesh(
     tail,
     cached("orca_flukes", () =>
       finSolid(
+        // 前后缘保持正的弦长，避免旧轮廓在两侧中段交叉成薄线。
         [
           [0.0, 0.0],
-          [0.05, 0.1],
-          [0.125, 0.185],
-          [0.155, 0.26],
-          [0.125, 0.245],
-          [0.08, 0.13],
-          [0.05, 0.02],
-          [0.038, 0.0],
-          [0.05, -0.02],
-          [0.08, -0.13],
-          [0.125, -0.245],
-          [0.155, -0.26],
-          [0.125, -0.185],
-          [0.05, -0.1],
+          [0.012, 0.075],
+          [0.043, 0.16],
+          [0.095, 0.235],
+          [0.142, 0.265],
+          [0.148, 0.225],
+          [0.132, 0.16],
+          [0.105, 0.075],
+          [0.06, 0.018],
+          [0.048, 0.0],
+          [0.06, -0.018],
+          [0.105, -0.075],
+          [0.132, -0.16],
+          [0.148, -0.225],
+          [0.142, -0.265],
+          [0.095, -0.235],
+          [0.043, -0.16],
+          [0.012, -0.075],
         ],
         0.013,
         "horizontal",
@@ -340,17 +382,24 @@ function buildOrca(root, motions) {
     ),
     MATERIALS.orca,
   );
-  motions.push((t, effort) => {
-    const sprint = THREE.MathUtils.smoothstep(effort, 1.25, 2.3);
-    const beat = t * 1.12;
-    // 尾鳍上下摆动推进；冲刺时摆幅加大、身体绷紧前压。
-    tail.rotation.x = Math.sin(beat) * (0.13 + effort * 0.05);
-    tail.rotation.y = Math.sin(beat - 0.4) * 0.02;
-    tail.position.y = -0.016 + Math.sin(beat - 0.55) * 0.009;
-    inner.position.y = Math.sin(beat - 1.05) * 0.007;
-    inner.rotation.x = Math.sin(beat - 0.8) * 0.02 - sprint * 0.05;
-    inner.rotation.z = Math.sin(t * 0.42) * 0.04 * (1 - sprint * 0.75);
-    inner.rotation.y = Math.sin(beat) * 0.014;
+  motions.push((t, effort, state) => {
+    // 尾柄由近端到远端传递推进波，尾鳍接在同一骨骼上，避免与躯干脱节。
+    const amplitude =
+      (0.13 + state.power * 0.13 + state.boost * 0.04) *
+      (1 - state.airborne * 0.85);
+    peduncle.rotation.x = Math.sin(t) * amplitude * 0.48;
+    tailJoint.rotation.x = Math.sin(t - 0.62) * amplitude;
+    tailJoint.rotation.y = -state.turn * 0.08;
+    tail.rotation.x = Math.sin(t - 1.25) * amplitude * 1.15;
+    tail.rotation.y = -state.turn * 0.045;
+    inner.rotation.x = -state.boost * 0.018;
+    inner.rotation.z = -state.turn * 0.16;
+    Object.assign(root.userData.pose, {
+      tailBeat: tailJoint.rotation.x,
+      flukePitch: tail.rotation.x,
+      bank: inner.rotation.z,
+      folded: state.boost,
+    });
   });
 }
 

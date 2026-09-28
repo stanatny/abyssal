@@ -149,3 +149,43 @@
 .minimap-depth-label {
   color: #88a89e;
 }
+
+/* 俯仰刻度嵌在海图外缘留白内，保持原有雷达与字幕的布局尺寸。 */
+.minimap-pitch-scale {
+  fill: none;
+  stroke: #b8cdc075;
+  stroke-width: 0.7;
+}
+.minimap-pitch-marker {
+  fill: #e6ebd6;
+  stroke: #204844;
+  stroke-width: 0.45;
+}
+.minimap-pitch-axis {
+  fill: #c8ddd0;
+  font-family: inherit;
+  text-anchor: middle;
+  paint-order: stroke;
+  stroke: #082b30;
+  stroke-width: 1;
+}
+.minimap-pitch-axis {
+  font-size: 6px;
+}
+.minimap-pitch-label {
+  position: absolute;
+  top: 7%;
+  left: 40%;
+  right: 9%;
+  color: #d9e8dc;
+  font-size: 9px;
+  line-height: 12px;
+  white-space: nowrap;
+  text-align: center;
+  text-shadow: 0 1px 3px #082b30;
+}
+
+/* 育幼区只强调既有雷达字幕，不增加手机上的状态面板。 */
+.minimap[data-nursery="true"] .minimap-depth-label {
+  color: #aee9ba;
+}

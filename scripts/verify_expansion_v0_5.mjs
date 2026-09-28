@@ -29,7 +29,7 @@ try {
   await page.waitForFunction(() => window.__ABYSSAL__);
   await page.click("#quality");
   await page.click("#open-guide");
-  assert.equal(await page.locator(".guide-entry").count(), 32);
+  assert.equal(await page.locator(".guide-entry").count(), 35);
   for (const [category, count] of [
     ["player", 2],
     ["hunter", 5],
@@ -61,7 +61,7 @@ try {
   await page.screenshot({ path: ".local/v5_guide_ancient.png" });
   await page.click(".guide-close");
   checks.push(
-    "32 guide records include two playable characters, six ancient giants and human activity",
+    "35 guide records include two playable characters, six ancient giants and human activity",
   );
 
   await page.selectOption("#character-select", "squid");
@@ -94,15 +94,27 @@ try {
   measurements.squidPitch = await page.evaluate(
     () => window.__ABYSSAL__.controls.pitch,
   );
-  await page.keyboard.down("Space");
-  await page.keyboard.down("KeyS");
-  await page.waitForFunction(
-    () => Math.abs(window.__ABYSSAL__.controls.pitch) < 0.95,
+  const heldPitch = measurements.squidPitch;
+  await page.waitForTimeout(400);
+  assert.ok(
+    Math.abs(
+      (await page.evaluate(() => window.__ABYSSAL__.controls.pitch)) -
+        heldPitch,
+    ) < 1e-7,
+    "Releasing vertical input must hold the current dive angle",
   );
-  await page.keyboard.up("KeyS");
+  await page.keyboard.down("Space");
+  await page.waitForFunction(() => window.__ABYSSAL__.controls.speed > 25);
+  assert.ok(
+    Math.abs(
+      (await page.evaluate(() => window.__ABYSSAL__.controls.pitch)) -
+        heldPitch,
+    ) < 1e-7,
+    "Sprinting must retain the near-vertical angle instead of forcing it back to 49 degrees",
+  );
   await page.keyboard.up("Space");
   checks.push(
-    "Squid's passive reaches 85-degree diving and restores regular pitch during sprint",
+    "Squid reaches near-vertical diving and retains the chosen angle after release and during sprint",
   );
 
   await isolate();

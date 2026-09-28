@@ -12,18 +12,22 @@ test("每个可选角色有且只有一主动一被动，虎鲸冲刺提高30%",
   for (const character of PLAYER_CHARACTERS) {
     assert.ok(character.active.id && character.passive.id);
     assert.equal(character.available, true);
+    assert.equal(character.startLength, 3);
   }
   assert.equal(characterMovement("orca", true).sprintSpeed, 41.6);
   assert.equal(characterMovement("squid", true).sprintSpeed, 32);
 });
-test("乌贼未冲刺的转向与俯仰更灵活，冲刺回到常规限制", () => {
+test("乌贼未冲刺时转向更快，所有角色和冲刺保留相同85度俯仰范围", () => {
   const normal = characterMovement("orca", false);
   const agile = characterMovement("squid", false);
   const sprint = characterMovement("squid", true);
   assert.ok(agile.yawRate > normal.yawRate);
+  assert.ok(agile.pitchRate > normal.pitchRate);
   assert.ok(agile.pitchLimit > 1.45 && agile.pitchLimit < Math.PI / 2);
+  assert.equal(agile.pitchLimit, normal.pitchLimit);
   assert.equal(sprint.pitchLimit, normal.pitchLimit);
   assert.equal(sprint.yawRate, normal.yawRate);
+  assert.equal(sprint.pitchRate, normal.pitchRate);
 });
 test("喷墨的十秒效果、短促喷射与一分钟冷却独立，重复按键不刷新", () => {
   const state = createInkState();

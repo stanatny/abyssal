@@ -1,10 +1,13 @@
 /** 虎鲸主动声呐规则：以实际游玩秒数计时，不依赖相机、可见性或渲染器。 */
 import { canEat } from "./simulation.js";
+import { getCharacter } from "./character_rules.js";
+
+const ORCA_SONAR = getCharacter("orca").active;
 
 export const SONAR_ABILITY = Object.freeze({
-  duration: 10,
-  cooldown: 60,
-  range: 260,
+  duration: ORCA_SONAR.duration,
+  cooldown: ORCA_SONAR.cooldown,
+  range: ORCA_SONAR.range,
 });
 
 /** 创建本局的声呐计时状态；重开时重新创建，暂停时保持调用方的游玩时钟不变。 */

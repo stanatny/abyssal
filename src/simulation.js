@@ -5,20 +5,22 @@
 
 import { ECOSYSTEM_SPECIES } from "./ecosystem_config.js";
 import { REWARDS } from "./reward_config.js";
+import { getCharacter } from "./character_rules.js";
 
 /*********************************************
  * Public API
  ********************************************/
 
-/** 创建一条幼年虎鲸；无参数，返回可由游戏循环更新的玩家状态。 */
+/** 根据可选角色创建幼年个体；质量仍以6米个体为单位，返回可更新的玩家状态。 */
 export function createPlayer(characterId = "orca") {
+  const character = getCharacter(characterId);
   return {
-    characterId,
+    characterId: character.id,
     health: 100,
     stamina: 100,
     hunger: 100,
-    mass: 1,
-    length: 6,
+    mass: (character.startLength / 6) ** 3,
+    length: character.startLength,
     eaten: 0,
     elapsed: 0,
     timedOut: false,
@@ -160,8 +162,13 @@ export function applyNutrition(player, reward, efficiency = 1) {
   const preyLength = nonNegative(reward.length, 6);
   const nutrition =
     nonNegative(reward.nutrition, 10 + preyLength * 1.5) * safeEfficiency;
+  // 生态奖励沿用6米质量单位；幼年仅压低成长，避免一群小鱼跳过多个体型层级。
+  // 线性系数让第一群有明显成长反馈，6米后与原曲线完全相同。
+  const juvenileGrowth = Math.min(1, player.length / 6);
   const growth =
-    nonNegative(reward.growth, (preyLength / 6) ** 3 * 0.4) * safeEfficiency;
+    nonNegative(reward.growth, (preyLength / 6) ** 3 * 0.4) *
+    safeEfficiency *
+    juvenileGrowth;
   const healingCapacity = nutrition * 0.8;
   const healed = Math.min(Math.max(0, 100 - player.health), healingCapacity);
   // 受伤时最多将70%成长投入恢复；轻伤只扣除实际使用的治疗份额。
@@ -236,7 +243,11 @@ export function getZone(depth) {
 
 /** 根据玩家体长返回0–100的成长百分比；胜利还需击败至少一位主宰。 */
 export function getProgress(player) {
-  return Math.max(0, Math.min(100, ((player.length - 6) / 24) * 100));
+  const startLength = getCharacter(player.characterId).startLength;
+  return Math.max(
+    0,
+    Math.min(100, ((player.length - startLength) / (30 - startLength)) * 100),
+  );
 }
 
 /*********************************************

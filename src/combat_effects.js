@@ -173,6 +173,49 @@ export function createCombatEffects(scene) {
       spread: 1.3 * reach,
     });
   }
+  // 吞食完成时的小型余雾按猎物尺度收敛，微小鱼不会瞬间变成数米血云。
+  function mealMist(point, preyLength = 1) {
+    const length = Number.isFinite(preyLength) ? Math.max(0.01, preyLength) : 1;
+    const size = THREE.MathUtils.clamp(
+      0.18 + Math.sqrt(length) * 0.16,
+      0.22,
+      0.85,
+    );
+    emit(point, {
+      color: 0x9c3443,
+      count: Math.min(6, 2 + Math.ceil(Math.sqrt(length))),
+      size,
+      alpha: 0.3,
+      life: 0.8,
+      drift: size * 0.75,
+      grow: 1.35,
+      spin: 0.35,
+      spread: size * 0.3,
+    });
+    emit(point, {
+      color: 0x651d2c,
+      count: 2,
+      size: size * 0.8,
+      alpha: 0.2,
+      life: 1.1,
+      drift: size * 0.45,
+      grow: 1.6,
+      stretch: 1.3,
+      spread: size * 0.4,
+    });
+    emit(point, {
+      bubble: true,
+      color: 0xd8ebeb,
+      count: 2,
+      size: THREE.MathUtils.clamp(size * 0.38, 0.08, 0.25),
+      alpha: 0.4,
+      life: 0.55,
+      drift: 0.35,
+      rise: 0.8,
+      grow: 1.15,
+      spread: size * 0.4,
+    });
+  }
   function bite(point, direction, length = 6) {
     for (let i = 0; i < 2; i++) {
       const ring = rings[ringCursor++ % rings.length];
@@ -386,6 +429,7 @@ export function createCombatEffects(scene) {
   }
   return {
     blood,
+    mealMist,
     bite,
     hurt,
     flash,

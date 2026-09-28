@@ -7,11 +7,16 @@ import { createShips } from "./ships.js";
 import { createFluidTexture } from "./effect_textures.js";
 
 /**
- * 创建破水、海鸥、船舶与水面效果；第四参数可提供 onEat(point, length)。
+ * 创建破水、海鸥、船舶与水面效果；第四参数可提供 onEat(point, length, bird) 与吞食过渡占用查询。
  * move 接收游泳前 previousPosition，空中完全由本模块积分运动。
  * 返回兼容的 move/update/reset/birds/airborne，额外暴露 ships、charge 与 dispose。
  */
-export function createSurface(scene, audio, notify, { onEat } = {}) {
+export function createSurface(
+  scene,
+  audio,
+  notify,
+  { onEat, isSwallowing } = {},
+) {
   const root = new THREE.Group();
   root.name = "surface_environment";
   scene.add(root);
@@ -302,6 +307,7 @@ export function createSurface(scene, audio, notify, { onEat } = {}) {
     fleet.update(time, position);
     for (const bird of birds) {
       bird.cooldown = Math.max(0, bird.cooldown - dt);
+      if (isSwallowing?.(bird.mesh)) continue;
       if (bird.ship) {
         bird.anchor.copy(bird.ship.root.position);
         bird.anchor.y = WORLD.surfaceY + 5 + (bird.phase % 3);
@@ -328,7 +334,7 @@ export function createSurface(scene, audio, notify, { onEat } = {}) {
         bird.cooldown = 35;
         bird.mesh.visible = false;
         audio.eat();
-        onEat?.(bird.mesh.position, 2.6);
+        onEat?.(bird.mesh.position, 2.6, bird);
         notify(
           `捕食海鸥 · ${player.lastMeal?.healed > 0 ? "生命 +" + Math.round(player.lastMeal.healed) : "空中猎食成功"}`,
           2,

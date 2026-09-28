@@ -94,6 +94,9 @@ test("真实扫掠在物理推开前计一次撞击，破艇移除碰撞并仅�
   const forward = new THREE.Vector3(1, 0, 0),
     sub = activity.submarines[0];
   const origin = sub.mesh.position.clone();
+  const identities = new Map(
+    activity.entities.map((entity) => [entity.id, entity.sex]),
+  );
   const previous = origin.clone().add(new THREE.Vector3(-24, 0, 0));
   const desired = origin.clone().add(new THREE.Vector3(-3, 0, 0));
   const initialCount = activity.entities.filter(
@@ -136,6 +139,9 @@ test("真实扫掠在物理推开前计一次撞击，破艇移除碰撞并仅�
   );
   assert.equal(released.length, 3);
   for (const diver of released) {
+    assert.equal(diver.sex, identities.get(diver.id));
+    assert.equal(diver.species.sex, diver.sex);
+    assert.equal(diver.mesh.userData.sex, diver.sex);
     assert.ok(diver.mesh.position.distanceTo(origin) >= 16);
     assert.equal(diver.protectedUntil, 10);
   }
@@ -191,6 +197,9 @@ test("岩石先于鱼雷被命中时不引爆；近距离潜水员也不能隔�
     forward = new THREE.Vector3(1, 0, 0),
     hazard = activity.hazards[0],
     origin = hazard.mesh.position.clone();
+  // 此用例只验证遮挡边界，保留原六米躯干与潜水员的接触距离。
+  player.length = 6;
+  player.mass = 1;
   worldColliders.push({
     x: origin.x - 10,
     y: origin.y,
@@ -239,5 +248,157 @@ test("模型种类辨识资源均可独立释放，重复dispose不双重释放"
     model.userData.dispose();
     model.userData.dispose();
     assert.equal(disposed, resources.size);
+  }
+});
+
+test("出生海面12名游泳者在前方且部分身体露水，共享水沫批次跟随活动", () => {
+  const activity = createHumanActivity(new THREE.Scene());
+  try {
+    const swimmers = activity.entities.filter(
+      (entity) => entity.kind === "swimmer",
+    );
+    assert.equal(swimmers.length, 12);
+    for (const swimmer of swimmers) {
+      swimmer.mesh.userData.animate(0.5);
+      swimmer.mesh.updateMatrixWorld(true);
+      const bounds = new THREE.Box3().setFromObject(swimmer.mesh);
+      assert.ok(
+        bounds.min.y < 4 && bounds.max.y > 4,
+        "Swimming body must meet the surface",
+      );
+      assert.ok(swimmer.mesh.position.z < 75 && swimmer.mesh.position.z > -50);
+      assert.ok(Math.abs(swimmer.mesh.position.x) <= 30);
+    }
+    assert.equal(activity.swimmerFoam.count, 24);
+  } finally {
+    activity.dispose();
+  }
+});
+
+test("普通人延迟并避开玩家视野补位，潜艇释放者不会自动重刷，吞食过渡独占网格", () => {
+  const swallowing = new Set();
+  const activity = createHumanActivity(new THREE.Scene(), {
+    isSwallowing: (mesh) => swallowing.has(mesh),
+    onEat: (point, length, entity) => swallowing.add(entity.mesh),
+  });
+  const player = createPlayer();
+  player.length = 6;
+  const forward = new THREE.Vector3(0, 0, -1);
+  try {
+    const swimmer = activity.entities[0],
+      point = swimmer.mesh.position.clone();
+    activity.onMovement(player, point, point, forward, { now: 1 });
+    assert.equal(swimmer.alive, false);
+    assert.equal(swimmer.mesh.visible, true, "Transition owns visibility");
+    const before = swimmer.mesh.position.clone();
+    activity.update(1, 2, player, new THREE.Vector3(0, -50, -500), forward);
+    assert.deepEqual(swimmer.mesh.position.toArray(), before.toArray());
+    swallowing.delete(swimmer.mesh);
+    swimmer.mesh.visible = false;
+    activity.update(1, 50, player, new THREE.Vector3(0, -50, -500), forward);
+    assert.equal(swimmer.alive, false);
+    activity.update(1, 100, player, point, forward);
+    assert.equal(swimmer.alive, false, "Nearby player must not see a respawn");
+    activity.update(1, 101, player, new THREE.Vector3(0, -50, -500), forward);
+    assert.equal(swimmer.alive, true);
+    const reserved = activity.entities.find((entity) => entity.reserved);
+    reserved.alive = false;
+    reserved.respawnAt = 0;
+    activity.update(1, 1000, player, new THREE.Vector3(0, -50, -500), forward);
+    assert.equal(reserved.alive, false);
+  } finally {
+    activity.dispose();
+  }
+});
+
+test("游泳组、潜水组和每艇释放组稳定交替男女，重开不改ID或性别", () => {
+  const activity = createHumanActivity(new THREE.Scene());
+  try {
+    assert.equal(HUMAN_CATALOG.length, 4);
+    const groups = [
+      activity.entities.filter((entity) => entity.kind === "swimmer"),
+      activity.entities.filter(
+        (entity) => entity.kind === "diver" && !entity.reserved,
+      ),
+    ];
+    const reserved = activity.entities.filter((entity) => entity.reserved);
+    for (
+      let index = 0;
+      index < reserved.length;
+      index += HUMAN_RULES.releaseCount
+    )
+      groups.push(reserved.slice(index, index + HUMAN_RULES.releaseCount));
+    for (const group of groups)
+      group.forEach((entity, index) => {
+        assert.equal(entity.sex, index % 2 ? "female" : "male");
+        assert.equal(entity.species.sex, entity.sex);
+        assert.equal(entity.mesh.userData.sex, entity.sex);
+      });
+    const snapshot = () =>
+      activity.entities.map((entity) => [
+        entity.id,
+        entity.sex,
+        entity.species.sex,
+        entity.mesh.userData.sex,
+        entity.species.length,
+        entity.species.nutrition,
+        entity.species.growth,
+      ]);
+    const before = snapshot();
+    for (let repeat = 0; repeat < 3; repeat++) {
+      activity.reset();
+      assert.deepEqual(snapshot(), before);
+    }
+  } finally {
+    activity.dispose();
+  }
+});
+
+test("男女游泳者与潜水员结算传递同源性别，普通复活继续保留原身份", () => {
+  const calls = [];
+  const activity = createHumanActivity(new THREE.Scene(), {
+    audio: { eatHuman: (...args) => calls.push(args) },
+  });
+  const player = createPlayer();
+  player.length = 6;
+  const forward = new THREE.Vector3(0, 0, -1);
+  try {
+    for (const kind of ["swimmer", "diver"])
+      for (const sex of ["male", "female"]) {
+        const entity = activity.entities.find(
+          (candidate) =>
+            candidate.kind === kind &&
+            candidate.sex === sex &&
+            !candidate.reserved,
+        );
+        const beforeId = entity.id;
+        entity.mesh.position.set(300, -100, 400);
+        entity.anchor.copy(entity.mesh.position);
+        const now = 1 + calls.length;
+        activity.onMovement(
+          player,
+          entity.mesh.position.clone(),
+          entity.mesh.position.clone(),
+          forward,
+          { now },
+        );
+        assert.equal(entity.alive, false);
+        assert.deepEqual(calls.at(-1), [entity.species.length, sex]);
+        activity.update(
+          0,
+          now + 100,
+          player,
+          new THREE.Vector3(0, -100, -1000),
+          forward,
+        );
+        assert.equal(entity.alive, true);
+        assert.equal(entity.id, beforeId);
+        assert.equal(entity.sex, sex);
+        assert.equal(entity.species.sex, sex);
+        assert.equal(entity.mesh.userData.sex, sex);
+      }
+    assert.equal(calls.length, 4);
+  } finally {
+    activity.dispose();
   }
 });

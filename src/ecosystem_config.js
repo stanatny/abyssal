@@ -4,14 +4,17 @@
  * 捕食强度、营养与技能属于游戏设计，不作为现实行为或古生物生态结论。
  */
 const POPULATIONS = {
-  fish: 24,
+  fish: 48,
   anchovy: 18,
-  sardine: 16,
+  sardine: 32,
   herring: 16,
   mackerel: 12,
   flying_fish: 10,
   turtle: 5,
   sunfish: 6,
+  boxfish: 8,
+  parrotfish: 8,
+  wrasse: 4,
   tuna: 18,
   ray: 8,
   angler: 7,
@@ -74,7 +77,7 @@ const ancient = (kind, label, length, speed, depthMin, depthMax, facts) => ({
   habitatNote: "已灭绝；本作复苏水层为幻想设定，不代表真实古海洋深度。",
 });
 
-/** 全量普通生物配置；稀有领主另走 BOSS_SPECIES，多阶段战斗不在此表。 */
+/** 全量普通生物配置；深渊领主另走 BOSS_SPECIES，多阶段战斗不在此表。 */
 export const ECOSYSTEM_SPECIES = Object.freeze(
   [
     shoal("fish", "珊瑚鱼", 0.8, 4, 5, 34, 12, {
@@ -146,6 +149,46 @@ export const ECOSYSTEM_SPECIES = Object.freeze(
         "椭圆龟甲由多块盾片组成，宽大前鳍缓慢划水。真实海龟需回到水面呼吸，常在浅海觅食。",
       habitatNote: "浅海海草床、珊瑚礁附近；游戏统一碰撞尺度并非严格背甲量法。",
       counter: "游速较慢，在浅海容易观察和接近。",
+    }),
+    shoal("boxfish", "长角箱鲀", 0.45, 2, 5, 22, 2, {
+      latin: "LACTORIA CORNUTA",
+      color: "#e6cb70",
+      realSize: "可达约0.51 m；本作0.45 m",
+      ability: "箱形缓游",
+      description:
+        "头部长角和方盒般的身体十分醒目。游戏中缓慢游动，适合作为刚出发时容易辨认、接近的浅海猎物。",
+      habitatNote:
+        "印度洋—太平洋鱼类；现实中的毒素防御尚未启用，浅滩常驻、结伴与慢速是游戏设计。",
+      counter: "从侧面缓缓接近即可捕食，不必一直消耗体力冲刺。",
+      nurseryResident: true,
+      nutrition: 10,
+      growth: 0.024,
+    }),
+    shoal("parrotfish", "隆头鹦嘴鱼", 1.3, 2.4, 7, 28, 4, {
+      latin: "BOLBOMETOPON MURICATUM",
+      color: "#bad09a",
+      realSize: "大型个体约1.3 m",
+      ability: "礁间觅食",
+      description:
+        "隆起的额头与鹦鹉喙般的大嘴构成剪影。真实个体会成群在浅海礁区觅食；游戏设为慢游猎物，便于幼年角色稳定补给。",
+      habitatNote: "浅海珊瑚礁附近；本作慢速与营养收益经过游戏平衡。",
+      counter: "沿着礁区找到小群，转向接近比长距离追逐更省体力。",
+      nurseryResident: true,
+      nutrition: 20,
+      growth: 0.045,
+    }),
+    shoal("wrasse", "苏眉", 1.7, 2.6, 10, 32, 2, {
+      latin: "CHEILINUS UNDULATUS",
+      color: "#76bfb0",
+      realSize: "大型个体可达约1.7 m",
+      ability: "胸鳍巡游",
+      description:
+        "厚嘴唇、隆起额部与青绿色身体容易辨认，依靠胸鳍推进。可在潟湖和礁坡独自、结伴或小群活动；游戏中是体型稍大的入门猎物。",
+      habitatNote: "潟湖与珊瑚礁坡；本作缓慢巡游是为新手捕食调整的游戏速度。",
+      counter: "出生体型即可捕食，浅滩往返时留意它宽厚的轮廓。",
+      nurseryResident: true,
+      nutrition: 23,
+      growth: 0.055,
     }),
     shoal("sunfish", "翻车鱼", 3, 2.8, 5, 75, 2, {
       latin: "MOLA MOLA",

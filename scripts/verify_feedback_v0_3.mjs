@@ -107,7 +107,7 @@ try {
   await page.waitForFunction(() => window.__ABYSSAL__);
   await page.click("#quality");
   await page.click("#open-guide");
-  assert.equal(await page.locator(".guide-entry").count(), 32);
+  assert.equal(await page.locator(".guide-entry").count(), 35);
   assert.equal(
     await page.locator("#ocean-guide").evaluate((e) => e.open),
     true,
@@ -119,7 +119,7 @@ try {
   assert.equal(await page.locator('[data-catalog-id="squid"]').count(), 0);
   assert.equal(await page.locator('[data-catalog-id="octopus"]').count(), 1);
   checks.push(
-    "Guide opens with 32 records, squid only as playable and octopus as wildlife",
+    "Guide opens with 35 records, squid only as playable and octopus as wildlife",
   );
   await page.evaluate(() => {
     window.__feedbackGuideFrames = {};
@@ -165,7 +165,7 @@ try {
   await page.fill("#guide-search", "");
   assert.equal(await page.locator(".guide-entry").count(), 4);
   await page.click('[data-category="all"]');
-  assert.equal(await page.locator(".guide-entry").count(), 32);
+  assert.equal(await page.locator(".guide-entry").count(), 35);
   await page.fill("#guide-search", "白鲨");
   assert.equal(await page.locator(".guide-entry").count(), 1);
   await page.fill("#guide-search", "");
@@ -240,6 +240,14 @@ try {
     fish.mesh.position.z -= 6.4;
   });
   await page.waitForFunction(() => window.__ABYSSAL__.player.eaten > 0);
+  // 捕食先显示模型吞入，再产生血雾，不能要求接触瞬间已经喷血。
+  await page.waitForFunction(() => {
+    const state = window.__ABYSSAL__.feeding.snapshot();
+    return (
+      state.completedCount > 0 ||
+      state.entries.some((entry) => entry.mistEmitted)
+    );
+  });
   measurements.blood = await snapshot();
   assert.ok(measurements.blood.particles > 0);
   await page.waitForFunction(() => window.__ABYSSAL__.player.elapsed > 0.35);

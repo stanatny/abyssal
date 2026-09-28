@@ -20,6 +20,58 @@ function approximately(actual, expected) {
   assert.ok(Math.abs(actual - expected) < 1e-8, `${actual} != ${expected}`);
 }
 
+function createAtLength(length) {
+  const player = createPlayer();
+  player.length = length;
+  player.mass = (length / 6) ** 3;
+  return player;
+}
+
+test("两个角色均从3米开始，首口小鱼之后才能解锁同为3米的猎物", () => {
+  for (const id of ["orca", "squid"]) {
+    const player = createPlayer(id);
+    assert.equal(player.length, 3);
+    approximately(player.mass, 0.125);
+    assert.equal(getProgress(player), 0);
+    assert.equal(canEat(player, 2.999), true);
+    assert.equal(canEat(player, 3), false);
+    for (const kind of ["fish", "anchovy", "sardine", "turtle"]) {
+      assert.equal(
+        canEat(player, SPECIES.find((entry) => entry.kind === kind).length),
+        true,
+      );
+    }
+    for (const kind of ["tuna", "sunfish", "hammerhead", "shark"]) {
+      assert.equal(
+        canEat(player, SPECIES.find((entry) => entry.kind === kind).length),
+        false,
+      );
+    }
+    const initial = structuredClone(player);
+    assert.equal(
+      consumePrey(
+        player,
+        SPECIES.find((entry) => entry.kind === "tuna"),
+      ),
+      false,
+    );
+    assert.deepEqual(player, initial);
+    consumePrey(
+      player,
+      SPECIES.find((entry) => entry.kind === "fish"),
+    );
+    assert.equal(canEat(player, 3), true);
+    assert.equal(canEat(player, 4), false);
+    assert.equal(canEat(player, 6.4), false);
+    player.length = (3 + 30) / 2;
+    assert.equal(getProgress(player), 50);
+    player.length = 30;
+    assert.equal(getProgress(player), 100);
+    player.length = 1;
+    assert.equal(getProgress(player), 0);
+  }
+});
+
 test("冲刺消耗体力，耗尽后恢复到阈值才能再次冲刺", () => {
   const player = createPlayer();
   assert.equal(tickVitals(player, 2, { boosting: true }).boosting, true);
@@ -63,7 +115,7 @@ test("攻击无敌避免连续接触伤害，期满后可再次受伤", () => {
 });
 
 test("普通吞食只允许更小的鱼，狂食允许1.6倍并在30秒后失效", () => {
-  const player = createPlayer();
+  const player = createAtLength(6);
   assert.equal(canEat(player, 5.9), true);
   assert.equal(canEat(player, 6), false);
   assert.equal(canEat(player, 8), false);
@@ -110,13 +162,14 @@ test("吞食增长符合体积规律，过小猎物的营养与成长显著递�
   const young = createPlayer();
   const large = createPlayer();
   young.hunger = 0;
+  const youngMass = young.mass;
   large.hunger = 0;
   large.length = 24;
   large.mass = 64;
   assert.equal(consumePrey(young, prey), true);
   assert.equal(consumePrey(large, prey), true);
   assert.ok(large.hunger < young.hunger / 10);
-  assert.ok(large.mass - 64 < (young.mass - 1) / 10);
+  assert.ok(large.mass - 64 < (young.mass - youngMass) / 10);
   approximately(young.length, 6 * Math.cbrt(young.mass));
   assert.equal(young.eaten, 1);
 });
@@ -173,7 +226,7 @@ test("致命攻击与饥饿均可死亡，死亡后不再进食或收集奖励",
 });
 
 test("重伤进食优先回血，仍保留30%成长且照常恢复饱食", () => {
-  const player = createPlayer();
+  const player = createAtLength(6);
   player.health = 30;
   player.hunger = 10;
   consumePrey(player, { length: 5, nutrition: 20, growth: 10 });
@@ -186,8 +239,8 @@ test("重伤进食优先回血，仍保留30%成长且照常恢复饱食", () =>
 });
 
 test("轻伤只扣实际治疗份额，满血进食获得完整成长", () => {
-  const injured = createPlayer();
-  const healthy = createPlayer();
+  const injured = createAtLength(6);
+  const healthy = createAtLength(6);
   injured.health = 97;
   const prey = { length: 5, nutrition: 20, growth: 10 };
   consumePrey(injured, prey);
@@ -205,8 +258,8 @@ test("深度边界与物种配置覆盖浅海至巨兽区", () => {
   assert.equal(getZone(250).id, "abyss");
   assert.equal(getZone(500).id, "hadal");
   assert.equal(getZone(NaN).id, "reef");
-  assert.equal(SPECIES.length, 21);
-  assert.equal(new Set(SPECIES.map((species) => species.kind)).size, 21);
+  assert.equal(SPECIES.length, 24);
+  assert.equal(new Set(SPECIES.map((species) => species.kind)).size, 24);
   assert.deepEqual(
     new Set(SPECIES.map((species) => species.category)),
     new Set(["shoal", "hunter", "ancient"]),
@@ -354,17 +407,60 @@ test("24米满饱留出一次75秒领主战窗口，小鱼仍无法长期满足�
   assert.ok(player.length < 24.1);
 });
 
-test("开场整群有可见成长，但捕食一次鱼群不会越过下一食物层级", () => {
+test("幼年首口长约7厘米，首群12尾达到3.6至3.9米且还不能捕食锤头鲨", () => {
   const player = createPlayer();
   const reefFish = SPECIES.find((species) => species.kind === "fish");
-  for (let index = 0; index < reefFish.schoolSize; index++)
-    consumePrey(player, reefFish);
-  assert.ok(player.length > 6.2 && player.length < 6.5);
+  consumePrey(player, reefFish);
+  approximately(player.length, 3.0703379681472294);
+  for (let index = 1; index < 12; index++) consumePrey(player, reefFish);
+  approximately(player.length, 3.7596665492525867);
+  assert.ok(player.length >= 3.6 && player.length <= 3.9);
+  assert.equal(canEat(player, 3), true);
+  assert.equal(canEat(player, 4), false);
   assert.equal(
     canEat(player, SPECIES.find((species) => species.kind === "shark").length),
     false,
   );
   assert.equal(player.elapsed, 0);
+});
+
+test("满血连续捕食珊瑚鱼在第17、27、66尾分别超过4、4.5、6米", () => {
+  const player = createPlayer();
+  const reefFish = SPECIES.find((species) => species.kind === "fish");
+  for (const [count, threshold, expected] of [
+    [17, 4, 4.034823481028074],
+    [27, 4.5, 4.53590850679719],
+    [66, 6, 6.012604741525039],
+  ]) {
+    while (player.eaten < count - 1) consumePrey(player, reefFish);
+    assert.ok(player.length < threshold);
+    assert.equal(canEat(player, threshold), false);
+    consumePrey(player, reefFish);
+    approximately(player.length, expected);
+    assert.equal(canEat(player, threshold), true);
+  }
+});
+
+test("幼年成长抑制不影响营养与治疗，6米后的成长曲线保持原值", () => {
+  const prey = SPECIES.find((species) => species.kind === "fish");
+  const player = createPlayer();
+  player.health = 50;
+  player.hunger = 0;
+  consumePrey(player, prey);
+  approximately(player.health, 56.4);
+  approximately(player.hunger, 8);
+  approximately(player.lastMeal.growth, 0.018 * (3 / 6) * 0.3);
+  for (const length of [6, 12, 24]) {
+    const grown = createAtLength(length);
+    grown.hunger = 0;
+    const originalEfficiency = Math.max(
+      Math.min(1, (prey.length / (length * 0.5)) ** 2),
+      0.7 * (6 / length) ** 4,
+    );
+    consumePrey(grown, prey);
+    approximately(grown.lastMeal.growth, prey.growth * originalEfficiency);
+    approximately(grown.hunger, prey.nutrition * originalEfficiency);
+  }
 });
 
 test("成长需要多个食物链阶段，连续捕食仍能升级而无等待时间锁", () => {
@@ -394,7 +490,7 @@ test("成长需要多个食物链阶段，连续捕食仍能升级而无等待�
   assert.equal(player.won, false);
 });
 
-test("现代与古代混合参考路线约17分钟，慢25%的路线跨20分钟后继续完成", (context) => {
+test("3米幼年参考路线约17分52秒，慢25%的路线跨20分钟后继续完成", (context) => {
   const quick = referenceExpedition(0.8);
   const normal = referenceExpedition(1);
   const completed = referenceExpedition(1.25);
@@ -407,9 +503,9 @@ test("现代与古代混合参考路线约17分钟，慢25%的路线跨20分钟�
     const categories = new Set(route.map((entry) => entry.category));
     assert.ok(categories.has("hunter") && categories.has("ancient"));
   }
-  approximately(quick.player.elapsed, 829.6);
-  approximately(normal.player.elapsed, 1037);
-  approximately(completed.player.elapsed, 1371.25);
+  approximately(quick.player.elapsed, 857.6);
+  approximately(normal.player.elapsed, 1072);
+  approximately(completed.player.elapsed, 1415);
   assert.ok(quick.player.elapsed < normal.player.elapsed);
   assert.ok(normal.player.elapsed < completed.player.elapsed);
   const { player: atTwentyMinutes } = referenceExpedition(1.25, 20 * 60);
@@ -430,6 +526,19 @@ test("现代与古代混合参考路线约17分钟，慢25%的路线跨20分钟�
   );
 });
 
+test("显式6米基线的快慢参考路线与幼年改动前完全相同", () => {
+  for (const [pace, expected] of [
+    [0.8, 829.6],
+    [1, 1037],
+    [1.25, 1371.25],
+  ]) {
+    const { player } = referenceExpedition(pace, Infinity, 6);
+    assert.equal(player.won, true);
+    assert.equal(player.dead, false);
+    approximately(player.elapsed, expected);
+  }
+});
+
 // 事件节奏模型，不代表真实导航试玩：有效捕食间隔已包含寻找与追逐；
 // 另计两次转场及战损，24米后假定75秒内抓住五次虚弱窗口击败克拉肯。
 // 沿用金枪鱼7秒、蝠鲼12秒、白鲨10秒、鮟鱇11秒、章鱼13秒、邓氏鱼16秒；
@@ -443,6 +552,10 @@ const REFERENCE_INTERVALS = Object.freeze({
   herring: 1,
   mackerel: 1,
   flying_fish: 1,
+  // 礁鱼按小群与较分散的驻点假设2/4/6秒；并非实测捕捉间隔。
+  boxfish: 2,
+  parrotfish: 4,
+  wrasse: 6,
   turtle: 7,
   sunfish: 7,
   tuna: 7,
@@ -479,8 +592,9 @@ function selectGrowthPrey(player, intervals = null) {
     )[0]?.species;
 }
 
-function referenceExpedition(paceScale, stopAt = Infinity) {
-  const player = createPlayer();
+function referenceExpedition(paceScale, stopAt = Infinity, startLength) {
+  const player =
+    startLength === undefined ? createPlayer() : createAtLength(startLength);
   const route = [];
   const report = { player, route };
   const transitions = new Set();

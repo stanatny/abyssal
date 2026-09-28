@@ -90,7 +90,7 @@ export const OCEAN_CATALOG = [
         ? "用声呐判断前方猎物体长和捕食资格，雷达保留周围回声。高速冲刺可追捕猎物或拉开距离，水下连续蓄势后才能破水。"
         : "遇到猎手追击时在水下喷墨脱身，提前把头朝向安全出口；喷射会受到礁石和船体阻挡。松开冲刺可发挥灵活转向的被动。",
     characterId: entry.id,
-    realSize: "6—30米成长与技能强度均为游戏设定。",
+    realSize: "3米幼年起步；起始尺寸、30米终局与技能强度属于游戏设定。",
     habitatNote: "可选角色共享自动接触捕食；特殊技能使用J或手机技能按钮。",
   })),
   ...SPECIES.map((config) => ({
@@ -153,7 +153,7 @@ const REWARD_DETAILS = {
     keywords: "吞噬 狂食 越级 捕食",
     text: `拾取后的${REWARDS.frenzy.duration}秒内，可吞食体长不超过自身1.6倍的普通猎物。对领主，交战体长门槛降至21米；仍需从侧翼朝向躯干接触咬击，每次命中后退出再接近，至少五次有效攻击才能击败领主。重复拾取同类奖励会刷新为${REWARDS.frenzy.duration}秒，不累加时长。`,
     counter:
-      "先找好合适的猎物再拾取。奖励不会让角色无敌；挑战领主时仍需躲避技能，并留意生命与剩余时间。",
+      "出生浅滩正前方略偏右设有固定狂食点，拾取后45秒原地刷新。先找好合适的猎物再拾取。奖励不会让角色无敌；挑战领主时仍需躲避技能，并留意生命与剩余时间。",
   },
 };
 const REWARD_CATALOG = Object.entries(REWARDS).map(([id, reward]) => ({
@@ -176,7 +176,7 @@ export function createOceanGuide(trigger) {
   dialog.className = "ocean-guide";
   dialog.id = "ocean-guide";
   dialog.setAttribute("aria-labelledby", "guide-title");
-  dialog.innerHTML = `<div class="guide-heading"><div><div class="guide-eyebrow">THE OCEAN ARCHIVE / 海洋档案</div><h2 id="guide-title">海洋图鉴</h2></div><button class="guide-close" aria-label="关闭海洋图鉴">关闭 <kbd>ESC</kbd></button></div><div class="guide-filters" role="group" aria-label="按档案分类筛选"></div><div class="guide-content"><aside class="guide-sidebar"><label for="guide-search">检索生物与奖励</label><input id="guide-search" type="search" placeholder="生物、奖励或能力" autocomplete="off"><div class="guide-list" aria-label="档案列表"></div></aside><section class="guide-detail" aria-label="当前档案资料"><div class="guide-preview" aria-label="生物三维展示"><span class="guide-specimen-tag">LIVE SPECIMEN / 可拖动旋转</span><div class="guide-reward-display" hidden><div class="guide-eyebrow">OCEAN REWARDS / 海洋奖励</div><div class="guide-reward-orb" aria-hidden="true"><span></span></div><b class="guide-reward-effect"></b><small>在海洋中触碰拾取</small></div></div><div class="guide-info" aria-live="polite"></div></section></div><div class="guide-footer">本作生态、幻想生物与海洋奖励<span>← → 切换档案 · 生物可拖动旋转</span></div>`;
+  dialog.innerHTML = `<div class="guide-heading"><div><div class="guide-eyebrow">THE OCEAN ARCHIVE / 海洋档案</div><h2 id="guide-title">海洋图鉴</h2></div><button class="guide-close" aria-label="关闭海洋图鉴">关闭 <kbd>ESC</kbd></button></div><div class="guide-filters" role="group" aria-label="按档案分类筛选"></div><div class="guide-content"><aside class="guide-sidebar"><label for="guide-search">检索生物与奖励</label><input id="guide-search" type="search" placeholder="生物、奖励或能力" autocomplete="off"><div class="guide-list" aria-label="档案列表"></div></aside><section class="guide-detail" aria-label="当前档案资料"><div class="guide-preview" aria-label="生物三维展示"><span class="guide-specimen-tag">LIVE SPECIMEN / 可拖动旋转</span><div class="guide-variant-controls" role="group" aria-label="预览成年人物" hidden><span>人物外观</span><button type="button" data-human-sex="male" aria-pressed="true">男性</button><button type="button" data-human-sex="female" aria-pressed="false">女性</button></div><div class="guide-reward-display" hidden><div class="guide-eyebrow">OCEAN REWARDS / 海洋奖励</div><div class="guide-reward-orb" aria-hidden="true"><span></span></div><b class="guide-reward-effect"></b><small>在海洋中触碰拾取</small></div></div><div class="guide-info" aria-live="polite"></div></section></div><div class="guide-footer">本作生态、幻想生物与海洋奖励<span>← → 切换档案 · 生物可拖动旋转</span></div>`;
   document.body.append(dialog);
   const filters = [
     { id: "all", name: "全部" },
@@ -185,20 +185,23 @@ export function createOceanGuide(trigger) {
     { id: "shoal", name: "浅海鱼群" },
     { id: "hunter", name: "海洋霸主" },
     { id: "ancient", name: "远古巨兽" },
-    { id: "lord", name: "稀有领主" },
+    { id: "lord", name: "深渊领主" },
     { id: "surface", name: "海面" },
     { id: "human", name: "人类活动" },
   ];
   const list = dialog.querySelector(".guide-list"),
     info = dialog.querySelector(".guide-info"),
     preview = dialog.querySelector(".guide-preview"),
+    variants = dialog.querySelector(".guide-variant-controls"),
     rewardDisplay = dialog.querySelector(".guide-reward-display"),
     input = dialog.querySelector("input");
   let category = "all",
     selected = OCEAN_CATALOG[0],
+    humanSex = "male",
     visible = OCEAN_CATALOG,
     renderer,
     environment,
+    previewLights,
     scene,
     camera,
     model,
@@ -209,7 +212,31 @@ export function createOceanGuide(trigger) {
     pointerX = 0,
     lastInteraction = 0;
   const modelCache = new Map();
+  for (const button of variants.querySelectorAll("button")) {
+    button.addEventListener("click", () => {
+      humanSex = button.dataset.humanSex;
+      select(selected);
+    });
+  }
   const reduceMotion = matchMedia("(prefers-reduced-motion: reduce)").matches;
+  const themeQuery = matchMedia("(prefers-color-scheme: dark)");
+  // 系统主题变化只更新现有灯光；不重建模型、环境贴图或动画循环。
+  function syncTheme() {
+    const dark = themeQuery.matches;
+    dialog.dataset.theme = dark ? "dark" : "light";
+    if (!renderer || !previewLights) return;
+    renderer.toneMappingExposure = dark ? 0.94 : 1;
+    scene.environmentIntensity = dark ? 0.42 : 0.35;
+    previewLights.fill.color.setHex(dark ? 0xc1dcdf : 0xc9e3e1);
+    previewLights.fill.groundColor.setHex(dark ? 0x38505b : 0x677b71);
+    previewLights.fill.intensity = dark ? 1.45 : 1.3;
+    previewLights.key.color.setHex(dark ? 0xe6eee1 : 0xfff3dc);
+    previewLights.key.intensity = dark ? 2.25 : 2.4;
+    previewLights.rim.color.setHex(dark ? 0x9ed5e4 : 0x87cbd0);
+    previewLights.rim.intensity = dark ? 1.65 : 1.2;
+  }
+  themeQuery.addEventListener("change", syncTheme);
+  syncTheme();
   for (const filter of filters) {
     const button = document.createElement("button");
     button.textContent = filter.name;
@@ -268,18 +295,20 @@ export function createOceanGuide(trigger) {
       renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
       renderer.setPixelRatio(Math.min(devicePixelRatio, 1.5));
       renderer.toneMapping = THREE.ACESFilmicToneMapping;
-      renderer.toneMappingExposure = 1;
+      // 透明画布让CSS展台背景随系统主题切换，避免深色页内残留白色矩形。
+      renderer.setClearColor(0x000000, 0);
       scene = new THREE.Scene();
       environment = createMarineEnvironment(renderer);
       scene.environment = environment.texture;
-      scene.environmentIntensity = 0.35;
-      scene.add(new THREE.HemisphereLight(0xc9e3e1, 0x677b71, 1.3));
-      const light = new THREE.DirectionalLight(0xfff3dc, 2.4);
-      light.position.set(4, 6, -5);
-      scene.add(light);
-      const rim = new THREE.DirectionalLight(0x87cbd0, 1.2);
-      rim.position.set(-4, 2, 5);
-      scene.add(rim);
+      previewLights = {
+        fill: new THREE.HemisphereLight(),
+        key: new THREE.DirectionalLight(),
+        rim: new THREE.DirectionalLight(),
+      };
+      previewLights.key.position.set(4, 6, -5);
+      previewLights.rim.position.set(-4, 2, 5);
+      scene.add(previewLights.fill, previewLights.key, previewLights.rim);
+      syncTheme();
       camera = new THREE.OrthographicCamera(-1, 1, 1, -1, 0.01, 100);
       preview.append(renderer.domElement);
     } catch {
@@ -297,10 +326,22 @@ export function createOceanGuide(trigger) {
     dialog.style.setProperty("--specimen", entry.color);
     preview.hidden = false;
     const isReward = entry.category === "reward";
+    const isPerson = ["swimmer", "diver"].includes(entry.kind);
+    variants.hidden = !isPerson;
+    preview.classList.toggle("has-variants", isPerson);
+    for (const button of variants.querySelectorAll("button"))
+      button.setAttribute(
+        "aria-pressed",
+        String(button.dataset.humanSex === humanSex),
+      );
     preview.classList.toggle("is-reward", isReward);
     preview.setAttribute(
       "aria-label",
-      isReward ? `${entry.name}奖励标识` : "生物三维展示",
+      isReward
+        ? `${entry.name}奖励标识`
+        : isPerson
+          ? `${entry.name} · ${humanSex === "female" ? "女性" : "男性"}模型`
+          : "生物三维展示",
     );
     rewardDisplay.hidden = !isReward;
     dragging = false;
@@ -324,18 +365,19 @@ export function createOceanGuide(trigger) {
     info.innerHTML = `<div class="guide-eyebrow">${entry.latin}</div><div class="guide-name-row"><h3>${entry.name}</h3><span>${entry.role}</span></div><div class="guide-facts"><div><small>本作尺度</small><b>${entry.size}</b></div><div><small>活动水层</small><b>${entry.habitat}</b></div></div><h4>${entry.ability}</h4><p>${entry.text}</p><div class="guide-advice"><b>生存建议</b><p>${entry.counter}</p></div><small class="guide-combat">${combat}</small>${entry.realSize ? `<div class="guide-advice"><b>生态注记</b><p>${entry.realSize} ${entry.habitatNote || ""}</p></div>` : ""}`;
     if (!renderer) return;
     if (model) scene.remove(model);
-    model = modelCache.get(entry.kind);
+    const modelKey = isPerson ? `${entry.kind}_${humanSex}` : entry.kind;
+    model = modelCache.get(modelKey);
     rotation = 0.2;
     if (!model) {
       // 每种标本只创建一次，避免重复选择时累积非共享的GPU几何缓冲。
       model =
         entry.category === "human"
-          ? createHumanModel(entry.kind, 1)
+          ? createHumanModel(entry.kind, 1, humanSex)
           : createCreature(entry.kind, 1, 24);
       model.rotation.y = rotation;
       const box = new THREE.Box3().setFromObject(model);
       model.position.sub(box.getCenter(new THREE.Vector3()));
-      modelCache.set(entry.kind, model);
+      modelCache.set(modelKey, model);
     }
     model.rotation.y = rotation;
     model.visible = true;
@@ -352,7 +394,8 @@ export function createOceanGuide(trigger) {
     )
       return;
     const width = preview.clientWidth,
-      height = preview.clientHeight;
+      // 人物切换有独立底部槽位，不覆盖模型，也不新增画布或动画循环。
+      height = preview.clientHeight - (variants.hidden ? 0 : 58);
     if (!width || !height) return;
     renderer.setSize(width, height);
     const aspect = width / height;
@@ -409,6 +452,7 @@ export function createOceanGuide(trigger) {
   dialog.addEventListener("keydown", (event) => {
     if (
       event.target === input ||
+      event.target.closest(".guide-variant-controls") ||
       !["ArrowLeft", "ArrowRight"].includes(event.key) ||
       !visible.length
     )
@@ -423,7 +467,11 @@ export function createOceanGuide(trigger) {
     );
   });
   preview.addEventListener("pointerdown", (event) => {
-    if (selected.category === "reward") return;
+    if (
+      selected.category === "reward" ||
+      event.target.closest(".guide-variant-controls")
+    )
+      return;
     dragging = true;
     pointerX = event.clientX;
     preview.setPointerCapture(event.pointerId);
@@ -441,9 +489,16 @@ export function createOceanGuide(trigger) {
   new ResizeObserver(resize).observe(preview);
   window.addEventListener("pagehide", (event) => {
     // 图鉴关闭保留模型和环境缓存；页面真正离开时释放独立的反射渲染目标。
-    if (!event.persisted) environment?.dispose();
+    if (!event.persisted) {
+      themeQuery.removeEventListener("change", syncTheme);
+      environment?.dispose();
+    }
   });
   return {
+    // 仅开发环境提供只读预览引用，用实际图鉴渲染完整动作周期。
+    ...(import.meta.env.DEV
+      ? { inspectPreview: () => ({ model, renderer, scene, camera }) }
+      : {}),
     open,
     close,
     get isOpen() {

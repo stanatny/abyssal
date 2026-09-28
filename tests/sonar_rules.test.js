@@ -43,22 +43,22 @@ function detect(
   });
 }
 
-test("声呐显示10秒且释放时开始60秒冷却，边界可重复释放", () => {
-  assert.deepEqual(SONAR_ABILITY, { duration: 10, cooldown: 60, range: 260 });
+test("声呐显示20秒且释放时开始60秒冷却，边界可重复释放", () => {
+  assert.deepEqual(SONAR_ABILITY, { duration: 20, cooldown: 60, range: 260 });
   const state = createSonarState();
   assert.equal(activateSonar(state, 5), true);
   assert.deepEqual(getSonarStatus(state, 5), {
     active: true,
-    remaining: 10,
+    remaining: 20,
     cooldownRemaining: 60,
     ready: false,
   });
-  assert.equal(getSonarStatus(state, 14.999).active, true);
-  assert.equal(getSonarStatus(state, 15).active, false);
+  assert.equal(getSonarStatus(state, 24.999).active, true);
+  assert.equal(getSonarStatus(state, 25).active, false);
   assert.equal(getSonarStatus(state, 64.999).ready, false);
   assert.equal(activateSonar(state, 64.999), false);
   assert.equal(activateSonar(state, 65), true);
-  assert.equal(getSonarStatus(state, 65).remaining, 10);
+  assert.equal(getSonarStatus(state, 65).remaining, 20);
 });
 
 test("重复按键不刷新扫描，暂停复用游玩时钟不消耗持续时间或冷却", () => {
@@ -146,6 +146,9 @@ test("仅探测启用且存活的领主，体型够大也只能多次接触交�
 
 test("狂食捕食资格随玩家状态变化，未达到狂食门槛的猎手仍然危险", () => {
   const player = createPlayer();
+  // 该场景专测6米阶段的狂食边界，不依赖角色的幼年出生体长。
+  player.length = 6;
+  player.mass = 1;
   assert.equal(
     detect([fish("shark", 0, -100, 10)], [], player)[0].dangerous,
     true,
@@ -159,7 +162,7 @@ test("狂食捕食资格随玩家状态变化，未达到狂食门槛的猎手�
     detect([fish("sperm_whale", 0, -100, 10)], [], player)[0].dangerous,
     true,
   );
-  // 新版邓氏鱼为6米，与幼年虎鲸等长：狂食可捕食，普通状态仍不可吞食。
+  // 邓氏鱼为6米，与本场景玩家等长：狂食可捕食，普通状态仍不可吞食。
   assert.equal(
     detect([fish("dunkleosteus", 0, -100, 10)], [], player)[0].eligible,
     true,
@@ -183,11 +186,11 @@ test("狂食捕食资格随玩家状态变化，未达到狂食门槛的猎手�
   );
 });
 
-test("现代与古代21种普通生物均按目录体长与名称返回回声", () => {
+test("现代与古代24种普通生物均按目录体长与名称返回回声", () => {
   const contacts = detect(
     SPECIES.map((species, index) => fish(species.kind, index * 2, -100, -40)),
   );
-  assert.equal(contacts.length, 21);
+  assert.equal(contacts.length, 24);
   assert.deepEqual(
     contacts.map((entry) => entry.length),
     SPECIES.map((species) => species.length),

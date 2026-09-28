@@ -1,4 +1,5 @@
 import * as THREE from "three";
+import { createFluidTexture } from "./effect_textures.js";
 import { WORLD } from "./world_config.js";
 import { bodyRadius, castSegment, isPositionBlocked } from "./collision.js";
 import {
@@ -29,6 +30,7 @@ export function createHumanActivity(
     worldColliders = [],
     onEat,
     onDamage,
+    isSwallowing = () => false,
     random = Math.random,
   } = {},
 ) {
@@ -47,7 +49,8 @@ export function createHumanActivity(
   let disposed = false,
     effectCursor = 0,
     nextWarning = 0,
-    nextHullNotice = 0;
+    nextHullNotice = 0,
+    nextSwimmerHint = 4;
   const particles = Array.from({ length: 48 }, () => {
     const material = keep(
       new THREE.MeshBasicMaterial({
@@ -63,15 +66,16 @@ export function createHumanActivity(
     return { mesh, life: 0, age: 0, velocity: new THREE.Vector3(), size: 1 };
   });
 
-  function addModel(kind) {
+  function addModel(kind, sex) {
     const species = HUMAN_CATALOG.find((entry) => entry.kind === kind);
-    const mesh = createHumanModel(kind, species.length);
+    const mesh = createHumanModel(kind, species.length, sex);
     models.push(mesh);
     group.add(mesh);
     return {
       mesh,
       species: {
         ...species,
+        ...(sex ? { sex } : {}),
         label: species.name,
         tier: 0,
         nutrition: kind === "diver" ? 18 : 13,
@@ -89,8 +93,17 @@ export function createHumanActivity(
   ) {
     const kind = i < HUMAN_RULES.swimmerCount ? "swimmer" : "diver";
     const reserved = i >= HUMAN_RULES.swimmerCount + HUMAN_RULES.diverCount;
+    // 每组按固定席位交替外观；重开、复活和潜艇释放均复用同一个实体。
+    const groupIndex = reserved
+      ? (i - HUMAN_RULES.swimmerCount - HUMAN_RULES.diverCount) %
+        HUMAN_RULES.releaseCount
+      : kind === "swimmer"
+        ? i
+        : i - HUMAN_RULES.swimmerCount;
+    const sex = groupIndex % 2 === 0 ? "male" : "female";
     entities.push({
-      ...addModel(kind),
+      ...addModel(kind, sex),
+      sex,
       id: `human_${i}`,
       kind,
       alive: !reserved,
@@ -101,6 +114,8 @@ export function createHumanActivity(
       speed: kind === "swimmer" ? 0.7 : 1.1,
       direction: new THREE.Vector3(0, 0, -1),
       cooldown: reserved ? Infinity : 0,
+      respawnAt: Infinity,
+      home: new THREE.Vector3(),
     });
   }
   for (let i = 0; i < HUMAN_RULES.submarineCount; i++) {
@@ -144,6 +159,75 @@ export function createHumanActivity(
     });
   }
 
+  // 一批共享水沫提供真实水面活动线索，避免人在水线下被整片海面遮住。
+  const foamMaterial = keep(
+    new THREE.MeshBasicMaterial({
+      color: 0xb5d8cf,
+      map: keep(createFluidTexture("foam")),
+      transparent: true,
+      opacity: 0.52,
+      depthWrite: false,
+      side: THREE.DoubleSide,
+    }),
+  );
+  const swimmerFoam = new THREE.InstancedMesh(
+    keep(new THREE.PlaneGeometry(1, 1)),
+    foamMaterial,
+    HUMAN_RULES.swimmerCount * 2,
+  );
+  swimmerFoam.name = "swimmer_surface_activity";
+  swimmerFoam.renderOrder = 3;
+  swimmerFoam.frustumCulled = false;
+  const foamDummy = new THREE.Object3D();
+  group.add(swimmerFoam);
+  function updateSwimmerFoam(now, playerPosition) {
+    for (let i = 0; i < HUMAN_RULES.swimmerCount; i++) {
+      const entity = entities[i],
+        visible =
+          entity.alive &&
+          !isSwallowing(entity.mesh) &&
+          (!playerPosition ||
+            entity.mesh.position.distanceTo(playerPosition) < 140);
+      for (let side = 0; side < 2; side++) {
+        const phase = now * 1.6 + entity.phase + side * Math.PI;
+        foamDummy.position.copy(entity.mesh.position);
+        foamDummy.position.x += (side ? 1 : -1) * 0.45;
+        foamDummy.position.z += 0.2 + Math.sin(phase) * 0.4;
+        foamDummy.position.y = WORLD.surfaceY + 0.07;
+        foamDummy.rotation.set(-Math.PI / 2, 0, entity.phase * 0.3);
+        foamDummy.scale.set(
+          visible ? 0.9 + Math.sin(phase) * 0.14 : 0,
+          visible ? 1.5 : 0,
+          1,
+        );
+        foamDummy.updateMatrix();
+        swimmerFoam.setMatrixAt(i * 2 + side, foamDummy.matrix);
+      }
+    }
+    swimmerFoam.instanceMatrix.needsUpdate = true;
+  }
+  function ordinaryHumanHome(kind, index) {
+    if (kind === "swimmer") {
+      const groupIndex = Math.floor(index / 4),
+        slot = index % 4;
+      const centers = [
+        [0, 18],
+        [12, -32],
+        [-24, 46],
+      ];
+      return new THREE.Vector3(
+        centers[groupIndex][0] + (slot % 2 ? 5 : -5),
+        WORLD.surfaceY - 0.06,
+        centers[groupIndex][1] + (Math.floor(slot / 2) - 0.5) * 12,
+      );
+    }
+    const local = index - HUMAN_RULES.swimmerCount;
+    return new THREE.Vector3(
+      (local % 2 ? 1 : -1) * (12 + (local % 3) * 8),
+      -28 - (local % 5) * 15,
+      -78 - Math.floor(local / 2) * 43,
+    );
+  }
   function clampPosition(point, margin = 3, maximumY = WORLD.surfaceY - 0.6) {
     point.x = THREE.MathUtils.clamp(point.x, WORLD.minX + 12, WORLD.maxX - 12);
     point.z = THREE.MathUtils.clamp(point.z, WORLD.minZ + 12, WORLD.maxZ - 12);
@@ -154,7 +238,7 @@ export function createHumanActivity(
     );
     return point;
   }
-  function safePosition(base, radius, seed) {
+  function safePosition(base, radius, seed, maximumY = WORLD.surfaceY - 0.6) {
     for (let trial = 0; trial < 40; trial++) {
       const point = base.clone();
       if (trial) {
@@ -162,13 +246,14 @@ export function createHumanActivity(
         point.x += Math.cos(angle) * (5 + trial * 1.8);
         point.z += Math.sin(angle) * (5 + trial * 1.8);
       }
-      clampPosition(point, radius + 2);
+      clampPosition(point, radius + 2, maximumY);
       if (!isPositionBlocked(point, { radius, colliders: worldColliders }))
         return point;
     }
     return clampPosition(
       base.clone().add(new THREE.Vector3(0, radius + 18, 0)),
       radius + 2,
+      maximumY,
     );
   }
   function emit(point, destructive = false) {
@@ -235,28 +320,31 @@ export function createHumanActivity(
     if (disposed) return;
     nextWarning = 0;
     nextHullNotice = 0;
+    nextSwimmerHint = 4;
     colliders.length = 0;
     for (let i = 0; i < entities.length; i++) {
       const entity = entities[i];
       entity.alive = !entity.reserved;
       entity.cooldown = entity.reserved ? Infinity : 0;
       entity.protectedUntil = 0;
-      const n = i - HUMAN_RULES.swimmerCount;
-      const base =
-        entity.kind === "swimmer"
-          ? new THREE.Vector3(
-              -85 + (i % 6) * 32,
-              WORLD.surfaceY - 1,
-              50 + Math.floor(i / 6) * 52,
-            )
-          : new THREE.Vector3(
-              -95 + (n % 5) * 45,
-              -28 - (n % 5) * 15,
-              -115 - Math.floor(n / 5) * 125,
-            );
-      entity.anchor.copy(safePosition(base, 1.4, i));
+      entity.respawnAt = Infinity;
+      const base = entity.reserved
+        ? new THREE.Vector3(0, -80, -200)
+        : ordinaryHumanHome(entity.kind, i);
+      entity.home.copy(base);
+      entity.anchor.copy(
+        safePosition(
+          base,
+          1.4,
+          i,
+          entity.kind === "swimmer"
+            ? WORLD.surfaceY + 0.03
+            : WORLD.surfaceY - 0.6,
+        ),
+      );
       entity.mesh.position.copy(entity.anchor);
       entity.mesh.visible = entity.alive;
+      entity.mesh.scale.setScalar(entity.species.length);
       entity.direction.set(0, 0, -1);
     }
     for (let i = 0; i < submarines.length; i++) {
@@ -295,6 +383,7 @@ export function createHumanActivity(
       hazard.warning.position.copy(hazard.mesh.position);
       hazard.warning.visible = true;
     }
+    updateSwimmerFoam(0);
     for (const particle of particles) {
       particle.life = 0;
       particle.mesh.visible = false;
@@ -320,11 +409,16 @@ export function createHumanActivity(
   }
   function eatAt(player, entity, now, forward) {
     if (!consumeHuman(player, entity, now)) return;
-    entity.cooldown = Infinity;
-    entity.mesh.visible = false;
+    const delay =
+      entity.kind === "swimmer"
+        ? HUMAN_RULES.swimmerRespawn
+        : HUMAN_RULES.diverRespawn;
+    entity.cooldown = entity.reserved ? Infinity : delay;
+    entity.respawnAt = entity.reserved ? Infinity : now + delay;
     effects?.bite?.(entity.mesh.position, forward, player.length);
-    audio?.eat?.(entity.species.length);
+    audio?.eatHuman?.(entity.species.length, entity.sex);
     onEat?.(entity.mesh.position.clone(), entity.species.length, entity);
+    if (!isSwallowing(entity.mesh)) entity.mesh.visible = false;
   }
   function onMovement(
     player,
@@ -426,7 +520,35 @@ export function createHumanActivity(
   function update(dt, now, player, position, forward, { speed = 0 } = {}) {
     if (disposed) return;
     for (const entity of entities) {
-      if (!entity.alive) continue;
+      // 吞食过渡临时接管网格，主生态不能抢改位置、动画或显隐。
+      if (isSwallowing(entity.mesh)) continue;
+      if (!entity.alive) {
+        if (entity.reserved || now < entity.respawnAt) continue;
+        const distance = entity.home.distanceTo(position);
+        const inFront =
+          entity.home.clone().sub(position).normalize().dot(forward) > 0.1;
+        if (
+          distance < HUMAN_RULES.humanRespawnDistance ||
+          (distance < 210 && inFront)
+        )
+          continue;
+        entity.anchor.copy(
+          safePosition(
+            entity.home,
+            1.4,
+            entity.phase + now,
+            entity.kind === "swimmer"
+              ? WORLD.surfaceY + 0.03
+              : WORLD.surfaceY - 0.6,
+          ),
+        );
+        entity.mesh.position.copy(entity.anchor);
+        entity.mesh.scale.setScalar(entity.species.length);
+        entity.alive = true;
+        entity.cooldown = 0;
+        entity.respawnAt = Infinity;
+        entity.protectedUntil = now + 2;
+      }
       const previous = entity.mesh.position.clone();
       const angle = now * 0.065 + entity.phase;
       const target = entity.anchor
@@ -434,7 +556,7 @@ export function createHumanActivity(
         .add(
           new THREE.Vector3(
             Math.sin(angle) * 7,
-            Math.sin(angle * 1.8) * (entity.kind === "swimmer" ? 0.12 : 1.7),
+            Math.sin(angle * 1.8) * (entity.kind === "swimmer" ? 0.045 : 1.7),
             Math.cos(angle) * 5,
           ),
         );
@@ -447,7 +569,13 @@ export function createHumanActivity(
             entity.direction,
             Math.min(step.length(), dt * entity.speed),
           );
-        clampPosition(desired, 1.5, WORLD.surfaceY - 0.6);
+        clampPosition(
+          desired,
+          1.5,
+          entity.kind === "swimmer"
+            ? WORLD.surfaceY + 0.03
+            : WORLD.surfaceY - 0.6,
+        );
         if (!castSegment(previous, desired, worldColliders, 0.65)) {
           entity.mesh.position.copy(desired);
         } else {
@@ -468,6 +596,19 @@ export function createHumanActivity(
         !castSegment(position, entity.mesh.position, worldColliders)
       )
         eatAt(player, entity, now, forward);
+    }
+    updateSwimmerFoam(now, position);
+    if (now >= nextSwimmerHint && position.y < WORLD.surfaceY - 5) {
+      const nearby = entities.find(
+        (entity) =>
+          entity.kind === "swimmer" &&
+          entity.alive &&
+          entity.mesh.position.distanceTo(position) < 95,
+      );
+      if (nearby) {
+        notify("上方海面有人类活动 · 向上游可以观察游泳者", 3.5);
+        nextSwimmerHint = now + 75;
+      }
     }
     for (const submarine of submarines) {
       if (!submarine.state.destroyed) submarine.mesh.userData.animate?.(now);
@@ -510,6 +651,7 @@ export function createHumanActivity(
   function dispose() {
     if (disposed) return;
     disposed = true;
+    swimmerFoam.dispose();
     for (const model of models) model.userData.dispose();
     for (const resource of resources) resource.dispose();
     colliders.length = 0;
@@ -523,6 +665,7 @@ export function createHumanActivity(
     entities,
     submarines,
     hazards,
+    swimmerFoam,
     colliders,
     group,
     dispose,

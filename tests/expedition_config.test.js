@@ -21,7 +21,7 @@ test("Current expedition uses Hawaii and the base orca with the full species ros
     new Set(BOSS_SPECIES.map((entry) => entry.kind)),
   );
   assert.ok(region.spawn.every(Number.isFinite));
-  assert.equal(character.startLength, 6);
+  assert.equal(character.startLength, 3);
 });
 
 test("Unreleased and unknown expeditions cannot start", () => {
@@ -36,6 +36,7 @@ test("Unreleased and unknown expeditions cannot start", () => {
 test("可选乌贼不再加入野生种群，章鱼独立占据现代生态位", () => {
   const { region, character } = getExpedition("hawaii", "squid");
   assert.equal(character.kind, "squid");
+  assert.equal(character.startLength, 3);
   assert.equal(character.active.id, "ink");
   assert.equal(
     SPECIES.some((entry) => entry.kind === "squid"),
@@ -47,5 +48,5 @@ test("可选乌贼不再加入野生种群，章鱼独立占据现代生态位",
   assert.equal(octopus.category, "hunter");
   assert.equal(octopus.length, 5);
   assert.equal(octopus.schoolSize, 1);
-  assert.equal(SPECIES.length, 21);
+  assert.equal(SPECIES.length, 24);
 });

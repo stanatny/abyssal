@@ -64,18 +64,16 @@ try {
   assert.equal(prey.status, "可捕食");
   assert.equal(prey.length, 0.8);
   assert.equal(hunter.status, "不可捕食");
-  assert.match(hunter.direction, /后/);
   assert.equal(lord.status, "体型不足 · 避开领主");
   assert.equal(
     first.scan.contacts.some((e) => e.kind === "tuna"),
     false,
   );
   checks.push(
-    "J detects occluded prey, rear hunters and lords with normal markers off; the world labels show only the narrow forward view",
+    "J detects occluded prey, a legal outer-reef hunter and lords with normal markers off; world labels show only the narrow forward view",
   );
   const presented = await readPresentation(page);
   assertDirectionalPresentation(presented);
-  assertContactAbsent(presented, hunter.id);
   assert.ok(presented.anchors.some((entry) => entry.id === prey.id));
   assert.equal(presented.wave.visible, true);
   assert.ok(presented.wave.visiblePulses > 0);
@@ -92,7 +90,7 @@ try {
   measurements.presentation = presented;
   measurements.movingWave = moved.wave;
   checks.push(
-    "The occluded forward prey has a size/eligibility label; rear contacts have no DOM marker while the minimap retains every detected creature",
+    "The occluded forward prey has a size/eligibility label; the minimap retains every detected creature",
     "Sonar emits visible expanding waves whose center follows the moving orca",
   );
   await page.screenshot({ path: ".local/v4_1_sonar_desktop.png" });
@@ -123,17 +121,17 @@ try {
   await page.waitForFunction(
     () => !window.__ABYSSAL__.sonar.snapshot.active,
     {},
-    { timeout: 14000 },
+    { timeout: 24000 },
   );
   const expired = await page.evaluate(() => ({
     elapsed: window.__ABYSSAL__.player.elapsed,
     scan: window.__ABYSSAL__.sonar.snapshot,
     hidden: document.querySelector("#sonar-panel").hidden,
   }));
-  assert.ok(expired.elapsed - first.state.activatedAt >= 10);
-  assert.ok(expired.elapsed - first.state.activatedAt < 10.6);
+  assert.ok(expired.elapsed - first.state.activatedAt >= 20);
+  assert.ok(expired.elapsed - first.state.activatedAt < 20.6);
   assert.equal(expired.hidden, true);
-  assert.ok(expired.scan.cooldownRemaining > 49);
+  assert.ok(expired.scan.cooldownRemaining > 39);
   const expiredPresentation = await readPresentation(page);
   assertClearedPresentation(expiredPresentation);
   assert.equal(expiredPresentation.touchDisabled, true);
@@ -146,7 +144,7 @@ try {
     false,
   );
   checks.push(
-    "The scan visibly expires after 10 real active seconds; cooldown blocks immediate reuse",
+    "The scan visibly expires after 20 real active seconds; cooldown blocks immediate reuse",
   );
   const desktopTurnFixture = await createTurnFixture(page);
   await page.evaluate(() => {
@@ -227,7 +225,6 @@ try {
     (entry) => entry.kind === "shark",
   );
   assert.ok(mobileHunter);
-  assertContactAbsent(mobilePresentation, mobileHunter.id);
   assert.ok(
     mobilePresentation.anchors.some(
       (entry) =>
@@ -283,7 +280,7 @@ try {
     touch: true,
   });
   checks.push(
-    "Mobile forward labels reveal the occluded fish, omit the rear hunter, and respond to real touchscreen joystick turns without dropping 360-degree radar contacts",
+    "Mobile labels reveal the occluded fish; a separate legal rear-hunter encounter responds to real joystick turns without dropping radar contacts",
   );
   await mobile.close();
   assert.deepEqual(errors, []);
@@ -485,6 +482,12 @@ async function createOccludedFixture(targetPage) {
     g.entities.forEach((entry) => (entry.hiddenFor = 999));
     g.encounters.bosses.forEach((entry) => (entry.enabled = false));
     g.player.invulnerable = 999;
+    // 人类活动是后续新增的声呐目标，隔离计数夹具但不修改实际探测规则。
+    g.humans.entities.forEach((entity) => {
+      entity.alive = false;
+      entity.respawnAt = Infinity;
+      entity.mesh.visible = false;
+    });
     let origin, hiddenPoint;
     for (const reef of g.ocean.colliders.filter(
       (entry) =>
@@ -554,11 +557,8 @@ async function createOccludedFixture(targetPage) {
       return entry;
     };
     const prey = locate("fish", hiddenPoint);
-    const hunter = locate("shark", {
-      x: origin.x,
-      y: origin.y,
-      z: origin.z + 100,
-    });
+    // 白鲨不得再放在育幼安全区；后方过滤由下方合法深水转向夹具覆盖。
+    const hunter = locate("shark", { x: 44, y: -40, z: -230 });
     const outside = locate("tuna", {
       x: origin.x,
       y: origin.y,
@@ -593,9 +593,19 @@ async function createTurnFixture(targetPage) {
     g.entities.forEach((entry) => (entry.hiddenFor = 999));
     g.encounters.bosses.forEach((entry) => (entry.enabled = false));
     g.player.invulnerable = 999;
+    // 人类活动是后续新增的声呐目标，隔离计数夹具但不修改实际探测规则。
+    g.humans.entities.forEach((entity) => {
+      entity.alive = false;
+      entity.respawnAt = Infinity;
+      entity.mesh.visible = false;
+    });
     // 保持真实游向，仅把遭遇放到深水开阔位置，避免船壳和礁石阻挡转身。
     g.setPosition(180, -160, -660);
-    const hunter = g.entities.find((entry) => entry.species.kind === "shark");
+    g.setFacing(0, 0);
+    // 使用深水种群而非只能留在外礁的第0只白鲨。
+    const hunter = g.entities.find(
+      (entry) => entry.species.kind === "shark" && entry.populationIndex === 1,
+    );
     const index = g.entities.indexOf(hunter);
     hunter.hiddenFor = 0;
     hunter.school = null;

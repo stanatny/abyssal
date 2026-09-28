@@ -1,17 +1,42 @@
-/* 海洋档案以浅色展陈页承载实时三维标本，资料和索引不压住模型。 */
+/* 海洋档案跟随系统明暗，资料、原生控件与实时标本共用同一套展陈主题。 */
 .ocean-guide {
   --specimen: #91bbab;
   --archive-ink: #193d40;
-  --archive-muted: #617c79;
+  --archive-body: #365e52;
+  --archive-muted: #486355;
+  --archive-faint: #456051;
   --archive-line: #2c595526;
+  --archive-bg: #e9ede4;
+  --archive-border: #e2e9dd;
+  --archive-focus: #34776c;
+  --archive-control: #ffffff38;
+  --archive-control-line: #55766d70;
+  --archive-placeholder: #536f62;
+  --archive-scrollbar: #6f8b7c80;
+  --archive-row-line: #496e4f24;
+  --archive-dot: #789786;
+  --archive-hover: #dbe3d3;
+  --archive-selected: #d1ddce;
+  --archive-selected-ink: #204d40;
+  --archive-accent: #446f58;
+  --archive-preview-line: #61897d30;
+  --archive-preview-center: #eef4e7;
+  --archive-preview-mid: #d5e2d6;
+  --archive-preview-edge: #c9d9cd;
+  --archive-reward-bg: #193d39;
+  --archive-reward-line: #73927d70;
+  --archive-reward-shadow: #6d94704d;
+  --archive-reward-inner: #bbd7ac40;
+  --archive-search-icon: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%23566f65' stroke-width='1.6'%3E%3Ccircle cx='10' cy='10' r='7'/%3E%3Cpath d='m15 15 6 6'/%3E%3C/svg%3E");
+  color-scheme: light;
   width: min(1360px, calc(100vw - 64px));
   max-width: none;
   height: min(850px, calc(100dvh - 64px));
   max-height: none;
   padding: 28px 32px 19px;
   color: var(--archive-ink);
-  background: #e9ede4;
-  border: 1px solid #e2e9dd;
+  background: var(--archive-bg);
+  border: 1px solid var(--archive-border);
   border-radius: 3px;
   box-shadow: 0 22px 110px #021b2180;
   overflow: hidden;
@@ -38,8 +63,12 @@
 }
 .ocean-guide button:focus-visible,
 .ocean-guide input:focus-visible {
-  outline: 2px solid #34776c;
+  outline: 2px solid var(--archive-focus);
   outline-offset: 3px;
+}
+.ocean-guide ::selection {
+  color: var(--archive-selected-ink);
+  background: var(--archive-selected);
 }
 .guide-heading {
   display: flex;
@@ -50,7 +79,7 @@
 }
 .guide-eyebrow {
   font-size: 9px;
-  color: #6b827b;
+  color: var(--archive-muted);
   letter-spacing: 2px;
 }
 .guide-heading h2 {
@@ -59,7 +88,7 @@
   font-size: 33px;
   font-weight: 400;
   letter-spacing: 3px;
-  color: #244842;
+  color: var(--archive-ink);
 }
 .guide-close {
   min-height: 44px;
@@ -69,7 +98,7 @@
   border-radius: 0;
   font-size: 11px !important;
   letter-spacing: 1px;
-  color: #4e6c65 !important;
+  color: var(--archive-body) !important;
 }
 .guide-close::after {
   content: "×";
@@ -79,12 +108,12 @@
   line-height: 20px;
   vertical-align: -3px;
   font-weight: 300;
-  color: #325b53;
+  color: var(--archive-ink);
 }
 .guide-close kbd {
-  color: #70847b;
+  color: var(--archive-muted);
   background: transparent;
-  border-color: #81978b55;
+  border-color: var(--archive-control-line);
   border-radius: 2px;
   margin: 0 0 0 8px;
   font-size: 8px;
@@ -113,16 +142,16 @@
   background: transparent;
   font-size: 12px;
   font-weight: 400;
-  color: #647e75;
+  color: var(--archive-muted);
   letter-spacing: 0.4px;
   white-space: nowrap;
 }
 .guide-filters button:hover {
-  color: #254e43;
+  color: var(--archive-ink);
 }
 .guide-filters button[aria-pressed="true"] {
-  color: #204d40;
-  border-bottom-color: #446f58;
+  color: var(--archive-selected-ink);
+  border-bottom-color: var(--archive-accent);
   font-weight: 600;
 }
 .guide-content {
@@ -144,7 +173,7 @@
   font-size: 9px;
   letter-spacing: 1.3px;
   margin: 0 0 9px;
-  color: #73897f;
+  color: var(--archive-muted);
 }
 .guide-sidebar input {
   width: 100%;
@@ -152,26 +181,25 @@
   margin-bottom: 14px;
   padding: 9px 11px 9px 31px;
   border: 0;
-  border-bottom: 1px solid #55766d59;
+  border-bottom: 1px solid var(--archive-control-line);
   border-radius: 0;
-  background: #ffffff38
-    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%23688077' stroke-width='1.6'%3E%3Ccircle cx='10' cy='10' r='7'/%3E%3Cpath d='m15 15 6 6'/%3E%3C/svg%3E")
-    no-repeat 10px center;
+  background: var(--archive-control) var(--archive-search-icon) no-repeat 10px
+    center;
   font: inherit;
   font-size: 12px;
-  color: #264d40;
+  color: var(--archive-ink);
 }
 .guide-sidebar input::placeholder {
-  color: #8b9b91;
+  color: var(--archive-placeholder);
 }
 .guide-list {
   min-height: 0;
   overflow: auto;
   padding-right: 4px;
   scrollbar-width: thin;
-  scrollbar-color: #7893864d transparent;
+  scrollbar-color: var(--archive-scrollbar) transparent;
   font-size: 12px;
-  color: #657f73;
+  color: var(--archive-muted);
 }
 .guide-entry {
   display: flex;
@@ -181,7 +209,7 @@
   min-height: 63px;
   padding: 10px 9px;
   border: 0;
-  border-bottom: 1px solid #496e4f14;
+  border-bottom: 1px solid var(--archive-row-line);
   border-radius: 0;
   background: transparent;
   text-align: left;
@@ -191,7 +219,7 @@
   flex-shrink: 0;
   width: 5px;
   height: 5px;
-  background: #97b3a6;
+  background: var(--archive-dot);
   border-radius: 50%;
 }
 .guide-entry span {
@@ -205,33 +233,33 @@
   font-size: 12px;
   font-weight: 500;
   letter-spacing: 0.2px;
-  color: #385b4f;
+  color: var(--archive-body);
 }
 .guide-entry small {
   font-size: 9px;
-  color: #86988c;
+  color: var(--archive-faint);
   letter-spacing: 0;
 }
 .guide-entry em {
   font-style: normal;
   font-size: 9px;
-  color: #7b9182;
+  color: var(--archive-muted);
   white-space: nowrap;
   font-variant-numeric: tabular-nums;
 }
 .guide-entry:hover {
-  background: #dbe3d3;
+  background: var(--archive-hover);
 }
 .guide-entry[aria-pressed="true"] {
-  background: #d1ddce;
+  background: var(--archive-selected);
 }
 .guide-entry[aria-pressed="true"] i {
-  background: #476c51;
+  background: var(--archive-accent);
   border-radius: 0;
   transform: rotate(45deg);
 }
 .guide-entry[aria-pressed="true"] b {
-  color: #254932;
+  color: var(--archive-selected-ink);
 }
 .guide-detail {
   min-width: 0;
@@ -246,13 +274,13 @@
   min-width: 0;
   height: 100%;
   min-height: 300px;
-  border: 1px solid #61897d1c;
+  border: 1px solid var(--archive-preview-line);
   border-radius: 1px;
   background: radial-gradient(
     ellipse at 44% 40%,
-    #eef4e7 0%,
-    #d5e2d6 65%,
-    #c9d9cd 100%
+    var(--archive-preview-center) 0%,
+    var(--archive-preview-mid) 65%,
+    var(--archive-preview-edge) 100%
   );
   touch-action: none;
   cursor: grab;
@@ -262,7 +290,7 @@
   content: "";
   position: absolute;
   inset: 20% 10%;
-  border: 1px solid #7095871a;
+  border: 1px solid var(--archive-preview-line);
   border-radius: 50%;
   pointer-events: none;
 }
@@ -271,7 +299,7 @@
   position: absolute;
   left: 18px;
   bottom: 17px;
-  color: #7b9384;
+  color: var(--archive-faint);
   font-size: 8px;
   letter-spacing: 1.5px;
   pointer-events: none;
@@ -287,7 +315,7 @@
   position: absolute;
   top: 17px;
   left: 18px;
-  color: #648273;
+  color: var(--archive-muted);
   font-size: 8px;
   letter-spacing: 1.4px;
   pointer-events: none;
@@ -299,14 +327,14 @@
   overflow-y: auto;
   padding: 15px 7px 12px 0;
   scrollbar-width: thin;
-  scrollbar-color: #7893864d transparent;
+  scrollbar-color: var(--archive-scrollbar) transparent;
 }
 .guide-info > .guide-eyebrow {
   font-size: 8px;
   line-height: 1.6;
   letter-spacing: 1.2px;
   overflow-wrap: anywhere;
-  color: #7b8d7d;
+  color: var(--archive-faint);
 }
 .guide-name-row {
   display: flex;
@@ -320,12 +348,12 @@
   font-size: 31px;
   font-weight: 400;
   letter-spacing: 1px;
-  color: #244e3f;
+  color: var(--archive-ink);
   margin: 0;
 }
 .guide-name-row span {
   display: inline-block;
-  color: #6b8575;
+  color: var(--archive-muted);
   font-size: 9px;
   letter-spacing: 0.5px;
   padding: 2px 0;
@@ -346,12 +374,12 @@
   gap: 8px;
 }
 .guide-facts small {
-  color: #839789;
+  color: var(--archive-faint);
   font-size: 10px;
   letter-spacing: 1px;
 }
 .guide-facts b {
-  color: #2e5143;
+  color: var(--archive-ink);
   font-size: 15px;
   font-weight: 400;
   font-variant-numeric: tabular-nums;
@@ -361,17 +389,17 @@
   font-weight: 500;
   line-height: 1.7;
   letter-spacing: 0.4px;
-  color: #325a45;
+  color: var(--archive-ink);
   margin: 0 0 9px;
 }
 .guide-info p {
   font-size: 12px;
   line-height: 1.9;
   margin: 0 0 18px;
-  color: #678071;
+  color: var(--archive-body);
 }
 .guide-advice {
-  border-left: 2px solid #739381;
+  border-left: 2px solid var(--archive-accent);
   margin: 20px 0 0;
   padding: 1px 0 1px 13px;
 }
@@ -379,7 +407,7 @@
   font-size: 9px;
   letter-spacing: 1.5px;
   font-weight: 500;
-  color: #56785f;
+  color: var(--archive-body);
 }
 .guide-advice p {
   margin: 7px 0 0;
@@ -392,7 +420,7 @@
   border-top: 1px solid var(--archive-line);
   font-size: 10px;
   line-height: 1.8;
-  color: #849683;
+  color: var(--archive-faint);
 }
 .guide-footer {
   display: flex;
@@ -402,7 +430,7 @@
   margin-top: 20px;
   padding-top: 13px;
   border-top: 1px solid var(--archive-line);
-  color: #839786;
+  color: var(--archive-faint);
   font-size: 9px;
   letter-spacing: 0.7px;
 }
@@ -426,7 +454,7 @@
   text-align: center;
 }
 .guide-reward-display .guide-eyebrow {
-  color: #678873;
+  color: var(--archive-muted);
   font-size: 8px;
   letter-spacing: 1.5px;
 }
@@ -437,23 +465,23 @@
   width: 128px;
   height: 128px;
   margin: 14px 0;
-  border: 1px solid #73927d70;
+  border: 1px solid var(--archive-reward-line);
   border-radius: 50%;
   color: var(--specimen);
-  background: #193d39;
-  box-shadow: 0 15px 36px #6d94704d;
+  background: var(--archive-reward-bg);
+  box-shadow: 0 15px 36px var(--archive-reward-shadow);
 }
 .guide-reward-orb::before,
 .guide-reward-orb::after {
   content: "";
   position: absolute;
   inset: -10px;
-  border: 1px solid #708d7161;
+  border: 1px solid var(--archive-reward-line);
   border-radius: 50%;
 }
 .guide-reward-orb::after {
   inset: 8px;
-  border-color: #bbd7ac40;
+  border-color: var(--archive-reward-inner);
 }
 .guide-reward-orb span {
   color: var(--specimen);
@@ -462,12 +490,12 @@
   line-height: 1;
 }
 .guide-reward-effect {
-  color: #3b6650;
+  color: var(--archive-body);
   font-size: 15px;
   font-weight: 400;
 }
 .guide-reward-display > small {
-  color: #7a8f7a;
+  color: var(--archive-faint);
   font-size: 10px;
   letter-spacing: 1px;
 }
@@ -483,7 +511,7 @@
     display: block;
     overflow: auto;
     scrollbar-width: thin;
-    scrollbar-color: #7893864d transparent;
+    scrollbar-color: var(--archive-scrollbar) transparent;
   }
   .guide-preview {
     height: 340px;
@@ -545,7 +573,7 @@
     display: block;
     overflow: auto;
     scrollbar-width: thin;
-    scrollbar-color: #7893864d transparent;
+    scrollbar-color: var(--archive-scrollbar) transparent;
   }
   .guide-sidebar {
     display: block;
@@ -572,7 +600,7 @@
     min-width: 150px;
     min-height: 59px;
     padding: 9px 10px;
-    border: 1px solid #607f6224;
+    border: 1px solid var(--archive-row-line);
   }
   .guide-entry em {
     display: none;
@@ -678,4 +706,79 @@
     margin-top: 9px;
     font-size: 8px;
   }
+}
+
+/* 系统切换时媒体查询即时生效；布局与点击区域在两套主题间保持一致。 */
+@media (prefers-color-scheme: dark) {
+  .ocean-guide {
+    --archive-ink: #e6efe8;
+    --archive-body: #c1d4cd;
+    --archive-muted: #acc5bd;
+    --archive-faint: #a1bbb1;
+    --archive-line: #9cbbae38;
+    --archive-bg: #0d2028;
+    --archive-border: #7e9e963d;
+    --archive-focus: #c0e1c8;
+    --archive-control: #17313a;
+    --archive-control-line: #91b9ad80;
+    --archive-placeholder: #9fb9b0;
+    --archive-scrollbar: #739c928c;
+    --archive-row-line: #9dbca12e;
+    --archive-dot: #91b8a9;
+    --archive-hover: #203d42;
+    --archive-selected: #294c46;
+    --archive-selected-ink: #ecf8e9;
+    --archive-accent: #acd2b6;
+    --archive-preview-line: #97bdb647;
+    --archive-preview-center: #284a50;
+    --archive-preview-mid: #18353f;
+    --archive-preview-edge: #102830;
+    --archive-reward-bg: #102c32;
+    --archive-reward-line: #93bfa180;
+    --archive-reward-shadow: #00182066;
+    --archive-reward-inner: #bddfc154;
+    --archive-search-icon: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%23acc5bd' stroke-width='1.6'%3E%3Ccircle cx='10' cy='10' r='7'/%3E%3Cpath d='m15 15 6 6'/%3E%3C/svg%3E");
+    color-scheme: dark;
+  }
+}
+
+/* 男女人物在同一档案中切换；按钮占用画布下方的保留槽，手机保持44px触摸目标。 */
+.guide-variant-controls {
+  position: absolute;
+  inset: auto 12px 8px;
+  z-index: 2;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  color: var(--archive-ink);
+}
+.guide-variant-controls[hidden] {
+  display: none;
+}
+.guide-variant-controls span {
+  margin-right: 5px;
+  font-size: 11px;
+  color: var(--archive-muted);
+}
+.guide-variant-controls button {
+  min-height: 44px;
+  min-width: 54px;
+  padding: 8px 12px;
+  border: 1px solid var(--archive-control-line);
+  border-radius: 3px;
+  background: var(--archive-bg);
+  font-size: 12px;
+}
+.guide-variant-controls button:hover {
+  background: var(--archive-hover);
+}
+.guide-variant-controls button[aria-pressed="true"] {
+  background: var(--archive-selected);
+  color: var(--archive-selected-ink);
+  border-color: var(--archive-accent);
+}
+
+.guide-preview.has-variants::after {
+  display: none;
 }

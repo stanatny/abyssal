@@ -13,6 +13,9 @@ export const HUMAN_RULES = Object.freeze({
   releaseCount: 3,
   releaseProtection: 2,
   torpedoDamage: 28,
+  swimmerRespawn: 65,
+  diverRespawn: 85,
+  humanRespawnDistance: 115,
 });
 
 /** 创建单艇耐久状态；每次重开创建新状态，释放标志与碰撞锁一并清空。 */

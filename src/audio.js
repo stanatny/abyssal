@@ -1,11 +1,26 @@
+import { FishBiteBank } from "./fish_bite_assets.js";
+import { HumanVoiceBank } from "./human_voice_assets.js";
+import { createFeedingSound } from "./feeding_audio.js";
+
 /**
- * OceanAudio 合成原创海洋配乐与分层水下音效，无外部音频资源或后台定时器。
+ * OceanAudio 提供原创海洋配乐、分层水下音效与随应用打包的真人呼喊。
  * 参数：options.context 可传入 OfflineAudioContext，便于真实离线验音。
  * 音频图仅在用户手势后创建，start 可重复调用，所有节拍由 update 推进。
  */
 export class OceanAudio {
-  constructor({ context = null } = {}) {
+  constructor({
+    context = null,
+    humanVoiceBank = new HumanVoiceBank(),
+    fishBiteBank = new FishBiteBank(),
+  } = {}) {
     this.context = context;
+    this.humanVoiceBank = humanVoiceBank;
+    this.fishBiteBank = fishBiteBank;
+    this.fishSoundState = "idle";
+    this.fishSoundPreparation = null;
+    this.lastFishVariant = -1;
+    this.humanVoiceState = "idle";
+    this.humanVoicePreparation = null;
     this.enabled = true;
     this.paused = false;
     this.ready = false;
@@ -18,6 +33,8 @@ export class OceanAudio {
     this.aboveWater = false;
     this.ink = 0;
     this.voices = new Set();
+    this.feedingVoices = new Map();
+    this.feedingBuffers = new Map();
     this.cooldowns = new Map();
     this.beat = 60 / 80;
     this.randomState = 82197;
@@ -32,6 +49,8 @@ export class OceanAudio {
     }
     if (this.context.state === "closed") return;
     if (!this.ready) this.createGraph();
+    void this.prepareHumanVoices();
+    void this.prepareFishSounds();
     this.setPaused(false);
     this.update(0, this.lastDanger, {
       boss: this.boss,
@@ -39,6 +58,66 @@ export class OceanAudio {
       aboveWater: this.aboveWater,
       ink: this.ink,
     });
+  }
+
+  /** preloadHumanVoices 在菜单预取录音，不激活AudioContext；返回是否成功。 */
+  preloadHumanVoices() {
+    return this.humanVoiceBank
+      .preload()
+      .then(() => true)
+      .catch(() => false);
+  }
+
+  /** prepareHumanVoices 解码并缓存男女声线；异步完成不会补播此前的捕食。 */
+  prepareHumanVoices() {
+    if (this.humanVoicePreparation) return this.humanVoicePreparation;
+    if (!this.context?.decodeAudioData || this.context.state === "closed")
+      return Promise.resolve(false);
+    this.humanVoiceState = "loading";
+    this.humanVoicePreparation = this.humanVoiceBank
+      .load(this.context)
+      .then((buffers) => {
+        for (const [sex, buffer] of buffers)
+          this.feedingBuffers.set(`human_${sex}`, buffer);
+        this.humanVoiceState = "ready";
+        return true;
+      })
+      .catch(() => {
+        this.humanVoiceState = "unavailable";
+        this.humanVoicePreparation = null;
+        return false;
+      });
+    return this.humanVoicePreparation;
+  }
+
+  /** preloadFishSounds 在菜单预取水声，独立于人声，不开启音频上下文。 */
+  preloadFishSounds() {
+    return this.fishBiteBank
+      .preload()
+      .then(() => true)
+      .catch(() => false);
+  }
+
+  /** prepareFishSounds 缓存三个吞食变体；失败或完成都不重放旧捕食事件。 */
+  prepareFishSounds() {
+    if (this.fishSoundPreparation) return this.fishSoundPreparation;
+    if (!this.context?.decodeAudioData || this.context.state === "closed")
+      return Promise.resolve(false);
+    this.fishSoundState = "loading";
+    this.fishSoundPreparation = this.fishBiteBank
+      .load(this.context)
+      .then((buffers) => {
+        for (const [variant, buffer] of buffers)
+          this.feedingBuffers.set(`fish_${variant}`, buffer);
+        this.fishSoundState = "ready";
+        return true;
+      })
+      .catch(() => {
+        this.fishSoundState = "unavailable";
+        this.fishSoundPreparation = null;
+        return false;
+      });
+    return this.fishSoundPreparation;
   }
 
   /** toggle 切换声音，首次使用时直接激活；返回当前是否启用声音。 */
@@ -86,6 +165,7 @@ export class OceanAudio {
     this.ink = 0;
     this.step = 0;
     this.cooldowns.clear();
+    this.feedingVoices.clear();
     if (!this.ready) return;
     const now = this.context.currentTime;
     for (const source of this.voices) {
@@ -236,6 +316,16 @@ export class OceanAudio {
     );
     this.bubbles(at + 0.045, 4, 0.045 * strength, 330, 0.045);
     this.duckMusic(0.82, 0.14);
+  }
+
+  /** eatFish 播放短湿咬合、水流与气泡；size 为 0.5–2 强度，无返回值。 */
+  eatFish(size = 1) {
+    this.playFeeding("fish", size);
+  }
+
+  /** eatHuman 按sex播放成年男女惨叫；size为0.5–2强度，sex默认male，无返回值。 */
+  eatHuman(size = 1, sex = "male") {
+    this.playFeeding("human", size, sex === "female" ? "female" : "male");
   }
 
   /** hit 播放身体冲击、低频水压与震荡尾声；strength 为可选受击强度，无返回值。 */
@@ -578,6 +668,80 @@ export class OceanAudio {
     this.waterSource.start();
     this.nextStep = context.currentTime + 0.035;
     this.ready = true;
+  }
+
+  playFeeding(kind, size, sex = "male") {
+    if (!this.canPlay()) return;
+    const human = kind === "human";
+    let bufferKey = human ? `human_${sex}` : kind;
+    // 首次加载或网络失败时只给短水声，不回退电子人声，也不在下载完成后补叫。
+    if (human && !this.feedingBuffers.has(bufferKey)) {
+      this.playFeeding("fish", size);
+      return;
+    }
+    // 密集鱼群最多叠三口，人声最多一条；优先让新发生的人类捕食获得清晰反馈。
+    if (human && [...this.feedingVoices.values()].includes("human")) return;
+    if (this.feedingVoices.size >= 3 && !human) return;
+    const cooldown = human
+      ? this.feedingBuffers.get(bufferKey).duration + 0.12
+      : 0.09;
+    if (!this.effectReady(`eat_${kind}`, cooldown)) return;
+    if (this.feedingVoices.size >= 3) {
+      const oldest = this.feedingVoices.keys().next().value;
+      oldest.stop(this.context.currentTime);
+      this.feedingVoices.delete(oldest);
+    }
+    // 只在准许播放后选择下一个样本，连续吃鱼不重复同一口；拒绝的事件不消耗变体。
+    if (!human && this.fishSoundState === "ready") {
+      this.lastFishVariant =
+        (this.lastFishVariant + 1 + Math.floor(this.random() * 2)) % 3;
+      bufferKey = `fish_${this.lastFishVariant}`;
+    }
+    // 录音优先，鱼声未就绪时用短柔水流立即反馈，不沿用旧爆音和音高气泡。
+    let buffer = this.feedingBuffers.get(bufferKey);
+    if (!buffer) {
+      const samples = createFeedingSound(kind, this.context.sampleRate);
+      buffer = this.context.createBuffer(
+        1,
+        samples.length,
+        this.context.sampleRate,
+      );
+      buffer.getChannelData(0).set(samples);
+      this.feedingBuffers.set(bufferKey, buffer);
+    }
+    const source = this.context.createBufferSource();
+    source.buffer = buffer;
+    source.loop = false;
+    source.playbackRate.value = human ? 1 : 0.97 + this.random() * 0.06;
+    const level = clamp(size, 0.5, 2);
+    const gain = this.makeBus((human ? 0.38 : 0.32) * Math.sqrt(level));
+    const nodes = [source, gain];
+    const at = this.context.currentTime + 0.004;
+    if (human) {
+      // 保留真人起音和自然声线，仅在后半段模拟入水闷化，不拉伸或移调。
+      const water = this.context.createBiquadFilter();
+      water.type = "lowpass";
+      water.Q.value = 0.5;
+      water.frequency.setValueAtTime(7800, at);
+      water.frequency.setValueAtTime(7800, at + buffer.duration * 0.5);
+      water.frequency.exponentialRampToValueAtTime(
+        950,
+        at + buffer.duration * 0.94,
+      );
+      source.connect(water).connect(gain);
+      nodes.push(water);
+    } else source.connect(gain);
+    this.connectVoice(gain, this.effects, (this.random() - 0.5) * 0.24, nodes);
+    this.feedingVoices.set(source, kind);
+    this.releaseWhenEnded(source, nodes, () =>
+      this.feedingVoices.delete(source),
+    );
+    source.start(at);
+    source.stop(at + buffer.duration / source.playbackRate.value + 0.01);
+    // 人声的主要呼喊段留出配乐空间；期间的小鱼音效不能提前解除该让位。
+    if (human) this.duckMusic(0.68, buffer.duration * 0.84);
+    else if (![...this.feedingVoices.values()].includes("human"))
+      this.duckMusic(0.96, 0.08);
   }
 
   scheduleMusicStep(at, step) {
@@ -953,11 +1117,12 @@ export class OceanAudio {
     return node;
   }
 
-  releaseWhenEnded(source, nodes) {
+  releaseWhenEnded(source, nodes, onEnded = null) {
     this.voices.add(source);
     source.onended = () => {
       for (const node of nodes) node.disconnect();
       this.voices.delete(source);
+      onEnded?.();
     };
   }
 

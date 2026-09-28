@@ -1744,6 +1744,11 @@ h1 em {
     padding-top: 4px;
     padding-bottom: 4px;
   }
+  /* 领主与墨云同时出现时，短屏优先保留行动警报，避免普通通知压住摇杆。 */
+  #combat-status:has(#boss-panel:not([hidden])):has(#ink-status:not([hidden]))
+    #notification {
+    display: none;
+  }
   #breach-hint {
     bottom: calc(205px + env(safe-area-inset-bottom));
   }
@@ -2851,5 +2856,246 @@ kbd {
   #character-description {
     padding-top: 7px;
     padding-bottom: 7px;
+  }
+}
+
+/* 桌面远征提示以可扫读为先；触屏、小竖屏与横屏手机继续沿用原有紧凑布局。 */
+@media (min-width: 901px) and (min-height: 601px) and (pointer: fine) {
+  .header-tools button {
+    min-height: 36px;
+    padding: 7px 8px;
+    font-size: 13px;
+    color: #e4ede2;
+  }
+  #sonar-control {
+    bottom: 163px;
+    width: 268px;
+    min-height: 56px;
+    padding: 13px 18px;
+    border-width: 1px 1px 1px 3px;
+    border-color: #b6d4c3;
+    background: #0b2b30ed;
+    color: #edf4e8;
+    font-size: 16px;
+    line-height: 24px;
+    font-weight: 600;
+    letter-spacing: 0.3px;
+    text-align: center;
+    box-shadow: 0 5px 18px #00151b40;
+  }
+  #sonar-control:enabled:hover {
+    border-color: #e5f4d9;
+    background: #194239;
+  }
+  #sonar-control:focus-visible {
+    outline: 2px solid #edf3dc;
+    outline-offset: 4px;
+  }
+  #sonar-control[data-state="active"] {
+    border-color: #d6ebc6;
+    background: #285648f2;
+    color: #f3ffe8;
+    box-shadow: inset 0 0 0 1px #d7eaca38;
+  }
+  #sonar-control[data-state="cooldown"] {
+    border-color: #8da7aa;
+    background: #122b33ed;
+    color: #cfdee0;
+    box-shadow: none;
+  }
+  #sonar-control::before {
+    inset: auto 0 0;
+    height: 3px;
+    border-radius: 0;
+    background: #c1dcc6;
+    opacity: 1;
+    transform: scaleX(var(--skill-progress, 1));
+    transform-origin: left;
+    transition: none;
+  }
+  #sonar-control[data-state="cooldown"]::before {
+    background: #a1c2cc;
+  }
+  .key-guide {
+    width: 340px;
+    flex-shrink: 0;
+    gap: 8px;
+    padding: 12px 14px;
+    border-right: 1px solid #b5ccbd73;
+    background: linear-gradient(90deg, #09232900, #092329d9 36%);
+    color: #e0eade;
+    font-size: 14px;
+    line-height: 25px;
+    letter-spacing: 0;
+  }
+  .key-guide > span {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 8px;
+    white-space: nowrap;
+  }
+  .key-guide kbd {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 27px;
+    min-height: 25px;
+    margin: 0;
+    padding: 1px 7px;
+    border: 1px solid #bcd2c4a6;
+    border-bottom-width: 2px;
+    background: #244139;
+    color: #f1f4e9;
+    font-size: 13px;
+    line-height: 20px;
+    font-weight: 600;
+    letter-spacing: 0.4px;
+  }
+  .vital-head {
+    font-size: 13px;
+    line-height: 18px;
+    letter-spacing: 0.5px;
+    color: #d7e4d7;
+  }
+  .vital-head b {
+    font-size: 14px;
+    font-weight: 500;
+  }
+  .vital-head small {
+    font-size: 11px;
+    letter-spacing: 0;
+    color: #b8d0c0;
+  }
+  .meter {
+    height: 5px;
+  }
+  .speed > span,
+  .speed small {
+    font-size: 12px;
+    color: #d0e0d2;
+  }
+  #buffs {
+    bottom: 206px;
+  }
+  #buffs > span {
+    padding: 7px 12px;
+    background: #0c3036e6;
+    color: #e3eee1;
+    font-size: 13px;
+    line-height: 18px;
+    letter-spacing: 0.4px;
+  }
+  #sonar-panel {
+    width: 216px;
+    padding: 8px 11px;
+    background: #0d3038ed;
+    border-color: #b7d4c38c;
+    font-size: 13px;
+    line-height: 20px;
+  }
+  #sonar-panel strong {
+    color: #ecf4e6;
+    font-weight: 600;
+  }
+  #sonar-panel span {
+    color: #d5e7da;
+    white-space: nowrap;
+  }
+  #breach-hint {
+    top: 84px;
+    padding: 7px 16px;
+    border-left: 2px solid #a8c9c4;
+    background: #0b2c36e6;
+    color: #e3efe8;
+    font-size: 14px;
+    line-height: 20px;
+    letter-spacing: 0.5px;
+  }
+  #combat-status {
+    top: 134px;
+    gap: 12px;
+  }
+  #threat strong {
+    font-size: 16px;
+    line-height: 22px;
+    font-weight: 600;
+    letter-spacing: 0.5px;
+  }
+  #threat span {
+    color: #f0cbb9;
+    font-size: 13px;
+    line-height: 19px;
+  }
+  #boss-tip {
+    font-size: 13px;
+    line-height: 1.55;
+    color: #e1e6e0;
+  }
+  #boss-phase,
+  #boss-hp {
+    font-size: 12px;
+  }
+  #combat-status #notification,
+  #combat-status #ink-status {
+    padding: 10px 15px;
+    font-size: 15px;
+    line-height: 1.55;
+    letter-spacing: 0.3px;
+  }
+  #combat-status #notification {
+    border-left-width: 2px;
+    background: linear-gradient(90deg, #0b302fe8, #0c292ed9);
+    color: #eff3e4;
+  }
+  #combat-status #ink-status {
+    background: #292c3aeb;
+    color: #eeebf2;
+  }
+  #target {
+    padding: 7px 12px;
+    background: #092630eb;
+    font-size: 13px;
+    line-height: 19px;
+    font-weight: 500;
+    letter-spacing: 0.4px;
+  }
+}
+
+/* 矮桌面缩短控制区和雷达高度，仍保留技能、冷却与键位的可读字号。 */
+@media (min-width: 901px) and (min-height: 601px) and (max-height: 699px) and (pointer: fine) {
+  .bottom-hud {
+    bottom: 24px;
+    gap: 24px;
+  }
+  .key-guide {
+    width: 320px;
+    gap: 6px;
+    padding: 8px 12px;
+    font-size: 13px;
+    line-height: 22px;
+  }
+  .key-guide kbd {
+    min-height: 22px;
+    line-height: 17px;
+    font-size: 12px;
+  }
+  #sonar-control {
+    bottom: 126px;
+    min-height: 48px;
+    padding-top: 9px;
+    padding-bottom: 9px;
+  }
+  #minimap {
+    top: 244px;
+    width: 104px;
+  }
+  #sonar-panel {
+    top: 380px;
+    padding-top: 6px;
+    padding-bottom: 6px;
+  }
+  #buffs {
+    bottom: 184px;
   }
 }

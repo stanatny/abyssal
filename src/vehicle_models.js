@@ -2,6 +2,7 @@ import * as THREE from "three";
 import { addSurfaceDetail } from "./ocean_visuals.js";
 import { mergeGeometries } from "three/addons/utils/BufferGeometryUtils.js";
 import { WORLD } from "./world_config.js";
+import { createArticulatedHuman } from "./human_models.js";
 
 /** 图鉴与场景共用的成人、潜艇与鱼雷资料；人类角色全部为成年人。 */
 export const HUMAN_CATALOG = Object.freeze([
@@ -17,7 +18,7 @@ export const HUMAN_CATALOG = Object.freeze([
     size: "1.9 m",
     habitat: "海面附近",
     ability: "浅滩游泳",
-    text: "身穿泳衣的成年游泳者在浅滩活动，接触可自动捕食。",
+    text: "浅滩中男女成年游泳者均会出现；男性穿泳裤，女性穿连体泳衣，接触可自动捕食。",
     counter: "小型食物提供少量营养；体型变大后，应寻找更有营养的猎物。",
   },
   {
@@ -32,7 +33,7 @@ export const HUMAN_CATALOG = Object.freeze([
     size: "2.4 m",
     habitat: `${25 * WORLD.displayDepthScale}—${100 * WORLD.displayDepthScale} m / 潜艇周围`,
     ability: "潜水探索",
-    text: "佩戴面镜、氧气瓶和脚蹼的成年潜水员。潜艇被撞破后，也会有潜水员分散游出。",
+    text: "男女成年潜水员均会出现，佩戴面镜、氧气瓶和脚蹼。潜艇被撞破后，也会有男女潜水员分散游出。",
     counter: "刚逃出潜艇时有短暂保护；离开艇壳后再接近捕食。",
   },
   {
@@ -71,9 +72,12 @@ export const HUMAN_CATALOG = Object.freeze([
  * 创建可复用的人类活动模型，头部朝向局部 -Z，length 使用世界长度。
  * @param {'swimmer'|'diver'|'submarine'|'torpedo'} kind 模型种类。
  * @param {number} length 目标总长。
+ * @param {'male'|'female'} sex 成年人物外观，载具忽略此参数。
  * @returns {THREE.Group} 含 animate(time)、dispose() 的有限资源模型。
  */
-export function createHumanModel(kind, length = 1) {
+export function createHumanModel(kind, length = 1, sex = "male") {
+  if (kind === "swimmer" || kind === "diver")
+    return createArticulatedHuman(kind, length, sex);
   const root = new THREE.Group();
   root.name = kind;
   const resources = new Set();
@@ -114,46 +118,7 @@ export function createHumanModel(kind, length = 1) {
     return mesh;
   }
   const animated = [];
-  if (kind === "swimmer" || kind === "diver") {
-    const skin = "#cf9a79",
-      suit = kind === "diver" ? "#263844" : "#dc634d";
-    part(sphere, suit, [0.12, 0.075, 0.22], [0, 0, -0.02]);
-    part(sphere, skin, [0.075, 0.073, 0.082], [0, 0.015, -0.32]);
-    if (kind === "swimmer") {
-      part(sphere, "#e5d9ca", [0.077, 0.045, 0.071], [0, 0.062, -0.32]);
-      part(sphere, skin, [0.113, 0.078, 0.105], [0, 0, -0.13]);
-    } else {
-      part(box, "#63d9de", [0.13, 0.035, 0.05], [0, 0.058, -0.354]);
-      part(sphere, "#d1b459", [0.056, 0.06, 0.19], [0, 0.12, 0.025]);
-      part(box, "#171f28", [0.15, 0.02, 0.027], [0, 0.081, -0.12]);
-    }
-    for (const side of [-1, 1]) {
-      const arm = new THREE.Group();
-      arm.position.set(side * 0.105, 0, -0.15);
-      root.add(arm);
-      part(
-        sphere,
-        kind === "diver" ? suit : skin,
-        [0.037, 0.038, 0.18],
-        [side * 0.04, 0, 0.075],
-        arm,
-      );
-      arm.rotation.y = side * 0.35;
-      const leg = new THREE.Group();
-      leg.position.set(side * 0.055, 0, 0.15);
-      root.add(leg);
-      part(
-        sphere,
-        kind === "diver" ? suit : skin,
-        [0.048, 0.043, 0.19],
-        [0, 0, 0.15],
-        leg,
-      );
-      if (kind === "diver")
-        part(box, "#f5ce65", [0.1, 0.025, 0.14], [0, 0, 0.33], leg);
-      animated.push({ arm, leg, side });
-    }
-  } else if (kind === "submarine") {
+  if (kind === "submarine") {
     const shell = keep(
       new THREE.LatheGeometry(
         [
@@ -273,10 +238,6 @@ export function createHumanModel(kind, length = 1) {
   root.userData.length = length;
   root.userData.animate = (time) => {
     for (const item of animated) {
-      if (item.arm) {
-        item.arm.rotation.x = Math.sin(time * 2.6 + item.side) * 0.32;
-        item.leg.rotation.x = Math.sin(time * 3.4 + item.side * 1.6) * 0.25;
-      }
       if (item.propeller) item.propeller.rotation.z = time * 3;
       if (item.light)
         item.light.material.emissiveIntensity =

@@ -1,5 +1,7 @@
 import { WORLD } from "./world_config.js";
+import { isNursery } from "./nursery_rules.js";
 import { getMinimapState, projectMinimapPosition } from "./minimap_rules.js";
+import { getSwimmingAttitude } from "./steering_rules.js";
 import "./minimap.css";
 
 let nextMapId = 0;
@@ -45,13 +47,20 @@ export function createMinimap(container) {
     <g class="minimap-contacts"></g>
     <path class="minimap-home" d="M 0 -2.7 L 2.7 0 L 0 2.7 L -2.7 0 Z"/>
     <g class="minimap-player"><circle r="4.8"/><path d="M 0 -4.5 L 3 3.5 L 0 2 L -3 3.5 Z"/></g>
-  </svg><div class="minimap-caption"><span class="minimap-home-label"></span><span class="minimap-depth-label"></span></div>`;
+    <g class="minimap-attitude">
+      <path class="minimap-pitch-scale" d="M 86 33 V 65 M 83 33 H 89 M 84 41 H 88 M 82 49 H 90 M 84 57 H 88 M 83 65 H 89"/>
+      <text class="minimap-pitch-axis" x="86" y="29">仰</text>
+      <path class="minimap-pitch-marker" d="M -6 -2.1 L -1 0 L -6 2.1 Z"/>
+    </g>
+  </svg><span class="minimap-pitch-label" aria-hidden="true"></span><div class="minimap-caption"><span class="minimap-home-label"></span><span class="minimap-depth-label"></span></div>`;
   const route = container.querySelector(".minimap-home-route");
   const playerMarker = container.querySelector(".minimap-player");
   const homeMarker = container.querySelector(".minimap-home");
   const contactLayer = container.querySelector(".minimap-contacts");
   const homeLabel = container.querySelector(".minimap-home-label");
   const depthLabel = container.querySelector(".minimap-depth-label");
+  const pitchMarker = container.querySelector(".minimap-pitch-marker");
+  const pitchLabel = container.querySelector(".minimap-pitch-label");
 
   function reset() {
     snapshot = null;
@@ -65,6 +74,8 @@ export function createMinimap(container) {
       "homeRelativeBearing",
       "ascent",
       "homeElevation",
+      "pitch",
+      "attitude",
     ])
       delete container.dataset[key];
     playerMarker.setAttribute("visibility", "hidden");
@@ -72,18 +83,29 @@ export function createMinimap(container) {
     route.setAttribute("d", "");
     homeLabel.textContent = "浅滩出生点 ◇";
     depthLabel.textContent = "北向固定";
+    pitchMarker.setAttribute("transform", "translate(86 49)");
+    pitchLabel.textContent = "平游 0°";
   }
 
   reset();
   return {
     update({ position, forward, spawn, contacts = [], sonarActive = false }) {
       if (disposed) return null;
+      const nursery = isNursery(position);
       snapshot = getMinimapState({
         position,
         forward,
         spawn,
         fallbackHeading: snapshot?.heading,
       });
+      snapshot.attitude = getSwimmingAttitude(forward);
+      container.dataset.pitch = String(snapshot.attitude.degrees);
+      container.dataset.attitude = snapshot.attitude.direction;
+      pitchMarker.setAttribute(
+        "transform",
+        `translate(86 ${49 - snapshot.attitude.fraction * 16})`,
+      );
+      pitchLabel.textContent = snapshot.attitude.label;
       const { player, home, heading, bearing, relativeBearing } = snapshot;
       container.dataset.heading = degrees(heading);
       container.dataset.homeBearing = bearing === null ? "" : degrees(bearing);
@@ -94,7 +116,7 @@ export function createMinimap(container) {
       container.dataset.sonarActive = String(Boolean(sonarActive));
       container.setAttribute(
         "aria-label",
-        `海域雷达，北向固定，${snapshot.homeLabel}，${snapshot.depthLabel}`,
+        `海域雷达，北向固定，${snapshot.homeLabel}，${snapshot.depthLabel}，${snapshot.attitude.label}${nursery ? "，安全浅滩" : ""}`,
       );
       playerMarker.setAttribute("visibility", "visible");
       playerMarker.setAttribute(
@@ -110,7 +132,8 @@ export function createMinimap(container) {
           : `M ${player.x} ${player.y} L ${home.x} ${home.y}`,
       );
       homeLabel.textContent = snapshot.homeLabel;
-      depthLabel.textContent = snapshot.depthLabel;
+      container.dataset.nursery = String(nursery);
+      depthLabel.textContent = nursery ? "安全浅滩" : snapshot.depthLabel;
       const activeIds = new Set();
       if (sonarActive) {
         for (const [index, contact] of contacts.entries()) {

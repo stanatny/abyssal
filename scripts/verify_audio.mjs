@@ -89,6 +89,10 @@ try {
       );
       const audio = new OceanAudio({ context });
       audio.start();
+      if (!(await audio.prepareHumanVoices()))
+        throw new Error("Recorded voices failed to load");
+      if (!(await audio.prepareFishSounds()))
+        throw new Error("Fish recordings failed to load");
       audio.reset();
       configure(audio);
       if (tick) tick(audio, 0);
@@ -201,6 +205,9 @@ try {
     // 每个公共音效在独立静音背景下渲染，避免配乐掩盖缺失的音效。
     const effectCases = [
       ["eat", (audio) => audio.eat()],
+      ["eat_fish", (audio) => audio.eatFish()],
+      ["eat_human", (audio) => audio.eatHuman(1, "male")],
+      ["eat_human_female", (audio) => audio.eatHuman(1, "female")],
       ["hit", (audio) => audio.hit()],
       ["sonar", (audio) => audio.sonar()],
       ["breach", (audio) => audio.breach()],
@@ -225,8 +232,59 @@ try {
       effectChecks.push({
         name,
         montageStart: (effectBuffers.length - 1) * 3.5,
+        ...(name.startsWith("eat_")
+          ? {
+              onsetRms: measure(buffer, 0.14, 0.2).rms,
+              sustainRms: measure(buffer, 0.285, 0.425).rms,
+              tailRms: measure(buffer, 3.1, 3.5).rms,
+            }
+          : {}),
         ...measure(buffer),
       });
+    }
+
+    // 导出实际游戏音频图中的吞食变体和连续鱼群，不能用素材裸文件代替效果试听。
+    const fishPlayback = [],
+      fishPreview = [],
+      fishChecks = [];
+    const playFish = (audio, size = 1) => {
+      const before = new Set(audio.feedingVoices.keys());
+      audio.eatFish(size);
+      const source = [...audio.feedingVoices.keys()].find(
+        (node) => !before.has(node),
+      );
+      if (source)
+        fishPlayback.push({
+          variant: [0, 1, 2].find(
+            (i) => source.buffer === audio.feedingBuffers.get(`fish_${i}`),
+          ),
+          rate: source.playbackRate.value,
+          duration: source.buffer.duration,
+          voices: audio.feedingVoices.size,
+        });
+    };
+    for (let variant = 0; variant < 3; variant++) {
+      const buffer = await render(1.5, {
+        configure(audio) {
+          silenceBed(audio);
+          audio.lastFishVariant = variant - 1;
+          audio.random = () => 0;
+        },
+        events: [{ at: 0.125, run: (audio) => playFish(audio) }],
+      });
+      fishPreview.push(buffer);
+      fishChecks.push({ name: `fish_variant_${variant}`, ...measure(buffer) });
+    }
+    for (const depth of [25, 1800]) {
+      const buffer = await render(4.5, {
+        tick: (audio, at) => audio.update(at, 0, { depth }),
+        events: Array.from({ length: 10 }, (_, i) => ({
+          at: 0.5 + i * 0.15,
+          run: (audio) => playFish(audio),
+        })),
+      });
+      fishPreview.push(buffer);
+      fishChecks.push({ name: `fish_school_${depth}`, ...measure(buffer) });
     }
 
     const stress = await render(5, {
@@ -238,6 +296,8 @@ try {
           at: 0.5,
           run(audio) {
             audio.eat(2);
+            audio.eatFish(2);
+            audio.eatHuman(2);
             audio.hit(1.6);
             audio.splash();
             audio.breach();
@@ -266,6 +326,8 @@ try {
             lifecycle.muted = audio.toggle() === false;
             const before = audio.voices.size;
             audio.hit();
+            audio.eatFish();
+            audio.eatHuman();
             lifecycle.mutedEffectSuppressed = before === audio.voices.size;
           },
         },
@@ -282,6 +344,8 @@ try {
             audio.setPaused(true);
             const before = audio.voices.size;
             audio.eat();
+            audio.eatFish();
+            audio.eatHuman();
             lifecycle.pausedEffectSuppressed = before === audio.voices.size;
           },
         },
@@ -346,6 +410,20 @@ try {
     const live = new OceanAudio();
     const firstToggle = live.toggle();
     await live.context.resume();
+    if (!(await live.prepareHumanVoices()))
+      throw new Error("Live recorded voices failed to load");
+    // 直接核对真人采样路由，不用宽频能量差推断男女声或听感。
+    const maleBuffer = live.feedingBuffers.get("human_male");
+    const femaleBuffer = live.feedingBuffers.get("human_female");
+    const recordedVoices = {
+      ready: live.humanVoiceState === "ready",
+      distinctBuffers: maleBuffer !== femaleBuffer,
+      maleDuration: maleBuffer.duration,
+      femaleDuration: femaleBuffer.duration,
+      mono:
+        maleBuffer.numberOfChannels === 1 &&
+        femaleBuffer.numberOfChannels === 1,
+    };
     const initialContext = live.context,
       initialWater = live.waterSource,
       initialMaster = live.master;
@@ -377,16 +455,20 @@ try {
       checks,
       stemChecks,
       effectChecks,
+      fishChecks,
+      fishPlayback,
       stress: measure(stress),
       lifecycle,
       inkChecks,
       liveChecks,
+      recordedVoices,
       maximumVoices,
       sampleRate,
       files: [
         { name: "audio_validation.wav", data: wav([transition]) },
         { name: "audio_music_stems.wav", data: wav(stemBuffers) },
         { name: "audio_effects.wav", data: wav(effectBuffers) },
+        { name: "audio_fish_preview.wav", data: wav(fishPreview) },
         { name: "audio_stress.wav", data: wav([stress]) },
       ],
     };
@@ -396,6 +478,7 @@ try {
     ...result.checks,
     ...result.stemChecks,
     ...result.effectChecks,
+    ...result.fishChecks,
     result.stress,
   ]) {
     const name = check.mode || check.name || "stress";
@@ -423,6 +506,52 @@ try {
     result.maximumVoices < 180,
     `Voice count is unbounded: ${result.maximumVoices}`,
   );
+  assert.deepEqual(
+    result.fishPlayback.slice(0, 3).map((e) => e.variant),
+    [0, 1, 2],
+  );
+  assert.ok(
+    result.fishPlayback.length >= 18,
+    "Dense fish school must retain audible feeding cues",
+  );
+  for (const entry of result.fishPlayback) {
+    assert.ok(
+      Number.isInteger(entry.variant),
+      "Fish voice must use a decoded recording",
+    );
+    assert.ok(entry.rate >= 0.97 && entry.rate <= 1.03);
+    assert.ok(entry.duration >= 0.34 && entry.duration <= 0.38);
+    assert.ok(entry.voices <= 3);
+  }
+  const fish = result.effectChecks.find((entry) => entry.name === "eat_fish");
+  const human = result.effectChecks.find((entry) => entry.name === "eat_human");
+  assert.ok(
+    human.sustainRms / human.onsetRms > (fish.sustainRms / fish.onsetRms) * 2,
+    "Human vocal and fish transient have insufficient temporal separation",
+  );
+  const female = result.effectChecks.find(
+    (entry) => entry.name === "eat_human_female",
+  );
+  assert.ok(
+    female.sustainRms > 0.01,
+    "Female vocal must produce sustained output",
+  );
+  assert.ok(
+    result.recordedVoices.ready &&
+      result.recordedVoices.distinctBuffers &&
+      result.recordedVoices.mono,
+    "Distinct recorded voices must decode and cache",
+  );
+  assert.ok(
+    Math.abs(result.recordedVoices.maleDuration - 1.65) < 0.001,
+    "Male recording duration changed",
+  );
+  assert.ok(
+    Math.abs(result.recordedVoices.femaleDuration - 1) < 0.001,
+    "Female recording duration changed",
+  );
+  for (const effect of [fish, human, female])
+    assert.ok(effect.tailRms < 0.0003, `${effect.name} has an excessive tail`);
   for (const [name, value] of Object.entries(result.liveChecks))
     assert.ok(value, `Live lifecycle failed: ${name}`);
   for (const name of [
