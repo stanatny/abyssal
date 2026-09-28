@@ -1,6 +1,14 @@
 # Current Development Handoff
 
-## Current update: bilingual game and English documentation
+## Current update: continuous menu-to-game camera
+
+The user requested a low-cost transition from the home scene to gameplay. Both already use the same ocean and avatar; the menu has its own display position, rotation, and enlarged scale. The update smoothly brings that composition into the normal forward-facing follow camera over 1.65 seconds, fades out the menu, and fades in the HUD. It uses the existing render loop and scene without new visual assets. First departure preserves the visible fish population and surface scene; restarting still resets the round immediately.
+
+The dedicated `launching` phase freezes gameplay, vitals, skills, and the round timer. Pause, blur, visibility loss, and context loss pause this phase; resume continues from its current pose. Menu/HUD input is inert until control is handed over. Reduced-motion preference skips camera travel. Visual time remains continuous from the menu, while fish-school migration uses `player.elapsed`. The start clock is initialized after synchronous audio/UI setup so that initialization cannot skip the first section of the camera move.
+
+Implementation baseline: published bilingual commit `b358fc5`. The user accepted this transition and authorized commit and push on 2026-09-28. The existing `main` workflow deploys it to GitHub Pages; verify the matching workflow and public build before reporting deployment complete. Verification and evidence belong in [verification](docs/verification.md). Future changes require their own commit/push authorization.
+
+## Published baseline: bilingual game and English documentation
 
 The current task adds player-facing `en` and `zh-CN` support and converts project documentation, README files, development rules, and project Skill instructions to English. New player-facing copy must use localization dictionaries; verify English text lengths and narrow-screen layouts. Existing Chinese code-comment conventions remain unchanged. The implementation baseline is `62d156b`; gameplay remains at v0.6.10.
 

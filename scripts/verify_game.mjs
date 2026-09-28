@@ -38,6 +38,7 @@ try {
   await page.click("#quality");
   await page.locator("#start").focus();
   await page.keyboard.press("Space");
+  await page.waitForFunction(() => window.__ABYSSAL__.mode === "playing");
   assert.equal((await state()).mode, "playing");
   assert.equal(
     await page.evaluate(() => document.activeElement.tagName),

@@ -4,6 +4,7 @@ import * as THREE from "three";
 import "./style.css";
 import { createCreature } from "./creatures.js";
 import { createVisualPipeline } from "./visual_pipeline.js";
+import { createLaunchTransition } from "./launch_transition.js";
 import { createOcean, seabedHeight } from "./ocean.js";
 import {
   createPlayer,
@@ -237,6 +238,7 @@ let threat = null,
   hitFlash = 0,
   uiClock = 0,
   activeBoss = null;
+let launchTransition = null;
 let movementLabel = "巡游";
 let lureFlash = 0,
   waterMotion = null;
@@ -699,7 +701,12 @@ function notify(source, duration = 3) {
   $("notification").textContent = t(source);
   notificationUntil = elapsed + duration;
 }
-function startGame() {
+function startGame({ transition = false } = {}) {
+  const fromMenu = mode === "menu";
+  launchTransition = null;
+  document.body.classList.remove("launching");
+  $("menu").inert = false;
+  $("hud").inert = false;
   expedition = setup.getSelection();
   player = createPlayer(expedition.character.id);
   selectAvatar(expedition.character);
@@ -710,7 +717,8 @@ function startGame() {
   yaw = 0;
   pitch = 0;
   speed = PLAYER_MOVEMENT.cruiseSpeed;
-  elapsed = 0;
+  if (!fromMenu) elapsed = 0;
+  forward.set(0, 0, -1);
   lastZone = "";
   lastNursery = null;
   lastCollision = null;
@@ -736,30 +744,84 @@ function startGame() {
   keys.clear();
   touchBoost = false;
   activeBoss = null;
-  surface.reset();
-  humans.reset();
-  refreshDynamicColliders();
-  encounters.reset(expedition.region.bossKinds);
-  seedPopulation();
-  seedPickups();
-  avatar.scale.setScalar(player.length);
-  avatar.rotation.set(pitch, yaw, 0, "YXZ");
-  avatar.userData.resetMotion?.();
+  // 首次出发沿用首页已经显示的世界，避免鱼群和船只在点击时重新随机跳位。
+  if (!fromMenu) {
+    surface.reset();
+    humans.reset();
+    refreshDynamicColliders();
+    encounters.reset(expedition.region.bossKinds);
+    seedPopulation();
+    seedPickups();
+    avatar.userData.resetMotion?.();
+  }
+  const pose = followCameraPose();
+  if (fromMenu && transition) {
+    launchTransition = createLaunchTransition({
+      camera,
+      avatar,
+      destination: position.clone(),
+      length: player.length,
+      cameraPosition: pose.position,
+      cameraTarget: pose.target,
+    });
+    mode = "launching";
+    $("menu").inert = true;
+    $("hud").inert = true;
+    document.body.style.setProperty("--launch-menu", "1");
+    document.body.style.setProperty("--launch-hud", "0");
+    document.body.classList.add("launching");
+  } else {
+    avatar.position.copy(position);
+    avatar.scale.setScalar(player.length);
+    avatar.rotation.set(pitch, yaw, 0, "YXZ");
+    camera.position.copy(pose.position);
+    lookTarget.copy(pose.target);
+    camera.lookAt(lookTarget);
+    mode = "playing";
+  }
   capturePoint(captureStart);
   avatar.visible = true;
-  mode = "playing";
-  lastTime = performance.now();
-  $("menu").hidden = true;
+  $("menu").hidden = !launchTransition;
   $("overlay").hidden = true;
   $("hud").hidden = false;
   $("pause").hidden = false;
-  camera.position.copy(position).add(new THREE.Vector3(0, 2.6, 7.1));
-  lookTarget.copy(position);
   audio.start();
   audio.reset?.();
   audio.setPaused(false);
-  notify("这里是安全浅滩 · 穿过鱼群补给成长\n长到约4米，再探索外礁", 6);
+  updateHud();
+  updateSonar();
+  if (!launchTransition) announceDeparture();
   canvas.focus({ preventScroll: true });
+  lastTime = performance.now();
+}
+function announceDeparture() {
+  notify("这里是安全浅滩 · 穿过鱼群补给成长\n长到约4米，再探索外礁", 6);
+}
+function updateLaunch(roundDt) {
+  const progress = launchTransition.advance(roundDt);
+  lookTarget.copy(launchTransition.target);
+  avatar.userData.animate?.(elapsed, 0.6 + progress * 0.3);
+  document.body.style.setProperty(
+    "--launch-menu",
+    String(1 - THREE.MathUtils.smoothstep(progress, 0, 0.45)),
+  );
+  document.body.style.setProperty(
+    "--launch-hud",
+    String(THREE.MathUtils.smoothstep(progress, 0.65, 1)),
+  );
+  if (progress >= 1) {
+    launchTransition = null;
+    mode = "playing";
+    $("menu").hidden = true;
+    $("hud").inert = false;
+    document.body.classList.remove("launching");
+    keys.clear();
+    pointer.x = pointer.y = 0;
+    touchBoost = false;
+    capturePoint(captureStart);
+    updateSonar();
+    announceDeparture();
+  }
 }
 function showOverlay(kind) {
   mode = kind;
@@ -831,7 +893,7 @@ function renderOverlay(kind) {
 }
 function resumeGame() {
   if (mode === "paused") {
-    mode = "playing";
+    mode = launchTransition ? "launching" : "playing";
     lastTime = performance.now();
     $("overlay").hidden = true;
     audio.start();
@@ -840,7 +902,7 @@ function resumeGame() {
   } else startGame();
 }
 function togglePause() {
-  if (mode === "playing") showOverlay("paused");
+  if (mode === "playing" || mode === "launching") showOverlay("paused");
   else if (mode === "paused") resumeGame();
 }
 function blockedBetween(a, b) {
@@ -1095,8 +1157,8 @@ function updateSchools() {
       school.species.nurseryResident
     )
       continue;
-    if (elapsed < school.nextMigration) continue;
-    school.nextMigration = elapsed + random(22, 38);
+    if (player.elapsed < school.nextMigration) continue;
+    school.nextMigration = player.elapsed + random(22, 38);
     if (
       school.center.distanceTo(position) < 220 ||
       !sharesHabitat(school.species, position) ||
@@ -1480,7 +1542,7 @@ function updatePickups(dt) {
     }
   }
 }
-function updateCamera(dt) {
+function followCameraPose() {
   const ratio = player.length / 6;
   // 幼年镜头按体型拉近；六米后的追尾距离保持原有尺度。
   const juvenileRatio = Clamp(ratio, 0.4, 1);
@@ -1498,23 +1560,27 @@ function updateCamera(dt) {
   );
   const desired = position.clone().add(offset);
   desired.y = Math.max(desired.y, floorAt(desired.x, desired.z, 2));
-  const shorten = (point) => {
-    const hit = castSegment(position, point, solidColliders, 0.6);
-    if (hit)
-      point
-        .copy(hit.point)
-        .addScaledVector(new THREE.Vector3().copy(hit.normal), 0.04);
-  };
-  shorten(desired);
-  camera.position.lerp(desired, 1 - Math.exp(-3.5 * dt));
-  shorten(camera.position);
-  lookTarget.lerp(
-    position
+  shortenCamera(desired);
+  return {
+    position: desired,
+    target: position
       .clone()
       .addScaledVector(forward, 9 * juvenileRatio + ratio * 2)
       .add(new THREE.Vector3(0, 1.1, 0)),
-    1 - Math.exp(-5 * dt),
-  );
+  };
+}
+function shortenCamera(point) {
+  const hit = castSegment(position, point, solidColliders, 0.6);
+  if (hit)
+    point
+      .copy(hit.point)
+      .addScaledVector(new THREE.Vector3().copy(hit.normal), 0.04);
+}
+function updateCamera(dt) {
+  const desired = followCameraPose();
+  camera.position.lerp(desired.position, 1 - Math.exp(-3.5 * dt));
+  shortenCamera(camera.position);
+  lookTarget.lerp(desired.target, 1 - Math.exp(-5 * dt));
   camera.lookAt(lookTarget);
   camera.fov = THREE.MathUtils.damp(camera.fov, speed > 18 ? 69 : 60, 2.5, dt);
   camera.updateProjectionMatrix();
@@ -1741,7 +1807,8 @@ function frame(now) {
   requestAnimationFrame(frame);
   const roundDt = Math.max(0, (now - lastTime) / 1000);
   const dt = Math.min(roundDt, 0.04);
-  lastTime = now;
+  // 同帧排队的 RAF 时间戳可能早于刚完成的初始化，不能让时钟倒退。
+  lastTime = Math.max(lastTime, now);
   // 图鉴打开时只渲染独立标本，避免两套海洋场景同时消耗图形资源。
   if (guide.isOpen) return;
   if (mode === "menu") {
@@ -1765,6 +1832,16 @@ function frame(now) {
     }
     ocean.update(elapsed, position);
     surface.update(dt, elapsed, player, position, camera, false);
+  } else if (mode === "launching") {
+    elapsed += dt;
+    updateLaunch(roundDt);
+    for (const e of entities) {
+      if (e.mesh.visible) e.mesh.userData.animate?.(elapsed + e.seed, 0.5);
+    }
+    atmosphere(dt);
+    ocean.update(elapsed, position);
+    surface.update(dt, elapsed, player, position, camera, false);
+    audio.update(elapsed, 0, { depth: -position.y });
   } else if (mode === "playing") {
     elapsed += dt;
     updatePlayer(dt, roundDt);
@@ -1876,7 +1953,12 @@ onLanguageChange(() => {
   }
 });
 
-$("start").addEventListener("click", startGame);
+$("start").addEventListener("click", () => {
+  if (mode !== "menu") return;
+  startGame({
+    transition: !matchMedia("(prefers-reduced-motion: reduce)").matches,
+  });
+});
 $("resume").addEventListener("click", resumeGame);
 $("restart").addEventListener("click", startGame);
 $("pause").addEventListener("click", togglePause);
@@ -1943,10 +2025,11 @@ window.addEventListener("keyup", (e) => keys.delete(e.code));
 window.addEventListener("blur", () => {
   keys.clear();
   touchBoost = false;
-  if (mode === "playing") showOverlay("paused");
+  if (mode === "playing" || mode === "launching") showOverlay("paused");
 });
 document.addEventListener("visibilitychange", () => {
-  if (document.hidden && mode === "playing") showOverlay("paused");
+  if (document.hidden && (mode === "playing" || mode === "launching"))
+    showOverlay("paused");
 });
 $("touch-boost").addEventListener("pointerdown", (e) => {
   e.preventDefault();
@@ -2008,7 +2091,7 @@ for (const name of [
 }
 canvas.addEventListener("webglcontextlost", (e) => {
   e.preventDefault();
-  if (mode === "playing") showOverlay("paused");
+  if (mode === "playing" || mode === "launching") showOverlay("paused");
   $("loading").hidden = false;
   $("loading").textContent = t("图形上下文已中断，请刷新页面重新潜入。");
 });

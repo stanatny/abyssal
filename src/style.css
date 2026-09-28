@@ -3281,3 +3281,13 @@ html[lang="en"] #boss-tip {
     width: 104px;
   }
 }
+
+/* 出发镜头共用原场景；界面透明度由同一帧时钟驱动，暂停时一起停下。 */
+body.launching #menu {
+  opacity: var(--launch-menu, 1);
+  pointer-events: none;
+}
+body.launching #hud {
+  opacity: var(--launch-hud, 0);
+  pointer-events: none;
+}
