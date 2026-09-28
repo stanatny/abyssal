@@ -3171,8 +3171,9 @@ kbd {
 }
 .overlay-language {
   display: flex;
+  width: fit-content;
   justify-content: center;
-  margin: 0 0 20px;
+  margin: 0 auto 20px;
 }
 html[lang="en"] #menu h1 {
   font-size: clamp(32px, 4.1vw, 62px);

@@ -4,13 +4,13 @@ A third-person ocean survival game for the browser. Choose an Orca or Giant Squi
 
 **[Play the published game](https://stanatny.github.io/abyssal/)** · [GitHub repository](https://github.com/stanatny/abyssal)
 
-Version: **v0.6.12**. GitHub Actions deploys `main` to the play URL above. This update adds a vacation shoreline, spherical Contact Mines, clearer 20-second suction-only Frenzy, and revised survival rewards.
+Version: **v0.6.13**. GitHub Actions deploys `main` to the play URL above. This update improves the food supply and survival progression, reduces reward density, and replaces home-screen dropdowns with clear in-game selection panels.
 
-Unpublished tuning reduces random pickups from 31 to 18, adds depth-dependent hunger, and increases ordinary creatures to 285 with additional distributed schools and deep-water prey. The same candidate makes home-screen region and character choices clearer with labeled selection cards, in-game option panels with character abilities, and inset language arrows. The published v0.6.12 release still has 31 random pickups, its earlier survival curve, and the earlier menu styling; the rules below describe the working candidate.
+Ordinary population is now 285, with additional distributed schools and deep-water prey. Hunger scales with size and depth, and successful lord bites restore some food. The shallows retain one starter pickup of each kind, with 18 further random rewards. Region and character cards open styled option panels; character choices show their role and abilities, and both mouse and keyboard focus behave consistently.
 
 The current rules below include one starter pickup of each kind, Vitality Supply restoring 50 to all three vitals, and Ocean Current immediately refilling stamina before 30 seconds of free sprint. See the [shoreline and mine update](docs/feedback_v0_6_11.md) and [latest reward changes](docs/feedback_v0_6_12.md).
 
-![ABYSSAL v0.6.10 English interface: Hawaii fantasy region and character selection](docs/images/abyssal_v0_6_10.png)
+![ABYSSAL v0.6.13 English interface: region and character selection cards](docs/images/abyssal_v0_6_13.png)
 
 Play in a modern desktop or phone browser with WebGL 2 support—no account or download required. Select a character on the home screen and start an expedition. Music activates after the first interaction. Fish feeding uses short water-Foley intake, bite, and bubble tails, with three variants that avoid consecutive repetition. Adult male/female swimmers and divers use corresponding performed human recordings at their original pitch, gradually muffled later in the clip to suggest submersion. Prey-gathering transitions and blood clouds remain. Sound can be disabled at any time. Assets are CC0; see [audio sources](docs/audio_sources.md).
 

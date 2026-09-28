@@ -1,10 +1,46 @@
 import { chromium } from "@playwright/test";
-import { mkdir } from "node:fs/promises";
+import assert from "node:assert/strict";
+import { mkdir, writeFile } from "node:fs/promises";
 
 // 首页视觉验证：截取桌面与移动、中英界面，并断言语言箭头徽标与更换胶囊的几何位置。
 await mkdir(".local", { recursive: true });
 const browser = await chromium.launch({ channel: "chrome", headless: true });
 const report = { checks: [], errors: [] };
+async function assertLanguageGeometry(page, selector) {
+  const geometry = await page.locator(selector).evaluate((select) => {
+    const selectBox = select.getBoundingClientRect();
+    const control = select.closest(".language-control");
+    const controlBox = control.getBoundingClientRect();
+    const after = getComputedStyle(control, "::after");
+    const width = parseFloat(after.width);
+    const height = parseFloat(after.height);
+    const right = controlBox.right - parseFloat(after.right);
+    const top = controlBox.top + controlBox.height / 2 - height / 2;
+    return {
+      select: {
+        left: selectBox.left,
+        right: selectBox.right,
+        top: selectBox.top,
+        bottom: selectBox.bottom,
+        height: selectBox.height,
+      },
+      arrow: { left: right - width, right, top, bottom: top + height, width },
+      inset: selectBox.right - right,
+      paddingRight: parseFloat(getComputedStyle(select).paddingRight),
+      backgroundImage: after.backgroundImage,
+      appearance: getComputedStyle(select).appearance,
+    };
+  });
+  const { select, arrow, inset, paddingRight } = geometry;
+  assert.ok(select.height >= 44, `${selector}: language target is too short`);
+  assert.equal(geometry.appearance, "none");
+  assert.match(geometry.backgroundImage, /svg/);
+  assert.ok(arrow.left >= select.left && arrow.right <= select.right);
+  assert.ok(arrow.top >= select.top && arrow.bottom <= select.bottom);
+  assert.ok(inset >= 4 && inset <= 14, `${selector}: arrow inset is ${inset}`);
+  assert.ok(paddingRight >= arrow.width + inset + 5);
+  return geometry;
+}
 try {
   for (const [width, height, mobile] of [
     [1440, 900, false],
@@ -12,7 +48,7 @@ try {
     [320, 568, true],
   ]) {
     for (const language of ["zh-CN", "en"]) {
-      const tag = `${width}_${language}`;
+      const tag = `${width}_${height}_${language}`;
       const context = await browser.newContext({
         viewport: { width, height },
         locale: language,
@@ -22,52 +58,96 @@ try {
       });
       const page = await context.newPage();
       page.setDefaultTimeout(15000);
+      page.on("pageerror", (error) =>
+        report.errors.push({ tag, error: error.message }),
+      );
+      const activate = async (selector) => {
+        if (mobile) await page.locator(selector).tap();
+        else await page.locator(selector).click();
+      };
       try {
-        await page.goto("http://127.0.0.1:5178/", { timeout: 30000 });
+        await page.goto(
+          process.env.ABYSSAL_DEV_URL || "http://127.0.0.1:5178/",
+          { timeout: 30000 },
+        );
         await page.locator("#character-select").waitFor();
         await page
           .locator("header [data-language-select]")
           .selectOption(language);
         await page.evaluate(() => document.fonts.ready);
         const ui = await page.evaluate(() => {
-          const select = document.querySelector(
-            "header [data-language-select]",
-          );
-          const selectBox = select.getBoundingClientRect();
-          const control = select.closest(".language-control");
-          const after = getComputedStyle(control, "::after");
-          const region = document
-            .querySelector("#region-select")
-            .getBoundingClientRect();
-          const cta = document.querySelector("#region-select .choice-cta");
-          const ctaBox = cta.getBoundingClientRect();
-          const ctaStyle = getComputedStyle(cta);
           return {
             language: document.documentElement.lang,
-            selectRightPad: getComputedStyle(select).paddingRight,
-            afterRight: after.right,
-            afterWidth: after.width,
-            afterBg: after.backgroundImage.slice(0, 40),
-            ctaText: cta.innerText.trim(),
-            ctaVisible: ctaStyle.display !== "none" && ctaBox.width > 0,
-            ctaInside:
-              ctaBox.right <= region.right + 1 &&
-              ctaBox.left >= region.left - 1,
-            cardHeight: region.height,
+            cards: ["region-select", "character-select"].map((id) => {
+              const card = document.getElementById(id);
+              const box = card.getBoundingClientRect();
+              const cta = card.querySelector(".choice-cta");
+              const ctaBox = cta.getBoundingClientRect();
+              const ctaStyle = getComputedStyle(cta);
+              return {
+                id,
+                ctaText: cta.innerText.trim(),
+                ctaVisible:
+                  ctaStyle.display !== "none" &&
+                  ctaStyle.visibility !== "hidden" &&
+                  ctaBox.width > 0,
+                ctaInside:
+                  ctaBox.right <= box.right + 1 &&
+                  ctaBox.left >= box.left - 1 &&
+                  ctaBox.top >= box.top - 1 &&
+                  ctaBox.bottom <= box.bottom + 1,
+                cardHeight: box.height,
+              };
+            }),
           };
         });
-        report.checks.push({ tag, ...ui });
-        if (width === 1440)
-          await page.screenshot({ path: `.local/home_ui_${language}.png` });
-        else
-          await page.screenshot({
-            path: `.local/home_ui_mobile_${language}.png`,
-          });
+        assert.equal(ui.language, language);
+        for (const card of ui.cards) {
+          assert.ok(card.ctaVisible, `${card.id}: change hint is hidden`);
+          assert.ok(card.ctaInside, `${card.id}: change hint overflows`);
+          assert.ok(card.cardHeight >= 44);
+          assert.equal(
+            card.ctaText,
+            language === "en" ? "Tap to change" : "点击更换",
+          );
+        }
+        const header = await assertLanguageGeometry(
+          page,
+          "header [data-language-select]",
+        );
+        await page.screenshot({ path: `.local/home_ui_${tag}.png` });
         // 打开选择面板截图
-        await page.locator("#character-select").click();
+        await activate("#character-select");
         await page.locator("#expedition-picker").waitFor({ state: "visible" });
-        if (width === 1440)
-          await page.screenshot({ path: `.local/home_picker_${language}.png` });
+        await page.screenshot({ path: `.local/home_picker_${tag}.png` });
+        await activate(".picker-close");
+        await activate("#start");
+        await page.waitForFunction(
+          () => document.querySelector("#menu").hidden,
+        );
+        await activate("#pause");
+        await page.locator("#overlay").waitFor({ state: "visible" });
+        const pause = await assertLanguageGeometry(
+          page,
+          "#overlay [data-language-select]",
+        );
+        await page.screenshot({ path: `.local/home_pause_${tag}.png` });
+        // 暂停菜单真实切换语言，确认长短标签变化后箭头仍在选择框内。
+        const otherLanguage = language === "en" ? "zh-CN" : "en";
+        await page
+          .locator("#overlay [data-language-select]")
+          .selectOption(otherLanguage);
+        const pauseSwitched = await assertLanguageGeometry(
+          page,
+          "#overlay [data-language-select]",
+        );
+        assert.equal(
+          await page.locator("html").getAttribute("lang"),
+          otherLanguage,
+        );
+        await activate("#resume");
+        await page.locator("#overlay").waitFor({ state: "hidden" });
+        report.checks.push({ tag, ...ui, header, pause, pauseSwitched });
         console.log("PASS " + tag);
       } catch (error) {
         report.errors.push({ tag, error: error.message });
@@ -79,6 +159,10 @@ try {
   }
 } finally {
   await browser.close();
+  await writeFile(
+    ".local/home_ui_report.json",
+    JSON.stringify(report, null, 2) + "\n",
+  );
   console.log(JSON.stringify(report, null, 2));
   if (report.errors.length) process.exitCode = 1;
 }
