@@ -1,6 +1,12 @@
 # Current Development Handoff
 
-## Current update: continuous menu-to-game camera
+## Current update: English public presentation
+
+The user found Chinese copy in GitHub About and the README screenshot. The repository description is now English online. The local candidate replaces the README image with an actual English-interface capture and supplies English page-title, search-description, and Open Graph/Twitter metadata. Game menus and content remain bilingual. Root development rules now explicitly cover these public presentation surfaces.
+
+Baseline: published `8095ca0`, whose menu-to-game transition deployed successfully. The user accepted this presentation follow-up and authorized submission to `main` on 2026-09-28. Formatting, production build, screenshot inspection, and targeted bilingual metadata checks passed; see [verification](docs/verification.md). The existing Pages workflow publishes the pushed commit; verify the matching workflow, README image, and public metadata before reporting completion. Future changes require their own commit/push authorization.
+
+## Published update: continuous menu-to-game camera
 
 The user requested a low-cost transition from the home scene to gameplay. Both already use the same ocean and avatar; the menu has its own display position, rotation, and enlarged scale. The update smoothly brings that composition into the normal forward-facing follow camera over 1.65 seconds, fades out the menu, and fades in the HUD. It uses the existing render loop and scene without new visual assets. First departure preserves the visible fish population and surface scene; restarting still resets the round immediately.
 

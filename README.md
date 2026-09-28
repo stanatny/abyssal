@@ -6,7 +6,7 @@ A third-person ocean survival game for the browser. Choose an Orca or Giant Squi
 
 Published version: **v0.6.10**. GitHub Actions deploys `main` to the play URL above. This release brings together the visual redraw, nursery shallows, audio improvements, free swimming, and feeding animations for both characters.
 
-![ABYSSAL v0.6.10: Hawaii fantasy region and character selection](docs/images/abyssal_v0_6_10.png)
+![ABYSSAL v0.6.10 English interface: Hawaii fantasy region and character selection](docs/images/abyssal_v0_6_10.png)
 
 Play in a modern desktop or phone browser with WebGL 2 support—no account or download required. Select a character on the home screen and start an expedition. Music activates after the first interaction. Fish feeding uses short water-Foley intake, bite, and bubble tails, with three variants that avoid consecutive repetition. Adult male/female swimmers and divers use corresponding performed human recordings at their original pitch, gradually muffled later in the clip to suggest submersion. Prey-gathering transitions and blood clouds remain. Sound can be disabled at any time. Assets are CC0; see [audio sources](docs/audio_sources.md).
 
