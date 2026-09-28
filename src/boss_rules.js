@@ -167,10 +167,10 @@ export function isBossFlankContact({
 
 /**
  * 结算接触后的自动咬击；只有虚弱窗口可造成高伤害，交战始终使用真实体长。
- * @param {object} player 玩家状态，将更新全局咬击冷却和最终战利品。
+ * @param {object} player 玩家状态，将更新全局咬击冷却、有效命中的饱食补给和最终战利品。
  * @param {object} boss 主宰状态，将更新生命、冷却和击败状态。
  * @param {{inRange?:boolean,isFlank?:boolean}} options 场景确认嘴部接触实体、无遮挡且从侧翼朝内进攻。
- * @returns {{hit:boolean,damage:number,defeated:boolean,reason:string}} 本次实际攻击结果。
+ * @returns {{hit:boolean,damage:number,hungerRestored:number,defeated:boolean,reason:string}} 本次攻击结果；hungerRestored仅含这一口的实际饱食补给，不含击败战利品。
  */
 export function hitBoss(
   player,
@@ -180,6 +180,7 @@ export function hitBoss(
   const failure = (reason) => ({
     hit: false,
     damage: 0,
+    hungerRestored: 0,
     defeated: false,
     reason,
   });
@@ -200,6 +201,12 @@ export function hitBoss(
   // 单次伤害不超过总生命的24%，即使最大体长加狂食也无法跳过多次交战。
   const damage = Math.min(boss.health, boss.maxHealth * 0.24, strength);
   boss.health = Math.max(0, boss.health - damage);
+  // 只对真正造成伤害的一口补饱食，不提前发放击败后的治疗或成长奖励。
+  const hungerRestored =
+    damage > 0
+      ? Math.min(BOSS_BITE_HUNGER, Math.max(0, 100 - player.hunger))
+      : 0;
+  player.hunger += hungerRestored;
   player.biteCooldown = 1.2;
   boss.biteCooldown = 1.2;
   boss.contactArmed = false;
@@ -210,6 +217,7 @@ export function hitBoss(
     return {
       hit: true,
       damage,
+      hungerRestored,
       defeated: false,
       reason: weak ? "weak_point" : "hit",
     };
@@ -219,12 +227,21 @@ export function hitBoss(
   setPhase(boss, "defeated");
   player.bossesDefeated += 1;
   applyNutrition(player, boss.species);
-  return { hit: true, damage, defeated: true, reason: "defeated" };
+  return {
+    hit: true,
+    damage,
+    hungerRestored,
+    defeated: true,
+    reason: "defeated",
+  };
 }
 
 /*********************************************
  * Types and Data Structures
  ********************************************/
+
+/** 有效咬伤领主时恢复的饱食上限，实际恢复不得超过100点总上限。 */
+export const BOSS_BITE_HUNGER = 8;
 
 /** 主宰均属于tier3，必须通过hitBoss交战；不能作为普通猎物直接吞食。 */
 export const BOSS_SPECIES = Object.freeze(

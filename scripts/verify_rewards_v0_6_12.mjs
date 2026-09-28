@@ -1,3 +1,4 @@
+import { selectCharacter } from "./menu_picker_helpers.mjs";
 import { chromium } from "@playwright/test";
 import assert from "node:assert/strict";
 import { mkdir, writeFile } from "node:fs/promises";
@@ -27,7 +28,7 @@ try {
     });
     await page.goto(process.env.ABYSSAL_DEV_URL || "http://127.0.0.1:5178/");
     await page.waitForFunction(() => window.__ABYSSAL__);
-    await page.locator("#character-select").selectOption(character);
+    await selectCharacter(page, character);
     const pool = await page.evaluate(() => {
       const g = window.__ABYSSAL__;
       const snapshot = () =>
@@ -45,7 +46,7 @@ try {
       return { before, after, restart: snapshot() };
     });
     for (const items of Object.values(pool)) {
-      assert.equal(items.length, 34);
+      assert.equal(items.length, 21);
       assert.equal(
         items.some((p) => p.id === "nursery_frenzy"),
         false,
@@ -159,6 +160,7 @@ try {
       guide.flow,
       locale === "en" ? /refill.*stamina|stamina.*full/i : /回满体力/,
     );
+    assert.match(guide.frenzy, /18/);
     assert.match(
       guide.frenzy,
       locale === "en" ? /one.*each|one of each/i : /各.*一枚|各.*1枚/,
@@ -167,7 +169,7 @@ try {
       width,
       locale,
       character,
-      pool: "34; three starters; remaining positions randomized; meshes reused",
+      pool: "21; three starters; 18 random; remaining positions randomized; meshes reused",
       pickups,
       guide,
     });

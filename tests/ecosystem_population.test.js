@@ -4,6 +4,7 @@ import * as THREE from "three";
 import { ECOSYSTEM_SPECIES } from "../src/ecosystem_config.js";
 import { createOcean, seabedHeight } from "../src/ocean.js";
 import { WORLD } from "../src/world_config.js";
+import { steerWithinHabitat } from "../src/navigation.js";
 import { isPositionBlocked } from "../src/collision.js";
 import { canEat, consumePrey, createPlayer } from "../src/simulation.js";
 import {
@@ -15,6 +16,7 @@ import {
   habitatPosition,
   initialSchoolAnchor,
   initialSpeciesAnchor,
+  schoolHabitat,
   schoolSlot,
   sharesHabitat,
   speciesVisibilityDistance,
@@ -24,17 +26,20 @@ function randomSource(seed) {
   return () => (seed = (seed * 1664525 + 1013904223) >>> 0) / 2 ** 32;
 }
 
-test("24类235尾的实际生成点全部在合法水层、领地与海床上方且不埋进场景实体", () => {
+test("24类285尾的实际生成点合法，中层补给与深层大猎物均有覆盖", () => {
   const ocean = createOcean(new THREE.Scene());
   let count = 0;
   const centers = new Set();
+  const population = [];
   try {
     for (const species of ECOSYSTEM_SPECIES) {
       for (let index = 0; index < species.population; index++) {
         let anchor = initialSpeciesAnchor(species, index);
+        let habitat = species;
         if (species.schoolSize > 1) {
           const groupIndex = Math.floor(index / species.schoolSize);
-          const center = habitatPosition(species, {
+          habitat = schoolHabitat(species, groupIndex);
+          const center = habitatPosition(habitat, {
             heightAt: seabedHeight,
             colliders: ocean.colliders,
             anchor: initialSchoolAnchor(species, groupIndex),
@@ -44,7 +49,7 @@ test("24类235尾的实际生成点全部在合法水层、领地与海床上方
           if (species.kind === "fish") centers.add(center.toArray().join(","));
           anchor = center.add(schoolSlot(species, index % species.schoolSize));
         }
-        const point = habitatPosition(species, {
+        const point = habitatPosition(habitat, {
           heightAt: seabedHeight,
           colliders: ocean.colliders,
           anchor,
@@ -53,8 +58,8 @@ test("24类235尾的实际生成点全部在合法水层、领地与海床上方
         assert.ok(point, species.kind);
         assert.ok(inPredatorTerritory(species, index, point), species.kind);
         assert.ok(
-          -point.y >= species.depthMin - 0.001 &&
-            -point.y <= species.depthMax + 0.001,
+          -point.y >= habitat.depthMin - 0.001 &&
+            -point.y <= habitat.depthMax + 0.001,
           `${species.kind}: depth`,
         );
         assert.ok(
@@ -71,13 +76,126 @@ test("24类235尾的实际生成点全部在合法水层、领地与海床上方
           species.kind,
         );
         count++;
+        population.push({ species, point });
       }
     }
     assert.equal(ECOSYSTEM_SPECIES.length, 24);
-    assert.equal(count, 235);
-    assert.equal(centers.size, 4, "珊瑚鱼四群使用独立浅滩栖息点");
+    assert.equal(count, 285);
+    assert.equal(centers.size, 5, "珊瑚鱼五群使用独立浅滩栖息点");
+    const nursery = population.filter(({ point }) => isNursery(point));
+    assert.ok(nursery.length >= 160);
+    assert.ok(nursery.every(({ species }) => !species.predator));
+    assert.ok(
+      nursery.filter(({ species }) => species.kind === "sunfish").length >= 2,
+      "越过3米后，安全区边缘就有慢游中型食物",
+    );
+    assert.ok(
+      population.filter(
+        ({ species, point }) =>
+          -point.y * WORLD.displayDepthScale >= 360 &&
+          -point.y * WORLD.displayDepthScale < 660 &&
+          species.length >= 3 &&
+          species.length < 6,
+      ).length >= 12,
+      "360–660米的过渡水层不能只有危险捕食者或零散微型鱼",
+    );
+    const deep = population.filter(
+      ({ species, point }) => species.length >= 11 && -point.y >= 250,
+    );
+    assert.ok(deep.length >= 18, "千米以下仍有分散的大型食物与挑战者");
+    assert.ok(
+      deep.some(({ point }) => -point.y * WORLD.displayDepthScale > 2400),
+      "最深的大型食物不能全部集中在远古水层上缘",
+    );
+    assert.equal(
+      population.filter(
+        ({ species, point }) => species.predator && point.z > -370,
+      ).length,
+      2,
+      "增加外海密度不会增加外礁挑战者",
+    );
   } finally {
     ocean.dispose();
+  }
+});
+
+test("中型鱼群各有独立连续栖息点，原始水层不会随玩家跨层迁移", () => {
+  for (const kind of ["sunfish", "tuna", "ray"]) {
+    const species = ECOSYSTEM_SPECIES.find((entry) => entry.kind === kind);
+    const count = Math.ceil(species.population / species.schoolSize);
+    const centers = new Set();
+    let previous;
+    for (let index = 0; index < count; index++) {
+      const anchor = initialSchoolAnchor(species, index);
+      const habitat = schoolHabitat(species, index);
+      assert.ok(Object.isFrozen(habitat));
+      assert.notEqual(habitat, species);
+      assert.ok(habitat.depthMin >= species.depthMin);
+      assert.ok(habitat.depthMax <= species.depthMax);
+      assert.ok(sharesHabitat(habitat, anchor, 0));
+      assert.ok(habitat.depthMax - habitat.depthMin <= 36);
+      centers.add(anchor.toArray().join(","));
+      if (previous) {
+        assert.ok(
+          anchor.y < previous.y,
+          `${kind}: following groups are deeper`,
+        );
+        assert.ok(
+          anchor.distanceTo(previous) < 125,
+          `${kind}: no food-route gap`,
+        );
+      }
+      previous = anchor;
+      const rising = steerWithinHabitat(
+        { x: anchor.x, y: -habitat.depthMin, z: anchor.z },
+        { x: 0, y: 1, z: -1 },
+        habitat,
+        () => -700,
+      );
+      const sinking = steerWithinHabitat(
+        { x: anchor.x, y: -habitat.depthMax, z: anchor.z },
+        { x: 0, y: -1, z: -1 },
+        habitat,
+        () => -700,
+      );
+      assert.ok(rising.y <= 0, "不能继续游出原水层上缘");
+      assert.ok(sinking.y >= 0, "不能继续游出原水层下缘");
+    }
+    assert.equal(centers.size, count);
+    const deepHabitat = schoolHabitat(species, count - 1);
+    const shallowPlayer = new THREE.Vector3(0, -18, 75);
+    assert.equal(sharesHabitat(deepHabitat, shallowPlayer, 0), false);
+    assert.equal(
+      habitatPosition(deepHabitat, {
+        heightAt: seabedHeight,
+        near: true,
+        playerPosition: shallowPlayer,
+      }),
+      null,
+    );
+    assert.equal(
+      habitatPosition(deepHabitat, { heightAt: () => -40 }),
+      null,
+      "过浅海床不能把深层鱼群向上挤出原水层",
+    );
+    const playerPosition = initialSchoolAnchor(species, count - 1);
+    const point = habitatPosition(deepHabitat, {
+      heightAt: seabedHeight,
+      near: true,
+      playerPosition,
+      random: randomSource(162),
+    });
+    assert.ok(point, `${kind}: legal migration within the same layer`);
+    assert.ok(sharesHabitat(deepHabitat, point, 0));
+    assert.ok(
+      point.distanceTo(playerPosition) >=
+        speciesVisibilityDistance(species) + 15,
+    );
+  }
+  for (const species of ECOSYSTEM_SPECIES.filter(
+    (entry) => !["sunfish", "tuna", "ray"].includes(entry.kind),
+  )) {
+    assert.equal(schoolHabitat(species, 0), species);
   }
 });
 
@@ -108,10 +226,10 @@ test("十三种浅海鱼沿常规下潜路线有近距栖息点，而非藏在�
   );
 });
 
-test("新增三种慢游猎物都能出生即捕食，八处常驻鱼群沿安全浅滩分布", () => {
+test("新增三种慢游猎物都能出生即捕食，九处常驻鱼群沿安全浅滩分布", () => {
   const expected = [
     ["boxfish", 0.45, 2, 8, 2, 5, 22],
-    ["parrotfish", 1.3, 2.4, 8, 4, 7, 28],
+    ["parrotfish", 1.3, 2.4, 12, 4, 7, 28],
     ["wrasse", 1.7, 2.6, 4, 2, 10, 32],
   ];
   const points = new Set();
@@ -156,7 +274,7 @@ test("新增三种慢游猎物都能出生即捕食，八处常驻鱼群沿安�
         points.add(center.toArray().join(","));
       }
     }
-    assert.equal(points.size, 8);
+    assert.equal(points.size, 9);
     assert.equal(
       ECOSYSTEM_SPECIES.filter((species) => species.category === "shoal")
         .length,
@@ -231,7 +349,7 @@ test("远距补位遵守当前水层且在可见半径外，不把深海动物�
   }
 });
 
-test("安全浅滩内有六群可往返捕食的珊瑚鱼与沙丁鱼，出生正前方同深度即可遇到", () => {
+test("安全浅滩内有七群可往返捕食的珊瑚鱼与沙丁鱼，出生正前方同深度即可遇到", () => {
   const spawn = new THREE.Vector3(0, -18, 75);
   let groups = 0;
   let count = 0;
@@ -264,8 +382,8 @@ test("安全浅滩内有六群可往返捕食的珊瑚鱼与沙丁鱼，出生�
   const nearest = initialSchoolAnchor(fish, 0);
   assert.equal(nearest.y, spawn.y);
   assert.ok(nearest.z < spawn.z && nearest.distanceTo(spawn) <= 20);
-  assert.equal(groups, 6);
-  assert.equal(count, 80);
+  assert.equal(groups, 7);
+  assert.equal(count, 92);
   assert.ok(behindSpawn, "回头仍有食物，不强迫新手一直向外海走");
 });
 

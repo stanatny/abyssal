@@ -21,6 +21,27 @@ Whenever a gameplay rule changes or an element is added, renamed, or removed, ch
 - Adjust affected unit tests and browser scripts, including their expected copy and values. Check both languages and narrow layouts when presentation changes; check pause, expiry, restart, and resource cleanup when state or effects change. Record actual checks and remaining limits under the existing verification policy.
 - Search source, locales, current documentation, and verification scripts for obsolete names, numbers, and behavior claims. When delivering a preview, rebuild affected artifacts and verify that the served build contains the change; identify the candidate and published versions accurately.
 
+## Survival calculations and future maps
+
+Body size is the primary hunger cost: larger characters consume food faster. Keep this behavior shared by all maps in `src/simulation.js` through `hungerDrainRate()` and `HUNGER_RULES`, rather than adding independent per-map formulas. Current calculation, in hunger points per second:
+
+```text
+base = 0.22 + 0.02 * clamp(length - 3, 0, 3) + 0.03 * max(length - 6, 0)
+depthFactor = 1 + 0.30 * clamp((worldDepth - 45) / (500 - 45), 0, 1)
+hungerDrain = base * depthFactor
+```
+
+`length` is actual character length. World depth is positive below the surface; displayed depth is `worldDepth * WORLD.displayDepthScale` (currently 4). The mild depth surcharge starts below 180 displayed meters and reaches its +30% cap at 2000 meters. Returning shallower lowers it. Do not accidentally pass displayed depth into the simulation or stack another regional penalty on top. If these values intentionally change, update this rule and the linked [balance notes](docs/survival_balance.md) with the shared implementation.
+
+For every new map or ecology change:
+
+- Provide a safe, food-rich juvenile area and a continuous progression from small prey to medium prey to large deep-water prey. Verify actual legal spawn positions, school density, discoverability, respawn, and migration; a species listed in the guide is not proof of food availability.
+- Evaluate consumption and obtainable nutrition together at representative body lengths (3, 6, 10, 16, 25, and 30 m), including travel and battle reserves. Use the real nutrition, healing, and growth rules; returns from undersized prey already diminish. Reward supplies and safe retreat remain intentional, so do not claim that staying shallow necessarily causes death.
+- Preserve assigned feeding layers during movement and respawn. Deeper schools must not all migrate into the nursery. Avoid filling a food gap by spawning dangerous predators on top of juvenile players.
+- Successful damaging lord bites restore `BOSS_BITE_HUNGER` (currently 8) hunger, capped at 100. Only validated hits count; cooldown, missed/blocked contact, and staying in contact cannot farm food. Per-hit food grants no health or growth, and defeat loot settles separately once. Keep this rule shared across lord species and maps.
+- Keep the 30-minute active-play limit and real 25 m lord threshold. Check both playable characters, juvenile search grace, late-game feeding intervals, and a lord fight with damage. Distinguish quantified event models from natural full-round playtests.
+- Synchronize bilingual player explanations, Ocean Guide, relevant HUD/menu copy, README, and tests under the checklist above. State simulation assumptions and real-device/performance limits honestly.
+
 ## Implementation and delivery
 
 - Write project documentation, README files, development rules, and project Skill instructions in English. Player-facing game content must support both `en` and `zh-CN`; put new copy in the localization dictionaries, and check English text length and narrow-screen layouts. Keep code comments in Chinese, and logs and error messages in English. Use lowercase names with underscores for new files. Follow the project's Prettier formatting for JavaScript and documentation.

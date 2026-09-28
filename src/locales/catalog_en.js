@@ -1,4 +1,11 @@
 export const CATALOG_EN = Object.freeze({
+  "每次有效咬击恢复{0}点饱食（最多100），不额外回血或成长；击败奖励另计。":
+    "Each successful bite restores {0} hunger (capped at 100), without extra healing or growth. Defeat rewards are separate.",
+  成长与深潜: "Growth and deep diving",
+  "幼年先在安全浅滩补给；体型越大，小鱼的营养与成长收益越低，逐步转向外礁中型猎物和深海巨兽。":
+    "Feed in the safe nursery while young. As you grow, small prey yield less food and growth. Move on to medium prey around the outer reef, then larger creatures below.",
+  "显示深度{0}米内无额外饱食消耗，之后平滑增加，到{1}米封顶为额外{2}%。深潜前吃饱；回浅海会降低消耗，空体力不会扣生命，饱食耗尽才会持续失血。":
+    "There is no extra hunger drain above {0}m of displayed depth. It rises smoothly below that, reaching a maximum of +{2}% at {1}m. Feed before diving; returning to shallower water lowers the drain. Empty stamina does not damage health, but empty hunger does.",
   "带触角和红色警示灯的球形水雷静止悬浮在深海。碰到后爆炸并消失，命中可造成28点生命损失；它不是食物。":
     "A spherical mine with contact horns and red warning lights floats motionless in deep water. Contact makes it explode and disappear, dealing 28 damage on a hit. It is not food.",
   "留意球壳触角和红色警示环，留出距离绕行。水雷不会主动追踪角色。":
@@ -435,6 +442,6 @@ export const CATALOG_EN = Object.freeze({
   "吞噬 狂食 捕食 吸食 范围": "swallow frenzy feeding suction reach",
   "持续{0}秒：扩大近身吞噬范围，将附近无遮挡、原本就可捕食的水下生物吸向嘴部。不会临时变大，也不能越级捕食；吃鱼仍按正常规则回血和成长。":
     "For {0} seconds, feeding reach expands and nearby edible underwater creatures are drawn toward your mouth through clear water. It does not enlarge your body or let you eat larger creatures. Normal meals still restore health and add growth.",
-  "沿着鱼群边缘游过，吸食可以减少反复对准。浅滩保留三种奖励各一枚，其余奖励每局随机分布；拾取后45秒在本局原位刷新，再次拾取狂食只刷新{0}秒效果。大于或等于自己体长的生物、水雷、潜艇和领主不会被吸入；礁石与船体会阻挡吸食。领主仍需真实体长25米，并通过多次侧翼攻击击败。":
-    "Swim along a school to feed with less precise aiming. The shallows retain one of each reward; the rest are placed randomly each round. Pickups respawn in their current-round positions after 45 seconds. Another Frenzy pickup refreshes its {0}-second effect. Creatures at least as long as you, mines, submarines, and lords cannot be pulled in; reefs and hulls block suction. Lords still require 25 real meters and repeated flank attacks.",
+  "沿着鱼群边缘游过，吸食可以减少反复对准。浅滩保留三种奖励各一枚，其余{0}枚奖励每局随机分布；拾取后45秒在本局原位刷新，再次拾取狂食只刷新{1}秒效果。大于或等于自己体长的生物、水雷、潜艇和领主不会被吸入；礁石与船体会阻挡吸食。领主仍需真实体长25米，并通过多次侧翼攻击击败。":
+    "Swim along a school to feed with less precise aiming. The shallows retain one of each reward; the remaining {0} rewards are placed randomly each round. Pickups respawn in their current-round positions after 45 seconds. Another Frenzy pickup refreshes its {1}-second effect. Creatures at least as long as you, mines, submarines, and lords cannot be pulled in; reefs and hulls block suction. Lords still require 25 real meters and repeated flank attacks.",
 });

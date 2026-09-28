@@ -1,3 +1,4 @@
+import { selectCharacter } from "./menu_picker_helpers.mjs";
 import { chromium } from "@playwright/test";
 import assert from "node:assert/strict";
 import { writeFile } from "node:fs/promises";
@@ -26,7 +27,7 @@ try {
     });
     await page.goto(process.env.ABYSSAL_DEV_URL || "http://127.0.0.1:5178/");
     await page.waitForFunction(() => !!window.__ABYSSAL__);
-    await page.selectOption("#character-select", kind);
+    await selectCharacter(page, kind);
     await page.click("#quality");
     await page.click("#start");
     await page.evaluate(() => {

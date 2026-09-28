@@ -30,6 +30,7 @@ import {
 import { createFrenzyEffect } from "./frenzy_effect.js";
 import { WORLD } from "./world_config.js";
 import { createReward, REWARDS } from "./rewards.js";
+import { RANDOM_REWARD_COUNT } from "./reward_config.js";
 import { createSurface } from "./surface.js";
 import { createEncounters } from "./encounters.js";
 import { createCombatEffects } from "./combat_effects.js";
@@ -47,6 +48,7 @@ import {
   habitatPosition,
   initialSchoolAnchor,
   initialSpeciesAnchor,
+  schoolHabitat,
   schoolSlot,
   sharesHabitat,
   speciesVisibilityDistance,
@@ -626,8 +628,9 @@ function seedPopulation() {
     for (let i = 0; i < members.length; i += groupSize) {
       const species = members[i].species;
       const groupMembers = members.slice(i, i + groupSize);
+      const habitat = schoolHabitat(species, Math.floor(i / groupSize));
       const center = spawnPosition(
-        species,
+        habitat,
         false,
         initialSchoolAnchor(species, Math.floor(i / groupSize)),
       );
@@ -636,6 +639,7 @@ function seedPopulation() {
         seed: random(0, 9),
         kind,
         species,
+        habitat,
         members: groupMembers,
         nextMigration: random(16, 30),
       };
@@ -644,14 +648,14 @@ function seedPopulation() {
         entity.school = school;
         entity.slot = schoolSlot(species, index);
         const preferred = center.clone().add(entity.slot);
-        entity.mesh.position.copy(spawnPosition(species, false, preferred));
+        entity.mesh.position.copy(spawnPosition(habitat, false, preferred));
         entity.slot.copy(entity.mesh.position).sub(center);
       });
     }
   }
 }
 function seedPickups() {
-  for (let i = 0; i < 34; i++) {
+  for (let i = 0; i < 3 + RANDOM_REWARD_COUNT; i++) {
     let item = pickups[i];
     if (!item) {
       const kind = ["stamina", "flow", "frenzy"][i % 3];
@@ -1168,11 +1172,15 @@ function updateSchools() {
     school.nextMigration = player.elapsed + random(22, 38);
     if (
       school.center.distanceTo(position) < 220 ||
-      !sharesHabitat(school.species, position) ||
+      !sharesHabitat(
+        school.habitat,
+        position,
+        school.habitat === school.species ? 12 : 0,
+      ) ||
       school.members.some((entity) => entity.hiddenFor > 0)
     )
       continue;
-    const next = habitatPosition(school.species, {
+    const next = habitatPosition(school.habitat, {
       heightAt: seabedHeight,
       colliders: ocean.colliders,
       playerPosition: position,
@@ -1183,7 +1191,7 @@ function updateSchools() {
     });
     if (!next) continue;
     const placements = school.members.map((entity) =>
-      habitatPosition(entity.species, {
+      habitatPosition(school.habitat, {
         heightAt: seabedHeight,
         colliders: ocean.colliders,
         anchor: next.clone().add(entity.slot),
@@ -1396,10 +1404,12 @@ function updateEntities(dt) {
       direction.copy(entity.attackHeading);
       if (Math.random() < dt * 18) burst(mesh.position, 1);
     }
+    const schoolLayer = entity.school?.habitat;
+    const layeredSchool = schoolLayer && schoolLayer !== species;
     const habitat =
       entity.chase > 0 && species.depthMin < 100
         ? { ...species, depthMin: Math.max(5, species.depthMin - 10) }
-        : species;
+        : schoolLayer || species;
     const steered = steerWithinHabitat(
       mesh.position,
       direction,
@@ -1424,7 +1434,8 @@ function updateEntities(dt) {
     const previousHabitatPosition = mesh.position.clone();
     entity.velocity.lerp(direction, Math.min(1, dt * 2));
     mesh.position.addScaledVector(entity.velocity, moveSpeed * dt);
-    const floor = floorAt(
+    if (layeredSchool) pushFromRocks(mesh.position, species.length * 0.12);
+    let floor = floorAt(
       mesh.position.x,
       mesh.position.z,
       species.length * 0.28 + 2,
@@ -1432,8 +1443,16 @@ function updateEntities(dt) {
     mesh.position.x = Clamp(mesh.position.x, WORLD.minX + 8, WORLD.maxX - 8);
     mesh.position.z = Clamp(mesh.position.z, WORLD.minZ + 8, WORLD.maxZ - 8);
     // 深海生物遇到浅坡时退回可容纳的水层，不能被海床一路推到浅滩。
-    if (species.depthMin >= 100 && floor > -species.depthMin) {
+    if (
+      (habitat.depthMin >= 100 || layeredSchool) &&
+      floor > -habitat.depthMin
+    ) {
       mesh.position.copy(previousHabitatPosition);
+      floor = floorAt(
+        mesh.position.x,
+        mesh.position.z,
+        species.length * 0.28 + 2,
+      );
       entity.heading += Math.PI * 0.6;
       entity.velocity.z = -Math.abs(entity.velocity.z);
     } else {
@@ -1445,23 +1464,40 @@ function updateEntities(dt) {
           species.length * 0.25,
         ),
       );
-      if (species.depthMin >= 100)
-        mesh.position.y = Math.min(mesh.position.y, -species.depthMin);
+      if (habitat.depthMin >= 100 || layeredSchool)
+        mesh.position.y = Math.min(mesh.position.y, -habitat.depthMin);
     }
     if (entity.chase <= 0) {
       const desired = Clamp(
         mesh.position.y,
-        -(species.depthMax || 270),
-        -(species.depthMin || 5),
+        -(habitat.depthMax || 270),
+        -(habitat.depthMin || 5),
       );
-      mesh.position.y = THREE.MathUtils.damp(
-        mesh.position.y,
-        Math.max(floor, desired),
-        1,
-        dt,
-      );
+      // 固定水层的中型鱼不能被追逐或地形挤回浅滩，普通鱼仍保留平滑回游。
+      mesh.position.y = layeredSchool
+        ? Math.max(floor, desired)
+        : THREE.MathUtils.damp(
+            mesh.position.y,
+            Math.max(floor, desired),
+            1,
+            dt,
+          );
     }
-    pushFromRocks(mesh.position, species.length * 0.12);
+    if (layeredSchool) {
+      // 水层钳制可能将刚推出岩石的鱼再次压入岩面；回退一次，避免反复投影抖动。
+      const overlapsRock = ocean.obstacles.some(
+        (rock) =>
+          (mesh.position.x - rock.x) ** 2 +
+            (mesh.position.y - rock.y) ** 2 +
+            (mesh.position.z - rock.z) ** 2 <
+          (rock.radius + species.length * 0.12) ** 2 - 1e-8,
+      );
+      if (overlapsRock) {
+        mesh.position.copy(previousHabitatPosition);
+        entity.heading += Math.PI * 0.6;
+        entity.velocity.multiplyScalar(-1);
+      }
+    } else pushFromRocks(mesh.position, species.length * 0.12);
     constrainPredatorTerritory(
       species,
       entity.populationIndex,

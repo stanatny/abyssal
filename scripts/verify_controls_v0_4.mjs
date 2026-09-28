@@ -26,12 +26,25 @@ try {
     page.on("pageerror", (error) => errors.push(error.message));
     await page.goto(url);
     await page.waitForFunction(() => !!window.__ABYSSAL__);
-    assert.equal(await page.locator("#region-select").inputValue(), "hawaii");
     assert.equal(
-      await page.locator("#region-select option:disabled").count(),
+      await page.locator("#region-select").evaluate((button) => button.value),
+      "hawaii",
+    );
+    await page.locator("#region-select").click();
+    const picker = page.locator("#expedition-picker");
+    await picker.waitFor({ state: "visible" });
+    assert.equal(
+      await picker.locator("button[data-choice-value]:disabled").count(),
       3,
     );
-    assert.equal(await page.locator("#character-select").inputValue(), "orca");
+    await picker.locator(".picker-close").click();
+    await picker.waitFor({ state: "hidden" });
+    assert.equal(
+      await page
+        .locator("#character-select")
+        .evaluate((button) => button.value),
+      "orca",
+    );
     const menuBounds = await page.evaluate(() => ({
       document: document.documentElement.scrollWidth,
       menu: document.querySelector("#menu").scrollWidth,

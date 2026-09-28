@@ -1,4 +1,6 @@
 export const UI_EN = Object.freeze({
+  "幼年先在安全浅滩吃鱼群；长大后，小鱼补给会衰减。越深越耗饱食，向下寻找更大的猎物，吃饱再挑战领主。":
+    "Feed on nursery shoals while young. Small prey provide less food as you grow. Deeper water drains hunger faster: seek larger prey below and feed before fighting a lord.",
   "挑战远古巨兽，成长至 25 米": "Challenge ancient giants · Reach 25m",
   "25 米后挑战主宰 · 接触咬击": "Challenge a lord at 25m · Attack on contact",
   "水雷爆炸 · 生命 -28": "Mine exploded · Health -28",
@@ -7,6 +9,7 @@ export const UI_EN = Object.freeze({
     "Contact mine nearby · Avoid the red warning ring",
   转向查看: "Turn",
   "生命 +{0}": "Health +{0}",
+  "饱食 +{0}": "Hunger +{0}",
   "无法启动 3D 画面，请使用支持 WebGL 2 的浏览器并开启硬件加速。":
     "Unable to start 3D graphics. Use a WebGL 2 browser with hardware acceleration enabled.",
   "{0} · 幼年个体": "{0} · Juvenile",
@@ -153,6 +156,18 @@ export const UI_EN = Object.freeze({
   你的下一次远征: "Your next expedition",
   目的地: "Destination",
   化身: "Character",
+  选择海域: "Choose waters",
+  选择角色: "Choose character",
+  点击更换: "Tap to change",
+  浏览并选择海域: "Browse other waters",
+  远征准备: "EXPEDITION SETUP",
+  "选择后预览角色与能力。": "Choose a character to preview its abilities.",
+  "选择你想探索的海域。": "Choose the waters you want to explore.",
+  关闭选择面板: "Close selection panel",
+  尚未开放: "Not yet available",
+  已选择: "Selected",
+  选择: "Choose",
+  切换后预览角色: "Switch to preview",
   远征设置与说明: "Settings & tips",
   "30 分钟上限": "30-minute limit",
   显示常规生物标记: "Show normal creature labels",

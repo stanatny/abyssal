@@ -129,7 +129,12 @@ try {
   );
   await page.evaluate(() => {
     const g = window.__ABYSSAL__;
-    const fish = g.entities.find((e) => e.species.kind === "tuna");
+    const fish = g.entities.find(
+      (e) =>
+        e.species.kind === "tuna" &&
+        e.school.habitat.depthMin <= -g.position.y &&
+        e.school.habitat.depthMax >= -g.position.y,
+    );
     fish.hiddenFor = 0;
     fish.mesh.position.copy(g.position);
     fish.mesh.position.z -= 35;
@@ -378,6 +383,9 @@ try {
     b.state.phaseDuration = 99;
     b.state.biteCooldown = 0;
     g.player.biteCooldown = 0;
+    g.player.hunger = 40;
+    g.player.health = 70;
+    g.player.invulnerable = 999;
     window.__placeTestBossContact();
   });
   await page.waitForFunction(
@@ -390,10 +398,17 @@ try {
     maximum: window.__testBoss.state.maxHealth,
     cooldown: window.__ABYSSAL__.player.biteCooldown,
     defeated: window.__testBoss.state.defeated,
+    hunger: window.__ABYSSAL__.player.hunger,
+    playerHealth: window.__ABYSSAL__.player.health,
+    mass: window.__ABYSSAL__.player.mass,
   }));
   assert.ok(firstBite.health >= firstBite.maximum * 0.76 - 1e-9);
   assert.ok(firstBite.cooldown > 0.5);
   assert.equal(firstBite.defeated, false);
+  assert.ok(firstBite.hunger > 46.5 && firstBite.hunger <= 48);
+  assert.equal(firstBite.playerHealth, 70);
+  assert.equal(firstBite.mass, 125);
+  assert.match(await page.locator("#notification").innerText(), /饱食 \+8/);
   // 冷却期持续重新接触表面，确认不是因游离目标而暂时停止掉血。
   for (let attempt = 0; attempt < 4; attempt += 1) {
     await page.waitForTimeout(80);
@@ -402,6 +417,10 @@ try {
   assert.equal(
     await page.evaluate(() => window.__testBoss.state.health),
     firstBite.health,
+  );
+  assert.ok((await state()).player.hunger < firstBite.hunger);
+  checks.push(
+    "A real lord flank bite restores 8 hunger without healing/growth; continuous contact cannot farm hunger",
   );
   await page.evaluate(() => {
     const g = window.__ABYSSAL__,

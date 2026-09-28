@@ -1,3 +1,4 @@
+import { selectCharacter } from "./menu_picker_helpers.mjs";
 import { chromium } from "@playwright/test";
 import assert from "node:assert/strict";
 import { writeFile } from "node:fs/promises";
@@ -64,7 +65,7 @@ try {
     "35 guide records include two playable characters, six ancient giants and human activity",
   );
 
-  await page.selectOption("#character-select", "squid");
+  await selectCharacter(page, "squid");
   assert.match(await page.locator(".specimen strong").innerText(), /大王乌贼/);
   await page.click("#start");
   await isolate();
@@ -315,7 +316,7 @@ try {
     mobile.on("pageerror", (e) => errors.push(e.message));
     await mobile.goto(process.env.ABYSSAL_DEV_URL || "http://127.0.0.1:5178/");
     await mobile.waitForFunction(() => window.__ABYSSAL__);
-    await mobile.selectOption("#character-select", "squid");
+    await selectCharacter(mobile, "squid");
     await mobile.click("#open-guide");
     await mobile.click('[data-category="ancient"]');
     const size = await mobile

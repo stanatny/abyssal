@@ -1,3 +1,6 @@
+// 浅滩三枚入门奖励之外的随机补给数量，场景与图鉴共用。
+export const RANDOM_REWARD_COUNT = 18;
+
 // 奖励时长和展示文案共用配置，避免图鉴与实际效果不一致。
 export const REWARDS = Object.freeze({
   stamina: {

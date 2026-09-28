@@ -149,12 +149,12 @@ try {
             })),
         };
       });
-      assert.equal(population.total, 235);
+      assert.equal(population.total, 285);
       assert.equal(population.kinds, 24);
       assert.equal(population.length, 3);
       for (const [kind, count] of [
         ["boxfish", 8],
-        ["parrotfish", 8],
+        ["parrotfish", 12],
         ["wrasse", 4],
       ]) {
         assert.equal(

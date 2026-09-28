@@ -6,6 +6,8 @@ A third-person ocean survival game for the browser. Choose an Orca or Giant Squi
 
 Version: **v0.6.12**. GitHub Actions deploys `main` to the play URL above. This update adds a vacation shoreline, spherical Contact Mines, clearer 20-second suction-only Frenzy, and revised survival rewards.
 
+Unpublished tuning reduces random pickups from 31 to 18, adds depth-dependent hunger, and increases ordinary creatures to 285 with additional distributed schools and deep-water prey. The same candidate makes home-screen region and character choices clearer with labeled selection cards, in-game option panels with character abilities, and inset language arrows. The published v0.6.12 release still has 31 random pickups, its earlier survival curve, and the earlier menu styling; the rules below describe the working candidate.
+
 The current rules below include one starter pickup of each kind, Vitality Supply restoring 50 to all three vitals, and Ocean Current immediately refilling stamina before 30 seconds of free sprint. See the [shoreline and mine update](docs/feedback_v0_6_11.md) and [latest reward changes](docs/feedback_v0_6_12.md).
 
 ![ABYSSAL v0.6.10 English interface: Hawaii fantasy region and character selection](docs/images/abyssal_v0_6_10.png)
@@ -25,10 +27,11 @@ Implementation and copy-authoring guidance are in [localization](docs/localizati
 Start as a **3-meter juvenile**, eat smaller creatures, and avoid larger hunters. **Reach 30 meters and defeat at least one Abyss Lord to win.** A round lasts at most 30 minutes of active play; paused time does not count.
 
 - **Safe shallows:** Dense small-fish schools surround spawn. Hunters cannot enter or follow you in from offshore. Grow to about 4 meters before exploring the outer reef, where one hammerhead and one white shark patrol separate areas. The full hunter ecosystem lies farther down.
-- **Food and survival:** Feeding replenishes hunger, repairs health first, then spends the remaining benefit on growth. Tiny fish become less useful as you grow, encouraging deeper exploration.
+- **Food and survival:** Feeding replenishes hunger, repairs health first, then spends the remaining benefit on growth. Small prey yield progressively less nutrition and growth as you get larger. A full hunger bar lasts about 7.6 minutes for a 3-meter juvenile in the shallows; a 25-meter character has about 91 seconds in the deepest water. These are no-food budgets, not predicted lifetimes.
+- **A gradual descent:** Hunger drain rises smoothly below 180 meters of displayed depth, reaching +30% at 2000 meters. Medium schools lead from the nursery edge toward the outer shelf; more octopuses, Dunkleosteus, and Ancient Giants fill the next feeding stages. Larger shallow-water schools stay within their own depth bands. Feed before a deep excursion or lord fight, and return shallower to recover. See the [survival balance notes](docs/survival_balance.md).
 - **Sprint and escape:** Sprint drains stamina; releasing it allows recovery. Empty stamina does not directly damage health, but empty hunger does. Use reefs, rock columns, and hulls to break pursuit. Solid terrain cannot be crossed directly.
 - **Surface and deep water:** Build momentum by sprinting underwater, then cross upward through the surface to breach and catch gulls. Ruins, volcanoes, submarines, and spherical contact mines await below.
-- **Lord battles:** Two lords appear randomly each round. You must reach 25 meters to damage them, attack inward from a flank, leave contact, and approach again. At least five effective attacks are required; they cannot be swallowed whole.
+- **Lord battles:** Two lords appear randomly each round. You must reach 25 meters to damage them, attack inward from a flank, leave contact, and approach again. At least five effective attacks are required; they cannot be swallowed whole. Each damaging bite restores up to 8 hunger (capped at 100), without healing or growth; defeat rewards are separate.
 - **Find the nursery again:** Persistent radar shows location, heading, shallow/deep zones, and the direction of spawn. Pursuit and lord encounters change the music, while ability warnings signal danger.
 
 ## Choose your character
@@ -76,7 +79,7 @@ This region mixes modern animals, Ancient Giants, and fantasy lords; it is not a
 
 ## Ocean rewards
 
-The guide explains rewards, and active effects appear in the HUD after pickup. Repeating a timed reward refreshes its duration rather than stacking it. The shallows retain one pickup of each type; the remaining rewards are placed randomly each round, for 34 total. Collected rewards respawn in their current-round positions after 45 seconds.
+The guide explains rewards, and active effects appear in the HUD after pickup. Repeating a timed reward refreshes its duration rather than stacking it. The shallows retain one pickup of each type; 18 further rewards are placed randomly each round, for 21 total. Collected rewards respawn in their current-round positions after 45 seconds.
 
 | Reward          | Appearance         | Effect                                                                                                                                                                                                              |
 | --------------- | ------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |

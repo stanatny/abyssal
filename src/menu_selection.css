@@ -1,4 +1,4 @@
-/* 出发区采用航海记录的行式排版；能力与设置可展开，首屏保留清晰的出发入口。 */
+/* 选择卡片突出可操作性；使用模态选择面板、可展开说明与清晰的出发入口。 */
 #menu {
   overflow-y: auto;
   overscroll-behavior: contain;
@@ -43,45 +43,146 @@
 .expedition-selects {
   display: grid;
   grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr);
-  gap: 22px;
+  gap: 12px;
 }
-.expedition-selects label {
+.expedition-choice {
   display: grid;
-  gap: 8px;
   min-width: 0;
-  color: #acbeba;
-  font-size: 11px;
+  width: 100%;
+  font: inherit;
+  text-align: left;
+  color: #f0f4e9;
+  padding: 13px 0 11px;
+  border: 1px solid #93c6b496;
+  border-radius: 14px;
+  background: linear-gradient(150deg, #23524bee, #0a2a30f2);
+  box-shadow:
+    inset 0 1px 0 #d8f4dc1c,
+    0 10px 26px #0014153d;
+  cursor: pointer;
+  transition:
+    border-color 160ms,
+    background-color 160ms,
+    box-shadow 160ms,
+    transform 160ms;
 }
-.expedition-selects label > span {
+.expedition-selects .choice-heading {
   display: flex;
-  align-items: baseline;
-  gap: 9px;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px 8px;
+  padding: 0 14px;
+  color: #bcdcc9;
+  font-size: 11px;
+  line-height: 16px;
+  letter-spacing: 0.5px;
 }
-.expedition-selects label small {
-  color: #789993;
-  font-size: 8px;
-  letter-spacing: 1.3px;
+.choice-icon {
+  display: grid;
+  place-items: center;
+  flex: 0 0 26px;
+  width: 26px;
+  height: 26px;
+  border: 1px solid #9fd8c03d;
+  border-radius: 9px;
+  background: #7fe0c317;
+  color: #a9e8d2;
 }
-.expedition-selects select {
+.choice-icon svg {
+  width: 14px;
+  height: 14px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.5;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+.choice-cta {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  margin-left: auto;
+  padding: 4px 10px;
+  border: 1px solid #9fd8c052;
+  border-radius: 999px;
+  background: #7fe0c31f;
+  color: #d3f1e3;
+  font-size: 10px;
+  line-height: 14px;
+  letter-spacing: 1px;
+  white-space: nowrap;
+}
+.choice-cta svg {
+  width: 11px;
+  height: 11px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.8;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+.expedition-choice:hover .choice-cta,
+.expedition-choice:active .choice-cta,
+.expedition-choice[aria-expanded="true"] .choice-cta {
+  border-color: #9fd8c08f;
+  background: #7fe0c338;
+}
+.choice-input {
+  display: block;
+  min-width: 0;
+}
+.choice-value {
+  display: flex;
+  align-items: center;
   width: 100%;
   min-width: 0;
-  min-height: 48px;
+  min-height: 50px;
   font: inherit;
-  font-size: 16px;
-  color: #f0f4e9;
+  font-size: 17px;
+  font-weight: 650;
+  color: #f4faf0;
   border: 0;
-  border-bottom: 1px solid #bdd5ce70;
-  border-radius: 0;
-  background: #0a282538;
-  padding: 10px 4px;
+  background: transparent;
+  padding: 12px 14px 8px;
   cursor: pointer;
 }
-.expedition-selects select option {
-  background: #173431;
-  color: #f2f3e9;
+.choice-hint {
+  padding: 0 14px 11px;
+  color: #b3cfc2;
+  font-size: 10px;
+  line-height: 14px;
 }
-.expedition-selects select option:disabled {
-  color: #8a9f9c;
+.expedition-choice:focus-visible:not([data-pointer-restored]),
+.expedition-choice[aria-expanded="true"] {
+  outline: 2px solid #d3e7b8;
+  outline-offset: 3px;
+  border-radius: 10px;
+}
+.expedition-choice[data-pointer-restored] {
+  outline: none;
+}
+.expedition-choice:hover,
+.expedition-choice:active {
+  filter: none;
+}
+@media (hover: hover) {
+  .expedition-choice:hover {
+    border-color: #9fd8c0a8;
+    background-color: #27584f;
+    box-shadow:
+      inset 0 1px 0 #d8f4dc26,
+      0 14px 32px #0014154d;
+    transform: translateY(-2px);
+  }
+  .expedition-choice:active {
+    transform: translateY(0);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .expedition-choice {
+    transition: none;
+    transform: none;
+  }
 }
 #character-description {
   display: flex;
@@ -242,13 +343,43 @@
     padding: 15px 0;
   }
   .expedition-selects {
-    gap: 16px;
+    gap: 10px;
   }
-  .expedition-selects select {
-    font-size: 15px;
+  .expedition-choice {
+    padding: 11px 0 9px;
   }
-  .expedition-selects label small {
-    display: none;
+  .expedition-selects .choice-heading {
+    padding: 0 12px;
+    gap: 5px 6px;
+    font-size: 10px;
+  }
+  .choice-icon {
+    flex-basis: 22px;
+    width: 22px;
+    height: 22px;
+    border-radius: 8px;
+  }
+  .choice-icon svg {
+    width: 12px;
+    height: 12px;
+  }
+  .choice-cta {
+    padding: 3px 8px;
+    font-size: 9px;
+    gap: 3px;
+  }
+  .choice-cta svg {
+    width: 9px;
+    height: 9px;
+  }
+  .choice-value {
+    font-size: 14px;
+    min-height: 44px;
+    padding: 9px 12px 6px;
+  }
+  .choice-hint {
+    padding: 0 12px 8px;
+    font-size: 9px;
   }
   .character-traits {
     gap: 7px 12px;
@@ -280,6 +411,15 @@
   }
   .launch-heading small {
     font-size: 8px;
+  }
+  .choice-value {
+    font-size: 13px;
+  }
+  .choice-icon {
+    display: none;
+  }
+  .choice-cta {
+    letter-spacing: 0;
   }
   .character-traits {
     gap: 7px;

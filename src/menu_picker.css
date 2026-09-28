@@ -1,0 +1,239 @@
+/* 海域与角色共用选择面板；模态层负责隔离背景操作，小屏内容在面板内滚动。 */
+.expedition-picker {
+  width: min(620px, calc(100vw - 40px));
+  max-width: none;
+  max-height: min(720px, calc(100dvh - 48px));
+  padding: 28px;
+  border: 1px solid #8ebfb267;
+  border-radius: 18px;
+  background: radial-gradient(ellipse at top left, #255149, #0d2a30 70%);
+  color: #f0f4e9;
+  box-shadow:
+    0 28px 100px #000a,
+    inset 0 1px 0 #d8f4dc17;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  scrollbar-width: thin;
+  scrollbar-color: #61877e transparent;
+}
+.expedition-picker::backdrop {
+  background: #02191dbd;
+  backdrop-filter: blur(7px);
+}
+.picker-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 16px;
+  margin-bottom: 22px;
+}
+.picker-eyebrow {
+  margin: 0 0 10px;
+  color: #a4c5b5;
+  font-size: 10px;
+  letter-spacing: 2px;
+}
+#picker-title {
+  margin: 0;
+  font-size: 26px;
+  font-weight: 500;
+  letter-spacing: 0.02em;
+}
+#picker-hint {
+  margin: 10px 0 0;
+  color: #aac0b9;
+  font-size: 13px;
+  line-height: 1.65;
+}
+.picker-close {
+  display: grid;
+  place-items: center;
+  flex: 0 0 44px;
+  width: 44px;
+  height: 44px;
+  border: 1px solid #8ebfb24d;
+  border-radius: 50%;
+  background: #b8d9cb0b;
+  color: #d9e8df;
+}
+.picker-close svg,
+.picker-status svg {
+  width: 20px;
+  height: 20px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.6;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+.picker-options {
+  display: grid;
+  gap: 12px;
+}
+.picker-option {
+  display: grid;
+  grid-template-columns: 34px minmax(0, 1fr) auto;
+  align-items: start;
+  gap: 14px;
+  width: 100%;
+  min-height: 74px;
+  padding: 20px 18px;
+  border: 1px solid #8ab4a85e;
+  border-radius: 14px;
+  background: #041d2266;
+  text-align: left;
+  color: #eaf2e5;
+  transition:
+    border-color 150ms,
+    background-color 150ms,
+    box-shadow 150ms,
+    transform 150ms;
+}
+.picker-option[aria-pressed="true"] {
+  background: linear-gradient(140deg, #9fd8c01f, #16342e9e);
+  border-color: #cfe3a8;
+  box-shadow: inset 0 0 0 1px #d8ecc038;
+}
+.picker-number {
+  padding-top: 3px;
+  color: #84aba0;
+  font-size: 14px;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: 1px;
+}
+.picker-info {
+  display: grid;
+  gap: 8px;
+  min-width: 0;
+}
+.picker-name {
+  font-size: 18px;
+  font-weight: 600;
+  line-height: 1.4;
+}
+.picker-description {
+  color: #aec7bc;
+  font-size: 12px;
+  line-height: 1.75;
+}
+.picker-status {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  margin-top: 2px;
+  padding: 5px 11px;
+  border: 1px solid #a8d7c342;
+  border-radius: 999px;
+  background: #a0d2bd10;
+  color: #d1e8d8;
+  font-size: 11px;
+  white-space: nowrap;
+}
+.picker-status svg {
+  width: 15px;
+  height: 15px;
+}
+.picker-option[aria-pressed="true"] .picker-status {
+  border-color: #cfe3a87e;
+  background: #d8ecc021;
+  color: #e6f2d2;
+}
+.picker-option:disabled .picker-status {
+  padding: 5px 0;
+  border-color: transparent;
+  background: none;
+}
+.picker-traits {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 14px;
+  margin-top: 4px;
+  color: #dbe7d5;
+  font-size: 11px;
+  line-height: 1.6;
+}
+.picker-traits > span {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px;
+}
+.picker-traits small {
+  color: #92b5a7;
+  font-size: inherit;
+}
+.picker-option:disabled {
+  color: #95afa7;
+  border-color: #83aba42b;
+  background: #061e2333;
+  cursor: not-allowed;
+}
+.picker-option:disabled .picker-status {
+  color: #91aaa2;
+}
+.expedition-picker button:hover,
+.expedition-picker button:active {
+  filter: none;
+}
+.expedition-picker button:focus-visible {
+  outline: 2px solid #e0e7c5;
+  outline-offset: 3px;
+  border-radius: 12px;
+}
+@media (hover: hover) {
+  .picker-option:not(:disabled):hover {
+    background: #719e8d2e;
+    border-color: #bad6bacc;
+    box-shadow: 0 10px 24px #00141542;
+    transform: translateY(-2px);
+  }
+  .picker-option:not(:disabled):active {
+    transform: translateY(0);
+  }
+  .picker-close:hover {
+    background: #719e8d26;
+    border-color: #bad6ba9c;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .picker-option {
+    transition: none;
+    transform: none;
+  }
+}
+@media (max-width: 700px) {
+  .expedition-picker {
+    width: calc(100vw - 24px);
+    max-height: calc(100dvh - 32px);
+    padding: 20px 16px;
+    border-radius: 16px;
+  }
+  .picker-header {
+    margin-bottom: 18px;
+    gap: 12px;
+  }
+  #picker-title {
+    font-size: 22px;
+  }
+  #picker-hint {
+    font-size: 12px;
+  }
+  .picker-option {
+    grid-template-columns: minmax(0, 1fr) auto;
+    gap: 8px;
+    padding: 16px 12px;
+  }
+  .picker-number {
+    display: none;
+  }
+  .picker-name {
+    font-size: 16px;
+  }
+  .picker-status {
+    padding: 4px 9px;
+    font-size: 10px;
+  }
+  .picker-status svg {
+    width: 13px;
+    height: 13px;
+  }
+}

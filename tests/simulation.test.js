@@ -12,6 +12,7 @@ import {
   createPlayer,
   getProgress,
   getZone,
+  hungerDrainRate,
   takeDamage,
   tickVitals,
 } from "../src/simulation.js";
@@ -94,12 +95,68 @@ test("大体型饥饿更快，饥饿耗尽后才按实际饥饿时间扣血", ()
   large.length = 26;
   tickVitals(young, 10);
   tickVitals(large, 10);
-  approximately(young.hunger, 97);
-  approximately(large.hunger, 88);
-  young.hunger = 0.3;
+  approximately(young.hunger, 97.8);
+  approximately(large.hunger, 91.2);
+  young.hunger = 0.22;
   tickVitals(young, 3);
   approximately(young.health, 86);
   assert.equal(young.hunger, 0);
+});
+
+test("饥饿随体长增长，180米显示深度内无加成，2000米及以下封顶30%", () => {
+  for (const [length, shallowRate] of [
+    [3, 0.22],
+    [6, 0.28],
+    [10, 0.4],
+    [16, 0.58],
+    [25, 0.85],
+    [30, 1],
+  ]) {
+    approximately(hungerDrainRate(length, 0), shallowRate);
+    approximately(hungerDrainRate(length, 45), shallowRate);
+    approximately(hungerDrainRate(length, 272.5), shallowRate * 1.15);
+    approximately(hungerDrainRate(length, 500), shallowRate * 1.3);
+    approximately(hungerDrainRate(length, 740), shallowRate * 1.3);
+    let previousRate = shallowRate;
+    for (let depth = 0; depth <= 740; depth += 1) {
+      const rate = hungerDrainRate(length, depth);
+      assert.ok(rate >= previousRate);
+      previousRate = rate;
+    }
+    for (const boundary of [45, 500]) {
+      assert.ok(
+        Math.abs(
+          hungerDrainRate(length, boundary + 0.001) -
+            hungerDrainRate(length, boundary - 0.001),
+        ) < 0.00001,
+      );
+    }
+  }
+});
+
+test("非法海深按浅滩处理，非法体长仍保留有限的幼年消耗", () => {
+  for (const depth of [-10, NaN, Infinity, -Infinity]) {
+    approximately(hungerDrainRate(25, depth), 0.85);
+  }
+  for (const length of [-10, 0, NaN, Infinity, -Infinity]) {
+    approximately(hungerDrainRate(length, 18), 0.22);
+  }
+});
+
+test("两个幼年角色浅滩五分钟未找到食物仍不失血，返浅后立即减轻消耗", () => {
+  for (const characterId of ["orca", "squid"]) {
+    const player = createPlayer(characterId);
+    tickVitals(player, 300, { depth: 18 });
+    approximately(player.hunger, 34);
+    assert.equal(player.health, 100);
+    assert.equal(player.dead, false);
+    tickVitals(player, 10, { depth: 550 });
+    approximately(player.hunger, 31.14);
+    tickVitals(player, 10, { depth: 18 });
+    approximately(player.hunger, 28.94);
+    assert.equal(player.stamina, 100);
+    assert.equal(player.health, 100);
+  }
 });
 
 test("攻击无敌避免连续接触伤害，期满后可再次受伤", () => {
@@ -360,7 +417,7 @@ test("跨越30分钟边界只结算剩余时间，并独立结束远征而非胜
   assert.equal(player.won, false);
   assert.equal(player.dead, false);
   approximately(player.stamina, 93);
-  approximately(player.hunger, 99.85);
+  approximately(player.hunger, 99.89);
   approximately(player.buffs.frenzy, 9.5);
 
   const ended = structuredClone(player);
@@ -394,7 +451,7 @@ test("远征最后半帧按实际剩余份额扣资源并保留独立结束状�
   assert.equal(player.elapsed, ROUND_DURATION);
   assert.equal(player.timedOut, true);
   approximately(player.stamina, 100 - 0.008 * PLAYER_MOVEMENT.staminaDrain);
-  approximately(player.hunger, 100 - 0.008 * 0.3);
+  approximately(player.hunger, 100 - 0.008 * 0.22);
   approximately(player.buffs.frenzy, 10 - 0.008);
 });
 
@@ -438,21 +495,52 @@ test("胜利或死亡后不再累计时间，新远征清除到时状态", () =>
   assert.equal(fresh.timedOut, false);
 });
 
-test("25米满饱留出一次75秒领主战窗口，小鱼仍无法长期满足大体型需求", () => {
+test("25米最深水层留出75秒领主战窗口，小鱼仍无法长期满足大体型需求", () => {
   const player = createPlayer();
   player.length = 25;
   player.mass = (25 / 6) ** 3;
-  tickVitals(player, 75);
-  approximately(player.hunger, 13.375);
+  tickVitals(player, 75, { depth: 550 });
+  approximately(player.hunger, 17.125);
   assert.equal(player.health, 100);
 
   player.hunger = 20;
   const start = player.hunger;
   const reefFish = SPECIES.find((species) => species.kind === "fish");
   for (let index = 0; index < 12; index++) consumePrey(player, reefFish);
-  tickVitals(player, 12);
+  tickVitals(player, 12, { depth: 550 });
   assert.ok(player.hunger < start);
   assert.ok(player.length < 25.1);
+});
+
+test("25米慢档领主战93.75秒加40点战损仍可生还，饥饿伤害保持每秒7点", () => {
+  const player = createAtLength(25);
+  tickVitals(player, 37.5, { depth: 550 });
+  takeDamage(player, 40);
+  tickVitals(player, 56.25, { depth: 550 });
+  approximately(player.health, 60 - (93.75 - 100 / 1.105) * 7);
+  assert.equal(player.hunger, 0);
+  assert.equal(player.dead, false);
+});
+
+test("25米吃一群小鱼仅短暂补给，较大的深海猎物能覆盖一次50秒搜寻", () => {
+  const player = createAtLength(25);
+  player.hunger = 20;
+  const reefFish = SPECIES.find((species) => species.kind === "fish");
+  for (let index = 0; index < 12; index++) consumePrey(player, reefFish);
+  assert.ok(player.hunger < 20.4);
+  tickVitals(player, 10, { depth: 550 });
+  assert.ok(player.hunger < 10);
+
+  const largeMeal = createAtLength(25);
+  largeMeal.hunger = 0;
+  consumePrey(
+    largeMeal,
+    SPECIES.find((species) => species.kind === "megalodon"),
+  );
+  approximately(largeMeal.hunger, 70);
+  tickVitals(largeMeal, 50, { depth: 550 });
+  assert.ok(largeMeal.hunger > 10);
+  assert.equal(largeMeal.health, 100);
 });
 
 test("幼年首口长约7厘米，首群12尾达到3.6至3.9米且还不能捕食锤头鲨", () => {
@@ -553,7 +641,7 @@ test("3米幼年参考路线约17分52秒，慢25%的路线跨20分钟后继续�
   }
   approximately(quick.player.elapsed, 857.6);
   approximately(normal.player.elapsed, 1072);
-  approximately(completed.player.elapsed, 1440);
+  approximately(completed.player.elapsed, 1395);
   assert.ok(quick.player.elapsed < normal.player.elapsed);
   assert.ok(normal.player.elapsed < completed.player.elapsed);
   const { player: atTwentyMinutes } = referenceExpedition(1.25, 20 * 60);
@@ -578,7 +666,7 @@ test("显式6米基线仍可完成快慢参考路线，慢速路线包括25米�
   for (const [pace, expected] of [
     [0.8, 829.6],
     [1, 1037],
-    [1.25, 1396.25],
+    [1.25, 1351.25],
   ]) {
     const { player } = referenceExpedition(pace, Infinity, 6);
     assert.equal(player.won, true);
@@ -590,9 +678,12 @@ test("显式6米基线仍可完成快慢参考路线，慢速路线包括25米�
 // 事件节奏模型，不代表真实导航试玩：有效捕食间隔已包含寻找与追逐；
 // 另计两次转场及战损，25米后假定75秒内抓住五次虚弱窗口击败克拉肯。
 // 沿用金枪鱼7秒、蝠鲼12秒、白鲨10秒、鮟鱇11秒、章鱼13秒、邓氏鱼16秒；
-// 新增相近猎手取10/16秒，只有两只的龙王鲸与巨齿鲨假设20秒。
+// 相近猎手取10/16秒，龙王鲸与巨齿鲨按稀疏大猎物假设20秒。
 // 这些间隔没有模拟地图刷新与稀有领地，不能当作自然整局试玩时长。
 // 快慢档统一缩放捕食、转场及领主战时间，战损与回血仍走真实生存规则。
+// 捕食采用各物种水层内35%的代表深度，领主交战在世界深度550米；
+// 深度消耗因此走真实规则，但不会把该假设当作实际航行或遇敌证据。
+// 领主阶段保守地不计逐口饱食；真实接触补给由领主规则与浏览器另行验证。
 const REFERENCE_INTERVALS = Object.freeze({
   fish: 1,
   anchovy: 1,
@@ -646,8 +737,11 @@ function referenceExpedition(paceScale, stopAt = Infinity, startLength) {
   const route = [];
   const report = { player, route };
   const transitions = new Set();
+  let depth = 18;
   const advance = (seconds) => {
-    tickVitals(player, Math.min(seconds * paceScale, stopAt - player.elapsed));
+    tickVitals(player, Math.min(seconds * paceScale, stopAt - player.elapsed), {
+      depth,
+    });
     return player.elapsed < stopAt;
   };
   for (let index = 0; index < 12; index++) {
@@ -663,6 +757,7 @@ function referenceExpedition(paceScale, stopAt = Infinity, startLength) {
     meals++
   ) {
     if (player.length >= 25 && !player.bossesDefeated) {
+      depth = 550;
       if (!advance(30)) return report;
       takeDamage(player, 40);
       if (!advance(45)) return report;
@@ -683,6 +778,7 @@ function referenceExpedition(paceScale, stopAt = Infinity, startLength) {
       }
     }
     const prey = selectGrowthPrey(player, REFERENCE_INTERVALS);
+    depth = prey.depthMin + (prey.depthMax - prey.depthMin) * 0.35;
     if (!advance(REFERENCE_INTERVALS[prey.kind])) return report;
     if (consumePrey(player, prey)) {
       if (route.at(-1)?.kind !== prey.kind)

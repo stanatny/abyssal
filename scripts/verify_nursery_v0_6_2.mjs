@@ -258,8 +258,8 @@ async function population(page) {
   });
 }
 function assertPopulation(state) {
-  assert.equal(state.entities.length, 235);
-  assert.equal(new Set(state.entities.map((e) => e.uuid)).size, 235);
+  assert.equal(state.entities.length, 285);
+  assert.equal(new Set(state.entities.map((e) => e.uuid)).size, 285);
   assert.equal(new Set(state.entities.map((e) => e.kind)).size, 24);
   assert.equal(state.entities.filter((e) => e.length < 1).length, 144);
   const predators = state.entities.filter((e) => e.predator);
@@ -288,13 +288,13 @@ function assertPopulation(state) {
       .every((e) => e.position[2] <= -370),
     "Other predators must stay beyond the outer reef",
   );
-  assert.equal(state.rewards.length, 35);
+  assert.equal(state.rewards.length, 21);
   assert.equal(
     new Set(
       state.rewards.map((p) => p.position.map((v) => v.toFixed(4)).join(",")),
     ).size,
-    35,
-    "Rewards must occupy 35 distinct positions",
+    21,
+    "Rewards must occupy 21 distinct positions",
   );
 }
 function assertSafetyIndicator(frame) {
@@ -369,7 +369,7 @@ async function verifyRespawnAndRestart(page, birth) {
   }
   measurements.push({ case: "respawn_restart", target, respawn, restarts });
   checks.push(
-    "A naturally eaten fish respawns on its original mesh; three restarts retain 235 creatures and 35 unique rewards",
+    "A naturally eaten fish respawns on its original mesh; three restarts retain 285 creatures and 21 unique rewards",
   );
 }
 

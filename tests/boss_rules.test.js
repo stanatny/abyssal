@@ -5,6 +5,7 @@ import { createCreature } from "../src/creatures.js";
 import { findBossContact } from "../src/encounters.js";
 import {
   BOSS_SPECIES,
+  BOSS_BITE_HUNGER,
   createBossState,
   hitBoss,
   tickBoss,
@@ -23,8 +24,8 @@ import { WORLD } from "../src/world_config.js";
 const FLANK = { inRange: true, isFlank: true };
 const CLOSE = { inTerritory: true, distance: 40, lineOfSight: true };
 
-function grownPlayer(length = 30) {
-  const player = createPlayer();
+function grownPlayer(length = 30, characterId = "orca") {
+  const player = createPlayer(characterId);
   player.length = length;
   player.mass = (length / 6) ** 3;
   return player;
@@ -125,6 +126,100 @@ test("咬击检查距离，冷却为玩家全局1.2秒，不能交替主宰绕�
   assert.equal(hitBoss(player, first, FLANK).reason, "must_disengage");
   updateBossContact(first, false, 0.35);
   assert.equal(hitBoss(player, first, FLANK).hit, true);
+});
+
+test("两种角色每次有效咬伤领主最多补8点饱食，不提前治疗或成长", () => {
+  assert.equal(BOSS_BITE_HUNGER, 8);
+  for (const characterId of ["orca", "squid"]) {
+    for (const phase of ["hunt", "recover"]) {
+      for (const hunger of [0, 37, 96, 100]) {
+        const player = grownPlayer(25, characterId);
+        player.health = 35;
+        player.stamina = 18;
+        player.hunger = hunger;
+        const before = structuredClone(player);
+        const boss = createBossState(BOSS_SPECIES[0]);
+        boss.phase = phase;
+        const result = hitBoss(player, boss, FLANK);
+        assert.equal(result.hit, true);
+        assert.ok(result.damage > 0);
+        assert.equal(result.defeated, false);
+        assert.equal(result.hungerRestored, Math.min(8, 100 - hunger));
+        assert.equal(player.hunger, Math.min(100, hunger + 8));
+        for (const field of [
+          "health",
+          "stamina",
+          "mass",
+          "length",
+          "eaten",
+          "bossesDefeated",
+          "lastMeal",
+        ]) {
+          assert.deepEqual(player[field], before[field], field);
+        }
+      }
+    }
+  }
+});
+
+test("体型、角度、距离、冷却、未脱离或终态拒绝的攻击完全不补饱食", () => {
+  const cases = [
+    ["too_small", (player) => (player.length = 24), FLANK],
+    ["out_of_range", () => {}, { ...FLANK, inRange: false }],
+    ["armored_angle", () => {}, { ...FLANK, isFlank: false }],
+    ["cooldown", (player) => (player.biteCooldown = 1), FLANK],
+    ["cooldown", (_, boss) => (boss.biteCooldown = 1), FLANK],
+    ["must_disengage", (_, boss) => (boss.contactArmed = false), FLANK],
+    ["boss_defeated", (_, boss) => (boss.defeated = true), FLANK],
+    ...["dead", "won", "timedOut"].map((status) => [
+      "player_unavailable",
+      (player) => (player[status] = true),
+      FLANK,
+    ]),
+  ];
+  for (const characterId of ["orca", "squid"]) {
+    for (const [reason, prepare, options] of cases) {
+      const player = grownPlayer(25, characterId);
+      player.hunger = 30;
+      const boss = createBossState(BOSS_SPECIES[0]);
+      prepare(player, boss);
+      const beforePlayer = structuredClone(player);
+      const beforeBoss = structuredClone(boss);
+      const result = hitBoss(player, boss, options);
+      assert.equal(result.hit, false);
+      assert.equal(result.reason, reason);
+      assert.equal(result.hungerRestored, 0);
+      assert.deepEqual(player, beforePlayer);
+      assert.deepEqual(boss, beforeBoss);
+    }
+  }
+});
+
+test("领主最后一口先补饱食，再单次结算击败战利品，返回值不混入战利品", () => {
+  for (const characterId of ["orca", "squid"]) {
+    const player = grownPlayer(25, characterId);
+    player.health = 20;
+    player.hunger = 10;
+    const mass = player.mass;
+    const boss = createBossState(BOSS_SPECIES[0]);
+    boss.health = 1;
+    const result = hitBoss(player, boss, FLANK);
+    assert.equal(result.hit, true);
+    assert.equal(result.damage, 1);
+    assert.equal(result.defeated, true);
+    assert.equal(result.hungerRestored, 8);
+    assert.equal(player.hunger, 100);
+    assert.equal(player.health, 100);
+    assert.equal(player.bossesDefeated, 1);
+    assert.equal(player.lastMeal.nutrition, 82);
+    assert.equal(player.lastMeal.healed, 80);
+    assert.ok(Math.abs(player.mass - mass - boss.species.growth * 0.3) < 1e-8);
+    const settled = structuredClone(player);
+    const repeated = hitBoss(player, boss, FLANK);
+    assert.equal(repeated.hungerRestored, 0);
+    assert.equal(repeated.reason, "boss_defeated");
+    assert.deepEqual(player, settled);
+  }
 });
 
 test("嘴部接触按实际旋转缩放的表面判定，鳍片两面均可触及", () => {
@@ -295,24 +390,36 @@ test("左右侧翼朝内攻击有效，头尾背部和反向贴靠都无效", ()
 });
 
 test("持续贴住不连咬，脱离0.35秒且冷却完成才会重新武装", () => {
-  const player = grownPlayer();
-  const boss = createBossState(BOSS_SPECIES[0]);
-  assert.equal(hitBoss(player, boss, FLANK).hit, true);
-  const health = boss.health;
-  for (let i = 0; i < 10; i += 1) {
-    tickVitals(player, 0.5);
-    tickBoss(boss, 0.5, CLOSE);
-    updateBossContact(boss, true, 0.5);
-    assert.equal(hitBoss(player, boss, FLANK).hit, false);
+  for (const characterId of ["orca", "squid"]) {
+    const player = grownPlayer(25, characterId);
+    player.hunger = 30;
+    const boss = createBossState(BOSS_SPECIES[0]);
+    assert.equal(hitBoss(player, boss, FLANK).hit, true);
+    assert.equal(player.hunger, 38);
+    const health = boss.health;
+    for (let i = 0; i < 10; i += 1) {
+      tickVitals(player, 0.5);
+      tickBoss(boss, 0.5, CLOSE);
+      updateBossContact(boss, true, 0.5);
+      const hunger = player.hunger;
+      const result = hitBoss(player, boss, FLANK);
+      assert.equal(result.hit, false);
+      assert.equal(result.hungerRestored, 0);
+      assert.equal(player.hunger, hunger);
+    }
+    assert.equal(boss.health, health);
+    updateBossContact(boss, false, 0.2);
+    assert.equal(hitBoss(player, boss, FLANK).reason, "must_disengage");
+    updateBossContact(boss, true, 0.01);
+    updateBossContact(boss, false, 0.2);
+    assert.equal(boss.contactArmed, false);
+    updateBossContact(boss, false, 0.15);
+    const hunger = player.hunger;
+    const result = hitBoss(player, boss, FLANK);
+    assert.equal(result.hit, true);
+    assert.equal(result.hungerRestored, 8);
+    assert.equal(player.hunger, hunger + 8);
   }
-  assert.equal(boss.health, health);
-  updateBossContact(boss, false, 0.2);
-  assert.equal(hitBoss(player, boss, FLANK).reason, "must_disengage");
-  updateBossContact(boss, true, 0.01);
-  updateBossContact(boss, false, 0.2);
-  assert.equal(boss.contactArmed, false);
-  updateBossContact(boss, false, 0.15);
-  assert.equal(hitBoss(player, boss, FLANK).hit, true);
 });
 
 test("喷墨打断前摇且迷失期间不施法，恢复时重新给出完整前摇", () => {

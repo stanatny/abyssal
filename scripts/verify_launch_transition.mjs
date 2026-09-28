@@ -1,3 +1,4 @@
+import { selectCharacter } from "./menu_picker_helpers.mjs";
 import { chromium } from "@playwright/test";
 import assert from "node:assert/strict";
 import { mkdir, writeFile } from "node:fs/promises";
@@ -38,7 +39,7 @@ async function openPage(kind, viewport, reducedMotion = "no-preference") {
   });
   await page.goto(baseUrl);
   await page.waitForFunction(() => !!window.__ABYSSAL__);
-  await page.selectOption("#character-select", kind);
+  await selectCharacter(page, kind);
   await page.evaluate(() => document.fonts.ready);
   await page.evaluate(
     () => new Promise((resolve) => requestAnimationFrame(resolve)),

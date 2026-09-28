@@ -1,3 +1,4 @@
+import { selectCharacter } from "./menu_picker_helpers.mjs";
 import { chromium } from "@playwright/test";
 import assert from "node:assert/strict";
 import { mkdir, writeFile } from "node:fs/promises";
@@ -290,7 +291,7 @@ async function verifyMenu(page) {
     return observed;
   });
   await check(page, "menu_options_survive_language_switches", async () => {
-    await page.selectOption("#character-select", "squid");
+    await selectCharacter(page, "squid");
     await page.locator(".expedition-settings summary").click();
     await page.locator("#menu-markers").uncheck();
     await page.locator("#menu-invert-y").check();
@@ -515,7 +516,7 @@ async function verifyRuntime(page, character) {
   await page.reload();
   await page.waitForFunction(() => !!window.__ABYSSAL__?.guide);
   await setLanguage(page, "en");
-  await page.selectOption("#character-select", character);
+  await selectCharacter(page, character);
   await page.click("#start");
   await page.waitForFunction(() => window.__ABYSSAL__.mode === "playing");
   // 无敌人移动或结算注入；安全水域避免语言断言期间的自然接触造成噪声。
@@ -753,7 +754,7 @@ async function verifyLayouts(page, viewport) {
     });
     await page.click(".guide-close");
   }
-  await page.selectOption("#character-select", "orca");
+  await selectCharacter(page, "orca");
   await page.click("#start");
   await page.waitForFunction(() => window.__ABYSSAL__.mode === "playing");
   await page.keyboard.press("KeyJ");

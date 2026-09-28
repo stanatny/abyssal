@@ -215,7 +215,7 @@ async function starterRewards(page) {
       extra: g.pickups.some((item) => item.id === "nursery_frenzy"),
     };
   });
-  assert.equal(start.total, 34);
+  assert.equal(start.total, 21);
   assert.equal(start.kind, "frenzy");
   assert.deepEqual(start.starters, ["stamina", "flow", "frenzy"]);
   assert.equal(start.extra, false);
@@ -283,7 +283,7 @@ async function starterRewards(page) {
         cooldown: p.cooldown,
       };
     });
-    assert.equal(reset.count, 34);
+    assert.equal(reset.count, 21);
     assert.deepEqual(reset.xyz, start.xyz);
     assert.equal(reset.uuid, start.uuid);
     assert.equal(reset.cooldown, 0);

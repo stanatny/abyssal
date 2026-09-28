@@ -1061,7 +1061,7 @@ export function createEncounters(
           notify(
             result.defeated
               ? message`击败 ${state.species.label} · 深渊印记已获得`
-              : message`侧翼咬击 ${Math.round(result.damage)} · ${recover ? "弱点命中，脱离后再进攻" : "脱离接触，等待技能后的侧翼破绽"}`,
+              : message`侧翼咬击 ${Math.round(result.damage)} · ${result.hungerRestored > 0 ? message`饱食 +${Math.round(result.hungerRestored)}` : recover ? "弱点命中，脱离后再进攻" : "脱离接触，等待技能后的侧翼破绽"}`,
             2,
           );
           if (result.defeated) entry.respawn = 150 + Math.random() * 60;

@@ -14,6 +14,7 @@ const SCHOOL_HABITATS = {
     [-18, -18, 23],
     [18, -18, -20],
     [-14, -17, 91],
+    [32, -18, -83],
   ],
   anchovy: [[-11, -15, 5]],
   herring: [[24, -20, -48]],
@@ -43,26 +44,33 @@ const SCHOOL_HABITATS = {
   parrotfish: [
     [13, -17, 50],
     [-17, -20, -38],
+    [-30, -22, 5],
   ],
   wrasse: [
     [17, -19, 5],
     [-13, -25, -66],
   ],
   sunfish: [
-    [12, -27, -122],
+    [12, -27, -100],
+    [-24, -35, -157],
     [-15, -42, -208],
     [16, -53, -290],
+    [-12, -70, -340],
   ],
   tuna: [
     [-15, -32, -106],
     [16, -53, -216],
+    [24, -70, -258],
     [-18, -83, -300],
+    [14, -96, -398],
   ],
   ray: [
     [-14, -41, -188],
     [17, -61, -264],
     [-18, -82, -348],
+    [-28, -92, -372],
     [14, -102, -398],
+    [-12, -116, -470],
   ],
 };
 
@@ -74,12 +82,30 @@ export function initialSchoolAnchor(species, groupIndex = 0) {
   return initialSpeciesAnchor(species, groupIndex);
 }
 
+/**
+ * 按原始栖息中心固定中型鱼群的水层，迁移或逃逸不会将深层补给带回浅滩。
+ * @param {object} species 原始生物配置，不会被修改。
+ * @param {number} groupIndex 同种鱼群的稳定序号；不能根据迁移后位置重新计算。
+ * @returns {object} 翻车鱼、金枪鱼与蝠鲼返回可复用的只读栖息配置；其余返回原配置。
+ */
+export function schoolHabitat(species, groupIndex = 0) {
+  if (!["sunfish", "tuna", "ray"].includes(species.kind)) return species;
+  const depth = -initialSchoolAnchor(species, groupIndex).y;
+  return Object.freeze({
+    ...species,
+    depthMin: Math.max(species.depthMin, depth - 18),
+    depthMax: Math.min(species.depthMax, depth + 18),
+  });
+}
+
 /** 普通猎手按栖息水层沿海床坡度分散，避免所有种类初始随机落在遥远海域。 */
 export function initialSpeciesAnchor(species, index = 0) {
   const territory = predatorTerritory(species, index);
   if (territory?.edge) return new THREE.Vector3().copy(territory.center);
   const count = Math.max(1, species.population || 1);
-  const t = count === 1 ? 0.35 : 0.12 + (index / (count - 1)) * 0.68;
+  // 远古巨兽延伸至本物种水层下部，现代种类沿用原分布比例。
+  const spread = species.category === "ancient" ? 0.8 : 0.68;
+  const t = count === 1 ? 0.35 : 0.12 + (index / (count - 1)) * spread;
   const depth = species.depthMin + (species.depthMax - species.depthMin) * t;
   const floorDepth = depth + Math.max(30, species.length * 2.5);
   const z =
@@ -91,7 +117,7 @@ export function initialSpeciesAnchor(species, index = 0) {
     -depth,
     z,
   );
-  // 其余猎手保留原有深度序列，仅把过于靠岸的个体移到外海。
+  // 保留各自深度，仅把过于靠岸的猎手移到外海。
   if (territory) point.z = Math.min(point.z, territory.maxZ - 30 - index * 8);
   return point;
 }

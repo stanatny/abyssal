@@ -8,14 +8,14 @@ import {
 } from "./i18n.js";
 import * as THREE from "three";
 import { createCreature } from "./creatures.js";
-import { SPECIES } from "./simulation.js";
+import { SPECIES, HUNGER_RULES } from "./simulation.js";
 import { characterMovement } from "./character_rules.js";
 import { HUMAN_CATALOG, createHumanModel } from "./vehicle_models.js";
-import { BOSS_SPECIES } from "./boss_rules.js";
+import { BOSS_SPECIES, BOSS_BITE_HUNGER } from "./boss_rules.js";
 import { WORLD } from "./world_config.js";
 import { CHARACTERS } from "./expedition_config.js";
 import { HUNTER_ABILITIES } from "./hunter_rules.js";
-import { REWARDS } from "./reward_config.js";
+import { REWARDS, RANDOM_REWARD_COUNT } from "./reward_config.js";
 import { createMarineEnvironment } from "./visual_pipeline.js";
 import "./ocean_guide.css";
 
@@ -167,7 +167,7 @@ function buildRewardDetails() {
       role: "近距吸食",
       keywords: "吞噬 狂食 捕食 吸食 范围",
       text: tr`持续${REWARDS.frenzy.duration}秒：扩大近身吞噬范围，将附近无遮挡、原本就可捕食的水下生物吸向嘴部。不会临时变大，也不能越级捕食；吃鱼仍按正常规则回血和成长。`,
-      counter: tr`沿着鱼群边缘游过，吸食可以减少反复对准。浅滩保留三种奖励各一枚，其余奖励每局随机分布；拾取后45秒在本局原位刷新，再次拾取狂食只刷新${REWARDS.frenzy.duration}秒效果。大于或等于自己体长的生物、水雷、潜艇和领主不会被吸入；礁石与船体会阻挡吸食。领主仍需真实体长25米，并通过多次侧翼攻击击败。`,
+      counter: tr`沿着鱼群边缘游过，吸食可以减少反复对准。浅滩保留三种奖励各一枚，其余${RANDOM_REWARD_COUNT}枚奖励每局随机分布；拾取后45秒在本局原位刷新，再次拾取狂食只刷新${REWARDS.frenzy.duration}秒效果。大于或等于自己体长的生物、水雷、潜艇和领主不会被吸入；礁石与船体会阻挡吸食。领主仍需真实体长25米，并通过多次侧翼攻击击败。`,
     },
   };
 }
@@ -398,15 +398,19 @@ export function createOceanGuide(trigger) {
     }
     const combat =
       entry.category === "lord"
-        ? "25米可交战 · 技能后3秒恢复窗 · 至少5次侧翼攻击，命中后需脱离再接近"
+        ? tr`${"25米可交战 · 技能后3秒恢复窗 · 至少5次侧翼攻击，命中后需脱离再接近"} · ${tr`每次有效咬击恢复${BOSS_BITE_HUNGER}点饱食（最多100），不额外回血或成长；击败奖励另计。`}`
         : entry.category === "player"
           ? tr`巡游 ${characterMovement(entry.characterId).cruiseSpeed} m/s · 冲刺 ${characterMovement(entry.characterId).sprintSpeed} m/s`
           : HUNTER_ABILITIES[entry.kind]
             ? tr`蓄力 ${HUNTER_ABILITIES[entry.kind].windupDuration} 秒 · 技能冷却 ${HUNTER_ABILITIES[entry.kind].cooldownMin}—${HUNTER_ABILITIES[entry.kind].cooldownMax} 秒追击时间`
             : entry.role;
+    const survival =
+      entry.category === "player"
+        ? tr`<div class="guide-advice guide-survival"><b>成长与深潜</b><p>幼年先在安全浅滩补给；体型越大，小鱼的营养与成长收益越低，逐步转向外礁中型猎物和深海巨兽。</p><p>${tr`显示深度${HUNGER_RULES.shallowDepth * WORLD.displayDepthScale}米内无额外饱食消耗，之后平滑增加，到${HUNGER_RULES.fullDepth * WORLD.displayDepthScale}米封顶为额外${Math.round(HUNGER_RULES.maxDepthBonus * 100)}%。深潜前吃饱；回浅海会降低消耗，空体力不会扣生命，饱食耗尽才会持续失血。`}</p></div>`
+        : "";
     setMarkup(
       info,
-      tr`<div class="guide-eyebrow">${entry.latin}</div><div class="guide-name-row"><h3>${entry.name}</h3><span>${entry.role}</span></div><div class="guide-facts"><div><small>本作尺度</small><b>${entry.size}</b></div><div><small>活动水层</small><b>${entry.habitat}</b></div></div><h4>${entry.ability}</h4><p>${entry.text}</p><div class="guide-advice"><b>生存建议</b><p>${entry.counter}</p></div><small class="guide-combat">${combat}</small>${entry.realSize ? tr`<div class="guide-advice"><b>生态注记</b><p>${entry.realSize} ${entry.habitatNote || ""}</p></div>` : ""}`,
+      tr`<div class="guide-eyebrow">${entry.latin}</div><div class="guide-name-row"><h3>${entry.name}</h3><span>${entry.role}</span></div><div class="guide-facts"><div><small>本作尺度</small><b>${entry.size}</b></div><div><small>活动水层</small><b>${entry.habitat}</b></div></div><h4>${entry.ability}</h4><p>${entry.text}</p><div class="guide-advice"><b>生存建议</b><p>${entry.counter}</p></div><small class="guide-combat">${combat}</small>${survival}${entry.realSize ? tr`<div class="guide-advice"><b>生态注记</b><p>${entry.realSize} ${entry.habitatNote || ""}</p></div>` : ""}`,
     );
     if (!renderer) return;
     if (model) scene.remove(model);

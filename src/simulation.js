@@ -36,6 +36,30 @@ export function createPlayer(characterId = "orca") {
 }
 
 /**
+ * 返回每秒饥饿消耗；幼年浅滩较宽容，深入海域时连续增加至最多30%。
+ * @param {number} length 玩家实际体长；无效输入按3米幼年体型处理。
+ * @param {number} depth 世界坐标海深，界面显示深度为其四倍；无效输入按浅滩处理。
+ * @returns {number} 每秒消耗的饥饿值。
+ */
+export function hungerDrainRate(length, depth = 18) {
+  const safeLength = Number.isFinite(length) ? Math.max(3, length) : 3;
+  const safeDepth = Number.isFinite(depth) ? Math.max(0, depth) : 0;
+  const baseRate =
+    0.22 +
+    0.02 * Math.min(3, safeLength - 3) +
+    0.03 * Math.max(0, safeLength - 6);
+  const depthPressure = Math.min(
+    1,
+    Math.max(
+      0,
+      (safeDepth - HUNGER_RULES.shallowDepth) /
+        (HUNGER_RULES.fullDepth - HUNGER_RULES.shallowDepth),
+    ),
+  );
+  return baseRate * (1 + depthPressure * HUNGER_RULES.maxDepthBonus);
+}
+
+/**
  * 推进生存状态及远征用时，返回本帧结尾是否仍可冲刺；暂停时不调用。
  * @param {object} player 玩家状态，将原地更新。
  * @param {number} dt 经过的秒数，非正数与非有限值不会推进时间。
@@ -62,8 +86,6 @@ export function tickVitals(
         )
       : 0;
 
-  // 深度改变遇敌难度，生存数值只受体型影响，避免额外的隐性深水惩罚。
-  void depth;
   const flowTime = Math.min(elapsed, player.buffs.flow);
   const paidTime = elapsed - flowTime;
 
@@ -82,9 +104,9 @@ export function tickVitals(
   }
   if (player.exhausted && player.stamina >= 25) player.exhausted = false;
 
-  // 24米满饱约可支撑90秒，给转场和一次领主交战留出空间。
-  // 大体型仍需换吃大猎物：小鱼的营养衰减规则不因成长放缓而取消。
-  const hungerRate = 0.3 + Math.max(0, player.length - 6) * 0.045;
+  // 25米在最深水层满饱约可支撑90秒，给一次领主交战留出空间。
+  // 深度不额外扣体力或生命；小鱼营养仍按既有体型差距衰减。
+  const hungerRate = hungerDrainRate(player.length, depth);
   const fedTime = Math.min(elapsed, player.hunger / hungerRate);
   player.hunger = Math.max(0, player.hunger - hungerRate * elapsed);
   const starvingTime = elapsed - fedTime;
@@ -258,6 +280,13 @@ export function getProgress(player) {
 
 /** 单次远征最多30分钟有效游玩时间；到时独立结算，不等同于死亡或胜利。 */
 export const ROUND_DURATION = 30 * 60;
+
+/** 深水饥饿加成阈值，使用世界深度；界面应按显示比例换算。 */
+export const HUNGER_RULES = Object.freeze({
+  shallowDepth: 45,
+  fullDepth: 500,
+  maxDepthBonus: 0.3,
+});
 
 /** 玩家移动共享配置；速度以世界单位/秒计，体力以每秒变化量计。 */
 export const PLAYER_MOVEMENT = Object.freeze({

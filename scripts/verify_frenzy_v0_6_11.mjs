@@ -1,3 +1,4 @@
+import { selectCharacter } from "./menu_picker_helpers.mjs";
 import { chromium } from "@playwright/test";
 import assert from "node:assert/strict";
 import { mkdir, writeFile } from "node:fs/promises";
@@ -45,7 +46,7 @@ try {
     });
     await page.goto(url);
     await page.waitForFunction(() => window.__ABYSSAL__);
-    await page.locator("#character-select").selectOption(character);
+    await selectCharacter(page, character);
     await page.click("#start");
     await page.waitForFunction(() => window.__ABYSSAL__.mode === "playing");
     await page.evaluate(() => {
