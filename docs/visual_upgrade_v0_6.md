@@ -1,44 +1,44 @@
-# v0.6 海洋视觉升级
+# v0.6 Ocean Visual Upgrade
 
-## 来源与本轮范围
+## Request and scope
 
-2026-09-27，用户确认早期测试版完成，要求整体升级 UI、生物模型、特效、海底与船只，让画面有明显提升。基线为已公开的 `f20d6a5` / v0.5.1。本轮先做可试玩、可对照的视觉升级，按既有流程待 review 后再提交；不把前一轮发布授权延伸为自动发布新版本。
+On 2026-09-27, the user confirmed completion of the early test version and requested a substantial visual upgrade to the UI, creature models, effects, seabed, and ships. The baseline was public `f20d6a5` / v0.5.1. This round first delivers a playable, comparable visual upgrade, with commits following review under the existing workflow. Previous release authorization does not authorize automatic publication of a new version.
 
-采用本机 `ui-visual-polish` 及其视觉审查和模型辅助 3D 工作流。检索并阅读 [OpenAI three-webgl-game](https://github.com/openai/plugins/blob/main/plugins/game-studio/skills/three-webgl-game/SKILL.md) 与 [web-3d-asset-pipeline](https://github.com/openai/plugins/blob/main/plugins/game-studio/skills/web-3d-asset-pipeline/SKILL.md)，参考其表现/模拟分离、轻量 HUD、材质复用、可测量后处理和实际运行验证要求。未安装或执行外部仓库脚本，不为美术升级更换现有物理系统；当前项目已有可编辑程序模型，继续在 Three.js 中制作实时几何和材质。
+The work used the local `ui-visual-polish` workflow, including visual review and model-assisted 3D work. [OpenAI three-webgl-game](https://github.com/openai/plugins/blob/main/plugins/game-studio/skills/three-webgl-game/SKILL.md) and [web-3d-asset-pipeline](https://github.com/openai/plugins/blob/main/plugins/game-studio/skills/web-3d-asset-pipeline/SKILL.md) were located and read for their guidance on separating presentation from simulation, lightweight HUDs, material reuse, measurable post-processing, and verification in the running game. No external repository scripts were installed or executed, and the existing physics system was not replaced for the art upgrade. The project already had editable procedural models, so real-time geometry and materials continued to be built in Three.js.
 
-## 可检查的视觉目标
+## Inspectable visual targets
 
-- 生物：连续体态、符合物种的头部与鳍形、薄边弯曲鳍、鳃/口部/眼睛细节、自然体色与微表面，降低球体和锥体拼装感。虎鲸、乌贼、白鲨、抹香鲸、海龟等在图鉴近景和追尾视角都检查；远古和领主维持独立剪影。
-- 环境：暖沙浅滩、成束带状水草、分层珊瑚礁、孔隙海扇与有层理的岩石；深海地形靠局部光源和轮廓保持可读。船只增加合理船壳、甲板、舷窗、栏杆和帆索层次。
-- 照明：浅滩暖阳、蓝青水体、深海冷色与生物光；修正全场过亮偏青造成的塑料感，加入克制环境反射与可降级后处理。
-- 特效：捕食与墨云呈现有涡流纹理的水中扩散；声波、破水和主宰技能有清楚的起势、峰值与消退。特效不得改变伤害范围或遮蔽告警。
-- 界面：以海洋远征档案为方向，首页与图鉴突出实时生物，HUD向边缘收敛，保留中央游戏视野；桌面、小手机、大手机及横屏的控制布局与生存条保持可用。
+- Creatures: continuous bodies, species-appropriate heads and fins, curved fins with thin edges, gill/mouth/eye detail, natural colors, and surface microdetail, reducing the appearance of assembled spheres and cones. Inspect orca, squid, great white shark, sperm whale, turtle, and others in both Ocean Guide close-ups and chase-camera views; retain distinct silhouettes for ancient creatures and lords.
+- Environment: warm sandy shallows, bundles of ribbon-like seaweed, layered coral reefs, porous sea fans, and stratified rocks. Use local lighting and silhouettes to keep deep-sea terrain readable. Give ships plausible hulls, decks, portholes, railings, sails, and rigging.
+- Lighting: warm shallow-water sunlight, blue-cyan water, cool deep water, and bioluminescence. Correct the plastic appearance caused by excessive brightness and cyan across the scene; add restrained environmental reflections and scalable post-processing.
+- Effects: feeding and ink clouds diffuse underwater with swirling texture; sonar waves, breaches, and lord abilities have clear onsets, peaks, and fades. Effects must not alter damage ranges or obscure warnings.
+- UI: use an ocean-expedition archive direction. Emphasize live creatures on the home screen and in the Ocean Guide, move the HUD toward the edges, and preserve the central gameplay view. Keep controls and survival bars usable on desktop, small and large phones, and landscape screens.
 
-## 保持的规则与验收方式
+## Preserved rules and acceptance approach
 
-保留角色主被动、30分钟、自动接触攻击、领主多次侧击、碰撞和全部生态配置。资产保持 `kind`、-Z 前向、单位长度、动画与资源缓存约定；环境几何不得与实体边界明显分离。基线截图与构建在 `.local/v5_1_*`；新证据统一放 `.local/v6_*`。
+Preserve active/passive character abilities, the 30-minute limit, automatic contact attacks, repeated lord flank attacks, collision, and all ecology configuration. Keep asset `kind` identifiers, -Z forward, unit length, animation, and resource-cache contracts. Environment geometry must not visibly diverge from solid boundaries. Baseline screenshots and builds are in `.local/v5_1_*`; new evidence goes in `.local/v6_*`.
 
-验收包含实际模型/海底/海面/技能截图、浏览器关键路径与布局、规则回归、几何/资源/绘制统计及生产预览。性能测量明确主机与浏览器条件，不将模拟手机尺寸等同于真机。此文件先记录目标，完成情况与未达到项在集成后按证据补充。
+Acceptance includes actual model/seabed/surface/ability screenshots, key browser flows and layouts, rule regression, geometry/resource/draw statistics, and production preview. State host and browser conditions for performance measurements; simulated phone dimensions are not real-device testing. This file initially recorded targets; completion and unmet items were to be added from evidence after integration.
 
-## 实际完成
+## Completed work
 
-- 首页改为海洋远征主题：大幅实时角色、目的地/角色选择、可展开的角色能力与远征设置。图鉴采用浅色标本展台、可旋转模型和独立资料栏；游戏 HUD 保留中央视野、三项对齐的生存条及最多两个技能的布局约定。
-- 生物使用连续截面躯干、弯曲薄鳍、皮肤微表面与环境反射。虎鲸黑白边界、白鲨口鳃、乌贼眼部/腕膜/吸盘、抹香鲸额部/下颌/背脊、海龟连续背甲等均作近景精修；虎鲸、鲨鱼、金枪鱼、普通鱼与抹香鲸以独立骨架驱动尾柄，几何和材质仍共享。
-- 海底改为暖色细沙、平滑分层岩石、圆润枝状珊瑚、带真实孔隙的海扇和弯曲带状水草。植被实例按空间分组裁剪；船只增加甲板、舷窗、栏杆、帆索与分层船壳，潜艇补充舱段、舷窗与推进结构。
-- 水面采用分层细波法线和远处像素过滤，水沫改不规则贴片；熔岩改冷却岩壳和发光裂隙。照明采用浅海暖阳、深海冷色、共享环境反射、悬浮颗粒，以及高画质浅海阴影和克制辉光。流畅模式关闭后处理/阴影并减少颗粒，保留精修模型。
-- 血雾、墨云、气泡和水花使用确定性流体纹理。声波软化波前，破水增加冠状水幕、散落水滴与不规则水沫；克拉肯漩涡采用旋流薄层，遗迹脉冲增加波纹余迹，利维坦冲锋改收尖流线，保持真实预警与伤害半径。
+- The home screen now uses an ocean-expedition theme: large live characters, destination/character selection, and expandable abilities and expedition settings. The Ocean Guide has a light specimen stand, rotatable models, and a separate information column. The HUD preserves the central view, three aligned survival bars, and the layout contract for up to two abilities.
+- Creatures use continuous cross-section bodies, thin curved fins, skin microdetail, and environmental reflections. Close-up refinement covers the orca's black/white boundaries; great white mouth and gills; squid eyes, arm webbing, and suckers; sperm whale forehead, lower jaw, and back ridge; and the turtle's continuous shell. Orcas, sharks, tuna, ordinary fish, and sperm whales drive their tail peduncles through independent skeletons while sharing geometry and materials.
+- The seabed now has warm fine sand, smooth layered rocks, rounded branching coral, sea fans with actual holes, and curved ribbon-like seaweed. Vegetation instances are culled in spatial groups. Ships gained decks, portholes, railings, rigging, and layered hulls; submarines gained hull sections, portholes, and propulsion structures.
+- The surface uses layered fine-wave normals and distant pixel filtering; foam uses irregular patches. Lava has a cooled rock crust and glowing fissures. Lighting combines warm shallow sunlight, cool deep water, shared environmental reflections, suspended particles, and high-quality shallow-water shadows with restrained bloom. The smooth preset disables post-processing/shadows and reduces particles while retaining refined models.
+- Blood mist, ink, bubbles, and splashes use deterministic fluid textures. Sonar has softer wavefronts; breaches add crown-shaped water curtains, scattered drops, and irregular foam. Kraken vortices use thin swirling layers, ruin pulses gain ripple trails, and Leviathan charges use tapered streamlines, preserving actual warnings and damage radii.
 
-## 验收结果
+## Verification results
 
-- `npm test` **128/128**、`npm run check`、`npm run build` 通过。新增四项生物几何、共享资源/独立骨架、实际射线与动画数值边界测试。
-- 实际 Chrome 回归：主流程 **28**、既有反馈 **13**、控制 **6**、角色生态 **8**、声呐 **11** 项通过，浏览器无运行错误。覆盖五次侧击领主、实际按键蓄势破水、墨云离开/恢复、两角色技能、触摸、暂停与重开。
-- 声呐旧夹具曾把浅水鱼放在 128m 游戏深度，真实栖息约束使其上浮、丢失遮挡。仅修测试为合法浅水礁石布景，等待真实更新后激活，并同时断言桌面/手机仍有实体遮挡；没有放松检测或修改声呐规则。
-- 首页/图鉴检查 1440×900、390×667、320×568、844×390；既有生存条 20 态及 HUD 26 态布局检查通过。320px 开始按钮完整可见。最终生产预览在 1440/390/320px 完成角色切换、图鉴分类、技能、冷却、生存条和暂停流程；公开返回的 JS/CSS SHA-256 与本机 `dist` 一致，生产没有开发接口。
-- 海底碰撞体与三组时刻的船只轨迹和基线精确一致。7轮重开/开关图鉴后的主渲染器及 WebGL 实际资源计数稳定；领主效果15轮重开无对象增长，销毁资源各释放一次。
-- 最终截图在 `.local/v6_final_*` 与 `.local/v6_public_*`；模型特写在 `.local/v6_creature_*`。海域实际游戏截图使用无穿模的有效玩家坐标；船只/潜艇特写为同一源资产和照明的独立取景场景。证据来源及原始报告见 [验证记录](verification.md)。
+- `npm test` **128/128**, `npm run check`, and `npm run build` passed. Four tests were added for creature geometry, shared resources/independent skeletons, actual raycasts, and animation numeric bounds.
+- Real Chrome regression passed **28** main-flow, **13** existing-feedback, **6** control, **8** character/ecology, and **11** sonar checks with no browser runtime errors. Coverage includes five lord flank hits, charging and breaching through actual key input, leaving ink and recovering, both character abilities, touch, pause, and restart.
+- An old sonar fixture placed a shallow-water fish at 128m of game depth. Actual habitat constraints made it rise and lose occlusion. Only the test was corrected to a valid shallow-reef scene, waiting for real updates before activation and asserting solid occlusion on both desktop and phone layouts. Detection was not weakened and sonar rules were not changed.
+- Home screen and Ocean Guide were checked at 1440×900, 390×667, 320×568, and 844×390. Existing 20-state survival-bar and 26-state HUD layout checks passed. The start button is fully visible at 320px. Final production preview covered character switching, Ocean Guide categories, abilities, cooldowns, survival bars, and pause at 1440/390/320px. Public JS/CSS SHA-256 hashes matched local `dist`, and production exposed no development interfaces.
+- Seabed colliders and ship trajectories at three sets of timestamps matched the baseline exactly. Main-renderer and actual WebGL resource counts remained stable after 7 restart/Ocean Guide open-close cycles. Lord effects showed no object growth across 15 restarts, and each disposed resource was released once.
+- Final screenshots are in `.local/v6_final_*` and `.local/v6_public_*`; model close-ups are in `.local/v6_creature_*`. Actual ocean-gameplay screenshots use valid player positions without clipping. Ship/submarine close-ups use separate framing scenes with the same source assets and lighting. See [verification](verification.md) for evidence provenance and raw reports.
 
-## 性能与边界
+## Performance and limitations
 
-Apple M2 Pro / Chrome / ANGLE Metal，1280×720、DPR1、固定浅礁场景的 GPU timer 中位数：旧版高画质约 1.9–2.3ms，新版高画质约 7.4–9.1ms，新版流畅约 2.9ms。辉光增加约 3.5–5.1ms 的 GPU 成本。该测量发生在最后海面/熔岩着色收尾之前，用于定位成本；不是最终版本帧率承诺。正常主循环 CPU 新旧均约38–39ms，主要是既有碰撞全表扫描，不能拿波动较大的无头浏览器 RAF 宣称流畅度提升。后续优先优化碰撞候选查询，而不是盲目削减生物细节。
+On Apple M2 Pro / Chrome / ANGLE Metal, at 1280×720 and DPR1 in a fixed shallow-reef scene, median GPU timer measurements were about 1.9–2.3ms for old high quality, 7.4–9.1ms for new high quality, and 2.9ms for the new smooth preset. Bloom added about 3.5–5.1ms of GPU cost. These measurements preceded the final surface/lava shading pass and were used to locate cost, not promise final frame rates. Normal main-loop CPU time was about 38–39ms in both versions, mainly from the existing full-table collision scan. Variable headless-browser RAF measurements cannot establish improved smoothness. Prioritize collision candidate queries next instead of indiscriminately reducing creature detail.
 
-这轮交付为更细致的程序化实时3D，仍保留风格化表现，没有引入扫描级照片资产。真实低性能手机、自然30分钟整局以及玩家对整体审美的评价仍需试玩；构建保留超过500KB的单包提示。当前为未提交的 v0.6 预览，正式 GitHub Pages 仍为 v0.5.1。
+This delivery is more detailed procedural real-time 3D, still stylized, without scan-quality photographic assets. Real low-end phones, natural 30-minute sessions, and player judgments of overall aesthetics still need playtesting. The build still warns about a single bundle exceeding 500KB. At this historical point, v0.6 was an uncommitted preview and official GitHub Pages remained v0.5.1.

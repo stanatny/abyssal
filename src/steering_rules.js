@@ -1,3 +1,4 @@
+import { tr } from "./i18n.js";
 /** 玩家自由游泳的转向与姿态读数；不依赖渲染、输入设备或世界坐标。 */
 export const MAX_SWIM_PITCH = (Math.PI * 85) / 180;
 
@@ -44,7 +45,7 @@ export function getSwimmingAttitude(forward) {
     label:
       direction === "level"
         ? "平游 0°"
-        : `${direction === "up" ? "上仰" : "下俯"} ${Math.abs(degrees)}°`,
+        : tr`${direction === "up" ? "上仰" : "下俯"} ${Math.abs(degrees)}°`,
   };
 }
 

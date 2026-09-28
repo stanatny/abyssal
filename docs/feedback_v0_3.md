@@ -1,40 +1,40 @@
-# v0.3 潮汐与本能：音画与动作反馈
+# v0.3 Tides and Instinct: audio, visuals, and movement feedback
 
-来源：2026-09-27 用户在项目话题中的新一轮反馈。此前发布版为 `96d57ff`（v0.2）；本轮功能与后续视觉重绘均先保留为未提交改动。
+Source: the user's next round of feedback on 2026-09-27. The previous published version was `96d57ff` (v0.2). This round's features and subsequent visual redraw were initially to remain uncommitted.
 
-## 用户要求
+## User requests
 
-- 重新制作音乐与音效，改善攻击、被攻击、捕食时的表现；吃鱼需要可见血雾，更有水下真实感。
-- 破水动作应平顺，必须先在水下加速蓄势。已经浮在水面或处于空中时按加速，不应再获得向上推力。
-- 水面加入游轮等环境元素。
-- 中级猎手增加低频技能，例如白鲨突袭、大王乌贼喷墨；虎鲸冲刺更快、更耐用。
-- 功能阶段完成后交给 Kimi，重新设计界面、鱼类与海怪模型以及特效，让轮廓更生动、更有辨识度。
-- 首页提供海洋图鉴，让玩家了解海洋生物及其技能。
+- Rework music and sound effects, improving attacks, damage, and feeding. Eating fish should produce visible blood clouds with a more convincing underwater feel.
+- Breaching should be smooth and require building momentum underwater first. Accelerating while already at the surface or in the air must not add upward thrust.
+- Add surface environmental features such as cruise ships.
+- Give intermediate hunters infrequent abilities, such as white-shark rushes and Giant Squid ink clouds. Make the orca's sprint faster and more sustainable.
+- After the functional phase, hand the project to Kimi to redesign the interface, fish and monster models, and effects for more expressive, recognizable silhouettes.
+- Add a home-screen Ocean Guide explaining creatures and their abilities.
 
-## 本轮有效决定
+## Decisions effective in this round
 
-- 虎鲸巡游12、冲刺32游戏米/秒；冲刺耗体力14/秒、恢复19/秒。满体力约可持续7.14秒。体力耗尽仍只影响冲刺，不直接扣生命。
-- 破水采用独立动量规则：身体水线下足够深的位置重新蓄势，水下连续冲刺1.2秒且累计26单位路程；向上穿越水线后才起跳。离水阶段只积分惯性与重力，不受空格增加向上推力；入水保留短暂下潜惯性，再平顺恢复游泳。
-- 白鲨0.8秒预警后34米/秒爆发1.1秒，随后减速恢复；乌贼预警后喷出6秒、半径22的墨云；鮟鱇短暂诱光，邓氏鱼蓄力重咬。首次技能错开，后续冷却16—30秒追击时间，具体配置以 `src/hunter_rules.js` 为准。
-- 为保留“领主不能只靠直线普通冲刺摆脱”的分级，四领主追速同步为35、36、37、38；利维坦冲锋仍为46。此决定替代v0.2的玩家24与领主26—30速度。
-- 血雾为水中扩散的深红云团，伴随水流咬合弧、气泡、受击外围反馈；墨云通过同一空间体积控制可见云团、视距和声音闷化，离开或消散后恢复。所有瞬态效果在重开时清空，暂停时冻结。
-- 配乐和音效继续采用原创程序合成。本轮重新编曲与分层混音；没有声称使用真实海洋录音或专业录制素材。试听与真实设备混音仍需体验评估。
-- 水面船只为环境模型，不可捕食，也不模拟船体碰撞或人员。
-- 图鉴包含13种现有可玩角色、猎物、猎手与领主；分类、名称/能力检索、可拖动三维展示、技能与逃生提示。模型直接复用游戏资产，Kimi改模型后图鉴同步呈现。
-- 图鉴资料明确为本作生态及幻想设定，尺寸与深度采用游戏尺度，不作为真实生物学图鉴。
+- Orca cruise speed is 12 and sprint speed 32 game meters/second. Sprint drains 14 stamina/second; recovery is 19/second. Full stamina lasts about 7.14 seconds. Exhaustion restricts sprinting but does not directly damage health.
+- Breaching uses independent momentum rules: recharge sufficiently below the body waterline, sprint underwater continuously for 1.2 seconds, and cover 26 units. Takeoff occurs only when crossing upward through the waterline. Airborne motion integrates inertia and gravity only; Space adds no upward thrust. Reentry retains brief downward momentum before smoothly returning to swimming.
+- White sharks warn for 0.8 seconds, burst at 34 meters/second for 1.1 seconds, then slow to recover. Squid warn before releasing a 6-second ink cloud with radius 22. Anglerfish briefly lure with light; Dunkleosteus charges a heavy bite. Initial abilities are staggered; subsequent cooldowns are 16–30 seconds of pursuit time. See `src/hunter_rules.js` for exact configuration.
+- To preserve the tier where a lord cannot simply be escaped with an ordinary straight-line sprint, the four pursuit speeds become 35, 36, 37, and 38. Leviathan's charge remains 46. This replaces v0.2's player speed of 24 and lord speeds of 26–30.
+- Blood disperses as dark-red underwater clouds, accompanied by bite-flow arcs, bubbles, and peripheral damage feedback. The same spatial volume controls visible ink, reduced visibility, and muffled audio; leaving the cloud or its dissipation restores them. Restart clears transient effects; pause freezes them.
+- Music and effects remain original procedural synthesis, with new arrangements and layered mixing. No claim is made that they use real ocean recordings or professionally recorded assets. Listening and mixing on real devices still need evaluation.
+- Surface ships are environmental models. They cannot be eaten and, in this round, do not simulate hull collisions or people.
+- The Ocean Guide contains 13 existing playable characters, prey, hunters, and lords. It provides categories, name/ability search, draggable 3D displays, abilities, and escape tips. It reuses game assets, so Kimi's model changes also appear in the guide.
+- Guide content explicitly describes this game's ecology and fantasy setting. Sizes and depths are game-scale values, not a biological reference guide.
 
-## 模块与交接边界
+## Modules and handoff boundaries
 
-- `src/surface_rules.js`：与渲染分离的蓄势、穿越水线、弹道与落水状态。
-- `src/surface.js` / `src/ships.js`：水面生物、船只、浪迹和破水表现。
-- `src/hunter_rules.js`：猎手技能状态机与可供图鉴使用的元数据。
-- `src/combat_effects.js`：血雾、咬合、受击与墨云；有限粒子池与重开清理。
-- `src/ocean_guide.js` / `src/ocean_guide.css`：首页图鉴。
-- `src/audio.js`：三层配乐、事件音效、暂停/重开/静音、墨云音色。
-- Codex先完成功能、联调和验证，再按用户要求交给Kimi做整体视觉重绘。不能把功能阶段截图当作视觉重绘已完成。
+- `src/surface_rules.js`: rendering-independent momentum buildup, waterline crossing, ballistics, and reentry state.
+- `src/surface.js` / `src/ships.js`: surface creatures, ships, wakes, and breach presentation.
+- `src/hunter_rules.js`: hunter ability state machines and guide metadata.
+- `src/combat_effects.js`: blood clouds, bites, damage, and ink; bounded particle pools and restart cleanup.
+- `src/ocean_guide.js` / `src/ocean_guide.css`: home-screen Ocean Guide.
+- `src/audio.js`: three music layers, event audio, pause/restart/mute, and ink-cloud filtering.
+- Codex completes functionality, integration, and verification before the user-requested visual handoff to Kimi. Functional-phase screenshots are not evidence that the full visual redraw is complete.
 
-## 验证与待办
+## Verification and remaining work
 
-功能阶段已通过46项规则测试、21条主流程浏览器回归、新图鉴/猎手/特效专项和音频离线检查；临时外网生产预览也完成真实交互验证。证据见 `docs/verification.md`，本机截图、试听和临时预览回执位于忽略Git的 `.local/`。
+The functional phase passed 46 rules tests, 21 main-flow browser regressions, targeted guide/hunter/effect checks, and offline audio checks. The temporary public production preview also received actual interaction checks. Evidence is recorded in `docs/verification.md`; local screenshots, listening files, and preview receipts are in the Git-ignored `.local/` directory.
 
-待验收：自然一局中技能遭遇频率和公平性；蓄势提示是否易懂；真实设备音量与水下质感；手机多指控制；重绘后的模型辨识、特效遮挡与性能。
+Still pending: ability encounter frequency and fairness during a natural round; clarity of momentum instructions; real-device volume and underwater sound quality; phone multitouch controls; and model recognition, effect occlusion, and performance after the redraw.

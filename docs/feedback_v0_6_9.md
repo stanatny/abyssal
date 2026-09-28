@@ -1,31 +1,31 @@
-# v0.6.9 · 幼年捕食对齐与角色游泳动作
+# v0.6.9 Juvenile feeding alignment and player swimming
 
-> 历史记录：本轮“腕冠固定朝行进方向”的决定已于 2026-09-28 被 [v0.6.10](feedback_v0_6_10.md) 替代。后续恢复外套膜领先的默认游姿，并将捕获点放回可见腕区；本轮连续接触补判、角色动作和原参数保留。下文实现与验证描述均为 v0.6.9 当时状态。
+> Historical record: the fixed arms-leading swimming decision in this round was superseded on 2026-09-28 by [v0.6.10](feedback_v0_6_10.md). That round restored mantle-leading default swimming and moved capture back to the visible arm region. Continuous-contact correction, character motion, and existing parameters remain. Implementation and verification below describe v0.6.9 at the time.
 
-用户反馈大王乌贼幼年期仍不容易捕捉小鱼，要求核对吞食口径是否与虎鲸一致，并让两个角色在巡游和冲刺时呈现更自然的姿势。本轮在 v0.6.8 鱼类水声音效之上继续修改，保留此前未提交反馈。当前为候选版本，不提交、不 Push；本地已提交基线仍为 `94c2a95`，正式 Pages 仍为 v0.5.1。
+The user reported that juvenile Giant Squid still struggled to catch small fish, requested parity with orca feeding tolerance, and wanted more natural cruising and sprinting poses for both characters. This follows v0.6.8 water audio and preserves earlier uncommitted feedback. It is a candidate without commit or push; local committed baseline remains `94c2a95` and official Pages v0.5.1.
 
-## 捕食问题与修正
+## Feeding issue and correction
 
-代码核对确认，两种角色原本都从 3 米开始，初始质量、普通捕食体长资格、狂食资格及育幼区接触半径共用相同规则，没有为大王乌贼配置更小的口径。3 米角色在育幼区捕捉 0.18 米小鱼的有效半径约为 1.191 游戏米，捕捉 0.8 米小鱼约为 1.406 游戏米。本轮保留这些数值，不继续扩大吸入距离。
+Code review confirmed both characters already started at 3 meters and shared initial mass, normal length eligibility, Frenzy eligibility, and nursery contact radius. Squid had no smaller tolerance. A 3-meter nursery character has an effective radius of about 1.191 game meters for 0.18-meter prey and 1.406 for 0.8-meter prey. This round preserves those values rather than extending intake distance.
 
-原表现中，乌贼外套膜尖端朝前，嘴和腕冠在后，而统一捕获点位于前方；同时，逻辑朝向立即响应输入，可见模型则平滑转向，乌贼更快的转向能力使二者偏差更明显。现在乌贼腕冠朝向前进方向，捕获点按可见角色的四元数变换，继续取局部前方 `0.36 × 体长`。捕获范围和实际吞入口分开处理：前者用于近身接触，后者由模型的 `getFeedingMouth()` 返回世界坐标，吞食过渡将猎物收拢到真实嘴部，而非外套膜尖端。
+Previously the squid's mantle tip led while its mouth and arm crown trailed, but the common capture point lay ahead. Logical heading also responded instantly while the visible model turned smoothly, amplifying the mismatch with squid's faster turning. In this round, the arm crown faces forward and capture transforms through the visible avatar quaternion, still at local forward `0.36 × length`. Capture range and swallowing endpoint are separate: the former handles close contact; the model's `getFeedingMouth()` supplies the latter in world coordinates, so prey converges on the actual mouth rather than mantle tip.
 
-另一处问题是旧判定只看一帧结束时的距离。在 40 毫秒物理步长下，虎鲸冲刺可移动 1.664 米，乌贼普通冲刺为 1.28 米，喷墨喷射为 2.88 米；角色可能已经穿过小鱼的接触范围，帧末却又到了范围外。`sweptCaptureFraction()` 现在比较本帧捕获点与猎物的相对运动线段，补上途中进入原半径的接触。当前帧已经接触的情况沿用原判定，纯扫掠补判还需满足路径无遮挡；捕食资格和猎物到嘴部的地形遮挡仍然检查。刷新、迁群、重开及开发定位不能产生跨地图的扫掠。
+The old check also considered only frame-end distance. In a 40-millisecond physics step, orca sprint moves 1.664 meters, squid normal sprint 1.28, and squid jet 2.88. The character could cross a fish's contact range and end outside it. `sweptCaptureFraction()` now compares the capture point and prey's relative movement segment for entry into the original radius. Current-frame overlap keeps the old path; swept-only contact also requires an unobstructed path. Eligibility and prey-to-mouth terrain occlusion remain checked. Respawn, school relocation, restart, and development positioning cannot create cross-map sweeps.
 
-这项补判只服务普通鱼类，不扩大人物接触、领主侧击或敌方伤害范围，也不改变生态数量、成长、主动技能和体力配置。
+This correction serves ordinary fish only. It does not expand human contact, lord flank attacks, or enemy damage, or change population, growth, active abilities, or stamina.
 
-## 巡游、冲刺与进食姿势
+## Cruise, sprint, and feeding poses
 
-虎鲸增加尾柄带动尾鳍的上下推进，胸鳍在巡游、转向和冲刺时改变姿态；冲刺会加强推进并收拢身体姿势。大王乌贼的八条腕足、两条捕食触腕及鳍采用分段运动，呈现向末端传播的摆动、巡游鳍波、冲刺收束、外套膜收缩以及进食收腕。喷墨喷射有独立的动作强度，保持角色前进方向与判定一致。
+Orca's tail stalk drives vertical fluke propulsion; pectorals vary with cruise, turning, and sprint. Sprint strengthens propulsion and streamlines posture. Giant Squid's eight arms, two feeding tentacles, and fins use segmented motion: traveling waves toward tips, cruise fin waves, sprint gathering, mantle contraction, and feeding arm closure. Ink Jet has independent motion intensity while movement and capture remain aligned.
 
-`player_motion.js` 管理两个角色各自的动作时钟、平滑输入和进食触发。主循环调用 `animate(time, effort, motionState)`，第三参数传入实际速度、冲刺、喷射、转向、俯仰输入与离水状态。动作随实际移动状态变化，不能只靠固定摆动幅度或按键是否按住推断；暂停与重开沿用游戏时间和重置流程。图鉴和首页仍可使用原有两参数接口，模型保持共用几何、实例独立骨架，不增加常驻动画循环。
+`player_motion.js` manages separate motion clocks, smoothed input, and feeding triggers. The main loop calls `animate(time, effort, motionState)` with actual speed, sprint, jet, turn, pitch input, and airborne state in the third argument. Motion follows actual movement, not only fixed amplitude or held keys. Pause/restart use game time and reset flows. Guide and home screen retain the two-argument interface; shared geometry, independent skeletons, and no extra persistent loop remain.
 
-逐帧验收还发现旧虎鲸尾鳍轮廓前后缘存在两处自交，侧面会出现细线与亮点；本轮仅将该轮廓修成连续双叶形，保持翼展、厚度及尾骨联动。实际网格断言确认无边界自交、无退化三角形。
+Frame-by-frame review also found two self-intersections in the old orca fluke outline, producing thin lines and bright points from the side. This round changes only the outline into a continuous two-lobed shape, retaining span, thickness, and tail-bone linkage. Actual mesh assertions confirm no boundary self-intersections or degenerate triangles.
 
-## 验证与交付边界
+## Verification and delivery boundaries
 
-本轮共 **239 项单测**通过，其中捕食规则专项 8 项覆盖幼体资格一致性、低帧率途中接触和边界，角色动作专项 7 项覆盖状态渐变、暂停、嘴部坐标、蒙皮变形与缓存、重开清理、尾鳍轮廓；另有既有模型测试。格式检查和生产构建通过。
+**239 unit tests** passed. Eight feeding-rule tests cover juvenile parity, low-frame-rate mid-step contact, and boundaries. Seven player-motion tests cover state easing, pause, mouth coordinates, skin deformation/cache, restart cleanup, and fluke shape, alongside existing model tests. Formatting and production build passed.
 
-浏览器主流程28项、吞食过渡9项、双角色专项11项通过。两种3米幼体均能捕食侧偏1.25米且仍自主逃逸的鱼，侧偏2.2米不被隔空吞食；薄壁另一侧的近身猎物不被吞食。真实键盘驱动冲刺和转向姿态，重开取消上一局状态。40毫秒步长下，乌贼实际J技能喷射捕获途中穿过的小鱼，两端距离分别为1.400米和1.473米，均超出约1.191米的旧单帧范围；该低帧率用例使用固定猎物以隔离接触判定，不代表自然逃逸难度。
+The browser main flow passed 28 checks, feeding transitions 9, and the two-character suite 11. Both 3-meter juveniles caught autonomously fleeing fish offset by 1.25 meters; fish offset by 2.2 meters were not remotely eaten. Close prey behind a thin wall remained protected. Real keyboard input drove sprint/turn poses, and restart canceled previous-round state. At a 40-millisecond step, squid's actual J jet caught a fish crossed mid-step: endpoint distances were 1.400 and 1.473 meters, both beyond the old approximately 1.191-meter single-frame radius. That case fixed prey position to isolate contact behavior; it does not represent natural escape difficulty.
 
-动作演示使用实际图鉴模型与渲染器，按24帧/秒记录巡游、冲刺、转向与乌贼喷射；它是受控动作展示，不是完整自然游玩录像。桌面和手机公开产物的最终回执见 [验证记录](verification.md) 与 `.local/preview_state.json`。自然捕食手感和实际手机观感仍需用户试玩确认。本轮未提交、未推送。
+The motion demo uses actual guide models/rendering at 24 fps to show cruise, sprint, turning, and squid jet. It is controlled presentation, not a natural full-game recording. Final desktop/phone public-build receipts are in [verification](verification.md) and `.local/preview_state.json`. Natural feeding feel and real-phone appearance still need user playtesting. This round remains uncommitted and unpushed.

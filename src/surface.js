@@ -1,3 +1,4 @@
+import { tr, message } from "./i18n.js";
 import * as THREE from "three";
 import { createCreature } from "./creatures.js";
 import { WORLD } from "./world_config.js";
@@ -336,7 +337,7 @@ export function createSurface(
         audio.eat();
         onEat?.(bird.mesh.position, 2.6, bird);
         notify(
-          `捕食海鸥 · ${player.lastMeal?.healed > 0 ? "生命 +" + Math.round(player.lastMeal.healed) : "空中猎食成功"}`,
+          message`捕食海鸥 · ${player.lastMeal?.healed > 0 ? message`生命 +${Math.round(player.lastMeal.healed)}` : "空中猎食成功"}`,
           2,
         );
       }
@@ -524,8 +525,8 @@ function makeStreakTexture() {
     const width = 1 + Math.random() * 3.5;
     const alpha = 0.1 + Math.random() * 0.3;
     const gradient = context.createLinearGradient(x, 0, x, 64);
-    gradient.addColorStop(0, `rgba(255,255,255,${alpha})`);
-    gradient.addColorStop(0.7, `rgba(255,255,255,${alpha * 0.55})`);
+    gradient.addColorStop(0, tr`rgba(255,255,255,${alpha})`);
+    gradient.addColorStop(0.7, tr`rgba(255,255,255,${alpha * 0.55})`);
     gradient.addColorStop(1, "rgba(255,255,255,0)");
     context.fillStyle = gradient;
     context.fillRect(x - width / 2, 0, width, 64);

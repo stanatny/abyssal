@@ -1,27 +1,27 @@
-# v0.6.10 · 大王乌贼默认游姿与腕区捕食
+# v0.6.10 Giant Squid default swimming and arm-region capture
 
-2026-09-28，用户追问真实大王乌贼的游动方向，并授权根据核验恢复原先外套膜领先、腕足拖后的表现。本轮在 v0.6.9 之上恢复这一默认游姿，同时保留已实现的角色动作、连续接触判定及此前全部未提交反馈。当前为候选版本，不提交、不 Push；本地已提交基线仍为 `94c2a95`，正式 Pages 仍为 v0.5.1。
+On 2026-09-28, the user asked about real Giant Squid swimming direction and authorized restoring the earlier mantle-leading, arms-trailing appearance after verification. This round restores that default over v0.6.9 while retaining player animation, continuous contact, and all earlier uncommitted feedback. It is still a candidate: no commit or push, local committed baseline `94c2a95`, official Pages v0.5.1.
 
-## 生物资料与决定边界
+## Biological sources and decision boundaries
 
-[Iziko 博物馆的大王乌贼专页](https://www.iziko.org.za/exhibitions/the-giant-squid-architeuthis/)由研究者 Martina A. C. Roeleveld 撰写，说明大王乌贼可通过柔性漏斗改变喷射方向，并明确区分向前、向后、悬停、捕食和巡游等状态。该来源支持双向运动能力，不能将大王乌贼解释为只能腕足领先或只能外套膜领先。
+The [Iziko Giant Squid page](https://www.iziko.org.za/exhibitions/the-giant-squid-architeuthis/), written by researcher Martina A. C. Roeleveld, explains how a flexible funnel changes jet direction and distinguishes forward/backward movement, hovering, feeding, and cruising. It supports bidirectional movement, not an interpretation that Giant Squid can only lead with arms or only with mantle.
 
-[Robinson 等 2021 年原始研究](https://repository.library.noaa.gov/view/noaa/59467/noaa_59467_DS1.pdf)的 §3.3 与图 4 记录了大王乌贼接近诱饵、以触腕和腕接触目标，随后松开并喷射离开的过程。论文的喷射撤离描述是实测记录；它没有给出日常巡游方向的频次结论。[NOAA 同次观察的现场报道与视频](https://oceanexplorer.noaa.gov/expedition-feature/19biolum-logs-jun20/)可用于对照攻击和撤退阶段。
+Section 3.3 and Figure 4 of [Robinson et al. (2021)](https://repository.library.noaa.gov/view/noaa/59467/noaa_59467_DS1.pdf) record a Giant Squid approaching bait, contacting it with tentacles and arms, then releasing it and jetting away. Jetting retreat is an observed event; the paper does not establish the frequency of everyday cruising directions. [NOAA's field report and video of the same observation](https://oceanexplorer.noaa.gov/expedition-feature/19biolum-logs-jun20/) provide a comparison of attack and retreat phases.
 
-本轮核验没有找到足以断言大王乌贼“通常一律以某一端领先巡游”的频次证据，也不以普通乌贼或大王酸浆鱿的研究代替大王乌贼证据。这里的“领先”指行进方向，不能据此把外套膜尖端称作解剖学上的头部。
+This review found no frequency evidence sufficient to claim that Giant Squid invariably or usually cruise with one particular end leading. Studies of other squid or colossal squid are not substituted for Giant Squid evidence. “Leading” describes travel direction and does not make the mantle tip the anatomical head.
 
-**当前游戏决定：恢复外套膜尖端／鳍端领先、腕足拖后的默认游姿。** 这符合用户偏好的原表现，是游戏中的默认选择，不是对真实大王乌贼全部运动状态的断言。本轮没有新增双向游泳状态机。v0.6.9 为修正捕食而让腕冠固定朝行进方向的决定已被本轮替代，历史记录保留于 [上一轮反馈](feedback_v0_6_9.md)。
+**Game decision: restore mantle-tip / fin-end-leading, arms-trailing default swimming.** This follows the user's preferred earlier presentation and is a game default, not a claim about all real Giant Squid movement. No bidirectional swimming state machine is added. The v0.6.9 decision to fix the arm crown toward travel for feeding alignment is superseded; its history remains in the [previous feedback record](feedback_v0_6_9.md).
 
-## 捕获点与吞入口
+## Capture point and swallowing endpoint
 
-乌贼恢复原朝向后，不能再把统一的行进前方当作腕区。乌贼捕获点改为模型局部 `+Z × 0.36 × 体长`，对应可见腕区；虎鲸仍为局部 `-Z × 0.36 × 体长`。两者均按可见 `avatar.quaternion` 变换，保持快速转向时捕获点与模型一致。
+After restoring orientation, the common forward-travel point cannot stand for the squid's arm region. Squid capture moves to model-local `+Z × 0.36 × length`, matching visible arms; orca remains at local `-Z × 0.36 × length`. Both transform through visible `avatar.quaternion`, keeping capture aligned during rapid turns.
 
-吞食过渡继续使用 `getFeedingMouth()` 返回的真实嘴部锚点；乌贼嘴位于模型局部 `+Z × 0.09 × 体长`，吞入方向随解剖朝向反转。捕获范围与嘴部终点仍分别处理，猎物收拢到腕冠中央的嘴部，而不是外套膜尖端。
+The feeding transition still uses the real mouth anchor returned by `getFeedingMouth()`. Squid's mouth is local `+Z × 0.09 × length`; intake direction reverses with anatomical orientation. Capture range and mouth endpoint remain separate, gathering prey into the center of the arm crown rather than the mantle tip.
 
-两角色继续共用原有体长资格、育幼加成、接触半径与遮挡规则。v0.6.9 的本帧相对运动扫掠补判保留，未扩大吞食半径。虎鲸尾柄／尾鳍／胸鳍动作、乌贼鳍波／分节腕足／外套膜收缩／进食收腕及原有速度、技能、体力参数均保留。
+Both characters retain shared length eligibility, nursery bonus, contact radius, and occlusion. v0.6.9's per-frame relative-motion sweep remains without a larger radius. Orca stalk/fluke/pectoral motion, squid fin waves/segmented arms/mantle contraction/feeding closure, and existing speeds, abilities, and stamina all remain.
 
-## 验证与交付边界
+## Verification and delivery boundaries
 
-本轮 `npm test` 239项、`verify_player_v0_6_10` 11项通过，生产构建完成。公开预览在1440×900、390×667、320×568分别验证两角色，共6组通过；JS/CSS与五份音频哈希匹配本机构建，控制台无错误。具体证据见 [验证记录](verification.md)。
+This round passed 239 `npm test` cases and 11 `verify_player_v0_6_10` checks, and completed the production build. Public preview verified both characters at 1440×900, 390×667, and 320×568: 6 groups passed. JS/CSS and five audio hashes matched the local build, with no console errors. See [verification](verification.md).
 
-本轮已核对默认游姿、转向后的腕区捕获点、嘴部坐标，以及冲刺／喷射途中的连续接触；下一步由用户自然试玩确认抓鱼手感和追尾视角下的动作。当前仍未提交、未推送，不将受控场景或浏览器模拟手机尺寸等同于自然整局与真机验收。
+Checks covered default posture, arm-region capture after turning, mouth coordinates, and continuous contact during sprint/jet. The next step is user natural playtesting of fish-catching feel and follow-camera motion. Changes remain uncommitted and unpushed; controlled scenes and browser-emulated phone sizes are not natural full-round or real-device acceptance.

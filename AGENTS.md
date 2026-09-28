@@ -1,17 +1,17 @@
-# ABYSSAL 开发规则
+# ABYSSAL Development Rules
 
-先读 [README.md](README.md)、[HANDOFF.md](HANDOFF.md)，再按任务读取相关文档；交接中标明历史状态的内容不覆盖当前规则。
+Read [README.md](README.md) and [HANDOFF.md](HANDOFF.md) first, then the documents relevant to the task. Historical states in the handoff do not override current rules.
 
-## 新增内容的质量门槛
+## Quality bar for new content
 
-新增或重绘鱼类、可选角色、人物、船只、环境、奖励、技能及其声音和特效前，必须读取并执行 [资产质量标准](docs/asset_quality_standard.md)。以已发布 **v0.6.10 / `5a3248e`** 的同类精修资产为最低参照，后续已验收的同类提升继续作为参照，不能退回占位模型、简单形体换色、劣质合成人声或粗糙粒子堆叠。
+Before adding or redrawing fish, playable characters, people, ships, environments, rewards, abilities, or their audio and effects, read and follow the [asset quality standard](docs/asset_quality_standard.md). Comparable polished assets in released **v0.6.10 / `5a3248e`** are the minimum reference; later accepted improvements in the same category become the new reference. Do not regress to placeholder models, recolored primitive shapes, poor synthetic voices, or crude particle piles.
 
-模型、动作、实际玩法接触点、声音与特效作为一个整体交付。必须检查真实渲染和实际触发，自动测试通过不等于美术或听感合格。未达到标准的内容只能留在明确标注的开发原型中，不得作为正式新类别合入或发布；降低标准须由用户明确同意。正常实施和验证可在已授权任务内继续，无需为每个制作步骤重新申请批准。
+Deliver models, animation, gameplay contact points, audio, and effects as a coherent whole. Inspect actual rendering and real triggers; passing automated tests does not establish visual or listening quality. Content below the standard may exist only in an explicitly labeled development prototype and must not be merged or released as a finished new category. Lowering the standard requires the user's explicit agreement. Continue normal implementation and verification within the authorized task without requesting approval for each production step.
 
-## 实施与交付
+## Implementation and delivery
 
-- 注释使用中文，日志和错误信息使用英文；新增文件使用小写加下划线。JavaScript 与文档沿用项目 Prettier 格式。
-- 避免为视觉改善改变既有数值、生态和战斗规则；必要变化应说明原因，并验证实际影响。模型、声音、特效保持共享资源和独立实例状态，暂停、重开及销毁无残留。
-- 按影响范围验证，记录实际执行项、证据与未验收边界；小修不强制全量回归。交付前完成必要的格式、相关测试和构建检查；文档单独修改只做相应文档检查。
-- 完成后默认保留未提交改动，待用户 review 并授权；若用户当前任务已明确要求提交、推送或上线，完成所需验收后按对应授权执行，不额外增加一次确认。不把历史发布授权扩展为以后自动发布。
-- 公开文档保持自包含，不依赖私人 Skill、私人仓库或开发者本机绝对路径。原始截图、录像和日志可留在被忽略的 `.local/`，正文记录证据名称、结论和边界。
+- Write project documentation, README files, development rules, and project Skill instructions in English. Player-facing game content must support both `en` and `zh-CN`; put new copy in the localization dictionaries, and check English text length and narrow-screen layouts. Keep code comments in Chinese, and logs and error messages in English. Use lowercase names with underscores for new files. Follow the project's Prettier formatting for JavaScript and documentation.
+- Avoid changing existing balance, ecology, or combat rules solely for visual improvements. Explain any necessary change and verify its actual impact. Models, sounds, and effects must share resources while keeping instance state independent, with no leftovers after pause, restart, or disposal.
+- Verify according to impact and record the checks actually run, evidence, and unverified boundaries. Small fixes do not require a full regression. Complete the necessary formatting, relevant tests, and build checks before delivery; documentation-only changes require only the corresponding documentation checks.
+- By default, leave completed changes uncommitted for user review and authorization. If the user has explicitly requested a commit, push, or release in the current task, complete the required verification and act within that authorization without adding another confirmation. Do not extend historical release authorization to future releases.
+- Keep public documentation self-contained, without dependencies on private Skills, private repositories, or a developer's absolute local paths. Raw screenshots, recordings, and logs may stay in ignored `.local/`; record evidence names, conclusions, and limits in the documents.

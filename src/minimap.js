@@ -1,3 +1,4 @@
+import { t, tr, setMarkup } from "./i18n.js";
 import { WORLD } from "./world_config.js";
 import { isNursery } from "./nursery_rules.js";
 import { getMinimapState, projectMinimapPosition } from "./minimap_rules.js";
@@ -13,7 +14,7 @@ const SVG_NAMESPACE = "http://www.w3.org/2000/svg";
  * @returns {object} update、reset、dispose接口和最近一次方位快照。
  */
 export function createMinimap(container) {
-  const mapId = `minimap-depth-${nextMapId++}`;
+  const mapId = tr`minimap-depth-${nextMapId++}`;
   const northWest = projectMinimapPosition({ x: WORLD.minX, z: WORLD.minZ });
   const southEast = projectMinimapPosition({ x: WORLD.maxX, z: WORLD.maxZ });
   const width = southEast.x - northWest.x;
@@ -25,9 +26,11 @@ export function createMinimap(container) {
   container.setAttribute("role", "img");
   container.setAttribute(
     "aria-label",
-    "海域雷达，北向固定，下方为浅海，菱形为出生点",
+    t("海域雷达，北向固定，下方为浅海，菱形为出生点"),
   );
-  container.innerHTML = `<svg class="minimap-chart" viewBox="0 0 100 100" aria-hidden="true">
+  setMarkup(
+    container,
+    tr`<svg class="minimap-chart" viewBox="0 0 100 100" aria-hidden="true">
     <defs><linearGradient id="${mapId}" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#0e172c"/><stop offset="0.66" stop-color="#123e50"/><stop offset="1" stop-color="#246861"/></linearGradient></defs>
     <circle class="minimap-frame" cx="50" cy="50" r="48"/>
     <rect class="minimap-basin" x="${northWest.x}" y="${northWest.y}" width="${width}" height="${height}" rx="5" fill="url(#${mapId})"/>
@@ -35,7 +38,7 @@ export function createMinimap(container) {
       ${[-850, -500, -200, 0]
         .map((z) => {
           const p = projectMinimapPosition({ x: 0, z });
-          return `<path d="M ${northWest.x} ${p.y - 2} Q 50 ${p.y + 5} ${southEast.x} ${p.y - 2}"/>`;
+          return tr`<path d="M ${northWest.x} ${p.y - 2} Q 50 ${p.y + 5} ${southEast.x} ${p.y - 2}"/>`;
         })
         .join("")}
       <path d="M 50 ${northWest.y + 2} L 50 ${southEast.y - 2}" class="minimap-meridian"/>
@@ -52,7 +55,8 @@ export function createMinimap(container) {
       <text class="minimap-pitch-axis" x="86" y="29">仰</text>
       <path class="minimap-pitch-marker" d="M -6 -2.1 L -1 0 L -6 2.1 Z"/>
     </g>
-  </svg><span class="minimap-pitch-label" aria-hidden="true"></span><div class="minimap-caption"><span class="minimap-home-label"></span><span class="minimap-depth-label"></span></div>`;
+  </svg><span class="minimap-pitch-label" aria-hidden="true"></span><div class="minimap-caption"><span class="minimap-home-label"></span><span class="minimap-depth-label"></span></div>`,
+  );
   const route = container.querySelector(".minimap-home-route");
   const playerMarker = container.querySelector(".minimap-player");
   const homeMarker = container.querySelector(".minimap-home");
@@ -81,10 +85,10 @@ export function createMinimap(container) {
     playerMarker.setAttribute("visibility", "hidden");
     homeMarker.setAttribute("visibility", "hidden");
     route.setAttribute("d", "");
-    homeLabel.textContent = "浅滩出生点 ◇";
-    depthLabel.textContent = "北向固定";
+    homeLabel.textContent = t("浅滩出生点 ◇");
+    depthLabel.textContent = t("北向固定");
     pitchMarker.setAttribute("transform", "translate(86 49)");
-    pitchLabel.textContent = "平游 0°";
+    pitchLabel.textContent = t("平游 0°");
   }
 
   reset();
@@ -103,9 +107,9 @@ export function createMinimap(container) {
       container.dataset.attitude = snapshot.attitude.direction;
       pitchMarker.setAttribute(
         "transform",
-        `translate(86 ${49 - snapshot.attitude.fraction * 16})`,
+        tr`translate(86 ${49 - snapshot.attitude.fraction * 16})`,
       );
-      pitchLabel.textContent = snapshot.attitude.label;
+      pitchLabel.textContent = t(snapshot.attitude.label);
       const { player, home, heading, bearing, relativeBearing } = snapshot;
       container.dataset.heading = degrees(heading);
       container.dataset.homeBearing = bearing === null ? "" : degrees(bearing);
@@ -116,24 +120,26 @@ export function createMinimap(container) {
       container.dataset.sonarActive = String(Boolean(sonarActive));
       container.setAttribute(
         "aria-label",
-        `海域雷达，北向固定，${snapshot.homeLabel}，${snapshot.depthLabel}，${snapshot.attitude.label}${nursery ? "，安全浅滩" : ""}`,
+        t(
+          tr`海域雷达，北向固定，${snapshot.homeLabel}，${snapshot.depthLabel}，${snapshot.attitude.label}${nursery ? "，安全浅滩" : ""}`,
+        ),
       );
       playerMarker.setAttribute("visibility", "visible");
       playerMarker.setAttribute(
         "transform",
-        `translate(${player.x} ${player.y}) rotate(${degrees(heading)})`,
+        tr`translate(${player.x} ${player.y}) rotate(${degrees(heading)})`,
       );
       homeMarker.setAttribute("visibility", "visible");
-      homeMarker.setAttribute("transform", `translate(${home.x} ${home.y})`);
+      homeMarker.setAttribute("transform", tr`translate(${home.x} ${home.y})`);
       route.setAttribute(
         "d",
         snapshot.nearby
           ? ""
-          : `M ${player.x} ${player.y} L ${home.x} ${home.y}`,
+          : tr`M ${player.x} ${player.y} L ${home.x} ${home.y}`,
       );
-      homeLabel.textContent = snapshot.homeLabel;
+      homeLabel.textContent = t(snapshot.homeLabel);
       container.dataset.nursery = String(nursery);
-      depthLabel.textContent = nursery ? "安全浅滩" : snapshot.depthLabel;
+      depthLabel.textContent = t(nursery ? "安全浅滩" : snapshot.depthLabel);
       const activeIds = new Set();
       if (sonarActive) {
         for (const [index, contact] of contacts.entries()) {
@@ -156,7 +162,7 @@ export function createMinimap(container) {
           dot.setAttribute("r", contact.boss ? "2.2" : "1.5");
           dot.setAttribute(
             "class",
-            `minimap-contact ${contact.boss ? "is-boss" : contact.dangerous ? "is-danger" : contact.eligible ? "is-prey" : "is-neutral"}`,
+            tr`minimap-contact ${contact.boss ? "is-boss" : contact.dangerous ? "is-danger" : contact.eligible ? "is-prey" : "is-neutral"}`,
           );
         }
       }

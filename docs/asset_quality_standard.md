@@ -1,88 +1,88 @@
-# 新增资产与视听质量标准
+# Quality Standard for New Assets, Audio, and Effects
 
-**状态：生效。日期：2026-09-28。** 用户要求以后新增鱼种和其他元素直接达到本轮精修品质，避免先上线粗糙版本、再整批重画。本标准适用于可选角色、鱼群、猎手、巨兽、领主、人物、船只、地形、奖励、技能，以及关联的界面展示、动作、声音和特效。
+**Status: in effect. Date: 2026-09-28.** The user requires future fish species and other additions to meet the quality of this refinement pass immediately, avoiding rough releases followed by wholesale redraws. This standard covers playable characters, shoals, hunters, Ancient Giants, Abyss Lords, people, ships, terrain, rewards, abilities, and their associated UI displays, animation, audio, and effects.
 
-项目最低参照为已发布 **v0.6.10 / `5a3248e`** 的同类精修资产。新增鱼群对照精修鱼群，新增领主对照精修领主，不要求每条远景小鱼都达到领主的面数；同类资产后续有已验收的提升时，采用新的参照。当前基准仍是风格化实时 3D，并非照片扫描级复原，且不代表真实低性能手机和所有主观听感均已验收。
+The minimum reference is the comparable polished asset in released **v0.6.10 / `5a3248e`**. Compare a new shoal with polished shoals and a new lord with polished lords; a distant small fish need not have a lord's polygon count. Later accepted improvements in the same category become the new reference. The baseline remains stylized real-time 3D, not a photogrammetric reconstruction, and does not imply acceptance on real low-end phones or of every subjective listening quality.
 
-质量不过关的内容不得作为正式新类别合入或发布。探索性模型、临时音效和粗略效果可以用于明确标注的开发原型，但不能默认加入正式选择、图鉴、生成池或正式试玩。不得以赶进度、品种多或程序化制作方便为由降级；例外须用户明确同意并记录适用范围。日常制作不新增逐步审批，按已授权需求自主完成制作、核验和修正。
+Content below this bar must not be merged or released as a finished new category. Exploratory models, temporary sounds, and rough effects may be used in explicitly labeled development prototypes, but must not enter the regular character selection, Ocean Guide, spawn pool, or public game by default. Deadlines, species count, and procedural convenience are not reasons to lower quality. Exceptions require the user's explicit agreement and a recorded scope. Do not add approval gates for routine production; create, verify, and revise within the authorized request.
 
-可以复用已验收且符合新元素的模型部件、声音和特效；“整体交付”要求核对最终联动，不要求每次新增鱼种都重制一套音效或特效。复用后仍检查实际事件、位置、时机与性能是否合适。
+Reuse accepted model parts, sounds, and effects when they suit the new element. Delivering a coherent whole means verifying the final integration, not producing new audio and effects for every fish species. After reuse, check that the actual events, positions, timing, and performance remain appropriate.
 
-## 先确定同类参照与表现事实
+## Establish the reference and the facts to portray
 
-开工时记录本次元素、同类基准、玩家通常看到的距离和角度，以及要表现的运动和事件。选择能够解释形体、姿势或声音来源的参考，不以“看起来像”替代物种辨识。
+At the start, record the element, its comparable baseline, the player's usual viewing distances and angles, and the motion and events to portray. Use references that explain shape, posture, or sound origin; resemblance alone does not establish species identity.
 
-- 真实生物的头尾、嘴部、鳍肢、腕足、比例、游动方向和栖息条件要有可追溯依据；会影响表现的疑点优先查博物馆、研究机构或原始观察。区分具体物种，不能将普通乌贼的观察直接当作大王乌贼的结论。
-- 分清“能够这样运动”“常见运动方式”和“游戏选用的默认姿势”。资料只支持能力时，不推导频率；为了操控采用的默认方向、体长或速度应明确为游戏取舍。
-- 远古生物记录复原的不确定性；幻想领主明确原创或灵感设定。它们可以夸张，但须保持连贯结构、运动逻辑和稳定辨识度。
-- 使用外部图像、模型、贴图、声音或生成素材时，记录来源、作者、使用权及加工方式。概念图不能充当已运行模型的截图，拟音不能冒充真实海下录音。
+- Real animals need traceable support for head and tail anatomy, mouths, fins or limbs, arms and tentacles, proportions, swimming direction, and habitat. For uncertainties affecting the portrayal, prioritize museums, research institutions, or original observations. Distinguish species: observations of common squid are not automatically findings about giant squid.
+- Distinguish a possible movement, a common movement, and the game's chosen default pose. Evidence of capability does not establish frequency. Label default direction, size, or speed chosen for controls as a gameplay adaptation.
+- Record reconstruction uncertainty for extinct animals. Identify fantasy lords as original creations or inspired designs. Exaggeration is allowed, but structure, motion logic, and recognizable identity must remain coherent.
+- For external images, models, textures, audio, or generated material, record the source, creator, usage rights, and processing. Concept art is not a screenshot of a running model; Foley is not an authentic underwater recording.
 
-## 模型、材质与动作
+## Models, materials, and animation
 
-| 项目       | 正式内容要求                                                                                                                               |
-| ---------- | ------------------------------------------------------------------------------------------------------------------------------------------ |
-| 轮廓与结构 | 连续、有体量变化的主体；口颌、眼部、鳃盖、鳍肢、甲片或腕足贴合结构。每个物种在实际距离下有自己的比例和剪影，不能仅换色复用同一粗略形体。   |
-| 表面与材质 | 有物种相符的背腹色、边界和必要的表面层次；避免全身同色塑料感、浮在身体外的装饰和靠强光掩盖结构。精细度首先服务轮廓与可读性，不能只堆面数。 |
-| 网格完整性 | 检查侧面、正面、背面及关键极值姿态，消除可见自交、退化三角、穿插、断缝和悬空接缝。图鉴近景与实际海洋共用资产，不能只把展示台做漂亮。       |
-| 推进与转向 | 匹配动物或机械结构：虎鲸上下摆尾，人物向后推水而向前游，乌贼鳍波与外套膜喷射有区别。检查实际顶点和完整周期，不只看骨骼旋转值或某一帧。     |
-| 状态变化   | 巡游、冲刺、转向、攻击或进食、离水等相关状态有不同姿态，并平滑进入和退出；由真实速度和状态驱动，不只检查按钮是否按下。暂停冻结，重开恢复。 |
-| 环境与载具 | 船壳、甲板、舷窗、栏杆和推进结构有层次；礁石、珊瑚、海床和水面避免基础形体散放感。实际雾、照明与玩家距离下仍能辨认边界和地标。             |
+| Area                      | Requirements for finished content                                                                                                                                                                                                                                                     |
+| ------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Silhouette and structure  | A continuous body with variation in volume; jaws, eyes, gill covers, fins, limbs, armor plates, or arms must follow its anatomy. Each species needs its own proportions and silhouette at actual viewing distances, not just a recolor of the same rough shape.                       |
+| Surface and materials     | Species-appropriate dorsal and ventral colors, boundaries, and necessary surface detail. Avoid uniformly colored plastic surfaces, floating decorations, or strong lighting that hides structural flaws. Detail must first serve silhouette and readability, not polygon count alone. |
+| Mesh integrity            | Inspect side, front, back, and important extreme poses. Remove visible self-intersections, degenerate triangles, clipping, cracks, and detached seams. Field-guide close-ups and the ocean must share assets; a polished display stand alone is insufficient.                         |
+| Propulsion and turning    | Match animal or mechanical structure: orcas move their tails vertically, swimmers push water backward to move forward, and squid fin waves differ from mantle-driven jets. Inspect actual vertices and complete cycles, not just bone rotations or one frame.                         |
+| State transitions         | Relevant states such as cruising, sprinting, turning, attacking or feeding, and leaving the water need distinct poses with smooth transitions. Drive them from actual speed and state, not merely button presses. Pause freezes them; restart restores them.                          |
+| Environments and vehicles | Give hulls, decks, portholes, railings, and propulsion structures depth and layering. Reefs, coral, seabeds, and water surfaces must not look like scattered basic shapes. Boundaries and landmarks must remain recognizable in real fog, lighting, and player viewing distances.     |
 
-沿用当前模型接口、单位长度、资源缓存与实例独立动画约定。约定中的模型局部轴、实际行进方向和解剖学头部必须分别确认；例如当前乌贼行进时外套膜领先，腕区和嘴在局部 `+Z` 侧，不能机械套用“行进前方就是嘴”。
+Keep the existing model interface, unit-length convention, resource caching, and independent instance animation. Confirm model-local axes, actual travel direction, and anatomical head direction separately. For example, the current squid travels mantle-first, while its arms and mouth are on local `+Z`; do not assume the mouth is always at the leading end.
 
-捕食、碰撞与外观同步检查：捕获范围跟随可见模型变换，吞食终点使用真正嘴部锚点，动画不能偷偷移动游戏根节点。普通捕食容错、嘴部收拢位置、敌方伤害范围和领主侧击是不同规则，不因模型改变就统一扩大。高速接触还要检查帧间穿过、目标逃逸和地形遮挡；船体、礁石等实体外观与阻挡边界不能明显错开。
+Check feeding, collision, and appearance together. Capture regions must follow the visible model transform, swallowing must end at the actual mouth anchor, and animation must not silently move the gameplay root. Ordinary capture tolerance, the mouth convergence point, enemy damage ranges, and lord flank attacks are distinct rules; do not enlarge them all because a model changed. For high-speed contact, also check movement between frames, escaping targets, and terrain occlusion. Visible hulls, reefs, and other solids must not noticeably diverge from their blocking boundaries.
 
-## 声音制作与真实听感
+## Audio production and listening quality
 
-人声需要具有真实表演感，不能把简单振荡器、共振峰或同一录音大幅变调作为正式男女惨叫。当前基准采用分别授权的真人表演录音，保留原音高，按实际人物身份播放；需要不同角色声音时应先选合适的表演素材，再做场景处理。
+Voices must sound like real performances. Simple oscillators, formants, or a heavily pitch-shifted copy of one recording are not acceptable finished male and female screams. The current reference uses separately licensed human performances at their original pitch, routed by the actual person's identity. For different character voices, select suitable performances first, then apply scene processing.
 
-水下捕食声音需要短促吸入、接触和收尾层次。当前鱼声以水声拟音制作三个变体，避免相邻重复；不能恢复突兀的固定音高气泡或只靠增大音量表现力度。合成适合配乐、科幻技能或水流等场景，但必须以实际听感决定是否适用，不把“程序生成”本身当作质量证明。
+Underwater feeding sounds need a short intake, contact, and ending. The current fish sound uses three water-Foley variants without consecutive repeats. Do not restore abrupt fixed-pitch bubbles or rely only on volume to convey force. Synthesis is suitable for music, science-fiction abilities, or flowing water, but actual listening must determine suitability; procedural generation is not proof of quality.
 
-制作和接入必须满足以下要求：
+Production and integration must meet these requirements:
 
-- 记录来源页、作者、所选许可、原件和成品名称、裁切/滤波/混音/格式参数、最终哈希；有处理脚本时保留可复现入口。发布使用本地打包资产，避免运行时依赖素材站临时播放。项目来源台账为 [audio_sources.md](audio_sources.md)。
-- 保留可听清的起音，合理淡入淡出，避免点击声、刺耳高频、过长尾音和连续捕食的机械重复。音高、速率、变体和限流服从角色与事件，不随意泛化现有参数。
-- 同时试听单次事件、连续捕食、浅海/深海环境和配乐叠加。需要验证的是经实际游戏音频图处理后的输出，源文件试听或静态波形不足以代表游戏效果。
-- 检查首次交互、预取、解码缓存、失败回退、并发上限、静音、暂停、恢复和重开。未就绪的旧事件不得在加载完成后集中补播，暂停或重开不得残留尾音或复制音频图。
-- 浏览器离线渲染用于检查非静音、削波、非有限样本、包络和叠音峰值；这些指标不能证明真实感、性别辨识或主观好听。具备音频听取能力时必须实际听；不具备时交付游戏链路的试听片段，明确“待试听”，在获得试听反馈前不能把新声音标为已达标。
+- Record the source page, creator, selected license, original and finished filenames, trimming/filtering/mixing/format parameters, and final hash. Preserve a reproducible entry point when processing scripts exist. Bundle release assets locally rather than depending on a source site's temporary playback at runtime. The project ledger is [audio_sources.md](audio_sources.md).
+- Preserve an audible onset and sensible fades. Avoid clicks, harsh high frequencies, excessive tails, and mechanical repetition during continuous feeding. Pitch, rate, variants, and rate limits must suit the character and event; do not indiscriminately generalize existing parameters.
+- Listen to single events, repeated feeding, shallow and deep environments, and mixing with music. Verify output through the actual game audio graph; source-file playback or a static waveform does not represent the in-game result.
+- Check first interaction, prefetch, decoded caches, failure fallback, concurrency limits, mute, pause, resume, and restart. Old events that were not ready must not play in a burst after loading. Pause and restart must not leave tails or duplicate audio graphs.
+- Browser offline rendering checks non-silence, clipping, non-finite samples, envelopes, and overlapping peaks. These metrics do not establish realism, gender recognition, or subjective quality. If audio-listening capability is available, use it. Otherwise, deliver clips from the game audio path and explicitly mark them as awaiting listening review; do not mark new sounds as accepted before receiving listening feedback.
 
-## 特效与界面可读性
+## Effects and UI readability
 
-一个完整效果需有原因和过程：起势或接触、峰值、扩散或余迹、消退与清理。捕食先有猎物向嘴部收拢的过渡，再表现血雾；不能用目标瞬间消失加一团粒子代替。破水有水幕、水滴与落水波纹；墨云有扩散与离开后的恢复；技能有可辨认的施放、范围与收尾。
+A complete effect needs a cause and progression: onset or contact, peak, expansion or trail, fading, and cleanup. Feeding must first draw prey toward the mouth, followed by blood mist; instantly removing the target and spawning particles is insufficient. Breaching needs a water curtain, droplets, and landing ripples; ink needs diffusion and recovery after leaving the cloud; abilities need recognizable casting, range, and ending.
 
-表现必须跟随真实状态、来源位置和作用方向，不能为了截图扩大伤害范围、关闭敌方行为或额外打灯后声称实战效果已经通过。领主技能有各自视觉语言，奖励能从轮廓/图案辨别用途，不能仅依赖颜色。
+Presentation must follow real state, source position, and direction. Do not enlarge damage ranges, disable enemy behavior, or add special screenshot lighting and then claim combat presentation passed. Lord abilities need distinct visual identities. Reward purpose must be recognizable through silhouettes or patterns, not color alone.
 
-手机小屏和深海雾中检查效果：关键生物轮廓、预警、技能冷却与操控区域仍需可读，不让辉光、墨云、标签或血雾遮满中央视野。更换模型、技能或奖励时同步检查图鉴、首页和 HUD 中受影响的说明和展示，但不把不相关的 UI 重绘绑进每个资产任务。
+Inspect effects on small phones and in deep-sea fog. Key creature silhouettes, warnings, cooldowns, and control areas must remain legible; bloom, ink, labels, or blood mist must not fill the central view. When replacing models, abilities, or rewards, also check affected descriptions and displays in the Ocean Guide, home screen, and HUD. Do not attach unrelated UI redesigns to every asset task.
 
-## 性能与生命周期
+## Performance and lifecycle
 
-共享几何、纹理、材质和解码资源，骨架与动作状态按实例独立；每帧不得创建新几何或多开动画循环。重复开关图鉴、生成同类对象、重开和销毁后资源应稳定，释放共享资源不能破坏仍在使用的实例。
+Share geometry, textures, materials, and decoded resources while keeping skeletons and motion state independent per instance. Do not create geometry every frame or start extra animation loops. Resource use must stabilize after repeated Ocean Guide opening and closing, spawning of the same type, restarts, and disposal. Disposing shared resources must not break active instances.
 
-按变更测量三角、网格/绘制次数、纹理、资源增长及必要的 CPU/GPU 帧时，注明设备、浏览器、分辨率、画质、场景、预热和采样条件。手机多实例鱼群优先降低无效绘制、透明叠加和更新成本；流畅档可削减阴影、后处理和粒子，但须保留物种轮廓及技能可读性。不能把资源计数稳定、绘制次数下降或无头浏览器某次帧率当作真机性能达标。
+Measure triangles, meshes/draw calls, textures, resource growth, and necessary CPU/GPU frame time according to the change. State the device, browser, resolution, quality setting, scene, warm-up, and sampling conditions. For many fish instances on phones, prioritize eliminating wasted draws, transparent overdraw, and update cost. The smooth preset may reduce shadows, post-processing, and particles, but must preserve species silhouettes and ability readability. Stable resource counts, fewer draw calls, or one headless-browser frame-rate measurement do not prove real-device performance.
 
-## 按影响验收与交付证据
+## Verification by impact and delivery evidence
 
-按任务影响选择检查，正常小修不强制重跑所有历史脚本；新类别或整套重绘需要覆盖完整表现链。修改导致的新失败、未解决问题或新增风险才触发扩大验证，不用反复运行无关测试代替视觉判断。
+Choose checks by task impact. Routine small fixes do not require rerunning every historical script; new categories or complete redraws require the full presentation chain. Expand verification for new failures, unresolved issues, or new risks caused by a change, rather than repeatedly running unrelated tests in place of visual judgment.
 
-| 改动                 | 必须覆盖的证据                                                                                  |
-| -------------------- | ----------------------------------------------------------------------------------------------- |
-| 新模型或材质         | 同类参照；实际图鉴或场景多角度截图；真实海洋照明和雾中近距/常用距离；相关几何、接口和资源检查。 |
-| 动作、姿态或捕食位置 | 完整动作周期与状态切换短片/关键帧；实际接触链路和嘴点/边界检查；高速、转向或遮挡等受影响情况。  |
-| 声音                 | 来源与制作记录；游戏链路试听片段和听感状态；实际事件路由、叠音与生命周期结果。                  |
-| 特效、技能或奖励     | 起势到消退的真实状态展示；作用位置/范围与玩法一致；桌面和小屏可读性；清理与必要性能检查。       |
-| 发布产物             | 相关格式、测试与构建结果；实际生产页面受影响的功能检查；资源与本次构建一致，开发接口不外泄。    |
+| Change                                  | Required evidence                                                                                                                                                                                        |
+| --------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| New model or material                   | Comparable reference; actual Ocean Guide or scene screenshots from multiple angles; close and usual viewing distances in real ocean lighting and fog; relevant geometry, interface, and resource checks. |
+| Animation, posture, or feeding position | A full-cycle and transition clip or keyframes; actual contact path and mouth/boundary checks; affected high-speed, turning, or occlusion cases.                                                          |
+| Audio                                   | Source and production records; game-path listening clips and listening-review status; actual event routing, overlapping playback, and lifecycle results.                                                 |
+| Effects, abilities, or rewards          | Real-state presentation from onset to disappearance; position/range consistent with gameplay; desktop and small-screen readability; cleanup and necessary performance checks.                            |
+| Release artifact                        | Relevant formatting, test, and build results; checks of affected functionality on the actual production page; resources matching this build and no exposed development interfaces.                       |
 
-当前桌面与手机布局参照尺寸为 1440×900、390×667、320×568；影响横屏时加 844×390，影响其他布局时补对应尺寸。新元素至少在桌面和小屏实际渲染检查。浏览器触屏模拟只能证明对应浏览器与视口的行为，真机多指手感、性能或扬声器听感未测时明确记录，不能冒充真机验收。
+The current desktop and phone layout reference sizes are 1440×900, 390×667, and 320×568. Add 844×390 when landscape is affected, and other sizes for other affected layouts. Render every new element on at least desktop and a small screen. Browser touch emulation proves behavior only in that browser and viewport. Explicitly record untested real-device multitouch feel, performance, or speaker sound; do not present emulation as real-device acceptance.
 
-任务交付在 [verification.md](verification.md) 或当轮反馈记录中留下：变更及同类基准、来源和改编取舍、实际运行的检查、截图/短片/试听证据、发现并修正的问题、仍未确认的边界。受控布景、固定猎物或开发接口定位要注明；它们能隔离问题，不能证明自然遇见率、自然捕食难度或整局节奏。不得将上轮结果算作本轮新执行结果。
+Record delivery in [verification.md](verification.md) or the current feedback report: the change and comparable baseline, sources and adaptation choices, checks actually run, screenshots/clips/listening evidence, issues found and fixed, and remaining uncertainties. Label controlled scenes, fixed prey, and development-interface positioning. These isolate problems but do not prove natural encounter rates, feeding difficulty, or whole-session pacing. Do not count a previous round's results as checks newly run this round.
 
-只有相关品质和功能检查通过，才可将候选标记为可交付的正式新类别。尚欠的关键视觉/听感证据属于待验收，保留开发预览状态；明确披露的既有设备边界不是宣称全面达标的理由。之后仍按用户当前的提交/发布授权执行，不因通过本标准自动推送。
+Mark a candidate as a deliverable finished category only after the relevant quality and functionality checks pass. Missing key visual or listening evidence means pending acceptance; keep it in development preview. Disclosing existing device limits is not grounds to claim comprehensive acceptance. Then follow the user's current commit/release authorization; passing this standard does not authorize a push on its own.
 
-## 本轮经验的追溯入口
+## References from this refinement pass
 
-- [整体视觉升级](visual_upgrade_v0_6.md)：模型、环境、船只、效果与画质成本。
-- [巨兽重绘](feedback_v0_6_5.md)、[浅海与人物精修](feedback_v0_6_6.md)：同类剪影、细节与共用资产；其中旧合成人声已被后续取代。
-- [真人声音与泳姿修正](feedback_v0_6_7.md)、[水下吞食拟音](feedback_v0_6_8.md)：真人表演、完整动作周期、声音制作与听感边界。
-- [角色动作与连续捕食](feedback_v0_6_9.md)、[大王乌贼游向核验](feedback_v0_6_10.md)：动作与可见模型对齐、帧间接触、资料与游戏默认方向的区别；v0.6.9 的腕冠朝前决定已被 v0.6.10 替代。
+- [Overall visual upgrade](visual_upgrade_v0_6.md): models, environments, ships, effects, and quality costs.
+- [Giant-creature redraw](feedback_v0_6_5.md) and [shallow-water and human refinement](feedback_v0_6_6.md): comparable silhouettes, detail, and shared assets. Their old synthetic voices were subsequently replaced.
+- [Human voices and swimming correction](feedback_v0_6_7.md) and [underwater feeding Foley](feedback_v0_6_8.md): real performances, complete motion cycles, audio production, and listening limitations.
+- [Character animation and continuous feeding](feedback_v0_6_9.md) and [giant-squid direction review](feedback_v0_6_10.md): alignment with visible models, inter-frame contact, and the distinction between evidence and default game direction. The arms-first decision in v0.6.9 was superseded by v0.6.10.
 
-以上历史文档中的“未提交/未推送”保留当时状态。当前正式基准以本文件所列发布版本为准，本标准不把历史被替代方案重新纳入品质基准。
+Historical statements that changes were uncommitted or unpushed retain their original meaning. The released version named here defines the current baseline; this standard does not reinstate superseded historical approaches.

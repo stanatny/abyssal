@@ -1,31 +1,31 @@
-# v0.6.3 · 缓游浅礁与图鉴系统主题
+# v0.6.3 Slow reef prey and system-themed Ocean Guide
 
-本轮在未提交的 v0.6.2 上增量实现。用户希望浅水区有更多类似翻车鱼、适合幼年捕捉的缓慢猎物，并让桌面图鉴跟随系统明暗。仍保留本地视觉快照 `94c2a95`，不提交、不推送；正式 Pages 仍为 v0.5.1。
+This round builds incrementally on uncommitted v0.6.2. The user wanted more slow shallow-water prey, similar to sunfish and suitable for juveniles, plus a desktop guide that follows system appearance. Local visual snapshot `94c2a95` remains the baseline; no commit or push. Official Pages remains v0.5.1.
 
-## 浅滩新增三种鱼
+## Three additional shallow-water fish
 
-| 种类       | 游戏体长 | 数量 / 每群 | 基础速度 | 游戏水深 | 营养 / 成长 |
-| ---------- | -------- | ----------- | -------- | -------- | ----------- |
-| 长角箱鲀   | 0.45 米  | 8 / 2       | 2        | 5–22     | 10 / 0.024  |
-| 隆头鹦嘴鱼 | 1.3 米   | 8 / 4       | 2.4      | 7–28     | 20 / 0.045  |
-| 苏眉       | 1.7 米   | 4 / 2       | 2.6      | 10–32    | 23 / 0.055  |
+| Species             | Game length | Population / school size | Base speed | Game depth | Nutrition / growth |
+| ------------------- | ----------- | ------------------------ | ---------- | ---------- | ------------------ |
+| Longhorn cowfish    | 0.45 m      | 8 / 2                    | 2          | 5–22       | 10 / 0.024         |
+| Bumphead parrotfish | 1.3 m       | 8 / 4                    | 2.4        | 7–28       | 20 / 0.045         |
+| Humphead wrasse     | 1.7 m       | 4 / 2                    | 2.6        | 10–32      | 23 / 0.055         |
 
-均属“浅滩与鱼群”，不主动攻击。八处鱼群驻留在出生区附近，不随玩家远行搬迁；受惊范围较小，普通巡游即可追赶。近距仍会躲避，不是静止的拾取物。实际海床与碰撞约束、刷新、幼年成长与先回血规则沿用现有系统。速度、水层与营养是游戏平衡数值；显示深度仍按世界深度乘四。
+All belong to Shallows & Schools and do not attack. Eight schools remain near spawn instead of relocating after the player. Their smaller alarm ranges let ordinary cruise catch up. They still avoid close approaches rather than acting as stationary pickups. Existing seabed/collision constraints, respawn, juvenile growth, and healing-first rules remain. Speed, depth, and nutrition are balance values; displayed depth is still world depth ×4.
 
-三种模型共用皮肤与几何缓存、保留各自的运动实例：箱鲀有双角、斑点与箱形骨甲，鹦嘴鱼有高额与融合喙，苏眉有厚唇、脸纹与长背鳍。它们也进入图鉴，普通生物增至 **24 类、235 只**，“浅滩与鱼群”增至 **13 类**，图鉴为 **35 条**角色、生物及人类活动记录，另有三类奖励。
+The models share skin/geometry caches with independent movement instances. Cowfish has paired horns, spots, and box-shaped armor; parrotfish has a high forehead and fused beak; wrasse has thick lips, facial patterns, and a long dorsal fin. All enter the guide. Ordinary creatures now total **24 types and 235 individuals**, Shallows & Schools **13 types**, and the guide **35 character, creature, and human-activity entries**, plus three reward types.
 
-按满血、3 米起步的规则单测，连续吃 12 尾箱鲀 / 鹦嘴鱼 / 苏眉，体长分别为约 3.98 / 4.01 / 4.59 米。这不是自然游玩耗时预测，也不保证玩家会连续捕捉同一种鱼。
+Rules tests starting at 3 meters and full health yield approximately 3.98 / 4.01 / 4.59 meters after 12 consecutive cowfish / parrotfish / wrasse respectively. This is neither a natural-play timing prediction nor a guarantee of consecutive catches of one species.
 
-## 图鉴跟随系统颜色
+## Following system appearance
 
-图鉴使用 `prefers-color-scheme`，浅色系统显示暖白档案页，深色系统显示深蓝绿档案页。打开期间切换系统颜色会立即更新，无需刷新或重新打开。手机也保持同样逻辑。
+The guide uses `prefers-color-scheme`: a warm-white archive in light mode and a deep teal archive in dark mode. Changing system appearance while it is open updates immediately without reopening or refresh. Phones follow the same logic.
 
-背景、文本、搜索控件、焦点、分类选中态、奖励展示、滚动条与三维展台一起切换。预览只调整现有灯光和曝光，不新建渲染器、环境贴图、缓存或动画循环；关闭再打开保留模型缓存。其他游戏画面的深海视觉不随图鉴主题改变。
+Backgrounds, text, search, focus, selected categories, rewards, scrollbars, and the 3D display change together. Preview changes adjust only existing lights/exposure, adding no renderer, environment map, cache, or animation loop. Closing and reopening retain model caches. Other game screens retain their deep-sea appearance independently.
 
-## 资料与设计边界
+## References and design boundaries
 
-- [National Aquarium：Longhorn Cowfish](https://aqua.org/explore/animals/longhorn-cowfish)：长角箱鲀的骨甲、长角、分布及可达约 20 英寸的体长。现实具有毒素防御，本轮未实现毒素能力，不能把易捕食设定理解为现实食用建议。
-- [NOAA Fisheries：The Fish That Shapes the Reef](https://www.fisheries.noaa.gov/science-blog/fish-shapes-reef)：隆头鹦嘴鱼可达约 1.3 米，以高额、融合喙及浅礁群体活动为模型和分布参考。
-- [Georgia Aquarium：Humphead Wrasse](https://www.georgiaaquarium.org/animal/humphead-wrasse/)：苏眉采用约 1.7 米尺度，参考高额厚唇、蓝绿色体态和胸鳍推进。缓游和低逃逸速度为本轮幼年捕食体验的设计，并非宣称这些真实生物没有逃避能力。
+- [National Aquarium: Longhorn Cowfish](https://aqua.org/explore/animals/longhorn-cowfish): armor, horns, distribution, and length up to about 20 inches. Real cowfish have toxin defenses, not implemented here; easy in-game feeding is not real-world dietary advice.
+- [NOAA Fisheries: The Fish That Shapes the Reef](https://www.fisheries.noaa.gov/science-blog/fish-shapes-reef): bumphead parrotfish can reach about 1.3 meters; high forehead, fused beak, and shallow-reef schooling inform the model/distribution.
+- [Georgia Aquarium: Humphead Wrasse](https://www.georgiaaquarium.org/animal/humphead-wrasse/): the roughly 1.7-meter game scale references the high forehead, thick lips, blue-green body, and pectoral propulsion. Slow swimming and low escape speed serve juvenile feeding, not a claim that these animals cannot evade threats.
 
-实际验证与临时预览产物见 [验证记录](verification.md)；浏览器尺寸模拟和隔离捕食场景不等于真机或完整自然整局验收。
+Actual checks and temporary-preview artifacts are in [verification](verification.md). Browser viewport emulation and isolated feeding scenes are not real-device or complete natural-round acceptance.

@@ -1,3 +1,4 @@
+import { tr } from "./i18n.js";
 import * as THREE from "three";
 import { addSurfaceDetail } from "./ocean_visuals.js";
 import { mergeGeometries } from "three/addons/utils/BufferGeometryUtils.js";
@@ -31,7 +32,9 @@ export const HUMAN_CATALOG = Object.freeze([
     color: "#ffe18a",
     length: 2.4,
     size: "2.4 m",
-    habitat: `${25 * WORLD.displayDepthScale}—${100 * WORLD.displayDepthScale} m / 潜艇周围`,
+    get habitat() {
+      return tr`${25 * WORLD.displayDepthScale}—${100 * WORLD.displayDepthScale} m / 潜艇周围`;
+    },
     ability: "潜水探索",
     text: "男女成年潜水员均会出现，佩戴面镜、氧气瓶和脚蹼。潜艇被撞破后，也会有男女潜水员分散游出。",
     counter: "刚逃出潜艇时有短暂保护；离开艇壳后再接近捕食。",

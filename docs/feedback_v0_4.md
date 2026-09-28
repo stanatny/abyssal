@@ -1,95 +1,95 @@
-# v0.4 反馈决策与实现范围
+# v0.4 Feedback decisions and implementation scope
 
-本轮围绕操作、出发配置、成长时长和环境实体感调整。工作区继续保留给用户检查，本轮未获提交指令时不提交；完整视觉重绘留到后续单独评审。
+This round adjusts controls, expedition setup, growth duration, and solid environmental interaction. The workspace remains available for user review; without a commit instruction for this round, do not commit. The full visual redraw remains a separate later review.
 
-## 2026-09-27 奖励说明反馈：v0.4.4 当前生效
+## 2026-09-27 Reward instructions: effective in v0.4.4
 
-来源：用户截图指出游戏画面无需常驻奖励用途，希望在图鉴新增模块，并将吞噬和超级加速奖励改为30秒。本节替代旧奖励图例、洋流12秒和狂食10秒的展示与时长；声呐持续10秒不变。
+Source: the user's screenshot feedback said reward explanations need not remain on the game screen. They requested a guide section and 30-second durations for the feeding and super-sprint rewards. This section replaces the old persistent reward legend, 12-second Ocean Current, and 10-second Frenzy. Sonar remains 10 seconds.
 
-- 删除电脑和手机游戏HUD中的常驻奖励说明条；海中拾取物保留图形与名称，移除用途副标题。拾取提示及已生效增益的倒计时保留。
-- 首页海洋图鉴增加“海洋奖励”模块，介绍体力泉、洋流之息、深渊狂食，分别说明识别方式、效果、持续时间与用法。
-- 洋流之息（免费冲刺）和深渊狂食（越级吞噬）均持续30秒；同类再次拾取刷新到30秒，不累加。体力泉仍即时回满并解除疲惫；狂食的1.6倍普通猎物限制和21米领主交战门槛不变。
-- 玩法与图鉴共用 `reward_config.js`，避免展示时长与实际生效时间分离。此轮不调整角色速度、声呐、成长和碰撞。
+- Remove the persistent reward explanation strip from desktop and phone HUDs. Waterborne pickups retain their shapes and names but lose their effect subtitles. Pickup notifications and active-buff countdowns remain.
+- Add an Ocean Rewards section to the home-screen Ocean Guide, explaining identification, effects, duration, and use of Stamina Spring, Ocean Current, and Abyssal Frenzy.
+- Ocean Current (free sprint) and Abyssal Frenzy (oversized prey) both last 30 seconds. Repeated pickups of the same type refresh to 30 seconds without stacking. Stamina Spring still instantly restores full stamina and clears exhaustion. Frenzy retains the 1.6× ordinary-prey limit and 21-meter lord threshold.
+- Gameplay and the guide share `reward_config.js`, preventing displayed and actual durations from diverging. This round does not change character speeds, sonar, growth, or collision.
 
-## 2026-09-27 手机截图反馈：v0.4.3 当前生效
+## 2026-09-27 Phone screenshot feedback: effective in v0.4.3
 
-来源：用户指出手机生命/体力/饥饿条没有对齐，声呐360度标记拥挤，建议仅展示前方可视的一定角度，转动后逐步查看；电脑也应用相同规则。本节替代v0.4.2的全360世界标记和屏幕边缘提示，完整探测仅保留在小地图。
+Source: the user reported misaligned phone health/stamina/hunger bars and crowded 360-degree sonar labels. They proposed showing only a limited angle ahead and revealing other targets as the player turns, on desktop too. This replaces v0.4.2's 360-degree world labels and edge indicators; full detection remains on the minimap only.
 
-- **前向说明**：相机前方水平±30°、垂直±25°且真正位于屏内的目标才可显示。屏边留出18px（手机）/24px（桌面）余量，身后与屏外不再显示箭头。前方雾中/岩石遮挡生物仍可被声呐探测。
-- **减少重复**：前方同种同捕食资格共享文字，电脑和手机均最多4组，每组最多2个代表点；标出体长、可食/不可食或可战/避开及数量。优先领主和危险目标。只在目标附近避让，放不下的说明留给雷达，不搬到远处形成满屏连线。
-- **转向切换**：朝向改变后，根据实际相机更新前方目标，已离开视野的旧标记移除。状态提示显示“前方N组”；没有可展示目标时提示“转向探测”。雷达仍显示260范围内360度回声，10秒持续、60秒冷却、声波和首页标记偏好不变。
-- **生存条对齐**：手机三列统一标题行高和进度条位置，生命栏的健康/回血副文案不再推低单列进度条；兼顾横屏、小屏和动态数值。
+- **Forward labels:** Show targets only within camera-relative horizontal ±30° and vertical ±25°, and actually on screen. Reserve an 18px phone / 24px desktop edge margin. No arrows for targets behind the camera or offscreen. Sonar still detects creatures ahead through fog and rocks.
+- **Less repetition:** Forward targets of the same species and feeding eligibility share text. Desktop and phone each allow at most 4 groups and 2 representative points per group. Include length, edible/not edible or engage/avoid, and count. Prioritize lords and dangerous targets. Resolve overlaps only near the target; leave text that cannot fit to the radar instead of moving it far away and drawing lines across the screen.
+- **Turning:** Update forward targets from the actual camera orientation and remove labels that leave view. The status shows a Chinese label meaning “N groups ahead,” or “turn to scan” when none can be shown. Radar still shows 360-degree echoes within 260 units. The 10-second duration, 60-second cooldown, waves, and home-screen marker preference remain.
+- **Aligned survival bars:** Phone columns share title-row height and bar position. Health/recovery subtitles no longer push down just one bar. Support landscape, small screens, and changing values.
 
-保持未提交；实际检查和截图见 `docs/verification.md`。
+Changes remain uncommitted. Actual checks and screenshots are in `docs/verification.md`.
 
-## 2026-09-27 再次追加：v0.4.2 历史决定（标记范围被上文替代）
+## 2026-09-27 Further additions: historical v0.4.2 decisions (marker scope superseded above)
 
-用户要求强化声呐感知、常驻返航导航、移除游戏中标记开关并适配最多两个特殊技能。本节替代v0.4.1的代表目标列表、L/暂停/触屏开关和隐藏手机概况的做法，其余10秒/60秒、260范围、自动接触攻击及30分钟上限不变。
+The user requested stronger sonar awareness, persistent return navigation, removal of in-game marker toggles, and support for up to two special abilities. This replaces v0.4.1's representative-target list, L/pause/touch marker toggles, and hidden phone overview. The 10-second duration / 60-second cooldown, 260-unit range, automatic contact attacks, and 30-minute limit remain.
 
-- **每个目标都有标记**：激活后扫描范围内所有存活生物均显示个体生命点，独立于普通标记偏好和瞄准范围。穿雾/遮挡呈现；画面外及身后目标用屏幕边缘方向箭头提示。文字包含体长和捕食/交战资格；密集同种同资格目标可共享文字，不丢弃个体点和映射。技能结束清空强制标记，再按首页设置显示常规视野标签。
-- **明显的施放反馈**：四组以虎鲸为中心的扩散声波与淡球面持续10秒，由主循环和有限资源池驱动；暂停冻结技能时钟，暂停界面不保留声呐覆盖，继续后恢复。手机按钮显示剩余秒数、冷却变淡且原生禁用，重复触摸不能刷新。
-- **仅首页设置**：取消L、触屏及暂停中的标记开关，保留首页持久化偏好。J/手机声呐与此独立。
-- **常驻雷达**：固定北向的全海域缩略图，标出玩家位置和朝向、深浅方向，淡菱形和细线表示出生点，文字提示返航及上浮/下潜量。普通状态不泄露生物位置；声呐期间同步全部探测点。
-- **布局适配**：概况/成长/计时持续可见；预警、领主、墨云、通知按流式堆叠；触屏生存条在底部，转向/冲刺/技能分区。技能容器最多支持两个，只有真实可用技能才占位。整体美术重绘仍留待后续。
+- **Every target marked:** During activation, every living creature in scan range has an individual health point, independently of ordinary-marker preferences and aim. Markers penetrate fog/occlusion; offscreen and rear targets use edge arrows. Text includes length and feeding/combat eligibility. Dense groups of the same species and eligibility may share text without dropping individual points or mappings. When the ability ends, clear forced markers and restore ordinary visible labels according to the home setting.
+- **Clear activation feedback:** Four expanding wave groups and faint spherical surfaces centered on the orca last 10 seconds, driven by the main loop and bounded pools. Pause freezes the ability clock and removes the sonar overlay from the pause screen; resume restores it. The phone button shows remaining seconds, fades and becomes natively disabled during cooldown, and cannot be refreshed by repeated touches.
+- **Home setting only:** Remove L, touch, and pause marker toggles; retain the persisted home preference. J / phone sonar remains independent.
+- **Persistent radar:** A north-up whole-region minimap shows player position and heading, shallow/deep directions, a faint diamond and line for spawn, and return/ascent/descent instructions. Normal radar reveals no creature positions; sonar synchronizes all detected points.
+- **Adaptive layout:** Overview, growth, and timer stay visible. Warnings, lords, ink, and notifications stack in flow. Phone survival bars sit at the bottom with separate turning/sprint/ability zones. The ability container supports up to two slots, occupied only by usable abilities. The overall art redraw remains later work.
 
-验证结果与限制以 `docs/verification.md` 本轮记录为准；保持未提交。
+Results and limitations are recorded in `docs/verification.md`. Changes remain uncommitted.
 
-## 2026-09-27 追加反馈：v0.4.1 历史决定（部分被上文替代）
+## 2026-09-27 Added feedback: historical v0.4.1 decisions (partly superseded above)
 
-来源：用户要求将虎鲸声呐改为可探测不可见生物的专属技能，显示约10秒、冷却1分钟；取消咬击按键，接触自动咬；上限改为30分钟。这三项替代下文首轮表格中的“移除主动声呐”“J咬击”和“20分钟上限”，其余成长、海域与视觉范围保持。
+Source: the user requested an orca-exclusive sonar ability that detects invisible creatures for roughly 10 seconds with a 1-minute cooldown, automatic contact bites instead of a bite key, and a 30-minute cap. These replace “remove active sonar,” “J to bite,” and “20-minute cap” in the initial table below. Growth, region, and visual scope otherwise remain.
 
-- **主动声呐**：J或手机声呐按钮释放，半径260游戏米，探测10秒；60秒冷却从释放时开始计算。雷达不依赖相机可见性、雾和岩石视线，能发现身后及遮挡后的存活目标。雷达显示全部回声，文本优先显示有代表性的领主和危险猎手（桌面4种、手机3种），包括体长、相对方向/水层、距离与捕食资格；不会声称领主能被一口吞下。未启用、已击败和待重生生物排除。
-- **标记与技能分开**：L及原设置继续控制常规视野标记，普通标记不透过实体；关闭它不会关闭主动声呐。声呐激活和冷却按真实有效游玩时间走，暂停冻结，重开重置，重复点击不刷新。
-- **接触自动咬击**：普通鱼仍自动捕食；达到门槛后，嘴部与领主实际模型表面或闭合躯干接触会自动攻击。取消咬击按钮，J改为声呐。24米/狂食21米门槛、1.2秒全局攻击间隔、弱点伤害和多次击败规则保持。触腕和三颈之间的空隙不算接触，地形挡住嘴部至接触点时不能隔墙攻击。
-- **30分钟上限**：`ROUND_DURATION=1800`，到时独立结算，暂停不计时。成长收益不再调整，上一轮15—20分钟只是参考路线目标，不强制把通关拉长到30分钟。下文20分钟被截断的慢路线现在可以继续。
-- 手机声呐显示期间临时用顶部区域呈现雷达，探测结束恢复位置/成长面板；追击与领主警报、生命体力和动作按钮保持可见。完整视觉重绘仍留待后续单独处理。
+- **Active sonar:** J or the phone sonar button triggers a 260-game-meter scan for 10 seconds; the 60-second cooldown starts on activation. Radar is independent of camera visibility, fog, and rock line of sight, detecting living targets behind the player or obstacles. Radar shows all echoes; text prioritizes representative lords and dangerous hunters (4 species on desktop, 3 on phone), including length, relative bearing/depth, distance, and feeding eligibility. It never claims lords can be swallowed whole. Inactive, defeated, and respawning creatures are excluded.
+- **Markers separate from abilities:** L and existing settings still control ordinary visible markers, which do not pass through solids. Disabling them does not disable active sonar. Activation and cooldown use effective playtime, freeze on pause, reset on restart, and do not refresh on repeated clicks.
+- **Automatic contact bites:** Ordinary fish remain automatically edible. Once the threshold is met, mouth contact with a lord's actual model surface or closed torso triggers an attack. Remove the bite button and assign J to sonar. Retain the 24-meter / Frenzy 21-meter threshold, 1.2-second global attack interval, weak-point damage, and repeated-hit defeat rules. Gaps between arms or three necks are not contact; terrain blocking the segment from mouth to contact point prevents attacks through walls.
+- **30-minute limit:** `ROUND_DURATION=1800`, with an independent result at timeout; pause does not count. Growth benefits are unchanged. The prior 15–20-minute target was a reference route, not a requirement to stretch completion to 30 minutes. Slower routes formerly cut off at 20 minutes can continue.
+- During sonar, the phone top area temporarily displays radar and restores the location/growth panel afterward. Chase/lord warnings, health/stamina, and action controls stay visible. The full visual redraw remains a separate later task.
 
-当前专项与公开预览结果见 `docs/verification.md`；当前没有新提交或推送授权。
+See `docs/verification.md` for targeted and public-preview results. No new commit or push authorization exists at this point.
 
-## 首轮十项反馈的处理（历史；上述三项已被替代）
+## Initial ten requests (historical; the three decisions above were superseded)
 
-| 用户反馈                                  | 本轮决定与实现                                                                                                                                                                 |
-| ----------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| 1. 桌面取消鼠标转向                       | 桌面使用 WASD 转向，移动鼠标不改变虎鲸航向。手机继续使用触屏摇杆。                                                                                                             |
-| 2. 手机上出现复制、粘贴或全选             | 游戏操作区域按触摸控件处理，抑制误选文字与长按菜单；图鉴搜索等输入仍保留正常编辑能力。                                                                                         |
-| 3. 左手 WASD，右手 J/K/L 与空格           | W/S 上下转向，A/D 左右转向；空格冲刺，J 咬击领主，K 慢游，L 切换生物标记。旧 F 和鼠标左键咬击取消。开始、继续和重开后焦点回到画布，避免空格再次点击旧按钮。                    |
-| 4. 声呐意义不明确，信息应默认可见且可选   | 取消主动声呐和冷却。默认显示生物体长、距离及可捕食提示，可从设置或 L 隐藏，并保存偏好；隐藏标记不隐藏追击与领主警报。角色主动特殊技能是后续扩展，本期虎鲸未新增主动技能。      |
-| 5. 图鉴区分可选角色                       | 虎鲸按可选角色展示，与普通猎物、猎手和海洋领主区分。当前可选角色只有虎鲸。                                                                                                     |
-| 6. 首页先选海域，首期夏威夷               | 首页增加海域与角色配置。夏威夷海域可进入；马里亚纳海沟、百慕大三角和亚特兰蒂斯遗迹展示为尚未开放，不能当作已完成地图选择。                                                     |
-| 7. 本期全部物种在同一海域，未来按海域分配 | 当前夏威夷配置包含全部普通物种和四种候选领主，每局随机启用两位领主。配置保留普通物种与领主名单，供后续海域分别配置。这是幻想改编海域，不声称真实夏威夷存在所有这些生物。       |
-| 8. 长到 30 米太快，一局最长 20 分钟       | 重标定各食物层级成长收益，保留小鱼收益衰减与受伤时优先回血。胜利仍需体长 30 米且击败至少一位领主。活跃探索达到 20 分钟进入独立 `timeup` 结算，不自动算胜利或死亡；暂停不计时。 |
-| 9. 礁石和船只应有实体感                   | 增加轻量实体碰撞与移动阻挡，覆盖海床、礁石、环境结构和船体，并让遮挡判定复用实体信息。采用适合网页游戏的近似碰撞体，不是精确逐三角形物理模拟。                                 |
-| 10. 当前 Kimi 视觉重绘仍不满意            | 本轮完成必要的菜单、信息和交互接合，不把它声明为完整美术验收。整体风格、海洋材质、光照和生物视觉表现的重绘，留到下一轮形成明确参考与效果对照后处理。                           |
+| User feedback                                                              | Decision and implementation                                                                                                                                                                                                                                                                       |
+| -------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 1. Remove desktop mouse steering                                           | Use WASD on desktop. Mouse movement does not change the orca's heading. Phones retain the touch joystick.                                                                                                                                                                                         |
+| 2. Copy, paste, or select-all appears on phones                            | Treat the game area as touch controls, suppressing accidental text selection and long-press menus. Inputs such as guide search remain editable.                                                                                                                                                   |
+| 3. Left hand WASD, right hand J/K/L and Space                              | W/S pitches, A/D turns; Space sprints, J bites lords, K swims slowly, L toggles creature markers. Remove F and left-click biting. Return focus to the canvas after start, resume, and restart so Space cannot click the previous button.                                                          |
+| 4. Sonar is unclear; information should be visible by default and optional | Remove active sonar and cooldown. Show creature length, distance, and feeding hints by default, with a saved setting or L to hide them. Hiding labels does not hide chase/lord warnings. Character-specific active abilities remain future work; no new orca active ability in this initial pass. |
+| 5. Distinguish playable characters in the guide                            | Show the orca under Playable Characters, apart from prey, hunters, and lords. At this stage the orca is the only playable character.                                                                                                                                                              |
+| 6. Select a region on the home screen; Hawaii first                        | Add region and character setup. Hawaii is enterable; Mariana Trench, Bermuda Triangle, and Atlantis Ruins are unavailable placeholders, not completed maps.                                                                                                                                       |
+| 7. Put all current species in one region, split them by region later       | Hawaii includes all ordinary species and four candidate lords, with two randomly active per round. Keep ordinary-species and lord lists configurable by region. This is a fantasy adaptation, not a claim that all these creatures inhabit real Hawaii.                                           |
+| 8. Reaching 30 meters is too fast; cap rounds at 20 minutes                | Recalibrate growth by food tier while retaining small-prey diminishing returns and healing priority. Victory still requires 30 meters and one defeated lord. At 20 minutes of active exploration, use a separate `timeup` result, not automatic victory or death; pause does not count.           |
+| 9. Reefs and ships should feel solid                                       | Add lightweight collision and movement blocking for seabed, reefs, structures, and hulls. Occlusion reuses solid geometry information. Use web-game approximations rather than precise per-triangle physics.                                                                                      |
+| 10. The Kimi redraw is still unsatisfactory                                | Complete necessary menu, information, and interaction integration without claiming full art acceptance. Redesign overall style, ocean materials, lighting, and creature presentation in a later round with explicit references and comparisons.                                                   |
 
-## 成长与饥饿标定
+## Growth and hunger calibration
 
-旧规则下，满血、始终选择最大可吃猎物，理论上只需 19 次普通捕食即可从 6 米长到 30 米。新规则同一理想策略需约 91 次，经过金枪鱼、蝠鲼、白鲨、鮟鱇、大王乌贼和邓氏鱼六个食物阶段。没有按时间锁等级，熟练路线、鱼群连吃和限时奖励仍能加快成长。
+Under the old rules, a fully healthy player always choosing the largest edible prey could theoretically grow from 6 to 30 meters in 19 ordinary meals. Under the new rules, the same ideal strategy takes roughly 91, through tuna, manta ray, white shark, anglerfish, Giant Squid, and Dunkleosteus stages. Levels are not time-gated; skillful routes, school feeding, and timed rewards can still accelerate growth.
 
-普通物种的质量增长收益依次为：珊瑚鱼 0.035、金枪鱼 0.055、蝠鲼 0.2、白鲨 0.45、鮟鱇 0.9、大王乌贼 1.8、邓氏鱼 4。体长按质量立方根计算，最大仍为 30 米。猎物不足自身体长一半后，营养与成长继续按比例平方衰减，浅海小鱼不适合持续供养大体型。
+Ordinary-species mass rewards are coral fish 0.035, tuna 0.055, manta ray 0.2, white shark 0.45, anglerfish 0.9, Giant Squid 1.8, and Dunkleosteus 4. Length derives from the cube root of mass, still capped at 30 meters. Below half the player's length, prey nutrition and growth decline with the square of the size ratio; small shallow-water fish cannot efficiently sustain a large animal.
 
-饥饿每秒消耗为 `0.3 + max(0, length - 6) × 0.045`。24 米时从满饱到空约 90 秒，为深海转场和一次领主交战留出余量；30 米约 72 秒。饥饿清空后仍每秒损失 7 点生命。受伤进食时最多将 70% 成长份额用于治疗，轻伤只扣实际治疗使用的比例；冲刺速度、体力消耗与恢复保持本轮此前的数值。
+Hunger drain per second is `0.3 + max(0, length - 6) × 0.045`. At 24 meters, a full hunger bar lasts about 90 seconds, leaving room for deep-water travel and a lord encounter; at 30 meters, about 72 seconds. Empty hunger still costs 7 health/second. Injured feeding allocates at most 70% of growth to healing; light injury consumes only the share actually used. Sprint speed, stamina drain, and recovery keep this round's previous values.
 
-### 节奏估算的假设与结果
+### Pacing assumptions and results
 
-以下是规则层的事件节奏模拟，**不是自然整局试玩实测，也不是平均玩家用时承诺**：
+The following is a rules-level event simulation, **not a naturally played full-round measurement or a promised average completion time**:
 
-- 开场连续吃 12 条珊瑚鱼，每条间隔 1 秒。
-- 后续有效捕食间隔包括寻找与追逐：金枪鱼 7 秒、蝠鲼 12 秒、白鲨 10 秒、鮟鱇 11 秒、大王乌贼 13 秒、邓氏鱼 16 秒。
-- 达到 10 米和 18 米后，分别增加 20 秒和 30 秒转场，并各承受 28 点伤害。
-- 达到 24 米后，假设用 75 秒抓住五次虚弱窗口击败克拉肯，战中损失 40 点生命，按实际规则获得领主奖励。
-- 未模拟真实导航、咬空、碰撞绕路、失去猎物、限时狂食奖励和不同玩家操作。
+- Start with 12 coral fish, one per second.
+- Subsequent effective feeding intervals include finding and pursuing prey: tuna 7 seconds, manta ray 12, white shark 10, anglerfish 11, Giant Squid 13, and Dunkleosteus 16.
+- At 10 and 18 meters, add 20 and 30 seconds of travel respectively, with 28 damage at each transition.
+- At 24 meters, assume 75 seconds to exploit five vulnerable windows and defeat Kraken, lose 40 health in battle, then receive loot using actual rules.
+- Do not simulate real navigation, missed bites, collision detours, lost prey, timed Frenzy rewards, or differences in player skill.
 
-| 节奏模型                | 成型时间    | 结果                                              |
-| ----------------------- | ----------- | ------------------------------------------------- |
-| 所有间隔为参考值的 80%  | 15 分 10 秒 | 30 米并击败一位领主，胜利                         |
-| 所有间隔为参考值的 90%  | 17 分 03 秒 | 30 米并击败一位领主，胜利                         |
-| 参考节奏                | 18 分 57 秒 | 97 次普通捕食，30 米并击败一位领主，胜利          |
-| 所有间隔为参考值的 110% | 20 分钟     | 约 29.27 米，已击败一位领主，但仅结算远征，未获胜 |
+| Pacing model                       | Completion time | Result                                                                    |
+| ---------------------------------- | --------------- | ------------------------------------------------------------------------- |
+| All intervals at 80% of reference  | 15 min 10 sec   | 30 meters and one defeated lord: victory                                  |
+| All intervals at 90% of reference  | 17 min 03 sec   | 30 meters and one defeated lord: victory                                  |
+| Reference pace                     | 18 min 57 sec   | 97 ordinary meals, 30 meters and one defeated lord: victory               |
+| All intervals at 110% of reference | 20 minutes      | About 29.27 meters and one defeated lord; expedition ends without victory |
 
-自然整局的成长节奏、食物可达性和深海路线仍需后续试玩验收。规则测试证明边界和给定模型下的结果；开发接口布置场景的浏览器回归只能证明局部功能接入，不能替代自然通关。
+Natural full-round growth, food accessibility, and deep-water routes still need playtesting. Rules tests establish boundaries and outcomes under the stated model. Browser regression scenes arranged through development APIs establish local integration, not natural completion.
 
-## 时间与验证边界
+## Timing and verification boundaries
 
-`ROUND_DURATION` 为 1200 秒。远征时钟按未暂停的真实经过时间累计，资源与物理更新保留受限步长，以免慢帧造成大幅位移；最后一帧只结算截止时间之前的份额。低帧率不能把 20 分钟上限拉长。暂停、结束后不再累计，重开时清零 `elapsed` 与 `timedOut`。
+`ROUND_DURATION` is 1200 seconds in this historical initial pass. The expedition clock accumulates actual unpaused elapsed time, while resource and physics updates retain bounded steps to avoid large displacement on slow frames. The final frame settles only the portion before the deadline. Low frame rates cannot extend the 20-minute limit. Pause and end stop accumulation; restart clears `elapsed` and `timedOut`.
 
-单元测试覆盖成长、治疗、饥饿、冲刺、20 分钟独立结算和慢帧计时边界；浏览器回归保留真实按键、捕食、破水、领主多次交战、图鉴与特效生命周期检查。实际执行结果以本轮验证记录为准，本文件不把尚未运行的检查写成通过。
+Unit tests cover growth, healing, hunger, sprinting, independent 20-minute results, and slow-frame timing. Browser regression retains real key input, feeding, breaching, repeated lord encounters, the guide, and effect lifecycle checks. Actual execution is recorded in this round's verification log; this document does not mark unrun checks as passed.

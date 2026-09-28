@@ -1,25 +1,25 @@
-# v0.6.7 · 真人惨叫与向前自由泳修正
+# v0.6.7 Recorded human screams and forward freestyle correction
 
-本轮继续保留 `94c2a95` 之后 v0.6.1—v0.6.6 的未提交改动。用户反馈人声仍缺少真人感，游泳者挥臂像反向游动，图鉴中的姿势也显得不自然。当前候选针对声音素材和人物划水方向修正，不改变人物数量、性别分配、体长、营养或捕食规则；未提交、未推送，正式版本仍为 v0.5.1。
+This round preserves uncommitted v0.6.1–v0.6.6 changes after `94c2a95`. The user reported that voices still lacked a human quality, swimmers appeared to paddle backward, and guide poses looked unnatural. This candidate corrects audio assets and stroke direction without changing population, sex distribution, length, nutrition, or feeding rules. No commit or push; the official release remains v0.5.1.
 
-## 真人男声与女声
+## Recorded male and female voices
 
-成年男声采用 HaelDB 的 `Male Grunt/Yelling sounds` 中 `3yell1.wav`，成年女声采用 AuraVoice 的 `Female Scream 1`，两者均使用来源页提供的 CC0 许可。分别裁切为 1.65 秒和 1.00 秒，随应用打包；详细来源、裁切、格式与最终文件哈希见 [音频来源记录](audio_sources.md)。
+The adult male source is `3yell1.wav` from HaelDB's `Male Grunt/Yelling sounds`; the female source is AuraVoice's `Female Scream 1`. Both use the CC0 license supplied on their source pages. They are trimmed to 1.65 and 1.00 seconds respectively and bundled with the app. See [audio sources](audio_sources.md) for provenance, trimming, formats, and final hashes.
 
-v0.6.6 的合成人声方案已被这两份真人表演录音替代。播放保留原音高和速率 `1`，只在后半程将低通截止频率由 7,800 Hz 降至 950 Hz，模拟声音入水。鱼类吞食等既有程序音效继续使用原有路径；两种人声仍按被捕食对象的 `sex` 路由，共用现有并发和生命周期管理。
+These performed human recordings replace v0.6.6's synthesized voices. Playback retains original pitch and rate `1`; only the latter half lowers the low-pass cutoff from 7,800 Hz to 950 Hz to suggest submersion. Existing procedural effects such as fish feeding retain their path. Human voices still route by the target's `sex`, sharing concurrency and lifecycle management.
 
-## 游泳方向与关节姿态
+## Stroke direction and joint poses
 
-人物坐标约定为头朝局部 `-Z`、脚朝 `+Z`、背部朝 `+Y`。绑定姿态的上臂沿 `+Z` 延伸。旧动画让肩关节绕 X 轴随时间正向增加，结果手腕在水下半周从脚侧向头侧移动，视觉上形成反向划水。肘部又采用独立相位的屈曲曲线，因此简单倒播肩部不能保证正确恢复姿态。
+Human local coordinates put the head toward `-Z`, feet toward `+Z`, and back toward `+Y`. Bind-pose upper arms extend along `+Z`. The old animation increased shoulder X rotation over time, moving the wrist from feet toward head during the underwater half-cycle and visually reversing the stroke. Elbow flexion had an independent phase curve, so simply reversing shoulders would not ensure correct recovery.
 
-新动作以肩旋转 `π − phase` 建立正确方向，依次完成前伸入水、水下向脚侧推水、身侧出水和向头侧恢复。肘始终沿同一屈曲轴弯曲，水下抓水适度屈肘，恢复段前半周加强屈肘形成高肘，最大屈曲约 127°；左右手相差半个周期。关节采用周期闭合的解析曲线，不新增动画循环。
+The new shoulder rotation `π − phase` establishes forward entry, underwater propulsion toward the feet, exit beside the torso, and recovery toward the head. Elbows bend consistently on one flexion axis: moderate flexion during the catch and stronger flexion during early recovery create a high elbow, with a maximum near 127°. Hands are half a cycle apart. Periodically closed analytical curves add no animation loop.
 
-男女外观、15 骨骼拓扑、共享几何材质和独立实例动作保持。潜水员沿用前伸配平与交替打腿，脚蹼朝脚侧展开；本轮增加实际蒙皮脚蹼方向和膝关节限制检查，不将潜水员改为水面自由泳。
+Male/female appearances, 15-bone topology, shared geometry/materials, and independent instance motion remain. Divers retain forward trim and alternating kicks, with fins extending toward the feet. This round adds checks of actual skinned fin direction and knee limits; it does not turn divers into surface freestyle swimmers.
 
-## 稳定姿态采样
+## Stable pose sampling
 
-`human_models.js` 保持 `userData.animate(time)`，并提供 `userData.samplePose(phase)`：`phase` 为归一化周期比例，`0` 与 `1` 是同一姿态。`userData.motionPeriod` 表示完整周期秒数，游泳者约 2.674 秒，潜水员约 3.808 秒。图鉴定格与完整周期录像可以使用同一个采样入口；它不推进世界状态。
+`human_models.js` retains `userData.animate(time)` and adds `userData.samplePose(phase)`, where `phase` is normalized and `0` and `1` are the same pose. `userData.motionPeriod` gives full-cycle seconds: approximately 2.674 for swimmers and 3.808 for divers. Guide stills and complete-cycle recordings use the same sampling entry point without advancing world state.
 
-动作回归检查覆盖男女完整周期的实际手腕位置、水下推水与水上恢复方向、高肘、左右相位、关节范围、跨周期连续性，以及潜水员实际脚蹼顶点方向。上述检查不能代替正面、侧面录像和真实游戏中的视觉判断。
+Motion regression covers actual wrist positions across full male/female cycles, underwater propulsion and above-water recovery directions, high elbows, left/right phase, joint ranges, cycle continuity, and actual diver-fin vertex directions. These do not replace front/side recordings and visual judgment in the real game.
 
-本记录不宣称主观试听、全部验收或预览部署已经完成。测试、浏览器、录制及预览结果统一写入 [验证记录](verification.md)；正式发布仍需用户后续明确授权。
+This record does not claim subjective listening, complete acceptance, or preview deployment is finished. Tests, browser checks, recordings, and previews are recorded in [verification](verification.md). Formal publication still requires subsequent explicit user authorization.

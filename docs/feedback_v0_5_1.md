@@ -1,15 +1,15 @@
-# v0.5.1 可选角色与野生物种分离
+# v0.5.1 Separating playable characters from wild species
 
-2026-09-27，用户明确要求大王乌贼只保留为可选角色，野生生物换为章鱼等新物种，完成后先提交，再单独进行整体 UI 优化。本条替代 v0.5 中“大王乌贼同时作为角色与野生猎手”的决定；本轮授权本地 git commit，未要求推送或正式发布。
+On 2026-09-27, the user explicitly requested that Giant Squid remain playable only, with the wild creature replaced by a new species such as an octopus. They asked for a commit after completion, followed by a separate overall UI improvement phase. This replaces v0.5's decision to use Giant Squid as both character and wild hunter. Authorization covered a local git commit, not a push or formal publication.
 
-- 可选大王乌贼及模型、10秒迷失/60秒冷却、定向喷射和灵活转向被动保持。
-- 野生配置及海域名录移除 `squid`，改为 `octopus` 北太平洋巨型章鱼，种群5只、非鱼群。新增独立橙红圆外套膜、八条卷腕、吸盘和游动模型，与玩家乌贼及克拉肯分开。
-- 章鱼采用5米展开腕部的游戏碰撞尺度，活动于世界深度25—200（显示100—800米）。真实章鱼约5米的腕幅不能当作躯干长度；北太平洋温带物种进入夏威夷仍为幻想集合。
-- 野生章鱼接近更大的玩家时也会触发防御：1秒预警后释放6秒墨云，并短暂游离；墨云半径22，冷却按有效遭遇时间22—30秒计。它不会使用玩家乌贼的十秒停敌技能。小于章鱼的角色仍按普通捕食关系处理。
-- 21种普通生物、5种现代猎手、32条图鉴记录保持；独立海洋生物由27增至28，因为不再重复计算角色/野生乌贼。现代目录按1.2米鮟鱇、4米锤头鲨、5米章鱼、6.4米白鲨、16米抹香鲸排列。
-- 图鉴仅“可选角色”含大王乌贼，“海洋霸主”显示章鱼。主页更新至05.1，角色操作与HUD结构保留。
-- 原参考事件模型移除野生乌贼后重新计算：基准17:17/67餐，快20%为13:49.6/67餐，慢25%为22:51.25/70餐；未修改其他物种的成长收益来追求旧时间。固定觅食间隔仍不代表自然整局试玩。
+- The playable Giant Squid, model, 10-second disorientation / 60-second cooldown, directional jet, and agile-turning passive remain.
+- Remove `squid` from the wild configuration and region roster; replace it with `octopus`, the Giant Pacific Octopus, with a population of 5 and no schooling. Add an independent model with an orange-red rounded mantle, eight curling arms, suckers, and swimming movement, distinct from the player's squid and Kraken.
+- The octopus uses a 5-meter spread-arm game collision scale and occupies world depths 25–200 (displayed as 100–800 meters). A real octopus's approximately 5-meter arm span is not its torso length. Including a temperate North Pacific species in Hawaii remains part of the fantasy collection.
+- A wild octopus also defends itself when a larger player approaches: after a 1-second warning it releases a 6-second ink cloud and briefly swims away. Cloud radius is 22; cooldown is 22–30 seconds of active encounter time. It does not use the player's 10-second enemy-stopping ability. Characters smaller than the octopus still follow ordinary predator–prey rules.
+- Counts remain 21 ordinary species, 5 modern hunters, and 32 guide entries. Distinct marine creature types increase from 27 to 28 because the character and wild squid no longer duplicate one another. The modern roster is ordered as 1.2-meter anglerfish, 4-meter hammerhead, 5-meter octopus, 6.4-meter white shark, and 16-meter sperm whale.
+- Giant Squid appears only under Playable Characters in the guide; Ocean Predators lists the octopus. The home version label becomes 05.1; character controls and HUD structure remain.
+- Recomputing the reference event model without wild squid gives baseline 17:17 / 67 meals, 20% faster 13:49.6 / 67 meals, and 25% slower 22:51.25 / 70 meals. Other species' growth rewards were not changed to recover the old time. Fixed feeding intervals still do not represent a naturally played full round.
 
-生物资料参考 [Alaska Department of Fish and Game](https://www.adfg.alaska.gov/index.cfm?adfg=giantpacificoctopus.main)：八腕、可变化体色、腕幅约16英尺、防御性墨幕与北太平洋分布。具体生命、速度、范围和冷却均属游戏设计。模型尺度及来源表同步到 [生态资料](ecology_sources_v0_5.md)。
+Biological reference: [Alaska Department of Fish and Game](https://www.adfg.alaska.gov/index.cfm?adfg=giantpacificoctopus.main), covering eight arms, variable coloration, roughly 16-foot arm span, defensive ink, and North Pacific distribution. Health, speeds, ranges, and cooldowns are game design. Model scale and the source table were updated in [ecology references](ecology_sources_v0_5.md).
 
-提交包含此前已交付的 v0.3—v0.5 音乐/特效、角色/操作、图鉴/雷达、生态/战斗和本轮替换，作为整体 UI 优化前的基线。专项证据及最终结果见 [验证记录](verification.md)。
+The commit includes the previously delivered v0.3–v0.5 music/effects, characters/controls, guide/radar, ecology/combat, and this replacement, providing a baseline before the overall UI improvement. See [verification](verification.md) for targeted evidence and final results.

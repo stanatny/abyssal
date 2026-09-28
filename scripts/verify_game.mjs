@@ -3,7 +3,10 @@ import assert from "node:assert/strict";
 import { mkdir, writeFile } from "node:fs/promises";
 await mkdir(".local", { recursive: true });
 const browser = await chromium.launch({ channel: "chrome", headless: true });
-const page = await browser.newPage({ viewport: { width: 1440, height: 900 } });
+const page = await browser.newPage({
+  viewport: { width: 1440, height: 900 },
+  locale: "zh-CN",
+});
 page.setDefaultTimeout(30000);
 const errors = [],
   checks = [],

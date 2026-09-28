@@ -3099,3 +3099,185 @@ kbd {
     bottom: 184px;
   }
 }
+
+/* 双语共用界面结构，英文留出完整单词和触屏点击空间。 */
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+.language-control {
+  display: inline-flex;
+  align-items: center;
+  gap: 12px;
+  color: #d0e2d7;
+  font-size: 12px;
+}
+.language-control select {
+  max-width: 100%;
+  min-height: 36px;
+  border: 1px solid #acc9ba60;
+  border-radius: 3px;
+  padding: 6px 8px;
+  background: #102b32;
+  color: #e4ede2;
+  font: inherit;
+  cursor: pointer;
+}
+.language-control select:focus-visible {
+  outline: 2px solid #d9dfc8;
+  outline-offset: 3px;
+}
+.overlay-language {
+  display: flex;
+  justify-content: center;
+  margin: 0 0 20px;
+}
+html[lang="en"] #menu h1 {
+  font-size: clamp(32px, 4.1vw, 62px);
+  letter-spacing: -1.5px;
+}
+html[lang="en"] .intro,
+html[lang="en"] .guide-open,
+html[lang="en"] .mission-label,
+html[lang="en"] .launch-heading {
+  letter-spacing: 0;
+}
+html[lang="en"] .expedition-selects label small {
+  display: none;
+}
+html[lang="en"] .character-traits {
+  gap: 7px 12px;
+}
+html[lang="en"] .menu-controls {
+  flex-wrap: wrap;
+}
+html[lang="en"] #sonar-panel {
+  width: 258px;
+}
+html[lang="en"] #sonar-panel strong {
+  flex-shrink: 0;
+}
+html[lang="en"] .boss-head {
+  flex-wrap: wrap;
+}
+html[lang="en"] .mission strong,
+html[lang="en"] #target,
+html[lang="en"] #boss-tip {
+  overflow-wrap: anywhere;
+  letter-spacing: 0;
+}
+.modal-card {
+  max-height: calc(100dvh - 32px);
+  overflow-y: auto;
+  overscroll-behavior: contain;
+}
+@media (max-width: 700px) {
+  .header-tools {
+    gap: 4px;
+  }
+  .language-control select {
+    min-height: 44px;
+    padding: 5px 3px;
+    font-size: 11px;
+  }
+  html[lang="en"] .brand-name small {
+    display: none;
+  }
+  html[lang="en"] .header-tools button {
+    font-size: 10px;
+    letter-spacing: 0;
+  }
+  html[lang="en"] .brand-icon {
+    display: none;
+  }
+  html[lang="en"] #menu h1 {
+    font-size: clamp(30px, 8.3vw, 48px);
+    letter-spacing: -0.8px;
+  }
+  html[lang="en"] #character-description {
+    flex-wrap: wrap;
+    padding-bottom: 5px;
+  }
+  html[lang="en"] .ability-details summary {
+    min-height: 32px;
+  }
+  html[lang="en"] .menu-actions {
+    gap: 12px;
+  }
+  html[lang="en"] .menu-actions .primary {
+    padding: 12px 10px;
+    letter-spacing: 0;
+  }
+  html[lang="en"] .guide-open {
+    max-width: 46%;
+  }
+  html[lang="en"] .menu-stats {
+    gap: 20px;
+  }
+  html[lang="en"] .menu-stats span {
+    letter-spacing: 0;
+  }
+  html[lang="en"] #sonar-panel {
+    width: 104px;
+  }
+  html[lang="en"] #sonar-panel strong {
+    font-size: 9px;
+  }
+  html[lang="en"] .sonar-count {
+    display: inline;
+  }
+  html[lang="en"] .mission-label {
+    font-size: 8px;
+  }
+  html[lang="en"] .mission strong {
+    font-size: 10px;
+    line-height: 1.3;
+  }
+  html[lang="en"] .mission-meta {
+    gap: 5px;
+  }
+  html[lang="en"] #touch-sonar span {
+    font-size: 10px;
+  }
+  html[lang="en"] .vital-head {
+    letter-spacing: 0;
+  }
+  html[lang="en"] #combat-status {
+    font-size: 11px;
+  }
+}
+@media (max-width: 360px) {
+  header .brand-icon,
+  header .brand-name small {
+    display: none;
+  }
+  html[lang="en"] .brand-name {
+    font-size: 9px;
+    letter-spacing: 0.5px;
+  }
+  html[lang="en"] .header-tools button {
+    min-width: 0;
+    padding: 4px 2px;
+    font-size: 9px;
+  }
+  html[lang="en"] #menu .intro {
+    font-size: 10px;
+    letter-spacing: 0;
+  }
+}
+
+@media (max-width: 360px) {
+  html[lang="en"] #sonar-panel {
+    width: 94px;
+  }
+}
+@media (max-height: 500px) and (min-width: 701px) {
+  html[lang="en"] #sonar-panel {
+    width: 104px;
+  }
+}

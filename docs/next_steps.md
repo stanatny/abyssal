@@ -1,108 +1,108 @@
-# 后续工作
+# Next Steps
 
-## v0.6.10 主分支交付（2026-09-28）
+## v0.6.10 delivery to main (2026-09-28)
 
-用户已完成本轮试玩评审，明确要求提交并推送远端 `main`。本次交付整合 v0.6.1—v0.6.10，连同此前已提交的 v0.6 视觉快照一并发布；版本仍为0.6.10，不额外创建 tag 或 Release。`main` 推送后沿用 Pages 工作流自动部署，部署状态见 [Actions](https://github.com/stanatny/abyssal/actions/workflows/pages.yml)。下文各轮的候选、未提交及旧正式版本说明均为历史状态。
+The user completed this round's playtest review and explicitly requested a commit and push to remote `main`. This delivery combines v0.6.1–v0.6.10 with the previously committed v0.6 visual snapshot. The version remains 0.6.10, with no additional tag or Release. Pushing `main` triggers automatic deployment through the existing Pages workflow; see [Actions](https://github.com/stanatny/abyssal/actions/workflows/pages.yml) for deployment status. Candidate, uncommitted, and old production-version descriptions below are historical states.
 
-下一步优先收集自然整局和真实手机的试玩反馈，继续调整捕食手感、难度与性能；不得把浏览器模拟尺寸当作真机验收。
+The next priority is feedback from natural full runs and real phones, followed by further tuning of feeding feel, difficulty, and performance. Browser-emulated sizes must not be treated as real-device acceptance.
 
-## v0.6.10 当前候选
+## v0.6.10 candidate at that stage
 
-本轮根据大王乌贼游向核验与用户反馈，恢复外套膜尖端／鳍端领先、腕足拖后的默认游姿，捕获点移到可见腕区，嘴部锚点及吞入方向随之对齐，见 [本轮反馈](feedback_v0_6_10.md)。这是游戏选择；Iziko 支持真实大王乌贼双向运动，Robinson 等 2021 年 §3.3／图 4 记录了捕食接近与喷射撤离，但未给出日常巡游方向的频次结论。v0.6.9 的腕冠固定朝前决定被替代，角色动作、共用吞食半径及连续接触补判保留。
+This round checked giant squid swimming direction against sources and user feedback, then restored the default pose with the mantle tip/fin end leading and the arms trailing. The capture point moved to the visible arm region, with the mouth anchor and intake direction aligned accordingly; see [this round's feedback](feedback_v0_6_10.md). This is a game choice. Iziko supports bidirectional movement in real giant squid; Robinson et al. 2021, §3.3/Figure 4, records hunting approaches and jet retreats but does not establish how often each direction is used in everyday cruising. This supersedes v0.6.9's fixed forward-facing arm crown; character animation, the shared feeding radius, and swept-contact recovery remain.
 
-本轮239项单测、11项捕食/动作浏览器专项、构建与6组公开预览检查通过，已核对腕区捕获点、嘴部坐标、冲刺和喷射中的接触及默认游姿。下一步由用户自然试玩确认抓鱼手感与追尾动作；具体证据见 [验证记录](verification.md)。继续保留此前未提交改动，不提交、不 Push；正式 Pages 仍为 v0.5.1。
+This round passed 239 unit tests, 11 targeted feeding/animation browser checks, a build, and 6 public-preview check groups. Checks covered the arm-region capture point, mouth coordinates, contact during sprinting and jetting, and the default swimming pose. Next, natural user playtests should confirm fish-catching feel and trailing-view animation; see the [verification record](verification.md) for evidence. At this stage, all earlier uncommitted changes remained, with no commit or push; production Pages was still v0.5.1.
 
-## v0.6.9 上轮候选（朝向决定已被 v0.6.10 替代）
+## v0.6.9 previous candidate (orientation superseded by v0.6.10)
 
-本轮处理大王乌贼幼年捕食困难和两种角色动作生硬，见 [本轮反馈](feedback_v0_6_9.md)。原有 3 米起步、吞食资格、育幼加成及半径已核对一致；现在把捕获点与可见模型转向对齐，并用本帧相对运动补查途中接触，保持原半径和遮挡规则。吞食终点使用真实嘴部锚点。虎鲸增加尾柄、尾鳍、胸鳍联动；乌贼增加分节腕足、鳍波、外套膜收缩与收腕动作，接入实际速度、冲刺、喷射和转向状态。
+This round addressed difficulty feeding as a juvenile giant squid and stiff animation in both characters; see [this round's feedback](feedback_v0_6_9.md). The existing 3 m starting length, feeding eligibility, nursery bonus, and radius were confirmed to match. The capture point was aligned with the visible model's turning, and relative motion during the current frame was used to recover contact along the path, preserving the radius and occlusion rules. Feeding ends at the actual mouth anchor. The orca gained coordinated tailstock, fluke, and pectoral-fin motion; the squid gained segmented arms, fin waves, mantle contractions, and arm gathering, driven by actual speed, sprinting, jetting, and turning state.
 
-本轮239项单测、28项浏览器主流程、9项吞食过渡、11项双角色专项已通过，另完成完整动作周期录制和旧虎鲸尾鳍自交修正。公开临时预览最终状态与资源回执见 [验证记录](verification.md) 和 `.local/preview_state.json`。下一步重点由用户自然试玩确认乌贼抓鱼手感、追尾视角下两种角色动作，以及真实手机性能；不把受控布景当作自然整局验收。继续保留此前未提交改动，不提交、不 Push；正式 Pages 仍为 v0.5.1。
+This round passed 239 unit tests, 28 main browser-flow checks, 9 feeding-transition checks, and 11 checks targeting both characters. Full animation cycles were also recorded, and self-intersections in the old orca fluke were fixed. The final temporary public-preview state and asset receipts are in the [verification record](verification.md) and `.local/preview_state.json`. The next priorities were natural user feedback on squid fish-catching feel, both characters' trailing-view animation, and real-phone performance. Controlled scenes do not establish acceptance of a natural full run. At this stage, earlier uncommitted changes remained, with no commit or push; production Pages was still v0.5.1.
 
-## v0.6.8 上轮候选
+## v0.6.8 previous candidate
 
-用户已确认 v0.6.7 真人男女惨叫和向前泳姿，本轮按追加反馈重做鱼类吞食声音。采用 CC0 水声拟音制作三个短变体，取消旧正弦气泡；相邻变体不重复，并保留较轻的入水冲击与气泡尾声。见 [本轮反馈](feedback_v0_6_8.md) 和 [音频来源](audio_sources.md)。男女声音、人物泳姿及玩法保持。
+The user had accepted v0.6.7's recorded male/female screams and forward swimming motion. This round remade fish-feeding sounds in response to additional feedback: three short variants made from CC0 water foley replaced the old sine-wave bubbles. Adjacent variants do not repeat, and a softer water-entry impact and bubble tail remain. See [this round's feedback](feedback_v0_6_8.md) and [audio sources](audio_sources.md). Male/female voices, human swimming motion, and gameplay were unchanged.
 
-本轮已完成 226 项单测、9 项真实捕食专项、浏览器音频渲染与生命周期检查，以及公开预览 1440／390／320 px 的播放及资源一致性核对，结果见 [验证记录](verification.md)。下一步由用户在实际设备试听鱼声是否自然、连吃鱼群是否过响；自动波形检查不证明主观听感。继续未提交、未 Push，正式 Pages 仍为 v0.5.1，仅临时试玩已更新。
+This round completed 226 unit tests, 9 actual-feeding targeted checks, browser audio rendering and lifecycle checks, and playback/asset-consistency checks on the public preview at 1440/390/320 px; see the [verification record](verification.md). Next, the user should listen on actual devices to judge whether fish sounds feel natural and whether eating a shoal is too loud. Automated waveform checks do not establish subjective listening quality. At this stage, changes remained uncommitted and unpushed; production Pages was still v0.5.1, and only the temporary preview had been updated.
 
-## v0.6.7 上轮候选（用户已确认人物声音与泳姿）
+## v0.6.7 previous candidate (human voices and swimming accepted by the user)
 
-本轮用 CC0 真人男声/女声替代 v0.6.6 合成人声，并修正游泳者水下向脚侧推水、水上向前高肘恢复的完整自由泳周期。见 [本轮反馈](feedback_v0_6_7.md) 与 [音频来源](audio_sources.md)。此前人物外观、浅海模型及玩法改动全部保留，继续未提交、未Push，正式Pages仍v0.5.1。
+This round replaced v0.6.6's synthetic human voices with CC0 recordings of male/female performers and corrected the full freestyle cycle: underwater strokes push toward the feet, while above-water recovery moves forward with a high elbow. See [this round's feedback](feedback_v0_6_7.md) and [audio sources](audio_sources.md). All earlier human appearance, shallow-water model, and gameplay changes remained. At this stage, changes were still uncommitted and unpushed, and production Pages was still v0.5.1.
 
-实际录音路由、静音/暂停/重开和男女完整划水周期已完成该轮验证，公开临时预览当时已更新；结果见 [验证记录](verification.md)。用户随后回复“可以了”，本轮保留人物声音与泳姿。`samplePose(0…1)`可复现相同姿态，已有侧面连续周期录像；仍不能将自动关节检查或波形检查当作自然整局验收。
+That round verified actual recording routing, mute/pause/restart behavior, and complete male/female stroke cycles; the temporary public preview was updated at the time. See the [verification record](verification.md). The user subsequently accepted the result, so these human voices and swimming motions were retained. `samplePose(0…1)` reproduces the same pose, and side-view recordings of continuous cycles are available. Automated joint or waveform checks still do not establish acceptance of a natural full run.
 
-## v0.6.6 上轮候选（合成人声已被v0.6.7替代）
+## v0.6.6 previous candidate (synthetic human voices superseded by v0.6.7)
 
-本轮扩展男女游泳者/潜水员及对应声线，重绘13种浅海生物和5种现代海洋霸主；图鉴增加人物外观切换，记录数保持35。见 [本轮反馈](feedback_v0_6_6.md) 与 [验证记录](verification.md)。继续未提交、未Push，保留此前全部反馈改动。下一步重点收集模型辨识度、男女惨叫听感和实际手机鱼群场景流畅性反馈。
+This round added male/female swimmers and divers with corresponding voices, redrew 13 shallow-water species and 5 modern Ocean Predators, and added a human-appearance switch to the Ocean Guide while retaining 35 entries. See [this round's feedback](feedback_v0_6_6.md) and the [verification record](verification.md). Changes remained uncommitted and unpushed, retaining all earlier feedback changes. The next priorities were feedback on model recognition, the sound of male/female screams, and shoal-scene smoothness on real phones.
 
-## v0.6.5 当前候选
+## v0.6.5 candidate at that stage
 
-六种远古巨兽与四位深渊领主重绘、人声加强、20秒虎鲸声呐及普通鱼近身容错已完成；详见 [本轮反馈](feedback_v0_6_5.md) 与 [验证记录](verification.md)。此前v0.6.3缓游浅礁/系统主题、v0.6.4水面20°姿态/固定狂食/反转上下也包含在当前候选。全部保持未提交、未Push，正式Pages仍v0.5.1，临时预览状态在 `.local/preview_state.json`。
+Redraws of six Ancient Giants and four Abyss Lords, stronger human voices, 20-second orca sonar, and more forgiving close-range feeding on ordinary fish were complete; see [this round's feedback](feedback_v0_6_5.md) and the [verification record](verification.md). The candidate also included v0.6.3's slow reef prey/system theme and v0.6.4's 20° surface pose/fixed frenzy pickup/inverted vertical controls. All changes remained uncommitted and unpushed; production Pages was still v0.5.1, and the temporary-preview state was in `.local/preview_state.json`.
 
-下一步等用户实际试玩审美、惨叫听感和近距捕食手感；保留乌贼原技能，不因为虎鲸20秒探测而延长墨幕。真实手机性能、自然整局和深海灯光可读性继续按下方清单验证。
+The next step was user playtesting of visual appeal, scream quality, and close-range feeding feel. Preserve the squid's original ability; 20-second orca detection is not a reason to lengthen the ink cloud. Continue checking real-phone performance, natural full runs, and deep-sea lighting readability against the checklist below.
 
-## v0.6.2 及此前实现背景
+## Implementation background through v0.6.2
 
-v0.6 视觉快照已保存为本地提交 `94c2a95`，用户要求暂不 Push。其后 v0.6.1 四项试玩反馈与 v0.6.2 育幼浅滩实现保持未提交：自由游向与姿态刻度、幼年起步、吞食收拢过渡、浅滩生态和人类分布修复，详见 [反馈记录](feedback_v0_6_1.md)。后续育幼浅滩把开局调为3米、增加小鱼、建立安全区与两只外礁挑战，并接入人物重绘、区别化捕食音效和桌面提示优化，详见 [本轮反馈记录](feedback_v0_6_2.md)。整体视觉升级已完成上一轮集成验收，详见 [v0.6 视觉范围](visual_upgrade_v0_6.md)。新增连续体态、皮肤材质和骨骼摆尾；精修水草、珊瑚、海面、船只、墨云与声波；首页和图鉴改为海洋远征/标本展示风格。公开正式版本仍是 v0.5.1，新版本先用临时预览交用户 review，再依明确授权提交发布。
+The v0.6 visual snapshot was saved as local commit `94c2a95`; the user requested no push for the time being. The following v0.6.1 four-point playtest response and v0.6.2 nursery-shallows implementation remained uncommitted: free swimming direction and pitch scale, juvenile starts, feeding-gather transitions, and fixes to shallow-water ecology and human distribution. See the [feedback record](feedback_v0_6_1.md). The later nursery-shallows work changed the starting length to 3 m, added small fish, established a safe zone and two outer-reef challenges, and incorporated human redraws, differentiated feeding sounds, and clearer desktop hints; see [that round's feedback](feedback_v0_6_2.md). The overall visual upgrade had completed the previous round's integration acceptance; see the [v0.6 visual scope](visual_upgrade_v0_6.md). It added continuous body shapes, skin materials, and skeletal tail motion; refined seagrass, coral, the sea surface, ships, ink clouds, and sound waves; and restyled the home screen and Ocean Guide as an ocean expedition/specimen display. Production remained v0.5.1. New versions went to the user for review through a temporary preview before commit and release under explicit authorization.
 
-下一步优先依据实际试玩反馈检查整体审美、角色近景辨识度、深海可读性及手机流畅程度，不重复把已完成的 UI 结构当作尚未开始。自然整局和真机验证仍按下列清单继续。
+The next priority was checking overall appearance, close-up character recognition, deep-sea readability, and phone smoothness against actual playtest feedback. Do not treat the completed UI structure as work that has not started. Continue natural full-run and real-device verification with the checklist below.
 
-## v0.5.1 已发布基线
+## v0.5.1 released baseline
 
-本轮开放虎鲸、大王乌贼两种角色，每种一个主动和一个被动；普通生物扩充为 21 种，包含浅海鱼群、现代猎手和远古巨兽；加入成人游泳者/潜水员、可冲撞破坏的潜艇、一次性接触鱼雷，并把四领主战改为多次侧翼接触。首页图鉴共 32 条记录，详情见 [反馈记录](feedback_v0_5.md) 与 [生态资料](ecology_sources_v0_5.md)。大王乌贼现仅作角色，野生种类已换为北太平洋巨型章鱼，见 [v0.5.1补充](feedback_v0_5_1.md)。夏威夷幻想海域仍是唯一开放地图，其余地区只是后续入口。
+This round made both orca and giant squid selectable, each with one active and one passive ability. It expanded ordinary creatures to 21 species, covering shallow-water shoals, modern hunters, and ancient beasts; added adult swimmers/divers, submarines destructible by ramming, and single-use contact torpedoes; and changed the four lord battles to repeated flank contact. The home-screen Ocean Guide had 32 entries; see the [feedback record](feedback_v0_5.md) and [ecology sources](ecology_sources_v0_5.md). Giant squid became player-only, with the wild species replaced by the giant Pacific octopus; see the [v0.5.1 addendum](feedback_v0_5_1.md). Fantasy Hawaii remained the only available map, with the other regions serving as future entry points.
 
-用户已授权提交当前 v0.3—v0.5.1 功能，并进一步要求推送 GitHub、公开试玩和完善 README。本轮发布版本为 v0.5.1，正式入口为 [GitHub Pages](https://stanatny.github.io/abyssal/)，部署状态见 [Actions](https://github.com/stanatny/abyssal/actions/workflows/pages.yml)。实际验证以 [验证记录](verification.md)、`.local/pages_deployment.json` 和 `.local/v5_1_pages_verification.json` 为准；临时预览记录仍在 `.local/preview_state.json`。后续在该基线上单独做整体 UI 优化。
+The user authorized a commit of the v0.3–v0.5.1 functionality, then requested a push to GitHub, a public playable link, and README improvements. That release was v0.5.1, available on [GitHub Pages](https://stanatny.github.io/abyssal/), with deployment status in [Actions](https://github.com/stanatny/abyssal/actions/workflows/pages.yml). Actual verification is recorded in the [verification record](verification.md), `.local/pages_deployment.json`, and `.local/v5_1_pages_verification.json`; temporary-preview records remain in `.local/preview_state.json`. Overall UI refinement was to follow as a separate iteration on that baseline.
 
-整体 UI 与美术再设计现由 v0.6 接续，不自动再次交棒 Kimi。新增物种模型不代表整体视觉问题已经解决。当前最需要补齐的是两角色的自然整局体验、真实手机多指输入及扩容后的低性能设备表现。
+v0.6 now carries forward the overall UI and art redesign; do not automatically hand it back to Kimi. Adding species models does not establish that the overall visual issues are resolved. The main remaining gaps are natural full runs with both characters, real-phone multitouch input, and low-end-device performance after the expansion.
 
-## 下一轮自然试玩
+## Next natural playtests
 
-- 分别从出生点使用虎鲸和乌贼自然捕食，记录从浅海到中层、进入远古水层、首次领主战及最终结算的耗时。3 米幼年起步的参考模型基准 17:52、耗时延长 25% 的路线 23:35 仅是测试假设，不作为已完成自然试玩的证据。
-- 观察微小鱼群是否易发现、可连续捕食，绿海龟/翻车鱼等中型猎物能否衔接成长，以及两只巨齿鲨等稀疏大猎物的自然刷新是否让后期等待过长。不要用自动模型的假定捕食间隔替代地图密度验收。
-- 对比虎鲸 41.6 冲刺和乌贼 32 冲刺/灵活转向的差异；验证喷墨后 10 秒逃生窗口、1.5 秒定向喷射、实体阻挡和 60 秒冷却在自然追击中是否容易理解与使用。
-- 观察远古巨兽、普通猎手与领主的追击距离、预警和脱战。虎鲸冲刺已高于领主普通追速，仍需确认领主的拦截与技能能带来压力，同时给玩家可靠的规避机会。
-- 从前、后、背部和左右侧接近领主，体会侧击判定、0.35 秒脱离再入、1.2 秒冷却以及 3 秒虚弱期；确认至少五次有效攻击的战斗有周旋空间，贴身硬顶不会变成最优解。
-- 实际完成潜艇三次冲撞，观察艇壳阻挡、回转空间、破坏反馈和三名潜水员的释放；确认鱼雷警示可辨认，28 点单次伤害不会因同帧接触重复出现。
-- 对比重伤、轻伤、满血时的进食反馈与成长损失；检查普通生物、人类猎物、海鸥及主宰战利品是否同样解释清楚“先回血，再长大”。
-- 完成 30 米但未击败主宰、至少一位主宰且 30 米、30 分钟到时三类结算；暂停应冻结计时。专项状态布景已覆盖的规则仍需观察自然整局中的提示是否清楚。
-- 探索不同水层，核对显示深度倍率 4、地形、栖息区、返航雷达与上浮提示。深海迷路时能否顺利回到浅滩，比单独看指示器是否有显示更重要。
-- 观察飞鱼受惊滑翔、角色蓄势破水、捕食海鸥及落水镜头；确认不同体型的天空、水花与镜头衔接自然。
-- 在真实手机横竖屏验证摇杆、冲刺、角色技能、倒计时、暂停、首页标记偏好与页面安全区，尤其是连续多指操作、长按和浏览器手势。
-- 试听平静、追逐、领主、喷墨、脱险、暂停与结算全过程，检查真实扬声器/耳机的音量及过渡。配乐与多数事件音效为程序合成，成年男女惨叫为CC0真人录音，鱼类吞食在v0.6.8改为CC0水声拟音。
+- Start at spawn with each of the orca and squid, feed naturally, and record the time to the middle depths, the ancient-creature layer, the first lord battle, and final results. The reference model's 17:52 baseline for a 3 m juvenile start and 23:35 route with 25% longer durations are test assumptions, not evidence of completed natural playtests.
+- Observe whether tiny shoals are easy to find and eat in succession, whether medium prey such as green turtles/sunfish bridge growth stages, and whether natural respawning of sparse large prey, such as the two megalodons, creates excessive late-game waits. Do not substitute an automated model's assumed feeding intervals for map-density acceptance.
+- Compare the orca's 41.6 sprint speed with the squid's 32 sprint speed/flexible turning. Check whether the 10-second escape window after inking, 1.5-second directional jet, solid obstacles, and 60-second cooldown are understandable and usable during natural pursuits.
+- Observe chase distances, warnings, and disengagement for ancient beasts, ordinary hunters, and lords. The orca now sprints faster than a lord's normal pursuit; confirm that interception and abilities still create pressure while allowing reliable evasive responses.
+- Approach lords from the front, rear, above, and both flanks to assess flank detection, 0.35-second separation before reentry, the 1.2-second cooldown, and the 3-second vulnerability window. Confirm that battles requiring at least five effective hits allow maneuvering, and that staying pressed against the enemy is not optimal.
+- Complete three actual submarine rams and observe hull blocking, turning room, destruction feedback, and the release of three divers. Confirm that torpedo warnings are readable and that 28-point single-hit damage is not repeated by same-frame contact.
+- Compare feeding feedback and lost growth under severe injury, minor injury, and full health. Check that ordinary creatures, human prey, seagulls, and lord loot all clearly explain “heal first, then grow.”
+- Exercise three result cases: 30 m without defeating a lord, 30 m with at least one lord defeated, and the 30-minute time limit. Pausing must freeze the timer. Rules already covered by targeted state setups still need checks for clear prompts during natural full runs.
+- Explore different layers and check the displayed-depth multiplier of 4, terrain, habitats, return radar, and ascent prompts. Successfully returning to the shallows after getting lost in deep water matters more than merely seeing an indicator.
+- Observe frightened flying-fish glides, momentum-based character breaches, seagull feeding, and the reentry camera. Confirm natural transitions among sky, splashes, and camera movement at different body sizes.
+- On real phones in portrait and landscape, verify the joystick, sprint, character ability, countdowns, pause, home-screen marker preference, and page safe areas, especially sustained multitouch, long presses, and browser gestures.
+- Listen through calm play, pursuit, lord combat, inking, escape, pause, and results, checking volume and transitions on actual speakers/headphones. The score and most event sounds are procedural; adult male/female screams use CC0 human recordings, and v0.6.8 changed fish feeding to CC0 water foley.
 
-## 玩法与内容调优
+## Gameplay and content tuning
 
-v0.6.3 已增加长角箱鲀、隆头鹦嘴鱼与苏眉三种浅滩缓游猎物，并支持图鉴跟随系统明暗。继续通过实际试玩观察八处常驻鱼群是否好找、初期成长是否自然，以及深色系统下模型和文字是否舒适。
+v0.6.3 added three slow shallow-water prey species—longhorn cowfish, green humphead parrotfish, and humphead wrasse—and made the Ocean Guide follow the system's light/dark theme. Continue using real playtests to assess whether the eight resident shoals are easy to find, early growth feels natural, and models/text are comfortable under a dark system theme.
 
-用自然试玩记录各阶段捕食次数、治疗量、受伤原因、主动技能使用时机、有效侧击次数和死亡原因，再决定成长、饥饿或生态密度的调整。参考事件模型使用实际生存规则，但不模拟路径、刷新等待与真实战斗；不为满足旧版本的“15—20 分钟”描述反向修改测试假设。
+Record feeding counts, healing, causes of injury, active-ability timing, effective flank hits, and causes of death at each stage of natural play before changing growth, hunger, or ecological density. The reference event model uses actual survival rules but does not simulate paths, respawn waits, or real combat. Do not work backward from the old “15–20 minutes” description to change test assumptions.
 
-评估两只随机领主的组合、领地和重生间隔，减少无法接近或反复搜索的空白时间。乌贼墨幕能够打断附近已交战领主，但不是全图静止或无敌；后续新增技能也需明确影响对象、释放条件、结束时机与反制。
+Evaluate the two random lords' combinations, territories, and respawn intervals to reduce dead time caused by inaccessible targets or repeated searching. Squid ink can interrupt nearby engaged lords; it does not freeze the whole map or grant invulnerability. Future abilities also need explicit targets, activation conditions, end conditions, and counterplay.
 
-虎鲸和大王乌贼已经可以选择。后续角色应继续有清楚的主动/被动差异，通过现有角色配置接入；布局最多容纳两个主动技能，不把每种被动都变成按钮。先打磨现有角色，再考虑海豚、鲨鱼等新角色及独立资源取舍。
+Orca and giant squid are already selectable. Future characters should retain clear active/passive differences and use the existing character configuration. The layout supports at most two active abilities; do not turn every passive into a button. Refine the existing characters before considering dolphins, sharks, or other characters and their separate resource tradeoffs.
 
-未来开放马里亚纳、百慕大与亚特兰蒂斯时，按海域配置分配物种、地形与领主。当前全部物种同处夏威夷是幻想集合，不应在图鉴或宣传中改写为现实地理分布。新增真实生物或古生物应继续维护来源与尺度口径，保留体长、翼展、背甲长和触腕全长的区别。
+When Mariana, Bermuda, and Atlantis open, assign species, terrain, and lords through region configuration. The current gathering of all species in Hawaii is a fantasy combination and must not become a claim of real geographic distribution in the Ocean Guide or publicity. Continue maintaining sources and measurement conventions for new living or extinct creatures, distinguishing body length, wingspan, carapace length, and total length including tentacles.
 
-## 美术、声音与操作
+## Art, sound, and controls
 
-- 根据 v0.6 实际预览反馈继续调整首页、图鉴与 HUD 的美术方向，保留桌面、小手机、大手机、横屏布局与触屏输入回归。
-- 精修两种玩家角色的体态、口部、皮肤和运动，进一步区分可选大王乌贼、野生章鱼与神话克拉肯；检视新增 14 种模型在真实游戏距离下的剪影与运动辨识度。
-- 打磨玛雅灵感原创巨兽和三头海德拉的入场阴影、环境反应、技能动作与侧翼可攻击提示，减少依赖文字解释。
-- 调整深海光照、荧光、雾与熔岩，保留氛围同时让前方障碍、敌人和鱼雷可辨认。
-- 继续调优键盘/触屏转向、成长后的相机和领主贴身视野，v0.6.4已加入俯仰反转和水面20°舒适姿态；继续评估减弱动态镜头、心跳及受伤闪烁的选项。
-- 通过短提示逐步解释角色主动/被动、侧击、奖励与修复机制，避免首次进入即堆满说明。
-- 根据真实设备试听调整编曲、真人惨叫和事件音效，持续维护 [素材来源](audio_sources.md)。引入音频素材时保留明确授权与处理记录，并区分拟音与真实环境录音。
+- Continue refining the home screen, Ocean Guide, and HUD's art direction from actual v0.6 preview feedback, retaining layout and touch-input regression checks for desktops, small phones, large phones, and landscape screens.
+- Refine body shape, mouths, skin, and motion for both player characters; further distinguish the playable giant squid, wild octopus, and mythical Kraken. Inspect the silhouettes and motion of the 14 added models at actual gameplay distances.
+- Refine entrance shadows, environmental responses, ability animation, and attackable-flank cues for the original Maya-inspired beast and three-headed Hydra, reducing reliance on text explanations.
+- Tune deep-sea lighting, bioluminescence, fog, and lava to retain atmosphere while keeping obstacles, enemies, and torpedoes ahead readable.
+- Continue tuning keyboard/touch turning, camera behavior after growth, and close-range views during lord battles. v0.6.4 added inverted pitch and a comfortable 20° surface pose; continue assessing options to reduce camera movement, heartbeat, and damage flashes.
+- Explain character active/passive abilities, flank attacks, rewards, and recovery gradually through short prompts instead of presenting all instructions at first entry.
+- Adjust arrangements, human screams, and event sounds through listening on real devices, and maintain the [asset sources](audio_sources.md). Keep explicit license and processing records for introduced audio, distinguishing foley from real environmental recordings.
 
-## 技术整理
+## Technical cleanup
 
-- v0.6性能采样已定位：新旧版的 `sweepBody` 与 `colliderReach` 都是 CPU 主耗时。优先设计保守的空间分区/候选查询和重复边界计算缓存，保留扫掠与脱困语义并以现有碰撞回归验证；不要直接简化椭球扩张边界或跳过鱼身安全判定。辉光有独立 GPU 成本，可通过流畅模式关闭。
+- v0.6 profiling identified `sweepBody` and `colliderReach` as the main CPU costs in both old and new versions. Prioritize conservative spatial partitioning/candidate queries and caching repeated boundary calculations, retaining swept-contact and escape-from-geometry semantics and checking them against existing collision regressions. Do not directly simplify expanded ellipsoid boundaries or skip body-safety checks. Bloom has a separate GPU cost and can be disabled in smooth mode.
 
-- 24 种普通生物、新增人类活动和技能并存后，检查低端设备帧率、离屏更新、长时间运行及反复重开的资源释放。
-- 改善大型生物、岩拱、潜艇周围的碰撞近似与成长脱困，检查喷射和转向造成的贴地边界情况。
-- 保持角色、生存、生态、领主和人类活动规则与场景表现分离；图鉴复用配置和模型缓存，额外内容不新增常驻 RAF。
-- 持续区分规则单测、确定场景浏览器专项、公开预览核对与自然试玩；本轮实际结论由 [验证记录](verification.md) 留档。
-- 后续继续先 review，再依明确授权提交、推送和发布；临时预览不代替 GitHub Pages。
+- With 24 ordinary species, new human activity, and abilities coexisting, check low-end frame rates, offscreen updates, long sessions, and resource release across repeated restarts.
+- Improve collision approximations and escape after growth around large creatures, rock arches, and submarines. Check near-ground edge cases caused by jetting and turning.
+- Keep character, survival, ecology, lord, and human-activity rules separate from scene presentation. The Ocean Guide should reuse configuration and model caches; extra content must not add a persistent RAF.
+- Continue distinguishing rule unit tests, controlled-scene browser checks, public-preview checks, and natural playtests. Record actual findings for each round in the [verification record](verification.md).
+- Continue with review first, then commit, push, and release under explicit authorization. Temporary previews do not replace GitHub Pages.
 
-## 历史进展
+## Historical progress
 
-- **v0.4 / v0.4.4**：桌面纯键盘、手机防误选、虎鲸 10 秒声呐/60 秒冷却、前方标记与 360 度回声雷达、返航、首页角色/海域入口、30 分钟上限及实体碰撞；后续将奖励说明移到图鉴并统一 30 秒增益。该阶段只开放虎鲸，已被 v0.5 双角色替代。见 [反馈记录](feedback_v0_4.md)。
-- **v0.3**：2026-09-27 完成声音、血雾、动量破水、船只、猎手技能和图鉴；Kimi 视觉重绘已集成，Codex 做过独立复核与定点修复。见 [功能反馈](feedback_v0_3.md) 和 [视觉交接](visual_handoff_v0_3.md)。原阶段的 13 种生物图鉴已由本轮扩容替代。
-- **v0.2**：加入分层配乐、优先进食修复、主宰战、奖励辨识、水面跃起及更深海域，通过当时的 26 项规则测试与 21 条浏览器流程；用户于 2026-09-27 授权提交。见 [反馈记录](feedback_v0_2.md)。这些历史通过状态均不等于本轮或真实设备已经验收。
+- **v0.4 / v0.4.4**: Keyboard-only desktop play, prevention of accidental selection on phones, 10-second orca sonar/60-second cooldown, forward markers and 360-degree echo radar, return navigation, home-screen character/region entries, a 30-minute limit, and solid collisions. Later, reward descriptions moved into the Ocean Guide and buffs were standardized to 30 seconds. Only the orca was available then; v0.5 superseded this with two characters. See the [feedback record](feedback_v0_4.md).
+- **v0.3**: Sound, blood mist, momentum-based breaching, ships, hunter abilities, and the Ocean Guide were completed on 2026-09-27. Kimi's visual redraw was integrated; Codex performed independent review and targeted fixes. See the [feature feedback](feedback_v0_3.md) and [visual handoff](visual_handoff_v0_3.md). The 13-species Ocean Guide from that stage has been superseded by the later expansion.
+- **v0.2**: Added layered music, recovery-first feeding, lord battles, reward recognition, surface breaches, and deeper regions. Passed the 26 rule tests and 21 browser flows of that stage; the user authorized a commit on 2026-09-27. See the [feedback record](feedback_v0_2.md). These historical passes do not establish acceptance of the current round or real devices.

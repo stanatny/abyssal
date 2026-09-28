@@ -1,109 +1,109 @@
-# v0.5 角色、生态与交互扩展
+# v0.5 Character, ecology, and interaction expansion
 
-历史快照：下文记录 v0.5 首轮实现。2026-09-27 用户随后要求乌贼仅作角色、野生改章鱼并授权提交；野生名录、独立生物数量与参考时长已由 [v0.5.1补充](feedback_v0_5_1.md) 替代，其余规则保留。
+Historical snapshot: this document records the first v0.5 implementation. Later on 2026-09-27, the user requested playable-only squid, a wild octopus replacement, and a commit. The wild roster, distinct creature count, and reference duration were superseded by the [v0.5.1 supplement](feedback_v0_5_1.md); other rules remain.
 
-本轮在 v0.4.4 未提交工作区上继续实现，保留已有操作、声呐、返航雷达、奖励、碰撞及声音。正式 GitHub Pages 仍是已发布 v0.2（`96d57ff`），本轮不含新提交或推送授权。实际测试、构建和公开预览核对由 [验证记录](verification.md) 留档，本文件说明实现规则与取舍，不把计划或模型当作自然试玩结果。
+This round continues from the uncommitted v0.4.4 workspace, retaining controls, sonar, return radar, rewards, collision, and audio. Official GitHub Pages still serves published v0.2 (`96d57ff`); this round includes no new commit or push authorization. Actual tests, builds, and public-preview checks are in [verification](verification.md). This document explains implementation and tradeoffs without presenting plans or simulations as natural-play results.
 
-## 两种可选角色
+## Two playable characters
 
-角色定义集中在 `src/character_rules.js`，首页选择、技能按钮、移动与图鉴读取同一份配置。虎鲸和大王乌贼均从 6 米开始，**各有一个主动技能和一个被动技能**。桌面 J 释放当前角色主动，手机复用同一技能槽；被动无须按键。既有布局仍最多容纳两个主动技能，本轮每个角色只占一个。
+`src/character_rules.js` centralizes character definitions for home selection, ability buttons, movement, and the guide. Orca and Giant Squid both start at 6 meters, **each with one active and one passive ability**. Desktop J triggers the selected active; phones reuse the same slot. Passives need no key. The existing layout supports at most two active slots, with one used per character this round.
 
-| 角色     | 主动                                                           | 被动与移动差异                                                                    |
-| -------- | -------------------------------------------------------------- | --------------------------------------------------------------------------------- |
-| 虎鲸     | 回声定位：范围 260，持续 10 秒，释放起冷却 60 秒               | 海洋疾驰：基础 32 冲刺提升 30%，目标速度 41.6 游戏米/秒                           |
-| 大王乌贼 | 墨幕喷射：范围 90，迷失 10 秒，前 1.5 秒喷射，释放起冷却 60 秒 | 柔躯回旋：未冲刺时转向更快，最大俯仰 85°；实际冲刺时恢复常规转向，普通冲刺速度 32 |
+| Character   | Active                                                                                                          | Passive and movement differences                                                                                                      |
+| ----------- | --------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------- |
+| Orca        | Echolocation: range 260, duration 10 seconds, 60-second cooldown from activation                                | Ocean Sprint: 30% above the base sprint of 32, targeting 41.6 game meters/second                                                      |
+| Giant Squid | Ink Jet: range 90, disorientation 10 seconds, jet for the first 1.5 seconds, 60-second cooldown from activation | Flexible Turning: faster turning when not sprinting, maximum pitch 85°; normal turning during actual sprint, ordinary sprint speed 32 |
 
-两角色巡游 12、慢游 5，体力消耗/恢复延续原规则。虎鲸声呐仍在雷达中保留周围 360 度回声，画面只呈现相机前方水平 ±30°、垂直 ±25°且屏内的目标；可以揭示遮挡后的前方生物。转向切换、文字聚合、以虎鲸为中心的扩散声波、10 秒结束后恢复常规标记偏好均保留。乌贼不同时拥有声呐。
+Both cruise at 12 and swim slowly at 5; stamina drain/recovery follow existing rules. Orca sonar retains surrounding 360-degree radar echoes, but world labels appear only within camera-relative horizontal ±30°, vertical ±25°, and the screen. It reveals creatures ahead behind obstacles. Turning updates, text aggregation, orca-centered waves, and restoration of ordinary marker preferences after 10 seconds remain. Squid does not also have sonar.
 
-乌贼主动只在水下且角色可行动时释放。释放瞬间，90 范围内**已在追击的普通猎手**及**处于追击/蓄力/攻击阶段的领主**被标记为迷失，停止移动 10 秒，并打断尚未发出的领主招式；并非所有路过生物都会停下，也不会为之后进入范围的新敌人持续附加效果。已发射弹体不因此承诺消失，角色仍可能受伤。
+Squid's active requires an actionable character underwater. At activation, **ordinary hunters already pursuing** and **lords in chase/windup/attack phases** within 90 units become disoriented, stop moving for 10 seconds, and cancel unreleased lord attacks. It does not stop every passing creature or continuously affect newcomers. Already launched projectiles are not guaranteed to disappear, and the player can still take damage.
 
-技能前 1.5 秒沿释放瞬间的朝向喷射，速度向 72 游戏米/秒收敛，使用原有连续碰撞，不能穿过岩石或船体。技能产生可见墨云，主动结束与冷却独立显示；暂停冻结效果和冷却时间。玩家自己的墨云与野生乌贼墨云在来源上区分，具体界面与真实输入验证见验证记录。
+For the first 1.5 seconds, the squid jets along its activation heading toward 72 game meters/second, using existing continuous collision so it cannot pass through rocks or hulls. It creates visible ink; active duration and cooldown display independently. Pause freezes both. Player ink and wild-squid ink have distinct origins; see verification for actual UI and input checks.
 
-## 21 种普通生物与生态尺度
+## 21 ordinary species and ecological scale
 
-`src/ecosystem_config.js` 成为普通生物的统一配置。分类数量如下，四个稀有领主不在这 21 种内。
+`src/ecosystem_config.js` becomes the unified ordinary-creature configuration. The four rare lords are outside these 21 species.
 
-| 分类                 | 数量 | 名录与本作体长                                                                                                                      |
-| -------------------- | ---: | ----------------------------------------------------------------------------------------------------------------------------------- |
-| 海洋猎物             |   10 | 鳀鱼 0.18 m、鲱鱼 0.26 m、沙丁鱼 0.30 m、飞鱼 0.40 m、鲭鱼 0.55 m、珊瑚鱼 0.8 m、绿海龟 1.2 m、翻车鱼 3 m、蓝鳍金枪鱼 3 m、蝠鲼 4 m |
-| 海洋霸主（现代猎手） |    5 | 深海鮟鱇 1.2 m、锤头鲨 4 m、大白鲨 6.4 m、大王乌贼 12 m、抹香鲸 16 m                                                                |
-| 远古巨兽             |    6 | 邓氏鱼 6 m、上龙 11 m、蛇颈龙 12 m、沧龙 13 m、龙王鲸 18 m、巨齿鲨 20 m                                                             |
+| Category                         | Count | Roster and in-game length                                                                                                                                                         |
+| -------------------------------- | ----: | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Marine prey                      |    10 | Anchovy 0.18 m, herring 0.26 m, sardine 0.30 m, flying fish 0.40 m, mackerel 0.55 m, coral fish 0.8 m, green sea turtle 1.2 m, ocean sunfish 3 m, bluefin tuna 3 m, manta ray 4 m |
+| Ocean Predators (modern hunters) |     5 | Deep-sea anglerfish 1.2 m, hammerhead 4 m, great white shark 6.4 m, Giant Squid 12 m, sperm whale 16 m                                                                            |
+| Ancient Giants                   |     6 | Dunkleosteus 6 m, pliosaur 11 m, plesiosaur 12 m, mosasaur 13 m, Basilosaurus 18 m, megalodon 20 m                                                                                |
 
-新增五种小鱼为鳀鱼、沙丁鱼、鲱鱼、鲭鱼和飞鱼；另加绿海龟、翻车鱼、锤头鲨、抹香鲸及五种远古生物，共新增 14 种普通生物模型。模型保留各自外形特征与动画，场景和图鉴通过 `createCreature` 复用。飞鱼在浅水近距离受惊后离水、展开胸鳍滑翔再落水，不使用鸟类振翅动作。
+The five new small fish are anchovy, sardine, herring, mackerel, and flying fish. Green sea turtle, ocean sunfish, hammerhead, sperm whale, and five ancient animals bring the total to 14 new ordinary-creature models. Each has its own silhouette and movement; scene and guide reuse `createCreature`. Flying fish startled at close range in shallow water breach, spread their pectoral fins, glide, and reenter; they do not flap like birds.
 
-分类内按体长排序，而非整个配置表全局按体长排序。成长路线、声呐捕食资格及 AI 必须读取实际体长，不依赖旧的七种物种列表、白鲨 10 米或邓氏鱼 21 米等历史数值。深海鮟鱇保留小型伏击者的尺度，“海洋霸主”只是游戏分类名，不表示类别内每一种都能威胁 6 米玩家。
+Species are ordered by length within categories, not globally. Growth routes, sonar eligibility, and AI must read actual length rather than relying on the old seven-species list, 10-meter white shark, or 21-meter Dunkleosteus. Anglerfish remains a small ambush predator. Ocean Predators is a game category, not a claim that every member threatens a 6-meter player.
 
-本作仍使用游戏尺度：显示水深是世界深度的四倍。现代物种体长参考较大个体，不等于常见成体；乌贼全长包含触腕、蝠鲼常用翼展、海龟常用背甲长，不能直接当作相同体量。邓氏鱼等古生物的身体与尺度存在重建争议，图鉴保留限定说明。
+Game scale remains: displayed depth is four times world depth. Modern lengths reference larger individuals, not typical adults. Squid total length includes tentacles; rays are commonly measured by wingspan and turtles by carapace length, so these do not imply equivalent body mass. Ancient body reconstructions and sizes, including Dunkleosteus, remain disputed; the guide preserves qualifications.
 
-详细资料、选择依据及原始来源集中在 [生态尺度与资料来源](ecology_sources_v0_5.md)。本期把所有生物放在**夏威夷幻想海域**，不声称北鳀、鲱鱼等自然分布于夏威夷；远古复苏及所在水层、抹香鲸追击玩家、角色由 6 米长到 30 米和特殊技能均是玩法设定。克拉肯、海德拉和利维坦为幻想领主，玛雅巨兽是受遗迹美术启发的原创设定，不冒充真实生物或确定的历史神祇。
+Detailed references and choices are in [ecological scale and sources](ecology_sources_v0_5.md). All creatures appear in the **Hawaii fantasy region**; this does not claim that northern anchovy, herring, and others naturally occur in Hawaii. Ancient revival and depth ranges, sperm whales pursuing players, growth from 6 to 30 meters, and special abilities are game design. Kraken, Hydra, and Leviathan are fantasy lords. The Maya-inspired monster is an original ruin-inspired design, not a real species or a confidently identified historical deity.
 
-## 四领主的侧翼战斗
+## Flank combat against four lords
 
-克拉肯、玛雅巨兽、三头海德拉、利维坦保留各自领地和技能，每局随机启用两只。领主不是到体长门槛就能一次吞掉的普通猎物。
+Kraken, the Maya-inspired monster, Three-Headed Hydra, and Leviathan retain territories and abilities, with two randomly active per round. Reaching a length threshold does not turn a lord into prey that can be swallowed in one bite.
 
-自动攻击需要同时满足：
+Automatic attacks require all of the following:
 
-1. 通常达到 24 米；深渊狂食期间门槛降至 21 米。
-2. 嘴部接触实际模型表面/实体，并且没有地形阻挡；触腕间空隙不算命中。
-3. 玩家位于领主左右侧翼，朝向领主内部进攻；正面、尾后或从背上垂直贴靠不造成有效侧击。
-4. 距离前次成功咬击至少 1.2 秒，且上次命中后嘴部离开领主接触至少 0.35 秒再进入。持续贴着不会自动连咬。
+1. Normally at least 24 meters; Abyssal Frenzy lowers this to 21.
+2. Mouth contact with the actual model surface/solid without terrain obstruction. Gaps between arms are not hits.
+3. The player is on a left or right flank and attacks inward. Frontal, rear, or vertical contact from above is not an effective flank attack.
+4. At least 1.2 seconds since the previous successful bite, plus at least 0.35 seconds out of mouth contact after the previous hit before reentry. Staying attached does not cause repeated bites.
 
-每次伤害最多是领主总生命的 24%，因此满级、狂食和虚弱窗口也至少需要五次有效进攻。攻击后 3 秒虚弱期伤害更高，错过窗口仍可侧击但效率更低。击败后才获得相应营养与成长，并计入胜利条件。
+Each hit is capped at 24% of total lord health, requiring at least five effective attacks even at maximum level, during Frenzy, or in vulnerable windows. The 3 seconds after an attack offer higher damage; flank attacks outside that window still work less efficiently. Nutrition, growth, and victory credit are awarded only after defeat.
 
-领主普通追速为 37—40；虎鲸冲刺 41.6 已高于这一区间，旧“领主追速全部高于普通冲刺”的文字不再适用。危险来自领地内的追踪预判、克拉肯漩涡、玛雅脉冲、海德拉弹体和利维坦最高 100 的冲撞，不能把直线冲刺描述为一定能够逃脱。
+Ordinary lord pursuit speeds are 37–40. Orca sprint at 41.6 exceeds that range, so the old statement that all lords outrun normal sprint no longer applies. Threat comes from predictive territorial pursuit, Kraken vortices, Maya pulses, Hydra projectiles, and Leviathan charges up to 100. Straight-line sprinting cannot be described as guaranteed escape.
 
-## 成人活动、潜艇与鱼雷
+## Adult human activity, submarines, and torpedoes
 
-新增内容由 `human_activity.js`、`human_rules.js` 和 `vehicle_models.js` 分离管理，参与主循环与碰撞，不增加独立场景循环。
+`human_activity.js`, `human_rules.js`, and `vehicle_models.js` manage these additions separately within the main loop and collision system, without an additional scene loop.
 
-| 对象       | 本轮交互                                                               |
-| ---------- | ---------------------------------------------------------------------- |
-| 成年游泳者 | 浅滩活动，接触后按普通进食规则补充营养并优先回血                       |
-| 成年潜水员 | 水下活动，可捕食；从潜艇逃出时有 2 秒保护                              |
-| 深海潜艇   | 不能直接吞食；至少 8 米、至少 20 游戏米/秒的角色完成三次独立冲撞后破坏 |
-| 接触鱼雷   | 静止危险物，接触后爆炸并消失，命中造成 28 点生命伤害，遵守原有无敌规则 |
+| Object             | Interaction in this round                                                                                                                 |
+| ------------------ | ----------------------------------------------------------------------------------------------------------------------------------------- |
+| Adult swimmer      | Active in shallow water; contact supplies nutrition and healing priority under ordinary feeding rules                                     |
+| Adult diver        | Active underwater and edible; protected for 2 seconds after escaping a submarine                                                          |
+| Deep-sea submarine | Cannot be swallowed; a character at least 8 meters long and moving at least 20 game meters/second destroys it with three independent rams |
+| Contact torpedo    | Stationary hazard that explodes and disappears on contact, dealing 28 health damage under existing invulnerability rules                  |
 
-每次有效潜艇撞击后需要先离开艇壳，下一次冲撞仍需满足速度、体长及 0.8 秒撞击间隔；贴着壳体不会连续扣耐久。第三次有效冲撞只释放一次三名成年潜水员，不重复生成。鱼雷只结算一次爆炸，不追踪玩家，也不是食物。人类捕食和鱼雷伤害保留地形遮挡检查。
+After an effective submarine hit, leave the hull before the next ram, which must still meet speed, length, and the 0.8-second interval. Staying against the hull does not repeatedly damage durability. The third valid ram releases exactly three adult divers once. Torpedoes settle a single explosion, do not track the player, and are not food. Human feeding and torpedo damage retain terrain-occlusion checks.
 
-原有游轮及帆船继续具有船壳/甲板碰撞，不加入破坏或受力翻转。潜艇是单独的可破坏载具，不能把其规则套给水面所有船只。
+Existing cruise ships and sailboats retain hull/deck collision without destruction or force-driven overturning. The submarine is a separate destructible vehicle; its rules do not apply to every surface ship.
 
-## 图鉴与海域规划
+## Guide and region planning
 
-图鉴的 32 条记录由以下部分组成：
+The guide's 32 entries comprise:
 
-- 可选角色 2：虎鲸、大王乌贼，分别展示主动与被动。
-- 普通生物 21：10 猎物、5 现代猎手、6 远古生物。
-- 海面海鸥 1、稀有领主 4。
-- 人类活动 4：成年游泳者、成年潜水员、潜艇、鱼雷。
+- 2 playable characters: Orca and Giant Squid, with their active and passive abilities.
+- 21 ordinary creatures: 10 prey, 5 modern hunters, and 6 ancient animals.
+- 1 surface seagull and 4 rare lords.
+- 4 human-activity entries: adult swimmer, adult diver, submarine, and torpedo.
 
-乌贼玩家与野生乌贼各有独立图鉴 ID，使用同一物种模型缓存，选择一种身份不会误选另一个条目。排除四个人类活动条目及重复乌贼角色记录，游戏中有 **27 种独立海洋生物类型**，此计数包含海鸥、幻想领主和珊瑚鱼艺术组合，不是严格分类学种数。奖励仍单列三种，不计入 32 条。
+Player and wild squid have separate guide IDs while sharing the species model cache; selecting one identity cannot select the other entry. Excluding four human entries and the duplicated squid character gives **27 distinct marine creature types**. This includes gulls, fantasy lords, and the artistic coral-fish grouping, so it is not a strict taxonomic species count. Three rewards are separate from the 32 entries.
 
-本期只开放夏威夷；马里亚纳海沟、百慕大三角和亚特兰蒂斯保持禁用展示。角色和海域分别配置，以后可按海域分配不同物种，无须把图鉴“可选角色”改回某个单一物种专栏。
+Only Hawaii is open this round. Mariana Trench, Bermuda Triangle, and Atlantis remain disabled. Character and region configuration are separate, allowing future species allocation by region without reverting Playable Characters to a single-species section.
 
-## 成长与 30 分钟边界
+## Growth and the 30-minute boundary
 
-保留 30 米且至少击败一位主宰的双重胜利条件，单局最多 30 分钟有效游玩时间；20 分钟不是结束点，暂停不计入时长。30 分钟到时独立结算，不自动视作死亡或胜利。成长收益沿实际进食规则计算，受伤时优先回血，不能通过停留浅海无限吃极小鱼保持与成年猎物相同的成长效率。
+Victory still requires both 30 meters and at least one defeated lord. Each round allows at most 30 minutes of effective playtime; 20 minutes is not an endpoint and pause does not count. Timeout has its own result rather than automatic death or victory. Growth follows actual feeding rules, with healing first when injured. Staying shallow and eating tiny fish indefinitely cannot match adult-prey growth efficiency.
 
-`tests/simulation.test.js` 的参考路线改为按**实际单餐质量增益 / 假定捕食间隔**选择可吃猎物，覆盖现代和远古两类，避免依赖配置表倒序。这个事件模型的假设是：
+The reference route in `tests/simulation.test.js` selects edible prey by **actual meal mass gain / assumed feeding interval**, covering modern and ancient species instead of relying on reverse configuration order. Assumptions:
 
-- 起步先吃 12 条珊瑚鱼，每条间隔 1 秒。
-- 各类小鱼 1 秒，绿海龟/翻车鱼/金枪鱼 7 秒，蝠鲼 12 秒，鮟鱇 11 秒，锤头鲨/白鲨 10 秒，乌贼 13 秒；抹香鲸/邓氏鱼/上龙/蛇颈龙/沧龙 16 秒，龙王鲸/巨齿鲨 20 秒。间隔把寻找与追逐抽象为固定事件耗时，不是实际地图采样结果。
-- 到 10 米与 18 米时，另计 20/30 秒转场，并分别承受 28 点战损。
-- 到 24 米后，假定经过 75 秒、承受 40 点伤害而击败一次克拉肯，再按真实战利品规则进食；这里直接结算，不模拟五次侧击。
-- 快慢路线统一缩放捕食、转场和领主战的时间，饥饿、伤害、回血与成长仍运行真实规则。
+- Start with 12 coral fish, one per second.
+- Small fish take 1 second; turtle/sunfish/tuna 7; manta ray 12; anglerfish 11; hammerhead/white shark 10; squid 13; sperm whale/Dunkleosteus/pliosaur/plesiosaur/mosasaur 16; Basilosaurus/megalodon 20. These fixed event durations abstract search and pursuit and are not samples from the actual map.
+- At 10 and 18 meters, add 20/30 seconds of travel and 28 damage at each transition.
+- At 24 meters, assume Kraken is defeated after 75 seconds and 40 damage, then consume loot under actual rules. Defeat is settled directly; five flank attacks are not simulated.
+- Faster/slower routes scale feeding, travel, and lord-battle durations uniformly. Hunger, damage, healing, and growth still run actual rules.
 
-| 参考节奏         | 完成时长 | 普通猎物餐数（含起步 12 条） |
-| ---------------- | -------: | ---------------------------: |
-| 事件耗时缩短 20% |  13:40.8 |                           68 |
-| 基准             |    17:06 |                           68 |
-| 事件耗时延长 25% | 22:33.75 |                           71 |
+| Reference pace              | Completion time | Ordinary meals (including initial 12) |
+| --------------------------- | --------------: | ------------------------------------: |
+| Event durations 20% shorter |         13:40.8 |                                    68 |
+| Baseline                    |           17:06 |                                    68 |
+| Event durations 25% longer  |        22:33.75 |                                    71 |
 
-较慢路线在 20 分钟仍存活且未完成，之后可以继续到胜利；30 分钟终止另有独立边界测试。慢路线多吃几餐源于额外饥饿与治疗分配，不是单纯把最终时间乘系数。
+The slower route is alive but unfinished at 20 minutes and can continue to victory. A separate test covers the 30-minute endpoint. Extra meals on the slower route result from additional hunger and healing allocation, not merely multiplying the final time.
 
-**模型没有模拟真实路径、稀有种刷新等待或自然领主战，不证明实际玩家能在上述时刻通关。** 目前保留成长配置，后续应依据自然整局记录决定是否调营养、密度或饥饿，不为了维持旧“15—20 分钟”范围改变假设。
+**The model does not simulate real paths, rare-species respawn waits, or natural lord combat, and does not establish those completion times for real players.** Keep growth settings for now; future nutrition, density, and hunger changes should follow natural full-round records rather than changed assumptions to preserve the old 15–20-minute range.
 
-## 验收与后续边界
+## Acceptance and remaining boundaries
 
-本轮专项入口为 `scripts/verify_expansion_v0_5.mjs`；已有主流程、声呐、碰撞、图鉴/特效、HUD 与音频脚本继续覆盖共享功能，实际通过项与截图统一写入 [验证记录](verification.md)。浏览器模拟小屏幕不等于真实手机，开发接口布景不等于自然游玩，构建成功也不等于已发布正式网页。
+The targeted entry point is `scripts/verify_expansion_v0_5.mjs`. Existing main-flow, sonar, collision, guide/effect, HUD, and audio scripts continue to cover shared functionality. Actual passes and screenshots are recorded in [verification](verification.md). Browser-emulated small screens are not real phones; development scene setup is not natural play; successful builds are not formal deployment.
 
-自然 30 分钟整局、两角色难度、稀有猎物刷新供给、真实手机多指操作与低性能设备表现仍需试玩。用户对整体 UI 的优化要求保留在 [后续工作](next_steps.md)，本轮生态模型扩容不替代之后的整体视觉再设计。
+A natural 30-minute round, difficulty for both characters, rare-prey respawn supply, real-phone multitouch, and low-end performance still need playtesting. The user's overall UI request remains in [next steps](next_steps.md); ecological model expansion does not replace the later full visual redesign.

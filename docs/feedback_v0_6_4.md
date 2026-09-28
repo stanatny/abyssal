@@ -1,29 +1,29 @@
-# v0.6.4 · 水面姿态、固定狂食与反转上下
+# v0.6.4 Surface posture, fixed Frenzy, and inverted pitch
 
-用户继续试玩后要求：普通浮到海面时减小仰角，在浅滩加入固定刷新的狂食奖励，在首页提供反转上下方向选项。本轮在未提交的 v0.6.3 上实现，仍不提交、不推送。
+After more playtesting, the user requested a lower pitch at the surface during ordinary swimming, a fixed respawning Frenzy pickup in the shallows, and an invert-pitch setting on the home screen. This builds on uncommitted v0.6.3, still without commit or push.
 
-## 水面普通游泳
+## Ordinary surface swimming
 
-普通浮游贴住身体水线时，上仰上限改为约 **20°**。如果到达水面时已接近垂直，会平滑收拢：85°在约一秒内降至20.5°，不会瞬间掰回。继续按上仰也不会与收拢互相拉扯；按下潜立即响应，左右转向照常。
+When ordinary swimming reaches the body waterline, upward pitch is limited to about **20°**. A near-vertical arrival eases down smoothly: 85° falls to 20.5° in roughly one second rather than snapping. Holding upward input does not fight that easing; dive input responds immediately, and yaw works normally.
 
-这是水线附近的限制，不是水下自动回平。深处仍允许上下85°，松开方向后保持游向。已经下潜解锁的真实冲刺蓄势、跃出水面、空中弹道与落水过渡仍沿用既有规则，不用舒适角度限制削弱起跳。`surface_steering.js` 为纯规则，接在原操纵位置，水面与碰撞系统不被重复推进。
+This is a waterline constraint, not underwater auto-leveling. Deep water still allows ±85°, retaining heading on release. Genuine sprint buildup unlocked by diving, breaching, airborne ballistics, and reentry retain their rules; the comfort angle does not weaken legitimate takeoff. `surface_steering.js` is pure rules code inserted at the original control point without advancing surface/collision systems twice.
 
-这条决策替代v0.6.2中“水面也保留85°”的结论；深水自由姿态的决定仍有效。
+This replaces v0.6.2's decision to retain 85° at the surface. Free underwater orientation remains effective.
 
-## 浅滩固定狂食点
+## Fixed nursery Frenzy pickup
 
-夏威夷出生点正前方略偏右约41游戏米、同一水深，增加一枚橙色“深渊狂食”：固定中心 `(6, -18, 34)`，独立ID `nursery_frenzy`。原34枚奖励保留，总数35枚。
+Add one orange Abyssal Frenzy pickup roughly 41 game meters ahead and slightly right of Hawaii spawn, at the same depth. Its fixed center is `(6, -18, 34)` and independent ID `nursery_frenzy`. The original 34 rewards remain, giving 35 total.
 
-拾取后 **30秒** 内可捕食自身1.6倍体长以内的普通猎物；奖励 **45秒后在原地刷新**，暂停冻结计时。重新开局立即恢复这枚奖励和完整基础坐标，漂浮仅改变显示高度；不追加重复网格。入口与既有体力泉/洋流有间隔，沿用橙色獠牙标识，图鉴补充固定点说明。
+For **30 seconds** after collection, ordinary prey up to 1.6× player length is edible. The pickup **respawns in the same place after 45 seconds**; pause freezes the timer. Restart immediately restores it and its complete base coordinates. Bobbing changes display height only and does not append duplicate meshes. It is spaced apart from nearby Stamina Spring/Ocean Current pickups, retains orange fangs, and gains a fixed-location explanation in the guide.
 
-位置规则在 `pickup_placement.js`。真实海床、礁石碰撞、漂浮包络和两角色出生接近路线均有测试。领主仍有独立体长门槛与多次侧击规则，狂食不提供无敌。
+Placement rules live in `pickup_placement.js`. Tests cover actual seabed, reef collision, bobbing envelope, and approach routes from both character spawns. Lords retain separate length thresholds and repeated-flank rules; Frenzy does not grant invulnerability.
 
-## 首页反转上下
+## Home-screen invert pitch
 
-首页“远征设置与说明”内加入 **反转上下方向**，默认关闭。开启后W / 摇杆向上变为下潜，S / 摇杆向下变为上浮；仅反转上下，不反转左右。两个角色共用设置。
+Add **Invert vertical controls**, off by default, under Expedition Settings & Instructions. When enabled, W / joystick up dives and S / joystick down rises. It changes pitch only, not yaw, and is shared by both characters.
 
-选择写入浏览器本地存储，刷新后保留；隐私模式无法写入时，本次页面内仍可使用。不增加游戏内按钮，图鉴、菜单选择与快捷技能键不受影响。
+Save the choice in browser local storage across refreshes. If private-mode storage writes fail, it still works for the current page. No in-game button is added; guide/menu selection and ability shortcuts are unaffected.
 
-本轮顺手修正首页收录生物数字为31（35条角色/生物/人类活动记录减去4条人类活动）；不改变图鉴分类与数据。
+This round also corrects the home-screen creature count to 31: 35 character/creature/human entries minus 4 human entries. Guide categories and data do not change.
 
-实际验收见 [验证记录](verification.md)。浏览器触屏模拟不能代替真机手感，公开临时预览不是正式Pages发布。
+See [verification](verification.md) for actual acceptance. Browser touch emulation is not real-device handling, and a temporary public preview is not an official Pages release.

@@ -1,3 +1,4 @@
+import { t, message, onLanguageChange } from "./i18n.js";
 import * as THREE from "three";
 
 import { REWARDS } from "./reward_config.js";
@@ -81,7 +82,7 @@ export function createReward(kind) {
   );
   halo.scale.setScalar(4.5);
   group.add(core, ring, halo);
-  const label = makeLabel(`${info.symbol} ${info.name}`, "", info.color);
+  const label = makeLabel(message`${info.symbol} ${info.name}`, "", info.color);
   label.position.y = 2.5;
   label.scale.set(5.8, 0.91, 1);
   group.add(label);
@@ -108,25 +109,35 @@ export function makeLabel(title, subtitle, color = "#aaffdf") {
   canvas.width = 512;
   canvas.height = subtitle ? 128 : 80;
   const ctx = canvas.getContext("2d");
-  ctx.fillStyle = "rgba(3,24,35,0.82)";
-  ctx.beginPath();
-  ctx.roundRect(0, 0, 512, canvas.height, 16);
-  ctx.fill();
-  ctx.fillStyle = color;
-  ctx.fillRect(0, 0, 5, canvas.height);
-  ctx.textAlign = "center";
-  ctx.font = "600 34px sans-serif";
-  ctx.fillText(title, 256, 50);
-  ctx.fillStyle = "#d0e8ea";
-  ctx.font = "25px sans-serif";
-  if (subtitle) ctx.fillText(subtitle, 256, 95);
   const texture = new THREE.CanvasTexture(canvas);
   texture.colorSpace = THREE.SRGBColorSpace;
-  return new THREE.Sprite(
+  const sprite = new THREE.Sprite(
     new THREE.SpriteMaterial({
       map: texture,
       transparent: true,
       depthWrite: false,
     }),
   );
+  function paintLabel() {
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    ctx.fillStyle = "rgba(3,24,35,0.82)";
+    ctx.beginPath();
+    ctx.roundRect(0, 0, 512, canvas.height, 16);
+    ctx.fill();
+    ctx.fillStyle = color;
+    ctx.fillRect(0, 0, 5, canvas.height);
+    ctx.textAlign = "center";
+    ctx.font = "600 34px sans-serif";
+    ctx.fillText(t(title), 256, 50, 470);
+    ctx.fillStyle = "#d0e8ea";
+    ctx.font = "25px sans-serif";
+    if (subtitle) ctx.fillText(t(subtitle), 256, 95, 470);
+    texture.needsUpdate = true;
+    sprite.userData.labelText = { title: t(title), subtitle: t(subtitle) };
+  }
+  paintLabel();
+  // 重用已有纹理；释放时取消订阅，避免重建场景后保留旧画布。
+  const unsubscribe = onLanguageChange(paintLabel);
+  texture.addEventListener("dispose", unsubscribe);
+  return sprite;
 }

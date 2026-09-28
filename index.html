@@ -37,7 +37,13 @@
         ><span class="brand-name">ABYSSAL <small>深渊猎游</small></span></a
       >
       <div class="header-tools">
-        <span class="edition">EXPEDITIONS / 06</span
+        <label class="language-control"
+          ><span class="sr-only">语言</span
+          ><select data-language-select aria-label="语言">
+            <option value="zh-CN" data-no-i18n>中文</option>
+            <option value="en" data-no-i18n>English</option>
+          </select></label
+        ><span class="edition">EXPEDITIONS / 06</span
         ><button id="quality" title="切换画质">画质 · 高</button
         ><button id="sound" aria-label="切换声音">声音 · 开</button
         ><button id="pause" hidden>暂停</button>
@@ -205,6 +211,13 @@
         <div class="eyebrow" id="overlay-kicker">EXPEDITION PAUSED</div>
         <h2 id="overlay-title">海洋在等你。</h2>
         <p id="overlay-body">休息一下，再继续下潜。</p>
+        <label class="overlay-language language-control"
+          ><span>语言</span
+          ><select data-language-select aria-label="语言">
+            <option value="zh-CN" data-no-i18n>中文</option>
+            <option value="en" data-no-i18n>English</option>
+          </select></label
+        >
         <button class="primary" id="resume">继续探索 <span>→</span></button
         ><button class="text-button" id="restart">重新开始</button>
       </div>

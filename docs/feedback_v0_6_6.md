@@ -1,27 +1,27 @@
-# v0.6.6 · 男女人物、区别化声线与浅海模型精修
+# v0.6.6 Male/female humans, distinct voices, and shallow-water refinement
 
-接续未提交的v0.6.5。用户本轮提到“潜水鱼”，结合浅海模型仍简陋的上下文，按浅海鱼群处理，并在开始时说明；潜水员也包含在本轮男女模型中。没有新增提交或推送。
+This follows uncommitted v0.6.5. The user used a Chinese term literally meaning “diving fish”; in the context of simplified shallow-water models, this was interpreted as shallow-water schools and stated at the outset. Divers were also included in the male/female model work. No new commit or push.
 
-## 男女游泳者与潜水员
+## Male and female swimmers and divers
 
-游泳者和潜水员各有成年男性、成年女性两套体态、发型与服装。男性游泳者穿泳裤，女性穿连体泳装；潜水员均保留潜水服、面镜、气瓶、调节器和脚蹼。现有15骨骼划水动作共用，每个模型3个蒙皮网格，同种同性别共享资源，动画实例独立。
+Swimmers and divers each have adult male and female body, hair, and clothing variants. Male swimmers wear trunks; female swimmers wear one-piece swimsuits. Both diver variants retain wetsuits, masks, tanks, regulators, and fins. They share the existing 15-bone swimming motion and use 3 skinned meshes per model. Same-type, same-sex resources are shared while animation instances remain independent.
 
-人物的`sex`在创建时确定，游泳者、常驻潜水员和潜艇释放的三人小组均交替安排。刷新和重开保留对应外观，模型、实体和捕食事件使用同一身份；没有增加人数或改变体长、营养和接触判定。
+A human's `sex` is assigned at creation. Swimmers, resident divers, and the three submarine escapees alternate variants. Respawn and restart preserve appearance; models, entities, and feeding events share identity. Population, length, nutrition, and contact rules do not change.
 
-图鉴仍为35条记录。游泳者、潜水员详情底部增加“男／女”预览切换，两套模型分别缓存，重复切换不新增画布或渲染循环。海洋中会同时出现两种外观，不需要玩家手动选择NPC性别。
+The guide remains at 35 entries. Swimmer/diver details gain a male/female preview switch, with separately cached models and no extra canvas or render loop on repeated switching. Both appearances occur in the ocean without manual NPC-sex selection.
 
-## 对应惨叫
+## Matching screams
 
-成年男声与女声分别合成独立的音高包络、元音共振、气声与嘶哑层，不是播放同一段音频时简单升降调。长度均1.30秒，保留惊叫上扬、持续段、没水后变闷和气泡收尾；捕食时按实际人物性别播放。
+Adult male and female voices are synthesized with independent pitch envelopes, vowel resonances, breath, and rasp, rather than pitch-shifting one clip. Both last 1.30 seconds, preserving the rising cry, sustained section, underwater muffling, and bubble ending. Feeding selects the actual target's sex.
 
-两套样本独立缓存，但共用最多一条人声、总计最多三条吞食声及人声限流。静音、暂停和重开处理保持，鱼类吞食PCM逐字节不变。音效为原创程序合成，并非真人录音。波形和播放链路能自动验证，主观听感仍以试玩为准。
+Samples cache separately but share the limits of one human voice, three total feeding sounds, and human-voice throttling. Mute, pause, and restart remain; fish-feeding PCM is byte-for-byte unchanged. These are original procedural effects, not real human recordings. Waveforms and playback routing can be checked automatically; subjective quality remains a playtest judgment.
 
-## 浅海鱼群与海洋霸主
+## Shallow-water schools and Ocean Predators
 
-`creature_shoal.js`重建13种浅海生物：珊瑚鱼、鳀鱼、沙丁鱼、鲱鱼、鲭鱼、飞鱼、绿海龟、翻车鱼、长角箱鲀、隆头鹦嘴鱼、苏眉、蓝鳍金枪鱼和蝠鲼。通过体态、鳍形、嘴部、鳃盖、鳞纹及背腹色区别物种；飞鱼继续在真实滑翔状态展开胸鳍，海龟划动鳍肢、蝠鲼摆动宽翼。
+`creature_shoal.js` rebuilds 13 shallow-water animals: coral fish, anchovy, sardine, herring, mackerel, flying fish, green sea turtle, ocean sunfish, longhorn cowfish, bumphead parrotfish, humphead wrasse, bluefin tuna, and manta ray. Body proportions, fins, mouths, gill covers, scales, and dorsal/ventral colors distinguish them. Flying fish still spread pectorals in actual glide state; turtles paddle and rays undulate broad wings.
 
-`creature_hunters.js`重建5种现代海洋霸主：深海鮟鱇、锤头鲨、大白鲨、北太平洋巨型章鱼、抹香鲸。分别强化宽口长齿和钓饵、横向头部、口颌与鳃裂、八臂吸盘，以及方额与狭长下颌。
+`creature_hunters.js` rebuilds 5 modern Ocean Predators: deep-sea anglerfish, hammerhead, great white shark, Giant Pacific Octopus, and sperm whale. Respective focal features are broad toothed mouths and lure, lateral head shape, jaws and gill slits, eight sucker-lined arms, and a square forehead with narrow lower jaw.
 
-图鉴和实际海洋从同一模型入口分流，保持头朝-Z、纵长归一、共享几何材质及独立动画。没有改变生成水层、数量、成长、捕食资格、猎手能力、虎鲸20秒声呐或乌贼技能。
+Guide and ocean route through the same model entry point, preserving head toward -Z, normalized longitudinal length, shared geometry/materials, and independent animation. Spawn depths, population, growth, feeding eligibility, hunter abilities, 20-second orca sonar, and squid abilities remain unchanged.
 
-验收以实际浏览器渲染、真实捕食链路、资源生命周期和生产预览为准，结果见[验证记录](verification.md)。程序化模型仍有风格化简化，不等同于扫描级生物资产。
+Acceptance relies on actual browser rendering, real feeding paths, resource lifecycles, and production preview. See [verification](verification.md). Procedural models remain stylized simplifications, not scan-quality biological assets.

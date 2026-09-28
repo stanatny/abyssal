@@ -1,3 +1,4 @@
+import { t, tr } from "./i18n.js";
 import { buildSonarMarkerLayout } from "./sonar_marker_layout.js";
 import "./sonar_markers.css";
 
@@ -47,7 +48,7 @@ export function createSonarMarkers(container) {
         return snapshot;
       }
       const now = context.now ?? performance.now() / 1000;
-      const viewportKey = `${context.viewport.width}:${context.viewport.height}`;
+      const viewportKey = tr`${context.viewport.width}:${context.viewport.height}`;
       // 20Hz切换当前朝向的说明，不创建独立动画循环。
       if (
         now >= lastUpdate &&
@@ -73,16 +74,18 @@ export function createSonarMarkers(container) {
           anchorLayer.append(node);
           nodes.set(contact.id, node);
         }
-        node.className = `sonar-world-anchor ${contactClass(contact)}`;
+        node.className = tr`sonar-world-anchor ${contactClass(contact)}`;
         node.dataset.contactId = contact.id;
         node.dataset.labelId = contact.labelId;
         node.dataset.length = String(contact.length);
         node.dataset.eligible = String(contact.eligible);
         node.dataset.behind = "false";
         node.dataset.onscreen = "true";
-        node.title = `${contact.label} · ${contact.length}米 · ${contact.status}`;
-        node.style.left = `${contact.anchor.x}px`;
-        node.style.top = `${contact.anchor.y}px`;
+        node.title = t(
+          tr`${contact.label} · ${contact.length}米 · ${contact.status}`,
+        );
+        node.style.left = tr`${contact.anchor.x}px`;
+        node.style.top = tr`${contact.anchor.y}px`;
       }
       for (const [id, node] of nodes)
         if (!activeIds.has(id)) {
@@ -98,21 +101,23 @@ export function createSonarMarkers(container) {
           labelLayer.append(text);
           labels.set(label.id, text);
         }
-        text.className = `sonar-world-label ${contactClass(label)}`;
-        text.textContent = label.text;
-        text.style.left = `${label.x}px`;
-        text.style.top = `${label.y}px`;
-        text.style.maxWidth = `${label.width}px`;
+        text.className = tr`sonar-world-label ${contactClass(label)}`;
+        text.textContent = t(label.text);
+        text.style.left = tr`${label.x}px`;
+        text.style.top = tr`${label.y}px`;
+        text.style.maxWidth = tr`${label.width}px`;
         text.dataset.contactIds = label.contacts
           .map((contact) => contact.id)
           .join(",");
         text.dataset.behind = "false";
-        text.title = label.contacts
-          .map(
-            (contact) =>
-              `${contact.label} · ${contact.length}米 · ${contact.status}`,
-          )
-          .join("\n");
+        text.title = t(
+          label.contacts
+            .map(
+              (contact) =>
+                tr`${contact.label} · ${contact.length}米 · ${contact.status}`,
+            )
+            .join("\n"),
+        );
       }
       for (const [id, text] of labels)
         if (!activeGroups.has(id)) {

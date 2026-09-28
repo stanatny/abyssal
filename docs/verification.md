@@ -1,398 +1,415 @@
-# v0.5.1 GitHub Pages 公开发布
+# v0.5.1 Public GitHub Pages release
 
-验证日期：2026-09-27。用户在功能提交完成后明确要求推送 GitHub、公开试玩并完善 README；这一授权替代下文各历史阶段的“未要求推送”状态。
+Verified: 2026-09-27. After the feature commit, the user explicitly requested pushing to GitHub, public play access, and README improvements. That authorization supersedes the “push not requested” status of the historical stages below.
 
-- 功能提交 `53808ae` 已推送至公开仓库 `stanatny/abyssal` 的 `main`。[GitHub Actions 运行 36322697605](https://github.com/stanatny/abyssal/actions/runs/36322697605) 的安装、测试、格式检查、构建及 Pages 部署均成功。
-- 正式入口为 [https://stanatny.github.io/abyssal/](https://stanatny.github.io/abyssal/)，页面显示 `EXPEDITIONS / 05.1`，已从历史 v0.2 更新到 v0.5.1。仓库 About 已设置该试玩地址及双角色游戏介绍。
-- 发布前重新运行 124 项规则测试、格式检查和生产构建，全部通过。浏览器从正式 `/abyssal/` 子路径加载 JS/CSS，其 SHA-256 与本机产物完全一致；入口仍为 `index-XK79P16I.js` 与 `index-Dp5JX0tc.css`，保留既有大于 500KB 的体积提示。
-- 正式站点通过 1440×900、390×667、320×568 三尺寸实际交互：角色与海域选择、32 条图鉴及七类筛选数量、章鱼与角色乌贼分离、30 秒奖励说明、虎鲸 J 声呐及雷达、乌贼 J/触摸喷墨、技能冷却禁用、手机生存条对齐、暂停与继续。零浏览器控制台错误，生产页面不暴露开发接口；已查看桌面章鱼图鉴和 320px 游戏实拍。
-- README 改为面向玩家的公开入口，包含实际首页截图、胜利目标、双角色技能、键盘/手机操作、生存与奖励、图鉴及开发方法；详细数值与历史验证继续保存在专题文档。此文档提交不改变游戏产物。
+- Feature commit `53808ae` was pushed to `main` in public repository `stanatny/abyssal`. Installation, tests, formatting, build, and Pages deployment succeeded in [GitHub Actions run 36322697605](https://github.com/stanatny/abyssal/actions/runs/36322697605).
+- The official entry is [ABYSSAL on GitHub Pages](https://stanatny.github.io/abyssal/), displaying `EXPEDITIONS / 05.1`, updated from v0.2 to v0.5.1. Repository About now includes this URL and the two-character game description.
+- Before release, 124 rules tests, formatting, and production build passed again. Browser-loaded JS/CSS under `/abyssal/` had SHA-256 hashes identical to local artifacts. Entries remained `index-XK79P16I.js` and `index-Dp5JX0tc.css`, retaining the existing >500KB warning.
+- Actual official-site interactions passed at 1440×900, 390×667, and 320×568: character/region selection, 32 guide entries and seven category counts, octopus/playable-squid separation, 30-second reward descriptions, orca J sonar/radar, squid J/touch ink, disabled cooldown controls, aligned phone survival bars, pause, and resume. No console errors or production development API. Desktop octopus-guide and 320px gameplay screenshots were viewed.
+- README became a self-contained player entry with a real home screenshot, victory goal, both characters' abilities, keyboard/phone controls, survival/rewards, guide, and development instructions. Detailed values and historical verification remain in topic documents. This documentation commit does not alter game artifacts.
 
-本机证据：`.local/v5_1_release_unit.log`、`v5_1_release_check.log`、`v5_1_release_build.log`、`v5_1_pages_game_actions.json`、`v5_1_pages_verification.json` 与 `v5_1_pages_*.png`。最终文档提交对应的部署回执留在 `.local/pages_deployment.json`，可对照 [Pages 工作流](https://github.com/stanatny/abyssal/actions/workflows/pages.yml) 的最新成功运行。正式站点交互验证使用本机 Chrome 的桌面与触屏模拟，不表示已完成真实手机或自然 30 分钟整局验收。
-
----
-
-# v0.5.1 章鱼替换与提交前验证
-
-验证日期：2026-09-27。用户要求可选大王乌贼从野生种群移除，换为新生物，并明确授权完成后提交当前版本。此次将已交付的 v0.3—v0.5.1 工作一起保存为 UI 优化前基线；未要求推送，正式 GitHub Pages 仍为 v0.2。
-
-- 124项规则测试通过。新增断言验证夏威夷野生名录无`squid`、有独立`octopus`，乌贼仍可选且技能为ink，21普通物种保持。声呐狂食边界改用实际抹香鲸尺度，参考成长模型按替换后名录重算为基准17:17、快13:49.6、慢22:51.25，不改变既有增长规则来迎合旧数值。
-- 图鉴/特效浏览器13项、角色与扩展8组、游戏主流程28项通过。真实6米角色接近可捕食的5米章鱼也会触发预警与防御墨云；墨云遮蔽、移出恢复、自然消散和重开清理通过。图鉴32条中大王乌贼仅出现在可选角色，现代类别有章鱼；实际野外种群0只乌贼、5只章鱼。
-- 玩家乌贼的10秒迷失/定向喷射、暂停和60秒冷却、灵活转向，以及虎鲸41.6冲刺均保留。主流程继续覆盖真实破水、领主五次侧击、胜利和30分钟结算。
-- 章鱼模型有独立圆外套膜、橙红斑纹、横向瞳孔、八腕与吸盘。Node探针检查长度归一、有限坐标/法线/变换、301帧无新增几何、双实例缓存、射线命中；玩家乌贼与克拉肯兼容检查通过。
-- 本机生产和公开预览均在1440×900、390×667、320×568完成角色选择、章鱼图鉴及角色/野生分离、奖励、技能、倒计时、暂停/恢复和手机生存条对齐。零控制台错误，生产不导出开发接口；JS/CSS与本机dist的SHA-256一致。已查看实际章鱼图鉴截图。
-- 格式、差异及构建检查通过；生产入口`index-XK79P16I.js`为784.13KB（gzip228.19KB），保留既有500KB体积提示；CSS仍为`index-Dp5JX0tc.css`。同一预览地址更新为05.1，活动进程/资源回执留在本机`.local/preview_state.json`。
-
-证据：`.local/v5_1_unit.log`、`v5_1_feedback.log`、`v5_1_expansion.log`、`v5_1_browser.log`、`octopus_model_report.json`、`v5_1_local_verification.json`、`v5_1_public_verification.json`、`v5_1_build.log`及`v5_1_*_octopus_*.png`。本轮未改整体UI和碰撞算法，不重复把前轮所有专项列成本轮执行。自然整局与真机性能边界仍按下文记录。
+Local evidence: `.local/v5_1_release_unit.log`, `v5_1_release_check.log`, `v5_1_release_build.log`, `v5_1_pages_game_actions.json`, `v5_1_pages_verification.json`, and `v5_1_pages_*.png`. The final documentation commit's deployment receipt is `.local/pages_deployment.json`, comparable with the latest successful [Pages workflow](https://github.com/stanatny/abyssal/actions/workflows/pages.yml). Official-site interactions used local Chrome desktop/touch emulation, not a real phone or a natural 30-minute round.
 
 ---
 
-# v0.5 角色与生态扩展验证记录
+# v0.5.1 Octopus replacement and pre-commit verification
 
-验证日期：2026-09-27。基线 `96d57ff` 加未提交 v0.3—v0.5 工作区。此次只更新临时试玩产物；没有 commit/push，正式 GitHub Pages 仍为 v0.2。
+Verified: 2026-09-27. The user requested removing playable Giant Squid from the wild population, replacing it with a new creature, and explicitly authorized committing the completed version. Delivered v0.3–v0.5.1 work was saved together as the baseline before UI improvements. A push was not requested at this stage; official Pages still served v0.2.
 
-- `npm test`：**123项通过**，包括角色主被动、喷墨10秒/60秒、生态与成长、领主侧翼/接触重新武装、预判技能及高速扫掠、人类营养、潜艇三撞、鱼雷一次性伤害、隔墙保护与重开。新14种模型的静态几何、射线命中、共享资源与动画探针通过。
-- 主浏览器流程 **28项通过**：真实纯键盘操作、虎鲸冲刺测得40.03米/秒并向41.6收敛、体力消耗、慢游、暂停、回血、鱼群、30秒奖励、实际蓄势破水/落水、主宰预警和恢复、五次真实侧翼接触击败、30米加领主胜利，以及30分钟有效时间结算。
-- 新增扩展专项 **8组通过**：图鉴32条记录及分类；乌贼真实按键下潜超过80°、冲刺恢复常规转角；J让一只实际追击的抹香鲸位置冻结10个有效秒，同时喷射脱离，暂停冻结且冷却拒绝重复；飞鱼真实接近后破水滑翔并落水；生成潜艇的三次实际冲撞破壳、贴壳不会连击、释放三名潜水员并移除壳碰撞；真实接触鱼雷扣28点且不重复；接触潜水员正常回血；320/390px图鉴和喷墨倒计时禁用态。
-- 图鉴/特效专项 **13项通过**，含缓存稳定、单RAF、搜索、焦点恢复、390px布局、真实捕食血雾、白鲨爆发、野生乌贼墨云及重开清理。声呐专项 **11项通过**，电脑键盘与手机真实触屏转向、穿雾/遮挡的前方分组标签、360度雷达、10秒到期/60秒冷却保持可用。
-- 菜单与触屏专项 **6组通过**；HUD **6尺寸26态**通过：320×568、390×667、430×932、844×390、1440×900、1920×1080。新物种体型变化后，追击布局夹具改为18米角色与20米巨齿鲨，保持真实捕食关系，未为截图修改规则。三条生存条继续对齐。
-- 实体碰撞 **10个场景分别通过**：全套中的9项，加独立重跑的甲板落水项。覆盖6/30米出生、礁石冲刺、猎手击退岩柱、船侧滑动、船底通行/上撞、甲板落水、成长脱困和相机遮挡。旧夹具按32速度预测落点，新41.6速度会把出发点推到岸边礁石，先触水线导致蓄势不足；改为使用角色速度配置，从深水侧朝+Z接近并验证完整身体起点净空。真实按键轨迹命中 `ship_deck`，身体/相机重叠和恢复帧均为0，未放宽游戏碰撞或破水门槛。
-- 最后只读审查修复常规标签沿用旧tier名称、飞鱼重开展翼状态残留、静止潜水员隔墙捕食；图鉴角色高亮截图等待CSS过渡完成并断言唯一选中档案。
-- 成长参考模拟：基准 **17:06/68尾**，快20% **13:40.8/68尾**，慢25% **22:33.75/71尾**；慢路线20分钟仍可继续，30分钟仍结束。模拟使用实际物种与营养规则，但固定觅食/转区间隔和领主段，不包含真实导航、密度与遭遇随机性，**不能当作自然整局试玩结果**。
-- 格式、差异检查与生产构建通过。入口JS **781.09KB / gzip 227.13KB**，CSS42.81KB；保留既有500KB体积提示。声音合成未改，本轮未重新做独立听感验收。
+- 124 rules tests passed. New assertions verified no wild `squid` in Hawaii, an independent `octopus`, playable squid with the ink ability, and 21 ordinary species. Sonar/Frenzy boundaries use actual sperm-whale scale. The updated roster recalculated the reference growth model to baseline 17:17, fast 13:49.6, slow 22:51.25, without changing growth rules to match old numbers.
+- Guide/effects: 13 browser checks; characters/expansion: 8 groups; main game: 28 checks, all passed. An actual 6-meter character approaching an edible 5-meter octopus triggered warning and defensive ink. Ink occlusion, recovery after exit, natural dissipation, and restart cleanup passed. Among 32 guide entries, Giant Squid appears only as playable and octopus in the modern category. Actual wild population: 0 squid, 5 octopuses.
+- Player squid retains 10-second disorientation/directional jet, pause, 60-second cooldown, and agile turning; orca retains 41.6 sprint. Main regression continues to cover real breaching, five lord flank attacks, victory, and 30-minute results.
+- Octopus has an independent rounded mantle, orange-red pattern, horizontal pupils, eight arms, and suckers. Node probes checked length normalization, finite coordinates/normals/transforms, no new geometry over 301 frames, two-instance caching, and ray hits. Player squid/Kraken compatibility passed.
+- Local production and public preview passed character selection, octopus guide and character/wild separation, rewards, abilities, countdowns, pause/resume, and phone-bar alignment at 1440×900, 390×667, and 320×568. No console errors or production development API; JS/CSS SHA-256 matched local dist. Actual octopus-guide screenshots were viewed.
+- Formatting, diff, and build checks passed. Production entry `index-XK79P16I.js`: 784.13KB (gzip 228.19KB), retaining the 500KB warning. CSS remained `index-Dp5JX0tc.css`. The same preview URL now served 05.1; active-process/resource receipts are in `.local/preview_state.json`.
 
-- 本机生产预览与同一外网地址均已通过1440×900、390×667、320×568浏览器交互：两角色选择、32条图鉴、七个分类数量、30秒奖励说明、虎鲸J声呐与雷达、乌贼J/真实触摸喷墨、冷却禁用、手机生存条对齐、暂停恢复。控制台零错误、生产环境无开发接口。页面及 `index-BU8JEPcW.js` / `index-Dp5JX0tc.css` 与本机dist逐字节/SHA-256一致；同一地址已由v0.4.4更新至v0.5.0。回执 `v5_local_verification.json`、`v5_public_verification.json`、`v5_asset_check.json`，已更新本机 `preview_state.json`。已查看实际桌面角色/远古图鉴与390px喷墨画面。
-
-证据：`.local/v5_unit.log`、`v5_browser.log`、`v5_expansion_results.json`、`v5_feedback.log`、`v5_sonar.log`、`v5_controls.log`、`v5_hud.log`、`v5_collision_combined.json`（注明9+1执行来源）、`v5_deck.log`、`ecosystem_v0_5_model_report.json`、`v5_build.log`及 `v5_*.png`。复现新增专项：`node scripts/verify_expansion_v0_5.mjs`；碰撞单项可用 `ABYSSAL_COLLISION_CASE=ship_deck_landing node scripts/verify_collision_v0_4.mjs`。
-
-边界：特定遭遇通过仅开发环境接口布置，技能、移动、碰撞和伤害仍由真实主循环执行。尚未自然操作完整30分钟，也未在真实手机、低端GPU或另一用户网络验收；模型仍为程序化资产，整体美术重绘留待后续。所有现代、远古及幻想生物共处夏威夷是游戏设定，真实尺度与改编边界见 [生态资料](ecology_sources_v0_5.md)。
+Evidence: `.local/v5_1_unit.log`, `v5_1_feedback.log`, `v5_1_expansion.log`, `v5_1_browser.log`, `octopus_model_report.json`, `v5_1_local_verification.json`, `v5_1_public_verification.json`, `v5_1_build.log`, and `v5_1_*_octopus_*.png`. This round did not change overall UI or collision algorithms and does not count every previous targeted check as newly executed. Natural-round and real-device performance limitations remain as recorded below.
 
 ---
 
-# v0.4.4 海洋奖励验证记录
+# v0.5 Character and ecology expansion verification
 
-验证日期：2026-09-27。本轮移除游戏常驻奖励图例和拾取物用途副标题，新增图鉴奖励模块，洋流/狂食改为30秒。未提交或推送，正式网页仍为v0.2。
+Verified: 2026-09-27. Baseline `96d57ff` plus uncommitted v0.3–v0.5 work. Only temporary play artifacts were updated; no commit/push, and official Pages remained v0.2.
 
-- 99项规则测试通过；既有狂食捕食边界、30秒到期、免费冲刺跨到期帧与重复拾取刷新断言已更新。体力泉、声呐和领主资格规则保持。
-- 开发浏览器4组通过：1440×900、390×667、320×568下奖励分类3项/默认生物13项、三奖励效果与时长、别名搜索、空结果恢复、关闭后焦点恢复、无横向溢出、HUD不再有奖励图例，以及手机三条生存条对齐。
-- 通过开发接口仅布置拾取物接触场景，由实际主循环收集两种奖励，HUD显示30s；真实空格冲刺时体力不降、真实暂停时剩余时间冻结、恢复后两种奖励到期且HUD清空。计时仍沿用现有游戏模拟时钟，未改变低帧率下物理步长上限；不将该检查宣称为真机30秒墙钟校准。
-- 界面断言等待实际HUD更新，避免游戏规则状态先于界面刷新造成误判；无游戏规则放宽。奖励页不新增WebGL上下文，选择和检索不创建RAF，返回生物继续使用已有缓存。
-- 公开预览同三尺寸浏览器检查通过，无开发接口和控制台错误；JS/CSS字节与本机dist的SHA-256一致。实际查看桌面奖励图鉴、390px图鉴与简化HUD截图。格式、构建和差异检查通过；保留既有入口JS超过500KB构建提示。
+- `npm test`: **123 passed**, covering character actives/passives, 10-second ink / 60-second cooldown, ecology/growth, lord flank/contact rearming, predictive abilities and high-speed sweeps, human nutrition, three submarine rams, one-shot torpedo damage, wall protection, and restart. Static geometry, ray hits, shared resources, and animation probes passed for 14 new models.
+- Main browser flow: **28 passed**. Actual keyboard control; measured orca sprint 40.03 meters/second converging toward 41.6; stamina, slow swim, pause, healing, schools, 30-second rewards, real momentum breach/reentry, lord windup/recovery, defeat after five actual flank contacts, 30-meter-plus-lord victory, and 30-minute effective-time results.
+- New expansion suite: **8 groups passed**. Guide's 32 entries/categories; real squid keyboard dives beyond 80° and normal sprint turning; J froze an actually pursuing sperm whale for 10 effective seconds while jetting away, with pause freeze and repeated activation rejected during cooldown; close approach triggered flying-fish breach/glide/reentry; three actual submarine rams broke the hull, continuous hull contact did not repeat hits, three divers escaped, and hull collision was removed; torpedo contact dealt 28 once; diver contact healed; 320/390px guide and ink countdown/disabled states.
+- Guide/effects: **13 passed**, including stable cache, one RAF, search, focus restoration, 390px layout, real feeding blood clouds, white-shark bursts, wild-squid ink, and restart cleanup. Sonar: **11 passed**, with desktop keyboard and actual emulated-phone touch turning, forward grouped labels through fog/occlusion, 360-degree radar, 10-second expiry, and 60-second cooldown.
+- Menu/touch: **6 groups passed**. HUD: **26 states at 6 sizes**—320×568, 390×667, 430×932, 844×390, 1440×900, 1920×1080. With new species sizes, the chase-layout fixture uses an 18-meter player and 20-meter megalodon to preserve real eligibility; no screenshot-specific rule changes. Three survival bars remain aligned.
+- Solid collision: **10 scenarios passed separately**—9 in the full suite plus a separately rerun deck-landing case. Coverage includes 6/30-meter spawn, reef sprint, hunter knockback into rock columns, hull-side sliding, travel below hulls/upward hull collision, deck landing, growth escape, and camera occlusion. The old fixture predicted a landing at speed 32; 41.6 moved its start toward shore rocks, crossing the waterline before sufficient buildup. It now reads character speed, approaches toward +Z from deep water, and verifies full-body starting clearance. Real key trajectories hit `ship_deck`; body/camera overlaps and recovery frames were all 0. Collision and breach thresholds were not relaxed.
+- Final read-only review led to fixes for old tier names in ordinary labels, retained flying-fish wing state on restart, and feeding on stationary divers through walls. Guide character-highlight screenshots wait for CSS transitions and assert one selected record.
+- Reference growth simulation: baseline **17:06 / 68 fish**, 20% faster **13:40.8 / 68**, 25% slower **22:33.75 / 71**. The slower route can continue beyond 20 minutes but still ends at 30. It uses actual species/nutrition with fixed search/travel/lord intervals, without real navigation, density, or encounter randomness; **it is not a natural full-round result**.
+- Formatting, diff, and production build passed. Entry JS: **781.09KB / gzip 227.13KB**; CSS 42.81KB. Existing 500KB warning remains. Audio synthesis was unchanged and received no new independent listening acceptance.
+- Local production and the same public URL passed interactions at 1440×900, 390×667, and 320×568: both character selections, 32 entries/seven category counts, 30-second rewards, orca J sonar/radar, squid J/actual touch ink, disabled cooldowns, phone bars, and pause/resume. No console errors or production development API. Page and `index-BU8JEPcW.js` / `index-Dp5JX0tc.css` matched local dist byte-for-byte/SHA-256. The URL updated from v0.4.4 to v0.5.0. Receipts: `v5_local_verification.json`, `v5_public_verification.json`, `v5_asset_check.json`; local `preview_state.json` updated. Actual desktop character/ancient guide and 390px ink screenshots were viewed.
 
-证据：`.local/v4_4_unit.log`、`v4_4_dev_verification.json`、`v4_4_public_verification.json`、`v4_4_check.log`、`v4_4_build.log`；截图为 `v4_4_dev_*` / `v4_4_public_*`，活动服务与资源回执在 `.local/preview_state.json`。本轮未改声呐、物理、声音、战斗和模型；这些项目的专项证据沿用下文对应轮次，没有把旧测试计入本轮。真实手机与自然整局仍待试玩。
+Evidence: `.local/v5_unit.log`, `v5_browser.log`, `v5_expansion_results.json`, `v5_feedback.log`, `v5_sonar.log`, `v5_controls.log`, `v5_hud.log`, `v5_collision_combined.json` (identifies the 9+1 execution sources), `v5_deck.log`, `ecosystem_v0_5_model_report.json`, `v5_build.log`, and `v5_*.png`. Reproduce expansion with `node scripts/verify_expansion_v0_5.mjs`; deck collision with `ABYSSAL_COLLISION_CASE=ship_deck_landing node scripts/verify_collision_v0_4.mjs`.
 
----
-
-# v0.4.3 前向回声验证记录
-
-验证日期：2026-09-27。根据手机截图反馈，将生存进度条对齐，并把声呐世界标记从360度全量改成前方小扇区的少量说明；雷达保留周围探测。代码保持未提交。
-
-- 99项规则测试通过。前方投影覆盖相机水平±30°、垂直±25°和真实屏幕边界；转向替换目标、同种同资格合并、最多4组/每组2点、局部避让及取消屏外箭头/连线均有验证。波纹生命周期和10秒/60秒规则保留。
-- 生存条专项20状态通过：320×568、390×667、430×932、844×390和1440×900，实际健康/受伤/低血/恢复驱动副文案。手机三条meter上沿分别为544/642/907/337px，各尺寸内三列完全一致，宽度差不超过浏览器1/64px像素分配；动态文案不移动条位置。桌面仍保持纵向布局。已查看手机和横屏实际截图。
-
-- 声呐浏览器专项11项通过：前方真实岩石遮挡目标显示，身后目标只在雷达；桌面真实D/A与手机真实CDP触屏摇杆转向均使DOM标记0→1→0，雷达始终保留该目标。退出扇区时仍分别剩余6.05/4.47秒效果，排除到期消失造成的假通过。10秒/60秒、暂停、重开、波纹跟随和禁用态继续通过。
-- 六尺寸26状态布局检查通过：静态HUD、实际声呐文字均无重叠或越界；包括小屏、手机横屏、领主追击/墨云和未来双技能夹具。画面最多4组说明、每组最多2个代表点，移除屏外箭头和指向线。
-
-菜单/触屏回归6组通过，设置持久化、真实长按防选择、冷却拒绝重复点击与暂停恢复正常。格式检查及构建通过；入口JS 732.41KB、gzip 206.78KB，保留既有500KB体积提示。
-
-公开预览13项验证通过，包括实际J与手机触摸释放前方标记、最多4组/8点、无屏外箭头/连线、生存条齐平、持续冲刺破水及暂停清理。线上 `index-DNTmCCCP.css` / `index-Bl7VhDpp.js` 与本机dist的SHA-256一致，生产环境无开发接口、控制台无错误。回执 `.local/v4_3_preview_verification.json`，截图 `v4_3_preview_mobile.png` / `v4_3_preview_sonar.png`，状态已更新至 `.local/preview_state.json`；GitHub Pages仍为v0.2。
-
-测试夹具修正：旧转身目标距玩家205，等待及真实巡游会让它先离开260范围；首段靠世界边缘的岩石夹具也可能越界后被实际物理钳回。改用边界内、净空足够且实际射线遮挡成立的岩石与130起始后方间距，保留真实AI和移动，没有放宽游戏探测规则。
-
-证据：`.local/v4_3_unit.log`、`vitals43_report.json`及截图、`v4_3_sonar_turn_fixed.log`、`sonar_v0_4_1_results.json`（包含逐帧方向轨迹）、`hud42_report.json`与`v4_3_hud.log`。真机手感、低端设备帧率仍需试玩，Chrome触摸模拟不等于真实iOS/Android验收。
+Boundaries: development-only APIs arrange specific encounters; the actual main loop still runs abilities, movement, collision, and damage. No naturally controlled full 30-minute round, real-phone/low-end-GPU acceptance, or independent user-network test was completed. Models remain procedural; the overall art redraw was still later work. Modern, ancient, and fantasy creatures sharing Hawaii is a game setting; see [ecology references](ecology_sources_v0_5.md) for scale and adaptation limits.
 
 ---
 
-# v0.4.2 声波导航验证记录
+# v0.4.4 Ocean Rewards verification
 
-验证日期：2026-09-27。承接未提交v0.4.1，新增全目标世界标记、虎鲸扩散声波、常驻返航雷达、首页标记设置和多尺寸HUD。本轮保持未提交，正式GitHub Pages仍为v0.2。
+Verified: 2026-09-27. This round removes the persistent reward legend and pickup effect subtitles, adds a guide rewards section, and changes Ocean Current/Frenzy to 30 seconds. No commit or push; official site remained v0.2.
 
-- 主浏览器回归28项通过，控制台无错误。确认L无效果、游戏中不存在标记开关；纯键盘、破水、自动接触咬击、主宰战与30分钟上限保持。
-- 菜单/触屏6组通过：1440×900、390×844、390×667的首页设置持久化、图鉴搜索编辑、真实长按冲刺防误选、手机声呐原生禁用与倒计时。直接触摸禁用按钮不刷新技能。
-- 声呐专项9项通过：真实J探测岩石后猎物、身后不可见猎手及领主，范围外目标排除；每个目标都有DOM点、体长/资格文字映射和雷达点，声波原点跟随实际游动的虎鲸。真实10秒到期清理、暂停冻结并隐藏覆盖、60秒边界恢复、重开清空均通过。
-- 图鉴与特效13项回归通过，单RAF/模型缓存、血雾、白鲨突袭、墨云恢复和重开清理保持。
+- 99 rules tests passed. Existing assertions were updated for Frenzy eligibility, 30-second expiry, free sprint across the expiry frame, and repeated-pickup refresh. Stamina Spring, sonar, and lord eligibility remain.
+- Four development-browser groups passed at 1440×900, 390×667, and 320×568: 3 reward entries / 13 default creatures, effects/durations, alias search, empty-result recovery, focus on close, no horizontal overflow, no HUD reward legend, and aligned phone survival bars.
+- Development APIs only arranged pickup-contact scenes; the actual main loop collected both rewards and displayed 30s. Actual Space sprint did not drain stamina; actual pause froze remaining time; resume allowed expiry and HUD cleanup. Timing retains the simulation clock and low-frame-rate physics-step limit; this is not a real-device 30-second wall-clock calibration.
+- UI assertions wait for actual HUD updates to avoid reading rules state before display refresh. No rules were relaxed. Rewards add no WebGL context; selection/search creates no RAF, and returning to creatures reuses caches.
+- Public-preview checks passed at the same three sizes, with no development API or console errors and JS/CSS SHA-256 matching local dist. Desktop rewards, 390px guide, and simplified HUD screenshots were viewed. Formatting, build, and diff checks passed; the existing >500KB JS warning remains.
 
-- 101项规则测试通过；新增方位/地图等比投影、全目标覆盖、密集鱼群聚合、视野外投影、矩形避让、声波暂停和资源释放边界。
-- 六尺寸26状态实际DOM检测通过：320×568、390×667、430×932、844×390、1440×900、1920×1080；普通/声呐/真实领主追击墨云/手机两技能普通与战斗状态，独立HUD、动态声呐标签均无相交或越界，控制台无错误。第二技能是测试夹具，产品当前仅虎鲸声呐。
-- 实际截图检查发现并修正极窄屏的贪心文字排布：先放标签会割碎空隙，后续文字轻微重叠。改为精确边界候选与失败时整组重排，同时只避开真实增益徽章，不把透明父容器当成整行障碍；强制玛雅场景也验证无相交。
-
-生产构建与格式检查通过。入口JS 733.44KB、gzip 207.27KB，保留既有500KB体积提示。公开预览13项检查通过，实际桌面J与390px触摸均显示世界标记、常驻雷达与禁用倒计时；暂停清空回声，恢复可用。线上资源 `index-CJV_WxW-.css` / `index-DJWg5Atr.js` 与本地dist的SHA-256完全一致，无开发接口和控制台错误。记录为 `.local/v4_2_preview_verification.json`，进程/资源状态为 `.local/preview_state.json`。
-
-公开脚本首次沿用“冲刺0.9秒松开，再上仰冲刺”的旧固定航线，未满足连续蓄势门槛而超时；复核规则确认松开会清空蓄势，到水面后必须重新下潜。脚本修为连续水平冲刺1.5秒、保持空格再按W，公开版实际破水通过，未改游戏门槛。
-
-证据：`.local/v4_2_unit.log`、`v4_2_browser.log`、`v4_2_controls.log`、`v4_2_sonar.log`、`v4_2_feedback.log`、`hud42_report.json`，以及 `hud42_*` / `v4_2_preview_*` 截图。拥挤12种文字的人工320px压力例纯排布约22ms，真实两目标约0.8ms；极端密度与低端设备性能仍需进一步调优。
-
-验证边界：使用Chrome桌面和触摸模拟，特定遭遇由开发接口布置；尚未替代真实iOS/Android、多指手感、低端设备帧率或自然30分钟整局试玩。声音与物理运动源码此轮未改，沿用上一轮对应专项证据。
+Evidence: `.local/v4_4_unit.log`, `v4_4_dev_verification.json`, `v4_4_public_verification.json`, `v4_4_check.log`, `v4_4_build.log`; screenshots `v4_4_dev_*` / `v4_4_public_*`; service/resource receipt `.local/preview_state.json`. Sonar, physics, audio, combat, and models were unchanged. Their targeted evidence remains in the corresponding earlier rounds, not counted again here. Real phones and natural full rounds remain pending.
 
 ---
 
-# v0.4.1 回声猎游验证记录
+# v0.4.3 Forward-echo verification
 
-验证日期：2026-09-27。承接v0.4未提交工作区，按用户追加反馈恢复有独立用途的主动声呐、改为接触自动咬击、将远征上限改为30分钟；本轮没有提交或推送。
+Verified: 2026-09-27. Phone screenshot feedback prompted aligned survival bars and a small forward sector of sonar descriptions instead of 360-degree world labels. Radar retains surrounding detection. Code remained uncommitted.
 
-- 84项规则测试通过，包含声呐10/60秒边界、范围与资格、幕后/不可见目标、未启用或已击败目标排除；模型旋转、触腕空隙、鳍两面与闭合躯干内部的接触判定；1800秒上限及20分钟慢路线继续。
-- 主浏览器回归28项通过，控制台无错误。真实J只触发声呐，不隔空攻击；不按咬击键也能接触攻击，首击克拉肯生命180→136.8，1.2秒冷却内反复接触不会追加伤害，五次接触击败。暂停、重开与30分钟到时结算正常。
-- 菜单/触屏脚本6组通过（1440×900、390×844、390×667）。手机真实tap声呐按钮激活、进入冷却；长按冲刺防选择、普通标记独立开关及暂停设置保持有效。
-- 新专项 `scripts/verify_sonar_v0_4_1.mjs` 6项通过：真实J探测到岩石后可捕食小鱼、渲染距离以外且位于身后的白鲨，以及范围内领主；常规标记关闭后依然能探测，超距目标排除。重复J不刷新，暂停冻结，真实有效游玩10秒后面板消失，冷却未满拒绝释放，60秒边界恢复，重开清空。
-- 图鉴/特效13项回归通过；格式检查和生产构建通过，入口JS约720KB、gzip约202KB，保留既有超过500KB提示。
-- 填满目标的手机战斗布局复核：390×667/844同时显示声呐、真实邓氏鱼追击和克拉肯领主面板。声呐高度100px、显示三条代表目标，与预警、领主、通知、动作按钮及计时器均无重叠。已查看桌面与手机实际截图。
+- 99 rules tests passed. Forward projection covers camera horizontal ±30°, vertical ±25°, and actual screen boundaries. Checks cover replacement on turning, grouping by species/eligibility, at most 4 groups / 2 points each, local avoidance, and removal of offscreen arrows/lines. Ripple lifecycle and 10-second/60-second rules remain.
+- Survival-bar suite: 20 states passed at 320×568, 390×667, 430×932, 844×390, and 1440×900, with actual healthy/injured/low-health/recovering states driving subtitles. Phone meter tops were 544/642/907/337px respectively, identical across three columns within each size; width differences stayed within browser 1/64px allocation. Dynamic text did not shift bars. Desktop retained vertical layout. Phone and landscape screenshots were viewed.
+- Sonar browser suite: 11 passed. Real rock-occluded forward targets displayed; rear targets appeared only on radar. Actual desktop D/A and phone CDP joystick turning changed DOM markers 0→1→0 while radar retained the target. Effects still had 6.05/4.47 seconds on sector exit, ruling out expiry as a false pass. Duration/cooldown, pause, restart, following waves, and disabled states passed.
+- Layout: 26 states at six sizes passed, without HUD/sonar overlap or overflow, including small screens, phone landscape, lord pursuit/ink, and a future two-ability fixture. At most 4 groups with 2 representative points each; no offscreen arrows or leader lines.
 
-公开预览12项检查通过：实际J释放显示回声、进入冷却、无咬击按钮、30分钟计时、图鉴与暂停等可用；线上JS/CSS与本机dist的SHA-256一致，无开发接口与控制台错误。资源为 `index-Mz3jhQ9Q.css` / `index-DareqRtI.js`，回执 `.local/v4_1_preview_verification.json`，活动状态 `.local/preview_state.json`。正式GitHub Pages仍为v0.2，用户外部网络尚未实测。
+Menu/touch regression passed 6 groups: persistence, actual long-press selection prevention, cooldown repeat rejection, and pause/resume. Formatting/build passed; entry JS 732.41KB, gzip 206.78KB, with the existing 500KB warning.
 
-证据：`.local/sonar_v0_4_1_results.json`、`.local/sonar_mobile_layout.json`、`.local/verification_v0_3.json`、`.local/v4_controls_verification.json`、`v4_1_sonar_*.png`。开发接口用于布置特定遭遇与60秒边界，10秒显示/暂停及实际接触由真实主循环执行；不是自然整局通关，也未替代真机移动端体验验收。
+Public preview passed 13 checks: actual J and phone touch activation, at most 4 groups / 8 points, no offscreen arrows/lines, aligned bars, sustained-sprint breach, and pause cleanup. Online `index-DNTmCCCP.css` / `index-Bl7VhDpp.js` SHA-256 matched local dist; no production development API or console errors. Receipt `.local/v4_3_preview_verification.json`; screenshots `v4_3_preview_mobile.png` / `v4_3_preview_sonar.png`; `.local/preview_state.json` updated. Pages remained v0.2.
 
----
+Fixture correction: a rear target initially 205 units away left the 260-unit range during waiting and real swimming. A rock fixture near the world edge could also be clamped back by physics. Use an in-bounds rock with sufficient clearance and proven ray occlusion, and an initial rear distance of 130. Real AI/movement remain; detection rules were not relaxed.
 
-# v0.4 海域远征验证记录
-
-验证日期：2026-09-27。基线仍为 `96d57ff`，加保留的v0.3与本轮v0.4未提交工作区。
-
-- `npm test`：72项通过，覆盖20分钟独立结算、低帧率真实时钟、成长节奏与治疗，以及连续扫掠、鱼身尺度、船体与岩拱等边界。
-- `npm run test:browser`：28项通过，包含真实WASD/空格/J/K/L，鼠标不转向、F/左键不咬击，被动距离标记开关，暂停冻结远征时钟，到期结算与重开，破水、猎手及五次咬击领主获胜。控制台无错误。
-- `node scripts/verify_feedback_v0_3.mjs`：13项通过。保留图鉴分类/搜索/焦点、模型缓存与单RAF、390px无溢出、血雾、白鲨突袭、墨云内外恢复和重开清理；重开保留玩家选择的标记偏好。
-- `node scripts/verify_controls_v0_4.mjs`：6组检查通过，覆盖1440×900、390×844、390×667的出发选择、禁用未来海域、可选角色图鉴、搜索可编辑、菜单/暂停/触屏设置与本地持久化。CDP真实长按冲刺1.3秒会耗体，松手后恢复，无文字选择；游戏区域的上下文菜单及剪贴板事件被取消。人为阻塞一帧250ms后，远征时钟仍累计真实时间。
-- 截图复核修正了移动菜单相对定位造成的左侧偏移，以及毛玻璃面板改变fixed包含块造成的计时器重叠。新增测量断言检查菜单左留白、计时器与任务面板/破水提示互不相交。
-- `node scripts/verify_collision_v0_4.mjs`：10项、546个主循环采样帧通过。覆盖6/30米出生、礁石冲刺、船侧滑动、船下通行、船底阻挡、真实破水落到甲板、成长脱困、相机避船与真实白鲨贴岩柱咬伤。最后一项生命100→72并产生岩柱接触，击退未穿透；全部采样的鱼身/相机船体重叠、卡死与浏览器错误均为0。
-- `npm run check` 与生产构建通过；入口JS约712KB、gzip约199KB，仍有超过500KB的体积提示。音频源码本轮未更改，沿用v0.3已完成的音频验证。
-- 公开临时预览通过10项生产检查：首页v0.4、海域/角色与图鉴分类、L标记开关、启动、冲刺、真实W+空格破水、暂停冻结倒计时及恢复。线上JS/CSS与本机dist的SHA-256一致，生产版无开发接口、控制台无错误。资源为 `index-BLoaLcfR.css` 与 `index-DVFM86CJ.js`，回执在 `.local/v4_preview_verification.json`；进程/地址记录在 `.local/preview_state.json`。用户自身外部网络尚未验证。代码未提交，正式GitHub Pages仍为v0.2。
-
-成长时长边界：规则层参考捕食/转场/战损模型约18分57秒通关，较快路线约15—17分钟；这些是明确假设下的模拟，未替代自然完整一局。手机使用Chrome触摸模拟验证，真实iOS/Android多指和系统长按行为仍需真机试玩。当前实体采用近似碰撞体，船只不能被推翻或破坏，不是完整海洋刚体物理模拟。
-
-证据：`.local/verification_v0_3.json`（脚本历史命名，内容为本轮28项）、`.local/v3_feedback_results.json`、`.local/v4_controls_verification.json`、`.local/verification_collision_v0_4.json`、`.local/progression_calibration.json`，以及 `v4_menu_*` / `v4_hud_*` / `v0_4_collision_*` 截图。
+Evidence: `.local/v4_3_unit.log`, `vitals43_report.json` and screenshots, `v4_3_sonar_turn_fixed.log`, `sonar_v0_4_1_results.json` (frame-by-frame heading trace), `hud42_report.json`, and `v4_3_hud.log`. Real-device handling and low-end frame rates still need playtesting; Chrome touch emulation is not actual iOS/Android acceptance.
 
 ---
 
-# v0.3 视觉交付独立复核（Codex）
+# v0.4.2 Sonar navigation verification
 
-复核日期：2026-09-27。基线：`96d57ff` 加未提交v0.3工作区。Kimi视觉交付后，由Codex重新运行检查，并结合代码与实际截图复核；收尾修复已集成，最终构建与预览核验结果见下文。
+Verified: 2026-09-27. Builds on uncommitted v0.4.1 with world markers for all targets, expanding orca waves, persistent return radar, home marker settings, and adaptive HUD. Still uncommitted; official Pages remained v0.2.
 
-- 已独立重跑格式检查、46项规则测试、21条浏览器主流程、13项v0.3专项，全部通过；控制台无错误。真实按键的水下蓄势、起跳、空中惯性和落水流程保留。
-- 最终 `npm run build` 通过，入口JS约699KB、gzip约193KB；仍有超过500KB提示。修复后的同地址预览已更新，正式GitHub Pages未变。
-- 已通过公开临时地址重新验证8项流程：首页版本、JS/CSS与dist字节一致、生产环境无调试入口、13物种与4领主筛选、开始、冲刺耗体、水下蓄势破水、暂停恢复。
-- 图鉴专项测得重复选取GPU缓冲22→22、每帧1次图鉴回调；390×844下内容宽与滚动宽均337，页面宽390。这里22个缓冲取代功能阶段18个的历史数值，验收依据是稳定复用。
-- 实际查看首页、HUD、390px图鉴、13物种中的代表模型、血雾、墨云、领主预警、深海地标与公开版破水画面。图形为程序化风格化资产，未将其描述为写实扫描模型。
-- 复核修复：390×844的通知覆盖领主战术提示；吐息光晕材质与空中滴水实例缓冲释放遗漏；海鸥尾羽动画被静态合并；海德拉颈根部分裸露与躯干前截面开口。另补首页空格激活和暂停/结算键盘焦点管理。
+- Main browser regression: 28 passed, no console errors. L has no effect and no in-game marker toggle exists. Keyboard-only play, breach, automatic contact attacks, lord combat, and 30-minute cap remain.
+- Menu/touch: 6 groups passed at 1440×900, 390×844, and 390×667. Home settings persist, guide search remains editable, real long-press sprint prevents selection, and phone sonar has native disable/countdown. Direct touch on disabled buttons cannot refresh the ability.
+- Sonar: 9 passed. Real J detects prey behind rocks, unseen rear hunters, and lords, excluding out-of-range targets. Every target has a DOM point, length/eligibility mapping, and radar point. Waves follow the actually swimming orca. Real 10-second expiry cleanup, pause freeze/hide, 60-second readiness boundary, and restart cleanup passed.
+- Guide/effects: 13 regressions passed, retaining one RAF/model cache, blood, white-shark rush, ink recovery, and restart cleanup.
+- 101 rules tests passed, including bearing/isometric map projection, all-target coverage, dense-school aggregation, offscreen projection, rectangle avoidance, wave pause, and resource release.
+- Actual DOM checks passed 26 states at 320×568, 390×667, 430×932, 844×390, 1440×900, and 1920×1080. Normal/sonar/real lord-chase-ink and phone two-ability normal/combat states had no independent-HUD or dynamic-label intersections/overflow, and no console errors. The second ability was a fixture; the product then had only orca sonar.
+- Screenshot review found and corrected greedy label placement on very narrow screens: early labels fragmented available space, causing later overlap. Exact boundary candidates and whole-group retry replaced it. Avoid only real buff badges, not transparent parent rows; a forced Maya scene also had no intersections.
 
-补充专项：
+Production build/formatting passed. Entry JS 733.44KB, gzip 207.27KB, retaining the 500KB warning. Public preview passed 13 checks: actual desktop J and 390px touch showed world markers, persistent radar, and disabled countdown; pause cleared echoes and resume restored them. Online `index-CJV_WxW-.css` / `index-DJWg5Atr.js` SHA-256 matched local dist, with no development API or console errors. Receipt `.local/v4_2_preview_verification.json`; process/resources `.local/preview_state.json`.
 
-- 390×844及390×667在冻结遭遇后叠加领主、追击、区域通知和墨云提示，实测关键面板与触屏按钮无重叠；这是布局压力场景，不代表这些事件必定自然同时发生。 手机领主战斗态另外收起奖励图例、上移预警与领主面板；脱战恢复常规位置，奖励横滑与目标标签避让保留。
-- 真实Chrome键盘7项检查通过：空格激活开始、下一次空格冲刺、暂停焦点和Tab循环、空格继续、死亡/胜利重开、图鉴打开关闭及焦点恢复。
-- 13种模型顶点与法线有限，逐帧无新增几何、无动画对象脱离场景。海德拉颈根在1800帧、三档速度共37,800个采样点中全部留在体内，外轮廓尺寸保持；海鸥仅增加一个绘制调用以保留摆尾。
-- 资源探针验证吐息弹自然过期和重开都释放3个独立光晕及24个拖尾材质，共享几何/材质不被释放；Surface销毁释放滴水与泡沫实例。该探针为临时Node命令，数值留在协作工具输出中，未保存独立脚本。
-- 窄屏奖励横条开启独立横向手势，并加入右缘渐隐提示。末尾留白防止最后一枚奖励被渐隐遮淡；Chrome触摸事件实测scrollLeft从0变为243到达末端，最后一枚奖励的完整说明位于渐隐区左侧。世界目标标签与重要面板相交时暂时隐藏，离开遮挡区域后恢复；桌面与390px均通过真实HUD循环检查。
-- 重跑声音专项：三层配乐、水流和13类音效均非静音，高密度叠加峰值0.575、削波0，暂停/静音/重开通过。音频合成验证不是实际扬声器听感验收；墨云0.62的显示上限保留。
+The first public script reused an old “sprint 0.9 seconds, release, then pitch up and sprint” route and timed out without continuous buildup. Review confirmed release clears momentum and surface arrival requires diving again. The script now sprints horizontally for 1.5 seconds, keeps Space held, then presses W. Public-build breaching passed without changed game thresholds.
 
-证据：`.local/v3_feedback_results.json`、`verification_v0_3.json`、`v3_preview_verification.json`、`codex_mobile_layout_results.json`、`codex_r3_report.json`（8种布局状态） 、`keyboard_accessibility_results.json`、`codex_reward_swipe.json`、`codex_target_label_results.json`、`model_audit_kimi_20260927/`、`audio_validation.json`与相关截图。复核前的截图与Kimi交付见下一节。
+Evidence: `.local/v4_2_unit.log`, `v4_2_browser.log`, `v4_2_controls.log`, `v4_2_sonar.log`, `v4_2_feedback.log`, `hud42_report.json`, and `hud42_*` / `v4_2_preview_*` screenshots. A synthetic 320px stress case with 12 species' text took about 22ms for layout alone; two real targets about 0.8ms. Extreme density and low-end performance still need tuning.
 
-验证边界：特定遭遇通过开发接口定位，按键破水通过真实输入执行；不等于自然操作通关整局。真实手机多指手感、低性能设备帧率、长时运行及实际扬声器听感仍待试玩。尚未commit/push，正式GitHub Pages仍为v0.2。
+Boundaries: Chrome desktop/touch emulation and development-arranged encounters do not replace real iOS/Android, multitouch feel, low-end frame rates, or natural 30-minute play. Audio and physical-motion sources were unchanged, retaining previous evidence.
 
 ---
 
-# v0.3 视觉重绘阶段验证记录（Kimi）
+# v0.4.1 Echo Hunt verification
 
-验证日期：2026-09-27。基线：`96d57ff` 加未提交v0.3工作区（含Codex功能阶段与Kimi视觉重绘，全部未提交）。
+Verified: 2026-09-27. Continues the uncommitted v0.4 workspace, restoring purpose-specific active sonar, automatic contact attacks, and a 30-minute expedition cap following additional feedback. No commit or push.
 
-- 重绘范围：`src/creatures.js`/`src/creature_extra.js` 全物种建模与动作（虎鲸/鱼群/金枪鱼/蝠鲼/大白鲨/鮟鱇/大王乌贼/邓氏鱼/海鸥/四领主）；`index.html`/`src/style.css`/`src/ocean_guide.css` 首页/HUD/结算/触屏/图鉴；`src/combat_effects.js`/`src/surface.js`/`src/encounters.js`/`src/ocean.js`/`src/ocean_extra.js`/`src/ships.js`/`src/rewards.js` 血雾/墨云/破水/领主技能特效/海床地标/水面船只/奖励外观。技能数值、状态机、DOM id 接线、模型 kind/-Z朝向/length缩放/animate 接口、音频接口均未变。
-- `npm run check` 通过；`npm test` 46/46；`npm run test:browser` 21/21 且控制台无错误（含真实按键水下蓄势→破水→落水全流程）；`node scripts/verify_feedback_v0_3.mjs` 13/13（含图鉴390px不溢出、模型缓存稳定、单RAF循环三项既有约束、真实捕食血雾、粒子过期、墨云移出恢复/自然消散、重开清理）；`node scripts/verify_audio.mjs` 通过（三层配乐与音效非静音、无削波）；`npm run build` 通过（入口JS超500KB提示依旧）。
-- 集成截图已审稿：首页/HUD/威胁预警/暂停/死亡/图鉴桌面与390px（`.local/r1_ui_*.png`）、13物种展示（`.local/r1_creature_*.png`）、血雾/墨云内外/破水/落水/四领主技能/浅海/深海地标/游轮/帆船/奖励（`.local/r1_env_*.png`），以及回归实拍的 `v3_menu/breach/boss/deep/mobile.png`。
-- 临时外网预览已重建dist并通过同一隧道服务新资源（哈希核对一致）：地址与进程见 `.local/preview_state.json`。正式GitHub Pages仍为v0.2。
-- 已知限制：墨云浓度上限压到0.62以保可读性（音频闷化峰值同步降低，接口未变）；神殿主体在深海雾中偏暗（发光阶梯可读）；领主技能截图距离有约20%波动（游戏内按真实半径渲染）；真机触屏手感、自然整局节奏与真实设备听感仍待试玩。
+- 84 rules tests passed: sonar 10/60-second boundaries, range/eligibility, rear/invisible targets, exclusion of inactive/defeated targets; model rotation, arm gaps, both fin faces, and closed-torso interior contact; 1800-second limit and continuation of slower routes beyond 20 minutes.
+- Main browser regression: 28 passed, no console errors. Actual J triggers sonar only, never remote attacks. Contact attacks work without a bite key. Kraken health changed 180→136.8 on the first hit; repeated contact within 1.2 seconds added no damage; five contacts defeated it. Pause, restart, and 30-minute results worked.
+- Menu/touch: 6 groups passed at 1440×900, 390×844, and 390×667. Real phone tap activates sonar/cooldown. Long-press sprint selection prevention, independent ordinary-marker toggles, and pause settings remain effective.
+- New `scripts/verify_sonar_v0_4_1.mjs`: 6 passed. Actual J detected edible fish behind rocks, a rear white shark beyond draw distance, and an in-range lord. Detection worked with ordinary markers off and excluded distant targets. Repeated J did not refresh; pause froze; the panel disappeared after 10 effective seconds; cooldown rejected early activation and restored it at 60; restart cleared it.
+- Guide/effects: 13 regressions passed. Formatting/build passed, entry JS about 720KB / gzip 202KB, retaining the >500KB warning.
+- Filled phone combat layouts at 390×667/844 showed sonar, actual Dunkleosteus pursuit, and Kraken together. Sonar was 100px high with three representative targets, without overlap against warning, lord, notification, action controls, or timer. Desktop/phone screenshots were viewed.
 
----
+Public preview passed 12 checks: actual J echoes/cooldown, no bite button, 30-minute timer, guide, pause, and related controls. Online JS/CSS SHA-256 matched local dist; no development API or console errors. Resources: `index-Mz3jhQ9Q.css` / `index-DareqRtI.js`; receipt `.local/v4_1_preview_verification.json`; active state `.local/preview_state.json`. Pages remained v0.2; the user's external network was untested.
 
-# v0.3 功能阶段验证记录
-
-验证日期：2026-09-27。基线：`96d57ff` 加未提交v0.3工作区。以下仅代表Codex功能阶段，Kimi整体视觉重绘尚待完成。
-
-- `npm test`：46项规则测试通过。新增猎手技能预警/冷却/遮挡与更耐用冲刺，以及11项破水边界测试，覆盖水面禁止起飞、时间及路程蓄势、真实跨水线、松键中断、空中无二段跳、帧率一致、落水惯性与重新下潜。
-- `npm run test:browser`：21条主流程回归通过；破水测试改为先从水下蓄势。浏览器控制台无错误。
-- `node scripts/verify_feedback_v0_3.mjs`：13项专项通过，覆盖新增图鉴、分类、搜索、关闭焦点、390px布局、真实捕食血雾、粒子过期、白鲨预警与爆发恢复、乌贼喷墨/移出恢复/自然消散、重开清理等专项。状态设置只用于制造特定遭遇，判定和技能由真实主循环运行。
-- 船只与动作：实际浏览器操作W+空格，两次完成起跳与落水，最高世界Y约20.75；姿态随竖直速度从上仰平顺转为俯冲。已查看游轮、双桅与单桅帆船、航迹、起跳、落水截图，无控制台错误。
-- 音频：24秒连续混音，舒缓/追逐/领主RMS约0.053/0.060/0.064；三条音乐轨、水流及13种音效均非静音。高密度叠加峰值0.575、削波样本0；静音、暂停、重开清尾音和音频图复用通过。墨云混音的高频能量下降约29%。离线检查不等同于真实设备听感验收。
-- `npm run check`及生产构建通过。入口JS约669KB、gzip约185KB，仍有超过500KB构建提示。
-- 经临时外网地址打开生产构建：确认v0.3、13种图鉴与4领主分类、开始游戏、冲刺耗体、水下蓄势破水、暂停恢复；生产环境无调试接口，JS/CSS与本机dist哈希一致，控制台无错误。仍未验证用户的外部网络。
-
-图鉴专项修复：移动端网格改为可收窄列，避免内部内容撑到屏幕外；每种标本模型只创建一次；重复打开不会叠加动画帧循环。实测390px窗口内内容和滚动宽度均为344px；重复选择的GPU缓冲保持18个；每帧仅1次图鉴回调。后续重绘需要保留这三个约束。
-
-证据：本机`.local/v3_feedback_results.json`、`verification_v0_3.json`、`audio_validation.json`、`v3_preview_verification.json`与相关截图/WAV。活动地址与进程记录在`.local/preview_state.json`，不进入Git。
-
-验证边界：自然整局成长节奏、猎手技能公平性、真实扬声器听感、手机多指控制、低性能设备和长时运行仍待试玩。船只是环境，无碰撞/乘船玩法。生物及领主整体模组重绘由下一阶段Kimi负责；不能将当前功能模型视为最终美术。
+Evidence: `.local/sonar_v0_4_1_results.json`, `.local/sonar_mobile_layout.json`, `.local/verification_v0_3.json`, `.local/v4_controls_verification.json`, and `v4_1_sonar_*.png`. Development APIs arranged encounters and the 60-second boundary; actual main-loop execution handled the 10-second display/pause and contact. This is neither natural full-round completion nor real-phone acceptance.
 
 ---
 
-# v0.2 验证记录
+# v0.4 Ocean Expedition verification
 
-验证日期：2026-09-26。版本：0.2.0，检查当时为未提交开发稿。以下为本轮独立检查，旧版记录保留在文末。
+Verified: 2026-09-27. Baseline remained `96d57ff` plus retained uncommitted v0.3/v0.4 work.
 
-2026-09-27提交前复核：格式检查、26项规则测试、21条Chrome浏览器流程与生产构建再次通过；浏览器控制台无错误。用户已授权当前版本提交。GitHub Pages发布结果以实际Actions回执与线上页面检查为准。
+- `npm test`: 72 passed, covering independent 20-minute results, low-frame-rate real clock, growth/healing pacing, continuous sweeps, body scale, hulls, and rock arches.
+- `npm run test:browser`: 28 passed. Real WASD/Space/J/K/L; mouse does not steer, F/left click does not bite; passive-distance-marker toggle; pause freezes expedition time; timeout/restart; breaching, hunters, and victory after five lord bites. No console errors.
+- `node scripts/verify_feedback_v0_3.mjs`: 13 passed. Guide categories/search/focus, cache/one RAF, no 390px overflow, blood, white-shark rush, ink exit/dissipation, and restart cleanup remain. Restart preserves marker preference.
+- `node scripts/verify_controls_v0_4.mjs`: 6 groups passed across 1440×900, 390×844, and 390×667, covering setup selection, disabled future regions, playable guide category, editable search, menu/pause/touch settings, and persistence. Actual CDP sprint hold for 1.3 seconds drained stamina; release restored it without text selection. Game context-menu/clipboard events were canceled. A deliberately blocked 250ms frame still counted actual expedition time.
+- Screenshot review fixed a mobile-menu left offset from relative positioning and timer overlap from a frosted panel changing the fixed containing block. Added assertions measure menu left padding and nonintersection of timer with mission/breach panels.
+- `node scripts/verify_collision_v0_4.mjs`: 10 cases / 546 main-loop frames passed. Coverage: 6/30-meter spawn, reef sprint, hull-side sliding, below-hull travel, upward hull blocking, actual breach onto deck, growth escape, camera avoidance, and actual white-shark bite against a rock column. The latter changed health 100→72 and produced column contact without knockback penetration. Body/camera hull overlap, stuck frames, and browser errors were all 0.
+- `npm run check` and production build passed; entry JS about 712KB / gzip 199KB, retaining the >500KB warning. Audio source was unchanged, reusing v0.3 verification.
+- Temporary public preview passed 10 production checks: v0.4 home, region/character/guide categories, L toggle, start, sprint, actual W+Space breach, pause countdown freeze/resume. Online JS/CSS SHA-256 matched local dist; no production development API or console errors. Resources `index-BLoaLcfR.css` / `index-DVFM86CJ.js`; receipt `.local/v4_preview_verification.json`; process/URL `.local/preview_state.json`. User-network access was not independently checked. Code remained uncommitted and Pages v0.2.
 
-- `npm test`：26项生存、导航和主宰战规则测试通过。
-- `npm run test:browser`：21条Chrome浏览器检查通过，控制台无错误；覆盖音乐激活与暂停、回血优先、鱼群、奖励辨识、真实W+空格破水/落水、海鸥捕食、中级追击、主宰前摇与恢复、多次F/鼠标长按咬击、胜利和窄屏界面。
-- 音乐专项：在浏览器OfflineAudioContext合成18秒音轨，舒缓/追击/主宰三段均非静音，峰值<0.38，未削波；重复start不重复创建音频图，暂停冻结音频时钟。
-- 独立空间复核：四主宰均能完成技能与击败奖励流程；200个随机启用出生点满足海床空间与物种最低深度；重开会重置玩家、腾空状态及主宰血量。
-- 实际截图检查了新的奖励标签、海面天空、三头海龙、沉船、鲸落和深海地标。
-- 格式与生产构建通过；入口JS约627KB，gzip约170KB，仍有超过500KB的构建体积提示。
+Growth boundaries: the rules-level reference feeding/travel/damage model completes around 18 min 57 sec, with faster routes around 15–17 minutes. These are simulations under stated assumptions, not natural full-round play. Phones were tested through Chrome touch emulation; real iOS/Android multitouch and system long-press behavior remain pending. Solids use approximate colliders; ships cannot be overturned or destroyed, and this is not full ocean rigid-body physics.
 
-关键修复：主宰生成点按物种海深选择，避免领地中心埋入海床；脉冲预警与攻击覆盖一致；弹丸被岩石阻挡后不再继续造成伤害；HUD刷新不再中断鼠标或触屏长按。
-
-验证边界：具体海鸥遭遇、主宰终局与深度跳转使用开发环境状态设置，生产版不导出此接口。自然游玩一整局的难度、真实扬声器听感、外部用户网络、真实手机触屏与长时帧率仍待试玩反馈。2026-09-26检查时使用依赖本机在线的临时预览，当时尚未提交代码或发布GitHub Pages。
-
-音频专项复现：保留开发服务器运行，在另一终端执行 `node scripts/verify_audio.mjs`。浏览器流程执行 `npm run test:browser`。结果和截图均写入被忽略的 `.local/`。
+Evidence: `.local/verification_v0_3.json` (historical script name, containing this round's 28 checks), `.local/v3_feedback_results.json`, `.local/v4_controls_verification.json`, `.local/verification_collision_v0_4.json`, `.local/progression_calibration.json`, and `v4_menu_*` / `v4_hud_*` / `v0_4_collision_*` screenshots.
 
 ---
 
-# 第一版验证记录
+# v0.3 Independent visual-delivery review (Codex)
 
-验证日期：2026-09-26。版本：0.1.0，未提交开发稿。
+Reviewed: 2026-09-27. Baseline `96d57ff` plus uncommitted v0.3 work. After Kimi's visual delivery, Codex independently reran checks and reviewed code and actual screenshots. Closeout fixes were integrated; final build/preview results follow.
 
-## 已完成
+- Independently reran formatting, 46 rules tests, 21 main browser flows, and 13 v0.3 checks; all passed without console errors. Real-input underwater buildup, takeoff, airborne inertia, and reentry remain.
+- Final `npm run build` passed: entry JS about 699KB / gzip 193KB, still with the >500KB warning. The same preview URL updated after fixes; official Pages did not change.
+- Reverified 8 public-preview flows: home version, JS/CSS bytes matching dist, no production debug entry, 13 species / 4 lords filtering, start, sprint drain, underwater momentum breach, pause/resume.
+- Guide measurements: repeated selections kept GPU buffers 22→22 and one guide callback per frame. At 390×844, content/scroll widths were both 337, page width 390. These 22 buffers replace the functional phase's historical 18; acceptance is based on stable reuse.
+- Viewed actual home, HUD, 390px guide, representative models among 13 species, blood, ink, lord warnings, deep landmarks, and public-build breach screenshots. Graphics are procedural stylized assets, not claimed photoreal scans.
+- Review fixes: notifications covered lord tactics at 390×844; breath-halo materials and airborne-droplet instance buffers were not released; static merging swallowed gull-tail animation; Hydra neck roots were partly exposed and the torso front section was open. Also added Space activation on home and keyboard focus handling for pause/results.
 
-- `npm test`：16项规则与导航测试通过，包括奖励到期、大小判定、成长胜负、饥饿/体力、受伤无敌、海床深度与边界回转。
-- `npm run check`：格式检查通过。
-- `npm run build`：生产构建成功；当前单个入口包包含 Three.js，未压缩传输约560KB、gzip约150KB。构建会给出超过500KB的体积提示。
-- `npm audit`：安装时审计未发现已知漏洞。
-- Google Chrome / Playwright：开始、冲刺消耗体力、暂停冻结与恢复、捕食成长、奖励显示、白鲨追击警报、咬伤、死亡重开、利维坦捕食与30米胜利、深海场景、390px窄屏布局；未捕获控制台错误。
-- 实际截图检查了1440×900桌面入口与追尾画面，以及窄屏暂停界面。
-- 临时公开预览验证首页及打包JS/CSS字节一致、更新后同一地址可见、源码和本地运行目录不可访问。
+Additional checks:
 
-## 验证边界
+- At 390×844 and 390×667, frozen encounters combined lord, chase, region notification, and ink panels without key-panel/touch-control overlap. This is layout stress, not a claim those events naturally coincide. Phone lord combat also hides the reward legend and raises warning/lord panels, restoring normal positions after combat; horizontal reward gestures and target-label avoidance remain.
+- Seven actual Chrome keyboard checks passed: Space start, subsequent Space sprint, pause focus/Tab loop, Space resume, death/victory restart, guide open/close and focus restoration.
+- All 13 models have finite vertices/normals, create no per-frame geometry, and detach no animated objects. Across 1,800 frames and three speeds, all 37,800 sampled Hydra neck-root points remained inside the body without changing outer dimensions. Gull tail motion adds only one draw call.
+- Resource probes confirmed natural breath-projectile expiry and restart each release 3 independent halos and 24 trail materials without disposing shared geometry/materials. Surface destruction releases droplet/foam instances. This was a temporary Node command; values remain in collaboration-tool output, not a standalone saved script.
+- Narrow reward strips gained independent horizontal gestures and a right-edge fade. End padding prevents the last reward being faded. Actual Chrome touch moved scrollLeft 0→243 to the end, with the final description fully left of the fade. World labels overlapping important panels temporarily hide and return after clearing; desktop and 390px passed through real HUD updates.
+- Audio suite rerun: all three music layers, water, and 13 effect types were non-silent. Dense mixing peaked at 0.575 with 0 clipped samples; pause/mute/restart passed. Synthesis output verification is not speaker listening acceptance. Ink's display-density cap remains 0.62.
 
-浏览器终局与特定遭遇检查使用仅开发模式提供的状态接口设置位置、体长和敌人；生产构建不导出此接口。这些检查证明交互和状态切换可用，不证明玩家已通过自然操作完成整局，也不证明8–12分钟的目标时长已经达到。
+Evidence: `.local/v3_feedback_results.json`, `verification_v0_3.json`, `v3_preview_verification.json`, `codex_mobile_layout_results.json`, `codex_r3_report.json` (8 layout states), `keyboard_accessibility_results.json`, `codex_reward_swipe.json`, `codex_target_label_results.json`, `model_audit_kimi_20260927/`, `audio_validation.json`, and related screenshots. Pre-review screenshots/Kimi delivery are recorded next.
 
-仍需重点试玩：长时间帧率、自然寻找猎物的密度与成长节奏、冲刺和岩拱脱险的难度、真实手机触屏以及不同外部网络。临时预览依赖开发设备保持运行，不能代替正式静态托管。
+Boundaries: development APIs position special encounters; breaching uses real keys. This is not natural full-round completion. Real-phone multitouch, low-end frame rates, long sessions, and actual speaker listening remain pending. No commit/push; official Pages remained v0.2.
 
-## 复现
+---
 
-运行 `npm ci`、`npm run dev`，在另一终端运行 `npm run test:browser`。脚本默认使用安装在本机的 Google Chrome，开发地址为本机5178端口，可通过 `ABYSSAL_DEV_URL` 覆盖。截图与结果写入忽略版本控制的 `.local/`。
+# v0.3 Visual-redraw verification (Kimi)
 
-## 2026-09-27 · v0.6 视觉升级候选
+Verified: 2026-09-27. Baseline `96d57ff` plus uncommitted v0.3 workspace, including Codex's functional phase and Kimi's visual redraw, all uncommitted.
 
-基线 `f20d6a5`，当前未提交。正式 Pages 保持 v0.5.1；本轮仅重建临时预览。改动范围、技能参考与表现边界见 [视觉升级记录](visual_upgrade_v0_6.md)。
+- Redraw scope: `src/creatures.js` / `src/creature_extra.js` models and motion for orca, schools, tuna, manta, great white, anglerfish, Giant Squid, Dunkleosteus, gull, and four lords; `index.html` / `src/style.css` / `src/ocean_guide.css` home/HUD/results/touch/guide; `src/combat_effects.js` / `src/surface.js` / `src/encounters.js` / `src/ocean.js` / `src/ocean_extra.js` / `src/ships.js` / `src/rewards.js` blood/ink/breach/lord effects, seabed landmarks, ships, and rewards. Ability values/state machines, DOM IDs, model kind/-Z orientation/length scaling/animate contracts, and audio interfaces were unchanged.
+- `npm run check` passed; `npm test` 46/46; `npm run test:browser` 21/21 without console errors, including real-input underwater buildup→breach→reentry; `node scripts/verify_feedback_v0_3.mjs` 13/13, including 390px guide fit, stable model cache, one RAF, actual feeding blood, particle expiry, ink exit/dissipation, and restart cleanup; `node scripts/verify_audio.mjs` passed, with non-silent music/effects and no clipping; build passed with the existing >500KB entry warning.
+- Integrated screenshots reviewed: home/HUD/threat/pause/death/desktop and 390px guide (`.local/r1_ui_*.png`), 13 species (`.local/r1_creature_*.png`), blood/ink inside and outside/breach/reentry/four lord abilities/shallow and deep landmarks/cruise ship/sailboat/rewards (`.local/r1_env_*.png`), plus regression captures `v3_menu/breach/boss/deep/mobile.png`.
+- Temporary public preview rebuilt dist and served new hash-matched resources through the same tunnel. URL/process are in `.local/preview_state.json`. Official Pages remained v0.2.
+- Known limits: ink density capped at 0.62 for readability, with correspondingly reduced peak audio muffling and unchanged interface; temple body is dark in deep fog, though luminous stairs remain readable; lord-effect screenshot distances vary about 20%, while game effects use actual radii. Real touch handling, natural-round pacing, and device listening remain pending.
 
-- 单元128/128、Prettier和构建通过；原生Chrome：主流程28、反馈13、控制6、生态扩展8、声呐11全部通过。日志为 `.local/v6_{unit,format,build,game_regression,feedback_regression,controls_regression,expansion_regression,sonar_regression}.log`。主流程包含真实连续冲刺破水/落水及至少五次领主侧击。
-- 声呐测试更新首页折叠设置的真实点击路径；旧夹具鱼处于非法深水层，真实游动约0.22秒后离开遮挡。用合法浅水礁石、等待350ms稳定与±2m遮挡裕量替代，保留桌面断言并增加手机真实遮挡断言。证据 `.local/v6_sonar_fixture_diagnosis.json` 与 `.local/sonar_v0_4_1_results.json`，声呐/栖息/碰撞规则无改动。
-- UI独立检查1440×900、390×667、320×568、844×390，生存条20态和HUD26态通过；`.local/v6_ui_review.json`、`.local/v6_ui_*` 留档。最终公开生产预览检查1440/390/320px：两角色、七类图鉴和奖励、乌贼技能、虎鲸声呐、倒计时、对齐生存条、暂停/恢复通过，JS/CSS资源哈希与本机dist一致，开发接口缺席；`.local/v6_public_verification.json` 及 `.local/preview_state.json`。
-- 全物种几何统计与共享资源检查 `.local/v6_creature_stats.json`；模型新增四项测试覆盖独立骨架、真实射线和极端动画时间。环境碰撞体/船轨迹快照精确相同；脚本 `.local/v6_environment_snapshot.mjs`，有效深海取景校验 `.local/v6_safe_viewpoints.mjs`。
-- 7轮重开与图鉴切换资源平台化，固定场景GPU timer/CPU profile见 `.local/v6_perf_findings.md`、`v6_gpu_review.json`、`v6_perf_review.json`、`v6_cpu_review.json`。新高画质GPU成本增加，旧有碰撞全表扫描仍主导CPU；测量不等于最终真机帧率。领主装饰资源销毁109项均一次、15轮重开对象不增长，源规则不变。
-- 最终海域截图 `.local/v6_final_{menu,reef,volcano,temple,ship,surface,submarine}.png` 与 `.local/v6_gallery_results.json`，无运行/着色错误。模型、技能与取景布景不代替自然整局试玩；真实手机多指手感及低端性能尚未验收。
+---
 
-四领主技能另用独立取景验证：克拉肯/玛雅为攻击态、海德拉/利维坦为蓄势态，对应效果对象20/14/3/43，全部实际可见，运行及着色错误为空；`.local/v6_boss_visual_results.json` 与 `.local/v6_final_fx_*.png`。该取景固定相机与状态，战斗规则仍由前述真实主循环回归证明。
+# v0.3 Functional-phase verification
 
-## 2026-09-28 · v0.6.1 游向、捕食与生态反馈
+Verified: 2026-09-27. Baseline `96d57ff` plus uncommitted v0.3 work. This section covers Codex's functional phase only; Kimi's full visual redraw was still pending at this point.
 
-本轮先执行用户要求，保存本地视觉快照 `94c2a95`，未 Push。以下实现处于该提交后的未提交工作区，用户 review 后再决定是否提交。
+- `npm test`: 46 rules tests passed. Added hunter warning/cooldown/occlusion and sustainable-sprint tests, plus 11 breach-boundary tests covering no surface takeoff, time/distance buildup, real waterline crossing, interrupted input, no midair second jump, frame-rate consistency, reentry inertia, and renewed diving.
+- `npm run test:browser`: 21 main regressions passed. Breach setup now builds momentum underwater first. No console errors.
+- `node scripts/verify_feedback_v0_3.mjs`: 13 passed for guide/categories/search/close focus/390px layout, actual feeding blood, particle expiry, white-shark warning/burst/recovery, squid ink/exit/dissipation, and restart cleanup. State setup only arranges encounters; the real main loop handles rules and abilities.
+- Ships/movement: actual W+Space completed two breaches/reentries, peaking near world Y 20.75. Pitch smoothly followed vertical speed from ascent to dive. Cruise ship, two-mast/one-mast sailboats, wake, takeoff, and reentry screenshots were viewed without console errors.
+- Audio: 24-second continuous mix, calm/chase/lord RMS about 0.053/0.060/0.064. Three music tracks, water, and 13 effects were non-silent. Dense mix peak 0.575, clipped samples 0. Mute, pause, restart tail cleanup, and graph reuse passed. Ink reduced high-frequency energy about 29%. Offline checks are not actual-device listening acceptance.
+- Formatting/build passed. Entry JS about 669KB / gzip 185KB, retaining the >500KB warning.
+- Public temporary production URL verified v0.3, 13 guide species / 4-lord category, start, sprint drain, momentum breach, and pause/resume. No production debug API; JS/CSS hashes matched dist; no console errors. User-network access remained untested.
 
-- `npm test`：148/148；`npm run check` 与 `git diff --check` 通过。新增自由俯仰、吞食资源复用、幼年成长、真实海床/实体生成点、人类延迟补位与吞食网格独占测试。
-- `npm run test:browser`：28/28；`verify_feedback_v0_3`：13/13；`verify_expansion_v0_5`：8/8，均无控制台错误。旧六米几何或能力场景改成显式六米夹具，幼年成长场景按真实新生尺寸断言，未为旧测试放宽游戏规则。
-- `verify_steering_v0_6_1`：7 组，桌面1440×900与触屏390×667使用真实键盘/CDP摇杆；上浮/下潜、复合转向松手后保持游向，触摸取消与暂停恢复保持角度，虎鲸85°冲刺不回平。雷达俯仰读数与实际方向一致且未超出原容器。
-- `verify_feeding_v0_6_1`：6 组，RAF逐帧记录真实嘴部/身体接触。默认2.5米不能吞食锤头/白鲨；小鱼模型先可见收拢压缩再喷余雾，只结算一次；暂停冻结，重开还原；成年人及真实蓄势破水后的海鸥复用同一过渡。未跳过任何分支，截图和帧数据见 `.local/v6_1_feeding_*`。
-- `verify_collision_v0_4`：10/10。首轮9项通过；旧船底夹具从船尾外36米开始，以新的85°转向会上浮到船尾之外，故只将夹具改成真实船底下方保持80°上冲，保留底部法线命中与零穿透断言，单项复验通过。合并记录为 `.local/v6_1_collision_combined.json`，主代码未为此修改。
-- 生态实际浏览器：1440×900、390×667，从真实出生点2.5米开始，没有搬动人物；用W键上浮后，前方原生游泳者进入画面。全部21类175个普通生物初始水层/海床净空合法；两视口均核对34个奖励坐标互不重复，保留独立随机分布。记录为 `.local/v6_1_ecology_browser.json`，画面为 `v6_1_juvenile_*`、`v6_1_swimmers_*`。
-- 额外只读生成核对：22个鱼群、175个点通过深度和真实实体检查，重开数量不累积。几何路线在桌面和手机可投影到10/10浅海种类，但该上界未计雾、动态绕障及玩家路线，不等于自然全物种遇见率。
-- 幼年成长实算：首条珊瑚鱼2.500→2.535米，首群12条→2.926米；只抑制六米前成长，营养/治疗不变。参考事件模型三档14:46.4、18:28、24:20；六米基线13:49.6、17:17、22:51.25完全不变。该模型不模拟真实寻路和刷新等待，不能当作整局试玩成绩。
-- `npm run build`通过。JS约853.87KB原始/250.55KB gzip，保留既有500KB提示。生产构建不导出开发观察接口。
+Guide fixes: mobile grids can shrink without pushing content offscreen; each specimen model is created once; reopening does not add RAF loops. At a 390px viewport, content and scroll widths both measured 344px. Repeated selection kept 18 GPU buffers and one guide callback per frame. The later redraw must preserve those three constraints.
 
-公开临时预览已通过1440×900、390×667、320×568的首页、图鉴分类、2.5米起步、角色技能冷却、姿态读数、生存条对齐及暂停恢复核对；JS/CSS的SHA-256与dist逐字节一致。复核结果和产物哈希留在 `.local/v6_1_public_verification.json` 及 `.local/preview_state.json`；正式 GitHub Pages 保持 v0.5.1。自然30分钟整局与真实手机手感尚未在本轮验收。
+Evidence: local `.local/v3_feedback_results.json`, `verification_v0_3.json`, `audio_validation.json`, `v3_preview_verification.json`, and screenshots/WAVs. Active URL/process are in Git-ignored `.local/preview_state.json`.
 
-## 2026-09-28 · v0.6.2 育幼浅滩
+Boundaries: natural growth pacing, hunter fairness, actual-speaker listening, phone multitouch, low-end devices, and long sessions remain pending. Ships are environmental, without collision/boarding gameplay at this stage. The next Kimi phase owns the full creature/lord redraw; these functional models are not final art.
 
-依据用户继续试玩反馈，当前候选在未提交的v0.6.1之上建立安全浅滩与分层遭遇。3米起步、六米前线性成长、小鱼96→136、普通生物175→215。基线提交仍为94c2a95，本轮不提交、不Push。
+---
 
-- `npm test`：155/155，新增领地许可、边界运动、215个实际海床/实体生成点、固定物种序号、幼年成长跨级与参考模型回归。六米后旧曲线、回血营养和30分钟上限未变。
-- `verify_nursery_v0_6_2`：7组通过。1440×900与390×667均从原生3米出生直游7秒模拟时间，未移动鱼、未设置体长、未调用进食函数，分别吃到3条与6条小鱼，生命100，体长约3.21/3.40米。鱼群轻微随机游动会影响捕食数，不把单次结果当作所有玩家保证。
-- 九个安全核心位置×active/windup状态，强置六类追击者后均无伤害、无新技能特效，追击归零，前摇/激活转为恢复；外礁白鲨在合法领地可正常追击与释放技能，回到核心后脱战。没有将普通猎手全局禁用。
-- 真实吃掉的小鱼按完整物理倒计时在原网格复活；连续三次重开保持215生物、34个不重叠奖励及原UUID。六组珊瑚鱼/沙丁鱼在updateSchools中固定保留，不因玩家出海被搬走。
-- 初次重生脚本把远征墙钟当作物理计时，低帧率下断言过早；改用真实物理时钟等待，未缩短重生时间或改游戏规则。原生开局同样按模拟时间衡量，并保留墙钟数据。
-- 幼年起步模型首尾3.0703米，12尾3.7597米，17/27/66尾跨过4/4.5/6米；参考事件模型14:17.6 /17:52 /23:35，六米基线仍13:49.6 /17:17 /22:51.25。这些不是自然整局实测耗时。
-- 静态渲染成本：新增40条小鱼使普通生物模型mesh增加约14.2%、三角增加约12.0%，实体循环增加22.9%。小鱼与未获准追击的猎手不再做无用的猎手视线射线；接触吞食继续独立检查遮挡。上述几何计数不等于GPU帧时或真实手机表现。
+# v0.2 Verification
 
-浏览器主流程、构建、公开三尺寸与资源哈希的最终结果保存在 `.local/v6_2_*`、`.local/preview_state.json`。正式Pages仍是v0.5.1，真机与30分钟自然整局尚待继续试玩。
+Verified: 2026-09-26. Version 0.2.0, an uncommitted development draft when checked. These are this round's independent checks; earlier records remain below.
 
-### 同轮追加 · 人物、捕食声音与桌面提示
+Pre-commit recheck on 2026-09-27: formatting, 26 rules tests, 21 Chrome browser flows, and production build passed again, without console errors. The user authorized committing this version. Pages publication is established by actual Actions receipts and online-page checks.
 
-- 最终 `npm test` **164/164**，`npm run check`、`git diff --check`通过；新增4项人形蒙皮与资源测试、5项声音波形/声部生命周期测试。`npm run test:browser` **28/28**再次通过，包含角色技能、领主侧击、蓄势破水和暂停/重开等路径。`verify_expansion_v0_5` **8/8**通过，另覆盖真实乌贼喷墨、飞鱼滑翔、三次冲撞释放潜水员、鱼雷单次伤害和人类捕食。
-- `verify_feeding_v0_6_1`扩展为**7组**：实际吃鱼只调用一次 `eatFish`，游泳者和潜水员分别调用一次 `eatHuman`；每次吞食保留可见收拢、一次延迟血雾与一次数值结算。海鸥仍通过真实蓄势破水捕食，无跳过项。日志 `.local/v6_2_feeding.log`，帧轨迹延用 `.local/v6_1_feeding_results.json`。
-- `verify_audio`通过浏览器OfflineAudioContext输出与实时暂停/恢复核对。新增鱼/人音效实际输出峰值约0.203/0.196，均无削波、无非有限样本；两者包络与频段有明确差别，静音/暂停抑制和重开清除尾音通过。试听文件为 `.local/audio_effects.wav`（鱼从3.5秒、人声从7秒），数据 `.local/audio_validation.json`。这是程序合成的输出验证，未将其写成真人录音或真机听感验收。
-- 人物由旧球体/单段四肢替换为成人比例、15骨骼蒙皮与分关节动作；每种3次绘制，游泳者6012三角/3344顶点，潜水员9088三角/5065顶点。同类模型共享几何材质、骨骼独立，最后引用释放时销毁共享资源。真实图鉴近景与实际海洋场景固定相机的6个角度/时刻复核无运行或着色器错误，见 `.local/v6_2_{before,after}_*_guide.png` 与 `.local/v6_2_*_world_*.png`。初版潜水员高举手臂已依据截图调为水平配平前伸。
-- 水面真实W上浮至85°，中心停于3米体长对应水线3.55；持续按Space 2.5秒物理时间未起飞且高度不变，S能重新下潜。数据 `.local/v6_2_after_presentation.json`，保持自由姿态规则，未重新加入自动回平。
-- 桌面1440×900、1024×768、1024×650与触屏390×667、320×568、844×390共**18个状态**检查：真实技能激活/冷却与长文本布局压力，无最终矩形交叠/越界。320短屏初轮压力中的通知与摇杆相交5.5px已定点修复，保留首轮失败与复验报告，最终合并 `.local/v6_2_layout_final.json`。压力截图只证明排版；领主态本来就隐藏破水提示，夹具按实际条件恢复，不为不可达组合改玩法。
-- `npm run build`通过，JS865.62KB原始/255.22KB gzip，保留既有500KB体积提示。源码仍是 `94c2a95` 之后的未提交候选，未Push；正式Pages未更新。
+- `npm test`: 26 survival, navigation, and lord-combat tests passed.
+- `npm run test:browser`: 21 Chrome checks passed without console errors, covering music activation/pause, healing priority, schools, recognizable rewards, actual W+Space breach/reentry, gull feeding, intermediate pursuit, lord windup/recovery, repeated held F/mouse bites, victory, and narrow UI.
+- Audio: browser OfflineAudioContext synthesized 18 seconds. Calm/chase/lord sections were non-silent, peak <0.38, no clipping. Repeated start reused the graph; pause froze the audio clock.
+- Independent spatial review: all four lords completed ability and defeat-reward flows. Two hundred randomly enabled spawns met seabed clearance and species minimum depths. Restart reset player, airborne state, and lord health.
+- Actual screenshots reviewed new reward labels, surface sky, three-headed sea dragon, wreck, whale fall, and deep landmarks.
+- Formatting/build passed; entry JS about 627KB / gzip 170KB, with the existing >500KB warning.
 
-最终公开生产预览再次通过1440×900、390×667、320×568：首页、七类图鉴、3米安全浅滩开局、虎鲸J声呐、乌贼J/触屏喷墨、禁用倒计时、手机生存条对齐、暂停/恢复均正常，控制台无错误。公开JS/CSS与本机dist的SHA-256一致，开发接口未导出；临时探针写入后能从同一公网地址读到并已移除。结果 `.local/v6_2_public_verification.json`、资源 `.local/v6_2_public_assets.json` 与运行状态 `.local/preview_state.json`。首轮生产脚本在HUD显现后立刻读取尚未到更新帧的nursery属性，修正为等待该真实状态就绪，未改游戏代码或放宽断言。正式Pages保持v0.5.1；没有提交或推送本轮候选。
+Key fixes: choose lord spawn depth per species to avoid buried territory centers; align pulse warning and hit coverage; stop projectile damage after rock collision; prevent HUD refresh from interrupting held mouse/touch input.
 
-## v0.6.3 · 浅滩缓游猎物与图鉴系统明暗（2026-09-28）
+Boundaries: specific gull encounters, lord endgames, and depth jumps use development-only state setup, unavailable in production. Natural-round difficulty, real-speaker listening, external user networks, actual-phone touch, and long-session frame rates need feedback. On 2026-09-26 the temporary preview depended on the local machine staying online; code had not yet been committed or published to Pages.
 
-- 本轮相对未提交 v0.6.2 增量复验；`npm test` **169/169**，`npm run check`、`git diff --check` 通过。新增模型测试覆盖单位体长、动画极值、独立实例、缓存共享与真实射线；生态测试验证八处新鱼群全部符合海床、碰撞与安全区约束。
-- `scripts/verify_shallow_v0_6_3.mjs` **5 组专项通过**，结果 `.local/v6_3_shallow_results.json`。1440×900、390×667、320×568 均确认35条图鉴、13类浅海猎物、搜索/空结果/奖励展示、单画布、系统浅→深→浅→深实时切换，切换不新增 WebGL buffer、不改变选中条目，无窗口/内容横向溢出。浅色及深色模型截图已人工检查。
-- 三次隔离捕食只将3米玩家放到自然鱼位后方6米，没有移动或冻结鱼、没有改其AI，也没有直接调用进食：箱鲀、鹦嘴鱼、苏眉均由实际接触捕获，巡游速度12、体力100、生命100。此检查证明近距可捕捉，不代表从出生点自然寻觅的耗时。远行后原有八处浅礁鱼群中心不迁移。
-- `npm run test:browser` **28 项通过**，包括键盘/触屏、主动技能、捕食修复、破水与落水、结算等现有核心流程。回执 `.local/v6_3_browser_results.json`。浏览器控制台无错误。
-- `npm run build` 通过：71模块，JS 875.69 kB（gzip 259.01 kB），CSS 64.27 kB（gzip 14.61 kB）；仍存在超过500 kB的构建体积提示。本轮没有新增大型外部贴图或音频素材。
-- 原模拟路线的参考间隔表补充新鱼种；新增2/4/6秒是小群驻点的假定觅食间隔，未以其推断自然整局时长。原3米/6米路线基准检查仍通过；真实手机、连续自然游玩和低性能设备仍待试玩。
-- 复用既有5180静态服务与公开隧道，生产预览1440/390/320px真实交互通过；初始深色、实时浅色/深色切换、图鉴分类、双角色主动技能、状态条、暂停恢复均正常。公开JS/CSS SHA-256与当前dist逐字节一致，生产无开发接口。截图 `.local/v6_3_public_*`，回执 `.local/v6_3_public_verification.json` 与 `.local/preview_state.json`。临时预览已更新，未提交、未Push，正式Pages仍v0.5.1。
+Audio reproduction: keep the dev server running and execute `node scripts/verify_audio.mjs` in another terminal. Run browser flows with `npm run test:browser`. Results/screenshots go to ignored `.local/`.
 
-## v0.6.4 · 水面上仰、固定狂食与反转上下（2026-09-28）
+---
 
-- `npm test` **180/180**，格式检查与构建通过；新增水面规则覆盖松键/持续上仰的解析衰减、立即下俯、3/6/30米身体水线、不同帧率、暂停以及真实蓄势起跳/弹道等价。固定奖励测试使用实际海床和实体碰撞验证漂浮净空及两角色出生接近路线。
-- `scripts/verify_controls_v0_6_4.mjs` **10项专项通过**。1440×900、390×667、320×568均通过真实键盘或CDP触摸：首页设置可达、反转上下写入后刷新保留、开启后方向反转、关闭后恢复、深水松手不回平、真实上浮后收拢至20°附近、暂停冻结和再次下潜。截图 `.local/v6_4_settings_*`、`.local/v6_4_surface_*` 已人工检查；结果 `.local/v6_4_controls_results.json`。
-- 固定狂食由实际接触拾取，30秒增益和45秒刷新初值正确，暂停不消耗计时。刷新末段检查仅将剩余冷却缩短至0.1秒，以验证到期路径和原地同网格复用；没有宣称自然等待完整45秒。三次重开均为35枚奖励、固定位置、无重复创建。
-- `npm run test:browser` **28项通过**，含既有真实输入蓄势→跃出→落水流程；结果 `.local/v6_4_browser_results.json`。开发专项与主流程浏览器控制台无错误。
-- 构建73模块：JS 877.74 kB（gzip 259.73 kB）、CSS 64.27 kB（gzip 14.61 kB）。仍有超过500 kB体积提示。公开临时验证文件写入、回访一致后删除，证明已有链接能读取最新产物。
-- 临时公开预览1440/390/320px核对通过：主页反转控件可用、图鉴明暗与双角色技能正常；JS/CSS字节哈希与本次dist一致，无开发接口与控制台错误。回执 `.local/v6_4_public_verification.json`、`.local/preview_state.json`；用户真实设备网络尚未独立验证。未Commit、未Push，正式Pages仍v0.5.1。
+# First-version verification
 
-## v0.6.5 · 巨兽重绘与捕食体验（2026-09-28）
+Verified: 2026-09-26. Version 0.1.0, uncommitted development draft.
 
-本轮五项需求见 [反馈记录](feedback_v0_6_5.md)。基线仍为94c2a95，保留v0.6.1以来全部未提交改动，不新增提交、不Push。
+## Completed
 
-- `npm test` **193/193**，格式检查与差异空白检查通过。新增远古/领主模型测试包含长度归一、实际动画顶点、独立实例、共享缓存、真实射线与领主触腕/三颈空隙；普通捕食测试包含增量上限和不可捕食资格。
-- `verify_capture_v0_6_5` **2项通过**。3米玩家侧偏1.25米接近0.8米珊瑚鱼，正常逃逸AI保持运行，在嘴部距离1.3447米时被真实进食流程捕获（旧半径1.134、新半径1.4062）；侧偏2.2米没有远距离捕获。测试只布置一次遭遇位置，不冻结鱼或直接调用结算。记录 `.local/v6_5_capture_verification.json`。
-- `verify_sonar_v0_4_1` **11项通过**。桌面实际等待完整20秒效果到期，重复按键不能延长，暂停冻结、60秒冷却边界、手机触摸倒计时/禁用、真实键盘及触屏转向显示前方目标均通过；波纹中心跟随玩家，雷达保留全周接触。手机到期边界使用观察接口快进，不宣称手机也自然等待完整20秒。回执 `.local/v6_5_sonar_results.json`。
-- 声呐旧夹具曾把白鲨放在后来新增的育幼安全区，真实领地约束会把它移到前方，导致旧“身后”断言失败。本轮改为合法外礁白鲨；身后过滤另由合法深水白鲨、真实转向验证。隔离后来增加的人类声呐目标，避免单目标计数受新增生态影响；没有放宽游戏规则或删除后方过滤检查。
-- 六远古与四领主均从实际图鉴渲染检查，保留同一视口、主题与展示角度的v0.6.4旧图 `.local/v6_5_before_*` 及最终 `.local/v6_5_final_*`。新旧动画相位不完全相同，因此不是逐像素回归。依据首轮实图修正了邓氏鱼眼窝/骨刃、蛇颈龙细颈、龙王鲸长躯干，以及领主颌腔、贴体甲片、Mayan玉冠和Hydra眼睛；未将程序生成图伪装为实录模型素材。
-- 真实海洋场景布置巨齿鲨、沧龙及四领主近距遭遇，复核现有深海雾/灯光下的轮廓、材质与眼睛。场景保留真实AI、HUD与渲染，不额外加灯，截图 `.local/v6_5_world_*`；这是开发接口布景，不等于自然整局遇见率。五次重开后renderer几何456/纹理129稳定，没有持续增长，控制台及着色器无错误。
-- 同类远古模型连续创建186个实例的只读复核中，共享几何75、材质24保持固定、共享资源dispose事件0；这证明缓存生命周期，不能推断真实手机帧率。最终单体三角：远古8,376–11,232，领主22,784–30,636，合批后分别11–14/7–17个mesh。
-- `npm run test:browser` **28项通过**，真实领主网格侧翼接触、离开后再咬、冷却和至少五次攻击均正常；自由操控、蓄势破水、海鸥、暂停和30分钟结算回归通过。`verify_feeding_v0_6_1` **7组通过**，鱼、人、鸟仍通过真实接触结算，游泳者/潜水员分别调用一次人声音效，吞食过渡和延迟血雾无重复；无跳过项。回执 `.local/v6_5_browser_results.json`、`.local/v6_5_feeding_results.json`。
-- `verify_audio` 浏览器离线音频输出与实时音频生命周期检查通过。新人声输出峰值0.2246，削波/非有限样本均为0；鱼声在22050/44100/48000Hz逐样本不变。8项声音测试覆盖人声限流、总声部上限、静音/暂停/重开和缓存。试听素材 `.local/v6_5_human.wav`，输出数据 `.local/v6_5_audio_results.json`。当前工具无法听取音频，已验证波形、实际触发和播放链路，未宣称主观听感或真机听感已验收。
-- `npm run build`通过，76模块；JS 907.34kB（gzip 270.30kB），CSS 64.27kB（gzip 14.61kB），保留既有500kB体积提示。没有引入大型外部贴图或录音。开发测试中曾恰逢领主agent编辑中间态而读到未落盘helper，完成并冻结后模型创建、全部规则、图鉴与实际战斗回归均通过。
-- 临时公开预览已更新至v0.6.5；1440×900、390×667、320×568真实生产页面交互通过，包括深渊领主新分类、35条图鉴、系统明暗、双角色技能、手机倒计时和暂停/恢复。JS/CSS SHA-256与本机dist一致，生产开发接口不存在，控制台零错误；同一公网地址读到新写入探针后已删除。回执 `.local/v6_5_public_verification.json`、`.local/v6_5_preview_probe.json` 与 `.local/preview_state.json`。未提交、未推送；真机手感、用户网络及自然整局仍待试玩。
+- `npm test`: 16 rules/navigation tests passed, including reward expiry, size eligibility, growth/win/loss, hunger/stamina, damage invulnerability, seabed depth, and boundary turns.
+- `npm run check`: formatting passed.
+- `npm run build`: production succeeded. The single entry includes Three.js, about 560KB raw / 150KB gzip, with a >500KB warning.
+- `npm audit`: install-time audit found no known vulnerabilities.
+- Google Chrome / Playwright covered start, sprint drain, pause/resume, feeding/growth, reward display, white-shark warning/bite, death/restart, Leviathan feeding and 30-meter victory, deep scenes, and 390px layout. No captured console errors.
+- Actual screenshots reviewed the 1440×900 desktop entry/follow camera and narrow pause screen.
+- Temporary public preview verified home and bundled JS/CSS bytes, same-URL updates, and inaccessible source/local runtime directories.
 
-## v0.6.6 · 男女人物与浅海模型精修（2026-09-28）
+## Boundaries
 
-范围见 [本轮反馈](feedback_v0_6_6.md)。保留94c2a95之后既有改动，本轮不Commit、不Push。
+Browser endgame and special encounters use development-only state APIs to set positions, length, and enemies; production exports none. These checks establish interaction/state transitions, not naturally completed rounds or achievement of the 8–12-minute target.
 
-- `npm test` **209/209**，`npm run check`与`git diff --check`通过。模型检查涵盖13种浅海/5种现代猎手的实际分流、单位纵长、中心、独立动画、共享资源、极值姿态与射线；人物检查涵盖男女模型、恒定身份、重开及潜艇真实释放组。旧浅礁测试的静止宽度固定阈值不适用于新箱鲀展开胸鳍，改为相对本体静止姿态的变形约束，并保留归一/居中检查。
-- 图鉴前后截图在 `.local/v6_6_before_*` 与 `.local/v6_6_final_*`，固定1440×900、深色主题、展示角度；新图冻结图鉴动画相位，旧生产图仍有动画，不能当作逐像素差异。根据实图修正了鮟鱇圆管口/放射齿、鹦嘴鱼GLSL保留字编译失败、蝠鲼远侧眼、金枪鱼悬空嘴线、小鱼断续鳃盖与龟甲比例。最终18种模型图鉴无着色器及控制台错误。
-- 人物图鉴1440×900、390×667、320×568共12个男女/职业组合实测通过。男女切换与画布不重叠，单画布保留，重复切换8次后GPU缓冲创建计数不增长，潜艇条目不显示人物切换。截图 `.local/v6_6_human_*`，数据 `.local/v6_6_human_review.json`。
-- `verify_feeding_v0_6_1` **9组通过**：真实男/女游泳者、男/女潜水员接触分别调用一次对应sex的`eatHuman`，吞食过渡、延迟血雾与营养结算不重复；鱼类、海鸥真实破水捕食、暂停/重开和幼年不能吃两种鲨鱼均通过，无跳过项。数据 `.local/v6_6_feeding_results.json`。
-- `npm run test:browser` **28项**、`verify_expansion_v0_5` **8项**及`verify_capture_v0_6_5` **2项**通过。包含真实飞鱼破水滑翔、新模型射线/领主侧击、乌贼技能、潜艇独立冲撞和释放、鱼雷及普通近身捕食；生态配置和技能数值未改。
-- 男女音频通过真实浏览器离线输出与实时生命周期检查。峰值男0.2126/女0.2041，均零削波/非有限样本；10项声音单测覆盖两套PCM、音高中位数差异、缓存与共用人声限流，鱼声在22050/44100/48000Hz逐字节不变。试听片段从实际音频输出截取为 `.local/v6_6_male_voice.wav`、`.local/v6_6_female_voice.wav`，数据 `.local/v6_6_audio_results.json`。工具不能听取音频，已验证波形与触发链路，未声称主观听感已验收。
-- 使用开发接口将玩家放到实际海洋生物和男女NPC附近，保留AI、雾、灯光和正常HUD，检查新模型在真实海洋中的辨识度；这是布景，不能证明自然整局遇见率。截图/统计 `.local/v6_6_world_*`，五次重开后几何454/纹理250稳定，没有持续增长。模型增加了蒙皮实例，纹理计数高于v0.6.5，不能仅凭缓存稳定推断手机帧率。
-- 生产构建通过：JS 940.16kB（gzip 281.86kB）、CSS 65.02kB（gzip 14.72kB）。没有新增外部贴图/真人录音依赖，保留既有500kB体积提示。
-- 同机Chrome headless、相同静态生产入口、相同开局慢游输入，分别测1440/390px及高/流畅画质，每场45帧预热后采样120帧。旧→新平均FPS为13.74→12.61、13.19→13.02、12.44→13.26、12.00→12.52；中位绘制次数1213→1058、969→886、884→764、671→602。数据 `.local/v6_6_perf_before.json` / `after.json`。这组headless结果仅约12–14FPS且存在波动，不作为“流畅达标”证明；减少绘制次数也不能抵消或掩盖部分场景的帧率下降。真实设备性能仍待试玩，本轮未据此修改玩法或渲染质量默认值。
-- 公开临时预览已更新到v0.6.6，1440×900、390×667、320×568生产页面交互全部通过，包含男女人物预览、图鉴系统主题、35条记录/7分类、两角色技能与冷却、手机状态条对齐、暂停恢复。线上JS/CSS SHA-256与dist一致，无开发接口和控制台错误；新写入的公开探针核对成功后已删除。数据 `.local/v6_6_public_verification.json`、`.local/v6_6_preview_probe.json`、`.local/preview_state.json`。正式Pages仍v0.5.1，本轮未提交/推送；用户网络、真机性能及主观听感尚未独立验收。
+Remaining priorities: sustained frame rates, naturally found prey density/growth pacing, sprint/rock-arch escape difficulty, real-phone touch, and different external networks. Temporary preview requires the development machine to stay running and is not formal static hosting.
 
-## v0.6.7 · 真人惨叫与向前划水修正（2026-09-28）
+## Reproduction
 
-- 本轮接续未提交v0.6.6，HEAD仍为`94c2a95`；未Commit、未Push。修改范围与素材许可见 [反馈记录](feedback_v0_6_7.md) 和 [音频来源](audio_sources.md)。旧合成人声已移除，鱼类PCM在22050/44100/48000Hz的哈希保持不变。
-- `npm test` **219/219**，`npm run check`、`git diff --check`通过。动作测试在男女模型各240相位采样实际手腕位置，覆盖水下向脚侧推水、恢复向头侧移动、高肘、同向屈肘和周期连续性；潜水员脚蹼真实蒙皮顶点方向及膝部限制也通过。音频测试覆盖真实WAV头/时长/有效起音、缓存与重试、按性别路由、原速率、限流和静音/暂停/重开不补播。
-- 实际图鉴男女游泳者各64帧完整周期渲染，固定侧面角度逐帧采样，已检查各八个关键相位的入水、推水和高肘恢复。连续预览为 `.local/v6_7_swimming_cycle.mp4`，左右分别为男女，24fps、三次循环、总长8秒；模型、灯光与材质来自真实图鉴，不是生成示意图。这是受控完整周期展示，不能当作自然整局录像。截图与相位记录 `.local/v6_7_swim_*`、`.local/v6_7_motion_review.json`。
-- `verify_feeding_v0_6_1` **9项通过，无跳过**：男女游泳者、男女潜水员均通过真实主循环接触被吞食，实际创建的AudioBufferSource对应各自录音缓存，播放速率1，时长分别1.65/1.00秒；同一轮吞食仅一次结算与一次延迟血雾。鱼类、重开清理和真实破水捕鸟回归通过。结果 `.local/v6_7_feeding_results.json`。
-- `verify_audio`通过真实浏览器离线渲染和实时生命周期检查：男/女人声音效峰值分别0.1943/0.2161，削波与非有限样本均为0；静音、暂停、恢复、重开及压力播放正常。修复了预取函数脱离globalThis调用造成的浏览器Illegal invocation；实测两份录音成功获取、解码与缓存。删除仅适合旧合成声的宽频RMS差值阈值，改为验证独立真人buffer、最终时长与实际播放路由；不以频谱能量推断性别或真实感。记录 `.local/v6_7_audio_results.json`；男/女游戏音频链路输出分别为 `.local/v6_7_male_ingame.wav`、`.local/v6_7_female_ingame.wav`。
-- `npm run test:browser` **28项通过**，核心键盘/触屏、技能、领主、蓄势破水、暂停和30分钟结算保持。回执 `.local/v6_7_browser_results.json`；上述浏览器检查均无页面错误。
-- 构建通过：JS940.86kB（gzip281.87kB）、CSS65.02kB（gzip14.72kB），新增男声105644字节和女声64044字节。仍有原有超过500kB的构建体积提示。音频随应用打包，无运行时第三方素材站依赖。
-- 复用既有5180服务和公开隧道；公开生产预览1440×900、390×667、320×568共8组检查通过：人物切换、单画布、无控件重叠、35条图鉴、主题、双角色技能、HUD和暂停恢复正常，无控制台错误。JS/CSS及两份WAV的SHA-256与当前dist一致，生产无开发接口；新鲜临时探针本地/公网一致后已删除。回执 `.local/v6_7_public_verification.json`、`.local/preview_state.json`。
-- 当前工具无法听取音频，因此不宣称主观听感通过；已交付游戏音频链路的试听文件。真实设备扬声器/耳机听感、手机性能与用户外部网络仍待试玩。HTTP200但内容损坏的素材会保留坏字节缓存，当前有效资产已实测正常；此特殊失败需刷新页面恢复，未用它宣称全面网络容错。
+Run `npm ci`, `npm run dev`, then `npm run test:browser` in another terminal. The script defaults to locally installed Google Chrome and local port 5178; override the URL with `ABYSSAL_DEV_URL`. Screenshots/results go to Git-ignored `.local/`.
 
-## v0.6.8 · 水下吞食音效重做（2026-09-28）
+## 2026-09-27 · v0.6 visual-upgrade candidate
 
-- 用户已确认v0.6.7的真人惨叫和泳姿可用，本轮只重做鱼类吞食声音。男女WAV的SHA-256保持v0.6.7原值，人物模型未改。三份新水声采用CC0拟音，来源和可复现制作流程见 [音频来源](audio_sources.md)；这不是海下捕食实录。
-- `npm test` **226/226**，`npm run check`和`git diff --check`通过。新增测试验证三份实际WAV、100ms内持续起音、首尾收拢、非重复变体选择、限流拒绝不消耗变体、人声/鱼声加载相互独立、准备完成不补播旧事件、静音/暂停/重开、失败重试及按上下文解码复用。历史固定鱼PCM哈希断言已被本轮新音效合同替代；保留男女录音原速率和生命周期检查。
-- `verify_audio`通过浏览器离线渲染和实时音频生命周期检查。三种鱼声音效的输出峰值分别0.1454/0.1460/0.1480；连续浅海/深海鱼群场景包含配乐背景的峰值0.2378/0.2351，均无削波或非有限样本。记录的23次实际声源全部使用三份录音缓存之一，速率0.97–1.03，同时吞食声不超过3条。
-- 相同普通吞食用例的新输出峰值0.1452，旧v0.6.7为0.2029；高频分量RMS从0.004886降至0.001359。这些指标证明输出音量与高频能量下降，不等于主观自然感已验收。去除了旧固定正弦气泡音型，录音未就绪时也使用新的短柔水流噪声兜底。
-- 试听 `.local/v6_8_fish_preview.wav` 由实际游戏音频图导出，13.5秒：先三种单口吞食（各1.5秒间隔），随后浅水/深水各4.5秒连续鱼群与配乐环境。只调用音频事件，并非自然游玩实录。数据 `.local/v6_8_audio_results.json`；当前工具不能听取音频，最终听感由用户试听判断。
-- `verify_feeding_v0_6_1` **9项通过，无跳过**：实际沙丁鱼接触调用的新AudioBufferSource匹配水声录音；男女游泳者/潜水员仍各自使用原录音，吞食过渡与延迟血雾保持，实际破水捕鸟回归通过。回执 `.local/v6_8_feeding_results.json`。玩法规则未变，本轮没有重复运行无关的完整领主/图鉴视觉测试。
-- 构建通过：81模块，JS941.81kB（gzip282.00kB）、CSS65.02kB（gzip14.72kB），新增三WAV合计69252字节。原有超过500kB的构建体积提示仍在。
-- 复用原5180静态服务与公开隧道。公开生产预览1440×900、390×667、320×568均通过：菜单只预取，开始手势后解码三份鱼声及两份人声，音频上下文正常运行，真实按键/触屏声呐以及暂停挂起/恢复正常。7项资源（JS/CSS和五WAV）SHA-256逐字节匹配dist，无开发接口或控制台错误。新鲜本地/公网探针一致后已删除；回执 `.local/v6_8_public_verification.json`、`.local/preview_state.json`。主机经公网回访不等于用户外部网络/手机设备验证。
-- HEAD仍为`94c2a95`，未Commit、未Push；正式Pages继续为v0.5.1，本轮仅更新临时试玩。
+Baseline `f20d6a5`, uncommitted at the time. Official Pages remained v0.5.1; only temporary preview was rebuilt. Scope, skill references, and presentation boundaries are in the [visual-upgrade record](visual_upgrade_v0_6.md).
 
-## v0.6.9 · 幼年捕食对齐与角色动作（2026-09-28）
+- Unit tests 128/128, Prettier, and build passed. Native Chrome: main flow 28, feedback 13, controls 6, ecology expansion 8, sonar 11—all passed. Logs `.local/v6_{unit,format,build,game_regression,feedback_regression,controls_regression,expansion_regression,sonar_regression}.log`. Main flow includes actual sustained-sprint breach/reentry and at least five lord flank attacks.
+- Sonar tests updated the real click path for collapsed home settings. An old fish fixture used illegal deep water and left occlusion after about 0.22 seconds of real motion. Replace it with a legal shallow reef, a 350ms stabilization wait, and ±2m occlusion margin; retain desktop assertions and add real phone-occlusion assertions. Evidence `.local/v6_sonar_fixture_diagnosis.json` / `.local/sonar_v0_4_1_results.json`. Sonar/habitat/collision rules did not change.
+- Independent UI checks at 1440×900, 390×667, 320×568, and 844×390; 20 survival-bar states and 26 HUD states passed. Evidence `.local/v6_ui_review.json`, `.local/v6_ui_*`. Final public production checks at 1440/390/320px passed both characters, seven guide categories/rewards, squid ability, orca sonar, countdowns, aligned bars, pause/resume. JS/CSS hashes matched local dist; no development API. Receipts `.local/v6_public_verification.json` / `.local/preview_state.json`.
+- All-species geometry/shared-resource statistics: `.local/v6_creature_stats.json`. Four added model tests cover independent skeletons, actual rays, and extreme animation times. Environment colliders/ship-path snapshots match exactly; scripts `.local/v6_environment_snapshot.mjs` and `.local/v6_safe_viewpoints.mjs` verify snapshots and valid deep viewpoints.
+- Resources plateaued over 7 restarts/guide switches. Fixed-scene GPU timer/CPU profiles: `.local/v6_perf_findings.md`, `v6_gpu_review.json`, `v6_perf_review.json`, `v6_cpu_review.json`. New high quality increases GPU cost; existing full collision scans still dominate CPU. Measurements are not final real-device frame rates. All 109 lord decorative resources dispose once; objects do not grow over 15 restarts. Source rules remain unchanged.
+- Final ocean screenshots `.local/v6_final_{menu,reef,volcano,temple,ship,surface,submarine}.png` and `.local/v6_gallery_results.json` have no runtime/shader errors. Staged models, abilities, and viewpoints do not replace natural-round play; real-phone multitouch and low-end performance remain unaccepted.
 
-> 此节记录当时版本；其腕冠朝前的决定已由下节 v0.6.10 替代，不作为当前生物事实或朝向说明。
+Four lord abilities also received independent viewpoint checks: Kraken/Maya in attack state, Hydra/Leviathan in windup, with 20/14/3/43 visible effect objects respectively and no runtime/shader errors. Evidence `.local/v6_boss_visual_results.json` / `.local/v6_final_fx_*.png`. Camera/state are fixed for presentation; combat rules are established by the real-main-loop regression above.
 
-- 两种角色原本共用3米起步、可吞体长资格与育幼加成。本轮没有继续放宽半径：3米幼体对0.18／0.8米猎物的育幼接触半径仍约1.191／1.406游戏米。修正乌贼腕冠与前进方向相反、急转时捕获点领先可见模型，以及冲刺穿越小鱼的帧间漏判。吞食过渡终点改用模型嘴部世界锚点。
-- `npm test` **239/239**，格式与差异检查通过。捕食专项8项覆盖双角色参数一致性、相对运动线段、侧向边界、不同时间交叉不误判、零位移和非法输入。动作专项7项验证状态渐变、根变换不被动画改写、世界嘴点、真正的蒙皮变形、独立骨架/共享缓冲、空中减弱推进、重开恢复与尾鳍几何。
-- `verify_player_v0_6_9` **11项通过**：两种3米幼体均能吃到侧偏1.25米且仍自行逃逸的鱼，侧偏2.2米不误吸；薄壁另一侧的近身猎物仍不可吞。真实D＋空格驱动转向和冲刺状态，捕获点与可见朝向一致，重开清除旧姿势。乌贼真实J喷射在40毫秒步长穿过定点小鱼，接触帧的首末距离为1.400／1.473米，均在半径之外，连续判定成功补获；用例冻结猎物仅为隔离帧间问题。
-- `test:browser` **28项通过**，覆盖键盘游动、技能、生命/饥饿/体力、暂停、真实蓄势破水/落水、接触捕鸟、领主侧翼多次攻击及30分钟结算。`verify_feeding_v0_6_1` **9项通过、无跳过**，保留鱼、人类和海鸥吞入过渡、原声路由、暂停与重开清理。未修改技能数值、人物或领主接触范围。
-- 虎鲸尾柄/尾鳍上下推进、胸鳍收拢与差动转向；乌贼10条分节腕足、鳍波和外套膜响应实际巡游/冲刺/喷射。24帧/秒、各192帧的实际图鉴模型动作录制检查了完整巡游、冲刺、转向和恢复段。逐帧复核发现旧虎鲸尾鳍两处轮廓自交，本轮修正为连续双叶；修正后重新运行全部单测、重新录制视频、构建和核对公开产物。最终网格无边界自交、无退化三角形。
-- 构建通过，最终入口 `index-CiDuBXPk.js` 为946.35kB（gzip284.10kB），CSS仍为65.02kB；保留既有大于500kB的体积提示。复用原5180服务和隧道，最终公开生产预览在1440×900、390×667、320×568分别验证两角色，共6组：图鉴单画布、3米开局、键盘/真实触摸冲刺、主动技能及冷却、暂停恢复、手机三条生存条对齐。无控制台错误，无生产开发接口，JS/CSS与五份WAV的字节哈希全部匹配dist；新鲜本地/公网探针一致后删除。
-- 证据为 `.local/v6_9_unit.log`、`v6_9_check.log`、`v6_9_browser.log`、`v6_9_feeding_results.json`、`v6_9_player_verification.json`、`v6_9_motion_cycle.json`、`v6_9_player_motion.mp4`、`v6_9_public_verification.json`、`v6_9_build.log` 与最终 `preview_state.json`。动作视频为图鉴镜头下的受控展示；测试布景与本机浏览器触屏模拟不等同自然整局捕食体验或真机性能验收。
-- HEAD保持`94c2a95`；本轮未Commit、未Push，正式Pages仍为v0.5.1，仅临时试玩更新到v0.6.9。下一步由用户确认乌贼抓鱼手感和两角色动作观感。
+## 2026-09-28 · v0.6.1 Heading, feeding, and ecology feedback
 
-## v0.6.10 · 乌贼游向核验与腕区捕食（2026-09-28）
+As requested, local visual snapshot `94c2a95` was saved first, without push. The following implementation is uncommitted after that snapshot, awaiting user review before any further commit decision.
 
-- 经 Iziko 大王乌贼专页与 Robinson 等2021年原始研究核验，真实大王乌贼具备双向运动能力；资料不能支持“日常一律某端领先”的频次断言。按用户偏好恢复外套膜／鳍端领先、腕足拖后的默认游姿，这是游戏表现选择。来源见 [本轮记录](feedback_v0_6_10.md)。
-- 乌贼模型取消180°翻转，捕获点移至可见模型局部+Z×0.36×体长；虎鲸仍在−Z×0.36×体长。乌贼真实嘴点在+Z×0.09×体长，吞入方向相应反转。两角色原半径、资格、遮挡与相对运动扫掠保留；新姿势、技能、速度与体力参数不变。
-- `npm test` **239/239**，`verify_player_v0_6_10` **11项通过**：两种3米角色对侧偏1.25米活鱼成功捕获，2.2米不误吸，隔薄壁不捕获；真实D＋空格使捕获点随可见转向、动作随冲刺变化，嘴点保持各自解剖朝向，重开清理姿势。乌贼真实J喷射在40毫秒步长穿过定点小鱼，帧首／尾距捕获点1.400／1.423米，均在约1.191米半径外，仍由连续判定补获。低帧率用例固定猎物仅隔离判定问题。
-- 模型测试覆盖巡游、冲刺、喷射三态嘴部与腕部仍在+Z侧；已查看实际追尾冲刺图、公开桌面图鉴与320px冲刺截图，默认方向恢复且分节腕足保留。未新增动画循环或几何资源。
-- 构建通过：`index-DerRlGMG.js` 946.44kB（gzip284.12kB），CSS仍65.02kB，保留既有500kB体积提示。公开预览在1440×900、390×667、320×568分别检查两角色，共6组通过：图鉴、3米开局、真实键盘／触摸冲刺、技能冷却、暂停恢复、手机生存条对齐。无控制台错误、无生产开发接口；JS/CSS与五份WAV哈希匹配dist。
-- 证据：`.local/v6_10_unit.log`、`v6_10_player_verification.json`、`v6_10_public_verification.json`、`v6_10_*_game_sprint.png`及`v6_10_public_*.png`。历史`verify_player_v0_6_9`仍记录旧腕冠方向，当前复现使用`node scripts/verify_player_v0_6_10.mjs`。未重跑未受影响的28项主流程与9项吞食专项，不将上轮结果计入本轮。
-- HEAD仍为`94c2a95`，无Commit／Push，正式Pages仍v0.5.1。当前仅临时预览更新至v0.6.10；受控捕食和Chrome触摸模拟不代表自然整局手感或真机性能验收。
+- `npm test`: 148/148; `npm run check` and `git diff --check` passed. Added free pitch, feeding-resource reuse, juvenile growth, actual seabed/solid spawn points, delayed human replenishment, and exclusive feeding-mesh ownership tests.
+- `npm run test:browser`: 28/28; `verify_feedback_v0_3`: 13/13; `verify_expansion_v0_5`: 8/8, without console errors. Old 6-meter geometry/ability scenarios now explicitly request 6-meter fixtures; juvenile tests use real new starting size. No game rules were relaxed for old tests.
+- `verify_steering_v0_6_1`: 7 groups. Actual keyboard/CDP joystick at desktop 1440×900 and touch 390×667 verified ascent/descent and compound heading retained on release, touch cancel, pause/resume, and orca 85° sprint without leveling. Radar pitch matches actual heading without exceeding its container.
+- `verify_feeding_v0_6_1`: 6 groups, with RAF-by-RAF actual mouth/body contact. Default 2.5-meter characters cannot eat hammerheads/white sharks. Small fish visibly gather/compress before residual mist and settle once. Pause freezes; restart restores. Adults and gulls caught after real momentum breaches share the transition. No skipped branches; frames/screenshots `.local/v6_1_feeding_*`.
+- `verify_collision_v0_4`: 10/10. Nine first-pass checks passed. The old underside fixture began 36 meters behind the stern; new 85° turning surfaced beyond it. Only the fixture changed to start directly beneath the hull and ascend at 80°, retaining underside-normal and zero-penetration assertions; the isolated rerun passed. Combined record `.local/v6_1_collision_combined.json`; no main-code change for this case.
+- Ecology browser checks at 1440×900 and 390×667 began at the actual 2.5-meter spawn without moving people. W ascent brought native forward swimmers into view. All 21 types / 175 ordinary animals had legal initial depths/seabed clearance. Both viewports confirmed 34 distinct reward coordinates with independent random distribution. Record `.local/v6_1_ecology_browser.json`; images `v6_1_juvenile_*`, `v6_1_swimmers_*`.
+- Additional read-only spawn check: 22 schools / 175 points passed depth and actual-solid checks; restart did not accumulate population. Geometric routes projected 10/10 shallow species on desktop and phone, but this upper bound excludes fog, dynamic avoidance, and player routes; it is not a natural encounter rate.
+- Juvenile calculations: first coral fish 2.500→2.535 meters; first 12→2.926. Only pre-6-meter growth is reduced, not nutrition/healing. Reference times: 14:46.4, 18:28, 24:20. Six-meter baselines 13:49.6, 17:17, 22:51.25 remain exactly unchanged. No actual navigation/respawn waits are simulated; these are not playtest scores.
+- Build passed. JS about 853.87KB raw / 250.55KB gzip, retaining the 500KB warning. Production exports no development observation API.
+
+Temporary public preview passed home, guide categories, 2.5-meter start, character cooldowns, pitch readout, bar alignment, pause/resume at 1440×900, 390×667, and 320×568. JS/CSS SHA-256 matched dist byte-for-byte. Results/hashes: `.local/v6_1_public_verification.json` / `.local/preview_state.json`. Official Pages remained v0.5.1. No natural 30-minute round or real-phone handling acceptance this round.
+
+## 2026-09-28 · v0.6.2 Nursery shallows
+
+Following further user playtesting, this candidate builds safe shallows and layered encounters on uncommitted v0.6.1: 3-meter start, linear pre-6-meter growth, small fish 96→136, ordinary creatures 175→215. Baseline remains 94c2a95; no commit or push.
+
+- `npm test`: 155/155, including territory permission, boundary movement, 215 actual seabed/solid spawn points, fixed species indices, juvenile thresholds, and reference-model regression. The post-6-meter curve, healing/nutrition, and 30-minute cap remain unchanged.
+- `verify_nursery_v0_6_2`: 7 groups passed. At 1440×900 and 390×667, a native 3-meter spawn swam straight for 7 simulation seconds without repositioned fish, set length, or feeding-function calls. It ate 3 and 6 fish respectively, retained health 100, and reached about 3.21/3.40 meters. Slightly random school motion affects catches; one run is not a guarantee for every player.
+- At nine safe-core positions × active/windup states, forcibly placing six pursuer types produced no damage or new ability effects. Pursuit cleared and windup/active moved to recovery. The outer-reef white shark could still pursue/use abilities in legal territory and disengaged on core reentry; hunters were not globally disabled.
+- Actually eaten fish respawned on their original meshes after full physics-clock countdowns. Three consecutive restarts retained 215 creatures, 34 nonoverlapping rewards, and original UUIDs. Six coral/sardine groups remain fixed in updateSchools rather than relocating when the player heads offshore.
+- The initial respawn script used expedition wall time as physics time and asserted too early at low FPS. It now waits on the actual physics clock, without shorter respawn or changed game rules. Native opening checks also use simulation time while retaining wall-clock data.
+- Juvenile calculations: first fish 3.0703 meters, 12 fish 3.7597, 17/27/66 cross 4/4.5/6 meters. Reference model: 14:17.6 / 17:52 / 23:35; six-meter baseline still 13:49.6 / 17:17 / 22:51.25. These are not naturally measured full-round durations.
+- Static render cost: 40 additional fish increase ordinary-model meshes about 14.2%, triangles about 12.0%, and entity-loop count 22.9%. Small fish and hunters not permitted to pursue skip unnecessary hunter line-of-sight rays; contact feeding retains independent occlusion checks. Geometry counts are not GPU frame time or real-phone performance.
+
+Final main-browser, build, public three-size, and hash results are in `.local/v6_2_*` / `.local/preview_state.json`. Official Pages remained v0.5.1; real devices and natural 30-minute rounds remained pending.
+
+### Same-round additions: humans, feeding audio, and desktop hints
+
+- Final `npm test`: **164/164**; formatting and diff checks passed. Added 4 human skin/resource tests and 5 waveform/voice-lifecycle tests. Main browser **28/28** passed again, including abilities, lord flanks, momentum breach, pause/restart. Expansion **8/8** also covered actual squid ink, flying-fish glide, three submarine rams/diver release, one-shot torpedoes, and human feeding.
+- `verify_feeding_v0_6_1` expanded to **7 groups**: real fish call `eatFish` once; swimmer/diver each call `eatHuman` once. Each meal retains visible gathering, one delayed blood cloud, and one settlement. Gulls still require actual momentum breaching; no skips. Log `.local/v6_2_feeding.log`; frame traces retain `.local/v6_1_feeding_results.json`.
+- `verify_audio` passed browser OfflineAudioContext output and live pause/resume checks. Fish/human peaks were about 0.203/0.196, without clipping or nonfinite samples. Envelopes and frequency bands differ; mute/pause suppression and restart tail cleanup passed. Listening file `.local/audio_effects.wav` (fish at 3.5 seconds, human at 7); data `.local/audio_validation.json`. This verifies synthesis output, not human recordings or real-device listening.
+- Human spherical torsos/single limbs were replaced with adult proportions, 15-bone skins, and articulated motion. Each type uses 3 draws: swimmer 6,012 triangles / 3,344 vertices; diver 9,088 / 5,065. Same-type geometry/materials are shared with independent bones and disposed on final reference release. Real-guide closeups and fixed-camera ocean views at 6 angles/times had no runtime/shader errors: `.local/v6_2_{before,after}_*_guide.png`, `.local/v6_2_*_world_*.png`. Initial raised diver arms were changed to forward horizontal trim after screenshot review.
+- Real W ascent reached 85°, with the center stopped at waterline 3.55 for a 3-meter body. Holding Space for 2.5 physics seconds neither launched nor raised it; S allowed diving again. Data `.local/v6_2_after_presentation.json`. Free orientation remained without restored leveling.
+- **18 states** across desktop 1440×900, 1024×768, 1024×650 and touch 390×667, 320×568, 844×390 checked actual active/cooldown and long-text stress without final overlap/overflow. The initial 320px short-screen notification overlapped the joystick by 5.5px; a targeted fix retained both failure and rerun reports in `.local/v6_2_layout_final.json`. Stress images prove layout only. Lord state already hides breach hints; the fixture followed actual conditions rather than changing gameplay for an unreachable combination.
+- Build passed: JS 865.62KB raw / 255.22KB gzip, retaining the 500KB warning. Source remained an uncommitted candidate after `94c2a95`, not pushed; official Pages unchanged.
+
+Final public production preview again passed at 1440×900, 390×667, and 320×568: home, seven guide categories, 3-meter safe-shallows start, orca J sonar, squid J/touch ink, disabled countdown, aligned phone bars, pause/resume; no console errors. Public JS/CSS SHA-256 matched dist; no development API. A temporary probe was written, read through the same public URL, then removed. Results `.local/v6_2_public_verification.json`, assets `.local/v6_2_public_assets.json`, active state `.local/preview_state.json`. The initial production script read nursery state immediately after HUD visibility, before its update frame; it now waits for the actual state, without changed game code or weaker assertions. Pages remained v0.5.1; no candidate commit/push.
+
+## v0.6.3 · Slow shallow prey and guide system appearance (2026-09-28)
+
+- Incremental verification over uncommitted v0.6.2: `npm test` **169/169**, formatting/diff checks passed. New model tests cover unit length, extreme poses, independent instances, shared cache, and real rays. Ecology verifies all eight new schools against seabed, collision, and safe-area constraints.
+- `scripts/verify_shallow_v0_6_3.mjs`: **5 groups passed**, `.local/v6_3_shallow_results.json`. At 1440×900, 390×667, 320×568: 35 entries, 13 shallow prey types, search/empty results/rewards, one canvas, live system light→dark→light→dark changes without new WebGL buffers or changed selection, and no window/content horizontal overflow. Light/dark model screenshots were visually reviewed.
+- Three isolated feeding cases only placed a 3-meter player 6 meters behind natural fish positions. Fish were neither moved nor frozen, AI was unchanged, and feeding was not called directly. Cowfish, parrotfish, and wrasse were caught through actual contact at cruise 12, stamina 100, health 100. This proves close-range catchability, not natural search time from spawn. Eight nursery school centers remained fixed after distant travel.
+- Main browser: **28 passed**, covering existing keyboard/touch, active abilities, feeding fixes, breach/reentry, and results. Receipt `.local/v6_3_browser_results.json`; no console errors.
+- Build passed: 71 modules; JS 875.69 kB (gzip 259.01 kB), CSS 64.27 kB (gzip 14.61 kB), retaining the >500 kB warning. No large external textures/audio added.
+- The reference-interval table adds new species at assumed 2/4/6-second small-school feeding intervals, without inferring natural-round duration. Original 3/6-meter route baseline checks passed. Real phones, sustained natural play, and low-end hardware remain pending.
+- Existing port-5180 static service/public tunnel reused. Production preview at 1440/390/320px passed real interactions: initial dark theme, live light/dark changes, categories, both active abilities, status bars, pause/resume. Public JS/CSS SHA-256 matched current dist byte-for-byte; no development API. Screenshots `.local/v6_3_public_*`; receipts `.local/v6_3_public_verification.json` / `.local/preview_state.json`. Temporary preview updated, no commit/push; Pages remained v0.5.1.
+
+## v0.6.4 · Surface pitch, fixed Frenzy, and inverted controls (2026-09-28)
+
+- `npm test` **180/180**, formatting/build passed. Added surface tests cover analytical easing with released/held upward input, immediate down-pitch, 3/6/30-meter waterlines, frame rates, pause, and equivalence of actual buildup/takeoff/ballistics. Fixed-pickup tests use real seabed/solid collision for bobbing clearance and approach routes from both spawns.
+- `scripts/verify_controls_v0_6_4.mjs`: **10 passed**. Actual keyboard/CDP touch at 1440×900, 390×667, and 320×568 verified reachable home setting, inversion persistence across refresh, reversed direction when enabled/restored when disabled, no deep-water leveling on release, actual ascent easing near 20°, pause freeze, and renewed diving. Screenshots `.local/v6_4_settings_*` / `.local/v6_4_surface_*` were viewed; results `.local/v6_4_controls_results.json`.
+- Actual contact collected fixed Frenzy, with correct 30-second buff and 45-second respawn initial values; pause consumed neither. The final respawn check shortened only remaining cooldown to 0.1 seconds to verify expiry and same-place/same-mesh reuse. It does not claim a full natural 45-second wait. Three restarts retained 35 pickups, fixed location, and no duplicates.
+- Main browser **28 passed**, including real-input buildup→breach→reentry. Results `.local/v6_4_browser_results.json`; no console errors in targeted/main checks.
+- Build: 73 modules; JS 877.74 kB (gzip 259.73 kB), CSS 64.27 kB (gzip 14.61 kB). Existing >500 kB warning remains. A temporary public verification file was written, read consistently, and deleted, proving the existing URL served current artifacts.
+- Public preview at 1440/390/320px passed invert control, guide themes, and both abilities. JS/CSS hashes matched this dist; no development API or console errors. Receipts `.local/v6_4_public_verification.json` / `.local/preview_state.json`. The user's real-device network was not independently checked. No commit/push; Pages remained v0.5.1.
+
+## v0.6.5 · Giant-creature redraw and feeding (2026-09-28)
+
+Five requests are in the [feedback record](feedback_v0_6_5.md). Baseline remained 94c2a95; all uncommitted work since v0.6.1 was retained, with no new commit or push.
+
+- `npm test` **193/193**, formatting/diff whitespace checks passed. Ancient/lord model tests include length normalization, actual animated vertices, independent instances, shared cache, real rays, and lord arm/three-neck gaps. Ordinary feeding tests include the added-radius cap and ineligible prey.
+- `verify_capture_v0_6_5`: **2 passed**. A 3-meter player approaching a 0.8-meter coral fish with 1.25-meter lateral offset caught it through actual feeding at mouth distance 1.3447 meters (old radius 1.134, new 1.4062), with normal escape AI running. A 2.2-meter offset did not cause remote capture. The test arranges one encounter, never freezes fish or calls settlement. Record `.local/v6_5_capture_verification.json`.
+- `verify_sonar_v0_4_1`: **11 passed**. Desktop waited the full 20-second effect; repeated keys could not extend it. Pause freeze, 60-second cooldown boundary, phone touch countdown/disable, and real keyboard/touch turning to reveal forward targets passed. Waves followed the player; radar retained surrounding contacts. Phone expiry used observation-interface fast-forward, not a claimed natural 20-second phone wait. Receipt `.local/v6_5_sonar_results.json`.
+- The old sonar fixture put a white shark inside the later-added nursery; territory constraints moved it forward and broke the rear-target assertion. It now uses a legal outer-reef shark; rear filtering is separately verified with a legal deep-water shark and real turns. Later-added human sonar targets are isolated from single-target counts. No rule relaxation or removal of rear filtering.
+- All six ancient animals and four lords were reviewed in the actual guide, preserving v0.6.4 references `.local/v6_5_before_*` and finals `.local/v6_5_final_*` at matching viewport/theme/angle. Animation phases differ, so this is not pixel regression. Initial screenshots led to corrections of Dunkleosteus eye sockets/bone blades, plesiosaur neck, Basilosaurus torso, lord jaw cavities/fitted armor, Maya jade crest, and Hydra eyes. Generated graphics were not presented as recorded model assets.
+- Actual ocean scenes staged megalodon, mosasaur, and four lord close encounters to review silhouettes/materials/eyes under existing fog/lights. Real AI, HUD, and rendering remain, with no added lights; `.local/v6_5_world_*`. Development staging does not establish natural encounter rates. After five restarts, renderer geometry 456 / textures 129 remained stable, without runtime/shader errors.
+- A read-only audit creating 186 same-type ancient instances retained 75 shared geometries / 24 materials and 0 shared-resource dispose events. This proves cache lifecycle, not phone FPS. Final individual triangles: ancient 8,376–11,232, lords 22,784–30,636; merged mesh counts 11–14 / 7–17 respectively.
+- Main browser **28 passed**: actual lord-mesh flank contact, leave/rebite, cooldown, at least five attacks, free controls, momentum breach, gulls, pause, and 30-minute results. Feeding suite **7 groups passed**: fish/humans/birds settle through real contact; swimmer/diver each trigger one voice, with no duplicate transition/delayed blood; no skips. Receipts `.local/v6_5_browser_results.json` / `.local/v6_5_feeding_results.json`.
+- `verify_audio` passed offline browser output and live lifecycle checks. New human peak 0.2246; clipping/nonfinite samples 0. Fish samples remain identical at 22050/44100/48000Hz. Eight sound tests cover human throttling, total voice cap, mute/pause/restart, and cache. Listening file `.local/v6_5_human.wav`; data `.local/v6_5_audio_results.json`. Available tools could not listen: waveforms, actual triggers, and playback were verified, not subjective or real-device sound acceptance.
+- Build passed: 76 modules; JS 907.34kB (gzip 270.30kB), CSS 64.27kB (gzip 14.61kB), retaining the 500kB warning. No large external textures/recordings. A development check briefly read a missing helper while the lord agent was editing; after completion/freeze, model construction, all rules, guide, and actual combat regressions passed.
+- Temporary preview updated to v0.6.5. Actual production interactions at 1440×900, 390×667, 320×568 passed new Abyss Lords category, 35 entries, system appearance, both abilities, phone countdown, and pause/resume. JS/CSS SHA-256 matched dist; no development API or console errors. A fresh public probe was read then removed. Receipts `.local/v6_5_public_verification.json`, `.local/v6_5_preview_probe.json`, `.local/preview_state.json`. No commit/push; real-device feel, user network, and natural rounds remain pending.
+
+## v0.6.6 · Male/female humans and shallow-water refinement (2026-09-28)
+
+Scope: [feedback](feedback_v0_6_6.md). Existing changes after 94c2a95 retained; no commit/push.
+
+- `npm test` **209/209**, formatting/diff checks passed. Models cover actual routing for 13 shallow animals / 5 modern hunters, unit longitudinal length, center, independent motion, shared resources, extreme poses, and rays. Human tests cover male/female variants, stable identity, restart, and actual submarine release groups. The old fixed resting-width threshold did not fit new cowfish extended pectorals; it became a deformation constraint relative to each model's rest pose, retaining normalization/centering checks.
+- Guide before/after screenshots: `.local/v6_6_before_*` / `.local/v6_6_final_*`, fixed 1440×900, dark theme, and angle. New images freeze guide animation; old production images still animate, so they are not pixel diffs. Actual images prompted fixes to anglerfish tube mouth/radial teeth, parrotfish GLSL reserved-word failure, ray far eye, tuna floating mouth line, broken small-fish gill lines, and turtle shell proportions. All final 18 guide models had no shader/console errors.
+- Human guide checks passed 12 sex/occupation combinations across 1440×900, 390×667, 320×568. Sex controls do not overlap the single canvas; eight repeated switches create no more GPU buffers; submarine entries show no human switch. Images `.local/v6_6_human_*`; data `.local/v6_6_human_review.json`.
+- Feeding suite **9 groups passed**: actual male/female swimmers/divers each call `eatHuman` once with the matching sex; no duplicate transition, delayed blood, or nutrition settlement. Fish, gulls after real breaches, pause/restart, and juvenile ineligibility for both sharks pass without skips. Data `.local/v6_6_feeding_results.json`.
+- Main browser **28**, expansion **8**, capture **2** passed, including actual flying-fish breach/glide, new model rays/lord flanks, squid ability, independent submarine rams/release, torpedoes, and ordinary close capture. Ecology and ability values were unchanged.
+- Male/female audio passed actual browser offline output/live lifecycle checks. Peaks 0.2126 / 0.2041, zero clipping/nonfinite samples. Ten sound tests cover independent PCM, median-pitch difference, cache, shared human throttling, and byte-identical fish sound at 22050/44100/48000Hz. Actual output excerpts `.local/v6_6_male_voice.wav` / `.local/v6_6_female_voice.wav`; data `.local/v6_6_audio_results.json`. Tools could not listen; waveform/trigger checks do not establish subjective acceptance.
+- Development APIs placed the player near actual ocean creatures and male/female NPCs, retaining AI, fog, lights, and HUD for recognition checks. This staging does not establish natural encounter rates. Screenshots/statistics `.local/v6_6_world_*`; after five restarts, geometry 454 / textures 250 remained stable. More skinned instances raise texture counts above v0.6.5; cache stability alone does not establish phone FPS.
+- Production build passed: JS 940.16kB (gzip 281.86kB), CSS 65.02kB (gzip 14.72kB), no new external textures/real-recording dependencies, retaining the 500kB warning.
+- Same-machine headless Chrome, same static production entry and opening slow-swim input, measured 1440/390px × high/smooth quality after 45 warmup frames and 120 sampled frames each. Old→new average FPS: 13.74→12.61, 13.19→13.02, 12.44→13.26, 12.00→12.52. Median draws: 1213→1058, 969→886, 884→764, 671→602. Data `.local/v6_6_perf_before.json` / `after.json`. These variable 12–14FPS headless results do not prove smooth performance; fewer draws do not erase declines in some cases. Real-device performance remains pending; no gameplay or default-quality changes were justified by this alone.
+- Public temporary preview updated to v0.6.6. Production interactions at 1440×900, 390×667, 320×568 passed human previews, guide system theme, 35 entries / 7 categories, both abilities/cooldowns, phone-bar alignment, and pause/resume. Online JS/CSS SHA-256 matched dist; no development API/console errors. Fresh public probe checked then deleted. Data `.local/v6_6_public_verification.json`, `.local/v6_6_preview_probe.json`, `.local/preview_state.json`. Pages remained v0.5.1; no commit/push. User network, real-device performance, and subjective listening were not independently accepted.
+
+## v0.6.7 · Recorded screams and forward strokes (2026-09-28)
+
+- Continues uncommitted v0.6.6, HEAD `94c2a95`; no commit/push. Scope/licensing: [feedback](feedback_v0_6_7.md), [audio sources](audio_sources.md). Old synthetic voices removed; fish PCM hashes at 22050/44100/48000Hz unchanged.
+- `npm test` **219/219**, formatting/diff checks passed. Motion tests sample actual wrists at 240 phases per male/female model, checking underwater movement toward feet, recovery toward head, high elbows, consistent flexion, and cycle continuity. Actual skinned diver-fin direction and knee limits pass. Audio tests cover real WAV headers/durations/valid onsets, cache/retry, sex routing, original rate, throttling, and no delayed replay after mute/pause/restart.
+- Actual guide renders sampled 64 frames per male/female full cycle at a fixed side angle. Eight key phases each were viewed for entry, propulsion, and high-elbow recovery. `.local/v6_7_swimming_cycle.mp4` shows male/female left/right at 24fps, three loops, 8 seconds; models/lights/materials come from the actual guide, not generated illustrations. Controlled full-cycle presentation is not a natural-game recording. Images/phases `.local/v6_7_swim_*`, `.local/v6_7_motion_review.json`.
+- Feeding suite **9 passed, no skips**. Real main-loop contact consumed male/female swimmers/divers. Actual AudioBufferSource instances matched their recording caches, rate 1, durations 1.65/1.00 seconds. Each meal settled once with one delayed blood cloud. Fish, restart cleanup, and real breach/gull regression passed. Results `.local/v6_7_feeding_results.json`.
+- `verify_audio` passed actual offline browser rendering/live lifecycle. Male/female output peaks 0.1943/0.2161, zero clipping/nonfinite samples. Mute, pause, resume, restart, and stress playback worked. Fixed browser Illegal invocation caused by detached prefetch calls from globalThis; both recordings were actually fetched, decoded, and cached. Removed a wide-band RMS-difference threshold specific to old synthesis, replacing it with independent recorded buffers, final durations, and actual routing; spectral energy is not used to infer sex or realism. Data `.local/v6_7_audio_results.json`; in-game male/female outputs `.local/v6_7_male_ingame.wav` / `.local/v6_7_female_ingame.wav`.
+- Main browser **28 passed**, retaining keyboard/touch, abilities, lords, momentum breach, pause, and 30-minute results. Receipt `.local/v6_7_browser_results.json`; no page errors in these checks.
+- Build passed: JS 940.86kB (gzip 281.87kB), CSS 65.02kB (gzip 14.72kB); added male audio 105644 bytes and female 64044 bytes. Existing >500kB warning remains. Audio is bundled, without runtime third-party asset-site dependence.
+- Existing 5180 service/public tunnel reused. Public production at 1440×900, 390×667, 320×568 passed 8 groups: human switching, one canvas, no control overlap, 35 entries, themes, both abilities, HUD, pause/resume; no console errors. JS/CSS and two WAV SHA-256 hashes matched dist; no development API. Fresh local/public probe matched and was removed. Receipts `.local/v6_7_public_verification.json` / `.local/preview_state.json`.
+- Tools could not listen, so subjective acceptance is not claimed; game-audio-path listening files were delivered. Real speakers/headphones, phone performance, and user external network remain pending. HTTP200 assets with corrupted contents retain bad byte caches; current valid assets were tested successfully. That special failure requires page refresh, so comprehensive network fault tolerance is not claimed.
+
+## v0.6.8 · Underwater feeding audio remake (2026-09-28)
+
+- The user accepted v0.6.7's recorded screams and strokes. Only fish-feeding audio changes this round. Male/female WAV SHA-256 remains at v0.6.7 values, and human models are unchanged. Three new water sounds use CC0 Foley; source/reproducible processing are in [audio sources](audio_sources.md). They are not underwater predation field recordings.
+- `npm test` **226/226**, formatting/diff checks passed. New tests cover three actual WAVs, sustained onset within 100ms, compact starts/ends, nonrepeating variants, throttled rejection not consuming a variant, independent human/fish loading, no replay of old events on readiness, mute/pause/restart, retries, and per-context decode reuse. Historical fixed fish-PCM hashes are replaced by the new sound contract; original human-rate/lifecycle checks remain.
+- `verify_audio` passed browser offline rendering/live lifecycle. Three fish outputs peaked at 0.1454/0.1460/0.1480. Continuous shallow/deep school scenes with music peaked at 0.2378/0.2351, without clipping/nonfinite samples. All 23 recorded actual sources used one of the three recording caches, at rates 0.97–1.03, with at most 3 feeding voices.
+- The same ordinary-feeding case peaked at 0.1452 versus v0.6.7's 0.2029; high-frequency RMS fell from 0.004886 to 0.001359. These establish lower output/high-frequency energy, not subjective naturalness. Old fixed sine-bubble patterns are gone; unavailable recordings use the new brief gentle water-noise fallback.
+- `.local/v6_8_fish_preview.wav` comes from the actual game audio graph: 13.5 seconds, first three single bites 1.5 seconds apart, then 4.5 seconds each of shallow/deep continuous schools with music. Only audio events are invoked; this is not natural gameplay recording. Data `.local/v6_8_audio_results.json`; tools could not listen, leaving final sound judgment to the user.
+- Feeding suite **9 passed, no skips**. Actual sardine contact created an AudioBufferSource matching water recordings; male/female swimmers/divers retained original recordings, transitions, and delayed blood; actual breach/gull regression passed. Receipt `.local/v6_8_feeding_results.json`. Gameplay is unchanged; unrelated full lord/guide visual suites were not rerun.
+- Build passed: 81 modules; JS 941.81kB (gzip 282.00kB), CSS 65.02kB (gzip 14.72kB); three added WAVs total 69252 bytes. Existing >500kB warning remains.
+- Existing 5180 service/public tunnel reused. Public preview at 1440×900, 390×667, 320×568 passed: menu only prefetches; start gesture decodes three fish/two human sounds; audio context runs; real key/touch sonar and pause suspend/resume work. All 7 resources (JS/CSS and five WAVs) SHA-256 matched dist byte-for-byte, without development API/console errors. Fresh local/public probe matched and was deleted. Receipts `.local/v6_8_public_verification.json` / `.local/preview_state.json`. Host-side public-URL access does not verify the user's external network/phone.
+- HEAD remained `94c2a95`, no commit/push. Official Pages remained v0.5.1; only temporary play updated.
+
+## v0.6.9 · Juvenile feeding alignment and player movement (2026-09-28)
+
+> This records the version at the time. Its arms-leading decision was superseded by v0.6.10 below and is not current biological or orientation guidance.
+
+- Both characters already shared 3-meter start, edible-length eligibility, and nursery bonuses. Radius was not further widened: about 1.191/1.406 game meters for a 3-meter juvenile versus 0.18/0.8-meter prey. Fixes addressed squid arms facing away from travel, capture leading the visible model on sharp turns, and skipped contact when sprinting through fish. Feeding endpoint now uses the model's world mouth anchor.
+- `npm test` **239/239**, formatting/diff checks passed. Eight capture tests cover character parity, relative-motion segments, lateral boundaries, no false hits for crossings at different times, zero movement, and invalid input. Seven motion tests cover easing, unchanged root transforms, world mouth points, actual skin deformation, independent skeletons/shared buffers, reduced airborne propulsion, restart, and fluke geometry.
+- `verify_player_v0_6_9`: **11 passed**. Both 3-meter juveniles caught independently fleeing fish offset 1.25 meters but not 2.2; prey across thin walls remained protected. Actual D+Space drove turning/sprint, capture followed visible orientation, and restart cleared poses. Actual squid J jet crossed fixed prey in a 40ms step with endpoint distances 1.400/1.473 meters, both outside the radius; continuous capture recovered the hit. Frozen prey isolates the inter-frame issue only.
+- `test:browser` **28 passed**: keyboard swimming, abilities, health/hunger/stamina, pause, real buildup/breach/reentry, gull contact, repeated lord flanks, and 30-minute results. Feeding suite **9 passed, no skips**, preserving fish/human/gull transitions, original audio routing, pause/restart cleanup. Ability values and human/lord contact ranges were unchanged.
+- Orca stalk/fluke vertical propulsion, pectoral gathering/differential turning, and squid's 10 segmented arms/tentacles, fin waves, and mantle respond to actual cruise/sprint/jet. Actual guide-model recordings at 24fps, 192 frames each, covered cruise, sprint, turns, and recovery. Frame review found two old fluke-outline intersections; the shape became continuous two-lobed. All unit tests, recording, build, and public-artifact checks were rerun after correction. Final mesh has no boundary self-intersections or degenerate triangles.
+- Build passed; final `index-CiDuBXPk.js` 946.35kB (gzip 284.10kB), CSS still 65.02kB, retaining the >500kB warning. Existing 5180 service/tunnel reused. Final public preview checked both characters at 1440×900, 390×667, 320×568: 6 groups covering one guide canvas, 3-meter start, keyboard/actual touch sprint, ability/cooldown, pause/resume, and phone-bar alignment. No console errors or development API; JS/CSS and five WAV hashes matched dist. Fresh local/public probe matched and was removed.
+- Evidence: `.local/v6_9_unit.log`, `v6_9_check.log`, `v6_9_browser.log`, `v6_9_feeding_results.json`, `v6_9_player_verification.json`, `v6_9_motion_cycle.json`, `v6_9_player_motion.mp4`, `v6_9_public_verification.json`, `v6_9_build.log`, final `preview_state.json`. The video is controlled guide-camera presentation; staged tests/local touch emulation are not natural full-round feeding or real-device performance acceptance.
+- HEAD stayed `94c2a95`; no commit/push, Pages v0.5.1, only temporary preview v0.6.9. Next: user confirmation of squid capture feel and both characters' movement.
+
+## v0.6.10 · Squid direction review and arm-region feeding (2026-09-28)
+
+- Iziko's Giant Squid page and Robinson et al. (2021) support bidirectional movement, not frequency claims that everyday travel always leads with one end. User preference restores mantle/fin-end-leading, arms-trailing default swimming as a game presentation choice. Sources: [this round's record](feedback_v0_6_10.md).
+- Remove the squid model's 180° flip and move capture to visible model-local +Z×0.36×length; orca remains −Z×0.36×length. Squid mouth is +Z×0.09×length, with intake direction reversed accordingly. Original radii, eligibility, occlusion, and relative-motion sweeps remain; new animations, abilities, speed, and stamina are unchanged.
+- `npm test` **239/239**; `verify_player_v0_6_10` **11 passed**. Both 3-meter characters caught live fish offset 1.25 meters, not 2.2, and did not capture through thin walls. Actual D+Space aligned capture to visible turning and motion to sprint; mouths retain anatomical orientation, and restart clears poses. Actual squid J jet crosses fixed prey in a 40ms step with start/end capture distances 1.400/1.423 meters, both beyond the approximately 1.191-meter radius, yet continuous contact captures it. Fixed prey isolates low-frame-rate collision only.
+- Model tests verify mouth/arms remain on +Z in cruise, sprint, and jet. Actual follow-camera sprint, public desktop guide, and 320px sprint screenshots were viewed; default direction is restored with segmented arms retained. No new animation loop or geometry resources.
+- Build passed: `index-DerRlGMG.js` 946.44kB (gzip 284.12kB), CSS 65.02kB, retaining the 500kB warning. Public preview checked both characters at 1440×900, 390×667, 320×568: 6 groups passed guide, 3-meter start, actual keyboard/touch sprint, cooldown, pause/resume, phone-bar alignment. No console errors/development API; JS/CSS and five WAV hashes matched dist.
+- Evidence: `.local/v6_10_unit.log`, `v6_10_player_verification.json`, `v6_10_public_verification.json`, `v6_10_*_game_sprint.png`, `v6_10_public_*.png`. Historical `verify_player_v0_6_9` records the old arm-crown direction; reproduce current behavior with `node scripts/verify_player_v0_6_10.mjs`. Unaffected 28-check main and 9-check feeding suites were not rerun, and previous results are not counted here.
+- HEAD remained `94c2a95`, no commit/push, official Pages v0.5.1. Only temporary preview updated to v0.6.10. Controlled capture and Chrome touch emulation are not natural full-round feel or real-device performance acceptance.
+
+<!-- Historical results above are not new test runs. -->
+
+---
+
+# English documentation and bilingual game update
+
+Verified: 2026-09-28. Implementation baseline `62d156b` / gameplay v0.6.10. The user authorized commit and push after review. The checks below were completed before publication; the matching [Pages workflow](https://github.com/stanatny/abyssal/actions/workflows/pages.yml) records deployment status.
+
+- All 27 project Markdown documents, including the README, development rules, quality standard, historical feedback, handoff, and new [localization guide](localization.md), are English. Relative links resolve. Historical values, sources, publication states, and limits remain intact; historical Chinese quotations are described in English.
+- Player-facing menus, character abilities, HUD, radar, sonar, combat/feeding notifications, pause/results, the 35-entry Ocean Guide, and its three reward entries support `zh-CN` and `en`. Language selection follows the browser initially, persists an explicit preference, and does not change gameplay rules. Canvas reward and territory labels redraw in their existing textures and unsubscribe on disposal.
+- **245 unit tests passed**, including six localization tests for preference fallback, translation/placeholder coverage, ecological copy, deferred notifications, subscriptions, and Canvas-texture reuse/disposal. The existing encounter test fixture now resolves structured notifications before inspecting display text.
+- The main gameplay browser regression passed all **28 checks** with an explicit Chinese browser locale. The dedicated bilingual verifier passed **68 checks**, with no console errors, at 1440×900, 390×667, 320×568, and 844×390. It covers both language directions, reload persistence, settings, active skills and pause, all guide categories and bilingual searches, guide renderer/model reuse, Canvas bitmap changes without replacement, scrolling, and narrow-screen text.
+- Review found and fixed a guide-cache regression: clearing an unsuccessful search could retain the empty-result detail because a direct `textContent` write bypassed the markup cache. The empty-result state now uses the same markup owner, and the browser regression explicitly returns to the original entry.
+- English sonar status retains visible group counts on phones. Its zero-contact instruction is shorter on compact screens; the tooltip retains the full explanation. A final copy-only change to `Groups N` avoids singular/plural errors; real text-range measurements for 0, 1, and 4 groups passed at all four sizes. English guide sidebar entries place size notes below names to avoid overlap in narrow landscape columns; the final guide follow-up passed **56 targeted assertions** across both languages and four sizes. Final public-URL checks also confirmed the sidebar layout at desktop and landscape widths.
+- Formatting and production build passed. The existing >500KB chunk warning remains. The existing restricted preview server and tunnel were reused. Preview HTML, JavaScript, CSS, and five packaged audio files were compared byte-for-byte with `dist/`; a temporary allowed probe verified live refresh and was removed. Public-URL Chrome checks at 1440×900 and 390×667 passed language switching/reload, guide opening, sonar, pause/resume, and absence of the development API.
+
+The pre-commit review repeated all 245 unit tests and formatting/diff checks, confirmed that the 51 reviewed files matched the delivery receipt before the release-status documentation update, and found no private artifacts in the commit scope.
+
+Evidence: `.local/i18n_unit.log`, `i18n_check.log`, `i18n_build.log`, `i18n_game_browser.log`, `i18n_verification/report.json`, `i18n_verification/*.png`, `i18n_final_browser.json`, `i18n_guide_followup.json`, and `i18n_preview_assets.json`. `.local/preview_state.json` records the current temporary preview and process identities. Public URL checks were made from the development host; a user's external network and physical phone remain unverified. This localization task does not establish fresh listening acceptance, low-end hardware performance, or natural 30-minute gameplay balance.

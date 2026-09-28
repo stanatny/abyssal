@@ -1,3 +1,5 @@
+import { initializeLanguage } from "./i18n.js";
+import { t, tr, message, setMarkup, onLanguageChange } from "./i18n.js";
 import * as THREE from "three";
 import "./style.css";
 import { createCreature } from "./creatures.js";
@@ -68,6 +70,8 @@ import {
   segmentBlocked,
 } from "./collision.js";
 
+initializeLanguage();
+
 const $ = (id) => document.getElementById(id);
 const Clamp = THREE.MathUtils.clamp;
 const canvas = $("ocean");
@@ -82,8 +86,9 @@ try {
     powerPreference: "high-performance",
   });
 } catch (error) {
-  $("loading").textContent =
-    "无法启动 3D 画面，请使用支持 WebGL 2 的浏览器并开启硬件加速。";
+  $("loading").textContent = t(
+    "无法启动 3D 画面，请使用支持 WebGL 2 的浏览器并开启硬件加速。",
+  );
   throw error;
 }
 renderer.setPixelRatio(Math.min(devicePixelRatio, 1.5));
@@ -232,6 +237,7 @@ let threat = null,
   hitFlash = 0,
   uiClock = 0,
   activeBoss = null;
+let movementLabel = "巡游";
 let lureFlash = 0,
   waterMotion = null;
 const solidColliders = [...ocean.colliders, ...surface.colliders];
@@ -281,10 +287,12 @@ function selectAvatar(character) {
   avatar.visible = true;
   const caption = document.querySelector(".specimen");
   if (caption) {
-    caption.querySelector("span").textContent =
-      `${character.id === "orca" ? "ORCINUS ORCA" : "ARCHITEUTHIS DUX"} · PLAYER`;
-    caption.querySelector("strong").textContent =
-      `${character.name} · 幼年个体`;
+    caption.querySelector("span").textContent = t(
+      tr`${character.id === "orca" ? "ORCINUS ORCA" : "ARCHITEUTHIS DUX"} · PLAYER`,
+    );
+    caption.querySelector("strong").textContent = t(
+      tr`${character.name} · 幼年个体`,
+    );
   }
 }
 function setMarkers(enabled) {
@@ -359,7 +367,7 @@ function activateCharacterSkill() {
   effects.flash(position, 0x947acf, 14);
   audio.hunter?.("squid");
   notify(
-    `墨幕喷射 · ${confused ? `${confused}个追击者迷失10秒` : "向前喷射脱离危险"}`,
+    message`墨幕喷射 · ${confused ? message`${confused}个追击者迷失10秒` : "向前喷射脱离危险"}`,
     2.5,
   );
   updateSonar();
@@ -413,19 +421,21 @@ function updateSonar() {
     statusData.ready && (player.characterId !== "squid" || underwater);
   const shortName = player.characterId === "squid" ? "喷墨" : "声呐";
   const status = statusData.active
-    ? `${player.characterId === "squid" ? "墨幕" : "探测"} ${Math.ceil(statusData.remaining)}s`
+    ? tr`${player.characterId === "squid" ? "墨幕" : "探测"} ${Math.ceil(statusData.remaining)}s`
     : statusData.ready
       ? usable
         ? "就绪"
         : "需潜入水下"
-      : `冷却 ${Math.ceil(statusData.cooldownRemaining)}s`;
-  $("sonar-control").textContent = `J ${shortName} · ${status}`;
-  $("touch-sonar").querySelector("span").textContent = shortName;
-  $("touch-sonar-status").textContent = statusData.ready
-    ? usable
-      ? "就绪"
-      : "水下使用"
-    : `${Math.ceil(statusData.active ? statusData.remaining : statusData.cooldownRemaining)}s`;
+      : tr`冷却 ${Math.ceil(statusData.cooldownRemaining)}s`;
+  $("sonar-control").textContent = t(tr`J ${shortName} · ${status}`);
+  $("touch-sonar").querySelector("span").textContent = t(shortName);
+  $("touch-sonar-status").textContent = t(
+    statusData.ready
+      ? usable
+        ? "就绪"
+        : "水下使用"
+      : tr`${Math.ceil(statusData.active ? statusData.remaining : statusData.cooldownRemaining)}s`,
+  );
   for (const id of ["touch-sonar", "sonar-control"]) {
     const button = $(id);
     button.dataset.skill = skill.id;
@@ -448,9 +458,9 @@ function updateSonar() {
     button.setAttribute("aria-disabled", String(button.disabled));
     button.setAttribute(
       "aria-label",
-      `${character.name}${skill.name}，${status}。${skill.description}`,
+      t(tr`${character.name}${skill.name}，${status}。${skill.description}`),
     );
-    button.title = `J · ${skill.name} · 冷却${skill.cooldown}秒`;
+    button.title = t(tr`J · ${skill.name} · 冷却${skill.cooldown}秒`);
   }
   return scan;
 }
@@ -527,7 +537,7 @@ function spawnPosition(
     anchor: initialSpeciesAnchor(species, populationIndex),
   });
   if (!fallback)
-    throw new Error(`No valid habitat position for ${species.kind}`);
+    throw new Error(tr`No valid habitat position for ${species.kind}`);
   return fallback;
 }
 function addEntity(species, location, populationIndex = 0) {
@@ -683,8 +693,10 @@ function seedPickups() {
     });
   }
 }
-function notify(message, duration = 3) {
-  $("notification").textContent = message;
+let currentNotification = "";
+function notify(source, duration = 3) {
+  currentNotification = source;
+  $("notification").textContent = t(source);
   notificationUntil = elapsed + duration;
 }
 function startGame() {
@@ -769,35 +781,7 @@ function showOverlay(kind) {
   pointer.x = 0;
   pointer.y = 0;
   $("overlay").hidden = false;
-  const won = kind === "won",
-    dead = kind === "dead",
-    timeup = kind === "timeup";
-  $("overlay-kicker").textContent = won
-    ? "APEX OF THE ABYSS"
-    : dead
-      ? "THE OCEAN REMEMBERS"
-      : timeup
-        ? "EXPEDITION COMPLETE"
-        : "EXPEDITION PAUSED";
-  $("overlay-title").textContent = won
-    ? "深渊，已记住你的名字。"
-    : dead
-      ? "这次，海洋更胜一筹。"
-      : timeup
-        ? "这次远征，到此休整。"
-        : "海洋在等你。";
-  $("overlay-body").textContent = won
-    ? `你已长成 ${player.length.toFixed(1)} 米的顶级掠食者。\n捕食 ${player.eaten} 次 · 生存 ${Math.floor(player.elapsed / 60)} 分 ${Math.floor(player.elapsed % 60)} 秒`
-    : dead
-      ? `最终体长 ${player.length.toFixed(1)} 米 · 捕食 ${player.eaten} 次\n${player.hunger <= 0 ? "饥饿夺走了你的生命。长大后需要更大的猎物。" : activeBoss ? "主宰比冲刺更快。观察技能前摇、侧向闪避，并利用恢复期撤出领地。" : "保留一段冲刺体力，借助岩柱切断追击者的视线。"}`
-      : timeup
-        ? `30 分钟探索结束 · 最终体长 ${player.length.toFixed(1)} 米\n捕食 ${player.eaten} 次 · 击败领主 ${player.bossesDefeated} 位\n本次未达成深渊霸主；继续积累经验，再次出发。`
-        : "WASD 转向，空格冲刺，J 声呐，K 慢游。标记偏好在出发前设置。\n声呐探测20秒，冷却60秒；接触猎物或领主时自动咬击。水下蓄势后向上破水，受伤进食优先治疗。";
-  $("resume").innerHTML =
-    won || dead || timeup
-      ? "再次潜入 <span>↗</span>"
-      : "继续探索 <span>→</span>";
-  $("restart").hidden = won || dead || timeup;
+  renderOverlay(kind);
   bestLength = Math.max(bestLength, player.length);
   try {
     localStorage.setItem("abyssal_best", String(bestLength));
@@ -805,6 +789,45 @@ function showOverlay(kind) {
     /* 存储不可用不影响本局。 */
   }
   $("resume").focus({ preventScroll: true });
+}
+function renderOverlay(kind) {
+  const won = kind === "won",
+    dead = kind === "dead",
+    timeup = kind === "timeup";
+  $("overlay-kicker").textContent = t(
+    won
+      ? "APEX OF THE ABYSS"
+      : dead
+        ? "THE OCEAN REMEMBERS"
+        : timeup
+          ? "EXPEDITION COMPLETE"
+          : "EXPEDITION PAUSED",
+  );
+  $("overlay-title").textContent = t(
+    won
+      ? "深渊，已记住你的名字。"
+      : dead
+        ? "这次，海洋更胜一筹。"
+        : timeup
+          ? "这次远征，到此休整。"
+          : "海洋在等你。",
+  );
+  $("overlay-body").textContent = t(
+    won
+      ? tr`你已长成 ${player.length.toFixed(1)} 米的顶级掠食者。\n捕食 ${player.eaten} 次 · 生存 ${Math.floor(player.elapsed / 60)} 分 ${Math.floor(player.elapsed % 60)} 秒`
+      : dead
+        ? tr`最终体长 ${player.length.toFixed(1)} 米 · 捕食 ${player.eaten} 次\n${player.hunger <= 0 ? "饥饿夺走了你的生命。长大后需要更大的猎物。" : activeBoss ? "主宰比冲刺更快。观察技能前摇、侧向闪避，并利用恢复期撤出领地。" : "保留一段冲刺体力，借助岩柱切断追击者的视线。"}`
+        : timeup
+          ? tr`30 分钟探索结束 · 最终体长 ${player.length.toFixed(1)} 米\n捕食 ${player.eaten} 次 · 击败领主 ${player.bossesDefeated} 位\n本次未达成深渊霸主；继续积累经验，再次出发。`
+          : tr`WASD 转向，空格冲刺，J 角色技能，K 慢游。接触自动咬击。\n${getCharacter(player.characterId).active.name}：${getCharacter(player.characterId).active.description}\n水下蓄势后向上破水；受伤进食优先治疗。`,
+  );
+  setMarkup(
+    $("resume"),
+    won || dead || timeup
+      ? "再次潜入 <span>↗</span>"
+      : "继续探索 <span>→</span>",
+  );
+  $("restart").hidden = won || dead || timeup;
 }
 function resumeGame() {
   if (mode === "paused") {
@@ -984,7 +1007,7 @@ function updatePlayer(dt, roundDt) {
   avatar.position.y +=
     player.invulnerable > 0 ? Math.sin(elapsed * 35) * 0.05 : 0;
   playerLight.position.copy(position).add(new THREE.Vector3(0, 4, -3));
-  $("movement-mode").textContent = surface.airborne
+  movementLabel = surface.airborne
     ? "跃出水面"
     : jet
       ? "喷射逃逸"
@@ -995,6 +1018,7 @@ function updatePlayer(dt, roundDt) {
           : targetSpeed === 5
             ? "慢游"
             : "巡游";
+  $("movement-mode").textContent = t(movementLabel);
   if ((boosting || jet) && Math.random() < 0.6) burst(position, 1);
   // 饥饿先由规则模块处理，熔岩只在贴近深海海底时灼伤。
   if (
@@ -1058,7 +1082,7 @@ function eatEntity(entity, mouth, previousPrey = entity.mesh.position) {
   entity.flight = null;
   mesh.userData.setGliding?.(false);
   notify(
-    `捕食 ${species.label} · ${player.lastMeal.healed > 0 ? "生命 +" + Math.round(player.lastMeal.healed) + " · " : ""}体长 ${player.length.toFixed(1)} m`,
+    message`捕食 ${species.label} · ${player.lastMeal.healed > 0 ? message`生命 +${Math.round(player.lastMeal.healed)} · ` : ""}体长 ${player.length.toFixed(1)} m`,
     1.7,
   );
   return true;
@@ -1403,7 +1427,7 @@ function updateEntities(dt) {
         effects.hurt(position, player.length);
         effects.bite(position, direction, species.length);
         burst(position, 8);
-        notify(`${species.label} 咬伤！冲刺脱离攻击范围`, 2);
+        notify(message`${species.label} 咬伤！冲刺脱离攻击范围`, 2);
         position.addScaledVector(direction, 5);
       }
       entity.cooldown = 2.2;
@@ -1450,7 +1474,7 @@ function updatePickups(dt) {
       pickup.mesh.visible = false;
       audio.pickup(pickup.kind);
       notify(
-        `${REWARDS[pickup.kind].symbol} ${REWARDS[pickup.kind].name} · ${REWARDS[pickup.kind].effect}`,
+        message`${REWARDS[pickup.kind].symbol} ${REWARDS[pickup.kind].name} · ${REWARDS[pickup.kind].effect}`,
       );
       burst(pickup.mesh.position, 15);
     }
@@ -1524,7 +1548,7 @@ function atmosphere(dt) {
 }
 function updateHud() {
   for (const key of ["health", "stamina", "hunger"]) {
-    $(key + "-value").textContent = Math.ceil(player[key]);
+    $(key + "-value").textContent = t(Math.ceil(player[key]));
     $(key + "-bar").style.width = player[key] + "%";
     $(key + "-bar").parentElement.classList.toggle(
       "low-vital",
@@ -1532,12 +1556,13 @@ function updateHud() {
     );
   }
   const remaining = Math.max(0, Math.ceil(ROUND_DURATION - player.elapsed));
-  $("round-clock").textContent =
-    `远征 ${String(Math.floor(remaining / 60)).padStart(2, "0")}:${String(remaining % 60).padStart(2, "0")}`;
+  $("round-clock").textContent = t(
+    tr`远征 ${String(Math.floor(remaining / 60)).padStart(2, "0")}:${String(remaining % 60).padStart(2, "0")}`,
+  );
   $("round-clock").classList.toggle("urgent", remaining <= 120);
   const zone = getZone(-position.y);
   if (zone.id !== lastZone) {
-    if (lastZone) notify(`${zone.name}\n${zone.description}`, 4);
+    if (lastZone) notify(message`${zone.name}\n${zone.description}`, 4);
     lastZone = zone.id;
   }
   const nursery = isNursery(position);
@@ -1551,26 +1576,27 @@ function updateHud() {
   }
   lastNursery = nursery;
   $("hud").dataset.nursery = String(nursery);
-  $("zone-name").textContent = nursery ? "安全浅滩" : zone.name;
-  $("zone-code").textContent = nursery
-    ? "NURSERY LAGOON"
-    : {
-        reef: "SUNLIT REEF",
-        twilight: "THE TWILIGHT",
-        abyss: "MIDNIGHT ZONE",
-        hadal: "VOLCANIC ABYSS",
-      }[zone.id] || "INTO THE BLUE";
-  $("depth").textContent = Math.max(
-    0,
-    Math.round(-position.y * WORLD.displayDepthScale),
+  $("zone-name").textContent = t(nursery ? "安全浅滩" : zone.name);
+  $("zone-code").textContent = t(
+    nursery
+      ? "NURSERY LAGOON"
+      : {
+          reef: "SUNLIT REEF",
+          twilight: "THE TWILIGHT",
+          abyss: "MIDNIGHT ZONE",
+          hadal: "VOLCANIC ABYSS",
+        }[zone.id] || "INTO THE BLUE",
   );
-  $("length").textContent = player.length.toFixed(1);
-  $("eaten").textContent = `已捕食 ${player.eaten}`;
+  $("depth").textContent = t(
+    Math.max(0, Math.round(-position.y * WORLD.displayDepthScale)),
+  );
+  $("length").textContent = t(player.length.toFixed(1));
+  $("eaten").textContent = t(tr`已捕食 ${player.eaten}`);
   $("growth").style.width = getProgress(player) + "%";
-  $("speed").textContent = Math.round(speed);
+  $("speed").textContent = t(Math.round(speed));
   $("depth-dot").style.top =
     Clamp((-position.y / WORLD.maxDepth) * 100, 0, 100) + "%";
-  $("objective").textContent =
+  $("objective").textContent = t(
     nursery && player.length < 4
       ? "安心吃鱼群 · 成长至 4 米"
       : nursery && player.length < 6
@@ -1583,27 +1609,33 @@ function updateHud() {
               ? "挑战远古巨兽，成长至 24 米"
               : player.bossesDefeated
                 ? "深渊印记已得 · 成长至 30 米"
-                : "24 米后挑战主宰 · 接触咬击";
+                : "24 米后挑战主宰 · 接触咬击",
+  );
   $("notification").style.opacity = elapsed < notificationUntil ? "1" : "0";
-  $("buffs").innerHTML = Object.entries(player.buffs)
-    .filter(([, v]) => v > 0)
-    .map(
-      ([k, v]) =>
-        `<span>${k === "flow" ? "洋流之息" : "深渊狂食"} ${Math.ceil(v)}s</span>`,
-    )
-    .join("");
+  setMarkup(
+    $("buffs"),
+    Object.entries(player.buffs)
+      .filter(([, v]) => v > 0)
+      .map(
+        ([k, v]) =>
+          tr`<span>${k === "flow" ? "洋流之息" : "深渊狂食"} ${Math.ceil(v)}s</span>`,
+      )
+      .join(""),
+  );
   $("threat").hidden = !threat;
   if (threat) {
     const hunter = threat.entity.hunter;
-    $("threat-title").textContent =
-      `${threat.entity.species.label} · ${hunter.phase === "windup" ? "技能蓄力" : hunter.phase === "active" ? hunter.ability.label : "正在追击"}`;
-    $("threat-detail").textContent =
+    $("threat-title").textContent = t(
+      tr`${threat.entity.species.label} · ${hunter.phase === "windup" ? "技能蓄力" : hunter.phase === "active" ? hunter.ability.label : "正在追击"}`,
+    );
+    $("threat-detail").textContent = t(
       hunter.phase === "windup"
         ? hunter.tell
         : hunter.phase === "recover"
           ? "突袭已结束 · 趁恢复期拉开距离"
-          : "保留冲刺，借岩石遮挡与横向变向脱险";
-    $("threat-distance").textContent = Math.round(threat.distance) + "m";
+          : "保留冲刺，借岩石遮挡与横向变向脱险",
+    );
+    $("threat-distance").textContent = t(Math.round(threat.distance) + "m");
   }
   let target = null,
     targetScore = Infinity;
@@ -1630,21 +1662,24 @@ function updateHud() {
       : e.species.predator
         ? "#ffad8a"
         : "#c1d8dd";
-    $("target").textContent =
-      `${{ shoal: "Ⅰ 浅海鱼群", hunter: "Ⅱ 海洋霸主", ancient: "Ⅲ 远古巨兽" }[e.species.category] || "海洋生物"} · ${e.species.label} · ${e.species.length}m · ${edible ? "可捕食" : e.species.predator ? "危险" : "暂不可吞食"} / ${Math.round(d)}m`;
+    $("target").textContent = t(
+      tr`${{ shoal: "Ⅰ 浅海鱼群", hunter: "Ⅱ 海洋霸主", ancient: "Ⅲ 远古巨兽" }[e.species.category] || "海洋生物"} · ${e.species.label} · ${e.species.length}m · ${edible ? "可捕食" : e.species.predator ? "危险" : "暂不可吞食"} / ${Math.round(d)}m`,
+    );
   }
   $("boss-panel").hidden = !activeBoss;
   if (activeBoss) {
     const { state, tip } = activeBoss;
-    $("boss-name").textContent = state.species.label;
+    $("boss-name").textContent = t(state.species.label);
     $("boss-health").style.width = (state.health / state.maxHealth) * 100 + "%";
-    $("boss-hp").textContent =
-      Math.ceil(state.health) + " / " + state.maxHealth;
-    $("boss-tip").textContent =
+    $("boss-hp").textContent = t(
+      Math.ceil(state.health) + " / " + state.maxHealth,
+    );
+    $("boss-tip").textContent = t(
       player.length < 24 && !(player.buffs.frenzy > 0 && player.length >= 21)
         ? "体型不足 · 借地形与技能间隙撤出领地"
-        : tip;
-    $("boss-phase").textContent =
+        : tip,
+    );
+    $("boss-phase").textContent = t(
       {
         hunt: "领地主宰",
         windup: "危险 · 技能蓄力",
@@ -1652,22 +1687,27 @@ function updateHud() {
         recover: "弱点暴露",
         disoriented: "墨汁迷失",
         return: "已脱离领地",
-      }[state.phase] || "领地边界";
+      }[state.phase] || "领地边界",
+    );
   }
-  $("feeding-mode").textContent =
-    player.health < 100 ? "进食优先回血" : "健康成长";
+  $("feeding-mode").textContent = t(
+    player.health < 100 ? "进食优先回血" : "健康成长",
+  );
   $("breach-hint").hidden = position.y < -35 || !!activeBoss;
   const charge = waterMotion?.charge || 0;
-  $("breach-hint").textContent = surface.airborne
-    ? "破浪跃起 · 靠惯性捕食海鸥"
-    : waterMotion?.divingRequired
-      ? "先潜下水面，重新积蓄破浪动量"
-      : charge >= 0.99
-        ? "破浪已就绪 · 保持冲刺向上游"
-        : `水下蓄势 ${Math.round(charge * 100)}% · 持续冲刺后向上破水`;
+  $("breach-hint").textContent = t(
+    surface.airborne
+      ? "破浪跃起 · 靠惯性捕食海鸥"
+      : waterMotion?.divingRequired
+        ? "先潜下水面，重新积蓄破浪动量"
+        : charge >= 0.99
+          ? "破浪已就绪 · 保持冲刺向上游"
+          : tr`水下蓄势 ${Math.round(charge * 100)}% · 持续冲刺后向上破水`,
+  );
   $("ink-status").hidden = effects.ink < 0.08;
-  $("ink-status").textContent =
-    effects.ink > 0.35 ? "墨云遮蔽 · 横向游出云团" : "墨云正在散开";
+  $("ink-status").textContent = t(
+    effects.ink > 0.35 ? "墨云遮蔽 · 横向游出云团" : "墨云正在散开",
+  );
   if (effects.ink > 0.35 || sonar.snapshot.active) $("target").hidden = true;
   keepTargetClear();
 }
@@ -1819,19 +1859,36 @@ function frame(now) {
   visuals.render();
 }
 
+onLanguageChange(() => {
+  $("sound").textContent = t(audio.enabled ? "声音 · 开" : "声音 · 关");
+  $("quality").textContent = t(highQuality ? "画质 · 高" : "画质 · 流畅");
+  $("notification").textContent = t(currentNotification);
+  const selected =
+    mode === "menu" ? setup.getSelection().character : expedition.character;
+  document.querySelector(".specimen strong").textContent =
+    tr`${selected.name} · 幼年个体`;
+  occlusionsAt = -Infinity;
+  if (["paused", "won", "dead", "timeup"].includes(mode)) renderOverlay(mode);
+  $("movement-mode").textContent = t(movementLabel);
+  if (mode !== "menu") {
+    updateHud();
+    updateSonar();
+  }
+});
+
 $("start").addEventListener("click", startGame);
 $("resume").addEventListener("click", resumeGame);
 $("restart").addEventListener("click", startGame);
 $("pause").addEventListener("click", togglePause);
 $("sound").addEventListener("click", () => {
-  $("sound").textContent = audio.toggle() ? "声音 · 开" : "声音 · 关";
+  $("sound").textContent = t(audio.toggle() ? "声音 · 开" : "声音 · 关");
 });
 $("quality").addEventListener("click", () => {
   highQuality = !highQuality;
   renderer.setPixelRatio(highQuality ? Math.min(devicePixelRatio, 1.5) : 0.8);
   renderer.shadowMap.enabled = highQuality;
   visuals.setQuality(highQuality);
-  $("quality").textContent = highQuality ? "画质 · 高" : "画质 · 流畅";
+  $("quality").textContent = t(highQuality ? "画质 · 高" : "画质 · 流畅");
 });
 window.addEventListener("resize", () => {
   occlusionsAt = -Infinity;
@@ -1844,9 +1901,9 @@ window.addEventListener("keydown", (e) => {
   if (guide.isOpen) return;
   if (!$("overlay").hidden && e.code === "Tab") {
     // 暂停及结算时只在面板内循环，隐藏的重开按钮不参与焦点顺序。
-    const buttons = [...$("overlay").querySelectorAll("input, button")].filter(
-      (button) => !button.hidden && button.getClientRects().length,
-    );
+    const buttons = [
+      ...$("overlay").querySelectorAll("input, button, select"),
+    ].filter((button) => !button.hidden && button.getClientRects().length);
     const index = buttons.indexOf(document.activeElement);
     const next =
       index < 0
@@ -1858,6 +1915,11 @@ window.addEventListener("keydown", (e) => {
     buttons[next].focus({ preventScroll: true });
     return;
   }
+  if (
+    e.target instanceof Element &&
+    e.target.closest("input, select, textarea")
+  )
+    return;
   // 按钮保留原生空格激活；开始或继续后焦点回到画布，下一次空格正常冲刺。
   if (
     e.code === "Space" &&
@@ -1907,7 +1969,7 @@ function moveJoystick(e) {
   const r = joystick.getBoundingClientRect();
   pointer.x = Clamp((e.clientX - r.left - r.width / 2) / 40, -1, 1);
   pointer.y = Clamp((e.clientY - r.top - r.height / 2) / 40, -1, 1);
-  joystick.firstElementChild.style.transform = `translate(${pointer.x * 28}px,${pointer.y * 28}px)`;
+  joystick.firstElementChild.style.transform = tr`translate(${pointer.x * 28}px,${pointer.y * 28}px)`;
 }
 joystick.addEventListener("pointerdown", (e) => {
   e.preventDefault();
@@ -1948,7 +2010,7 @@ canvas.addEventListener("webglcontextlost", (e) => {
   e.preventDefault();
   if (mode === "playing") showOverlay("paused");
   $("loading").hidden = false;
-  $("loading").textContent = "图形上下文已中断，请刷新页面重新潜入。";
+  $("loading").textContent = t("图形上下文已中断，请刷新页面重新潜入。");
 });
 seedPopulation();
 seedPickups();

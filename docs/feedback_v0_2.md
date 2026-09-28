@@ -1,70 +1,70 @@
-# v0.2 试玩反馈与响应
+# v0.2 playtest feedback and response
 
-记录日期：2026-09-26。来源：第一版临时预览发布后，用户在当前项目话题中提出的七项优化意见。
+Recorded: 2026-09-26. Source: seven improvements requested by the user in this project thread after the first temporary preview.
 
-本记录保留用户意图与本轮决定，供开发、review 和下一轮继续工作时使用。“已实现专项”只表示对应代码或专项检查已经完成，不代表七项反馈已经全部通过浏览器和自然游玩验收。用户于2026-09-27授权当前版本做一次提交。
+This record preserves the user's intent and this round's decisions for implementation, review, and continuation. A completed targeted check means only that the corresponding code or check is complete; it does not mean that all seven requests have passed browser and natural-play acceptance. On 2026-09-27, the user authorized one commit of the current version.
 
-本轮收尾：26项规则测试与21条浏览器流程已通过，七项功能均已接入并完成专项或关键流程验证；下文中的自然游玩、真实设备听感与难度调优仍保留为待验收。详见 [验证记录](verification.md)。
+Round closeout: 26 rules tests and 21 browser flows passed. All seven features were integrated and received targeted or key-flow verification. Natural play, listening on real devices, and difficulty tuning remain pending below. See [verification](verification.md).
 
-## 1. 背景音乐与交互音效
+## 1. Background music and interaction sounds
 
-**用户原意：** 缺少背景音乐；平时松弛，被危险动物追击时紧张，吃小鱼和被咬也应有声音。
+**User intent:** Add background music that feels relaxed normally and tense when dangerous animals give chase, plus sounds for eating small fish and being bitten.
 
-**当前决定：** 使用原创程序化音乐，平静、追击、主宰三个声部共享节拍并平滑切换。保留可辨认的旋律、和声与节奏，补充捕食、受击、声呐、出水、落水、奖励、巨兽攻击和胜利音效。
+**Decision:** Use original procedural music with calm, chase, and lord layers sharing a beat and blending smoothly. Preserve recognizable melody, harmony, and rhythm; add sounds for feeding, damage, sonar, breaching, reentry, rewards, monster attacks, and victory.
 
-**进展：** 音频模块已实现；18 秒浏览器离线录音验证了三个音乐阶段非静音，RMS 约 0.042 / 0.031 / 0.044，峰值低于 0.38。首次开关激活、重复开始复用音频图、暂停冻结音频时钟通过专项检查。主循环激活与暂停联动已通过浏览器检查；真实扬声器听感和最终混音仍待试玩。
+**Progress:** The audio module was implemented. An 18-second browser offline recording confirmed non-silent output in all three music stages, with RMS around 0.042 / 0.031 / 0.044 and peaks below 0.38. Targeted checks passed for initial toggle activation, audio-graph reuse across repeated starts, and freezing the audio clock while paused. Browser checks covered main-loop activation and pause integration. Real-speaker listening and final mixing still require playtesting.
 
-## 2. 跃出水面并捕食海鸥
+## 2. Breaching and catching seagulls
 
-**用户原意：** 冲刺时可以冲出水面，吃掉海鸥。
+**User intent:** Sprint out of the water and eat seagulls.
 
-**当前决定：** 接近水面向上冲刺触发跃起，空中使用抛物线运动，靠近海鸥自动捕食，落水有水花和声音。加入天空元素，维持水上与水下的明显感受差异。
+**Decision:** An upward sprint near the surface triggers a breach. Airborne motion follows a parabola; nearby gulls are eaten automatically, and reentry produces a splash and sound. Add sky elements to distinguish the above-water and underwater experience.
 
-**进展：** 已接入并通过浏览器破水、海鸥捕食、落水和重开检查；公网生产版也用真实W+空格完成跃起。不同体型的手感与真实设备镜头体验仍待试玩。
+**Progress:** Browser checks passed for breaching, gull capture, reentry, and restart. The public production preview also completed a breach with actual W + Space input. Handling at different body sizes and camera behavior on real devices still require playtesting.
 
-## 3. 奖励需要辨识度
+## 3. Recognizable rewards
 
-**用户原意：** 看不出水中那些奖励是什么、有什么用。
+**User intent:** Make it clear what the objects in the water are and what they do.
 
-**当前决定：** 体力泉用绿色十字，洋流之息用蓝色双箭头，深渊狂食用橙色獠牙；同时展示名称与效果文字，收集后播放对应提示声。狂食对普通猎物仍是越级吞食，对主宰只降低攻击门槛。
+**Decision:** Use a green cross for Stamina Spring, blue double arrows for Ocean Current, and orange fangs for Abyssal Frenzy. Show names and effect descriptions and play a corresponding pickup cue. Frenzy still allows oversized ordinary prey; against lords, it only lowers the attack threshold.
 
-**进展：** 三类独立图形、名称和用途已通过浏览器与实际截图检查，奖励规则测试通过；真实手机尺寸与复杂遮挡仍待试玩。
+**Progress:** Browser checks and actual screenshots confirmed the three distinct shapes, names, and descriptions. Reward rules tests passed. Real phone sizes and complex occlusion remain pending.
 
-## 4. 增加水中元素并继续加深海域
+## 4. More underwater features and greater depth
 
-**用户原意：** 水中元素较少，深度可以进一步加深。
+**User intent:** Add underwater elements and make the ocean deeper.
 
-**当前决定：** 最大海深配置从第一版约 275 扩展到 740 世界单位，沿用显示倍率 4，对应约 2960 米。扩展更深地形与环境区域，安排荧光、遗迹、火山、热液和独立领地。
+**Decision:** Expand maximum configured depth from roughly 275 to 740 world units. At the existing display multiplier of 4, this represents about 2,960 meters. Extend terrain and environmental zones with bioluminescence, ruins, volcanoes, hydrothermal features, and separate territories.
 
-**进展：** 地形与新地标已完成，浏览器实际到达2500米以下并渲染；随机主宰出生点已检查海床余量。自然探索密度、贴底镜头和长时性能仍待试玩。
+**Progress:** Terrain and landmarks were complete, and the browser reached and rendered depths beyond 2,500 meters. Random lord spawn positions were checked for seabed clearance. Exploration density, near-bottom camera behavior, and sustained performance remain pending.
 
-## 5. 新危险动物与更高级的海怪
+## 5. New dangerous animals and higher-tier monsters
 
-**用户原意：** 增加玛雅海怪、邓氏鱼、三头龙；当前克拉肯更像大王乌贼，真正克拉肯应更大、更高级。高级海怪应稀有、致命、具有特殊能力，普通加速不应轻易摆脱。
+**User intent:** Add a Maya-inspired monster, Dunkleosteus, and a three-headed dragon. The existing Kraken resembles a Giant Squid; a true Kraken should be larger and more advanced. High-tier monsters should be rare, lethal, have special abilities, and be difficult to escape with ordinary acceleration.
 
-**当前决定：** 大王乌贼与邓氏鱼归为中级猎手；克拉肯升级为巨大主宰。四种主宰为克拉肯、玛雅灵感原创巨兽、三头海德拉和利维坦，分别使用漩涡、脉冲、吐息、冲锋。其追猎速度高于虎鲸冲刺，逃生需要躲技能、利用地形或离开领地。
+**Decision:** Classify Giant Squid and Dunkleosteus as intermediate hunters and upgrade Kraken to a giant lord. The four lords are Kraken, an original Maya-inspired monster, Three-Headed Hydra, and Leviathan, using vortex, pulse, breath, and charge attacks respectively. Their pursuit speeds exceed the orca's sprint speed, so escape requires dodging abilities, using terrain, or leaving their territories.
 
-**进展：** 新模型完成独立截图检查，四种技能与击败链完成空间模块验证，前摇/恢复与多次咬击通过浏览器检查；逃生公平性仍待自然试玩。海德拉按用户的三头方向实现；玛雅巨兽属于幻想创作，不作真实历史神话形象复原的声明。
+**Progress:** New models received individual screenshot checks. Spatial-module checks covered the four abilities and defeat sequence; browser checks covered windup/recovery and repeated bites. Escape fairness still needs natural play. Hydra follows the requested three-headed design. The Maya-inspired monster is fantasy artwork, not a claimed reconstruction of a historical mythological figure.
 
-## 6. 鱼类分级、鱼群与领地多次战斗
+## 6. Fish tiers, schools, and repeated territorial battles
 
-**用户原意：** 浅海小鱼成群，便于前期升级；白鲨、大王乌贼、鮟鱇等中级鱼普通速度能追上玩家，但能通过加速逃脱；深海高级海怪随机稀有出现，拥有领地，接近满级才可正面多次咬击。
+**User intent:** Schools of small fish in shallow water should support early growth. Intermediate hunters such as white sharks, Giant Squid, and anglerfish should catch a cruising player but be escapable by sprinting. Rare, randomly selected deep-sea monsters should have territories and require several frontal bites near maximum player size.
 
-**当前决定：** 划分初级猎物、中级猎手和主宰。每局从四种主宰随机启用两只，各有领地与独立生命。一般 24 米后可攻击，狂食降至 21 米；F 或鼠标左键咬击，技能后 3 秒是高伤害反击窗口。单次伤害上限为主宰最大生命的 24%，保证必须多次交战。胜利要求 30 米且至少击败一位主宰。
+**Decision:** Separate starter prey, intermediate hunters, and lords. Activate two of the four lords randomly each round, each with a territory and independent health. Attacks normally become available at 24 meters, or 21 during Frenzy. F or the left mouse button bites; the 3 seconds after an ability form a high-damage counterattack window. Cap each hit at 24% of maximum lord health to require repeated encounters. Victory requires 30 meters and at least one lord defeated.
 
-**进展：** 鱼群生成、每局两主宰、主宰前摇与弱点、F和鼠标长按多次咬击以及新胜利条件均通过检查；200个出生点满足海床与深度限制。自然成长时间及无状态辅助的一整局仍待试玩。
+**Progress:** Checks passed for school spawning, two lords per round, windups and weak points, repeated bites while holding F or the mouse button, and the new victory condition. Two hundred spawn points met seabed and depth constraints. Natural growth time and a full round without state-assisted setup remain pending.
 
-## 7. 失血后的回血机制
+## 7. Healing after damage
 
-**用户原意：** 失血后应有恢复方式，例如吃鱼先回血再长大。
+**User intent:** Provide recovery after losing health, for example by using food to heal before growing.
 
-**当前决定：** 每次进食先补生命，按实际修复消耗部分成长收益；满血时正常成长。最多将 70% 的本次成长投入修复，仍保留最低成长份额，饱食补充不受扣减。主宰战利品与海鸥遵守相同规则。
+**Decision:** Each meal heals first, consuming growth benefit in proportion to actual repair; at full health, growth proceeds normally. Allocate at most 70% of that meal's growth to repair, retaining a minimum growth share. Hunger replenishment is unaffected. Lord loot and seagulls use the same rule.
 
-**进展：** `applyNutrition` 为普通捕食与主宰战利品共享入口；轻伤、重伤、满血的收益分配与胜利条件通过规则测试，实际吃鱼回血和提示通过浏览器检查。治疗强度与成长的平衡仍待自然试玩。
+**Progress:** `applyNutrition` is shared by ordinary feeding and lord loot. Rules tests passed for benefit allocation with light injury, heavy injury, and full health, plus the victory condition. Browser checks confirmed actual fish consumption, healing, and notifications. Healing strength versus growth still needs natural playtesting.
 
-## 后续验收原则
+## Further acceptance principles
 
-- 先完成各模块的规则检查和浏览器联动，再组织自然操作的整局试玩。
-- 使用开发状态直接进入主宰战，只证明特定流程可测试，不能证明正常成长节奏已经合理。
-- 明确区分本轮结果与第一版 [verification.md](verification.md) 的历史结果。
-- review 与提交授权分开处理；2026-09-27的提交授权适用于当前版本，不自动扩展到后续改动。
+- Complete module rules checks and browser integration before organizing a naturally played full round.
+- Entering a lord battle through development state proves a specific flow is testable; it does not establish sensible normal growth pacing.
+- Distinguish this round's results from the first version's historical results in [verification.md](verification.md).
+- Review and commit authorization are separate. The 2026-09-27 authorization covers this version and does not automatically extend to later changes.

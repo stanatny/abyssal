@@ -1,132 +1,138 @@
-# 当前开发交接
+# Current Development Handoff
 
-## 后续新增内容的质量门槛（2026-09-28 生效）
+## Current update: bilingual game and English documentation
 
-用户要求新增鱼种和其他元素直接达到现有精修品质，避免粗糙上线后再整批重做。后续任务先读根目录 [AGENTS.md](AGENTS.md) 与 [资产质量标准](docs/asset_quality_standard.md)：最低同类参照为已发布 v0.6.10 / `5a3248e`，模型、动作、接触判定、声音和特效整体验收。未达标只能留在明确标注的开发原型；降低标准须用户明确同意。按影响验证，不把浏览器模拟当真机、波形检查当主观听感，也不因小修强制重跑全部历史测试。
+The current task adds player-facing `en` and `zh-CN` support and converts project documentation, README files, development rules, and project Skill instructions to English. New player-facing copy must use localization dictionaries; verify English text lengths and narrow-screen layouts. Existing Chinese code-comment conventions remain unchanged. The implementation baseline is `62d156b`; gameplay remains at v0.6.10.
 
-## v0.6.10 主分支交付（2026-09-28）
+The user authorized committing and pushing this bilingual upgrade on 2026-09-28. Language selection, all player-facing copy, and world-space labels are integrated. Completed checks include 245 unit tests, the main gameplay browser regression, 68 bilingual browser checks, formatting, build, and public temporary-preview interactions. Final targeted text-layout checks and evidence are recorded in [verification](docs/verification.md). The authorized push to `main` uses the existing GitHub Pages workflow; verify its result and the public artifact before reporting deployment complete. See [localization](docs/localization.md) before adding copy. Future changes still require their own commit/push authorization.
 
-用户已完成本轮试玩评审，明确要求提交并推送远端 `main`。本次交付整合 v0.6.1—v0.6.10，连同此前已提交的 v0.6 视觉快照一并发布；版本仍为0.6.10，不额外创建 tag 或 Release。`main` 推送后沿用 Pages 工作流自动部署，部署状态见 [Actions](https://github.com/stanatny/abyssal/actions/workflows/pages.yml)。下文各轮的候选、未提交及旧正式版本说明均为历史状态。
+## Quality bar for future content (effective 2026-09-28)
 
-下一步优先收集自然整局和真实手机的试玩反馈，继续调整捕食手感、难度与性能；不得把浏览器模拟尺寸当作真机验收。
+The user requires new fish species and other elements to meet the existing polished quality immediately, avoiding rough releases followed by wholesale rework. Start future tasks with root [AGENTS.md](AGENTS.md) and the [asset quality standard](docs/asset_quality_standard.md). The minimum comparable reference is released v0.6.10 / `5a3248e`; accept models, animation, contact detection, audio, and effects together. Below-standard work may exist only in explicitly labeled development prototypes; lowering the bar requires the user's explicit agreement. Verify according to impact. Browser emulation is not real-device testing, waveform checks are not listening acceptance, and small fixes do not require every historical test.
 
-## v0.6.10 当前乌贼游姿与腕区捕食候选
+## v0.6.10 main-branch delivery (2026-09-28)
 
-- 用户追问大王乌贼真实游向后，本轮恢复外套膜尖端／鳍端领先、腕足拖后的默认游姿；这是游戏表现选择，不宣称唯一真实泳姿。Iziko 支持双向运动，Robinson 等 2021 年 §3.3／图 4 记录捕食接近与喷射撤离；没有据此得出“一律某端领先巡游”的频次结论。来源与决定见 [本轮反馈](docs/feedback_v0_6_10.md)。
-- 乌贼捕获点随可见模型取局部 `+Z × 0.36 × 体长`，位于腕区；虎鲸仍为 `-Z × 0.36 × 体长`。乌贼嘴部锚点为局部 `+Z × 0.09 × 体长`，吞入方向随解剖朝向反转。保留共用半径、捕食资格、遮挡与本帧相对运动扫掠，不退回旧版外套膜尖端判定。
-- v0.6.9 的两角色动作与参数全部保留；其“腕冠固定朝行进方向”决定已被本轮替代。本轮239项单测、11项捕食/动作浏览器专项、构建与6组公开预览检查通过；具体证据见 [验证记录](docs/verification.md)。继续保留 `94c2a95` 之后全部未提交改动，不提交、不 Push；正式 Pages 仍为 v0.5.1。
+The user completed this round's playtest review and explicitly requested a commit and push to remote `main`. The delivery combined v0.6.1–v0.6.10 with the previously committed v0.6 visual snapshot. The version remained 0.6.10, with no additional tag or Release. Pushing `main` continued to deploy through the Pages workflow; see [Actions](https://github.com/stanatny/abyssal/actions/workflows/pages.yml). Candidate, uncommitted, and older-production-version descriptions in the historical sections below retain their state at the time.
 
-## v0.6.9 上轮捕食与角色动作候选（朝向决定已被 v0.6.10 替代）
+The next priority after that release was feedback from natural full sessions and real phones, followed by feeding feel, difficulty, and performance tuning. Browser viewport emulation must not be presented as real-device acceptance.
 
-- 用户反馈大王乌贼幼年捕食仍难、两角色巡游与冲刺生硬，见 [本轮反馈](docs/feedback_v0_6_9.md)。审查确认两角色原本同为 3 米起步，体长资格、育幼加成和半径一致；本轮不继续扩大吞食半径。
-- 当轮将乌贼腕冠改为朝前，此朝向决定已由 v0.6.10 替代；捕获点按可见 `avatar.quaternion` 变换，避免快速转向时逻辑朝向领先模型的修正继续保留。`prey_capture.js` 新增本帧玩家与猎物相对运动扫掠，补上冲刺穿过小鱼的漏判，保留捕食资格和地形遮挡。`feeding.update` 的收拢终点改用模型 `getFeedingMouth()`，与接触范围分开。
-- `player_motion.js` 管理独立动作相位和状态平滑；虎鲸尾柄/尾鳍/胸鳍、乌贼分节腕足/鳍波/外套膜响应巡游、冲刺、喷射、转向与进食。`animate` 可选第三参数由主循环传真实速度、冲刺、喷射、转向、俯仰及离水状态；图鉴两参数接口保留。
-- 修正旧虎鲸尾鳍轮廓两处自交；239项单测、28项浏览器主流程、9项吞食过渡、11项双角色捕食/动作专项通过。当前公开产物最终核对结果见 [验证记录](docs/verification.md)。保留 `94c2a95` 之后全部未提交改动，不提交、不 Push；正式 Pages 仍为 v0.5.1，预览当前状态见 `.local/preview_state.json`。
+## v0.6.10 squid posture and arm-region capture candidate (historical)
 
-## v0.6.8 上轮鱼类吞食水声候选
+- After the user questioned the giant squid's real travel direction, this round restored a mantle-tip/fin-end-first default with trailing arms. This is a game presentation choice, not a claim that it is the only real swimming posture. Iziko supports bidirectional movement; Robinson et al. 2021 §3.3/Figure 4 records a predatory approach and jet retreat. Neither was used to claim that cruising always occurs with one end leading. See the [round's feedback](docs/feedback_v0_6_10.md) for sources and the decision.
+- The squid capture point follows the visible model at local `+Z × 0.36 × length`, in the arm region; the orca remains at `-Z × 0.36 × length`. The squid mouth anchor is local `+Z × 0.09 × length`, and the swallowing direction reverses with anatomical orientation. Keep the shared radius, feeding eligibility, occlusion, and this-frame relative-motion sweep; do not revert to mantle-tip capture.
+- Both characters retain all v0.6.9 animation and parameters. Its decision to fix the arm crown toward travel was superseded. This round passed 239 unit tests, 11 feeding/animation browser checks, the build, and 6 public-preview groups; see [verification](docs/verification.md). At this point, all changes after `94c2a95` remained uncommitted and unpushed, and official Pages was still v0.5.1.
 
-- 用户已对 v0.6.7 真人惨叫和向前自由泳修正回复“可以了”，本轮仅按追加反馈重做吃鱼声音；人物声音、性别路由和泳姿保持。见 [本轮反馈](docs/feedback_v0_6_8.md)。
-- 鱼声使用 jcpmcdonald 的 CC0 水声拟音，制作成 0.34／0.36／0.38 秒三个变体；相邻不重复，速率 0.97—1.03，基础增益 0.32。旧正弦气泡已移除，素材来源、处理工具和哈希见 [音频来源](docs/audio_sources.md)。这些素材不是海下捕食实录。
-- `RecordedAudioBank` 统一录音预取与按上下文解码缓存；鱼声和人声使用独立实例。鱼声未就绪时立即播放短促低音量噪声回退，不在加载完成后补播旧事件。菜单预取不创建 AudioContext。
-- 继续保留 `94c2a95` 之后全部未提交改动，不提交、不 Push；正式 Pages 仍为 v0.5.1。226 项单测、9 项真实捕食专项、浏览器音频渲染及三尺寸公开临时预览核对已完成，结果见 [验证记录](docs/verification.md)；当前预览回执查看 `.local/preview_state.json`。仍待用户实际设备试听，不将自动检查当作主观听感验收。
+## v0.6.9 feeding and character animation candidate (direction superseded by v0.6.10)
 
-## v0.6.7 上轮真人惨叫与游泳动作（用户已确认）
+- The user reported difficult juvenile squid feeding and stiff cruising/sprinting for both characters; see the [round's feedback](docs/feedback_v0_6_9.md). Review confirmed that both already started at 3 meters with identical size eligibility, nursery bonuses, and radii. This round did not further enlarge the capture radius.
+- The squid arm crown was turned forward in this round; v0.6.10 superseded that orientation. The capture point still uses the visible `avatar.quaternion`, retaining the fix that prevents logical heading from leading the model during rapid turns. `prey_capture.js` added this-frame relative-motion sweeps between player and prey to catch small fish crossed during a sprint, preserving size eligibility and terrain occlusion. `feeding.update` now draws prey to model `getFeedingMouth()`, separately from capture range.
+- `player_motion.js` manages independent animation phases and state smoothing. Orca tail peduncle/flukes/pectoral fins and squid segmented arms/fin waves/mantle respond to cruising, sprinting, jetting, turning, and feeding. The main loop supplies actual speed, sprint, jet, turning, pitch, and airborne state through the optional third `animate` argument; the Ocean Guide retains the two-argument interface.
+- Fixed two self-intersections in the old orca fluke outline. Passed 239 unit tests, 28 main browser flows, 9 swallowing-transition checks, and 11 dual-character feeding/animation checks. See [verification](docs/verification.md) for final checks of the public artifact. At this point, all changes after `94c2a95` remained uncommitted and unpushed, official Pages remained v0.5.1, and `.local/preview_state.json` recorded the current preview.
 
-- 本轮反馈见 [动作与声音记录](docs/feedback_v0_6_7.md)。男声采用 HaelDB、女声采用 AuraVoice 的 CC0 真人表演录音，替代 v0.6.6 合成人声；来源、裁切和最终文件哈希见 [音频来源](docs/audio_sources.md)。其余配乐与程序音效保持，不再将全部声音描述为合成。
-- 当轮由 `human_voice_assets.js` 管理男女 WAV 缓存；v0.6.8 复用 `RecordedAudioBank` 实现。`eatHuman(length, sex)` 保留实体性别路由，播放速率固定为1，后半程低通从7800 Hz降至950 Hz。
-- `human_models.js` 修正绑定臂朝+Z而旧肩旋转导致的反向推水，以递减肩相位和独立高肘屈曲完成向前自由泳；15骨骼、男女变体、几何缓存不变。`userData.samplePose(0…1)` 和 `motionPeriod` 可用于确定相位的完整周期录制。
-- 继续保留 `94c2a95` 之后全部未提交改动，不提交、不Push。正式Pages仍v0.5.1；测试、浏览器与预览结果由 [验证记录](docs/verification.md) 留档，本文不宣称试听或部署已完成。
+## v0.6.8 fish-feeding water-Foley candidate (historical)
 
-## v0.6.6 上轮人物与浅海模型候选（人声已被v0.6.7替代）
+- The user had accepted the v0.6.7 real screams and forward-freestyle correction. This round reworked only fish-feeding sound in response to additional feedback; human voices, sex-based routing, and swimming posture stayed unchanged. See the [round's feedback](docs/feedback_v0_6_8.md).
+- Fish sounds use jcpmcdonald's CC0 water Foley, processed into three variants of 0.34/0.36/0.38 seconds, without consecutive repeats, at rates 0.97–1.03 and base gain 0.32. The old sine-wave bubble was removed. Sources, tools, and hashes are in [audio sources](docs/audio_sources.md). These are not recordings of actual underwater predation.
+- `RecordedAudioBank` unifies recording prefetch and per-context decode caches; fish and human sounds use independent instances. If fish audio is not ready, a brief quiet-noise fallback plays immediately; old events are not replayed after loading. Menu prefetch does not create an AudioContext.
+- All changes after `94c2a95` remained uncommitted and unpushed; official Pages was still v0.5.1. Completed 226 unit tests, 9 actual-feeding checks, browser audio rendering, and public temporary-preview checks at three sizes. Results are in [verification](docs/verification.md); the current preview receipt is `.local/preview_state.json`. Listening on the user's actual device was still pending; automated checks were not treated as subjective listening acceptance.
 
-- 本轮需求见 [反馈记录](docs/feedback_v0_6_6.md)：男女游泳者/潜水员及对应合成声线、13种浅海生物和5种现代海洋霸主精修。所有NPC保持成年设定。
-- `human_models.js`、`vehicle_models.js`入口新增可选第三参数sex；`human_activity.js`让实体、species、mesh身份一致，潜艇释放组也含男女，刷新不换身份。`eatHuman(size, sex)`按实际捕食对象选择缓存，人声限流两种声线共用。
-- `creature_shoal.js` / `creature_hunters.js`由`createCreature`优先分流，图鉴和场景共用；其后仍为远古/领主等既有分支。图鉴人物详情新增男/女切换，不增加记录数、画布或RAF。
-- 不修改生态数量、真实游戏尺度、技能或战斗规则；继续未提交、未推送。正式Pages仍v0.5.1，预览最新状态以 `.local/preview_state.json` 与 [验证记录](docs/verification.md) 为准。
+## v0.6.7 human screams and swimming animation (accepted by the user)
 
-## v0.6.5 当前巨兽与捕食体验候选
+- See the [animation and audio record](docs/feedback_v0_6_7.md). CC0 performances by HaelDB for male voices and AuraVoice for female voices replaced v0.6.6 synthesis. Sources, trimming, and final hashes are in [audio sources](docs/audio_sources.md). Other music and procedural effects remained unchanged; do not describe all sounds as synthesized.
+- At this point, `human_voice_assets.js` managed male/female WAV caches; v0.6.8 reused `RecordedAudioBank`. `eatHuman(length, sex)` retains routing from the entity's sex, fixed playback rate 1, and a second-half low-pass sweep from 7800 Hz to 950 Hz.
+- `human_models.js` corrected backward propulsion caused by the old shoulder rotation with arms bound toward +Z. Decreasing shoulder phase and independent high-elbow flexion produce forward freestyle. The 15 bones, male/female variants, and geometry cache remain. `userData.samplePose(0…1)` and `motionPeriod` support complete-cycle recording at known phases.
+- All changes after `94c2a95` remained uncommitted and unpushed. Official Pages was still v0.5.1. Test, browser, and preview records are in [verification](docs/verification.md); this historical record did not claim completed listening or deployment.
 
-- 最新五项反馈见 [本轮记录](docs/feedback_v0_6_5.md)：人声加强，稀有领主改为深渊领主，六远古/四领主重绘，虎鲸声呐20秒，普通鱼近身捕食适度放宽。此节覆盖下文历史的10秒虎鲸声呐与旧分类名称；乌贼10秒迷失/1.5秒喷射/60秒冷却不变。
-- `creature_ancient.js` / `creature_lords.js` 从 `creatures.js` 优先分流，图鉴与实际战斗共用；头朝-Z、单位长度、共享资源与独立动画合同保持，领主侧翼多次接触规则不变。
-- `prey_capture.js` 仅用于普通鱼的嘴部距离：原半径额外24%，增量封顶0.65游戏米，保留体长资格/地形遮挡；人物与领主接触没有扩大。
-- 声呐持续值由 `character_rules.js` 统一提供给 `sonar_rules.js`，避免按钮、图鉴与实际效果不同步。
-- 继续未提交、未推送；正式Pages仍v0.5.1。最终实测及预览回执以 `docs/verification.md` 与 `.local/preview_state.json` 为准。
+## v0.6.6 human and shallow-water model candidate (voices replaced by v0.6.7)
 
-## v0.6.4 当前水面操控与补给候选
+- See the [feedback record](docs/feedback_v0_6_6.md): male/female swimmers and divers with corresponding synthesized voices, refinement of 13 shallow-water species and 5 modern Ocean Predators. All NPCs remain adults.
+- `human_models.js` and `vehicle_models.js` entry points gained optional third parameter `sex`. `human_activity.js` keeps entity, species, and mesh identity consistent; submarine evacuees include both sexes, and respawns preserve identity. `eatHuman(size, sex)` selects the cache from the actual target, with one shared voice limit across both voice types.
+- `createCreature` dispatches first to `creature_shoal.js` / `creature_hunters.js`, shared by the guide and scene, followed by existing ancient/lord branches. Human guide details gained a male/female switch without adding records, canvases, or RAF loops.
+- Population counts, actual game scale, abilities, and combat rules were unchanged. Work remained uncommitted/unpushed and official Pages remained v0.5.1. The current preview was recorded in `.local/preview_state.json` and [verification](docs/verification.md).
 
-- 最新三项反馈见 [本轮记录](docs/feedback_v0_6_4.md)：普通浮游贴水线时平滑收拢上仰到20°，深水自由85°、合法蓄势跃出与空中/回水规则保持。此决定替代v0.6.2保留水面85°的结论。
-- `surface_steering.js` 替换main原操纵调用；`pickup_placement.js` 提供夏威夷固定狂食点(6,-18,34)，作为第35枚奖励，30秒效果/45秒原地刷新，重开恢复完整锚点和原模型。
-- 首页远征设置新增反转上下，键盘与摇杆共用，`abyssal_invert_y`本地保存。常规标记偏好保持独立。
-- 继续未提交、未推送；正式Pages仍v0.5.1，临时预览状态及产物查看 `.local/preview_state.json`。
+## v0.6.5 giant-creature and feeding-experience candidate (historical)
 
-## v0.6.3 当前缓游浅礁与系统主题候选
+- The [round's record](docs/feedback_v0_6_5.md) covers five requests: stronger human voices, renaming rare lords to Abyss Lords, redrawing six Ancient Giants/four Abyss Lords, 20-second orca sonar, and slightly more forgiving close-range ordinary-fish capture. This supersedes the historical 10-second sonar and old category name below. Squid disorientation/jet/cooldown remain 10/1.5/60 seconds.
+- `creatures.js` dispatches first to `creature_ancient.js` / `creature_lords.js`, shared by Ocean Guide and real combat views. Preserve -Z-facing heads, unit length, shared resources, independent animation, and repeated lord flank-contact rules.
+- `prey_capture.js` adjusts only the mouth-distance check for ordinary fish: an additional 24% of the original radius, capped at 0.65 game meters, while retaining length eligibility and terrain occlusion. Human and lord contact ranges did not expand.
+- `character_rules.js` supplies the sonar duration to `sonar_rules.js`, keeping buttons, guide text, and actual effect consistent.
+- Changes remained uncommitted/unpushed and official Pages remained v0.5.1. Final measurements and preview receipts are in `docs/verification.md` and `.local/preview_state.json`.
 
-- 最新反馈见 [本轮记录](docs/feedback_v0_6_3.md)：新增长角箱鲀、隆头鹦嘴鱼、苏眉共20只缓游猎物；`nurseryResident` 鱼群留驻出生浅滩。当前普通生物24类235只、浅滩13类、图鉴35条另加3种奖励。下文21类/215只/32条是历史口径。
-- `creature_reef.js` 提供三种独立外形，经 `creature_ecosystem.js` 分流；配置与合法分布仍在生态模块，`main.js` 保持较小逃逸范围与常驻鱼群。
-- 图鉴跟随系统浅色/深色并实时切换，`dialog.dataset.theme` 可核对；只修改既有灯光/曝光，保持模型缓存与单动画循环。
-- 此轮及v0.6.1/v0.6.2继续未提交、未推送。正式Pages仍v0.5.1；临时预览版本和资源回执查看 `.local/preview_state.json`。
+## v0.6.4 surface-control and supplies candidate (historical)
 
-## v0.6.2 当前育幼浅滩候选
+- The [round's record](docs/feedback_v0_6_4.md) covers three requests: ordinary surface swimming smoothly limits upward pitch to 20°, while 85° underwater freedom, valid charged breaches, airborne behavior, and water entry remain. This supersedes v0.6.2's retained 85° surface posture.
+- `surface_steering.js` replaces the original steering call in main. `pickup_placement.js` adds a fixed Hawaii frenzy pickup at (6,-18,34), the 35th reward, with a 30-second effect and 45-second respawn at the same position. Restart restores its complete anchor and original model.
+- Home-screen expedition settings add inverted vertical control for both keyboard and joystick, persisted as `abyssal_invert_y`. The ordinary-marker preference remains independent.
+- Changes remained uncommitted/unpushed and official Pages remained v0.5.1. Temporary preview state and artifacts are in `.local/preview_state.json`.
 
-- 用户继续反馈幼年过小、浅滩生存过难，要求先安全成长再逐步面对猎手。当前3米起步，六米前成长系数改为 `length/6`，替代下文v0.6.1的2.5米/平方抑制。详情见 [本轮反馈](docs/feedback_v0_6_2.md)。
-- `nursery_rules.js` 统一安全区域与猎手领地；生成、刷新、追击、技能、伤害和运动边界必须一致。每只普通生物保留每物种内稳定 `populationIndex`；外礁只允许第0只锤头/白鲨，其余猎手不得迁入。
-- 小鱼从96增至136，总普通生物21类215只；捕食、脱战和雷达说明均接入实际规则。依旧在 `94c2a95` 之后保留未提交改动，不Push；正式Pages仍v0.5.1。
-- 同轮追加人物模型、鱼/人两类捕食音效、桌面提示放大。鱼类成功进食走 `audio.eatFish(length)`，成年人走 `audio.eatHuman(length)`，海鸥保留原 `eat()`；血雾和吞食过渡不变。水面85°姿态经真实输入检查保留，不自动回平。模型和样式改动以[本轮反馈](docs/feedback_v0_6_2.md)及最终验证记录为准。
-- `human_models.js` 由 `vehicle_models.js` 对游泳者/潜水员分流，保持旧入口；每模型3个蒙皮网格、15根独立骨骼，同类几何/材质引用计数共享。当时 `feeding_audio.js` 为原创PCM；v0.6.7将人物部分换为真人录音，v0.6.8再将鱼类音效换为水声拟音。限制3条吞食声与1条人声，重开停止并回收声源，缓存可复用。
+## v0.6.3 slow reef prey and system-theme candidate (historical)
 
-## v0.6.1 上轮反馈（起步与浅滩规则已被v0.6.2替代）
+- The [round's record](docs/feedback_v0_6_3.md) adds 20 slow-moving prey across longhorn cowfish, green humphead parrotfish, and humphead wrasse. `nurseryResident` shoals remain in the starting shallows. At this point there were 24 ordinary categories/235 animals, 13 shallow-water categories, and 35 guide entries plus 3 reward types. The 21/215/32 figures below are historical.
+- `creature_reef.js` provides three distinct forms through `creature_ecosystem.js`. Configuration and legal distribution stay in ecology modules; `main.js` keeps a small escape range and resident shoals.
+- The guide follows and updates with the system light/dark theme, inspectable through `dialog.dataset.theme`. Only existing lights/exposure changed; model caches and a single animation loop remain.
+- This round and v0.6.1/v0.6.2 remained uncommitted/unpushed, with official Pages still at v0.5.1. `.local/preview_state.json` holds the temporary-preview version and resource receipt.
 
-- 用户要求已完成：先将 v0.6 保存为本地提交 `94c2a95`，**没有 Push**。后续四项反馈的实现保持未提交，等待 review；不得把之前一次提交授权扩展为再次提交或推送。
-- 当轮候选为 v0.6.1，先读 [本轮反馈](docs/feedback_v0_6_1.md)。自由俯仰、雷达姿态指示、2.5 米幼年起步、吞食过渡与生态分布规则覆盖下文历史 v0.5 中对应设定。
-- `feeding_transition.js` 临时借用已结算的原猎物模型，普通鱼、人类与海鸥刷新逻辑必须让出网格；重开先 reset 过渡，再重置实体。
-- `ecosystem_population.js` 管理水层合法的初始分布、鱼群队形和远距迁移；总数仍为 21 种 / 175 只普通生物。
+## v0.6.2 nursery-shallows candidate (historical)
 
-## v0.6 视觉升级本地快照
+- The user continued to report an undersized juvenile and excessive shallow-water difficulty, requesting safe initial growth before progressively facing hunters. The start became 3 meters; growth below 6 meters uses `length/6`, superseding v0.6.1's 2.5-meter start and quadratic suppression below. See the [round's feedback](docs/feedback_v0_6_2.md).
+- `nursery_rules.js` unifies safe areas and hunter territories. Spawning, respawning, pursuit, abilities, damage, and movement boundaries must agree. Each ordinary creature keeps a stable per-species `populationIndex`. Only hammerhead/great-white index 0 may use the outer reef; other hunters may not migrate in.
+- Small fish increased from 96 to 136, for 21 ordinary categories/215 animals. Feeding, disengagement, and radar explanations all reflect actual rules. Changes after `94c2a95` remained uncommitted with no push; official Pages remained v0.5.1.
+- The same round added human models, separate fish/human feeding sounds, and larger desktop hints. Successful fish feeding uses `audio.eatFish(length)`, adults use `audio.eatHuman(length)`, and seagulls retain `eat()`. Blood mist and swallowing transitions are unchanged. Real input checks retained the 85° surface pose without auto-leveling. Model/style changes are documented in the [round's feedback](docs/feedback_v0_6_2.md) and final verification record.
+- `vehicle_models.js` routes swimmers/divers to `human_models.js` while preserving its old entry point. Each model has 3 skinned meshes and 15 independent bones, with reference-counted shared geometry/materials per type. At the time, `feeding_audio.js` used original PCM; v0.6.7 replaced human voices with real recordings, and v0.6.8 replaced fish sounds with water Foley. Limits are 3 feeding sounds and 1 human voice. Restart stops and reclaims sources while retaining reusable caches.
 
-- 用户已发起整体 UI、生物、特效、海底与船只升级；当前视觉版本为 **v0.6.0**，正式 Pages 仍为 v0.5.1。先读 [本轮视觉范围](docs/visual_upgrade_v0_6.md)，再看 [验证记录](docs/verification.md)。2026-09-28 用户明确要求先做一个本地 Commit，禁止 Push；本次提交保存视觉升级快照，后续四项试玩反馈另行实现。
-- `creature_surface.js` 负责连续体态、弯曲薄鳍和皮肤微表面；虎鲸、鲨鱼、金枪鱼、普通鱼及抹香鲸使用独立骨架共享资源。海洋植物与岩石表面在 `ocean_visuals.js`，保持原碰撞边界。
-- `visual_pipeline.js` 统一环境反射、海洋悬浮颗粒和可关闭的 HDR 辉光；高画质增加浅海阴影，流畅模式跳过辉光与阴影。图鉴单独使用共享的环境生成函数，仍然只在打开时运行自身渲染循环。
-- 首页采用远征主题，角色主动/被动说明与标记设置放入可展开区域；图鉴为浅色标本展示页，HUD 保留底部对齐生存条和边缘控制布局。玩法、冷却、成长、物种分层、攻击和碰撞数值未改。
-- 截图、对照场景、模型统计和性能测量在 `.local/v6_*`。浏览器模拟尺寸与开发接口布景只证明对应路径，不等于真实手机或自然整局验收。
+## v0.6.1 feedback (start and nursery rules superseded by v0.6.2)
 
-## 工作区与发布
+- Completed the user's request to save v0.6 as local commit `94c2a95`, **without pushing**. Implementation of four subsequent requests remained uncommitted for review; the earlier commit authorization did not cover another commit or push.
+- This round's candidate was v0.6.1; read its [feedback](docs/feedback_v0_6_1.md). Free pitch, radar attitude indication, a 2.5-meter juvenile start, swallowing transitions, and ecology distribution superseded corresponding historical v0.5 settings below.
+- `feeding_transition.js` temporarily borrows the original prey model after settlement. Ordinary fish, human, and seagull respawn logic must yield ownership of that mesh. On restart, reset transitions before entities.
+- `ecosystem_population.js` manages initial habitat-valid placement, shoal formation, and long-distance migration. There were still 21 species / 175 ordinary animals.
 
-- 项目：ABYSSAL / 深渊猎游，公开仓库 [stanatny/abyssal](https://github.com/stanatny/abyssal)。正式试玩入口为 `https://stanatny.github.io/abyssal/`，由 `main` 分支通过 GitHub Actions 发布。v0.5.1 功能提交 `53808ae` 已部署成功，并通过正式站点三尺寸交互与资源一致性验证；本轮补齐面向玩家的 README 和首页实拍。
-- 当前版本为 **v0.5.1 角色与野生物种分离**。先读 [本轮补充](docs/feedback_v0_5_1.md)，再读 [本轮反馈](docs/feedback_v0_5.md) 和 [生态尺度与资料来源](docs/ecology_sources_v0_5.md)，实际验收证据以 [验证记录](docs/verification.md) 为准。不要重置、覆盖或把其他代理的未提交改动当作临时文件清理。
-- 用户已在完成野生乌贼替换和本地功能提交 `53808ae` 后，明确要求推送 GitHub、提供公开试玩链接并完善 README。本轮发布版本为 v0.5.1，包含全部 v0.3—v0.5.1 功能；整体 UI 优化仍是后续独立迭代。
-- 临时预览服务 `dist`，地址、PID 和最新产物回执在被忽略的 `.local/preview_state.json`；修改后必须重建，默认复用已有隧道。v0.5.1 已重建并通过本机生产与公开预览核对（1440/390/320px、角色技能及图鉴，JS/CSS与dist一致）；对外优先提供正式 Pages 链接；临时预览不作为正式发布凭据。
-- 发布工作流在 `.github/workflows/pages.yml`。每次推送需核对 Actions 提交、线上 JS/CSS 和实际交互。最新部署状态见 [Actions](https://github.com/stanatny/abyssal/actions/workflows/pages.yml)，本机正式发布回执与浏览器结果分别保存在 `.local/pages_deployment.json`、`.local/v5_1_pages_verification.json`。GitHub HTTPS 直连曾超时，系统代理可连但 gh OAuth 缺 workflow scope；现有 SSH 身份经官方指纹核验后曾成功推送。临时连接参数留在本机记录，不修改全局 Git 配置。
+## v0.6 local visual-upgrade snapshot
 
-## v0.5 当前规则
+- The user requested a full upgrade of the UI, creatures, effects, seabed, and ships. The visual version at this point was **v0.6.0**, while official Pages remained v0.5.1. Read the [visual scope](docs/visual_upgrade_v0_6.md) and [verification](docs/verification.md). On 2026-09-28, the user explicitly requested a local commit and prohibited pushing. That commit saved the visual-upgrade snapshot; four subsequent playtest requests were implemented separately.
+- `creature_surface.js` provides continuous bodies, curved thin fins, and skin microdetail. Orcas, sharks, tuna, ordinary fish, and sperm whales use independent skeletons with shared resources. Ocean plants and rock surfaces are in `ocean_visuals.js`, with original collision boundaries preserved.
+- `visual_pipeline.js` unifies environmental reflections, suspended ocean particles, and optional HDR bloom. High quality adds shallow-water shadows; smooth mode skips bloom and shadows. The guide separately uses the shared environment-generation function and runs its own rendering loop only while open.
+- The home screen adopts an expedition theme, with active/passive descriptions and marker settings in expandable sections. The guide is a light specimen display; the HUD retains bottom-aligned survival bars and edge controls. Gameplay, cooldowns, growth, species tiers, attacks, and collision values were unchanged.
+- Screenshots, comparison scenes, model statistics, and performance measurements are in `.local/v6_*`. Browser viewport emulation and development-interface scenes prove only their tested paths, not real-phone or natural full-session acceptance.
 
-- `character_rules.js` 统一定义可选角色、主动/被动和移动参数。**虎鲸、大王乌贼均可选**，各有一个主动和一个被动，均从 6 米开始。共用巡游 12、慢游 5 游戏米/秒；虎鲸“海洋疾驰”将冲刺提高至 **41.6**，乌贼普通冲刺为 **32**。体力耗 14/秒、恢复 19/秒，耗尽体力本身不扣生命。
-- 虎鲸主动“回声定位”：范围 260，显示 10 秒，释放起冷却 60 秒。雷达保留范围内 360 度回声；画面仅显示相机前方水平 ±30°、垂直 ±25°且屏内的目标，可穿雾和遮挡，不显示身后箭头。同种同资格合并，最多 4 组、每组 2 个点，无连线；转向切换，结束恢复常规标记偏好。四组扩散声波围绕虎鲸，由主循环推进。
-- 大王乌贼主动“墨幕喷射”：仅水下可用，释放时让 **90 范围内正在追击的普通猎手及交战中的领主迷失并停留 10 秒**，取消尚未发出的领主招式；不是持续吸附周围新敌人的光环，也不是无敌。前 **1.5 秒**沿释放瞬间的朝向喷射，目标速度 **72**，受实体碰撞约束；释放起冷却 **60 秒**。被动“柔躯回旋”在未冲刺时加快转向，俯仰可达 85°；实际冲刺时恢复常规转向。暂停冻结技能时钟。
-- `ecosystem_config.js` 是 **21 种普通生物**的统一配置：10 种猎物、5 种现代“海洋霸主”、6 种远古生物；稀有领主另走 `BOSS_SPECIES`。新增鳀鱼、沙丁鱼、鲱鱼、鲭鱼、飞鱼五种小鱼及绿海龟、翻车鱼；现代猎手含深海鮟鱇、锤头鲨、大白鲨、北太平洋巨型章鱼、抹香鲸；远古为邓氏鱼、上龙、蛇颈龙、沧龙、龙王鲸、巨齿鲨。飞鱼近距离受惊会破水滑翔。新增模型在 `creature_ecosystem.js`，场景与图鉴复用。
-- 物种体长重校：鮟鱇 1.2 米、白鲨 6.4 米、野生章鱼 5 米（展开腕部游戏尺度）、抹香鲸 16 米；邓氏鱼 6 米、巨齿鲨 20 米。不再把鮟鱇或邓氏鱼沿用为旧版本的超大普通猎手。体长、水层、营养、成长和种群由配置读取，不能依赖目录倒序推断全体体长排序。
-- 四种稀有领主保留克拉肯、玛雅灵感原创巨兽、三头海德拉、利维坦，每局随机启用两只。嘴部须接触实际模型且无遮挡，**从左右侧翼朝内进攻**才可伤害；通常门槛 24 米，狂食降为 21 米。每次成功后须离开接触至少 **0.35 秒**再进入，并满足 **1.2 秒**全局/领主咬击间隔。单击上限为最大生命 24%，至少需要 **5 次有效攻击**，贴着不动不能连续扣血；攻击后 3 秒虚弱期仍是高伤害窗口。
-- 领主普通追速为 37—40，利维坦冲撞为 100 游戏米/秒。虎鲸 41.6 的冲刺高于领主普通追速，不能再写“所有领主都比普通冲刺快”；领主预判、漩涡、脉冲、弹体与冲撞仍要求观察预警和变向，直线冲刺不保证安全。
-- `human_activity.js` / `human_rules.js` / `vehicle_models.js` 接入成年游泳者、成年潜水员、潜艇和接触鱼雷。潜艇不可直接吞食；角色至少 8 米、撞击速度至少 20，完成 **3 次独立冲撞**后释放 **3 名成年潜水员**，每次须先离开艇壳，释放仅一次。新释放潜水员有 2 秒保护。鱼雷接触后爆炸并消失，造成 **28 点**伤害，遵守原有无敌规则，不重复结算。原有游轮/帆船仍为不可破坏实体，不要与潜艇混为一类。
-- 图鉴为 **32 条记录**：2 个可选角色、21 个普通生物、1 个海鸥、4 个领主、4 个人类活动条目；乌贼仅作为角色，野生章鱼拥有独立模型。去掉 4 个人类活动条目，按游戏生物类型口径共 **28 种独立海洋生物**，含海鸥及幻想领主；三类奖励另列，不计入 32 条。这里的“种”不是严格生物分类学种数。
-- 夏威夷是当前唯一开放的**幻想改编海域**，包含全部本轮生物；马里亚纳、百慕大、亚特兰蒂斯只作禁用入口。现代种类取真实资料参考，古生物尺度含重建不确定性；复苏水层、跨时代同域、超常成长、主动技能及神话领主属于游戏设计。详见生态资料文档，不能宣称为真实夏威夷生态复刻。
-- 单局最多 **30 分钟有效游玩时间**，暂停不计，到时独立 `timeup` 结算。30 米且至少击败一位主宰才胜利。进食优先回血、照常补饱食并按治疗分配减少成长，巨型角色吃微小猎物收益递减。
-- 参考事件模型使用实际营养、治疗和成长规则，按现代与远古猎物的假定捕食效率选路线，基准 **17:17**；耗时整体缩短 20% 为 **13:49.6**，延长 25% 为 **22:51.25**。模拟包含两次转场、战损及假定 75 秒的克拉肯战利品结算，**没有模拟自然导航、刷新等待或实际五次侧击**，不能当作自然整局时长。无需为了满足旧“15—20 分钟”断言修改增长配置。
+## Workspace and release (historical v0.5.1 record)
 
-## 保留的操作、表现与技术约定
+- Project: ABYSSAL, in public repository [stanatny/abyssal](https://github.com/stanatny/abyssal). The official game is `https://stanatny.github.io/abyssal/`, deployed from `main` through GitHub Actions. Functional v0.5.1 commit `53808ae` deployed successfully and passed live-site interactions and resource-consistency checks at three sizes. This round added the player-facing README and an actual home-screen screenshot.
+- The version at that time was **v0.5.1, separating playable and wild species**. Read the [supplement](docs/feedback_v0_5_1.md), [round's feedback](docs/feedback_v0_5.md), and [ecology scale and sources](docs/ecology_sources_v0_5.md). Actual acceptance evidence is in [verification](docs/verification.md). Do not reset, overwrite, or clean up other agents' uncommitted work as though it were temporary.
+- After the wild-squid replacement and local functional commit `53808ae`, the user explicitly requested a GitHub push, a public play link, and README improvements. This v0.5.1 release contained all v0.3–v0.5.1 features; the overall UI upgrade remained a separate future iteration.
+- The temporary preview serves `dist`. Its URL, PID, and latest artifact receipt are in ignored `.local/preview_state.json`. Rebuild after edits, and reuse an existing tunnel by default. v0.5.1 was rebuilt and checked in local production and public preview at 1440/390/320px, including character abilities and the guide, with JS/CSS matching `dist`. Prefer the official Pages link externally; a temporary preview is not evidence of an official release.
+- The deployment workflow is `.github/workflows/pages.yml`. After every push, check the Actions commit, live JS/CSS, and actual interactions. See [Actions](https://github.com/stanatny/abyssal/actions/workflows/pages.yml) for deployment status. Local release receipts and browser results are `.local/pages_deployment.json` and `.local/v5_1_pages_verification.json`. Direct GitHub HTTPS previously timed out; the system proxy connected, but gh OAuth lacked workflow scope. The existing SSH identity successfully pushed after its host fingerprint was verified against the official fingerprint. Temporary connection parameters remain in local records; do not change global Git configuration.
 
-- 桌面纯键盘：WASD、空格冲刺、**J 当前角色主动技能**、K 慢游；无咬击键，无游戏中常规标记开关，标记仅在首页设置并存本地。鼠标仍用于菜单与图鉴。手机游戏区拦截选择、长按菜单与剪贴板事件，图鉴检索框保留编辑。
-- 技能按钮随角色切换名称/状态，冷却有倒计时和原生 `disabled`。`#touch-skills` 支持最多两个真实技能，目前每个角色只显示自己的一个主动；被动不占按钮位。常驻 `minimap.js` 显示固定北向全海域、玩家航向、浅深区域、淡色出生点与返航线/上浮提示，只有虎鲸声呐期间显示探测点。
-- HUD 概况常驻、预警纵向堆叠；手机底部三列生存条统一标题槽，保证进度条对齐。`sonar_markers` 负责投影、聚合与局部避让，`sonar_wave` 使用有限资源池，无额外 RAF。图鉴复用 `createCreature` 模型与配置；打开时暂停世界绘制，自己的帧循环关闭时停止。
-- 水下先深潜重新蓄势，连续冲刺 1.2 秒且累计 26 单位路程，向上跨过身体水线才破水；空中只积分惯性与重力，落水有俯冲过渡，不允许水面起飞/二段跳。`surface.move` 接收位移前的 `previousPosition`，空中由 surface 独立移动 xyz。
-- 普通猎手的白鲨突袭、野生章鱼防御喷墨、鮟鱇诱光、邓氏鱼重咬等配置由 `hunter_rules.js` 提供，保留预警、较长冷却和恢复期；实际是否威胁玩家仍取决于双方体长。
-- `combat_effects.js` 管理捕食/受击血雾、咬合水流、墨云，墨云几何与遮蔽共用空间数据，离开/消散恢复视野与音色。重开清理效果，暂停冻结。舒缓/追逐/领主配乐与多数水下事件音效为程序合成；v0.6.7的成年男女惨叫使用CC0真人录音，v0.6.8鱼类吞食使用CC0水声拟音，来源见首部当前候选。
-- 礁石、岩柱、岩拱、遗迹与船体使用连续碰撞、鱼身多球扫掠、沿面滑动、成长脱困与相机缩臂。普通船底可绕行，船壳/甲板有体积，不模拟受力翻转。
-- 奖励说明在首页图鉴“海洋奖励”，HUD 无常驻奖励图例；海中显示图形与名称，拾取后保留状态倒计时。`reward_config.js` 是共享数据源，洋流免费冲刺/深渊狂食均 30 秒，同类刷新不叠加；体力泉即时回满。
-- 用户已发起 v0.6 整体 UI 和视觉优化；当前视觉候选仍待 review。v0.5 新增生态模型与角色能力不等于整体美术重绘已获满意验收；不自动再次交棒 Kimi。Kimi 原交付工作已冻结，没有排队中的修改。
+## v0.5 rules at the time
 
-## 历史与验证边界
+- `character_rules.js` defines playable characters, active/passive abilities, and movement values. **Orca and giant squid are both playable**, each with one active and one passive, starting at 6 meters. Both cruise at 12 and swim slowly at 5 game meters/second. The orca's Ocean Sprint raises sprint speed to **41.6**; normal squid sprint is **32**. Stamina drains at 14/second and recovers at 19/second; exhaustion alone does not damage health.
+- Orca Echolocation: range 260, display duration 10 seconds, cooldown 60 seconds from activation. Radar retains 360° echoes within range. The main view shows only on-screen targets within horizontal ±30° and vertical ±25° ahead of the camera, including through fog/occlusion, with no arrows behind. Same-species targets with the same eligibility are grouped, at most 4 groups with 2 points each and no connecting lines. Turning changes targets; ending restores the ordinary-marker preference. Four expanding wave groups surround the orca and update in the main loop.
+- Giant squid Ink Jet is underwater-only. On activation, **pursuing ordinary hunters and engaged lords within 90 units become disoriented and stationary for 10 seconds**, canceling lord attacks that have not fired. It is neither a continuing aura that captures new enemies nor invincibility. During the first **1.5 seconds**, the squid jets along its activation heading toward speed **72**, constrained by solid collision. Cooldown is **60 seconds** from activation. The Agile Turning passive accelerates turning outside sprint, with pitch up to 85°; actual sprinting restores normal turning. Pause freezes ability clocks.
+- `ecosystem_config.js` configures **21 ordinary species**: 10 prey, 5 modern Ocean Predators, and 6 Ancient Giants; rare lords use `BOSS_SPECIES` separately. New small fish are anchovy, sardine, herring, mackerel, and flying fish, plus green sea turtle and ocean sunfish. Modern hunters are deep-sea anglerfish, hammerhead, great white, giant Pacific octopus, and sperm whale. Ancient Giants are Dunkleosteus, pliosaur, plesiosaur, mosasaur, Basilosaurus, and megalodon. Flying fish breach and glide when startled nearby. New models in `creature_ecosystem.js` are reused by the scene and guide.
+- Revised lengths: anglerfish 1.2 meters, great white 6.4, wild octopus 5 (game scale across spread arms), sperm whale 16; Dunkleosteus 6, megalodon 20. Anglerfish and Dunkleosteus no longer retain earlier oversized ordinary-hunter values. Read length, habitat, nutrition, growth, and population from configuration; do not infer complete size order by reversing catalog order.
+- Four rare lords remain: Kraken, an original Maya-inspired creature, three-headed Hydra, and Leviathan, with two randomly active per run. The mouth must contact the actual model without occlusion, **attacking inward from either flank** to deal damage. The usual size threshold is 24 meters, reduced to 21 by frenzy. After each successful contact, leave for at least **0.35 seconds** before re-entering, and satisfy the **1.2-second** global/lord bite interval. Each hit is capped at 24% of maximum health, requiring at least **5 valid attacks**. Staying in contact cannot repeatedly damage a lord. The 3-second post-attack vulnerability remains a high-damage window.
+- Normal lord pursuit is 37–40; Leviathan's charge is 100 game meters/second. Orca sprint at 41.6 exceeds normal lord pursuit: do not claim all lords outrun ordinary sprint. Lord prediction, vortices, pulses, projectiles, and charges still require watching warnings and changing direction; sprinting straight is not guaranteed safety.
+- `human_activity.js` / `human_rules.js` / `vehicle_models.js` add adult swimmers, adult divers, submarines, and contact torpedoes. Submarines cannot be swallowed directly. A character at least 8 meters long and impact speed at least 20 must complete **3 separate rams** to release **3 adult divers** once, leaving the hull before each new ram. Released divers have 2 seconds of protection. Torpedoes explode and disappear on contact, dealing **28 damage** under existing invulnerability rules without duplicate settlement. Existing cruise ships/sailboats remain indestructible solids, distinct from submarines.
+- The guide has **32 entries**: 2 playable characters, 21 ordinary creatures, 1 seagull, 4 lords, and 4 human-activity entries. Squid is playable only; wild octopus has a separate model. Excluding the 4 human-activity entries gives **28 distinct marine creature types**, including seagull and fantasy lords. Three reward types are listed separately and not counted among the 32 entries. These are game categories, not strict taxonomic species counts.
+- Hawaii is the only open **fantasy-adapted region**, containing all this round's creatures. Mariana, Bermuda, and Atlantis are disabled entries. Modern species use real references and ancient sizes retain reconstruction uncertainty; revived habitats, coexistence across eras, extraordinary growth, active abilities, and mythical lords are game design. See the ecology document; do not call this a recreation of real Hawaiian ecology.
+- A run has at most **30 minutes of active play**, excluding pause, followed by a distinct `timeup` result. Victory requires 30 meters and at least one defeated lord. Feeding heals first, restores satiety normally, and reduces growth according to the share used for healing; huge characters receive diminishing returns from tiny prey.
+- The reference event model uses actual nutrition, healing, and growth rules, selecting routes by assumed feeding efficiency for modern and ancient prey. Baseline time is **17:17**; making all events 20% faster gives **13:49.6**, and 25% slower gives **22:51.25**. The simulation includes two relocations, battle damage, and an assumed 75-second Kraken reward settlement. It **does not simulate natural navigation, respawn waits, or five actual flank attacks**, so it is not a natural whole-session duration. Do not change growth configuration merely to satisfy the old 15–20-minute claim.
 
-- v0.4/v0.4.4 的来源在 [反馈记录](docs/feedback_v0_4.md)：纯键盘、声呐、雷达、首页设置、30 分钟、实体碰撞及图鉴奖励。v0.4.4 当时通过 99 项规则测试、真实奖励接触/30 秒到期/免费冲刺/暂停冻结，以及 1440×900、390×667、320×568 图鉴与 HUD 检查；公开预览当时同三尺寸可用。这些是历史证据，不替代 v0.5 验收。
-- v0.4.3 当时通过 99 项规则测试、20 态生存条对齐、11 项声呐专项（桌面真实按键与手机真实触屏摇杆转向）、六尺寸 26 态 HUD/动态标签、菜单触屏 6 组及公开预览 13 项。记录及截图在 [验证记录](docs/verification.md) 和 `.local/`。
-- v0.3 功能及 Kimi 视觉重绘已集成，来源见 [功能反馈](docs/feedback_v0_3.md) 与 [视觉交接](docs/visual_handoff_v0_3.md)。当时重绘的是 13 种生物、界面、四领主和环境特效；Codex 后续修复移动端遮挡、标签避让、奖励滑动、焦点、接缝/动画与效果资源清理。当前种类数量以 v0.5 为准。
-- v0.2 来源见 [反馈记录](docs/feedback_v0_2.md)，第一版历史见 [设计文档](docs/design.md)。各轮专项测试、开发接口布景与计时模型均不证明自然完成 30 分钟整局；真实手机多指手感、自然成长/战斗节奏及真实设备听感仍待试玩。
+## Retained controls, presentation, and technical contracts
+
+- Desktop swimming is keyboard-only: WASD, Space to sprint, **J for the current character's active ability**, K to swim slowly. There is no bite key or in-game ordinary-marker toggle; marker settings are on the home screen and saved locally. Mouse interaction remains for menus and the guide. The mobile game area intercepts selection, long-press menus, and clipboard events while leaving guide search editable.
+- Ability buttons change name/state with the character, showing a countdown and native `disabled` during cooldown. `#touch-skills` supports up to two real abilities; each character currently displays only its own active, with no passive button. Persistent `minimap.js` shows a fixed-north map of the whole region, player heading, shallow/deep zones, a faint spawn point, and return-route/ascent hints. Detection points appear only during orca sonar.
+- The HUD summary persists and warnings stack vertically. Three bottom survival columns on phones have equal title slots to align progress bars. `sonar_markers` handles projection, grouping, and local avoidance; `sonar_wave` uses a bounded pool without extra RAF. The guide reuses `createCreature` models/configuration, pauses world rendering while open, and stops its own frame loop when closed.
+- Dive underwater to recharge, sprint continuously for 1.2 seconds over at least 26 units, then cross the body's waterline upward to breach. Airborne motion integrates only inertia and gravity; landing has a diving transition. No surface takeoff or second jump. `surface.move` receives pre-movement `previousPosition`; surface independently moves xyz while airborne.
+- `hunter_rules.js` configures ordinary-hunter abilities such as great-white ambush, wild-octopus defensive ink, anglerfish lure, and Dunkleosteus heavy bite. Preserve warnings, long cooldowns, and recovery. Actual threat still depends on both creatures' lengths.
+- `combat_effects.js` manages feeding/hit blood mist, bite water, and ink. Ink geometry and occlusion share spatial data, restoring visibility and sound tone after exit/dissipation. Restart clears effects; pause freezes them. Calm/chase/lord music and most underwater event sounds are synthesized. v0.6.7 adult male/female screams use CC0 human recordings, and v0.6.8 fish feeding uses CC0 water Foley; sources are in the candidate records above.
+- Reefs, pillars, rock arches, ruins, and hulls use continuous collision, multi-sphere body sweeps, surface sliding, escape after growth, and camera-arm shortening. Players can swim around ordinary hull bottoms; hulls/decks have volume, without force-driven capsizing simulation.
+- Reward explanations appear in the home-screen guide's Ocean Rewards section; the HUD has no permanent reward legend. Rewards show a shape/name in the ocean and a remaining-time status after pickup. `reward_config.js` is the shared source. Current-assisted free sprint and Abyssal Frenzy both last 30 seconds; repeated pickups refresh rather than stack. Stamina Spring instantly refills stamina.
+- At this historical point, the user had initiated the v0.6 overall UI/visual upgrade and its candidate still awaited review. The v0.5 ecological models and character abilities did not imply acceptance of a complete art redesign. Do not automatically hand work back to Kimi: Kimi's original delivery was frozen, with no queued changes.
+
+## Historical evidence and verification limits
+
+- v0.4/v0.4.4 sources are in the [feedback record](docs/feedback_v0_4.md): keyboard-only controls, sonar, radar, home settings, 30 minutes, solid collision, and Ocean Guide rewards. v0.4.4 passed 99 rule tests, real reward contact/30-second expiration/free sprint/pause freezing, and guide/HUD checks at 1440×900, 390×667, and 320×568. Public preview worked at the same three sizes. These are historical results, not v0.5 acceptance.
+- v0.4.3 passed 99 rule tests, 20-state survival-bar alignment, 11 sonar checks (actual desktop keys and mobile touch-joystick turning), 26 HUD/dynamic-label states at six sizes, 6 menu-touch groups, and 13 public-preview checks. Records and screenshots are in [verification](docs/verification.md) and `.local/`.
+- v0.3 functionality and Kimi's visual redesign were integrated; see [functional feedback](docs/feedback_v0_3.md) and the [visual handoff](docs/visual_handoff_v0_3.md). That pass redrew 13 creatures, UI, four lords, and environmental effects. Codex later fixed mobile occlusion, label avoidance, reward sliding, focus, seams/animation, and effect-resource cleanup. The category counts in that historical note defer to v0.5.
+- v0.2 sources are in its [feedback record](docs/feedback_v0_2.md); first-version history is in the [design document](docs/design.md). Dedicated checks, development-interface scenes, and timing models from these rounds do not prove a naturally completed 30-minute session. Real-phone multitouch feel, natural growth/combat pacing, and actual-device listening still require playtesting.

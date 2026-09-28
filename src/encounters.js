@@ -1,3 +1,4 @@
+import { t, tr, message } from "./i18n.js";
 import * as THREE from "three";
 import { createCreature } from "./creatures.js";
 import {
@@ -253,7 +254,7 @@ function fxSprite(texture, color, opacity = 0.5) {
 /** 为每种主宰技能预建有限的装饰网格与粒子，全部在一次战斗中反复复用。 */
 function createAbilityFx(scene, ability, color, textures) {
   const group = new THREE.Group();
-  group.name = `boss_fx_${ability}`;
+  group.name = tr`boss_fx_${ability}`;
   group.visible = false;
   scene.add(group);
   const fx = { group, ability, spin: 0 };
@@ -718,7 +719,7 @@ export function createEncounters(
       entry.phaseHit = false;
       entry.volleyShots = 0;
       notify(
-        `${state.species.label} · ${SKILLS[state.ability]}\n${TIPS[state.ability]}`,
+        message`${state.species.label} · ${SKILLS[state.ability]}\n${TIPS[state.ability]}`,
         state.species.windupDuration + 0.4,
       );
       audio.bossAttack?.(state.species.kind);
@@ -1060,8 +1061,8 @@ export function createEncounters(
           onBite?.(contact, state.species.length);
           notify(
             result.defeated
-              ? `击败 ${state.species.label} · 深渊印记已获得`
-              : `侧翼咬击 ${Math.round(result.damage)} · ${recover ? "弱点命中，脱离后再进攻" : "脱离接触，等待技能后的侧翼破绽"}`,
+              ? message`击败 ${state.species.label} · 深渊印记已获得`
+              : message`侧翼咬击 ${Math.round(result.damage)} · ${recover ? "弱点命中，脱离后再进攻" : "脱离接触，等待技能后的侧翼破绽"}`,
             2,
           );
           if (result.defeated) entry.respawn = 150 + Math.random() * 60;
@@ -1080,7 +1081,7 @@ export function createEncounters(
         damage(
           player,
           state.species.damage * 0.6,
-          `${state.species.label} 撕咬 · 不要贴身硬拼`,
+          message`${state.species.label} 撕咬 · 不要贴身硬拼`,
         );
         entry.contactCooldown = 2.4;
       }

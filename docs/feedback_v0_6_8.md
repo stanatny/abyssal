@@ -1,21 +1,21 @@
-# v0.6.8 · 鱼类吞食水声音效重做
+# v0.6.8 Reworking fish-feeding water audio
 
-用户已对 v0.6.7 的真人惨叫和向前自由泳修正回复“可以了”，随后反馈吃鱼音效仍显违和，要求重新制作。本轮仅重做鱼类吞食声音，保留上一轮的男女录音、性别路由、泳姿，以及全部既有模型、血雾、吞食过渡、生态与捕食规则。继续保留 `94c2a95` 之后的未提交改动，不提交、不推送；正式 Pages 仍为 v0.5.1。
+The user accepted v0.6.7's recorded screams and forward freestyle correction with a confirmation meaning “that's fine”, then reported that fish-feeding sound still felt out of place and requested a remake. This round changes only fish-feeding audio, retaining male/female recordings, sex routing, swimming, and all existing models, blood clouds, feeding transitions, ecology, and capture rules. Changes after `94c2a95` remain uncommitted and unpushed; official Pages remains v0.5.1.
 
-## 声音方向与素材
+## Sound direction and assets
 
-移除旧鱼类音效中带明显音高的正弦气泡，改用短促水流吸入、压低的入水冲击与少量气泡尾声。水声来自 jcpmcdonald 的 CC0 素材集 [Skippy Fish Water Sound Collection](https://opengameart.org/content/skippy-fish-water-sound-collection)，选取 `water.wav`、`waterReentry.wav` 和 `bubbles.wav` 三份原件制作。
+Remove the old clearly pitched sine-wave bubbles. Replace them with a short water intake, subdued reentry impact, and a small bubble tail. Sources are `water.wav`, `waterReentry.wav`, and `bubbles.wav` from jcpmcdonald's CC0 [Skippy Fish Water Sound Collection](https://opengameart.org/content/skippy-fish-water-sound-collection).
 
-作者说明这些声音使用水杯、吸管、木棒和自己的声音拟制，因此本项目将其称为水声拟音素材，不称为真实海下捕食录音。来源、许可、处理参数和最终哈希见 [音频来源记录](audio_sources.md)。
+The author describes creating these with a glass of water, straw, wooden stick, and their voice. The project therefore calls them water Foley, not actual underwater predation recordings. See [audio sources](audio_sources.md) for provenance, licensing, processing, and final hashes.
 
-离线制作由 `scripts/process_fish_audio.mjs` 复现：过滤低频漂移与尖锐高频，调整水流、冲击、气泡的取样位置和混合比例，并加短淡入与收束尾声。三个成品分别为 0.34、0.36、0.38 秒，均为 32 kHz、单声道、16 位 PCM，峰值归一至 0.60。运行时随应用打包，不依赖外部素材站点播放。
+`scripts/process_fish_audio.mjs` reproduces offline processing: remove low-frequency drift and harsh highs, vary excerpt locations and water/impact/bubble balance, and add short fades and compact tails. The three outputs last 0.34, 0.36, and 0.38 seconds, all 32 kHz mono 16-bit PCM with peak normalization to 0.60. They are bundled locally, not streamed from asset sites at runtime.
 
-## 播放与加载
+## Playback and loading
 
-成功捕食仍调用 `audio.eatFish(length)`。三个变体轮换时避免相邻重复，并在 `0.97—1.03` 范围内轻微改变播放速率；基础增益为 `0.32`，再沿用体型音量缩放。此设计用于减少连续捕食鱼群时重复同一声纹的机械感，不改变捕食成功时机或数量。
+Successful feeding still calls `audio.eatFish(length)`. Three variants avoid consecutive repetition, with slight playback-rate variation in `0.97–1.03`. Base gain is `0.32`, followed by existing size-based volume scaling. This reduces mechanical repetition when eating schools without changing event timing or count.
 
-鱼声与人声采用各自的录音库实例，复用 `RecordedAudioBank` 的预取、解码缓存和失败重试逻辑。菜单预取不创建音频上下文；首次交互后解码。下载或解码尚未就绪时，当次捕食立即播放 0.30 秒、峰值 0.30 的轻柔滤波噪声回退，不排队、不在素材到达后补播旧捕食事件。男女录音的选择、原速播放和后半程入水闷化保持。
+Fish and human audio use separate bank instances sharing `RecordedAudioBank` prefetch, decode cache, and retry logic. Menu prefetch creates no audio context; decoding follows first interaction. If download/decode is not ready, the current feeding event immediately plays a gentle filtered-noise fallback lasting 0.30 seconds with peak 0.30. It is neither queued nor replayed after assets arrive. Male/female selection, original-rate playback, and late submersion filtering remain.
 
-## 验证边界
+## Verification boundaries
 
-本轮已完成 226 项单测、9 项真实捕食专项、浏览器离线音频渲染及实时生命周期检查；公开临时预览在 1440／390／320 px 核对通过，五份 WAV 和 JS／CSS 与本地构建一致。具体数据、回执与限制统一见 [验证记录](verification.md)。这些检查不代表已完成主观试听，最终听感仍应由用户在实际扬声器或耳机上确认。
+This round completed 226 unit tests, 9 real-feeding checks, browser offline audio rendering, and live lifecycle checks. Temporary public preview checks passed at 1440 / 390 / 320 px, with five WAV files and JS/CSS matching the local build. Measurements, receipts, and limits are in [verification](verification.md). These checks do not establish subjective listening acceptance; the user should confirm the final sound on actual speakers or headphones.

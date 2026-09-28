@@ -1,3 +1,11 @@
+import {
+  t,
+  tr,
+  setMarkup,
+  translateDOM,
+  onLanguageChange,
+  localizeRecord,
+} from "./i18n.js";
 import * as THREE from "three";
 import { createCreature } from "./creatures.js";
 import { SPECIES } from "./simulation.js";
@@ -71,100 +79,121 @@ const DESCRIPTIONS = {
 };
 
 /** 图鉴目录ID与模型kind分开；角色乌贼只出现在可选角色，野生头足类使用独立章鱼模型。 */
-export const OCEAN_CATALOG = [
-  ...CHARACTERS.map((entry) => ({
-    id: `player_${entry.id}`,
-    kind: entry.kind,
-    name: entry.name,
-    latin: entry.kind === "orca" ? "ORCINUS ORCA" : "ARCHITEUTHIS DUX",
-    category: "player",
-    role: "可选角色",
-    color: entry.kind === "orca" ? "#a1e8d5" : "#c2a5e8",
-    length: entry.startLength,
-    size: `${entry.startLength}—30 m（成长玩法）`,
-    habitat: "本作海洋全域",
-    ability: `主动 · ${entry.active.name} / 被动 · ${entry.passive.name}`,
-    text: `${entry.active.description} 激活起冷却${entry.active.cooldown}秒。被动：${entry.passive.description}`,
-    counter:
-      entry.kind === "orca"
-        ? "用声呐判断前方猎物体长和捕食资格，雷达保留周围回声。高速冲刺可追捕猎物或拉开距离，水下连续蓄势后才能破水。"
-        : "遇到猎手追击时在水下喷墨脱身，提前把头朝向安全出口；喷射会受到礁石和船体阻挡。松开冲刺可发挥灵活转向的被动。",
-    characterId: entry.id,
-    realSize: "3米幼年起步；起始尺寸、30米终局与技能强度属于游戏设定。",
-    habitatNote: "可选角色共享自动接触捕食；特殊技能使用J或手机技能按钮。",
-  })),
-  ...SPECIES.map((config) => ({
-    id: config.kind,
-    kind: config.kind,
-    name: config.label,
-    latin: config.latin,
-    category: config.category,
-    color: config.color,
-    role:
-      config.category === "ancient"
-        ? "远古巨兽"
-        : config.category === "hunter"
-          ? "海洋霸主"
-          : "海洋猎物",
-    length: config.length,
-    size: `${config.length} m`,
-    habitat: `${config.depthMin * WORLD.displayDepthScale}—${config.depthMax * WORLD.displayDepthScale} m（本作水层）`,
-    ability: HUNTER_ABILITIES[config.kind]?.label || config.ability,
-    text: config.description,
-    counter: config.counter,
-    tier: config.tier,
-    realSize: config.realSize,
-    habitatNote: config.habitatNote,
-  })),
-  { id: "seagull", kind: "seagull", length: 2.6, ...DESCRIPTIONS.seagull },
-  ...BOSS_SPECIES.map((config) => ({
-    id: config.kind,
-    kind: config.kind,
-    ...DESCRIPTIONS[config.kind],
-    length: config.length,
-    size: `${config.length} m`,
-    tier: 3,
-    habitat: `${config.depthMin * WORLD.displayDepthScale}—${config.depthMax * WORLD.displayDepthScale} m（幻想领地）`,
-  })),
-  ...HUMAN_CATALOG,
-];
+function buildOceanCatalog() {
+  return [
+    ...CHARACTERS.map((entry) => ({
+      id: tr`player_${entry.id}`,
+      kind: entry.kind,
+      name: entry.name,
+      latin: entry.kind === "orca" ? "ORCINUS ORCA" : "ARCHITEUTHIS DUX",
+      category: "player",
+      role: "可选角色",
+      color: entry.kind === "orca" ? "#a1e8d5" : "#c2a5e8",
+      length: entry.startLength,
+      size: tr`${entry.startLength}—30 m（成长玩法）`,
+      habitat: "本作海洋全域",
+      ability: tr`主动 · ${entry.active.name} / 被动 · ${entry.passive.name}`,
+      text: tr`${entry.active.description} 激活起冷却${entry.active.cooldown}秒。被动：${entry.passive.description}`,
+      counter:
+        entry.kind === "orca"
+          ? "用声呐判断前方猎物体长和捕食资格，雷达保留周围回声。高速冲刺可追捕猎物或拉开距离，水下连续蓄势后才能破水。"
+          : "遇到猎手追击时在水下喷墨脱身，提前把头朝向安全出口；喷射会受到礁石和船体阻挡。松开冲刺可发挥灵活转向的被动。",
+      characterId: entry.id,
+      realSize: "3米幼年起步；起始尺寸、30米终局与技能强度属于游戏设定。",
+      habitatNote: "可选角色共享自动接触捕食；特殊技能使用J或手机技能按钮。",
+    })),
+    ...SPECIES.map((config) => ({
+      id: config.kind,
+      kind: config.kind,
+      name: config.label,
+      latin: config.latin,
+      category: config.category,
+      color: config.color,
+      role:
+        config.category === "ancient"
+          ? "远古巨兽"
+          : config.category === "hunter"
+            ? "海洋霸主"
+            : "海洋猎物",
+      length: config.length,
+      size: tr`${config.length} m`,
+      habitat: tr`${config.depthMin * WORLD.displayDepthScale}—${config.depthMax * WORLD.displayDepthScale} m（本作水层）`,
+      ability: HUNTER_ABILITIES[config.kind]?.label || config.ability,
+      text: config.description,
+      counter: config.counter,
+      tier: config.tier,
+      realSize: config.realSize,
+      habitatNote: config.habitatNote,
+    })),
+    { id: "seagull", kind: "seagull", length: 2.6, ...DESCRIPTIONS.seagull },
+    ...BOSS_SPECIES.map((config) => ({
+      id: config.kind,
+      kind: config.kind,
+      ...DESCRIPTIONS[config.kind],
+      length: config.length,
+      size: tr`${config.length} m`,
+      tier: 3,
+      habitat: tr`${config.depthMin * WORLD.displayDepthScale}—${config.depthMax * WORLD.displayDepthScale} m（幻想领地）`,
+    })),
+    ...HUMAN_CATALOG,
+  ].map((entry) => ({
+    ...localizeRecord(entry),
+    searchText: `${entry.name} ${entry.ability} ${t(entry.name, [], "en")} ${t(entry.ability, [], "en")}`,
+  }));
+}
+export let OCEAN_CATALOG = buildOceanCatalog();
 
 // 奖励使用静态档案卡，沿用图鉴的检索与键盘切换，不创建额外三维上下文。
-const REWARD_DETAILS = {
-  stamina: {
-    latin: "STAMINA SPRING",
-    role: "即时恢复",
-    keywords: "恢复 补充 回满 体力",
-    text: "触碰后立即回满体力，并解除体力耗尽后的疲惫状态。它恢复的是体力；生命仍需要通过进食恢复。",
-    counter:
-      "在体力接近耗尽时拾取，能迅速恢复逃脱和追捕的能力。体力充足时可先记住位置。",
-  },
-  flow: {
-    latin: "OCEAN CURRENT",
-    role: "超级加速",
-    keywords: "超级加速 冲刺 洋流",
-    text: `拾取后的${REWARDS.flow.duration}秒内，冲刺不会消耗体力。仍需按住冲刺键或触屏冲刺按钮，适合持续追捕或快速穿越危险海域。重复拾取同类奖励会刷新为${REWARDS.flow.duration}秒，不累加时长。`,
-    counter:
-      "被猎手追击时利用这段时间转向、绕开礁石并拉开距离。领主有特殊技能，不宜只靠直线冲刺逃脱。",
-  },
-  frenzy: {
-    latin: "ABYSSAL FRENZY",
-    role: "越级吞噬",
-    keywords: "吞噬 狂食 越级 捕食",
-    text: `拾取后的${REWARDS.frenzy.duration}秒内，可吞食体长不超过自身1.6倍的普通猎物。对领主，交战体长门槛降至21米；仍需从侧翼朝向躯干接触咬击，每次命中后退出再接近，至少五次有效攻击才能击败领主。重复拾取同类奖励会刷新为${REWARDS.frenzy.duration}秒，不累加时长。`,
-    counter:
-      "出生浅滩正前方略偏右设有固定狂食点，拾取后45秒原地刷新。先找好合适的猎物再拾取。奖励不会让角色无敌；挑战领主时仍需躲避技能，并留意生命与剩余时间。",
-  },
-};
-const REWARD_CATALOG = Object.entries(REWARDS).map(([id, reward]) => ({
-  id: `reward_${id}`,
-  kind: `reward_${id}`,
-  category: "reward",
-  ...reward,
-  ...REWARD_DETAILS[id],
-  ability: reward.effect,
-  size: reward.duration ? `${reward.duration} 秒` : "即时",
-}));
+function buildRewardDetails() {
+  return {
+    stamina: {
+      latin: "STAMINA SPRING",
+      role: "即时恢复",
+      keywords: "恢复 补充 回满 体力",
+      text: "触碰后立即回满体力，并解除体力耗尽后的疲惫状态。它恢复的是体力；生命仍需要通过进食恢复。",
+      counter:
+        "在体力接近耗尽时拾取，能迅速恢复逃脱和追捕的能力。体力充足时可先记住位置。",
+    },
+    flow: {
+      latin: "OCEAN CURRENT",
+      role: "超级加速",
+      keywords: "超级加速 冲刺 洋流",
+      text: tr`拾取后的${REWARDS.flow.duration}秒内，冲刺不会消耗体力。仍需按住冲刺键或触屏冲刺按钮，适合持续追捕或快速穿越危险海域。重复拾取同类奖励会刷新为${REWARDS.flow.duration}秒，不累加时长。`,
+      counter:
+        "被猎手追击时利用这段时间转向、绕开礁石并拉开距离。领主有特殊技能，不宜只靠直线冲刺逃脱。",
+    },
+    frenzy: {
+      latin: "ABYSSAL FRENZY",
+      role: "越级吞噬",
+      keywords: "吞噬 狂食 越级 捕食",
+      text: tr`拾取后的${REWARDS.frenzy.duration}秒内，可吞食体长不超过自身1.6倍的普通猎物。对领主，交战体长门槛降至21米；仍需从侧翼朝向躯干接触咬击，每次命中后退出再接近，至少五次有效攻击才能击败领主。重复拾取同类奖励会刷新为${REWARDS.frenzy.duration}秒，不累加时长。`,
+      counter:
+        "出生浅滩正前方略偏右设有固定狂食点，拾取后45秒原地刷新。先找好合适的猎物再拾取。奖励不会让角色无敌；挑战领主时仍需躲避技能，并留意生命与剩余时间。",
+    },
+  };
+}
+function buildRewardCatalog() {
+  const REWARD_DETAILS = buildRewardDetails();
+  return Object.entries(REWARDS)
+    .map(([id, reward]) => ({
+      id: tr`reward_${id}`,
+      kind: tr`reward_${id}`,
+      category: "reward",
+      ...reward,
+      ...REWARD_DETAILS[id],
+      ability: reward.effect,
+      size: reward.duration ? tr`${reward.duration} 秒` : "即时",
+    }))
+    .map((entry) => ({
+      ...localizeRecord(entry),
+      searchText: `${entry.name} ${entry.keywords} ${t(entry.name, [], "en")} ${t(entry.keywords, [], "en")}`,
+    }));
+}
+let REWARD_CATALOG = buildRewardCatalog();
+onLanguageChange(() => {
+  OCEAN_CATALOG = buildOceanCatalog();
+  REWARD_CATALOG = buildRewardCatalog();
+});
 
 /**
  * 创建首页海洋图鉴：分类检索、三维标本、奖励效果与生存建议。
@@ -176,7 +205,10 @@ export function createOceanGuide(trigger) {
   dialog.className = "ocean-guide";
   dialog.id = "ocean-guide";
   dialog.setAttribute("aria-labelledby", "guide-title");
-  dialog.innerHTML = `<div class="guide-heading"><div><div class="guide-eyebrow">THE OCEAN ARCHIVE / 海洋档案</div><h2 id="guide-title">海洋图鉴</h2></div><button class="guide-close" aria-label="关闭海洋图鉴">关闭 <kbd>ESC</kbd></button></div><div class="guide-filters" role="group" aria-label="按档案分类筛选"></div><div class="guide-content"><aside class="guide-sidebar"><label for="guide-search">检索生物与奖励</label><input id="guide-search" type="search" placeholder="生物、奖励或能力" autocomplete="off"><div class="guide-list" aria-label="档案列表"></div></aside><section class="guide-detail" aria-label="当前档案资料"><div class="guide-preview" aria-label="生物三维展示"><span class="guide-specimen-tag">LIVE SPECIMEN / 可拖动旋转</span><div class="guide-variant-controls" role="group" aria-label="预览成年人物" hidden><span>人物外观</span><button type="button" data-human-sex="male" aria-pressed="true">男性</button><button type="button" data-human-sex="female" aria-pressed="false">女性</button></div><div class="guide-reward-display" hidden><div class="guide-eyebrow">OCEAN REWARDS / 海洋奖励</div><div class="guide-reward-orb" aria-hidden="true"><span></span></div><b class="guide-reward-effect"></b><small>在海洋中触碰拾取</small></div></div><div class="guide-info" aria-live="polite"></div></section></div><div class="guide-footer">本作生态、幻想生物与海洋奖励<span>← → 切换档案 · 生物可拖动旋转</span></div>`;
+  setMarkup(
+    dialog,
+    tr`<div class="guide-heading"><div><div class="guide-eyebrow">THE OCEAN ARCHIVE / 海洋档案</div><h2 id="guide-title">海洋图鉴</h2></div><button class="guide-close" aria-label="关闭海洋图鉴">关闭 <kbd>ESC</kbd></button></div><div class="guide-filters" role="group" aria-label="按档案分类筛选"></div><div class="guide-content"><aside class="guide-sidebar"><label for="guide-search">检索生物与奖励</label><input id="guide-search" type="search" placeholder="生物、奖励或能力" autocomplete="off"><div class="guide-list" aria-label="档案列表"></div></aside><section class="guide-detail" aria-label="当前档案资料"><div class="guide-preview" aria-label="生物三维展示"><span class="guide-specimen-tag">LIVE SPECIMEN / 可拖动旋转</span><div class="guide-variant-controls" role="group" aria-label="预览成年人物" hidden><span>人物外观</span><button type="button" data-human-sex="male" aria-pressed="true">男性</button><button type="button" data-human-sex="female" aria-pressed="false">女性</button></div><div class="guide-reward-display" hidden><div class="guide-eyebrow">OCEAN REWARDS / 海洋奖励</div><div class="guide-reward-orb" aria-hidden="true"><span></span></div><b class="guide-reward-effect"></b><small>在海洋中触碰拾取</small></div></div><div class="guide-info" aria-live="polite"></div></section></div><div class="guide-footer">本作生态、幻想生物与海洋奖励<span>← → 切换档案 · 生物可拖动旋转</span></div>`,
+  );
   document.body.append(dialog);
   const filters = [
     { id: "all", name: "全部" },
@@ -239,7 +271,7 @@ export function createOceanGuide(trigger) {
   syncTheme();
   for (const filter of filters) {
     const button = document.createElement("button");
-    button.textContent = filter.name;
+    button.textContent = t(filter.name);
     button.dataset.category = filter.id;
     button.setAttribute("aria-pressed", String(filter.id === category));
     button.addEventListener("click", () => {
@@ -260,7 +292,7 @@ export function createOceanGuide(trigger) {
     visible = catalog.filter(
       (entry) =>
         (category === "all" || entry.category === category) &&
-        `${entry.name}${entry.ability}${entry.latin}${entry.keywords || ""}`
+        tr`${entry.name}${entry.ability}${entry.latin}${entry.keywords || ""}${entry.searchText || ""}`
           .toLowerCase()
           .includes(search),
     );
@@ -276,13 +308,16 @@ export function createOceanGuide(trigger) {
       button.dataset.kind = entry.kind;
       button.dataset.catalogId = entry.id;
       button.style.setProperty("--specimen", entry.color);
-      button.innerHTML = `<i></i><span><b>${entry.name}</b><small>${entry.role}</small></span><em>${entry.size}</em>`;
+      setMarkup(
+        button,
+        tr`<i></i><span><b>${entry.name}</b><small>${entry.role}</small></span><em>${entry.size}</em>`,
+      );
       button.addEventListener("click", () => select(entry));
       list.append(button);
     }
     if (!visible.length) {
-      list.textContent = "没有找到档案，试试生物、奖励或能力关键词。";
-      info.textContent = "当前筛选无结果。";
+      list.textContent = t("没有找到档案，试试生物、奖励或能力关键词。");
+      setMarkup(info, t("当前筛选无结果。"));
       preview.hidden = true;
       if (model) model.visible = false;
       return;
@@ -312,8 +347,9 @@ export function createOceanGuide(trigger) {
       camera = new THREE.OrthographicCamera(-1, 1, 1, -1, 0.01, 100);
       preview.append(renderer.domElement);
     } catch {
-      preview.querySelector(".guide-specimen-tag").textContent =
-        "当前设备无法展示三维标本，仍可阅读资料";
+      preview.querySelector(".guide-specimen-tag").textContent = t(
+        "当前设备无法展示三维标本，仍可阅读资料",
+      );
     }
   }
   function select(entry) {
@@ -337,35 +373,45 @@ export function createOceanGuide(trigger) {
     preview.classList.toggle("is-reward", isReward);
     preview.setAttribute(
       "aria-label",
-      isReward
-        ? `${entry.name}奖励标识`
-        : isPerson
-          ? `${entry.name} · ${humanSex === "female" ? "女性" : "男性"}模型`
-          : "生物三维展示",
+      t(
+        isReward
+          ? tr`${entry.name}奖励标识`
+          : isPerson
+            ? tr`${entry.name} · ${humanSex === "female" ? "女性" : "男性"}模型`
+            : "生物三维展示",
+      ),
     );
     rewardDisplay.hidden = !isReward;
     dragging = false;
     if (isReward) {
       if (model) model.visible = false;
-      rewardDisplay.querySelector(".guide-reward-orb span").textContent =
-        entry.symbol;
-      rewardDisplay.querySelector(".guide-reward-effect").textContent =
-        entry.effect;
-      info.innerHTML = `<div class="guide-eyebrow">${entry.latin}</div><div class="guide-name-row"><h3>${entry.name}</h3><span>${entry.role}</span></div><div class="guide-facts"><div><small>持续时间</small><b>${entry.size}</b></div><div><small>获取方式</small><b>触碰拾取</b></div></div><h4>${entry.effect}</h4><p>${entry.text}</p><div class="guide-advice"><b>使用建议</b><p>${entry.counter}</p></div>`;
+      rewardDisplay.querySelector(".guide-reward-orb span").textContent = t(
+        entry.symbol,
+      );
+      rewardDisplay.querySelector(".guide-reward-effect").textContent = t(
+        entry.effect,
+      );
+      setMarkup(
+        info,
+        tr`<div class="guide-eyebrow">${entry.latin}</div><div class="guide-name-row"><h3>${entry.name}</h3><span>${entry.role}</span></div><div class="guide-facts"><div><small>持续时间</small><b>${entry.size}</b></div><div><small>获取方式</small><b>触碰拾取</b></div></div><h4>${entry.effect}</h4><p>${entry.text}</p><div class="guide-advice"><b>使用建议</b><p>${entry.counter}</p></div>`,
+      );
       return;
     }
     const combat =
       entry.category === "lord"
         ? "24米可交战 · 技能后3秒恢复窗 · 至少5次侧翼攻击，命中后需脱离再接近"
         : entry.category === "player"
-          ? `巡游 ${characterMovement(entry.characterId).cruiseSpeed} m/s · 冲刺 ${characterMovement(entry.characterId).sprintSpeed} m/s`
+          ? tr`巡游 ${characterMovement(entry.characterId).cruiseSpeed} m/s · 冲刺 ${characterMovement(entry.characterId).sprintSpeed} m/s`
           : HUNTER_ABILITIES[entry.kind]
-            ? `蓄力 ${HUNTER_ABILITIES[entry.kind].windupDuration} 秒 · 技能冷却 ${HUNTER_ABILITIES[entry.kind].cooldownMin}—${HUNTER_ABILITIES[entry.kind].cooldownMax} 秒追击时间`
+            ? tr`蓄力 ${HUNTER_ABILITIES[entry.kind].windupDuration} 秒 · 技能冷却 ${HUNTER_ABILITIES[entry.kind].cooldownMin}—${HUNTER_ABILITIES[entry.kind].cooldownMax} 秒追击时间`
             : entry.role;
-    info.innerHTML = `<div class="guide-eyebrow">${entry.latin}</div><div class="guide-name-row"><h3>${entry.name}</h3><span>${entry.role}</span></div><div class="guide-facts"><div><small>本作尺度</small><b>${entry.size}</b></div><div><small>活动水层</small><b>${entry.habitat}</b></div></div><h4>${entry.ability}</h4><p>${entry.text}</p><div class="guide-advice"><b>生存建议</b><p>${entry.counter}</p></div><small class="guide-combat">${combat}</small>${entry.realSize ? `<div class="guide-advice"><b>生态注记</b><p>${entry.realSize} ${entry.habitatNote || ""}</p></div>` : ""}`;
+    setMarkup(
+      info,
+      tr`<div class="guide-eyebrow">${entry.latin}</div><div class="guide-name-row"><h3>${entry.name}</h3><span>${entry.role}</span></div><div class="guide-facts"><div><small>本作尺度</small><b>${entry.size}</b></div><div><small>活动水层</small><b>${entry.habitat}</b></div></div><h4>${entry.ability}</h4><p>${entry.text}</p><div class="guide-advice"><b>生存建议</b><p>${entry.counter}</p></div><small class="guide-combat">${combat}</small>${entry.realSize ? tr`<div class="guide-advice"><b>生态注记</b><p>${entry.realSize} ${entry.habitatNote || ""}</p></div>` : ""}`,
+    );
     if (!renderer) return;
     if (model) scene.remove(model);
-    const modelKey = isPerson ? `${entry.kind}_${humanSex}` : entry.kind;
+    const modelKey = isPerson ? tr`${entry.kind}_${humanSex}` : entry.kind;
     model = modelCache.get(modelKey);
     rotation = 0.2;
     if (!model) {
@@ -441,6 +487,20 @@ export function createOceanGuide(trigger) {
   function close() {
     dialog.close();
   }
+  onLanguageChange(() => {
+    const selectedId = selected.id;
+    selected =
+      [...OCEAN_CATALOG, ...REWARD_CATALOG].find(
+        (entry) => entry.id === selectedId,
+      ) || OCEAN_CATALOG[0];
+    for (const filter of filters) {
+      dialog.querySelector(`[data-category="${filter.id}"]`).textContent = t(
+        filter.name,
+      );
+    }
+    translateDOM(dialog);
+    if (dialog.open) renderList();
+  });
   trigger.addEventListener("click", open);
   dialog.querySelector(".guide-close").addEventListener("click", close);
   dialog.addEventListener("close", () => {

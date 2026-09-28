@@ -1,3 +1,4 @@
+import { t } from "../src/i18n.js";
 import assert from "node:assert/strict";
 import test from "node:test";
 import * as THREE from "three";
@@ -24,7 +25,7 @@ function fixture(kind) {
   const encounters = createEncounters(scene, {
     seabedHeight: () => -900,
     audio: { hit: noop, eat: noop, bossAttack: noop },
-    notify: (message) => events.warnings.push(message),
+    notify: (message) => events.warnings.push(t(message)),
     onDamage: () => events.hits++,
     onBite: () => events.bites++,
   });

@@ -1,130 +1,130 @@
-# 深渊猎游 · v0.2 玩法与体验设计
+# ABYSSAL · v0.2 Gameplay and Experience Design
 
-## 愿景与本轮依据
+## Vision and basis for this iteration
 
-做一款直接在浏览器中游玩的“大鱼吃小鱼”游戏。玩家从年轻虎鲸出发，亲自探索海洋，在成长过程中改变自己在食物链的位置。
+Build a browser-based game of big fish eating small fish. Players begin as a young orca, explore the ocean themselves, and change their place in the food chain as they grow.
 
-浅海应明亮、丰富、容易开始；海沟中的猎手让玩家管理体力、寻找逃生路线；深渊主宰需要通过轮廓、领地、技能预警和实际战斗形成压迫感。浅海不会用一堵强制驱离墙赶走玩家，而是通过小型猎物的收益递减与更高食物需求，引导玩家下潜。
+The shallows should be bright, varied, and easy to enter. Trench hunters should make players manage stamina and find escape routes. Abyssal lords should feel threatening through their silhouettes, territories, ability warnings, and actual combat. The shallows will not force players out with a barrier; diminishing returns from small prey and rising food needs should encourage deeper exploration.
 
-v0.2 依据 2026-09-26 第一版试玩后的七项反馈。来源与逐项响应见 [feedback_v0_2.md](feedback_v0_2.md)。本文描述当前代码与实现决定；整体手感和最终浏览器验收仍需独立确认。
+v0.2 follows seven points of feedback from the first playtest on 2026-09-26. Sources and individual responses are in [feedback_v0_2.md](feedback_v0_2.md). This document describes the code and implementation decisions at that stage; overall feel and final browser acceptance still require separate confirmation.
 
-## 核心循环与胜利
+## Core loop and victory
 
-寻找食物 → 捕食、恢复与成长 → 食物需求上升 → 下潜寻找更大猎物 → 躲避中级猎手 → 准备主宰战 → 看清技能、闪避并反击 → 获得深渊印记与战利品。
+Find food → feed, recover, and grow → need more food → dive for larger prey → evade mid-tier hunters → prepare for a lord battle → read abilities, dodge, and counterattack → earn an abyssal mark and loot.
 
-虎鲸从 6 米开始，体长上限 30 米。**胜利同时要求体长达到 30 米、至少击败一位主宰。** 单纯停留在安全区域积累体长不能直接结束游戏。
+The orca starts at 6 m, with a maximum length of 30 m. **Victory requires both reaching 30 m and defeating at least one lord.** Staying in a safe area to accumulate length cannot end the game by itself.
 
-质量决定体长，关系为 `体长 = 6 × 质量的立方根`。这是幻想成长游戏，体型和生物组合不受现实生态限制。
+Mass determines length: `length = 6 × cube root of mass`. This is a fantasy growth game; sizes and species combinations are not constrained by real ecology.
 
-## 三级生态
+## Three ecological tiers
 
-| 层级     | 当前内容                             | 主要规则                                                             |
-| -------- | ------------------------------------ | -------------------------------------------------------------------- |
-| 初级猎物 | 珊瑚鱼、金枪鱼、蝠鲼及水面海鸥       | 较小猎物可自动吞食；鱼群降低初期找食物的成本                         |
-| 中级猎手 | 大白鲨、深渊鮟鱇、大王乌贼、邓氏鱼   | 追击快于巡游、慢于冲刺；长到足够体型后可反过来吞食                   |
-| 深海主宰 | 克拉肯、玛雅巨兽、三头海德拉、利维坦 | 随机稀有领地、独立生命与技能，需要多次主动咬击，不能当普通鱼一口吞掉 |
+| Tier             | Content at this stage                                            | Main rules                                                                                                                        |
+| ---------------- | ---------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------- |
+| Basic prey       | Coral fish, tuna, manta rays, and seagulls at the surface        | Smaller prey can be swallowed automatically; shoals reduce the initial effort of finding food                                     |
+| Mid-tier hunters | Great white shark, abyssal anglerfish, giant squid, Dunkleosteus | Chase faster than cruising but slower than sprinting; become edible once the player is large enough                               |
+| Deep-sea lords   | Kraken, Maya-inspired beast, three-headed Hydra, Leviathan       | Random rare territories, separate health, and abilities; require repeated active bites and cannot be swallowed like ordinary fish |
 
-普通捕食要求猎物体长严格小于玩家；嘴部附近接触即自动进食。小于自身一半的猎物，其成长与营养收益按比例平方衰减。
+Ordinary feeding requires prey to be strictly shorter than the player; contact near the mouth triggers feeding automatically. For prey less than half the player's length, growth and nutrition returns fall with the square of the relative size.
 
-珊瑚鱼配置了 10–14 条的小型鱼群范围，金枪鱼与蝠鲼的群体更小。实际分布和成长节奏还要结合主循环生成逻辑及自然试玩调整，配置存在不等于鱼群体验已经验收。
+Coral fish are configured for small shoals of 10–14, with smaller groups for tuna and manta rays. Actual distribution and growth pacing still need adjustment against the main loop's spawning logic and natural playtests; having a configuration does not establish that the shoal experience has passed acceptance.
 
-## 进食优先修复
+## Feeding prioritizes recovery
 
-每次进食都补充饱食，并先结算治疗，再分配本次成长。
+Every meal replenishes satiety, applies healing first, and then allocates growth from that meal.
 
-- 治疗能力为本次有效营养的 80%，以缺失生命为上限。
-- 实际治疗越多，本次用于成长的份额越少，最多将 70% 的成长收益投入修复。
-- 轻伤只扣除实际消耗的治疗份额；满血时保留完整成长收益。
-- 受伤时仍保留至少 30% 的成长份额，并非必须回满生命才允许继续长大。
-- 进食与主宰战利品共用分配规则；界面可通过 `lastMeal` 显示本次治疗、成长与饱食收益。
+- Healing capacity is 80% of the meal's effective nutrition, capped by missing health.
+- More actual healing leaves a smaller share for growth; at most 70% of the growth return is spent on recovery.
+- Minor injuries consume only the share actually used for healing; full health preserves the entire growth return.
+- Injured players still retain at least 30% of the growth share; they do not have to reach full health before growing again.
+- Meals and lord loot share this allocation rule; the interface can use `lastMeal` to show the meal's healing, growth, and satiety returns.
 
-这使撤退、找食物、恢复后再挑战成为有效路线，也避免受伤后永久失去成长机会。
+This makes retreating, finding food, and recovering before another attempt a viable route, without permanently denying growth after an injury.
 
-## 生存资源
+## Survival resources
 
-| 资源 | 当前作用                                     | 玩法目的                   |
-| ---- | -------------------------------------------- | -------------------------- |
-| 生命 | 撕咬、技能、饥饿与热液危险造成伤害；归零死亡 | 给犯错、恢复和撤退留下空间 |
-| 体力 | 冲刺消耗，停止冲刺恢复；耗尽后需恢复到阈值   | 保留逃生余量，限制持续冲刺 |
-| 饱食 | 随时间下降，体型越大消耗越快；归零后持续失血 | 推动寻找更有价值的食物     |
+| Resource | Role at this stage                                                                                  | Gameplay purpose                                         |
+| -------- | --------------------------------------------------------------------------------------------------- | -------------------------------------------------------- |
+| Health   | Lost to bites, abilities, hunger, and hydrothermal hazards; zero means death                        | Leave room for mistakes, recovery, and retreat           |
+| Stamina  | Spent on sprinting and restored when sprinting stops; after exhaustion, must recover to a threshold | Preserve an escape reserve and limit sustained sprinting |
+| Satiety  | Falls over time, faster at larger sizes; zero causes continuous health loss                         | Encourage finding more valuable food                     |
 
-体力耗尽不直接伤血。单次攻击后有短暂无敌，防止接触时在几帧内反复扣血；该保护不抵消饥饿的持续伤害。
+Exhausting stamina does not directly damage health. A short invulnerability period after an attack prevents repeated contact damage within a few frames; it does not cancel continuous hunger damage.
 
-## 主宰领地与战斗
+## Lord territories and combat
 
-每局从四种主宰中随机启用两只，分别放置在两个深海区域附近，拥有约 110 世界单位半径的领地。它们不会在整张地图追逐初生玩家。击败后较长时间才重新出现；规则保留撤退前已造成的伤害，让补给后再次挑战有意义。
+Each run randomly activates two of the four lords, placing them near two deep-sea areas with territories of roughly 110 world units in radius. They do not chase a newly spawned player across the whole map. Respawning after defeat takes a long time; damage dealt before retreat is retained so that returning after resupplying remains worthwhile.
 
-接近目标后，主宰按追猎、前摇、技能、虚弱恢复循环行动。技能结束后有 **3 秒恢复期**，此时咬击伤害更高。
+When a target approaches, a lord cycles through pursuit, windup, ability, and vulnerable recovery. An ability is followed by a **3-second recovery period**, during which bites deal more damage.
 
-| 主宰       | 当前技能                                 | 主要应对方式                   |
-| ---------- | ---------------------------------------- | ------------------------------ |
-| 克拉肯     | 深渊漩涡，牵引并消耗体力，贴近时触腕绞击 | 横向游出范围，利用岩柱阻断作用 |
-| 玛雅巨兽   | 遗迹脉冲，攻击特定水层                   | 上浮或下潜，离开脉冲水层       |
-| 三头海德拉 | 三重吐息，发射可移动弹体                 | 横向变向并利用地形遮挡         |
-| 利维坦     | 锁定方向后的高速冲锋                     | 锁定后侧移，等冲锋结束再反击   |
+| Lord                | Ability at this stage                                                                       | Main response                                                         |
+| ------------------- | ------------------------------------------------------------------------------------------- | --------------------------------------------------------------------- |
+| Kraken              | Abyssal vortex pulls targets and drains stamina; close targets are constricted by tentacles | Swim sideways out of range and use rock pillars to block the effect   |
+| Maya-inspired beast | Ruin pulse attacks a specific water layer                                                   | Rise or dive out of the pulse layer                                   |
+| Three-headed Hydra  | Triple breath launches moving projectiles                                                   | Change direction laterally and use terrain as cover                   |
+| Leviathan           | High-speed charge after locking its direction                                               | Move sideways after the lock, then counterattack when the charge ends |
 
-主宰追猎速度高于虎鲸普通冲刺，直线加速不再是稳定逃生方案。撤离领地、识别前摇、改变水层和借助地形更重要。
+At this stage, lords pursue faster than the orca's normal sprint, so accelerating in a straight line is no longer a reliable escape. Leaving their territory, recognizing windups, changing depth, and using terrain matter more.
 
-玩家一般需达到 24 米才可主动咬击主宰；深渊狂食期间门槛降低为 21 米。按 F 或鼠标左键发动近距离攻击，咬击冷却 1.2 秒。正常阶段也可以造成较低伤害，恢复期有额外弱点伤害。单次伤害不超过主宰总生命的 24%，防止通过体型或奖励跳过多次交战。
+Players normally need to reach 24 m to actively bite a lord; Abyssal Frenzy lowers this threshold to 21 m. Press F or the left mouse button for a close-range attack, with a 1.2-second bite cooldown. Attacks can deal reduced damage in the normal phase, with extra weak-point damage during recovery. A single hit cannot exceed 24% of the lord's maximum health, preventing size or rewards from bypassing repeated engagements.
 
-玛雅巨兽是受幻想遗迹元素启发的原创海怪，不作为特定历史神话形象的复原。海德拉按用户提出的三头龙方向呈现为三头海怪。
+The Maya-inspired beast is an original sea monster inspired by fantasy ruins, not a reconstruction of a specific historical mythological figure. Hydra follows the user's three-headed dragon direction as a three-headed sea monster.
 
-## 水面玩法
+## Surface play
 
-接近水面、朝上并保持足够速度冲刺时，虎鲸跃出水面，随后沿抛物线落回水中。海面上有天空、云、太阳与海鸥；空中接近海鸥可自动捕食，收益同样遵守修复优先规则。
+Near the surface, facing upward and sprinting fast enough makes the orca breach, then fall back into the water along a parabolic arc. The surface has a sky, clouds, sun, and seagulls. Approaching seagulls in the air triggers automatic feeding, with the same recovery-first allocation.
 
-海鸥用于提供短暂的明亮、轻松体验，并非替代深海成长路线。大体型捕食小型海鸥仍受收益递减影响。
+Seagulls provide a brief, bright, relaxed experience rather than replacing the deep-sea growth route. Large players eating small seagulls still receive diminishing returns.
 
-## 奖励辨识与作用
+## Reward recognition and effects
 
-| 名称     | 颜色与图形 | 当前效果                                                                             |
-| -------- | ---------- | ------------------------------------------------------------------------------------ |
-| 体力泉   | 绿色十字   | 体力立即回满并解除疲惫                                                               |
-| 洋流之息 | 蓝色双箭头 | 12 秒冲刺不耗体力，仍由玩家控制是否冲刺                                              |
-| 深渊狂食 | 橙色獠牙   | 10 秒内允许吞食自身 1.6 倍以内的普通猎物；主宰咬击门槛降到 21 米，不跳过其生命与阶段 |
+| Name           | Color and symbol   | Effect at this stage                                                                                                                                   |
+| -------------- | ------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| Stamina Spring | Green cross        | Instantly refill stamina and remove exhaustion                                                                                                         |
+| Ocean Current  | Blue double arrows | Sprint without spending stamina for 12 seconds; the player still chooses whether to sprint                                                             |
+| Abyssal Frenzy | Orange fangs       | Swallow ordinary prey up to 1.6 times the player's length for 10 seconds; lower the lord bite threshold to 21 m without bypassing its health or phases |
 
-奖励显示名称和效果文字，收集后有独立音效。同类限时奖励刷新时长，不无限叠加。
+Rewards display a name and effect description, with a distinct collection sound. Picking up the same timed reward refreshes its duration rather than stacking indefinitely.
 
-## 海域、尺度与成长引导
+## Sea regions, scale, and growth guidance
 
-深度显示为 `-世界坐标 Y × 4`。世界最大海深 740 对应约 2960 米；实际可抵达深度受地形与角色边界影响。这一倍率只用于深度显示。
+Displayed depth is `-world Y coordinate × 4`. The maximum world depth of 740 corresponds to roughly 2960 m; terrain and character boundaries constrain the depth actually reachable. This multiplier applies only to the depth display.
 
-| 海域     | 世界海深 | 显示深度        | 内容方向                                       |
-| -------- | -------- | --------------- | ---------------------------------------------- |
-| 珊瑚浅海 | 0–90     | 约 0–360 米     | 沙纹、焦散、光柱、珊瑚、海草、小鱼群与水面活动 |
-| 暮光海沟 | 90–250   | 约 360–1000 米  | 岩拱、礁石和中级猎手                           |
-| 幽暗深渊 | 250–500  | 约 1000–2000 米 | 荧光、遗迹、更大猎物与部分主宰领地             |
-| 熔火禁区 | 500–740  | 约 2000–2960 米 | 火山、热液、熔岩与更深的主宰区域               |
+| Region                | World depth | Displayed depth   | Content direction                                                                         |
+| --------------------- | ----------- | ----------------- | ----------------------------------------------------------------------------------------- |
+| Coral Shallows        | 0–90        | About 0–360 m     | Sand ripples, caustics, light shafts, coral, seagrass, small shoals, and surface activity |
+| Twilight Trench       | 90–250      | About 360–1000 m  | Rock arches, reefs, and mid-tier hunters                                                  |
+| Dark Abyss            | 250–500     | About 1000–2000 m | Bioluminescence, ruins, larger prey, and some lord territories                            |
+| Molten Exclusion Zone | 500–740     | About 2000–2960 m | Volcanoes, hydrothermal vents, lava, and deeper lord areas                                |
 
-分区由玩家海深判断，物种栖息范围可能跨区。地形随探索向前下降，主宰领地不等同于整个深海区。
+Regions are determined by the player's depth; species habitats may span regions. Terrain descends as exploration proceeds, and a lord's territory is not the whole deep-sea region.
 
-成长提示用于引导，不设置硬性关卡锁：初期熟悉鱼群与水面；中期寻找更大猎物、学习冲刺脱险；接近 24 米时准备领地战；最后同时满足 30 米与至少一个主宰战绩。
+Growth prompts guide players without hard level gates: learn shoals and the surface early, seek larger prey and practice sprint escapes in the middle, prepare for territory battles near 24 m, and finally satisfy both 30 m and at least one lord defeat.
 
-## 音乐、音效与画面
+## Music, sound, and visuals
 
-Three.js 提供追尾 3D 海洋；实例化植被、礁石、深度雾、光柱与浮游颗粒控制环境层次和绘制开销。角色与怪物仍使用原创程序化几何和动画。
+Three.js provides a 3D ocean with a trailing camera. Instanced vegetation, reefs, depth fog, light shafts, and suspended particles provide environmental layers while controlling rendering cost. Characters and monsters still use original procedural geometry and animation.
 
-Web Audio 配乐具有明确音符、四小节和声及节拍：平静时为柔和旋律与和弦，追击时加入低弦音型和打击乐，主宰战再加入低八度战鼓与紧张声部。三层音乐使用共同节拍时钟和平滑音量变化。压缩器限制峰值，进食、受击、声呐、出水、落水、奖励、主宰技能与胜利另有音效。
+The Web Audio score has distinct notes, four-bar harmony, and a beat: calm play uses a gentle melody and chords; pursuit adds low string patterns and percussion; lord battles add lower-octave war drums and tense parts. All three layers share a beat clock and smooth volume transitions. A compressor limits peaks, with separate sounds for feeding, damage, sonar, breaching, reentry, rewards, lord abilities, and victory.
 
-首次用户手势激活音频，暂停时暂停音频时钟，重复开始不新建整套音频图。当前已做配乐离线录音和状态专项检查；仍需在真实设备上确认听感与混音平衡。当前不含外部录制声效。
+The first user gesture activates audio. Pausing stops the audio clock, and restarting does not create an entirely new audio graph. Offline music recordings and targeted state checks have been completed at this stage; listening quality and mix balance still need confirmation on real devices. At this stage, there are no externally recorded sound effects.
 
-## 已被 v0.2 替代的第一版决定
+## First-version decisions superseded by v0.2
 
-以下记录保留 2026-09-26 第一版实现来源，供后续查阅，**不能作为当前规则继续实现**：
+The following preserves the origin of the first implementation on 2026-09-26 for reference. **These decisions must not continue to be implemented as current rules.**
 
-| 第一版决定                              | v0.2 替代决定                                    | 来源                           |
-| --------------------------------------- | ------------------------------------------------ | ------------------------------ |
-| 30 米直接获胜                           | 30 米且击败至少一位主宰                          | 第一版设计与七项反馈第 5、6 项 |
-| 克拉肯、利维坦按大小一口吞食            | 主宰具有独立生命、技能、领地与多次咬击           | 第 5、6 项                     |
-| 克拉肯作为常见中段猎物                  | 大王乌贼接替中段位置，克拉肯成为更大且稀有的主宰 | 第 5 项                        |
-| 进食同时成长并固定少量回血              | 受伤时优先修复，按实际治疗扣减本次成长份额       | 第 7 项                        |
-| 海深约 275 世界单位，约 1100 米显示尺度 | 最大海深配置增至 740，约 2960 米显示尺度         | 第 4 项                        |
-| 主要使用低频环境声与心跳                | 有旋律、和声、节拍的分层背景音乐及更多音效       | 第 1 项                        |
-| 水面作为游泳上边界                      | 支持向上冲刺跃出、空中捕食海鸥和落水             | 第 2 项                        |
-| 奖励主要依靠颜色辨认                    | 图形、名称、效果文字和声音共同辨认               | 第 3 项                        |
+| First-version decision                                      | v0.2 replacement                                                                                | Source                                                              |
+| ----------------------------------------------------------- | ----------------------------------------------------------------------------------------------- | ------------------------------------------------------------------- |
+| Reach 30 m to win immediately                               | Reach 30 m and defeat at least one lord                                                         | First-version design and items 5 and 6 of the seven feedback points |
+| Swallow Kraken and Leviathan in one bite according to size  | Lords have separate health, abilities, territories, and repeated bites                          | Items 5 and 6                                                       |
+| Kraken is common mid-game prey                              | Giant squid takes the mid-game position; Kraken becomes a larger, rare lord                     | Item 5                                                              |
+| Feeding always gives growth and a fixed small heal          | Prioritize recovery when injured, reducing that meal's growth share according to actual healing | Item 7                                                              |
+| Roughly 275 world units of depth, displayed as about 1100 m | Increase maximum configured depth to 740, displayed as about 2960 m                             | Item 4                                                              |
+| Mainly low-frequency ambience and heartbeat                 | Layered background music with melody, harmony, and rhythm, plus more sound effects              | Item 1                                                              |
+| Surface is the upper swimming boundary                      | Allow upward sprint breaches, aerial feeding on seagulls, and water reentry                     | Item 2                                                              |
+| Rewards identified mainly by color                          | Combine symbols, names, effect descriptions, and sounds                                         | Item 3                                                              |
 
-## 实现边界
+## Implementation limits
 
-当前仍为单机原型，不含可选玩家鱼种、精细专业资产、完整生态、剧情、联网或局内存档。主宰技能已经进入实现，但它们的公平性、压迫感、可躲避性与自然战斗节奏尚需验证。
+At this stage, this remains a single-player prototype without selectable player species, refined professional assets, a complete ecosystem, a story, multiplayer, or run saves. Lord abilities are implemented, but their fairness, sense of threat, avoidability, and natural combat pacing still require verification.
 
-第一版验证记录见 [verification.md](verification.md)；不将其历史结果当作 v0.2 自动通过。最新整体验证由该记录后续单独更新。
+First-version verification is recorded in [verification.md](verification.md); its historical results do not automatically count as passes for v0.2. The latest overall verification is updated separately in that record.

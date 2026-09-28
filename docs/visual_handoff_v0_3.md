@@ -1,48 +1,48 @@
-# 给 Kimi 的 v0.3 视觉重绘交接
+# v0.3 Visual Redesign Handoff to Kimi
 
-## 目标与授权
+## Goal and authorization
 
-用户于2026-09-27明确要求：Codex先完成功能迭代，再交给Kimi重做所有界面元素、鱼类与巨兽模组和特效。需要实际可玩的新视觉，不止是方案或概念图。**本轮没有新的提交授权；不要commit、push或改GitHub Pages，先提供未提交试玩。**
+On 2026-09-27, the user explicitly requested that Codex finish the functional iteration, then hand the project to Kimi to redesign all UI elements, fish and giant-creature models, and effects. The result must be a playable visual upgrade, not just a plan or concept art. **This round had no new commit authorization: do not commit, push, or change GitHub Pages; first provide an uncommitted playable preview.**
 
-工作目录：`/Users/stan/Developer/GitHub/abyssal`，公开仓库 `stanatny/abyssal`。已发布基线 `96d57ff` 是v0.2。本轮v0.3的功能代码已在同一工作区，禁止重置、覆盖或从远端拉回旧版替换。先阅读 `HANDOFF.md`、`docs/feedback_v0_3.md` 与 `docs/verification.md`，再看实际运行场景。
+Workspace: the root of the public `stanatny/abyssal` repository. The released baseline, `96d57ff`, is v0.2. The v0.3 functional code is already in the same workspace; do not reset it, overwrite it, or replace it with an older remote version. Read `HANDOFF.md`, `docs/feedback_v0_3.md`, and `docs/verification.md` before inspecting the running scenes.
 
-## 当前功能基础
+## Existing functionality
 
-- 虎鲸32米/秒冲刺、约7秒体力续航；中级猎手低频预警技能；领主仍有独立技能、领地、3秒虚弱、多次咬击。
-- 真正的水下连续蓄势、过水线起跳、空中惯性和落水过渡；不允许水面起飞或空中二段跳。
-- 一艘游轮、两艘帆船、海鸥、航迹和水花。船只纯环境，不参与伤害或捕食。
-- 血雾、水流咬击弧、受击反馈、墨云空间遮挡及诱光；暂停/重开处理。
-- 重做原创合成配乐/音效，音频已通过专项验证。优先保持声音接口，不需要再次推翻这部分。
-- 首页海洋图鉴：13种生物、分类与搜索、三维拖动展示、体长/水层/技能/躲避提示；模型复用游戏资产。
+- Orca sprint at 32 meters/second with about 7 seconds of stamina; infrequent telegraphed abilities for mid-tier hunters; distinct lord abilities, territories, 3-second vulnerability, and repeated bites.
+- Real continuous underwater charge-up, takeoff across the waterline, airborne inertia, and water-entry transitions; no takeoff from idle at the surface or second jump in the air.
+- One cruise ship, two sailboats, seagulls, wakes, and splashes. Ships are environmental and do not deal damage or serve as prey.
+- Blood mist, water bite arcs, hit feedback, spatial ink-cloud occlusion, and lure light, including pause/restart handling.
+- Reworked original synthesized music and effects, with dedicated audio checks passed. Preserve the audio interfaces as a priority; this part does not need another overhaul.
+- Home-screen Ocean Guide: 13 creatures, categories and search, draggable 3D displays, and size/depth/ability/evasion information. Models reuse game assets.
 
-## 需要你实际重绘的范围
+## Required visual work
 
-1. **首页与HUD**：统一视觉语言、字级和信息密度，整理生存条、目标、深度、速度、奖励、技能预警、领主面板、暂停/死亡/胜利和触屏控件。保留清晰的玩法提示与可访问键盘焦点。
-2. **生物模组**：虎鲸、小鱼/金枪鱼/蝠鲼、大白鲨/鮟鱇/大王乌贼/邓氏鱼、海鸥；姿态与轮廓需要更自然，避免球体与三角片拼接感。
-3. **四领主**：克拉肯、玛雅风格原创巨兽、三头海德拉、利维坦必须有不同剪影、体态和动态；大王乌贼与克拉肯严格区分。玛雅巨兽是幻想设定，不声称还原历史神话。
-4. **环境与特效**：改善水、海床地标、船只材质与层次；增强咬击、血雾、墨云、破水和领主技能的视觉力量，避免遮住敌人预警和路径。
-5. **图鉴**：把功能完整的图鉴精修成适合欣赏生物的展示页；重绘后的游戏资产需在图鉴里同步呈现。
+1. **Home screen and HUD:** unify visual language, type hierarchy, and information density. Organize survival bars, objectives, depth, speed, rewards, ability warnings, lord panels, pause/death/victory screens, and touch controls. Preserve clear gameplay hints and accessible keyboard focus.
+2. **Creature models:** orca; small fish, tuna, and manta ray; great white shark, anglerfish, giant squid, and Dunkleosteus; seagull. Improve natural poses and silhouettes, avoiding the appearance of assembled spheres and triangular sheets.
+3. **Four lords:** Kraken, an original Maya-inspired creature, three-headed Hydra, and Leviathan must have distinct silhouettes, body shapes, and motion. Keep giant squid clearly distinct from Kraken. The Maya-inspired creature is fantasy, not a claim to reconstruct historical mythology.
+4. **Environment and effects:** improve water, seabed landmarks, and ship materials and structure. Strengthen bites, blood mist, ink, breaches, and lord abilities without hiding enemy warnings or routes.
+5. **Ocean Guide:** refine the functionally complete guide into a presentation for appreciating creatures. Redrawn game assets must appear there as well.
 
-## 文件及接口约定
+## Files and interface contracts
 
-- 外观：`src/style.css`、`src/ocean_guide.css`、`index.html`。
-- 模型：`src/creatures.js`、`src/creature_extra.js`；`createCreature(kind,length,seed)` 返回Group，**前方为-Z、Y向上，根节点scale使用length**；`root.userData.animate(time,speed)`必须保留。各kind不能改名。
-- 世界：`src/ocean.js`、`src/ocean_extra.js`、`src/ships.js`、`src/surface.js`。
-- 效果：`src/combat_effects.js`、`src/encounters.js`、`src/rewards.js`。
-- 功能数据：`simulation.js`、`boss_rules.js`、`hunter_rules.js`、`surface_rules.js`。不随意改动数值和状态机；如视觉适配确需修改，说明理由并跑相应回归。
-- `main.js`通过固定DOM id绑定交互；改页面结构时保留id或同步完整接线。
-- 粒子池、墨云上限/清理、共享几何缓存、图鉴渲染生命周期需要保留，不能靠无限堆粒子提升效果。
-- 音频 `OceanAudio`保留start/update/setPaused/toggle/reset/eat/hit/breach/splash/hunter等接口。
+- Appearance: `src/style.css`, `src/ocean_guide.css`, `index.html`.
+- Models: `src/creatures.js`, `src/creature_extra.js`. `createCreature(kind,length,seed)` returns a Group, with **-Z forward, Y up, and root scale set from length**. Preserve `root.userData.animate(time,speed)` and every `kind` identifier.
+- World: `src/ocean.js`, `src/ocean_extra.js`, `src/ships.js`, `src/surface.js`.
+- Effects: `src/combat_effects.js`, `src/encounters.js`, `src/rewards.js`.
+- Gameplay data: `simulation.js`, `boss_rules.js`, `hunter_rules.js`, `surface_rules.js`. Do not arbitrarily change values or state machines. Explain genuinely necessary visual-integration changes and run their relevant regressions.
+- `main.js` binds interactions through fixed DOM IDs. Preserve the IDs when restructuring pages, or update all wiring consistently.
+- Preserve particle pools, ink-cloud limits and cleanup, shared geometry caching, and the Ocean Guide rendering lifecycle. Do not improve effects by accumulating unlimited particles.
+- Preserve `OceanAudio` interfaces including `start`, `update`, `setPaused`, `toggle`, `reset`, `eat`, `hit`, `breach`, `splash`, and `hunter`.
 
-## 运行与验收
+## Running and acceptance
 
-开发：`npm run dev`（通常5178，先复用实际存在服务）。规则：`npm test`；格式：`npm run check`；回归：`npm run test:browser`；v0.3专项：`node scripts/verify_feedback_v0_3.mjs`；音频：`node scripts/verify_audio.mjs`；构建：`npm run build`。
+Development: `npm run dev` (usually port 5178; reuse an existing working service first). Rules: `npm test`; formatting: `npm run check`; regression: `npm run test:browser`; v0.3 checks: `node scripts/verify_feedback_v0_3.mjs`; audio: `node scripts/verify_audio.mjs`; build: `npm run build`.
 
-临时外网预览地址与进程均在被忽略的 `.local/preview_state.json`；它服务dist，修改后必须重建。正式GitHub Pages仍是v0.2，不能把正式地址当作本轮未提交预览。不要停止或重建已有隧道，除非检查确认失效。
+The temporary public preview URL and processes are recorded in ignored `.local/preview_state.json`. It serves `dist`, so rebuild after changes. Official GitHub Pages remains v0.2 at this historical point; do not present that URL as this round's uncommitted preview. Do not stop or recreate an existing tunnel unless inspection confirms it has failed.
 
-交付标准：
+Delivery requirements:
 
-- 真实浏览器截图：首页、追尾HUD、图鉴、四领主、捕食血雾、墨云、破水、深海地标，另有390px窄屏。
-- 至少演示一次完整水下蓄势→起跳→落水，以及中级猎手预警→技能→恢复。保留自然试玩与开发接口制造场景的区别。
-- 格式、规则、浏览器回归、生产构建通过；控制台无错误；不引入无法访问的外链资产，记录新素材来源与许可。
-- 交付可打开的未提交预览，说明改动、验证和剩余限制；完成后在原话题@Codex回报，供最后核对。
+- Actual browser screenshots of the home screen, chase-camera HUD, Ocean Guide, four lords, feeding blood mist, ink, breach, and deep-sea landmarks, plus a 390px narrow-screen view.
+- Demonstrate at least one complete underwater charge-up → takeoff → landing cycle and one mid-tier hunter warning → ability → recovery cycle. Distinguish natural play from scenes produced through development interfaces.
+- Passing formatting, rule checks, browser regression, and production build; no console errors. Do not add inaccessible external assets, and record sources and licenses for new material.
+- Deliver an accessible uncommitted preview, explain changes, verification, and remaining limits, and report back by mentioning @Codex in the original thread for final review.

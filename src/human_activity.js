@@ -1,3 +1,4 @@
+import { tr, message } from "./i18n.js";
 import * as THREE from "three";
 import { createFluidTexture } from "./effect_textures.js";
 import { WORLD } from "./world_config.js";
@@ -104,7 +105,7 @@ export function createHumanActivity(
     entities.push({
       ...addModel(kind, sex),
       sex,
-      id: `human_${i}`,
+      id: tr`human_${i}`,
       kind,
       alive: !reserved,
       reserved,
@@ -121,7 +122,7 @@ export function createHumanActivity(
   for (let i = 0; i < HUMAN_RULES.submarineCount; i++) {
     const entry = {
       ...addModel("submarine"),
-      id: `submarine_${i}`,
+      id: tr`submarine_${i}`,
       kind: "submarine",
       state: createSubmarineState(),
       collider: null,
@@ -151,7 +152,7 @@ export function createHumanActivity(
     group.add(warning);
     hazards.push({
       ...addModel("torpedo"),
-      id: `torpedo_${i}`,
+      id: tr`torpedo_${i}`,
       kind: "torpedo",
       active: true,
       warning,
@@ -478,7 +479,7 @@ export function createHumanActivity(
         if (index >= 0) colliders.splice(index, 1);
         if (result.release) releaseDivers(submarine, now);
         notify("潜艇艇壳破裂 · 3 名潜水员正在游出");
-      } else notify(`艇壳受损 · 还需 ${submarine.state.health} 次冲撞`);
+      } else notify(message`艇壳受损 · 还需 ${submarine.state.health} 次冲撞`);
     }
     for (const hazard of hazards) {
       if (!hazard.active) continue;

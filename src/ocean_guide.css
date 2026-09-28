@@ -782,3 +782,20 @@
 .guide-preview.has-variants::after {
   display: none;
 }
+
+/* 英文尺寸说明较长，侧栏独立占一行，避免挤压物种名称。 */
+@media (min-width: 651px) {
+  html[lang="en"] .guide-entry {
+    display: grid;
+    grid-template-columns: 5px minmax(0, 1fr);
+    column-gap: 9px;
+    row-gap: 5px;
+  }
+  html[lang="en"] .guide-entry em {
+    grid-column: 2;
+    justify-self: start;
+    white-space: normal;
+    overflow-wrap: anywhere;
+    line-height: 1.5;
+  }
+}

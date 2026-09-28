@@ -1,3 +1,4 @@
+import { tr } from "./i18n.js";
 import { WORLD } from "./world_config.js";
 
 const TAU = Math.PI * 2;
@@ -75,14 +76,14 @@ export function getMinimapState({
       : elevation === "below"
         ? "浅滩正下方"
         : "浅滩附近"
-    : `浅滩 ${arrow} ${formatDistance(distance)}`;
+    : tr`浅滩 ${arrow} ${formatDistance(distance)}`;
   const depth = Math.max(0, Math.round(-player.y * WORLD.displayDepthScale));
   const depthLabel =
     elevation === "above"
-      ? `上浮 ${ascent}m`
+      ? tr`上浮 ${ascent}m`
       : elevation === "below"
-        ? `下潜 ${descent}m`
-        : `水深 ${depth}m`;
+        ? tr`下潜 ${descent}m`
+        : tr`水深 ${depth}m`;
   return {
     player: projectMinimapPosition(player),
     home: projectMinimapPosition(home),
@@ -111,8 +112,8 @@ function readPoint(point) {
 
 function formatDistance(distance) {
   return distance >= 1000
-    ? `${(distance / 1000).toFixed(1)}km`
-    : `${distance}m`;
+    ? tr`${(distance / 1000).toFixed(1)}km`
+    : tr`${distance}m`;
 }
 
 function finite(value, fallback = 0) {

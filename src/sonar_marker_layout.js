@@ -1,3 +1,4 @@
+import { tr } from "./i18n.js";
 import * as THREE from "three";
 
 const clamp = (value, low, high) => Math.max(low, Math.min(high, value));
@@ -91,7 +92,7 @@ export function buildSonarMarkerLayout({
     .filter(Boolean);
   const groups = new Map();
   for (const contact of projected) {
-    const id = `${contact.kind}:${contact.boss ? "boss" : "fish"}:${contact.eligible}`;
+    const id = tr`${contact.kind}:${contact.boss ? "boss" : "fish"}:${contact.eligible}`;
     if (!groups.has(id)) groups.set(id, { id, contacts: [] });
     contact.labelId = id;
     groups.get(id).contacts.push(contact);
@@ -110,7 +111,7 @@ export function buildSonarMarkerLayout({
       const lengthText =
         min === max
           ? formatLength(min)
-          : `${formatLength(min)}–${formatLength(max)}`;
+          : tr`${formatLength(min)}–${formatLength(max)}`;
       const qualifier = first.boss
         ? first.eligible
           ? "可战"
@@ -118,7 +119,7 @@ export function buildSonarMarkerLayout({
         : first.eligible
           ? "可食"
           : "不可食";
-      const text = `${first.label.split(" · ").at(-1)} ${lengthText}m ${qualifier}${group.contacts.length > 1 ? ` ×${group.contacts.length}` : ""}`;
+      const text = tr`${first.label.split(" · ").at(-1)} ${lengthText}m ${qualifier}${group.contacts.length > 1 ? tr` ×${group.contacts.length}` : ""}`;
       const textUnits = [...text].reduce(
         (total, character) =>
           total + (character.charCodeAt(0) > 255 ? 1 : 0.59),

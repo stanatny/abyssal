@@ -1,3 +1,4 @@
+import { t, tr, setMarkup } from "./i18n.js";
 import {
   createSonarState,
   activateSonar,
@@ -17,8 +18,10 @@ export function createSonar(container) {
   let snapshot = { ...getSonarStatus(state, 0), total: 0, contacts: [] };
   container.classList.add("sonar-panel");
   container.hidden = true;
-  container.innerHTML =
-    '<strong>回声定位</strong><span class="sonar-count"></span><span class="sonar-time"></span>';
+  setMarkup(
+    container,
+    '<strong>回声定位</strong><span class="sonar-count"></span><span class="sonar-time"></span>',
+  );
   const count = container.querySelector(".sonar-count");
   const time = container.querySelector(".sonar-time");
   return {
@@ -56,14 +59,22 @@ export function createSonar(container) {
       container.hidden = false;
       container.dataset.active = "true";
       container.dataset.total = String(snapshot.total);
-      time.textContent = `${Math.ceil(status.remaining)}s`;
+      time.textContent = t(tr`${Math.ceil(status.remaining)}s`);
       return snapshot;
     },
     setPresentation({ frontVisible = 0, shownGroups = 0 } = {}) {
       container.dataset.frontTotal = String(frontVisible);
       container.dataset.groups = String(shownGroups);
-      count.textContent = shownGroups ? `前方 ${shownGroups}组` : "转向探测";
-      container.title = `周围探测到${snapshot.total}个目标，前方${frontVisible}个；画面显示最多4组，转向可查看其他生物。雷达保留周围回声。`;
+      count.textContent = t(
+        shownGroups
+          ? tr`前方 ${shownGroups}组`
+          : innerWidth <= 700 || innerHeight <= 500
+            ? "转向查看"
+            : "转向探测",
+      );
+      container.title = t(
+        tr`周围探测到${snapshot.total}个目标，前方${frontVisible}个；画面显示最多4组，转向可查看其他生物。雷达保留周围回声。`,
+      );
     },
     get snapshot() {
       return snapshot;

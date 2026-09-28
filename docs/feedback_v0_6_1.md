@@ -1,29 +1,29 @@
-# v0.6.1 试玩反馈修复
+# v0.6.1 Playtest fixes
 
-本轮先按用户要求将 v0.6 视觉升级保存为本地提交 `94c2a95`，没有 Push。以下反馈改动位于该提交之后，保持未提交供 review。
+As requested, this round first saved the v0.6 visual upgrade in local commit `94c2a95`, without pushing. The feedback changes below follow that commit and remain uncommitted for review.
 
-## 游向与定位
+## Heading and orientation
 
-旧控制每帧将俯仰朝输入量对应的角度插值，松开输入后目标角为零，因此会自动回到水平。新规则与左右转向一致：输入改变角度，松手保持角度；桌面与触屏统一支持 ±85°。乌贼非冲刺时的被动改为更快的左右、俯仰转向。雷达右缘给出水平基准与当前俯仰角，不额外增加回正按键。
+The old controls interpolated pitch toward an input-dependent angle every frame. Releasing input set the target to zero, automatically leveling the character. The new rule matches yaw: input changes the angle, and release preserves it. Desktop and touch both support ±85°. Squid's non-sprint passive now accelerates both yaw and pitch turning. The radar's right edge shows a horizontal reference and current pitch; no separate leveling key is added.
 
-## 捕食表现
+## Feeding presentation
 
-数值仍在确认接触时结算一次。原猎物模型随后用约 0.28—0.42 秒向实时嘴部位置收拢、压缩并吞没，过渡后段才出现少量紧凑血雾和气泡。普通鱼、海鸥与成年人共用过渡；领主受击维持自己的血雾和多段战斗规则。暂停冻结动画，重开还原并清理被借用的网格；不克隆鱼群几何或增加独立动画循环。
+Gameplay values still settle once when contact is confirmed. The original prey model then moves toward the live mouth position, compresses, and disappears over about 0.28–0.42 seconds. A small, compact blood cloud and bubbles appear only in the later part of that transition. Ordinary fish, seagulls, and adults share the transition; lords retain their own damage clouds and multistage combat. Pause freezes animation. Restart restores and releases borrowed meshes. No school geometry is cloned and no separate animation loop is added.
 
-## 幼年起步
+## Juvenile start
 
-两种角色统一从 2.5 米开始，成长进度从零计算。白鲨 6.4 米、锤头鲨 4 米作为当前游戏代表个体，开场普通状态不可吞食；狂食仍按 1.6 倍规则，不能把限时强化资格误认为普通资格。六米以下成长奖励乘以 `(体长 / 6)²`，营养与回血不变；首条珊瑚鱼增长约 3.5 厘米，吃完首群 12 条约为 2.93 米。六米以后的既有成长曲线不变，30 分钟远征上限不变。镜头随幼年体型拉近，避免主角变成远处的小点。
+Both characters start at 2.5 meters, with growth progress measured from zero. The game's representative 6.4-meter white shark and 4-meter hammerhead cannot be swallowed normally at the start. Frenzy retains its 1.6× rule; temporary eligibility must not be mistaken for normal eligibility. Below 6 meters, growth rewards are multiplied by `(length / 6)²`; nutrition and healing are unchanged. The first coral fish adds about 3.5 centimeters; eating the first 12 yields about 2.93 meters. Growth beyond 6 meters and the 30-minute expedition limit remain unchanged. The camera moves closer for juvenile sizes so the character does not become a distant dot.
 
-虎鲸幼崽体长参考 [Aquarium of the Pacific 的虎鲸资料](https://www.aquariumofpacific.org/onlinelearningcenter/species/killer_whale_orca)，出生时约 2.1—2.5 米。选用 2.5 米是幼年虎鲸的参考尺度；乌贼共用起步长度属于游戏平衡，并非刚孵化乌贼的真实长度。鲨鱼配置采用大型个体，不表示所有年龄的鲨鱼都比幼鲸大；成年白鲨尺度见 [Florida Museum](https://www.floridamuseum.ufl.edu/discover-fish/species-profiles/white-shark/)。
+The juvenile orca reference is the [Aquarium of the Pacific orca profile](https://www.aquariumofpacific.org/onlinelearningcenter/species/killer_whale_orca), which gives roughly 2.1–2.5 meters at birth. Choosing 2.5 meters references a young orca; sharing that starting length with squid is game balance, not the real size of a hatchling. Shark configuration uses large individuals, not a claim that sharks of every age exceed young whales. Adult white-shark scale: [Florida Museum](https://www.floridamuseum.ufl.edu/discover-fish/species-profiles/white-shark/).
 
-## 遭遇分布
+## Encounter distribution
 
-排查发现普通生物的 21 类注册和 175 只配额均存在，问题集中在可遇见性：鱼群根据目录序号分散到路线外、微小与中型动物共用过短显示距离、鱼群没有远距迁移。游泳者原来部分位于出生点后方，而且整个模型浸没在海面以下；被捕食后普通人也不再刷新。
+Investigation confirmed all 21 ordinary-creature registrations and 175 population slots existed. Discoverability was the problem: roster indices placed schools away from routes, tiny and medium animals shared an overly short draw distance, and schools lacked distant relocation. Some swimmers started behind spawn with their entire models submerged; ordinary people did not respawn after feeding.
 
-鱼群改为各物种独立栖息锚点，沿出生点前方与主海坡分布，不再由目录排序决定位置；保持水层、海床与实体碰撞约束。远离玩家的鱼群可在合法水层整体迁移，目标位置在显示距离之外，避免贴脸生成；深海鮟鱇等不会被补到浅滩。提高中型生物显示距离而不增加实体总数。
+Schools now have species-specific habitat anchors ahead of spawn and along the main slope, independent of roster order. Depth, seabed, and solid-collision constraints remain. Faraway schools can relocate together within legal depths to destinations outside draw range, avoiding visible pop-in. Deep-sea anglerfish are not replenished into the shallows. Medium creatures get a longer draw distance without increasing total population.
 
-12 名成年游泳者分为前方三组，头部/手臂可越过水线，有轻微水花与上方活动提示；10 名常规潜水员保留各自深度。普通游泳者/潜水员分别在 65/85 秒后等待玩家远离才补位；潜艇释放的 3 人仍只释放一次，不进入常规刷新循环。
+Twelve adult swimmers form three groups ahead, with heads/arms able to cross the waterline, small splashes, and an overhead activity hint. Ten regular divers retain their depths. Ordinary swimmers/divers wait 65/85 seconds respectively, then respawn only once the player is far away. The submarine's three escapees still spawn once and never join the regular respawn loop.
 
-## 验证范围
+## Verification scope
 
-专项脚本、测量和截图在 `.local/v6_1_*`，最终通过项记入 [验证记录](verification.md)。布景验证只证明对应路径；不会据此宣称已完成 30 分钟自然整局或真实手机验收。正式 GitHub Pages 保持 v0.5.1，本轮只更新临时预览。
+Targeted scripts, measurements, and screenshots are in `.local/v6_1_*`; final passed checks are in [verification](verification.md). Staged checks prove only the corresponding paths, not a natural 30-minute round or real-phone acceptance. Official GitHub Pages remains v0.5.1; this round updates only the temporary preview.

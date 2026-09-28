@@ -1,36 +1,36 @@
-# v0.6.2 育幼浅滩、人物反馈与桌面提示
+# v0.6.2 Nursery shallows, human feedback, and desktop hints
 
-## 反馈与取舍
+## Feedback and tradeoffs
 
-用户实际试玩反馈：2.5米幼年偏小，浅滩食物难捕，早期被白鲨等追击，缺少从容易到困难的过程。本轮在未提交的v0.6.1之上调整，旧起步数值保留为历史；不提交、不Push，正式Pages不变。
+Actual playtest feedback: a 2.5-meter juvenile felt too small, shallow-water food was hard to catch, white sharks and other hunters chased the player too early, and difficulty lacked a gradual progression. This round adjusts uncommitted v0.6.1. The old starting values remain historical; no commit or push, and official Pages is unchanged.
 
-两角色改为3米幼年起步，是可玩性选择，并非严格新生动物尺度。仍小于4米锤头和6.4米白鲨，不能普通吞食这些猎手。六米前成长乘 `length/6`，替代过重的平方抑制；满血首口珊瑚鱼约3.07米，12条首群约3.76米，17/27/66条分别跨过4/4.5/6米。六米后的曲线、回血营养和30分钟上限不变。幼年追尾距离再拉近约12%，逐渐长大后平滑回到原距离。
+Both characters now start at 3 meters for playability, not as a strict newborn-animal scale. They remain smaller than 4-meter hammerheads and 6.4-meter white sharks and cannot swallow them normally. Growth below 6 meters uses `length/6`, replacing the excessively strong squared reduction. At full health, the first coral fish yields about 3.07 meters and the first 12 about 3.76; 17/27/66 fish cross 4/4.5/6 meters respectively. The later growth curve, healing/nutrition, and 30-minute cap remain. The juvenile follow camera moves another roughly 12% closer and smoothly returns to the old distance as the character grows.
 
-## 安全浅滩 → 外礁 → 深海
+## Safe shallows → outer reef → deep water
 
-- 核心浅滩：世界z≥−120、深度≤72。主角可以自由进出，没有等级空气墙；区域内普通猎手不能追击、咬伤或释放特殊能力。所有猎手巡游位置与身体边缘均被隔在z=−145以外，保留缓冲水域。HUD与雷达显示“安全浅滩”，离开时提示建议4米后探索，回到浅滩可脱战。
-- 外礁：z约−145到−350，仅有一只锤头鲨和一只白鲨，各自有固定的独立巡游范围。可以绕开，也可以尝试挑战，普通猎手不会连续补位进这一层。
-- 外海与深海：其余猎手保留各自真实参考水层，水平分布从z≤−370开始；沿海坡逐步遇到更多现代与远古生物。玩家主动提前离开安全海域仍可能遇险，不是全局幼年无敌。
+- Core shallows: world z ≥ −120 and depth ≤72. The player can enter and leave freely without a level barrier. Ordinary hunters cannot pursue, bite, or use abilities inside. Hunter patrol positions and body edges stay beyond z = −145, leaving a buffer. HUD and radar display the Chinese label for “Safe Shallows”; leaving suggests exploring after 4 meters, and returning disengages combat.
+- Outer reef: approximately z = −145 to −350, with exactly one hammerhead and one white shark, each with a fixed separate patrol range. Players can avoid or challenge them; ordinary hunters do not continuously replenish into this layer.
+- Offshore and deep water: other hunters retain their reference depth ranges and begin horizontally at z ≤ −370. More modern and ancient animals appear along the slope. Leaving safety early can still be dangerous; this is not global juvenile invulnerability.
 
-根因不只是初始位置：旧白鲨追击条件允许浅水玩家触发，追击时又放宽深度限制，巡游和近距补位均没有浅滩边界。本轮在生成、复活、远距补位、追击、技能、接触伤害和实际运动后统一执行领地约束；稳定的物种内序号区分两只外礁挑战与其余外海个体。边界前提前转向，末端约束用于防止突进跨界。
+The cause was more than initial placement. Old white-shark pursuit allowed shallow targets and relaxed depth constraints during pursuit; patrol and nearby replenishment had no nursery boundary. This round enforces territory constraints consistently on spawn, respawn, distant replenishment, pursuit, abilities, contact damage, and after actual movement. Stable within-species indices distinguish the two outer-reef challenges from offshore individuals. Hunters turn before boundaries; final constraints prevent bursts from crossing them.
 
-## 更容易发现和吃到的鱼群
+## Easier-to-find and easier-to-catch schools
 
-珊瑚鱼24→48、沙丁鱼16→32，六类小鱼合计96→136，总普通生物175→215，物种仍为21类。新增群落沿出生水层、前方与两侧组成可回游的浅滩环，而不是把食物一路铺向深海。
+Coral fish increase 24→48 and sardines 16→32. The six small-fish groups total 96→136; ordinary population rises 175→215, still across 21 species. Added schools form a revisitable nursery loop at spawn depth, ahead and to either side, rather than laying a food trail into deep water.
 
-小鱼队形收紧，幼年在安全区附近的小鱼更晚逃离、速度较低、纵向游动幅度更小，接触捕食范围适度增加0.25游戏米。玩家真正游过鱼群即可获得连续捕食反馈，不自动赠送成长或隔空结算。4.5米后恢复普通捕食手感；体型越大，微小猎物收益依旧衰减，促使继续探索。
+Small-fish formations tighten. Near juveniles in the safe area, small fish flee later, move more slowly, and vary less vertically. Contact-feeding range increases moderately by 0.25 game meters. Actually swimming through a school can produce repeated feeding feedback, without free growth or remote feeding. Normal handling resumes after 4.5 meters. Tiny-prey returns still diminish with player size to encourage exploration.
 
-## 验证
+## Verification
 
-新增边界、外礁数量、合法水层、补位、碰撞约束与真实开局捕食验收，记录见 [验证记录](verification.md)。参考事件模型17:52并未模拟寻路和鱼群刷新，不能当作自然整局时长；真实手机手感与完整整局仍需继续试玩。
+Added acceptance covers boundaries, outer-reef counts, legal depths, replenishment, collision constraints, and actual opening feeding. See [verification](verification.md). The 17:52 reference event model does not simulate pathfinding or school respawn and is not a natural full-round duration. Real-phone handling and complete rounds still need playtesting.
 
-## 同轮追加反馈
+## Additional feedback in the same round
 
-用户在本轮验收前追加：重做游泳者与潜水员，区分捕食人与鱼的声音，核对虎鲸水面仰角，放大桌面声呐及操作提示。仍合并到本轮候选，不另行提交或推送。
+Before acceptance, the user also requested swimmer/diver remodeling, separate human/fish feeding sounds, checking orca surface pitch, and larger desktop sonar/control hints. These remain part of this candidate, without another commit or push.
 
-- 人物保持原1.9米游泳者、2.4米带装备潜水员尺度、既有接触与营养规则；替换旧球形躯干/单段四肢，改为成人比例、连续四肢与关节游泳动作。图鉴和实际场景继续使用相同模型入口。
-- 鱼类吞食使用短湿咬合、水流和气泡；成年人使用短促元音惊呼与水花，都是原创程序合成，不含真人录音。成功捕食时触发一次对应音效，原收拢吞食与延迟血雾保留。密集鱼群限制声部叠加，静音、暂停与重开继续走统一音频路径。
-- 水面仰角保持85°上限：真实W上浮到水线后，中心位置不继续升高，水面按空格也无法起飞；S可正常转向下潜。虎鲸确有接近垂直探头观察的spyhop行为，参考[NOAA虎鲸资料](https://www.fisheries.noaa.gov/species/killer-whale)。游戏持续保持姿态是自由操控设计，并非宣称现实动物会无限维持；不恢复自动回平。
-- 桌面声呐按钮11→16px，键位9→14px、破水9→14px、普通通知12→15px；提高背景对比与键位层级，主动/冷却文字保持可辨。覆盖限定桌面输入条件，手机原生存条与触控布局保留。320×568压力检查发现领主、追击、墨云及长通知同时出现时挤到摇杆，因此短竖屏在领主和墨云同时显示时临时收起普通通知，优先保留行动警报；任一结束后恢复。
+- Humans retain 1.9-meter swimmer and 2.4-meter equipped-diver scale, contact, and nutrition. Replace spherical torsos/single-segment limbs with adult proportions, continuous limbs, and articulated swimming. Guide and live scene continue to use the same model entry point.
+- Fish feeding uses a short wet bite, water flow, and bubbles. Adults use a short vowel-like cry and splash. Both are original procedural synthesis, without human recordings. Successful feeding triggers the appropriate cue once; prey gathering and delayed blood remain. Dense-school voice limits, mute, pause, and restart use the unified audio path.
+- Surface pitch retains the 85° limit in this historical decision: actual W input reaches the waterline without raising the center further, Space at the surface cannot launch, and S turns into a dive normally. Orcas do perform near-vertical spyhopping; see [NOAA's orca profile](https://www.fisheries.noaa.gov/species/killer-whale). Holding this pose indefinitely is a free-control game choice, not a real-animal claim. Automatic leveling is not restored.
+- Desktop sonar text grows 11→16px, key hints 9→14px, breach hints 9→14px, and ordinary notifications 12→15px. Improve background contrast and key hierarchy while keeping active/cooldown text readable. Changes target desktop input conditions; phone survival bars and touch layout remain. A 320×568 stress check found simultaneous lord/chase/ink/long notifications overlapping the joystick. Short portrait screens therefore temporarily hide ordinary notifications when both lord and ink panels are visible, preserving action warnings; notifications return when either ends.
 
-模型、声音和布局的最终验收结果见同日[验证记录](verification.md)；实际设备听感与自然整局不以离线音频或布景截图代替。
+Final model, sound, and layout results are in that day's [verification](verification.md). Offline audio and staged screenshots do not replace real-device listening or a natural full round.

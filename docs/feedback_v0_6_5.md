@@ -1,31 +1,31 @@
-# v0.6.5 · 巨兽重绘、回声定位与捕食体验
+# v0.6.5 Giant-creature redraw, Echolocation, and feeding
 
-本轮接续未提交的v0.6.4，处理五项试玩反馈。没有新增提交或推送，正式GitHub Pages仍为v0.5.1，当前修改通过临时预览供review。
+This round follows uncommitted v0.6.4 and addresses five playtest requests. No new commit or push; official GitHub Pages remains v0.5.1. Changes are reviewed through a temporary preview.
 
-## 声音与称呼
+## Audio and naming
 
-成年人被捕食时的人声由0.72秒延长至1.30秒，加入上扬、嘶哑、颤抖和没水收尾；配乐短暂压低以突出事件，不靠提高总音量制造刺耳感。鱼类原有湿咬合音保持。声音仍为原创程序合成，不是真人录音；同时最多一条人声与三条吞食声，静音、暂停及重开会正确抑制或清理。
+Adult feeding voices extend from 0.72 to 1.30 seconds, adding an upward cry, rasp, trembling, and a submerged finish. Music briefly ducks to emphasize the event instead of raising overall volume harshly. Existing wet fish-bite audio remains. Voices are still original procedural synthesis, not human recordings. At most one human voice and three feeding sounds play concurrently; mute, pause, and restart suppress or clean them correctly.
 
-图鉴分类和当前说明中的“稀有领主”统一改为“深渊领主”。内部kind、随机生成和战斗门槛保持，未增加出现频率。
+Guide categories and current descriptions rename Rare Lords to **Abyss Lords**. Internal kinds, random spawning, and combat thresholds remain, without increased appearance frequency.
 
-## 六种远古巨兽与四位深渊领主
+## Six Ancient Giants and four Abyss Lords
 
-六种远古生物通过 `creature_ancient.js` 重建：邓氏鱼有分层骨甲及剪刃骨板，上龙突出宽厚巨颌，蛇颈龙有细长颈及四枚鳍肢，沧龙采用长吻和鳞皮，龙王鲸有修长躯干及小后肢，巨齿鲨突出宽头、粗壮身体和牙列。外形用来区分游戏中的生物，不作为古生物学精确复原。
+`creature_ancient.js` rebuilds six ancient animals: layered armor and shearing bone plates for Dunkleosteus; massive broad jaws for pliosaur; a slender long neck and four flippers for plesiosaur; long snout and scaled skin for mosasaur; elongated body and small hindlimbs for Basilosaurus; and a broad head, stocky body, and tooth rows for megalodon. These distinguish in-game animals, not precise paleontological reconstructions.
 
-四位领主通过 `creature_lords.js` 重建：克拉肯的粗腕吸盘、玛雅巨兽的玉金甲片、海德拉的三条独立长颈，以及利维坦的头冠与深蓝鳞甲。图鉴和海洋使用同一套模型与动作，保留既有体长、移动、技能及侧翼多次攻击规则。
+`creature_lords.js` rebuilds the four lords: thick sucker-lined Kraken arms, jade-and-gold armor on the Maya-inspired monster, three independent long Hydra necks, and Leviathan's head crest and dark-blue scales. Guide and ocean share models and animation, retaining lengths, movement, abilities, and repeated flank attacks.
 
-模型共享几何/材质、动画实例独立；没有额外的场景灯光或动画循环。实际截图用于检查头脸、颌腔、鳍肢、触腕和不同角度下的辨识度，而不只依据几何数量验收。
+Models share geometry/materials and keep animation instances independent. No extra scene lights or animation loops are added. Actual screenshots assess faces, jaw cavities, fins, arms, and recognition from different angles rather than accepting geometry counts alone.
 
-## 虎鲸声呐
+## Orca sonar
 
-回声定位由10秒延长为 **20秒**；冷却仍从释放时计算 **60秒**，因此效果结束后还需约40秒才能再次使用。暂停冻结计时，重复按键不能刷新时长。继续只在前方一定角度显示探测标记，雷达保留全周回声，不恢复满屏360度标签。
+Echolocation extends from 10 to **20 seconds**. Cooldown remains **60 seconds from activation**, leaving roughly 40 seconds after the effect ends. Pause freezes time; repeated input cannot refresh duration. Detection labels remain forward-angle-limited, with full surrounding radar echoes; 360-degree screen clutter is not restored.
 
-大王乌贼的技能不变：10秒迷失、前1.5秒喷射、60秒冷却。`character_rules.js` 为持续时间的唯一配置源，首页角色说明、图鉴、桌面/触屏状态及实际声呐从同一值读取。
+Giant Squid retains 10-second disorientation, a 1.5-second initial jet, and 60-second cooldown. `character_rules.js` is the sole duration source for home descriptions, guide, desktop/touch states, and actual sonar.
 
-## 近身捕食
+## Close-range feeding
 
-普通鱼的嘴部触发半径增加约 **24%**，额外增加量最多 **0.65游戏米**。目的是容忍贴近鱼群时稍偏的接触，随着角色长大不会继续同比例扩大成远距离吞食。
+Ordinary-fish mouth trigger radius increases by about **24%**, with the extra amount capped at **0.65 game meters**. This tolerates slightly offset contact near schools without scaling into long-range feeding as the player grows.
 
-仍须满足可捕食体长、嘴部接近和地形无遮挡。没有改变鱼的正常逃逸AI、人物碰撞范围、敌方伤害范围，或领主必须侧翼接近和多次攻击的规则。
+Length eligibility, mouth proximity, and unobstructed terrain are still required. Normal fish escape AI, human collision range, enemy damage range, and lord flank/repeated-attack rules do not change.
 
-验收结果与边界见 [验证记录](verification.md)。
+See [verification](verification.md) for results and boundaries.
