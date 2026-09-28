@@ -1,6 +1,6 @@
 # Depth and food-chain balance
 
-Status: working candidate after published v0.6.12 (`73574d6`), not committed or released. This includes the earlier reduction to 18 random rewards plus three starters. The player requested forgiving juvenile shallows and a food chain that encourages progressively deeper exploration.
+Status: released in v0.6.13 (`53150df`), following the v0.6.12 baseline (`73574d6`). This includes the earlier reduction to 18 random rewards plus three starters. The player requested forgiving juvenile shallows and a food chain that encourages progressively deeper exploration. The comparison tables retain the earlier baseline and intermediate candidate counts.
 
 ## Survival costs
 
@@ -25,32 +25,32 @@ Stamina still drains at 14 per second while sprinting and recovers at 19 when re
 
 Small-fish rewards already diminish strongly relative to the player's length. At 25 m, a coral fish restores approximately 0.033 hunger, a sunfish 1.382, a mosasaur 56, and a megalodon 70. That makes larger prey much more valuable without a second nutrition rule or forced relocation timer. The nursery remains a refuge, including the existing renewable Vitality Supply; this design encourages deeper progression rather than guaranteeing that a player who stays shallow must die.
 
-The same 24 ordinary species now have 285 individuals, up from the published 235. After the first 252-creature candidate still felt sparse during playtesting, a modest follow-up added 33 individuals (13.1%) across juvenile, medium, and deep-water food stages:
+The same 24 ordinary species now have 285 individuals, up from 235 in v0.6.12. After the first 252-creature candidate still felt sparse during playtesting, a modest follow-up added 33 individuals (13.1%) across juvenile, medium, and deep-water food stages:
 
-| Species                   | Published | First candidate | Current candidate |
-| ------------------------- | --------- | --------------- | ----------------- |
-| Coral fish                | 48        | 48              | 60                |
-| Green humphead parrotfish | 8         | 8               | 12                |
-| Ocean sunfish             | 6         | 8               | 10                |
-| Tuna                      | 18        | 24              | 30                |
-| Ray                       | 8         | 10              | 12                |
-| Giant Pacific Octopus     | 5         | 6               | 7                 |
-| Dunkleosteus              | 3         | 4               | 5                 |
-| Pliosaur                  | 3         | 4               | 5                 |
-| Plesiosaur                | 3         | 4               | 5                 |
-| Mosasaur                  | 3         | 4               | 5                 |
-| Basilosaurus              | 2         | 3               | 4                 |
-| Megalodon                 | 2         | 3               | 4                 |
+| Species                   | v0.6.12 | First candidate | v0.6.13 |
+| ------------------------- | ------- | --------------- | ------- |
+| Coral fish                | 48      | 48              | 60      |
+| Green humphead parrotfish | 8       | 8               | 12      |
+| Ocean sunfish             | 6       | 8               | 10      |
+| Tuna                      | 18      | 24              | 30      |
+| Ray                       | 8       | 10              | 12      |
+| Giant Pacific Octopus     | 5       | 6               | 7       |
+| Dunkleosteus              | 3       | 4               | 5       |
+| Pliosaur                  | 3       | 4               | 5       |
+| Plesiosaur                | 3       | 4               | 5       |
+| Mosasaur                  | 3       | 4               | 5       |
+| Basilosaurus              | 2       | 3               | 4       |
+| Megalodon                 | 2       | 3               | 4       |
 
 Other populations, modern animal sizes, and species-wide depth ranges are unchanged. No additional nursery hunters are introduced. One hammerhead and one great white remain the only outer-reef challengers; other predators remain offshore. The safe nursery starts with 182 creatures, including two sunfish near its edge that become edible after growing beyond 3 m.
 
-| Displayed depth | Published legal starts | First candidate | Current candidate |
-| --------------- | ---------------------- | --------------- | ----------------- |
-| 0–360 m         | 199                    | 201             | 226               |
-| 360–660 m       | 10                     | 19              | 21                |
-| 660–1000 m      | 6                      | 6               | 7                 |
-| 1000–2000 m     | 17                     | 23              | 27                |
-| Below 2000 m    | 3                      | 3               | 4                 |
+| Displayed depth | v0.6.12 legal starts | First candidate | v0.6.13 |
+| --------------- | -------------------- | --------------- | ------- |
+| 0–360 m         | 199                  | 201             | 226     |
+| 360–660 m       | 10                   | 19              | 21      |
+| 660–1000 m      | 6                    | 6               | 7       |
+| 1000–2000 m     | 17                   | 23              | 27      |
+| Below 2000 m    | 3                    | 3               | 4       |
 
 The follow-up adds separate coral-fish and parrotfish schools on opposite sides of the nursery and inserts an extra sunfish, tuna, and ray school between existing centers. Schools are not stacked at their old anchors. These are initial placement counts validated against the actual seabed and colliders, not uniform encounter probabilities. Sunfish, tuna, and rays each retain their original group's depth band (anchor ±72 displayed meters, clipped to species limits) during migration, evasion, and respawn. Their movement cannot gradually pull deeper schools into the nursery. Ancient placements cover 12–92% of each existing depth range instead of 12–80%, bringing the deepest large prey to about 2461 m. The deepest lord territory remains a limited excursion with a return trip to feeding water, not an endless buffet.
 

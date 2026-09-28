@@ -58,3 +58,44 @@ test("launch camera is independent of frame rate and does not advance at zero dt
   assert.ok(frozen.equals(coarse.camera.position));
   assert.ok(fine.camera.position.distanceTo(fine.avatar.position) > 7);
 });
+
+test("launch turns directly toward the follow view without an outward detour", () => {
+  const state = fixture();
+  const yaw = () =>
+    Math.atan2(
+      state.camera.position.x - state.avatar.position.x,
+      state.camera.position.z - state.avatar.position.z,
+    );
+  const initialYaw = yaw();
+  const transition = createLaunchTransition(state);
+  let previousYaw = initialYaw;
+  // 当前首页在追尾机位右侧；过渡应持续靠近正后方，不先向外转再折返。
+  for (let frame = 0; frame < 120; frame++) {
+    transition.advance(1 / 60);
+    const currentYaw = yaw();
+    assert.ok(currentYaw >= -1e-8, "Camera passed the follow heading");
+    assert.ok(
+      currentYaw <= previousYaw + 1e-8,
+      "Camera turned away from the follow heading",
+    );
+    previousYaw = currentYaw;
+  }
+  assert.ok(Math.abs(previousYaw) < 1e-8);
+});
+
+test("matching menu and follow headings do not introduce a decorative orbit", () => {
+  const state = fixture();
+  state.camera.position
+    .copy(state.cameraPosition)
+    .sub(state.destination)
+    .add(state.avatar.position);
+  const transition = createLaunchTransition(state);
+  for (let frame = 0; frame < 120; frame++) {
+    transition.advance(1 / 60);
+    assert.ok(
+      Math.abs(state.camera.position.x - state.avatar.position.x) < 1e-8,
+      "An aligned camera should stay on the follow heading",
+    );
+    assert.ok(state.camera.position.z > state.avatar.position.z);
+  }
+});

@@ -1,5 +1,13 @@
 # Current Development Handoff
 
+## Concurrent-edit audit: retain the reviewed v0.6.13 behavior
+
+The user requested an impact review and authorized reverting unsafe changes after another agent independently edited and committed the shared checkout. Review retained `3addf3e` and `53150df`: they contain the requested survival, reward, ecology, and menu work, and a whole-commit revert would remove accepted functionality. The later, uncommitted picker/camera follow-up was preserved as a local patch and removed. Runtime source is restored to `53150df`, including unavailable-region entries, pointer/keyboard focus handling, and the 1.65-second direct launch arc.
+
+The discarded camera change introduced an outward swing and reversal rather than fixing a missing transition. The actual menu fixture moved about 128 degrees in total instead of the published 28-degree direct path. Two regression tests now reject turning away from the follow view and inventing an orbit when headings already match. The proposal to hide unavailable regions also exceeded the earlier request about hint text and native option styling. The withdrawn candidate records are superseded by this audit, not new user decisions. See [verification](docs/verification.md) for checks, preserved evidence, and limits.
+
+The audit updates tests and development records without changing the published game version. Only the integration owner may commit or push a shared checkout; parallel work must follow the ownership rule in AGENTS.md. This task authorizes a local audit commit, not a new public release.
+
 ## Current release: v0.6.13 — survival progression and expedition selection
 
 The user accepted the accumulated candidate and requested submission to `main` on 2026-09-28. This release includes the reward-density reduction, size/depth hunger and lord-bite food, the 285-creature feeding ecosystem, and the custom region/character selection panels. Package metadata, the menu footer, and both languages identify v0.6.13. The sections immediately below describe the included changes; older verification entries preserve their status at the time. No tag or GitHub Release is requested.
