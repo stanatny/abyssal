@@ -8,6 +8,19 @@ Before adding or redrawing fish, playable characters, people, ships, environment
 
 Deliver models, animation, gameplay contact points, audio, and effects as a coherent whole. Inspect actual rendering and real triggers; passing automated tests does not establish visual or listening quality. Content below the standard may exist only in an explicitly labeled development prototype and must not be merged or released as a finished new category. Lowering the standard requires the user's explicit agreement. Continue normal implementation and verification within the authorized task without requesting approval for each production step.
 
+## Rule and content synchronization
+
+Whenever a gameplay rule changes or an element is added, renamed, or removed, check the affected surfaces below before delivery. Update only relevant surfaces and use focused verification; this checklist does not require every historical test for every change.
+
+- Keep gameplay values in their existing shared configuration or rule helpers. Make durations, limits, eligibility, and displayed values agree; remove abandoned branches, state, and duplicate constants when a design is simplified.
+- Update both `en` and `zh-CN`, including static text, dynamic messages, canvas/world labels, and localized search terms. Check language switching and interpolation; an English fallback is not a completed translation.
+- Synchronize the Ocean Guide: categories, cards, descriptions, statistics, abilities, reward effects, survival tips, search, and model previews must describe the implemented behavior.
+- Check affected menus, control hints, settings, HUD labels, buff timers, cooldowns, notifications, radar, and results. A changed rule must remain consistent wherever the player encounters it.
+- Verify content wiring where relevant: selection, region/depth distribution, spawn frequency, size, behavior, collision/contact points, rewards, sound, and visual triggers. An entry in the guide alone does not make a new element playable or discoverable.
+- Update README, the current HANDOFF section, and relevant decision or reference documents. Distinguish current rules from published behavior; label superseded historical decisions instead of silently rewriting their evidence.
+- Adjust affected unit tests and browser scripts, including their expected copy and values. Check both languages and narrow layouts when presentation changes; check pause, expiry, restart, and resource cleanup when state or effects change. Record actual checks and remaining limits under the existing verification policy.
+- Search source, locales, current documentation, and verification scripts for obsolete names, numbers, and behavior claims. When delivering a preview, rebuild affected artifacts and verify that the served build contains the change; identify the candidate and published versions accurately.
+
 ## Implementation and delivery
 
 - Write project documentation, README files, development rules, and project Skill instructions in English. Player-facing game content must support both `en` and `zh-CN`; put new copy in the localization dictionaries, and check English text length and narrow-screen layouts. Keep code comments in Chinese, and logs and error messages in English. Use lowercase names with underscores for new files. Follow the project's Prettier formatting for JavaScript and documentation.

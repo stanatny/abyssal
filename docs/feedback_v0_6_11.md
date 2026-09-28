@@ -1,6 +1,6 @@
 # Vacation shoreline, contact mines, and suction-only Frenzy
 
-Date: 2026-09-28. Baseline: published `4a3aa8a` / v0.6.10. This working candidate is not committed or published.
+Date: 2026-09-28. Baseline: published `4a3aa8a` / v0.6.10. This record describes the candidate at verification time. It was later committed as `d6ad183` and included in the v0.6.12 release. The [reward follow-up](feedback_v0_6_12.md) supersedes its 30-second duration and initial suction range.
 
 ## Final decisions
 

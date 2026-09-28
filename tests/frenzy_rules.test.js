@@ -18,20 +18,20 @@ function createAtLength(length) {
   return player;
 }
 
-test("狂食只开启30秒吸食，重复拾取不改变体型或玩家收益", () => {
-  assert.equal(REWARDS.frenzy.duration, 30);
+test("狂食只开启20秒吸食，重复拾取不改变体型或玩家收益", () => {
+  assert.equal(REWARDS.frenzy.duration, 20);
   for (const characterId of ["orca", "squid"]) {
     const player = createPlayer(characterId);
     const before = structuredClone(player);
     for (let index = 0; index < 5; index += 1) collectPickup(player, "frenzy");
-    before.buffs.frenzy = 30;
+    before.buffs.frenzy = 20;
     assert.deepEqual(player, before);
     assert.equal(Object.hasOwn(player, "pendingGrowth"), false);
     assert.equal(Object.hasOwn(player.lastMeal, "storedGrowth"), false);
     tickVitals(player, 4);
     const beforeRefresh = structuredClone(player);
     collectPickup(player, "frenzy");
-    beforeRefresh.buffs.frenzy = 30;
+    beforeRefresh.buffs.frenzy = 20;
     assert.deepEqual(player, beforeRefresh);
   }
 });
@@ -65,7 +65,8 @@ test("狂食前、中、后的普通进食保持同样的即时成长与治疗",
     const active = structuredClone(ordinary);
     const expired = structuredClone(ordinary);
     collectPickup(expired, "frenzy");
-    for (const player of [ordinary, active, expired]) tickVitals(player, 30);
+    for (const player of [ordinary, active, expired])
+      tickVitals(player, REWARDS.frenzy.duration);
     collectPickup(active, "frenzy");
     const massBefore = ordinary.mass;
     for (const player of [ordinary, active, expired]) {
@@ -91,7 +92,7 @@ test("狂食结束保留正常进食成果，继续等待不会自动增加体�
   );
   const mass = player.mass;
   const length = player.length;
-  tickVitals(player, 29.9);
+  tickVitals(player, 19.9);
   assert.ok(player.buffs.frenzy > 0);
   assert.equal(player.mass, mass);
   assert.equal(player.length, length);

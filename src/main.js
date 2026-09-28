@@ -30,10 +30,6 @@ import {
 import { createFrenzyEffect } from "./frenzy_effect.js";
 import { WORLD } from "./world_config.js";
 import { createReward, REWARDS } from "./rewards.js";
-import {
-  NURSERY_FRENZY_PICKUP,
-  nurseryFrenzyPosition,
-} from "./pickup_placement.js";
 import { createSurface } from "./surface.js";
 import { createEncounters } from "./encounters.js";
 import { createCombatEffects } from "./combat_effects.js";
@@ -655,50 +651,31 @@ function seedPopulation() {
   }
 }
 function seedPickups() {
-  const nurseryPoint = nurseryFrenzyPosition(expedition.region.id);
-  if (pickups.length) {
-    for (const item of pickups) {
-      // 固定奖励重开恢复完整锚点，不保留上一局的漂浮高度。
-      if (item.id === NURSERY_FRENZY_PICKUP.id && nurseryPoint) {
-        item.mesh.position.copy(nurseryPoint);
-        item.baseY = nurseryPoint.y;
-      }
-      item.cooldown = 0;
-      item.mesh.visible = true;
-    }
-    return;
-  }
   for (let i = 0; i < 34; i++) {
-    const kind = ["stamina", "flow", "frenzy"][i % 3],
-      mesh = createReward(kind);
+    let item = pickups[i];
+    if (!item) {
+      const kind = ["stamina", "flow", "frenzy"][i % 3];
+      item = { kind, mesh: createReward(kind), baseY: 0, cooldown: 0 };
+      scene.add(item.mesh);
+      pickups.push(item);
+    }
+    // 浅滩各保留一枚入门奖励，其余每局随机；重开复用原有模型。
     const point =
       i < 3
         ? new THREE.Vector3((i - 1) * 13, -19 - i * 5, 40 - i * 28)
         : spawnPosition(
             { depthMin: 20, depthMax: 710, length: 2 },
             false,
-            // 奖励没有物种栖息锚点，独立随机分布，避免共用默认点而堆在一处。
             new THREE.Vector3(
               random(WORLD.minX + 18, WORLD.maxX - 18),
               -random(20, 710),
               random(WORLD.minZ + 18, WORLD.maxZ - 18),
             ),
           );
-    mesh.position.copy(point);
-    scene.add(mesh);
-    pickups.push({ kind, mesh, baseY: point.y, cooldown: 0 });
-  }
-  if (nurseryPoint) {
-    const mesh = createReward(NURSERY_FRENZY_PICKUP.kind);
-    mesh.position.copy(nurseryPoint);
-    scene.add(mesh);
-    pickups.push({
-      id: NURSERY_FRENZY_PICKUP.id,
-      kind: NURSERY_FRENZY_PICKUP.kind,
-      mesh,
-      baseY: nurseryPoint.y,
-      cooldown: 0,
-    });
+    item.mesh.position.copy(point);
+    item.baseY = point.y;
+    item.cooldown = 0;
+    item.mesh.visible = true;
   }
 }
 let currentNotification = "";
@@ -1134,7 +1111,13 @@ function eatEntity(entity, mouth, previousPrey = entity.mesh.position, dt = 0) {
   // 狂食吸引仅作用于水下可食普通生物，先筛距离，再检查遮挡。
   if (activeFrenzy) {
     const distance = mouth.distanceTo(mesh.position);
-    const pull = frenzyPullDistance(distance, biteRange, player.length, dt);
+    const pull = frenzyPullDistance(
+      distance,
+      biteRange,
+      player.length,
+      dt,
+      speed,
+    );
     if (pull > 0 && !blockedBetween(mouth, mesh.position))
       mesh.position.lerp(mouth, pull / distance);
   }

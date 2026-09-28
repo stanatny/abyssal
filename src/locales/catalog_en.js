@@ -365,15 +365,16 @@ export const CATALOG_EN = Object.freeze({
   "{0}—{1} m（本作水层）": "{0}–{1} m (in-game depth layer)",
   "{0}—{1} m（幻想领地）": "{0}–{1} m (fantasy territory)",
   即时恢复: "Instant Recovery",
-  "恢复 补充 回满 体力": "recover replenish refill stamina",
-  "触碰后立即回满体力，并解除体力耗尽后的疲惫状态。它恢复的是体力；生命仍需要通过进食恢复。":
-    "Touch to refill stamina immediately and clear exhaustion. It restores stamina; health still requires feeding.",
-  "在体力接近耗尽时拾取，能迅速恢复逃脱和追捕的能力。体力充足时可先记住位置。":
-    "Collect it when stamina is nearly exhausted to quickly regain the ability to escape or pursue. If stamina is full, remember its location for later.",
+  "医疗 恢复 补充 生命 体力 饥饿":
+    "medical recover replenish health stamina hunger",
+  "触碰后立即恢复50点生命、50点体力和50点饥饿值，各项最多恢复至100，并解除体力耗尽后的疲惫状态。":
+    "Touch to restore 50 health, 50 stamina, and 50 hunger immediately, each capped at 100, and clear exhaustion.",
+  "受伤、疲惫或饥饿时拾取，能同时补充三项生存状态。生命、体力和饥饿都充足时，可记住位置留待需要时再来。":
+    "Collect it when hurt, tired, or hungry to replenish all three vitals. If health, stamina, and hunger are full, remember its location for later.",
   超级加速: "Super Sprint",
   "超级加速 冲刺 洋流": "super sprint current",
-  "拾取后的{0}秒内，冲刺不会消耗体力。仍需按住冲刺键或触屏冲刺按钮，适合持续追捕或快速穿越危险海域。重复拾取同类奖励会刷新为{1}秒，不累加时长。":
-    "For {0} seconds after pickup, sprinting costs no stamina. You still need to hold the sprint key or touch button, making it useful for sustained pursuit or crossing dangerous waters quickly. Another pickup refreshes the duration to {1} seconds; durations do not stack.",
+  "拾取后立即回满体力并解除疲惫，之后{0}秒内冲刺不消耗体力。仍需按住冲刺键或触屏冲刺按钮，适合持续追捕或快速穿越危险海域。重复拾取会再次回满体力，并将效果刷新为{1}秒，不累加时长。":
+    "Pickup immediately refills stamina and clears exhaustion, then sprinting costs no stamina for {0} seconds. Hold the sprint key or touch button to pursue or cross dangerous waters quickly. Another pickup refills stamina again and refreshes the effect to {1} seconds; durations do not stack.",
   "被猎手追击时利用这段时间转向、绕开礁石并拉开距离。领主有特殊技能，不宜只靠直线冲刺逃脱。":
     "During a chase, use this time to turn, avoid reefs, and create distance. Lords have special abilities, so a straight sprint alone is not a reliable escape.",
   "{0} 秒": "{0} s",
@@ -423,15 +424,17 @@ export const CATALOG_EN = Object.freeze({
   活动水层: "Depth Range",
   生存建议: "Survival Tips",
   生态注记: "Ecology Notes",
-  体力泉: "Stamina Spring",
-  "体力立即回满，解除疲惫": "Instantly refill stamina and clear exhaustion",
+  生命补给: "Vitality Supply",
+  "生命、体力、饥饿各恢复 50，最多回满":
+    "Restore 50 health, stamina, and hunger, up to full",
   洋流之息: "Ocean Current",
-  "30 秒冲刺不耗体力": "30 s of stamina-free sprinting",
+  "立即回满体力，30 秒冲刺不耗体力":
+    "Refill stamina and sprint freely for 30 s",
   深渊狂食: "Abyssal Frenzy",
   近距吸食: "Close-Range Suction",
   "吞噬 狂食 捕食 吸食 范围": "swallow frenzy feeding suction reach",
   "持续{0}秒：扩大近身吞噬范围，将附近无遮挡、原本就可捕食的水下生物吸向嘴部。不会临时变大，也不能越级捕食；吃鱼仍按正常规则回血和成长。":
     "For {0} seconds, feeding reach expands and nearby edible underwater creatures are drawn toward your mouth through clear water. It does not enlarge your body or let you eat larger creatures. Normal meals still restore health and add growth.",
-  "沿着鱼群边缘游过，吸食可以减少反复对准。浅滩固定补给45秒刷新，再次拾取只刷新30秒效果。大于或等于自己体长的生物、水雷、潜艇和领主不会被吸入；礁石与船体会阻挡吸食。领主仍需真实体长25米，并通过多次侧翼攻击击败。":
-    "Swim along a school to feed with less precise aiming. The fixed nursery pickup respawns after 45 seconds; collecting it again only refreshes the 30-second effect. Creatures at least as long as you, mines, submarines and lords cannot be pulled in; reefs and hulls block suction. Lords still require 25 real meters and repeated flank attacks.",
+  "沿着鱼群边缘游过，吸食可以减少反复对准。浅滩保留三种奖励各一枚，其余奖励每局随机分布；拾取后45秒在本局原位刷新，再次拾取狂食只刷新{0}秒效果。大于或等于自己体长的生物、水雷、潜艇和领主不会被吸入；礁石与船体会阻挡吸食。领主仍需真实体长25米，并通过多次侧翼攻击击败。":
+    "Swim along a school to feed with less precise aiming. The shallows retain one of each reward; the rest are placed randomly each round. Pickups respawn in their current-round positions after 45 seconds. Another Frenzy pickup refreshes its {0}-second effect. Creatures at least as long as you, mines, submarines, and lords cannot be pulled in; reefs and hulls block suction. Lords still require 25 real meters and repeated flank attacks.",
 });

@@ -212,15 +212,19 @@ export function takeDamage(player, amount) {
 /**
  * 收集奖励；同类限时奖励刷新剩余时间，不无限叠加。
  * @param {object} player 玩家状态，将原地更新。
- * @param {'stamina'|'flow'|'frenzy'} kind 体力补给、洋流冲刺或狂食。
+ * @param {'stamina'|'flow'|'frenzy'} kind 生命补给、洋流冲刺或狂食。
  * @returns {boolean} 是否成功收集有效奖励。
  */
 export function collectPickup(player, kind) {
   if (player.dead || player.won || player.timedOut) return false;
   if (kind === "stamina") {
-    player.stamina = 100;
+    player.health = Math.min(100, player.health + 50);
+    player.stamina = Math.min(100, player.stamina + 50);
+    player.hunger = Math.min(100, player.hunger + 50);
     player.exhausted = false;
   } else if (kind === "flow") {
+    player.stamina = 100;
+    player.exhausted = false;
     player.buffs.flow = Math.max(REWARDS.flow.duration, player.buffs.flow);
   } else if (kind === "frenzy") {
     player.buffs.frenzy = Math.max(

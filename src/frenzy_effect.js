@@ -10,8 +10,8 @@ export function createFrenzyEffect(scene) {
   root.name = "frenzy_intake";
   root.visible = false;
   scene.add(root);
-  const streams = 14,
-    segments = 16;
+  const streams = 18,
+    segments = 20;
   const positions = new Float32Array(streams * (segments + 1) * 2 * 3);
   const uv = [],
     indices = [];
@@ -45,7 +45,7 @@ export function createFrenzyEffect(scene) {
   texture.magFilter = texture.minFilter = THREE.LinearFilter;
   texture.needsUpdate = true;
   const material = new THREE.MeshBasicMaterial({
-    color: "#ffe1b1",
+    color: "#c2eeed",
     map: texture,
     transparent: true,
     opacity: 0,
@@ -76,21 +76,21 @@ export function createFrenzyEffect(scene) {
       const radius =
         preyCaptureRadius(length, 0.8, false, true) + frenzyReachBonus(length);
       root.userData.radius = radius;
-      material.opacity = intensity * 0.38;
-      const count = highQuality ? streams : 8;
+      material.opacity = intensity * 0.62;
+      const count = highQuality ? streams : 10;
       geometry.setDrawRange(0, count * segments * 6);
       for (let i = 0; i < count; i++) {
-        const phase = (time * 0.52 + i * 0.618034) % 1;
+        const phase = (time * 0.7 + i * 0.618034) % 1;
         const y = -0.85 + ((i * 0.754877) % 1) * 1.7;
         const horizontal = Math.sqrt(1 - y * y);
         for (let j = 0; j <= segments; j++) {
           const travel = THREE.MathUtils.clamp(
-            phase + (j / segments - 0.5) * 0.32,
+            phase + (j / segments - 0.5) * 0.5,
             0,
             1,
           );
           const radial = radius * (1 - travel) ** 0.78;
-          const azimuth = i * 2.399963 + travel * 1.25;
+          const azimuth = i * 2.399963 + travel * 2.2;
           direction.set(
             Math.cos(azimuth) * horizontal,
             y,
@@ -98,7 +98,8 @@ export function createFrenzyEffect(scene) {
           );
           side.crossVectors(direction, up).normalize();
           const width =
-            (0.045 + Math.min(length, 25) * 0.002) * Math.sin(travel * Math.PI);
+            (0.13 + Math.min(length, 25) * 0.006) *
+            Math.sin(travel * Math.PI) ** 0.65;
           const offset = (i * (segments + 1) + j) * 6;
           for (let edge = 0; edge < 2; edge++) {
             const sign = edge ? 1 : -1;

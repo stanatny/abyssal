@@ -1,10 +1,16 @@
 # Current Development Handoff
 
-## Current update: vacation shoreline, mines, and suction-only Frenzy
+## Current release: v0.6.12 — reward recovery and stronger suction
+
+The user authorized committing and pushing the complete update to `main` on 2026-09-28. This includes the earlier local checkpoint `d6ad183` and the reward follow-up. Package metadata and both menu languages identify v0.6.12; the existing Pages workflow deploys `main`. The latest clarification keeps one of each reward in the shallows, with 31 further random pickups; remove only the extra dedicated Frenzy point and its placement module. Restart reuses the 34 meshes and rerandomizes non-starter positions. Vitality Supply restores 50 health/stamina/hunger independently up to 100. Ocean Current immediately refills stamina and preserves its 30-second free sprint.
+
+Frenzy now lasts 20 seconds and remains suction-only, superseding the previous 30-second duration. AGENTS.md requires an impact-based synchronization check whenever rules or elements change. Its outer band is wider and pull speed compensates for current swimming speed; close-contact radius, real-size eligibility, terrain/waterline guards, and ordinary growth remain. Stronger inward water trails share the gameplay reach helper. Read [current reward decisions](docs/feedback_v0_6_12.md) and [verification](docs/verification.md). Verify the Pages workflow for the pushed commit and the public page before reporting deployment complete. Future changes require their own review and commit/push authorization.
+
+## Historical checkpoint: vacation shoreline, mines, and suction-only Frenzy
 
 Baseline: published `4a3aa8a` on `main`. The user requested a Hawaii vacation background, horned spherical contact mines, and a Frenzy redesign. They then canceled all temporary-size and digestion behavior and requested removal of redundant code. The final candidate contains only a 30-second feeding reach/suction bonus. Ordinary eligibility and permanent growth use the original real-body rules; no temporary length, reserve state, or assimilation code remains. Abyss Lords require 25 real meters with no Frenzy bypass.
 
-Read [the current decisions](docs/feedback_v0_6_11.md) and [beach visual notes](docs/beach_visual_notes.md). Scene and guide share the mine model; its internal identifier remains `torpedo`. Beach adults are scenery beyond the swim boundary. Suction follows each character's established capture point and respects terrain occlusion. The candidate remains uncommitted and unpushed; official Pages still serves the baseline. Verification and local preview evidence belong in [verification](docs/verification.md).
+Read [the current decisions](docs/feedback_v0_6_11.md) and [beach visual notes](docs/beach_visual_notes.md). Scene and guide share the mine model; its internal identifier remains `torpedo`. Beach adults are scenery beyond the swim boundary. Suction follows each character's established capture point and respects terrain occlusion. The user authorized committing this candidate as `d6ad183` on 2026-09-28 without pushing. At that checkpoint, official Pages still served `4a3aa8a`; the release above supersedes that delivery state and its original 30-second duration. Verification and local preview evidence belong in [verification](docs/verification.md).
 
 ## Published update: English public presentation
 

@@ -114,7 +114,7 @@ test("攻击无敌避免连续接触伤害，期满后可再次受伤", () => {
   assert.equal(player.health, 30);
 });
 
-test("狂食持续30秒，开始和结束都不改变只能吃小鱼的资格", () => {
+test("狂食持续20秒，开始和结束都不改变只能吃小鱼的资格", () => {
   const player = createAtLength(6);
   assert.equal(canEat(player, 5.9), true);
   assert.equal(canEat(player, 6), false);
@@ -123,7 +123,7 @@ test("狂食持续30秒，开始和结束都不改变只能吃小鱼的资格", 
   assert.equal(canEat(player, 5.9), true);
   assert.equal(canEat(player, 6), false);
   assert.equal(canEat(player, 8), false);
-  tickVitals(player, 29.9);
+  tickVitals(player, 19.9);
   assert.ok(player.buffs.frenzy > 0);
   assert.equal(canEat(player, 8), false);
   tickVitals(player, 0.11);
@@ -132,9 +132,17 @@ test("狂食持续30秒，开始和结束都不改变只能吃小鱼的资格", 
   assert.equal(canEat(player, 8), false);
 });
 
-test("洋流奖励提供30秒免费冲刺，并正确计算跨越到期时间的一帧", () => {
+test("洋流立即补满体力并提供30秒免费冲刺，到期后恢复消耗", () => {
   const player = createPlayer();
+  player.health = 40;
+  player.hunger = 60;
+  player.stamina = 10;
+  player.exhausted = true;
   collectPickup(player, "flow");
+  assert.equal(player.stamina, 100);
+  assert.equal(player.exhausted, false);
+  assert.equal(player.health, 40);
+  assert.equal(player.hunger, 60);
   tickVitals(player, 28, { boosting: true });
   assert.equal(player.stamina, 100);
   assert.equal(player.buffs.flow, 2);
@@ -144,21 +152,57 @@ test("洋流奖励提供30秒免费冲刺，并正确计算跨越到期时间的
   player.stamina = 0;
   player.exhausted = true;
   collectPickup(player, "flow");
+  assert.equal(player.stamina, 100);
+  assert.equal(player.exhausted, false);
+  assert.equal(player.buffs.flow, 30);
   assert.equal(tickVitals(player, 1, { boosting: true }).boosting, true);
 });
 
-test("同类奖励刷新而非叠加，体力奖励立即解除疲惫", () => {
+test("同类奖励刷新而非叠加，生命补给恢复体力后立即解除疲惫", () => {
   const player = createPlayer();
   player.stamina = 0;
   player.exhausted = true;
   assert.equal(collectPickup(player, "stamina"), true);
-  assert.equal(player.stamina, 100);
+  assert.equal(player.stamina, 50);
   assert.equal(player.exhausted, false);
   collectPickup(player, "frenzy");
   tickVitals(player, 3);
   collectPickup(player, "frenzy");
-  assert.equal(player.buffs.frenzy, 30);
+  assert.equal(player.buffs.frenzy, 20);
   assert.equal(collectPickup(player, "unknown"), false);
+});
+
+test("两种角色的生命补给各加50并独立封顶，不产生额外成长或改变限时技能", () => {
+  for (const character of ["orca", "squid"]) {
+    for (const [before, expected] of [
+      [
+        [1, 0, 10],
+        [51, 50, 60],
+      ],
+      [
+        [50, 65, 90],
+        [100, 100, 100],
+      ],
+      [
+        [100, 100, 100],
+        [100, 100, 100],
+      ],
+    ]) {
+      const player = createPlayer(character);
+      [player.health, player.stamina, player.hunger] = before;
+      player.buffs = { frenzy: 12, flow: 8 };
+      const initial = structuredClone(player);
+      assert.equal(collectPickup(player, "stamina"), true);
+      assert.deepEqual(
+        [player.health, player.stamina, player.hunger],
+        expected,
+      );
+      assert.equal(player.length, initial.length);
+      assert.equal(player.mass, initial.mass);
+      assert.deepEqual(player.buffs, initial.buffs);
+      assert.deepEqual(player.lastMeal, initial.lastMeal);
+    }
+  }
 });
 
 test("吞食增长符合体积规律，过小猎物的营养与成长显著递减", () => {

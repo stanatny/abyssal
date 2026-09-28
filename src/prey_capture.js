@@ -29,7 +29,7 @@ export function preyCaptureRadius(
 /** 根据真实体长返回狂食接触区外的吸引宽度；不影响领主、伤害与刚体碰撞。 */
 export function frenzyReachBonus(playerLength) {
   return Number.isFinite(playerLength) && playerLength > 0
-    ? Math.min(5, 2 + playerLength * 0.12)
+    ? Math.min(10, 5 + playerLength * 0.16)
     : 0;
 }
 
@@ -39,11 +39,20 @@ export function frenzyReachBonus(playerLength) {
  * @param {number} captureRadius 当前普通猎物接触半径。
  * @param {number} playerLength 真实玩家体长。
  * @param {number} dt 本帧活动秒数。
+ * @param {number} swimSpeed 玩家当前游速，用于补偿捕获点随玩家远离猎物的运动。
  * @returns {number} 沿嘴部方向的移动距离，不会越过中心。
  */
-export function frenzyPullDistance(distance, captureRadius, playerLength, dt) {
+export function frenzyPullDistance(
+  distance,
+  captureRadius,
+  playerLength,
+  dt,
+  swimSpeed = 0,
+) {
   if (
-    ![distance, captureRadius, playerLength, dt].every(Number.isFinite) ||
+    ![distance, captureRadius, playerLength, dt, swimSpeed].every(
+      Number.isFinite,
+    ) ||
     distance <= captureRadius ||
     captureRadius <= 0 ||
     playerLength <= 0 ||
@@ -53,8 +62,12 @@ export function frenzyPullDistance(distance, captureRadius, playerLength, dt) {
   const reach = frenzyReachBonus(playerLength);
   const weight = (captureRadius + reach - distance) / reach;
   if (weight <= 0) return 0;
+  // 玩家冲刺时捕获点也在快速移动，吸力需补偿位移，尤其是乌贼尾随的腕部。
   const speed =
-    12 + Math.min(12, playerLength * 0.6) + 10 * Math.min(1, weight);
+    Math.max(0, swimSpeed) +
+    12 +
+    Math.min(12, playerLength * 0.6) +
+    10 * Math.min(1, weight);
   return Math.min(distance, speed * Math.min(dt, 0.1));
 }
 

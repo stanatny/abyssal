@@ -4,9 +4,9 @@ A third-person ocean survival game for the browser. Choose an Orca or Giant Squi
 
 **[Play the published game](https://stanatny.github.io/abyssal/)** · [GitHub repository](https://github.com/stanatny/abyssal)
 
-Published version: **v0.6.10**. GitHub Actions deploys `main` to the play URL above. This release brings together the visual redraw, nursery shallows, audio improvements, free swimming, and feeding animations for both characters.
+Version: **v0.6.12**. GitHub Actions deploys `main` to the play URL above. This update adds a vacation shoreline, spherical Contact Mines, clearer 20-second suction-only Frenzy, and revised survival rewards.
 
-Working candidate (not yet published): a vacation shoreline, spherical Contact Mines, and suction-only Frenzy. The rules below describe this candidate; see the [current update](docs/feedback_v0_6_11.md).
+The current rules below include one starter pickup of each kind, Vitality Supply restoring 50 to all three vitals, and Ocean Current immediately refilling stamina before 30 seconds of free sprint. See the [shoreline and mine update](docs/feedback_v0_6_11.md) and [latest reward changes](docs/feedback_v0_6_12.md).
 
 ![ABYSSAL v0.6.10 English interface: Hawaii fantasy region and character selection](docs/images/abyssal_v0_6_10.png)
 
@@ -76,15 +76,15 @@ This region mixes modern animals, Ancient Giants, and fantasy lords; it is not a
 
 ## Ocean rewards
 
-The guide explains rewards, and active effects appear in the HUD after pickup. Repeating a timed reward refreshes its duration rather than stacking it. A fixed Frenzy pickup sits ahead and slightly right of nursery spawn and respawns in place 45 seconds after collection.
+The guide explains rewards, and active effects appear in the HUD after pickup. Repeating a timed reward refreshes its duration rather than stacking it. The shallows retain one pickup of each type; the remaining rewards are placed randomly each round, for 34 total. Collected rewards respawn in their current-round positions after 45 seconds.
 
-| Reward         | Appearance         | Effect                                                                                                                                                                                                              |
-| -------------- | ------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Stamina Spring | Green cross        | Instantly restores full stamina and clears exhaustion.                                                                                                                                                              |
-| Ocean Current  | Blue double arrows | Sprint costs no stamina for 30 seconds.                                                                                                                                                                             |
-| Abyssal Frenzy | Orange fangs       | For 30 seconds, close-range feeding expands and nearby edible underwater prey are drawn toward your mouth. It does not enlarge your body or let you eat larger creatures; normal feeding still heals and grows you. |
+| Reward          | Appearance         | Effect                                                                                                                                                                                                              |
+| --------------- | ------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Vitality Supply | Green cross        | Immediately restores 50 health, 50 stamina, and 50 hunger, each capped at 100, and clears exhaustion.                                                                                                               |
+| Ocean Current   | Blue double arrows | Immediately refills stamina and clears exhaustion. Sprint costs no stamina for 30 seconds.                                                                                                                          |
+| Abyssal Frenzy  | Orange fangs       | For 20 seconds, close-range feeding expands and nearby edible underwater prey are drawn toward your mouth. It does not enlarge your body or let you eat larger creatures; normal feeding still heals and grows you. |
 
-Frenzy changes only capture reach and suction. It does not alter feeding eligibility, body size, or growth rewards. Rocks and hulls block suction; creatures at least as long as you, lords, submarines, and mines cannot be pulled in. Collecting it again refreshes its 30-second duration, and growth from normal meals remains after it expires.
+Frenzy changes only capture reach and suction. It does not alter feeding eligibility, body size, or growth rewards. Rocks and hulls block suction; creatures at least as long as you, lords, submarines, and mines cannot be pulled in. Collecting it again refreshes its 20-second duration, and growth from normal meals remains after it expires.
 
 ## Local development
 
@@ -114,7 +114,7 @@ Pushing to `main` runs installation, unit tests, formatting, and build through [
 
 ## Project status and next steps
 
-Published v0.6.10 consolidates early playtest feedback: redesigned home, guide, HUD, ocean environment, and creatures; safe juvenile shallows and slow prey; free pitch, surface posture, inverted controls, and a nursery reward. Humans have male/female models and performed voice recordings, with corrected freestyle strokes. Fish feeding uses three water-Foley variants. See the [visual-upgrade record](docs/visual_upgrade_v0_6.md), [nursery changes](docs/feedback_v0_6_2.md), and [audio sources](docs/audio_sources.md).
+The v0.6.10 foundation consolidated early playtest feedback: redesigned home, guide, HUD, ocean environment, and creatures; safe juvenile shallows and slow prey; free pitch, surface posture, inverted controls, and a nursery reward. Humans have male/female models and performed voice recordings, with corrected freestyle strokes. Fish feeding uses three water-Foley variants. See the [visual-upgrade record](docs/visual_upgrade_v0_6.md), [nursery changes](docs/feedback_v0_6_2.md), and [audio sources](docs/audio_sources.md).
 
 Both characters have independent cruise, sprint, turn, and feeding motion. Capture points follow visible models, and continuous contact recovers small fish crossed at high speed. Giant Squid defaults to mantle-tip-leading, arms-trailing motion, separately aligning arm-region capture and actual mouth intake. Real animals can move bidirectionally; see [v0.6.10 decisions](docs/feedback_v0_6_10.md).
 

@@ -45,7 +45,7 @@ test("虎鲸和大王乌贼的幼年体长、捕食资格和浅滩口径完全�
         preyCaptureRadius(orca.length, preyLength, learning),
       );
   }
-  orca.buffs.frenzy = squid.buffs.frenzy = 30;
+  orca.buffs.frenzy = squid.buffs.frenzy = 20;
   for (const preyLength of [3, 4.5, 4.8, 5, 6.4])
     assert.equal(canEat(squid, preyLength), canEat(orca, preyLength));
 });

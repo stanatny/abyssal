@@ -52,8 +52,11 @@ try {
       const g = window.__ABYSSAL__;
       g.entities.forEach((e) => (e.hiddenFor = 999));
       g.encounters.bosses.forEach((b) => (b.enabled = false));
-      const pickup = g.pickups.find((p) => p.id === "nursery_frenzy");
-      if (!pickup) throw new Error("Missing fixed nursery Frenzy pickup");
+      const pickup = g.pickups.find((p) => p.kind === "frenzy");
+      if (!pickup) throw new Error("Missing Frenzy pickup");
+      // 只控制验证场景的位置，奖励仍由正常主循环触碰收集。
+      pickup.mesh.position.set(180, -18, -20);
+      pickup.baseY = -18;
       g.setPosition(
         pickup.mesh.position.x,
         pickup.mesh.position.y,
@@ -61,7 +64,7 @@ try {
       );
     });
     await page.waitForFunction(
-      () => window.__ABYSSAL__.player.buffs.frenzy > 28,
+      () => window.__ABYSSAL__.player.buffs.frenzy > 18,
     );
     const pickup = await page.evaluate(() => ({
       length: window.__ABYSSAL__.player.length,

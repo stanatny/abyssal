@@ -133,7 +133,7 @@ try {
     checks.push(
       `${viewport.width}px held upward input settles at 20 degrees on waterline; pause and immediate dive work`,
     );
-    if (!mobile) await fixedReward(page);
+    if (!mobile) await starterRewards(page);
     await page.close();
   }
   assert.deepEqual(errors, []);
@@ -197,49 +197,52 @@ async function inputDriver(page, mobile) {
     },
   };
 }
-async function fixedReward(page) {
+async function starterRewards(page) {
   const start = await page.evaluate(() => {
     const g = window.__ABYSSAL__;
     g.startGame();
-    const p = g.pickups.find((p) => p.id === "nursery_frenzy");
-    window.__FIXED_PICKUP__ = p;
+    const p = g.pickups[2];
+    window.__STARTER_PICKUP__ = p;
     return {
       total: g.pickups.length,
       kind: p.kind,
-      id: p.id,
       xyz: p.mesh.position.toArray(),
       baseY: p.baseY,
       cooldown: p.cooldown,
       uuid: p.mesh.uuid,
       visible: p.mesh.visible,
-      duplicates: g.pickups.filter((p) => p.id === "nursery_frenzy").length,
+      starters: g.pickups.slice(0, 3).map((item) => item.kind),
+      extra: g.pickups.some((item) => item.id === "nursery_frenzy"),
     };
   });
-  assert.equal(start.total, 35);
+  assert.equal(start.total, 34);
   assert.equal(start.kind, "frenzy");
-  assert.equal(start.duplicates, 1);
+  assert.deepEqual(start.starters, ["stamina", "flow", "frenzy"]);
+  assert.equal(start.extra, false);
   assert.equal(start.visible, true);
   assert.equal(start.cooldown, 0);
   await page.evaluate(() => {
     const g = window.__ABYSSAL__,
-      p = window.__FIXED_PICKUP__;
+      p = window.__STARTER_PICKUP__;
     g.setPosition(p.mesh.position.x, p.baseY, p.mesh.position.z + 7);
     g.setFacing(0, 0);
   });
-  await page.waitForFunction(() => window.__FIXED_PICKUP__.cooldown > 0);
+  await page.waitForFunction(() => window.__STARTER_PICKUP__.cooldown > 0);
   const collected = await page.evaluate(() => ({
     buff: window.__ABYSSAL__.player.buffs.frenzy,
-    cooldown: window.__FIXED_PICKUP__.cooldown,
-    visible: window.__FIXED_PICKUP__.mesh.visible,
+    cooldown: window.__STARTER_PICKUP__.cooldown,
+    visible: window.__STARTER_PICKUP__.mesh.visible,
   }));
-  assert.ok(collected.buff > 29 && collected.buff <= 30);
+  assert.ok(collected.buff > 19 && collected.buff <= 20);
   assert.ok(collected.cooldown > 44 && collected.cooldown <= 45);
   assert.equal(collected.visible, false);
   await page.click("#pause");
-  const cooldown = await page.evaluate(() => window.__FIXED_PICKUP__.cooldown);
+  const cooldown = await page.evaluate(
+    () => window.__STARTER_PICKUP__.cooldown,
+  );
   await page.waitForTimeout(250);
   assert.equal(
-    await page.evaluate(() => window.__FIXED_PICKUP__.cooldown),
+    await page.evaluate(() => window.__STARTER_PICKUP__.cooldown),
     cooldown,
   );
   await page.click("#resume");
@@ -248,15 +251,15 @@ async function fixedReward(page) {
     const g = window.__ABYSSAL__;
     g.setPosition(-30, -18, 75);
     g.setFacing(0, 0);
-    window.__FIXED_PICKUP__.cooldown = 0.1;
+    window.__STARTER_PICKUP__.cooldown = 0.1;
   });
   await page.waitForFunction(
     () =>
-      window.__FIXED_PICKUP__.cooldown <= 0 &&
-      window.__FIXED_PICKUP__.mesh.visible,
+      window.__STARTER_PICKUP__.cooldown <= 0 &&
+      window.__STARTER_PICKUP__.mesh.visible,
   );
   const respawn = await page.evaluate(() => {
-    const p = window.__FIXED_PICKUP__;
+    const p = window.__STARTER_PICKUP__;
     return {
       xyz: p.mesh.position.toArray(),
       baseY: p.baseY,
@@ -271,7 +274,7 @@ async function fixedReward(page) {
     const reset = await page.evaluate(() => {
       const g = window.__ABYSSAL__;
       g.startGame();
-      const p = g.pickups.find((p) => p.id === "nursery_frenzy");
+      const p = g.pickups[2];
       return {
         count: g.pickups.length,
         xyz: p.mesh.position.toArray(),
@@ -280,13 +283,13 @@ async function fixedReward(page) {
         cooldown: p.cooldown,
       };
     });
-    assert.equal(reset.count, 35);
+    assert.equal(reset.count, 34);
     assert.deepEqual(reset.xyz, start.xyz);
     assert.equal(reset.uuid, start.uuid);
     assert.equal(reset.cooldown, 0);
   }
   measurements.push({ start, collected, respawn });
   checks.push(
-    "Fixed frenzy pickup grants 30s, starts 45s cooldown, freezes on pause and respawns/restarts on same mesh and anchor",
+    "One starter of each reward, no extra Frenzy; pickup grants 20s, starts 45s cooldown, freezes on pause and reuses its mesh on restart",
   );
 }
