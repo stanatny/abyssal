@@ -1,4 +1,4 @@
-import { initializeLanguage } from "./i18n.js";
+import { initializeLanguage, setLanguageEnabled } from "./i18n.js";
 import { t, tr, message, setMarkup, onLanguageChange } from "./i18n.js";
 import * as THREE from "three";
 import "./style.css";
@@ -6,6 +6,10 @@ import { createCreature } from "./creatures.js";
 import { createVisualPipeline } from "./visual_pipeline.js";
 import { createLaunchTransition } from "./launch_transition.js";
 import { createOcean, seabedHeight } from "./ocean.js";
+import { createAtlantisOcean } from "./atlantis_ocean.js";
+import { MOON_DIRECTION } from "./atlantis_art_sky.js";
+import { getRegionSpecies } from "./region_ecology.js";
+import { regionZone, cityLightBlend } from "./region_appearance.js";
 import {
   createPlayer,
   tickVitals,
@@ -13,14 +17,12 @@ import {
   consumePrey,
   takeDamage,
   collectPickup,
-  getZone,
   getProgress,
-  SPECIES,
   PLAYER_MOVEMENT,
   ROUND_DURATION,
 } from "./simulation.js";
 import { OceanAudio } from "./audio.js";
-import { steerWithinHabitat } from "./navigation.js";
+import { steerWithinHabitat, resolveCreatureMotion } from "./navigation.js";
 import { stepSurfaceSteering } from "./surface_steering.js";
 import {
   preyCaptureRadius,
@@ -36,11 +38,12 @@ import { createEncounters } from "./encounters.js";
 import { createCombatEffects } from "./combat_effects.js";
 import { createFeedingTransition } from "./feeding_transition.js";
 import { createHunterState, tickHunter } from "./hunter_rules.js";
-import { createOceanGuide } from "./ocean_guide.js";
+import { createOceanGuide, OCEAN_CATALOG } from "./ocean_guide.js";
 import { createSonar } from "./sonar.js";
 import { createSonarMarkers } from "./sonar_markers.js";
 import { createSonarWave } from "./sonar_wave.js";
 import { createMinimap } from "./minimap.js";
+import { createRegionLoading } from "./region_loading.js";
 import { createExpeditionSetup } from "./menu_selection.js";
 import { getExpedition } from "./expedition_config.js";
 import { stepFlyingFish } from "./flying_fish.js";
@@ -49,6 +52,7 @@ import {
   initialSchoolAnchor,
   initialSpeciesAnchor,
   schoolHabitat,
+  schoolPopulationGroups,
   schoolSlot,
   sharesHabitat,
   speciesVisibilityDistance,
@@ -67,12 +71,12 @@ import {
   inkStatus,
   getCharacter,
 } from "./character_rules.js";
+import { bodyRadius, resolveMotion, castSegment } from "./collision.js";
+
 import {
-  bodyRadius,
-  resolveMotion,
-  castSegment,
-  segmentBlocked,
-} from "./collision.js";
+  resolveIndexedMotion,
+  castIndexedSegment,
+} from "./static_collider_grid.js";
 
 initializeLanguage();
 
@@ -133,15 +137,26 @@ scene.add(ambient, sun, rim);
 const playerLight = new THREE.PointLight(0x94ebdf, 12, 45, 1.2);
 scene.add(playerLight);
 const visuals = createVisualPipeline(renderer, scene, camera);
-const ocean = createOcean(scene);
-scene.getObjectByName("ocean_environment")?.traverse((mesh) => {
-  if (!mesh.isMesh || !mesh.material?.isMeshStandardMaterial) return;
-  mesh.receiveShadow = true;
-  mesh.castShadow =
-    !mesh.isInstancedMesh &&
-    !mesh.material.transparent &&
-    mesh.geometry.attributes.position.count < 20000;
-});
+let ocean = createOcean(scene);
+const terrainColliders = [...ocean.colliders];
+let loadedRegion = "hawaii";
+let regionLoading = false;
+let environmentContainer = null;
+const regionLoader = createRegionLoading();
+const populationCache = new Map();
+function prepareEnvironmentShadows(
+  root = scene.getObjectByName("ocean_environment"),
+) {
+  root?.traverse((mesh) => {
+    if (!mesh.isMesh || !mesh.material?.isMeshStandardMaterial) return;
+    mesh.receiveShadow = true;
+    mesh.castShadow =
+      !mesh.isInstancedMesh &&
+      !mesh.material.transparent &&
+      mesh.geometry.attributes.position.count < 20000;
+  });
+}
+prepareEnvironmentShadows();
 let avatar = createCreature("orca", 6);
 const avatarCache = new Map([["orca", avatar]]);
 avatar.traverse((mesh) => {
@@ -170,13 +185,14 @@ const sonar = createSonar($("sonar-panel"));
 const sonarMarkers = createSonarMarkers($("sonar-markers"));
 const sonarWave = createSonarWave(scene);
 const minimap = createMinimap($("minimap"));
-const surface = createSurface(scene, audio, notify, {
+const surfaceOptions = {
   isSwallowing: (mesh) => feeding.has(mesh),
   onEat(point, length, bird) {
     feeding.start(bird.mesh, length);
     effects.bite(point, forward, player.length);
   },
-});
+};
+let surface = createSurface(scene, audio, notify, surfaceOptions);
 const encounters = createEncounters(scene, {
   seabedHeight,
   audio,
@@ -199,7 +215,14 @@ const humans = createHumanActivity(scene, {
   notify,
   effects,
   heightAt: seabedHeight,
-  worldColliders: ocean.colliders,
+  worldColliders: terrainColliders,
+  castWorld: (from, to, radius = 0) =>
+    ocean.city
+      ? castIndexedSegment(from, to, {
+          staticColliders: ocean.colliders,
+          radius,
+        })
+      : castSegment(from, to, terrainColliders, radius),
   isSwallowing: (mesh) => feeding.has(mesh),
   onEat(point, length, entity) {
     feeding.start(entity.mesh, length);
@@ -247,7 +270,7 @@ let movementLabel = "巡游";
 let lureFlash = 0,
   waterMotion = null;
 const solidColliders = [...ocean.colliders, ...surface.colliders];
-const staticColliderCount = solidColliders.length;
+let staticColliderCount = solidColliders.length;
 function refreshDynamicColliders() {
   solidColliders.length = staticColliderCount;
   solidColliders.push(...humans.colliders);
@@ -274,6 +297,7 @@ const setup = createExpeditionSetup($("expedition-setup"), {
   onInvertVerticalChange: setInvertVertical,
   onMarkersChange: setMarkers,
   onCharacterChange: selectAvatar,
+  onRegionChange: selectRegion,
 });
 setMarkers(markersEnabled);
 function selectAvatar(character) {
@@ -300,6 +324,166 @@ function selectAvatar(character) {
       tr`${character.name} · 幼年个体`,
     );
   }
+}
+async function selectRegion(region) {
+  if (regionLoading || mode !== "menu" || loadedRegion === region.id) return;
+  regionLoading = true;
+  setLanguageEnabled(false);
+  resetInput();
+  regionLoader.begin(region.name);
+  const previous = {
+    ocean,
+    surface,
+    environmentContainer,
+    expedition,
+    loadedRegion,
+    entities: [...entities],
+    schools: [...schools],
+  };
+  const container = new THREE.Group();
+  container.name = "region_environment";
+  let nextOcean, nextSurface;
+  let swapped = false;
+  let detached = false;
+  try {
+    await regionLoader.paint();
+    // 新环境完整建成后才替换旧环境；失败时仍可回到原海域。
+    nextOcean =
+      region.id === "atlantis"
+        ? createAtlantisOcean(container)
+        : createOcean(container);
+    await regionLoader.paint();
+    nextSurface = createSurface(container, audio, notify, {
+      ...surfaceOptions,
+      regionId: region.id,
+    });
+    await regionLoader.paint();
+    feeding.reset();
+    effects.reset();
+    frenzyEffect.reset();
+    sonarMarkers.reset();
+    sonarWave.reset();
+    minimap.reset();
+    detached = true;
+    for (const entity of entities) {
+      scene.remove(entity.mesh);
+      if (entity.telegraph) scene.remove(entity.telegraph);
+    }
+    populationCache.set(loadedRegion, [...entities]);
+    entities.length = schools.length = 0;
+    previous.ocean.root.visible = false;
+    // surface内部根节点由构造容器持有；旧环境留到首帧成功呈现后再释放。
+    scene.add(container);
+    ocean = nextOcean;
+    surface = nextSurface;
+    environmentContainer = container;
+    expedition = getExpedition(region.id, setup.getSelection().character.id);
+    loadedRegion = region.id;
+    swapped = true;
+    refreshRegionState();
+    for (const entity of populationCache.get(region.id) || []) {
+      entities.push(entity);
+      scene.add(entity.mesh);
+      if (entity.telegraph) scene.add(entity.telegraph);
+    }
+    seedPopulation();
+    seedPickups();
+    await regionLoader.paint();
+    // 提前编译新地图材质；准备期间游戏帧暂停，避免把耗时工作藏在点击后的首帧。
+    position.set(0, -18, 75);
+    atmosphere(0);
+    ocean.update(elapsed, position, 0, highQuality);
+    surface.update(0, elapsed, player, position, camera, false, highQuality);
+    for (const entity of entities)
+      entity.mesh.visible = entity.mesh.position.distanceTo(position) < 120;
+    visuals.update({
+      time: elapsed,
+      depth: 18,
+      position,
+      night: region.id === "atlantis",
+    });
+    await renderer.compileAsync(scene, camera);
+    visuals.render();
+    previous.surface.dispose();
+    previous.ocean.dispose();
+    previous.environmentContainer?.removeFromParent();
+    await regionLoader.paint();
+  } catch (error) {
+    console.error("Region preparation failed", error);
+    if (detached) {
+      for (const entity of entities) {
+        scene.remove(entity.mesh);
+        if (entity.telegraph) scene.remove(entity.telegraph);
+      }
+      // 已生成的生物保留缓存，重试不会再复制一套模型。
+      if (swapped) populationCache.set(region.id, [...entities]);
+      ({ ocean, surface, environmentContainer, expedition, loadedRegion } =
+        previous);
+      entities.splice(0, entities.length, ...previous.entities);
+      schools.splice(0, schools.length, ...previous.schools);
+      for (const entity of entities) {
+        scene.add(entity.mesh);
+        if (entity.telegraph) scene.add(entity.telegraph);
+      }
+      ocean.root.visible = true;
+      refreshRegionState();
+      seedPickups();
+    }
+    nextSurface?.dispose();
+    nextOcean?.dispose();
+    container.removeFromParent();
+    setup.setRegion(loadedRegion);
+    await regionLoader.fail();
+  } finally {
+    regionLoader.end();
+    regionLoading = false;
+    setLanguageEnabled(true);
+    lastTime = performance.now();
+  }
+}
+
+function refreshRegionState() {
+  terrainColliders.splice(0, terrainColliders.length, ...ocean.colliders);
+  solidColliders.splice(
+    0,
+    solidColliders.length,
+    ...terrainColliders,
+    ...surface.colliders,
+  );
+  staticColliderCount = solidColliders.length;
+  humans.reset();
+  refreshDynamicColliders();
+  const region = expedition.region;
+  encounters.reset(region.bossKinds, region.bossHomes, region.bossInstances);
+  audio.setRegion?.(region.id);
+  camera.far = region.id === "atlantis" ? 2400 : 650;
+  camera.updateProjectionMatrix();
+  prepareEnvironmentShadows(ocean.root);
+  guide.setRegion(region.id);
+  lastZone = "";
+  lastNursery = null;
+  threat = activeBoss = null;
+  document.body.dataset.region = region.id;
+  updateRegionPresentation();
+}
+
+function updateRegionPresentation() {
+  const night = expedition.region.id === "atlantis";
+  setMarkup(
+    document.querySelector(".intro"),
+    night
+      ? "循着月光与鱼群，潜入沉没古城。<br />在波塞冬的珠光下，迎战守卫克拉肯。"
+      : "穿过阳光与鱼群，潜向未知。<br />从幼年的生命，长成深渊的主宰。",
+  );
+  const labels = night
+    ? ["月辉浅滩", "沉没外城", "波塞冬古城"]
+    : ["珊瑚浅海", "幽蓝海沟", "火山深渊"];
+  document.querySelectorAll(".journey b span").forEach((node, index) => {
+    node.textContent = t(labels[index]);
+  });
+  document.querySelector(".menu-stats b").textContent = String(
+    OCEAN_CATALOG.length,
+  );
 }
 function setMarkers(enabled) {
   markersEnabled = enabled;
@@ -513,9 +697,7 @@ function floorAt(x, z, margin = 4) {
   return seabedHeight(x, z) + margin;
 }
 function speciesList() {
-  return SPECIES.filter((species) =>
-    expedition.region.speciesKinds.includes(species.kind),
-  );
+  return getRegionSpecies(expedition.region.id);
 }
 function spawnPosition(
   species,
@@ -585,13 +767,20 @@ function addEntity(species, location, populationIndex = 0) {
   return entity;
 }
 function seedPopulation() {
-  if (!entities.length)
-    for (const species of speciesList()) {
-      const count =
-        species.population ??
-        (species.schoolSize ? 18 : species.category === "ancient" ? 2 : 4);
-      for (let i = 0; i < count; i++) addEntity(species, null, i);
-    }
+  // 切图失败可能留下已生成的一部分缓存；重试补齐缺失个体，不复制已有模型。
+  const existing = new Map();
+  for (const entity of entities)
+    existing.set(
+      entity.species.kind,
+      (existing.get(entity.species.kind) || 0) + 1,
+    );
+  for (const species of speciesList()) {
+    const count =
+      species.population ??
+      (species.schoolSize ? 18 : species.category === "ancient" ? 2 : 4);
+    for (let i = existing.get(species.kind) || 0; i < count; i++)
+      addEntity(species, null, i);
+  }
   schools.length = 0;
   const speciesIndices = new Map();
   for (const entity of entities) {
@@ -622,17 +811,22 @@ function seedPopulation() {
   for (const kind of speciesList()
     .filter((entry) => entry.schoolSize > 1)
     .map((entry) => entry.kind)) {
-    const members = entities.filter((e) => e.species.kind === kind),
-      groupSize = members[0]?.species.schoolSize || 6;
+    const members = entities.filter((e) => e.species.kind === kind);
     if (!members.length) continue;
-    for (let i = 0; i < members.length; i += groupSize) {
-      const species = members[i].species;
-      const groupMembers = members.slice(i, i + groupSize);
-      const habitat = schoolHabitat(species, Math.floor(i / groupSize));
+    const species = members[0].species;
+    for (const group of schoolPopulationGroups({
+      ...species,
+      population: members.length,
+    })) {
+      const groupMembers = members.slice(
+        group.start,
+        group.start + group.count,
+      );
+      const habitat = schoolHabitat(species, group.index);
       const center = spawnPosition(
         habitat,
         false,
-        initialSchoolAnchor(species, Math.floor(i / groupSize)),
+        initialSchoolAnchor(species, group.index),
       );
       const school = {
         center,
@@ -644,7 +838,7 @@ function seedPopulation() {
         nextMigration: random(16, 30),
       };
       schools.push(school);
-      members.slice(i, i + groupSize).forEach((entity, index) => {
+      groupMembers.forEach((entity, index) => {
         entity.school = school;
         entity.slot = schoolSlot(species, index);
         const preferred = center.clone().add(entity.slot);
@@ -688,8 +882,7 @@ function notify(source, duration = 3) {
   $("notification").textContent = t(source);
   notificationUntil = elapsed + duration;
 }
-function startGame({ transition = false } = {}) {
-  const fromMenu = mode === "menu";
+function resetExpedition(preserveWorld = false) {
   launchTransition = null;
   document.body.classList.remove("launching");
   $("menu").inert = false;
@@ -704,7 +897,7 @@ function startGame({ transition = false } = {}) {
   yaw = 0;
   pitch = 0;
   speed = PLAYER_MOVEMENT.cruiseSpeed;
-  if (!fromMenu) elapsed = 0;
+  if (!preserveWorld) elapsed = 0;
   forward.set(0, 0, -1);
   lastZone = "";
   lastNursery = null;
@@ -727,21 +920,28 @@ function startGame({ transition = false } = {}) {
   for (const b of bursts) scene.remove(b.mesh);
   bursts.length = 0;
   threat = null;
-  pointer.x = 0;
-  pointer.y = 0;
-  keys.clear();
-  touchBoost = false;
+  resetInput();
   activeBoss = null;
   // 首次出发沿用首页已经显示的世界，避免鱼群和船只在点击时重新随机跳位。
-  if (!fromMenu) {
+  if (!preserveWorld) {
     surface.reset();
     humans.reset();
     refreshDynamicColliders();
-    encounters.reset(expedition.region.bossKinds);
+    encounters.reset(
+      expedition.region.bossKinds,
+      expedition.region.bossHomes,
+      expedition.region.bossInstances,
+    );
     seedPopulation();
     seedPickups();
     avatar.userData.resetMotion?.();
   }
+}
+function startGame({ transition = false } = {}) {
+  if (regionLoading) return;
+  const fromMenu = mode === "menu";
+  resetExpedition(fromMenu);
+  setLanguageEnabled(false);
   const pose = followCameraPose();
   if (fromMenu && transition) {
     launchTransition = createLaunchTransition({
@@ -773,6 +973,8 @@ function startGame({ transition = false } = {}) {
   $("overlay").hidden = true;
   $("hud").hidden = false;
   $("pause").hidden = false;
+  $("notification").hidden = false;
+  audio.setRegion?.(expedition.region.id);
   audio.start();
   audio.reset?.();
   audio.setPaused(false);
@@ -803,9 +1005,7 @@ function updateLaunch(roundDt) {
     $("menu").hidden = true;
     $("hud").inert = false;
     document.body.classList.remove("launching");
-    keys.clear();
-    pointer.x = pointer.y = 0;
-    touchBoost = false;
+    resetInput();
     capturePoint(captureStart);
     updateSonar();
     announceDeparture();
@@ -826,10 +1026,7 @@ function showOverlay(kind) {
   document.body.classList.remove("sonar-active");
   audio.setPaused(kind !== "won");
   if (kind === "won") audio.victory();
-  keys.clear();
-  touchBoost = false;
-  pointer.x = 0;
-  pointer.y = 0;
+  resetInput();
   $("overlay").hidden = false;
   renderOverlay(kind);
   bestLength = Math.max(bestLength, player.length);
@@ -877,7 +1074,28 @@ function renderOverlay(kind) {
       ? "再次潜入 <span>↗</span>"
       : "继续探索 <span>→</span>",
   );
-  $("restart").hidden = won || dead || timeup;
+  $("return-menu").hidden = false;
+}
+/** 结束本局并恢复同一海域的首页，下一次出发仍沿用首页到追尾的转场。 */
+function returnToMenu() {
+  if (mode === "menu") return;
+  resetExpedition();
+  mode = "menu";
+  avatar.visible = true;
+  $("menu").hidden = false;
+  $("menu").inert = false;
+  $("hud").hidden = true;
+  $("overlay").hidden = true;
+  $("pause").hidden = true;
+  $("target").hidden = true;
+  $("notification").hidden = true;
+  $("damage").style.opacity = "0";
+  document.body.classList.remove("sonar-active");
+  audio.setPaused(true);
+  audio.reset?.();
+  setLanguageEnabled(true);
+  $("start").focus({ preventScroll: true });
+  lastTime = performance.now();
 }
 function resumeGame() {
   if (mode === "paused") {
@@ -893,13 +1111,29 @@ function togglePause() {
   if (mode === "playing" || mode === "launching") showOverlay("paused");
   else if (mode === "paused") resumeGame();
 }
+function queryWorldSegment(a, b, radius = 0) {
+  if (expedition.region.id !== "atlantis")
+    return castSegment(a, b, solidColliders, radius);
+  return castIndexedSegment(a, b, {
+    staticColliders: ocean.colliders,
+    dynamicColliders: [...surface.colliders, ...humans.colliders],
+    radius,
+  });
+}
 function blockedBetween(a, b) {
-  return segmentBlocked(a, b, solidColliders);
+  return queryWorldSegment(a, b) !== null;
 }
 function resolvePlayerMotion(previous, merge = false) {
   const radius = bodyRadius(player.length);
-  const result = resolveMotion(previous, position, {
-    colliders: solidColliders,
+  const solve =
+    expedition.region.id === "atlantis" ? resolveIndexedMotion : resolveMotion;
+  const result = solve(previous, position, {
+    ...(expedition.region.id === "atlantis"
+      ? {
+          staticColliders: ocean.colliders,
+          dynamicColliders: [...surface.colliders, ...humans.colliders],
+        }
+      : { colliders: solidColliders }),
     radius,
     forward,
     length: player.length,
@@ -1072,6 +1306,7 @@ function updatePlayer(dt, roundDt) {
   if ((boosting || jet) && Math.random() < 0.6) burst(position, 1);
   // 饥饿先由规则模块处理，熔岩只在贴近深海海底时灼伤。
   if (
+    expedition.region.seabedHeat &&
     position.z < -680 &&
     position.y < seabedHeight(position.x, position.z) + 4.5 &&
     takeDamage(player, 12)
@@ -1164,8 +1399,10 @@ function updateSchools() {
   for (const school of schools) {
     // 基础鱼群与缓游礁鱼常驻育幼浅滩，出海后再返航也有稳定补给。
     if (
-      ["fish", "sardine"].includes(school.kind) ||
-      school.species.nurseryResident
+      school.habitat.cityResident ||
+      school.habitat.nurseryResident ||
+      (!school.species.schoolProfiles &&
+        ["fish", "sardine"].includes(school.kind))
     )
       continue;
     if (player.elapsed < school.nextMigration) continue;
@@ -1222,7 +1459,12 @@ function updateEntities(dt) {
       if (entity.hiddenFor <= 0) {
         mesh.position.copy(
           entity.school
-            ? entity.school.center.clone().add(entity.slot)
+            ? spawnPosition(
+                entity.school.habitat,
+                false,
+                entity.school.center.clone().add(entity.slot),
+                entity.populationIndex,
+              )
             : spawnPosition(species, true, null, entity.populationIndex),
         );
         mesh.visible = true;
@@ -1259,13 +1501,23 @@ function updateEntities(dt) {
     );
     const predator = species.predator && !edible && allowedHunt;
     if (!allowedHunt) entity.chase = 0;
+    const nurseryResident =
+      entity.school?.habitat.nurseryResident ?? species.nurseryResident;
     const learning =
       player.length < 4.5 && species.length < 1 && isNursery(position);
     const territory = predatorTerritory(species, entity.populationIndex);
     // 视线只服务猎手交互；小鱼捕食在eatEntity中独立检查，避免新增鱼群重复射线开销。
     const sight =
-      species.predator &&
       allowedHunt &&
+      ((predator &&
+        (entity.chase > 0 ||
+          distance <
+            Math.max(
+              52,
+              species.length * 3,
+              species.length * 0.43 + player.length * 0.2,
+            ))) ||
+        (species.kind === "octopus" && edible && distance < 26)) &&
       !blockedBetween(mesh.position, position);
     // 章鱼即使可被当前角色捕食，也会在近距威胁下防御喷墨。
     const defensiveInk =
@@ -1295,15 +1547,12 @@ function updateEntities(dt) {
       }
     } else if (
       edible &&
-      (distance < (learning ? 3.5 : species.nurseryResident ? 6 : 12) ||
+      (distance < (learning ? 3.5 : nurseryResident ? 6 : 12) ||
         defensiveInk) &&
       entity.cooldown <= 0
     ) {
       direction.copy(mesh.position).sub(position).normalize();
-      moveSpeed = Math.min(
-        10,
-        moveSpeed + (species.nurseryResident ? 0.8 : 1.5),
-      );
+      moveSpeed = Math.min(10, moveSpeed + (nurseryResident ? 0.8 : 1.5));
     } else if (entity.school) {
       const target = entity.school.center
         .clone()
@@ -1311,11 +1560,11 @@ function updateEntities(dt) {
         .add(
           new THREE.Vector3(
             Math.sin(elapsed * 0.2 + entity.school.seed) *
-              (learning || species.nurseryResident ? 2.4 : 8),
+              (learning || nurseryResident ? 2.4 : 8),
             Math.sin(elapsed * 0.35 + entity.seed) *
-              (learning || species.nurseryResident ? 0.45 : 1.5),
+              (learning || nurseryResident ? 0.45 : 1.5),
             Math.cos(elapsed * 0.2 + entity.school.seed) *
-              (learning || species.nurseryResident ? 2.4 : 8),
+              (learning || nurseryResident ? 2.4 : 8),
           ),
         );
       direction.copy(target).sub(mesh.position).normalize();
@@ -1504,6 +1753,30 @@ function updateEntities(dt) {
       mesh.position,
       entity.velocity,
     );
+    if (ocean.city) {
+      // 城市的墙、柱与台阶使用真实碰撞体；夏威夷保留既有礁石导航。
+      const contact = resolveCreatureMotion(
+        previousHabitatPosition,
+        mesh.position,
+        entity.velocity,
+        habitat,
+        {
+          colliders: ocean.city.colliders,
+          heightAt: seabedHeight,
+          territory,
+        },
+      );
+      if (contact) {
+        mesh.position.copy(contact.position);
+        if (contact.blocked) {
+          entity.velocity.copy(contact.direction);
+          entity.heading = Math.atan2(
+            contact.direction.x,
+            -contact.direction.z,
+          );
+        }
+      }
+    }
     mesh.quaternion.slerp(
       new THREE.Quaternion().setFromUnitVectors(
         new THREE.Vector3(0, 0, -1),
@@ -1613,7 +1886,7 @@ function followCameraPose() {
   };
 }
 function shortenCamera(point) {
-  const hit = castSegment(position, point, solidColliders, 0.6);
+  const hit = queryWorldSegment(position, point, 0.6);
   if (hit)
     point
       .copy(hit.point)
@@ -1629,32 +1902,63 @@ function updateCamera(dt) {
   camera.updateProjectionMatrix();
 }
 function atmosphere(dt) {
-  const depth = -position.y,
-    blend = Clamp((depth - 25) / 350, 0, 1);
-  const color = new THREE.Color("#155568").lerp(
-    new THREE.Color("#030e1c"),
+  const depth = -position.y;
+  const blend = Clamp((depth - 25) / 350, 0, 1);
+  const night = expedition.region.id === "atlantis";
+  const city = night ? cityLightBlend(position) : 0;
+  const color = new THREE.Color(night ? "#103847" : "#155568").lerp(
+    new THREE.Color(night ? "#040f1b" : "#030e1c"),
     blend,
   );
+  if (night) color.lerp(new THREE.Color("#174652"), city * 0.72);
   const aboveWater = camera.position.y > WORLD.surfaceY;
-  if (aboveWater) color.set("#a0c7d1");
+  if (aboveWater) color.set(night ? "#060d20" : "#a0c7d1");
   document.body.classList.toggle("above-water", aboveWater);
   scene.background.lerp(color, Math.min(1, dt * (aboveWater ? 10 : 3)));
   scene.fog.color.copy(scene.background);
-  scene.fog.density = aboveWater
-    ? 0.0018
-    : 0.008 + blend * 0.003 + effects.ink * 0.115;
+  scene.fog.density =
+    (aboveWater
+      ? night
+        ? 0.00075
+        : 0.0018
+      : night
+        ? 0.006 + blend * 0.001 - city * 0.0053
+        : 0.008 + blend * 0.003) + (aboveWater ? 0 : effects.ink * 0.115);
   if (!aboveWater && effects.ink > 0.01) {
     scene.fog.color.lerp(new THREE.Color("#111120"), effects.ink);
     scene.background.lerp(new THREE.Color("#111120"), effects.ink);
   }
-  ambient.intensity = aboveWater ? 1.6 : 1.35 - blend * 0.78;
-  sun.intensity = aboveWater ? 3.0 : 2.7 - blend * 2.45;
-  rim.intensity = 0.85 - blend * 0.35;
-  sun.position.set(position.x - 50, position.y + 105, position.z + 50);
+  ambient.color.set(night ? 0x95c3eb : 0xc5e5ef);
+  ambient.groundColor.set(night ? 0x243842 : 0x3d463e);
+  if (night && !aboveWater) {
+    ambient.color.lerp(new THREE.Color("#f1e3c1"), city * 0.72);
+    ambient.groundColor.lerp(new THREE.Color("#718d8b"), city * 0.85);
+  }
+  ambient.intensity = night
+    ? aboveWater
+      ? 0.7
+      : 1.0 - blend * 0.58 + city * 2.5
+    : aboveWater
+      ? 1.6
+      : 1.35 - blend * 0.78;
+  sun.color.set(night ? 0xc0d6ff : 0xfff2d6);
+  if (night && !aboveWater)
+    sun.color.lerp(new THREE.Color("#ffe2ad"), city * 0.62);
+  sun.intensity = night
+    ? aboveWater
+      ? 1.15
+      : 1.25 - blend * 0.9 + city * 1.1
+    : aboveWater
+      ? 3.0
+      : 2.7 - blend * 2.45;
+  rim.intensity = night ? 0.55 + city * 0.55 : 0.85 - blend * 0.35;
+  if (night) sun.position.copy(position).addScaledVector(MOON_DIRECTION, 140);
+  else sun.position.set(position.x - 50, position.y + 105, position.z + 50);
   sun.target.position.copy(position);
   sun.castShadow = highQuality && depth < 100;
   playerLight.intensity = 7 + blend * 21;
 }
+
 function updateHud() {
   for (const key of ["health", "stamina", "hunger"]) {
     $(key + "-value").textContent = t(Math.ceil(player[key]));
@@ -1669,10 +1973,10 @@ function updateHud() {
     tr`远征 ${String(Math.floor(remaining / 60)).padStart(2, "0")}:${String(remaining % 60).padStart(2, "0")}`,
   );
   $("round-clock").classList.toggle("urgent", remaining <= 120);
-  const zone = getZone(-position.y);
-  if (zone.id !== lastZone) {
+  const zone = regionZone(expedition.region.id, -position.y, position);
+  if (zone.name !== lastZone) {
     if (lastZone) notify(message`${zone.name}\n${zone.description}`, 4);
-    lastZone = zone.id;
+    lastZone = zone.name;
   }
   const nursery = isNursery(position);
   if (lastNursery !== null && lastNursery !== nursery) {
@@ -1689,12 +1993,14 @@ function updateHud() {
   $("zone-code").textContent = t(
     nursery
       ? "NURSERY LAGOON"
-      : {
-          reef: "SUNLIT REEF",
-          twilight: "THE TWILIGHT",
-          abyss: "MIDNIGHT ZONE",
-          hadal: "VOLCANIC ABYSS",
-        }[zone.id] || "INTO THE BLUE",
+      : zone.code ||
+          {
+            reef: "SUNLIT REEF",
+            twilight: "THE TWILIGHT",
+            abyss: "MIDNIGHT ZONE",
+            hadal: "VOLCANIC ABYSS",
+          }[zone.id] ||
+          "INTO THE BLUE",
   );
   $("depth").textContent = t(
     Math.max(0, Math.round(-position.y * WORLD.displayDepthScale)),
@@ -1854,7 +2160,7 @@ function frame(now) {
   // 同帧排队的 RAF 时间戳可能早于刚完成的初始化，不能让时钟倒退。
   lastTime = Math.max(lastTime, now);
   // 图鉴打开时只渲染独立标本，避免两套海洋场景同时消耗图形资源。
-  if (guide.isOpen) return;
+  if (guide.isOpen || regionLoading) return;
   if (mode === "menu") {
     elapsed += dt;
     // 首页展示独立构图；开始游戏后按真实体长恢复缩放。
@@ -1874,8 +2180,8 @@ function frame(now) {
       e.mesh.visible = e.mesh.position.distanceTo(position) < 120;
       if (e.mesh.visible) e.mesh.userData.animate?.(elapsed + e.seed, 0.5);
     }
-    ocean.update(elapsed, position);
-    surface.update(dt, elapsed, player, position, camera, false);
+    ocean.update(elapsed, position, dt, highQuality);
+    surface.update(dt, elapsed, player, position, camera, false, highQuality);
   } else if (mode === "launching") {
     elapsed += dt;
     updateLaunch(roundDt);
@@ -1883,8 +2189,8 @@ function frame(now) {
       if (e.mesh.visible) e.mesh.userData.animate?.(elapsed + e.seed, 0.5);
     }
     atmosphere(dt);
-    ocean.update(elapsed, position);
-    surface.update(dt, elapsed, player, position, camera, false);
+    ocean.update(elapsed, position, dt, highQuality);
+    surface.update(dt, elapsed, player, position, camera, false, highQuality);
     audio.update(elapsed, 0, { depth: -position.y });
   } else if (mode === "playing") {
     elapsed += dt;
@@ -1924,7 +2230,7 @@ function frame(now) {
     avatar.position.copy(position);
     avatar.scale.setScalar(player.length);
     updateCamera(dt);
-    surface.update(dt, elapsed, player, position, camera);
+    surface.update(dt, elapsed, player, position, camera, true, highQuality);
     feeding.update(dt, {
       mouth: feedingMouth(swallowPoint),
       direction: feedingDirection
@@ -1949,12 +2255,18 @@ function frame(now) {
     lureFlash = Math.max(0, lureFlash - dt);
     $("lure-flash").style.opacity = Math.min(0.4, lureFlash * 0.18);
     atmosphere(dt);
-    ocean.update(elapsed, position);
+    ocean.update(elapsed, position, dt, highQuality);
+    const bossCombat =
+      activeBoss &&
+      ["hunt", "windup", "attack", "recover", "disoriented"].includes(
+        activeBoss.state.phase,
+      );
     audio.update(
       elapsed,
-      activeBoss ? 0.85 : threat ? Clamp(1 - threat.distance / 90, 0.1, 1) : 0,
+      bossCombat ? 0.85 : threat ? Clamp(1 - threat.distance / 90, 0.1, 1) : 0,
       {
-        boss: !!activeBoss,
+        boss: !!bossCombat,
+        pursuing: !!threat,
         ink: effects.ink,
         depth: -position.y,
         aboveWater: camera.position.y > WORLD.surfaceY,
@@ -1988,11 +2300,13 @@ function frame(now) {
     position,
     aboveWater: camera.position.y > WORLD.surfaceY,
     ink: effects.ink,
+    night: expedition.region.id === "atlantis",
   });
   visuals.render();
 }
 
 onLanguageChange(() => {
+  updateRegionPresentation();
   $("sound").textContent = t(audio.enabled ? "声音 · 开" : "声音 · 关");
   $("quality").textContent = t(highQuality ? "画质 · 高" : "画质 · 流畅");
   $("notification").textContent = t(currentNotification);
@@ -2016,7 +2330,7 @@ $("start").addEventListener("click", () => {
   });
 });
 $("resume").addEventListener("click", resumeGame);
-$("restart").addEventListener("click", startGame);
+$("return-menu").addEventListener("click", returnToMenu);
 $("pause").addEventListener("click", togglePause);
 $("sound").addEventListener("click", () => {
   $("sound").textContent = t(audio.toggle() ? "声音 · 开" : "声音 · 关");
@@ -2036,6 +2350,10 @@ window.addEventListener("resize", () => {
   visuals.resize();
 });
 window.addEventListener("keydown", (e) => {
+  if (regionLoading) {
+    e.preventDefault();
+    return;
+  }
   if (guide.isOpen) return;
   if (!$("overlay").hidden && e.code === "Tab") {
     // 暂停及结算时只在面板内循环，隐藏的重开按钮不参与焦点顺序。
@@ -2079,8 +2397,7 @@ window.addEventListener("keydown", (e) => {
 });
 window.addEventListener("keyup", (e) => keys.delete(e.code));
 window.addEventListener("blur", () => {
-  keys.clear();
-  touchBoost = false;
+  resetInput();
   if (mode === "playing" || mode === "launching") showOverlay("paused");
 });
 document.addEventListener("visibilitychange", () => {
@@ -2088,12 +2405,15 @@ document.addEventListener("visibilitychange", () => {
     showOverlay("paused");
 });
 $("touch-boost").addEventListener("pointerdown", (e) => {
+  if (mode !== "playing") return;
   e.preventDefault();
+  boostPointerId = e.pointerId;
   e.currentTarget.setPointerCapture(e.pointerId);
   touchBoost = true;
 });
 for (const event of ["pointerup", "pointercancel", "lostpointercapture"])
   $("touch-boost").addEventListener(event, () => {
+    boostPointerId = null;
     touchBoost = false;
   });
 for (const id of ["touch-sonar", "sonar-control"]) {
@@ -2103,7 +2423,23 @@ for (const id of ["touch-sonar", "sonar-control"]) {
   });
 }
 const joystick = $("joystick");
-let joystickId = null;
+let joystickId = null,
+  boostPointerId = null;
+/** 暂停与回首页共同释放旧触点，避免旧手指在下一局继续转向或冲刺。 */
+function resetInput() {
+  keys.clear();
+  touchBoost = false;
+  pointer.x = pointer.y = 0;
+  const captured = [
+    [joystick, joystickId],
+    [$("touch-boost"), boostPointerId],
+  ];
+  joystickId = boostPointerId = null;
+  for (const [control, id] of captured)
+    if (id !== null && control.hasPointerCapture(id))
+      control.releasePointerCapture(id);
+  joystick.firstElementChild.style.transform = "";
+}
 function moveJoystick(e) {
   const r = joystick.getBoundingClientRect();
   pointer.x = Clamp((e.clientX - r.left - r.width / 2) / 40, -1, 1);
@@ -2111,6 +2447,7 @@ function moveJoystick(e) {
   joystick.firstElementChild.style.transform = tr`translate(${pointer.x * 28}px,${pointer.y * 28}px)`;
 }
 joystick.addEventListener("pointerdown", (e) => {
+  if (mode !== "playing") return;
   e.preventDefault();
   joystickId = e.pointerId;
   joystick.setPointerCapture(e.pointerId);
@@ -2153,6 +2490,7 @@ canvas.addEventListener("webglcontextlost", (e) => {
 });
 seedPopulation();
 seedPickups();
+updateRegionPresentation();
 $("loading").hidden = true;
 requestAnimationFrame(frame);
 // 开发环境提供状态观察与场景跳转，用于验证终局与边界；生产构建不导出。
@@ -2160,6 +2498,9 @@ if (import.meta.env.DEV)
   window.__ABYSSAL__ = {
     get player() {
       return player;
+    },
+    get regionLoading() {
+      return regionLoading;
     },
     get mode() {
       return mode;
@@ -2170,7 +2511,9 @@ if (import.meta.env.DEV)
     frenzyEffect,
     feeding,
     guide,
-    surface,
+    get surface() {
+      return surface;
+    },
     audio,
     pickups,
     get elapsed() {
@@ -2184,6 +2527,7 @@ if (import.meta.env.DEV)
     visuals,
     scene,
     startGame,
+    returnToMenu,
     toggleMarkers,
     sonar,
     sonarMarkers,
@@ -2200,7 +2544,9 @@ if (import.meta.env.DEV)
     },
     humans,
     camera,
-    ocean,
+    get ocean() {
+      return ocean;
+    },
     forward,
     get markersEnabled() {
       return markersEnabled;

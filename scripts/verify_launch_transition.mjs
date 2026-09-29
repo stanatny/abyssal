@@ -324,23 +324,63 @@ try {
       return verifyTrace(await completedTrace(page), { paused: true });
     });
 
-  await run("restart_during_launch", "orca", desktop, async (page) => {
-    await start(page);
-    await page.keyboard.press("Escape");
-    await page.click("#restart");
-    const state = await page.evaluate(() => window.__LAUNCH_SNAPSHOT__());
-    assert.equal(state.mode, "playing");
-    assert.equal(state.menuHidden, true);
-    assert.equal(state.menuInert, false);
-    assert.equal(state.hudInert, false);
-    assert.equal(state.launchingClass, false);
-    await page.keyboard.press("KeyJ");
-    assert.notEqual(
-      await page.evaluate(() => window.__ABYSSAL__.sonar.state.activatedAt),
-      null,
-    );
-    return { mode: state.mode, inputRestored: true };
-  });
+  await run(
+    "return_home_during_launch_then_depart_again",
+    "orca",
+    desktop,
+    async (page) => {
+      await start(page);
+      await page.keyboard.press("Escape");
+      await page.click("#return-menu");
+      const home = await page.evaluate(() => window.__LAUNCH_SNAPSHOT__());
+      assert.equal(home.mode, "menu");
+      assert.equal(home.menuHidden, false);
+      assert.equal(home.menuInert, false);
+      assert.equal(home.launchingClass, false);
+      assert.equal(home.player.elapsed, 0);
+      assert.equal(
+        await page.locator("header [data-language-select]").isEnabled(),
+        true,
+      );
+      const before = await page.evaluate(() => window.__LAUNCH_SNAPSHOT__());
+      await page.click("#start");
+      const depart = await page.evaluate(() => window.__LAUNCH_SNAPSHOT__());
+      assert.equal(depart.mode, "launching");
+      assert.equal(depart.menuInert, true);
+      assert.equal(depart.hudInert, true);
+      assert.equal(depart.player.elapsed, 0);
+      await page.waitForFunction(() => window.__ABYSSAL__.mode === "playing");
+      const finished = await page.evaluate(() => window.__LAUNCH_SNAPSHOT__());
+      assert.equal(finished.menuHidden, true);
+      assert.equal(finished.menuInert, true);
+      assert.equal(finished.hudInert, false);
+      assert.equal(finished.launchingClass, false);
+      assert.ok(
+        finished.at - depart.at >= 1500,
+        "New departure skipped the home transition",
+      );
+      await page.keyboard.press("KeyJ");
+      assert.notEqual(
+        await page.evaluate(() => window.__ABYSSAL__.sonar.state.activatedAt),
+        null,
+      );
+      await page.keyboard.press("Escape");
+      await page.click("#return-menu");
+      assert.equal(
+        await page
+          .locator("#menu")
+          .evaluate((menu) => menu.hidden || menu.inert),
+        false,
+      );
+      return {
+        homeMode: home.mode,
+        newDepartureMode: depart.mode,
+        nextHomeInteractive: true,
+        durationMs: Math.round(finished.at - before.at),
+        inputRestored: true,
+      };
+    },
+  );
 
   await run(
     "menu_time_does_not_advance_migration",

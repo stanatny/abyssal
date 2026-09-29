@@ -1,8 +1,10 @@
 # ABYSSAL
 
-A third-person ocean survival game for the browser. Choose an Orca or Giant Squid and swim from bright coral shallows into volcanic depths: feed, grow, escape hunters, and challenge the giants below.
+A third-person ocean survival game for the browser. Choose an Orca or Giant Squid: feed, grow, escape hunters, and challenge the giants below. Hawaii leads from bright coral shallows into volcanic depths; the Atlantis development branch adds a moonlit expedition into an illuminated sunken city.
 
 **[Play the published game](https://stanatny.github.io/abyssal/)** · [GitHub repository](https://github.com/stanatny/abyssal)
+
+**Atlantis candidate — not published:** This branch develops the second playable region with a night surface, submerged city, Poseidon monument, seven exclusive species, and territorial Kraken guardians. The link above still serves the released Hawaii version. The previous candidate was rejected for insufficient city scale/detail and presentation issues. The expanded city, revised creatures, and guide/menu changes have passed integrated preview checks and user review; current work and historical validation evidence are recorded in the [feature plan](docs/atlantis_plan.md), [verification record](docs/atlantis_verification.md), and [ecology references](docs/atlantis_ecology_sources.md). This is a local feature-branch checkpoint; merging into `main` requires separate authorization.
 
 Version: **v0.6.13**. GitHub Actions deploys `main` to the play URL above. This update improves the food supply and survival progression, reduces reward density, and replaces home-screen dropdowns with clear in-game selection panels.
 
@@ -18,7 +20,7 @@ Starting an expedition smoothly rotates the home scene into the follow camera ov
 
 ## Languages
 
-The game supports Simplified Chinese (`zh-CN`) and English (`en`) across menus, HUD, Ocean Guide, notifications, and results. Select a language at the top right of the home screen or in the pause panel. The first visit follows the browser language; an explicit choice is saved in local storage for later visits.
+The game supports Simplified Chinese (`zh-CN`) and English (`en`) across menus, HUD, Ocean Guide, notifications, and results. Select a language at the top right of the home screen. Language is locked during an expedition, including pause and results. Pause offers Continue and Return to Home; returning ends the current round and lets you choose a language, region, and character before departing again. The first visit follows the browser language; an explicit choice is saved in local storage for later visits.
 
 Implementation and copy-authoring guidance are in [localization](docs/localization.md). The [verification record](docs/verification.md) documents the bilingual update, including 245 unit tests, 28 gameplay browser checks, and 68 bilingual browser checks.
 
@@ -26,12 +28,12 @@ Implementation and copy-authoring guidance are in [localization](docs/localizati
 
 Start as a **3-meter juvenile**, eat smaller creatures, and avoid larger hunters. **Reach 30 meters and defeat at least one Abyss Lord to win.** A round lasts at most 30 minutes of active play; paused time does not count.
 
-- **Safe shallows:** Dense small-fish schools surround spawn. Hunters cannot enter or follow you in from offshore. Grow to about 4 meters before exploring the outer reef, where one hammerhead and one white shark patrol separate areas. The full hunter ecosystem lies farther down.
+- **Safe shallows:** Dense small-fish schools surround spawn. Hunters cannot enter or follow you in from offshore. Grow to about 4 meters before exploring the outer reef. Hawaii has one hammerhead and one white shark in separate outer-reef territories; the Atlantis candidate has one blue shark. The full hunter ecosystem lies farther down.
 - **Food and survival:** Feeding replenishes hunger, repairs health first, then spends the remaining benefit on growth. Small prey yield progressively less nutrition and growth as you get larger. A full hunger bar lasts about 7.6 minutes for a 3-meter juvenile in the shallows; a 25-meter character has about 91 seconds in the deepest water. These are no-food budgets, not predicted lifetimes.
 - **A gradual descent:** Hunger drain rises smoothly below 180 meters of displayed depth, reaching +30% at 2000 meters. Medium schools lead from the nursery edge toward the outer shelf; more octopuses, Dunkleosteus, and Ancient Giants fill the next feeding stages. Larger shallow-water schools stay within their own depth bands. Feed before a deep excursion or lord fight, and return shallower to recover. See the [survival balance notes](docs/survival_balance.md).
 - **Sprint and escape:** Sprint drains stamina; releasing it allows recovery. Empty stamina does not directly damage health, but empty hunger does. Use reefs, rock columns, and hulls to break pursuit. Solid terrain cannot be crossed directly.
 - **Surface and deep water:** Build momentum by sprinting underwater, then cross upward through the surface to breach and catch gulls. Ruins, volcanoes, submarines, and spherical contact mines await below.
-- **Lord battles:** Two lords appear randomly each round. You must reach 25 meters to damage them, attack inward from a flank, leave contact, and approach again. At least five effective attacks are required; they cannot be swallowed whole. Each damaging bite restores up to 8 hunger (capped at 100), without healing or growth; defeat rewards are separate.
+- **Lord battles:** Hawaii selects two lords each round. Atlantis has three Krakens guarding separate western, central, and rear-city territories. Defeating any one counts toward the shared victory condition. You must reach 25 meters to damage them, attack inward from a flank, leave contact, and approach again. At least five effective attacks are required; they cannot be swallowed whole. Each damaging bite restores up to 8 hunger (capped at 100), without healing or growth; defeat rewards are separate.
 - **Find the nursery again:** Persistent radar shows location, heading, shallow/deep zones, and the direction of spawn. Pursuit and lord encounters change the music, while ability warnings signal danger.
 
 ## Choose your character
@@ -63,7 +65,7 @@ Desktop swimming is keyboard-only; the mouse operates menus and the guide. The p
 
 ## What's in the ocean?
 
-The **Hawaii fantasy region** is currently open. Mariana Trench, Bermuda Triangle, and Atlantis Ruins are unavailable entrances for future regions.
+The published game offers the **Hawaii fantasy region**. This branch additionally enables **Atlantis Ruins** as the second destination; Mariana Trench and Bermuda Triangle remain unavailable future entrances. Selecting Atlantis switches the real environment, surface fleet, population, and guardian before departure.
 
 | Category             | Current content                                                                                                                                              |
 | -------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------ |
@@ -73,9 +75,29 @@ The **Hawaii fantasy region** is currently open. Mariana Trench, Bermuda Triangl
 | Abyss Lords          | Kraken, an original Maya-inspired monster, Three-Headed Hydra, and Leviathan, using vortices, pulses, repeated breath attacks, and high-speed charges        |
 | Human activity       | Adult swimmers, adult divers, submarines, and horned contact mines; submarines require three separate rams meeting size and speed thresholds                 |
 
-The home-screen **Ocean Guide** contains **35 character, creature, and human-activity entries**, including **24 ordinary marine species**, plus a separate rewards section. It follows system light/dark appearance and responds to changes while open. Swimmer/diver details offer male/female model previews. **Giant Squid is playable only; the wild cephalopod is the Giant Pacific Octopus.**
+The candidate home-screen **Ocean Guide** contains **42 character, creature, and human-activity entries**, including **31 ordinary marine species**, plus a separate rewards section. It groups small prey and surface animals before modern predators, Ancient Giants, and Abyss Lords, with entries ordered by length within each group; playable characters and human activity have separate groups. Independent filters show the current expedition, Hawaii, Atlantis, or all regions without changing the selected expedition; each creature identifies its regions. The published Hawaii catalog contains 35 entries and 24 ordinary species. It follows system light/dark appearance and responds to changes while open. Swimmer/diver details offer male/female model previews. **Giant Squid is playable only; the wild cephalopod is the Giant Pacific Octopus.**
 
-This region mixes modern animals, Ancient Giants, and fantasy lords; it is not a reconstruction of real Hawaiian ecology. Lengths, depths, and speeds use game scale. Body length, wingspan, and tentacle length do not imply equivalent mass. See [ecological references and design choices](docs/ecology_sources_v0_5.md).
+These regions mix modern animals, Ancient Giants, and fantasy lords; it is not a reconstruction of real Hawaiian ecology. Lengths, depths, and speeds use game scale. Body length, wingspan, and tentacle length do not imply equivalent mass. See [ecological references and design choices](docs/ecology_sources_v0_5.md).
+
+## Atlantis expedition (development candidate)
+
+A moonlit archipelago replaces Hawaii's daytime resort surface. The revised city extends through five districts: Moon Harbor, Drowned Agora, Sacred Avenue, Poseidon Acropolis, and Starless Necropolis. Continuous seabed paving, streets, plazas, and distributed courtyards, colonnades, domed buildings, towers, ruins, and temples cover a district footprint of approximately **69.64% of the horizontal sea area**. This measures the city district, including its open space, rather than solid building footprints. The revised Poseidon monument is 1.55 times its prior model scale. The central avenue and royal arena are kept open for travel and combat. Glowing pearls in sculpted marine shells replace street lamps along the avenue, cross streets, and arena perimeter. Three raised sanctuary/bridge complexes provide lower galleries, upper halls, and an open vertical well, with real passages below the decks. City lighting keeps nearby masonry and the Poseidon monument readable while the outskirts retain dark seabed, broken relics, and sparse cold bioluminescence. Atlantis has a dedicated mysterious exploration score with regional chase and lord arrangements; Hawaii retains its original music. [Music verification](docs/atlantis_music.md) records captured audio and the remaining listening review. Three independently controlled Krakens guard the western district, central court, and rear city; the existing 25-meter gate, repeated flank contacts, retreat windows, and victory condition remain shared.
+
+The home-screen destination and character cards now put their change buttons on a dedicated row so their titles and selected values align in both languages and on narrow screens.
+
+| New species            | Stage                            | Distinctive anatomy                                                |
+| ---------------------- | -------------------------------- | ------------------------------------------------------------------ |
+| Atlantic spadefish     | Safe shallow schools             | Tall silver body, dark bars, extended dorsal/anal rays             |
+| Short-snouted seahorse | Slow scattered shallow residents | Compressed plated trunk, short snout, curled tail, fluttering fins |
+| Common cuttlefish      | Slow scattered shallow residents | Broad mantle, rippling fin skirt, short arm crown                  |
+| Blue shark             | Modern offshore predator         | Slender blue body, long pectoral fins, pointed snout               |
+| Swordfish              | Modern offshore predator         | Slender body, flattened bill, swept dorsal, crescent tail          |
+| Helicoprion            | Ancient medium-water predator    | Fixed tooth whorl within the lower jaw                             |
+| Large ichthyosaur      | Ancient deeper-water predator    | Long toothed jaws, large eyes, four flippers, vertical tail        |
+
+Atlantis has 390 ordinary creatures across 17 species, including shared sardines, sunfish, tuna, rays, octopuses, and selected Ancient Giants. There are 152 genuinely schooling juvenile prey plus 16 small loose residents; tiny seahorses are scenery-rich supplements, not a substitute for nutritious schools. Ten additional small city shoals weave through streets and galleries; additional sunfish, tuna, rays, and Ancient Giants provide successive feeding layers and adult nutrition. These deep-city habitats are a fantasy adaptation described separately in the guide. Hawaii keeps its original 285-creature population. City travel also includes a visible destination-loading layer and an immediate pursuit score when a hunter gives chase. See [city ecology](docs/atlantis_city_ecology.md) for population, nutrition, and respawn evidence. Consumed creatures use the existing respawn rules, and both maps share hunger, nutrition, healing/growth, rewards, abilities, and the 30-minute active-play limit.
+
+The imagined city, revived extinct species, mixed real-world distributions, assigned depths, and active pursuit are game design. Size conventions and primary sources are documented in the [Atlantis ecology notes](docs/atlantis_ecology_sources.md). All seven regional models have a further anatomy/material revision, with focused rendered evidence in the [creature revision record](docs/atlantis_creature_revision.md). The combined city, creature, and UI revision passed integrated verification and user review; earlier candidate checks remain historical evidence. See [art production notes](docs/atlantis_art_notes.md) and [verification results and limits](docs/atlantis_verification.md). Natural whole-round pacing and physical-device performance also remain unverified.
 
 ## Ocean rewards
 

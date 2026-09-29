@@ -47,6 +47,7 @@
 }
 .expedition-choice {
   display: grid;
+  grid-template-rows: auto 1fr auto;
   min-width: 0;
   width: 100%;
   font: inherit;
@@ -67,10 +68,11 @@
     transform 160ms;
 }
 .expedition-selects .choice-heading {
-  display: flex;
-  flex-wrap: wrap;
+  display: grid;
+  grid-template-columns: 26px minmax(0, 1fr);
+  grid-template-rows: 26px 24px;
   align-items: center;
-  gap: 6px 8px;
+  gap: 8px;
   padding: 0 14px;
   color: #bcdcc9;
   font-size: 11px;
@@ -98,10 +100,12 @@
   stroke-linejoin: round;
 }
 .choice-cta {
+  grid-column: 1 / -1;
+  justify-self: start;
   display: inline-flex;
   align-items: center;
   gap: 4px;
-  margin-left: auto;
+  margin-left: 0;
   padding: 4px 10px;
   border: 1px solid #9fd8c052;
   border-radius: 999px;
@@ -128,7 +132,8 @@
   background: #7fe0c338;
 }
 .choice-input {
-  display: block;
+  display: flex;
+  align-items: flex-start;
   min-width: 0;
 }
 .choice-value {
@@ -349,8 +354,10 @@
     padding: 11px 0 9px;
   }
   .expedition-selects .choice-heading {
+    grid-template-columns: 22px minmax(0, 1fr);
+    grid-template-rows: 22px 22px;
     padding: 0 12px;
-    gap: 5px 6px;
+    gap: 7px 6px;
     font-size: 10px;
   }
   .choice-icon {
@@ -414,6 +421,9 @@
   }
   .choice-value {
     font-size: 13px;
+  }
+  .expedition-selects .choice-heading {
+    grid-template-columns: minmax(0, 1fr);
   }
   .choice-icon {
     display: none;

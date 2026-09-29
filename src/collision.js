@@ -20,7 +20,7 @@ export function bodyRadius(length) {
  * 连续移动并沿障碍表面滑动；成长导致初始重叠时寻找邻近可容纳位置。
  * @param {object} previousPosition 移动前的中心坐标。
  * @param {object} desiredPosition 本帧希望到达的中心坐标。
- * @param {object} options colliders、radius、forward、length，以及可选中心 floorHeight/bounds。
+ * @param {object} options colliders为数组或保持原序的候选查询函数；其余为radius、forward、length和中心floorHeight/bounds。
  * @returns {object} position、contacts、blocked、recovered、stuck；不修改输入。
  */
 export function resolveMotion(previousPosition, desiredPosition, options = {}) {
@@ -213,7 +213,13 @@ function recover(start, colliders, radius, offsets, constrain) {
 
 function overlaps(position, colliders, radius, offsets) {
   let deepest = null;
-  for (const collider of colliders) {
+  for (const collider of queryCollisionCandidates(
+    colliders,
+    position,
+    position,
+    radius,
+    offsets,
+  )) {
     const reach = colliderReach(collider, radius) + magnitude(offsets[0]);
     if (distance(position, center(collider)) > reach) continue;
     for (const offset of offsets) {
@@ -227,7 +233,13 @@ function overlaps(position, colliders, radius, offsets) {
 
 function sweepBody(start, end, colliders, radius, offsets) {
   let earliest = null;
-  for (const collider of colliders) {
+  for (const collider of queryCollisionCandidates(
+    colliders,
+    start,
+    end,
+    radius,
+    offsets,
+  )) {
     const reach = colliderReach(collider, radius) + magnitude(offsets[0]);
     if (distanceToSegment(center(collider), start, end) > reach) continue;
     for (const offset of offsets) {
@@ -237,6 +249,13 @@ function sweepBody(start, end, colliders, radius, offsets) {
     }
   }
   return earliest;
+}
+
+// 每次滑动、地形投影和脱困均按实际位置查询；不能复用最初线段的候选集合。
+function queryCollisionCandidates(colliders, start, end, radius, offsets) {
+  return typeof colliders === "function"
+    ? colliders(start, end, { radius, padding: magnitude(offsets[0]) })
+    : colliders;
 }
 
 /*********************************************

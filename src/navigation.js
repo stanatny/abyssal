@@ -4,6 +4,11 @@
  */
 
 import { WORLD } from "./world_config.js";
+import { resolveMotion } from "./collision.js";
+import {
+  createStaticColliderGrid,
+  needsVerticalProjection,
+} from "./static_collider_grid.js";
 
 /**
  * 为巡游方向加入边界与栖息地转向，避免逐帧翻转朝向造成原地抖动。
@@ -102,9 +107,126 @@ export function steerWithinHabitat(position, direction, species, seabedHeight) {
   return normalize({ x, y, z }, { x: 0, y: 0, z: -1 });
 }
 
+/**
+ * 对城市中的普通生物执行连续实体碰撞，并保留沿墙离开的下一帧方向。
+ * @param {object} previous 移动前位置；desired 为旧导航与水层约束后的目标位置。
+ * @param {object} desired 希望到达的位置，不会原地修改。
+ * @param {object} direction 本帧游动方向，亦用于鱼身多球朝向。
+ * @param {object} habitat 当前个体或固定鱼群的length/depthMin/depthMax配置。
+ * @param {object} options 静态colliders、heightAt海床函数和可选territory水平领地。
+ * @returns {object|null} 碰撞结果及direction；远离全部城市实体时返回null，不改变原导航。
+ */
+export function resolveCreatureMotion(
+  previous,
+  desired,
+  direction,
+  habitat,
+  { colliders, heightAt, territory = null },
+) {
+  const radius = Math.max(0.45, habitat.length * 0.18);
+  if (!colliders?.length) return null;
+  const extent = Math.max(0, habitat.length * 0.42 - radius);
+  const bounds = {
+    minX: territory?.minX ?? WORLD.minX + 8,
+    maxX: territory?.maxX ?? WORLD.maxX - 8,
+    minZ: territory?.minZ ?? WORLD.minZ + 8,
+    maxZ: territory?.maxZ ?? WORLD.maxZ - 8,
+    minY: -(habitat.depthMax || WORLD.maxDepth),
+    maxY: -(habitat.depthMin || 5),
+  };
+  let cached = STRUCTURE_GRIDS.get(colliders);
+  if (!cached || cached.count !== colliders.length) {
+    cached = {
+      count: colliders.length,
+      grid: createStaticColliderGrid(colliders),
+    };
+    STRUCTURE_GRIDS.set(colliders, cached);
+  }
+  // 滑动可离开原线段的包围盒，但水平路程不会超过本次总位移；按该距离预留转折空间。
+  const travel = Math.hypot(
+    desired.x - previous.x,
+    desired.y - previous.y,
+    desired.z - previous.z,
+  );
+  // 越界初始位置会先被精确层投影回领地，不能沿未投影的位置缩小候选。
+  const outside =
+    previous.x < bounds.minX ||
+    previous.x > bounds.maxX ||
+    previous.z < bounds.minZ ||
+    previous.z > bounds.maxZ ||
+    desired.x < bounds.minX ||
+    desired.x > bounds.maxX ||
+    desired.z < bounds.minZ ||
+    desired.z > bounds.maxZ;
+  const floorHeight = (x, z) => heightAt(x, z) + habitat.length * 0.28 + 2;
+  const candidates = outside
+    ? colliders
+    : cached.grid.query(previous, desired, {
+        radius,
+        padding: extent + travel + 0.1,
+        vertical:
+          !needsVerticalProjection(previous, { bounds, floorHeight }) &&
+          !needsVerticalProjection(desired, { bounds, floorHeight }),
+      });
+  if (!candidates.length) return null;
+  const heading = normalize(direction, { x: 0, y: 0, z: -1 });
+  const maxY = bounds.maxY;
+  const options = {
+    colliders: (start, end, dimensions) =>
+      cached.grid.query(start, end, dimensions),
+    radius,
+    forward: heading,
+    length: habitat.length,
+    floorHeight,
+    bounds,
+  };
+  const result = resolveMotion(previous, desired, options);
+  // 陡坡上无法同时满足海床与栖息水层，保留前一合法位置并向深水回转。
+  if (floorHeight(result.position.x, result.position.z) > maxY) {
+    result.position = { x: previous.x, y: previous.y, z: previous.z };
+    result.blocked = true;
+    return {
+      ...result,
+      direction: steerWithinHabitat(previous, heading, habitat, heightAt),
+    };
+  }
+  let escape = { ...heading };
+  for (const contact of result.contacts) {
+    const normal = contact.normal;
+    const inward = dot(escape, normal);
+    if (inward >= 0) continue;
+    escape = {
+      x: escape.x - normal.x * inward,
+      y: escape.y - normal.y * inward,
+      z: escape.z - normal.z * inward,
+    };
+    if (Math.hypot(escape.x, escape.y, escape.z) < 0.15) {
+      // 正面碰墙时确定性地选一侧，不用随机瞬移或每帧翻转朝向。
+      escape =
+        Math.abs(normal.y) < 0.8
+          ? { x: -normal.z, y: 0, z: normal.x }
+          : { x: heading.z, y: 0, z: -heading.x };
+    }
+    escape.x += normal.x * 0.25;
+    escape.y += normal.y * 0.25;
+    escape.z += normal.z * 0.25;
+  }
+  return {
+    ...result,
+    direction: normalize(escape, heading),
+  };
+}
+
 /*********************************************
  * Private Helper Functions
  ********************************************/
+
+// 城市实体不随帧移动；缓存仅持有弱引用，切换海域后不会留住旧世界。
+const STRUCTURE_GRIDS = new WeakMap();
+
+function dot(a, b) {
+  return a.x * b.x + a.y * b.y + a.z * b.z;
+}
 
 function clamp(value, minimum, maximum) {
   return Math.max(minimum, Math.min(maximum, value));

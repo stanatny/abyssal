@@ -855,6 +855,7 @@ export function createOcean(scene) {
   const beach = createBeachEnvironment(root, { seabedHeight });
 
   return {
+    root,
     obstacles,
     colliders,
     landmarks: extra.landmarks,

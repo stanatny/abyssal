@@ -166,7 +166,9 @@ try {
       await page.evaluate(() => ({ ...window.__ABYSSAL__.player })),
       paused,
     );
-    await page.click("#restart");
+    await page.click("#return-menu");
+    await page.waitForFunction(() => window.__ABYSSAL__.mode === "menu");
+    await page.click("#start");
     await page.waitForFunction(() => window.__ABYSSAL__.mode === "playing");
     assert.deepEqual(
       await page.evaluate(() =>

@@ -89,7 +89,9 @@ try {
     trace.recording = false;
     return { originalScale: trace.originalScale, mist: trace.mist.length };
   });
-  await page.click("#restart");
+  await page.click("#return-menu");
+  await page.waitForFunction(() => window.__ABYSSAL__.mode === "menu");
+  await page.click("#start");
   await page.evaluate(
     () =>
       new Promise((resolve) => {

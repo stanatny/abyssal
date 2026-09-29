@@ -541,6 +541,7 @@ export function createEncounters(
     projectiles = [];
   let active = null;
   let disposed = false;
+  let bossHomes = {};
   const previousPlayerPosition = new THREE.Vector3();
   const playerVelocity = new THREE.Vector3();
   let hasPlayerPosition = false;
@@ -557,7 +558,10 @@ export function createEncounters(
       transparent: true,
       opacity: 0.95,
     });
-  for (const species of BOSS_SPECIES) {
+  function createEntry(species) {
+    const poolIndex = bosses.filter(
+      (entry) => entry.state.species.kind === species.kind,
+    ).length;
     const mesh = createCreature(
       species.kind,
       species.length,
@@ -580,7 +584,10 @@ export function createEncounters(
     scene.add(ring);
     const label = makeLabel("禁入领地", species.label, "#efbeab");
     scene.add(label);
-    bosses.push({
+    const entry = {
+      id: `${species.kind}_${poolIndex}`,
+      poolIndex,
+      fixedHome: null,
       state: createBossState(species),
       mesh,
       home: new THREE.Vector3(),
@@ -606,8 +613,11 @@ export function createEncounters(
       lockedVelocity: new THREE.Vector3(),
       lastBiteResult: null,
       lastAttackSide: false,
-    });
+    };
+    bosses.push(entry);
+    return entry;
   }
+  for (const species of BOSS_SPECIES) createEntry(species);
   function removeProjectile(p) {
     scene.remove(p.mesh);
     // 光晕材质属于单发弹体，弹体本身的共享几何和材质继续复用。
@@ -638,6 +648,8 @@ export function createEncounters(
     const floor = seabedHeight(x, z) + species.length * 0.24 + 35;
     const depth = Math.min(targetDepth, -floor, species.depthMax);
     entry.home.set(x, -depth, z);
+    const fixedHome = entry.fixedHome ?? bossHomes[species.kind];
+    if (fixedHome) entry.home.fromArray(fixedHome);
     entry.mesh.position.copy(entry.home);
     entry.mesh.visible = true;
     entry.enabled = true;
@@ -647,33 +659,75 @@ export function createEncounters(
     entry.volleyShots = 0;
     entry.lastBiteResult = null;
     entry.lastAttackSide = false;
+    entry.phaseHit = false;
+    entry.heading.set(0, 0, -1);
+    entry.mesh.quaternion.identity();
+    entry.attackOrigin.set(0, 0, 0);
+    entry.lockTarget.set(0, 0, 0);
+    entry.lockedVelocity.set(0, 0, 0);
     entry.respawn = 0;
     entry.slot = index;
     entry.label.position.copy(entry.home).add(new THREE.Vector3(0, 25, 0));
     entry.label.scale.set(30, 7.5, 1);
   }
-  function reset(allowedKinds) {
+  /** 复用每物种的实例池；固定守卫与夏威夷随机名单分开选择，重开不保留战斗状态。 */
+  function reset(allowedKinds, homes = {}, instances = null) {
     if (disposed) return;
+    bossHomes = homes;
+    const selected = [];
+    if (instances) {
+      const counts = new Map();
+      for (const instance of instances) {
+        const species = BOSS_SPECIES.find(
+          (candidate) => candidate.kind === instance.kind,
+        );
+        if (!species || (allowedKinds && !allowedKinds.includes(species.kind)))
+          continue;
+        const poolIndex = counts.get(species.kind) ?? 0;
+        counts.set(species.kind, poolIndex + 1);
+        const entry =
+          bosses.find(
+            (candidate) =>
+              candidate.state.species === species &&
+              candidate.poolIndex === poolIndex,
+          ) ?? createEntry(species);
+        selected.push({ entry, instance });
+      }
+    } else {
+      // 额外的同种守卫只供固定地图使用，不增加夏威夷的抽签权重或种类数量。
+      const shuffled = bosses
+        .filter(
+          (entry) =>
+            entry.poolIndex === 0 &&
+            (!allowedKinds || allowedKinds.includes(entry.state.species.kind)),
+        )
+        .sort(() => Math.random() - 0.5);
+      selected.push(...shuffled.slice(0, 2).map((entry) => ({ entry })));
+    }
     for (const p of projectiles) removeProjectile(p);
     projectiles.length = 0;
     active = null;
     hasPlayerPosition = false;
     playerVelocity.set(0, 0, 0);
-    const shuffled = bosses
-      .filter(
-        (entry) =>
-          !allowedKinds || allowedKinds.includes(entry.state.species.kind),
-      )
-      .sort(() => Math.random() - 0.5);
     bosses.forEach((entry) => {
       entry.state = createBossState(entry.state.species);
+      entry.id = `${entry.state.species.kind}_${entry.poolIndex}`;
+      entry.fixedHome = null;
+      entry.radius = 110;
       entry.enabled = false;
       entry.mesh.visible = false;
       entry.label.visible = false;
       entry.ring.visible = false;
       resetAbilityFx(entry.fx);
     });
-    shuffled.slice(0, 2).forEach((entry, index) => place(entry, index));
+    selected.forEach(({ entry, instance }, index) => {
+      if (instance) {
+        entry.id = instance.id;
+        entry.fixedHome = instance.home;
+        entry.radius = instance.radius ?? 110;
+      }
+      place(entry, index);
+    });
   }
   function damage(player, amount, message) {
     if (takeDamage(player, amount)) {

@@ -29,11 +29,18 @@ async function assertLanguageGeometry(page, selector) {
       paddingRight: parseFloat(getComputedStyle(select).paddingRight),
       backgroundImage: after.backgroundImage,
       appearance: getComputedStyle(select).appearance,
+      language: document.documentElement.lang,
+      title: select.title,
     };
   });
   const { select, arrow, inset, paddingRight } = geometry;
   assert.ok(select.height >= 44, `${selector}: language target is too short`);
   assert.equal(geometry.appearance, "none");
+  if (geometry.title)
+    assert.equal(
+      geometry.title,
+      geometry.language === "en" ? "Language" : "语言",
+    );
   assert.match(geometry.backgroundImage, /svg/);
   assert.ok(arrow.left >= select.left && arrow.right <= select.right);
   assert.ok(arrow.top >= select.top && arrow.bottom <= select.bottom);
@@ -127,27 +134,49 @@ try {
         );
         await activate("#pause");
         await page.locator("#overlay").waitFor({ state: "visible" });
-        const pause = await assertLanguageGeometry(
-          page,
-          "#overlay [data-language-select]",
-        );
+        const pause = {
+          languageControls: await page
+            .locator("#overlay [data-language-select]")
+            .count(),
+          headerDisabled: await page
+            .locator("header [data-language-select]")
+            .isDisabled(),
+          language: await page.locator("html").getAttribute("lang"),
+        };
+        assert.equal(pause.languageControls, 0);
+        assert.equal(pause.headerDisabled, true);
+        assert.equal(pause.language, language);
         await page.screenshot({ path: `.local/home_pause_${tag}.png` });
-        // 暂停菜单真实切换语言，确认长短标签变化后箭头仍在选择框内。
+        await activate("#resume");
+        await page.locator("#overlay").waitFor({ state: "hidden" });
+        await activate("#pause");
+        await activate("#return-menu");
+        await page.waitForFunction(() => window.__ABYSSAL__.mode === "menu");
+        assert.equal(
+          await page.locator("header [data-language-select]").isEnabled(),
+          true,
+        );
+        // 必须回首页才允许切换；在两个真实语言状态检查同一个首页箭头位置。
         const otherLanguage = language === "en" ? "zh-CN" : "en";
         await page
-          .locator("#overlay [data-language-select]")
+          .locator("header [data-language-select]")
           .selectOption(otherLanguage);
-        const pauseSwitched = await assertLanguageGeometry(
+        const homeSwitched = await assertLanguageGeometry(
           page,
-          "#overlay [data-language-select]",
+          "header [data-language-select]",
         );
         assert.equal(
           await page.locator("html").getAttribute("lang"),
           otherLanguage,
         );
-        await activate("#resume");
-        await page.locator("#overlay").waitFor({ state: "hidden" });
-        report.checks.push({ tag, ...ui, header, pause, pauseSwitched });
+        await page.screenshot({ path: `.local/home_return_${tag}.png` });
+        await activate("#start");
+        await page.waitForFunction(() => window.__ABYSSAL__.mode === "playing");
+        assert.equal(
+          await page.locator("header [data-language-select]").isDisabled(),
+          true,
+        );
+        report.checks.push({ tag, ...ui, header, pause, homeSwitched });
         console.log("PASS " + tag);
       } catch (error) {
         report.errors.push({ tag, error: error.message });

@@ -35,7 +35,7 @@ try {
     await picker.waitFor({ state: "visible" });
     assert.equal(
       await picker.locator("button[data-choice-value]:disabled").count(),
-      3,
+      2,
     );
     await picker.locator(".picker-close").click();
     await picker.waitFor({ state: "hidden" });

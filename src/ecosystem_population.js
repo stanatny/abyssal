@@ -1,6 +1,7 @@
 import * as THREE from "three";
 import { WORLD } from "./world_config.js";
 import { isPositionBlocked } from "./collision.js";
+import { queryStaticColliders } from "./static_collider_grid.js";
 import {
   inPredatorTerritory,
   isNursery,
@@ -76,7 +77,9 @@ const SCHOOL_HABITATS = {
 
 /** 返回指定鱼群的初始栖息中心；新增物种不依赖目录顺序。 */
 export function initialSchoolAnchor(species, groupIndex = 0) {
-  const points = SCHOOL_HABITATS[species.kind];
+  const profile = species.schoolProfiles?.[groupIndex];
+  if (profile) return new THREE.Vector3(...profile.anchor);
+  const points = species.schoolAnchors || SCHOOL_HABITATS[species.kind];
   if (points?.length)
     return new THREE.Vector3(...points[groupIndex % points.length]);
   return initialSpeciesAnchor(species, groupIndex);
@@ -86,10 +89,14 @@ export function initialSchoolAnchor(species, groupIndex = 0) {
  * 按原始栖息中心固定中型鱼群的水层，迁移或逃逸不会将深层补给带回浅滩。
  * @param {object} species 原始生物配置，不会被修改。
  * @param {number} groupIndex 同种鱼群的稳定序号；不能根据迁移后位置重新计算。
- * @returns {object} 翻车鱼、金枪鱼与蝠鲼返回可复用的只读栖息配置；其余返回原配置。
+ * @returns {object} 配置layeredSchools的鱼群及既有中型鱼群返回只读水层，其余返回原配置。
  */
 export function schoolHabitat(species, groupIndex = 0) {
-  if (!["sunfish", "tuna", "ray"].includes(species.kind)) return species;
+  const profile = species.schoolProfiles?.[groupIndex];
+  if (profile) return Object.freeze({ ...species, ...profile });
+  const layered =
+    species.layeredSchools ?? ["sunfish", "tuna", "ray"].includes(species.kind);
+  if (!layered) return species;
   const depth = -initialSchoolAnchor(species, groupIndex).y;
   return Object.freeze({
     ...species,
@@ -98,10 +105,40 @@ export function schoolHabitat(species, groupIndex = 0) {
   });
 }
 
+/**
+ * 返回稳定鱼群分段，允许同种鱼在浅滩和城市采用不同群体规模。
+ * @param {object} species 物种配置；显式profile数量之和必须等于population。
+ * @returns {{index:number,start:number,count:number}[]} 不重叠且覆盖全部个体的分段。
+ */
+export function schoolPopulationGroups(species) {
+  const groups = [];
+  let start = 0;
+  while (start < species.population) {
+    const count =
+      species.schoolProfiles?.[groups.length]?.count ??
+      Math.min(species.schoolSize || 1, species.population - start);
+    if (
+      !Number.isInteger(count) ||
+      count < 1 ||
+      start + count > species.population
+    )
+      throw new Error(`Invalid school population for ${species.kind}`);
+    groups.push({ index: groups.length, start, count });
+    start += count;
+  }
+  if (species.schoolProfiles && groups.length !== species.schoolProfiles.length)
+    throw new Error(`Mismatched school profiles for ${species.kind}`);
+  return groups;
+}
+
 /** 普通猎手按栖息水层沿海床坡度分散，避免所有种类初始随机落在遥远海域。 */
 export function initialSpeciesAnchor(species, index = 0) {
   const territory = predatorTerritory(species, index);
   if (territory?.edge) return new THREE.Vector3().copy(territory.center);
+  if (species.spawnAnchors?.length)
+    return new THREE.Vector3(
+      ...species.spawnAnchors[index % species.spawnAnchors.length],
+    );
   const count = Math.max(1, species.population || 1);
   // 远古巨兽延伸至本物种水层下部，现代种类沿用原分布比例。
   const spread = species.category === "ancient" ? 0.8 : 0.68;
@@ -193,7 +230,10 @@ export function habitatPosition(
   const point = new THREE.Vector3();
   const minimum = species.depthMin ?? 5,
     maximum = Math.min(species.depthMax ?? 710, 715);
-  const radius = Math.max(0.45, species.length * 0.18) + padding;
+  // 城区出生保留整条鱼的转向空间，避免中心合法而头尾嵌进墙面。
+  const radius =
+    Math.max(0.45, species.length * (species.cityHabitat ? 0.55 : 0.18)) +
+    padding;
   const floorMargin = Math.max(3 + species.length * 0.35, radius + 1.5);
   const visibleRadius = speciesVisibilityDistance(species, highQuality);
   const ahead = Math.atan2(forward.x, forward.z);
@@ -230,7 +270,11 @@ export function habitatPosition(
         isVisible(point))
     )
       continue;
-    if (isPositionBlocked(point, { radius, colliders })) continue;
+    const candidates =
+      colliders.length >= 256
+        ? queryStaticColliders(colliders, point, point, { radius })
+        : colliders;
+    if (isPositionBlocked(point, { radius, colliders: candidates })) continue;
     return point.clone();
   }
   return null;

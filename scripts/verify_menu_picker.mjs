@@ -49,6 +49,7 @@ async function capture(page, name) {
 }
 async function assertClosed(page, trigger, pointer = false) {
   await page.locator("#expedition-picker").waitFor({ state: "hidden" });
+  await page.locator("#region-loading").waitFor({ state: "hidden" });
   const state = await page.locator(trigger).evaluate((button) => ({
     expanded: button.getAttribute("aria-expanded"),
     active: button === document.activeElement,
@@ -173,7 +174,7 @@ try {
         result.regionGeometry = await measureDialog(page);
         assert.equal(
           await page.locator("#expedition-picker button:disabled").count(),
-          3,
+          2,
         );
         assert.equal(
           await page

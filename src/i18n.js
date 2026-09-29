@@ -1,10 +1,11 @@
 import { UI_EN } from "./locales/ui_en.js";
 import { CATALOG_EN } from "./locales/catalog_en.js";
+import { ATLANTIS_EN } from "./locales/atlantis_en.js";
 
 export const LANGUAGE_KEY = "abyssal-language";
 export const SUPPORTED_LANGUAGES = Object.freeze(["zh-CN", "en"]);
 const english = Object.freeze(
-  Object.assign(Object.create(null), CATALOG_EN, UI_EN),
+  Object.assign(Object.create(null), CATALOG_EN, UI_EN, ATLANTIS_EN),
 );
 const listeners = new Set();
 const sources = new WeakMap();
@@ -36,6 +37,7 @@ function browserLanguage() {
   return detectLanguage(storage, navigator.languages || [navigator.language]);
 }
 let language = browserLanguage();
+let languageEnabled = true;
 export const getLanguage = () => language;
 
 /** 消息描述保留原文与参数，通知显示期间切换语言不丢失语义。 */
@@ -65,12 +67,27 @@ export function t(source, values = [], locale = language) {
 }
 export const tr = (parts, ...values) => t(message(parts, ...values));
 
+/** 仅首页允许切换语言，出发、暂停及结算都锁住同一语言状态。 */
+export function setLanguageEnabled(enabled) {
+  languageEnabled = Boolean(enabled);
+  if (typeof document === "undefined") return;
+  for (const control of document.querySelectorAll("[data-language-select]")) {
+    control.disabled = !languageEnabled;
+    control.title = languageEnabled ? t("语言") : t("返回主界面后可切换语言");
+  }
+}
+
 export function onLanguageChange(listener) {
   listeners.add(listener);
   return () => listeners.delete(listener);
 }
 export function setLanguage(next) {
-  if (!SUPPORTED_LANGUAGES.includes(next) || next === language) return false;
+  if (
+    !languageEnabled ||
+    !SUPPORTED_LANGUAGES.includes(next) ||
+    next === language
+  )
+    return false;
   language = next;
   try {
     if (typeof window !== "undefined")
@@ -80,6 +97,7 @@ export function setLanguage(next) {
   }
   if (typeof document !== "undefined") document.documentElement.lang = language;
   for (const listener of listeners) listener(language);
+  setLanguageEnabled(languageEnabled);
   return true;
 }
 

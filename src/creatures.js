@@ -1,3 +1,7 @@
+import {
+  ATLANTIS_CREATURE_KINDS,
+  buildAtlantisCreature,
+} from "./creature_atlantis.js";
 import { createPlayerMotion, addFeedingMouth } from "./player_motion.js";
 import { SHOAL_CREATURE_KINDS, buildShoalCreature } from "./creature_shoal.js";
 import {
@@ -50,7 +54,10 @@ export function createCreature(kind, length = 6, seed = 1) {
   let previousTime;
   let swimTime = phase;
 
-  if (SHOAL_CREATURE_KINDS.has(kind)) buildShoalCreature(kind, root, motions);
+  if (ATLANTIS_CREATURE_KINDS.has(kind))
+    buildAtlantisCreature(kind, root, motions);
+  else if (SHOAL_CREATURE_KINDS.has(kind))
+    buildShoalCreature(kind, root, motions);
   else if (HUNTER_CREATURE_KINDS.has(kind))
     buildHunterCreature(kind, root, motions);
   else if (LORD_CREATURE_KINDS.has(kind))

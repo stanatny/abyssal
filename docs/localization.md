@@ -4,7 +4,7 @@ Project documentation, README files, development rules, and project Skill instru
 
 ## Player experience
 
-The first visit follows the browser's primary language: Chinese variants select Simplified Chinese; other languages select English. The language selector appears in the header and in the pause/results panel. An explicit choice is stored under `abyssal-language`. Storage failures leave switching usable for the current page.
+The first visit follows the browser's primary language: Chinese variants select Simplified Chinese; other languages select English. The language selector appears in the header and is enabled only on the home screen. The language remains locked during launch, play, pause, and results; returning to Home ends the expedition and unlocks selection. The pause/results panel does not contain a language selector. An explicit choice is stored under `abyssal-language`. Storage failures leave switching usable for the current page.
 
 A language change updates menu copy, character abilities, HUD, radar, sonar labels, warnings, results, guide entries, and reward/territory labels in the 3D world. It does not restart the round, change the selected character, reset a skill cooldown, or alter balance. The guide retains the selected category/entry and model cache. Search accepts Chinese names, English names, and scientific labels. Settings, guide filters, and details retain their ordinary scrolling behavior on narrow screens.
 

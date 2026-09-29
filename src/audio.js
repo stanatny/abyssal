@@ -1,6 +1,7 @@
 import { FishBiteBank } from "./fish_bite_assets.js";
 import { HumanVoiceBank } from "./human_voice_assets.js";
 import { createFeedingSound } from "./feeding_audio.js";
+import { AtlantisMusic, ATLANTIS_SCORE } from "./music_atlantis.js";
 
 /**
  * OceanAudio 提供原创海洋配乐、分层水下音效与随应用打包的真人呼喊。
@@ -28,11 +29,19 @@ export class OceanAudio {
     this.nextStep = 0;
     this.nextHeartbeat = 0;
     this.lastDanger = 0;
+    this.pursuing = false;
+    this.musicCombat = false;
     this.boss = false;
     this.depth = 0;
     this.aboveWater = false;
     this.ink = 0;
     this.voices = new Set();
+    this.musicVoices = new Map();
+    this.musicDestinations = new Set();
+    this.regionId = "hawaii";
+    this.atlantisMusic = null;
+    this.retiredMusicRooms = [];
+    this.pauseTimer = null;
     this.feedingVoices = new Map();
     this.feedingBuffers = new Map();
     this.cooldowns = new Map();
@@ -54,10 +63,31 @@ export class OceanAudio {
     this.setPaused(false);
     this.update(0, this.lastDanger, {
       boss: this.boss,
+      pursuing: this.pursuing,
       depth: this.depth,
       aboveWater: this.aboveWater,
       ink: this.ink,
     });
+  }
+
+  /**
+   * setRegion 切换地图配乐并淡出旧乐句；regionId 为地图 ID，返回实际配乐 ID。
+   * 可在用户手势前调用，不创建上下文；未知地图沿用夏威夷主题。
+   */
+  setRegion(regionId) {
+    const next = regionId === "atlantis" ? "atlantis" : "hawaii";
+    if (next === this.regionId) return next;
+    this.regionId = next;
+    this.beat = next === "atlantis" ? ATLANTIS_SCORE.beat : 60 / 80;
+    this.step = 0;
+    this.musicCombat = false;
+    if (!this.ready) return next;
+    const now = this.context.currentTime;
+    this.stopMusic(now);
+    this.replaceMusicRoom(now);
+    this.nextStep = now + 0.14;
+    if (next === "atlantis") this.ensureAtlantisMusic().reset(now);
+    return next;
   }
 
   /** preloadHumanVoices 在菜单预取录音，不激活AudioContext；返回是否成功。 */
@@ -128,6 +158,11 @@ export class OceanAudio {
       return this.enabled;
     }
     this.enabled = !this.enabled;
+    if (!this.enabled) {
+      this.stopMusic(this.context.currentTime);
+      this.musicCombat = false;
+      if (this.atlantisMusic) this.atlantisMusic.combatActive = false;
+    }
     this.master.gain.setTargetAtTime(
       this.enabled ? 0.76 : 0,
       this.context.currentTime,
@@ -135,7 +170,8 @@ export class OceanAudio {
     );
     if (this.enabled && !this.paused) {
       this.nextStep = this.context.currentTime + 0.035;
-      this.step -= this.step % 16;
+      const phrase = this.regionId === "atlantis" ? 32 : 16;
+      this.step -= this.step % phrase;
       this.resumeContext();
     }
     return this.enabled;
@@ -145,20 +181,38 @@ export class OceanAudio {
   setPaused(paused) {
     this.paused = Boolean(paused);
     if (!this.context || !this.ready) return;
-    this.pauseGate.gain.setValueAtTime(
-      this.paused ? 0 : 1,
-      this.context.currentTime,
-    );
+    const now = this.context.currentTime;
+    const gain = this.pauseGate.gain;
+    if (typeof gain.cancelAndHoldAtTime === "function")
+      gain.cancelAndHoldAtTime(now);
+    else {
+      gain.cancelScheduledValues(now);
+      gain.setValueAtTime(gain.value, now);
+    }
+    gain.linearRampToValueAtTime(this.paused ? 0 : 1, now + 0.025);
+    clearTimeout(this.pauseTimer);
+    this.pauseTimer = null;
     if (this.isOffline()) return;
     if (this.paused) {
-      if (this.context.state === "running")
-        this.context.suspend().catch(() => {});
+      // 先渲染短淡出，再停时钟；快速继续必须撤销待执行的暂停。
+      this.pauseTimer = setTimeout(() => {
+        this.pauseTimer = null;
+        if (this.paused && this.context.state === "running")
+          this.context
+            .suspend()
+            .then(() => {
+              if (!this.paused) this.resumeContext();
+            })
+            .catch(() => {});
+      }, 35);
     } else this.resumeContext();
   }
 
   /** reset 清除上一局尾音和节拍，复用声音开关与主图；无参数，无返回值。 */
   reset() {
     this.lastDanger = 0;
+    this.pursuing = false;
+    this.musicCombat = false;
     this.boss = false;
     this.depth = 0;
     this.aboveWater = false;
@@ -168,6 +222,7 @@ export class OceanAudio {
     this.feedingVoices.clear();
     if (!this.ready) return;
     const now = this.context.currentTime;
+    this.stopMusic(now);
     for (const source of this.voices) {
       try {
         source.stop(now);
@@ -191,48 +246,65 @@ export class OceanAudio {
     this.reverbInput.disconnect(this.convolver);
     this.convolver.disconnect();
     this.connectReverb();
+    this.replaceMusicRoom(now);
+    this.atlantisMusic?.reset(now);
   }
 
   /**
    * update 更新分层配乐与水下混音；time 为游戏时间，danger 为 0–1 危险值。
-   * options 接收 boss、世界单位 depth、aboveWater 和 0–1 的 ink；无返回值。
+   * options 接收 pursuing、boss、世界单位 depth、aboveWater 和 0–1 的 ink；无返回值。
+   * pursuing 明确表示实际追击；未传入时兼容已有 danger>0 的调用。
    */
   update(
     time,
     danger,
-    { boss = false, depth = 0, aboveWater = false, ink = 0 } = {},
+    {
+      boss = false,
+      pursuing = null,
+      depth = 0,
+      aboveWater = false,
+      ink = 0,
+    } = {},
   ) {
     void time;
     this.lastDanger = clamp(danger, 0, 1);
+    this.pursuing = pursuing === null ? this.lastDanger > 0 : Boolean(pursuing);
     this.boss = Boolean(boss);
     this.depth = Math.max(0, Number.isFinite(depth) ? depth : 0);
     this.aboveWater = Boolean(aboveWater);
     this.ink = clamp(ink, 0, 1);
     if (!this.ready || this.paused) return;
     const now = this.context.currentTime;
+    this.cleanMusicRooms(now);
+    if (this.regionId === "atlantis") this.ensureAtlantisMusic().update(now);
     const intensity = Math.sqrt(this.lastDanger);
     const depthRatio = clamp(this.depth / 740, 0, 1);
     const muffling = 1 - this.ink * 0.67;
+    const combat = this.pursuing || this.boss;
     this.calm.gain.setTargetAtTime(
-      this.boss ? 0.22 : 0.86 * (1 - intensity * 0.55),
+      this.boss ? 0.22 : combat ? 0.34 : 0.86,
       now,
-      0.8,
+      combat ? 0.18 : 0.8,
     );
-    this.chase.gain.setTargetAtTime(this.boss ? 0.6 : intensity, now, 0.38);
-    this.chaseFast.gain.setTargetAtTime(
-      this.boss ? 0.8 : this.lastDanger ** 2,
+    this.chase.gain.setTargetAtTime(
+      this.boss ? 1.05 : combat ? 1.12 + intensity * 0.28 : 0,
       now,
-      0.35,
+      combat ? 0.08 : 0.85,
+    );
+    this.chaseFast.gain.setTargetAtTime(
+      combat ? (this.boss ? 0.9 : Math.max(0.58, this.lastDanger ** 2)) : 0,
+      now,
+      combat ? 0.1 : 0.85,
     );
     this.bossLayer.gain.setTargetAtTime(
-      this.boss ? Math.max(0.72, intensity) : 0,
+      this.boss ? Math.max(0.85, intensity) : 0,
       now,
-      0.5,
+      this.boss ? 0.15 : 0.9,
     );
     this.chaseFilter.frequency.setTargetAtTime(
-      520 + this.lastDanger * 1150,
+      combat ? 1550 + this.lastDanger * 500 : 520,
       now,
-      0.6,
+      combat ? 0.12 : 0.6,
     );
     this.musicFilter.frequency.setTargetAtTime(
       (this.aboveWater ? 7800 : 3500 - depthRatio * 1600) * muffling,
@@ -260,6 +332,16 @@ export class OceanAudio {
       0.7,
     );
     if (!this.enabled) return;
+    if (this.regionId === "hawaii" && combat && !this.musicCombat) {
+      // 夏威夷保留既有音型，追击开始时立即给出短重拍，不等待当前探索拍点。
+      this.drum(now + 0.012, 0.2, this.chase, 0.9);
+      this.note(midi(62), now + 0.012, 0.34, 0.13, this.chase, {
+        type: "felt",
+        attack: 0.025,
+        cutoff: 1850,
+      });
+    }
+    this.musicCombat = combat;
 
     // 跳过掉帧期间错过的拍点，避免恢复画面时堆叠大量音符。
     const subdivision = this.beat / 2;
@@ -269,7 +351,9 @@ export class OceanAudio {
       this.nextStep += skipped * subdivision;
     }
     while (this.nextStep < now + 0.23) {
-      this.scheduleMusicStep(this.nextStep, this.step);
+      if (this.regionId === "atlantis")
+        this.ensureAtlantisMusic().schedule(this.nextStep, this.step);
+      else this.scheduleMusicStep(this.nextStep, this.step);
       this.nextStep += subdivision;
       this.step += 1;
     }
@@ -622,6 +706,8 @@ export class OceanAudio {
     this.chase = this.makeBus(0, this.chaseFilter);
     this.chaseFast = this.makeBus(0, this.chase);
     this.bossLayer = this.makeBus(0, this.music);
+    for (const bus of [this.calm, this.chase, this.chaseFast, this.bossLayer])
+      this.musicDestinations.add(bus);
 
     this.waves = {
       warm: this.harmonicWave([1, 0.2, 0.095, 0.028, 0.012]),
@@ -630,7 +716,8 @@ export class OceanAudio {
       reed: this.harmonicWave([1, 0.13, 0.29, 0.047, 0.085]),
     };
     this.reverbInput = this.makeBus(1);
-    this.musicWet = this.makeBus(0.26, this.reverbInput);
+    this.musicReverbInput = this.makeBus(1);
+    this.musicWet = this.makeBus(0.26, this.musicReverbInput);
     this.effectsWet = this.makeBus(0.14, this.reverbInput);
     this.musicFilter.connect(this.musicWet);
     this.effectsFilter.connect(this.effectsWet);
@@ -641,6 +728,7 @@ export class OceanAudio {
     this.reverbFilter.connect(this.mix);
     this.reverbImpulse = this.createImpulse(2.6);
     this.connectReverb();
+    this.connectMusicRoom();
 
     this.noiseBuffer = context.createBuffer(
       1,
@@ -795,7 +883,7 @@ export class OceanAudio {
       });
     }
 
-    if (this.lastDanger > 0.015 || this.boss) {
+    if (this.pursuing || this.boss) {
       const pitch = bass + [0, 0, 7, 0, 3, 0, 7, -1][step % 8];
       this.note(midi(pitch), at, 0.29, 0.19, this.chase, {
         type: "bass",
@@ -803,6 +891,14 @@ export class OceanAudio {
         hold: 0.052,
         cutoff: 1050,
       });
+      if (step % 2 === 0)
+        this.note(midi(pitch + 24), at + 0.008, 0.24, 0.105, this.chase, {
+          type: "felt",
+          attack: 0.018,
+          hold: 0.045,
+          cutoff: 2100,
+          pan: step % 4 ? -0.18 : 0.18,
+        });
       this.note(
         midi(pitch + (step % 2 ? 0 : 7)),
         at + subdivision * 0.5,
@@ -944,6 +1040,8 @@ export class OceanAudio {
     } else oscillator.connect(envelope);
     this.connectVoice(envelope, destination, pan, nodes);
     this.releaseWhenEnded(oscillator, nodes);
+    if (this.musicDestinations.has(destination))
+      this.musicVoices.set(oscillator, { gain: envelope.gain, onset });
     oscillator.start(onset);
     oscillator.stop(onset + length + 0.02);
   }
@@ -979,6 +1077,8 @@ export class OceanAudio {
     const nodes = [source, filter, envelope];
     this.connectVoice(envelope, destination, pan, nodes);
     this.releaseWhenEnded(source, nodes);
+    if (this.musicDestinations.has(destination))
+      this.musicVoices.set(source, { gain: envelope.gain, onset });
     source.start(onset, this.random() * 1.8);
     source.stop(onset + length + 0.02);
   }
@@ -1110,6 +1210,76 @@ export class OceanAudio {
     this.reverbInput.connect(this.convolver).connect(this.reverbFilter);
   }
 
+  ensureAtlantisMusic() {
+    this.atlantisMusic ??= new AtlantisMusic(this);
+    return this.atlantisMusic;
+  }
+
+  stopMusic(now) {
+    const fade = this.paused ? 0.02 : 0.075;
+    for (const [source, { gain, onset }] of this.musicVoices) {
+      // 预排音符直接取消；已暂停的原生时钟也必须立即清源，避免重入复活旧尾音。
+      if (
+        onset > now ||
+        (this.paused && !this.isOffline() && this.context.state === "suspended")
+      ) {
+        try {
+          source.stop(now);
+        } catch {
+          /* 已取消的预排音符无需再次处理。 */
+        }
+        this.voices.delete(source);
+        continue;
+      }
+      if (typeof gain.cancelAndHoldAtTime === "function")
+        gain.cancelAndHoldAtTime(now);
+      else {
+        gain.cancelScheduledValues(now);
+        gain.setValueAtTime(gain.value, now);
+      }
+      gain.linearRampToValueAtTime(0, now + fade);
+      try {
+        source.stop(now + fade + 0.005);
+      } catch {
+        /* 已结束的声部由 onended 回收。 */
+      }
+      this.voices.delete(source);
+    }
+    this.musicVoices.clear();
+  }
+
+  connectMusicRoom() {
+    const convolver = this.context.createConvolver();
+    convolver.buffer = this.reverbImpulse;
+    const output = this.makeBus(1, this.reverbFilter);
+    this.musicReverbInput.connect(convolver).connect(output);
+    this.musicRoom = { convolver, output };
+  }
+
+  replaceMusicRoom(now) {
+    this.cleanMusicRooms(now);
+    const room = this.musicRoom;
+    this.musicReverbInput.disconnect(room.convolver);
+    if (this.paused || !this.enabled) {
+      room.convolver.disconnect();
+      room.output.disconnect();
+    } else {
+      room.output.gain.setValueAtTime(1, now);
+      room.output.gain.linearRampToValueAtTime(0, now + 0.1);
+      this.retiredMusicRooms.push({ ...room, expires: now + 0.12 });
+    }
+    this.connectMusicRoom();
+  }
+
+  cleanMusicRooms(now) {
+    this.retiredMusicRooms = this.retiredMusicRooms.filter((room) => {
+      if (room.expires > now && !this.paused) return true;
+      room.convolver.disconnect();
+      room.output.disconnect();
+      return false;
+    });
+  }
+
   makeBus(gain, destination = null) {
     const node = this.context.createGain();
     node.gain.value = gain;
@@ -1122,6 +1292,7 @@ export class OceanAudio {
     source.onended = () => {
       for (const node of nodes) node.disconnect();
       this.voices.delete(source);
+      this.musicVoices.delete(source);
       onEnded?.();
     };
   }

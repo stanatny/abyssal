@@ -1,0 +1,40 @@
+# Atlantis Expedition Plan
+
+Status: revised candidate awaiting user review after rejection of the previous art/presentation candidate on `feature/atlantis`, based on refreshed remote main `53150df` plus the accepted local audit commit `462f2a8`. Main and the published Hawaii build remain unchanged. User acceptance is required before merging this feature into main; no feature commit, push, or release is currently requested.
+
+## Ownership
+
+Codex owns design, integration, ecology/balance, localization, and validation; the user decides art acceptance and any merge. Kimi produced the first environment and creature art in an isolated worktree. The user rejected that candidate's city scale/detail and several creature/UI details, superseding its earlier internal art-review conclusions. Codex directly rebuilt the city and integrated the revision with explicitly assigned, non-overlapping files. No parallel agent may stage, commit, push, or replace integration services. No agent may operate the existing main checkout for this feature.
+
+## Playable result
+
+Atlantis becomes the second enabled region, immediately after Hawaii. Both existing player characters remain available. Region selection must switch the actual environment and population before departure, including returning from the guide and repeated selection; it cannot merely change a label.
+
+The surface is a moonlit archipelago with a star field/Milky Way and a few small human boats. It contains no daytime cruise-resort scenery. The descent follows three recognizable stages: safe moonlit shallows, a drowned outer district, and a monumental illuminated temple/city under Kraken's guard. Preserve darker side streets and surrounding terrain while making the main avenue, temple fronts, Poseidon statue, and combat space readable in actual deep-water fog. Sculpted marine shells with softly glowing pearls mark the main avenue, cross streets, arena perimeter, and lower-gallery entrances. Architectural niches use miniature shell habitats instead of torch-like fixtures. A fixed five-light pool (three visible in smooth quality) supplements the city ambience without introducing a light per shell. The city-local ambient, ground fill, sunlight, and fog blend remain active during play. Outside that light field, broken steles, column remnants, amphora cargo, sea fans, and small cold-glowing sponges retain a darker exploration layer. No screenshot-only lighting.
+
+The new region shares the existing world bounds, vertical scale, shoreline-to-trench slope, safe nursery rules, and character movement. Distinct architecture, terrain materials, lighting, fleet, animal composition, and landmarks establish a different place without duplicating the survival engine. The replacement city occupies x=-275..275 and z=-1080..-100, with continuous paving following the shared seabed. Its 539,000-square-unit district footprint is 69.64% of the 774,000-square-unit horizontal sea area; this includes streets, plazas, and plots, not only solid building footprints. Moon Harbor, Drowned Agora, Sacred Avenue, Poseidon Acropolis, and Starless Necropolis carry architecture across both sides of the map. Courtyards, villas, stoas, ruins, towers, gates, rotundas, and temples provide distinct silhouettes and detailed masonry. Poseidon uses 1.55 times the prior model scale. The earlier x=-135..135 / z=-530..-910 design is superseded. An open arena near the temple must accommodate a 25–30m character and Kraken, without sealed invisible volumes or narrow mandatory corridors.
+
+## Ecology and rules
+
+Add seven region-specific species: Atlantic spadefish, seahorse, common cuttlefish, blue shark, swordfish, a large ichthyosaur, and Helicoprion. Use independently recognizable anatomy/animation, researched sizes and reconstruction caveats. Seahorses and cuttlefish are loose residents rather than synchronized schooling fish. Shared sardine/tuna/ray/sunfish and selected existing deep fauna bridge nutrition stages. Hawaii retains its released population and region identity; a global species registry must not automatically spawn every new species there.
+
+Provide dense edible juvenile prey, medium offshore meals, and large deep prey leading into the city. Three independent Kraken instances guard the western district, central court, and rear city. Their territories remain separated and outside the nursery; other lord species remain assigned to Hawaii. The guide keeps a single Kraken species entry. Defeating any one guardian counts toward the shared victory condition; defeating all three is optional. Keep the same 3m juvenile start, actual 25m lord gate, repeated flank attacks, 8 hunger per valid lord bite, 30-minute active limit, size/depth hunger formula, healing/growth rules, 20s Frenzy, and 30s Ocean Current. Each map has three starter pickups plus 18 random pickups with the same effects and respawn. New-map support must not create a second hunger or combat formula.
+
+## Integration and acceptance
+
+- A region profile selects world art, ecology/spawn anchors, boss roster/territory, surface atmosphere, radar/zone copy, and guide map labels. Shared systems keep their existing defaults for Hawaii.
+- Map changes clear feeding transitions, old creatures/telegraphs, encounters, and map-specific assets; reusable geometry/material ownership must remain safe. Restart reuses the current map population and starts in its safe nursery.
+- Runtime, guide, menus, dynamic labels, search, and both English/Chinese copy remain synchronized. Documentation is English, new code comments Chinese. Guide and world use the same creature models. The guide progresses from small prey/surface animals through modern predators, Ancient Giants, and Abyss Lords, sorting entries by length within each group. Its current/Hawaii/Atlantis/all region filter must not change the expedition. Home-screen change controls use a dedicated aligned row.
+- Validate map switching repeatedly, both characters, juvenile feeding/safety, medium/deep food, Kraken eligibility/defeat/win, movement/occlusion around the city and boats, skill effects, pause/restart, and resource stability.
+- Inspect actual desktop and 390px/320px scenes: night surface, shallow schools, city approach, Poseidon close view, lit central arena, dark side district, and new guide species from multiple angles/full motion cycles. Measure draw/resource costs; do not equate headless sampling with real-device acceptance.
+- Rebuild and verify a separate preview for this revision; match the served artifact to the revised source before delivery. User review gates merging into main. Keep initial art shortcomings and fixes in the verification record; automated tests do not establish the artistic quality bar.
+
+Current checks, superseded candidate evidence, and remaining acceptance work are recorded in [candidate verification](atlantis_verification.md). Focused evidence for the seven revised creatures is in the [anatomy revision record](atlantis_creature_revision.md).
+
+## Living, layered city follow-up
+
+The shared survival rules now have an Atlantis-specific supply of 374 ordinary animals. Eight small city shoals occupy streets and galleries, while medium and large prey support adult feeding. Keep all 168 juvenile-area residents and Hawaii's 285-animal configuration intact. See [city ecology](atlantis_city_ecology.md) for legal layers, nutrition assumptions, and natural respawn checks.
+
+Three side-city complexes replace flat lots with upper halls and traversable lower galleries; one has a central vertical well. Footprint reservation must reject overlapping legacy buildings, bases, towers, and rotundas. The city coverage remains 69.64%; multiple floors must not inflate the planar area measure. See [underways](atlantis_underways.md).
+
+Use the [regional music](atlantis_music.md) controller for map selection and re-entry. Home is the sole language-selection state; a paused expedition can continue or return Home. Results also provide Home, while their primary action starts another round.

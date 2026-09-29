@@ -3169,12 +3169,17 @@ kbd {
   outline-offset: 3px;
   border-color: #d9dfc8;
 }
-.overlay-language {
-  display: flex;
-  width: fit-content;
-  justify-content: center;
-  margin: 0 auto 20px;
+/* 当前远征锁定语言；禁用态保留显示，提示去首页更改。 */
+.language-control:has(select:disabled) {
+  opacity: 0.5;
 }
+.language-control select:disabled {
+  cursor: default;
+}
+.language-control:has(select:disabled)::after {
+  opacity: 0.4;
+}
+
 html[lang="en"] #menu h1 {
   font-size: clamp(32px, 4.1vw, 62px);
   letter-spacing: -1.5px;

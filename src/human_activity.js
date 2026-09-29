@@ -17,7 +17,7 @@ export { HUMAN_CATALOG, createHumanModel } from "./vehicle_models.js";
 /**
  * 创建有限数量的成人、潜艇和接触水雷，所有动画由主循环驱动。
  * @param {THREE.Scene} scene 主场景。
- * @param {object} options heightAt、worldColliders、audio、notify、effects、onEat、onDamage。
+ * @param {object} options heightAt、worldColliders、可选castWorld精确射线、audio、notify、effects、onEat、onDamage。
  * @returns {object} reset/update/onMovement、实体数组、动态碰撞数组与dispose。
  * onMovement 必须在实体碰撞推开前调用，传入本帧移动前与期望位置。
  */
@@ -29,6 +29,8 @@ export function createHumanActivity(
     effects,
     heightAt = () => -WORLD.maxDepth,
     worldColliders = [],
+    castWorld = (from, to, radius = 0) =>
+      castSegment(from, to, worldColliders, radius),
     onEat,
     onDamage,
     isSwallowing = () => false,
@@ -401,10 +403,14 @@ export function createHumanActivity(
         .copy(desired)
         .addScaledVector(forward, offset);
       const hit = castSegment(from, to, [target], radius);
-      const wall = castSegment(from, to, worldColliders, radius);
+      const endpointContact =
+        !hit && isPositionBlocked(to, { colliders: [target], radius });
+      // 远处目标没有任何接触候选时，不必反复扫掠整片海域的墙体。
+      // 真正可能命中时仍按原来的先后顺序处理遮挡与终点重叠。
+      if (!hit && !endpointContact) continue;
+      const wall = castWorld(from, to, radius);
       if (hit && (!wall || hit.time <= wall.time)) return true;
-      if (!wall && isPositionBlocked(to, { colliders: [target], radius }))
-        return true;
+      if (!wall && endpointContact) return true;
     }
     return false;
   }
@@ -582,7 +588,7 @@ export function createHumanActivity(
             ? WORLD.surfaceY + 0.03
             : WORLD.surfaceY - 0.6,
         );
-        if (!castSegment(previous, desired, worldColliders, 0.65)) {
+        if (!castWorld(previous, desired, 0.65)) {
           entity.mesh.position.copy(desired);
         } else {
           entity.anchor.copy(previous).addScaledVector(entity.direction, -6);
@@ -599,7 +605,7 @@ export function createHumanActivity(
       if (
         entity.mesh.position.distanceTo(position) < player.length * 0.4 &&
         previous.distanceTo(position) < player.length * 0.6 &&
-        !castSegment(position, entity.mesh.position, worldColliders)
+        !castWorld(position, entity.mesh.position)
       )
         eatAt(player, entity, now, forward);
     }

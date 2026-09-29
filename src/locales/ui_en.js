@@ -1,4 +1,8 @@
 export const UI_EN = Object.freeze({
+  下一段旅程: "Your next voyage",
+  "正在准备海域…": "Preparing your destination…",
+  "海域准备失败，已保留原海域。请稍后重试。":
+    "This destination could not be prepared. Your previous region is still available. Please try again.",
   "幼年先在安全浅滩吃鱼群；长大后，小鱼补给会衰减。越深越耗饱食，向下寻找更大的猎物，吃饱再挑战领主。":
     "Feed on nursery shoals while young. Small prey provide less food as you grow. Deeper water drains hunger faster: seek larger prey below and feed before fighting a lord.",
   "挑战远古巨兽，成长至 25 米": "Challenge ancient giants · Reach 25m",
@@ -280,6 +284,9 @@ export const UI_EN = Object.freeze({
   "虎鲸声呐，就绪": "Orca sonar, ready",
   "休息一下，再继续下潜。": "Take a breath, then dive again.",
   重新开始: "Restart",
+  返回主界面: "Return to Home",
+  "结束本次探索，返回主界面": "End this expedition and return to Home",
+  返回主界面后可切换语言: "Return to Home to change language",
   "正在唤醒海洋…": "Waking the ocean…",
   "深渊狂食 · 吸食": "Frenzy · Suction",
   "20 秒近距吸食，捕食范围扩大": "20s suction with a wider feeding reach",

@@ -12,6 +12,7 @@ export function createExpeditionSetup(
     onMarkersChange,
     onInvertVerticalChange,
     onCharacterChange,
+    onRegionChange,
   },
 ) {
   container.className = "expedition-setup";
@@ -32,12 +33,13 @@ export function createExpeditionSetup(
   const picker = createMenuPicker();
   const regionButton = container.querySelector("#region-select");
   const characterButton = container.querySelector("#character-select");
-  function updateRegion() {
+  function updateRegion(notifyChange = true) {
     const entry = REGIONS.find((region) => region.id === regionButton.value);
     container.querySelector("#region-choice-value").textContent = t(entry.name);
     container.querySelector("#region-description").textContent = t(
       entry.description || "",
     );
+    if (notifyChange) onRegionChange?.(entry);
   }
   for (const [trigger, entries, title, character, onSelect] of [
     [regionButton, REGIONS, "选择海域", false, updateRegion],
@@ -70,11 +72,15 @@ export function createExpeditionSetup(
   updateCharacter();
   onLanguageChange(() => {
     translateDOM(container);
-    updateRegion();
+    updateRegion(false);
     updateCharacter(false);
     picker.refresh();
   });
   return {
+    setRegion(id) {
+      regionButton.value = id;
+      updateRegion(false);
+    },
     getSelection: () =>
       getExpedition(
         container.querySelector("#region-select").value,

@@ -1,4 +1,5 @@
 import * as THREE from "three";
+import { MOON_DIRECTION } from "./atlantis_art_sky.js";
 import { EffectComposer } from "three/addons/postprocessing/EffectComposer.js";
 import { RenderPass } from "three/addons/postprocessing/RenderPass.js";
 import { UnrealBloomPass } from "three/addons/postprocessing/UnrealBloomPass.js";
@@ -14,6 +15,7 @@ import { OutputPass } from "three/addons/postprocessing/OutputPass.js";
 export function createVisualPipeline(renderer, scene, camera) {
   renderer.info.autoReset = false;
   const environment = createMarineEnvironment(renderer);
+  let nightEnvironment = null;
   scene.environment = environment.texture;
   scene.environmentIntensity = 0.38;
   const target = new THREE.WebGLRenderTarget(innerWidth, innerHeight, {
@@ -39,7 +41,20 @@ export function createVisualPipeline(renderer, scene, camera) {
   let disposed = false;
   const reducedMotion = matchMedia("(prefers-reduced-motion: reduce)").matches;
   return {
-    update({ time, depth, position, aboveWater = false, ink = 0 }) {
+    update({
+      time,
+      depth,
+      position,
+      aboveWater = false,
+      ink = 0,
+      night = false,
+    }) {
+      if (disposed) return;
+      // 首次进入夜海才预过滤月光环境，反复切图直接复用两套渲染目标。
+      if (night && !nightEnvironment)
+        nightEnvironment = createMarineEnvironment(renderer, { night: true });
+      const reflection = night ? nightEnvironment.texture : environment.texture;
+      if (scene.environment !== reflection) scene.environment = reflection;
       particles.points.position.copy(position);
       particles.uniforms.time.value = reducedMotion ? 0 : time;
       particles.uniforms.strength.value = aboveWater
@@ -47,9 +62,11 @@ export function createVisualPipeline(renderer, scene, camera) {
         : 0.22 + Math.min(depth / 500, 0.3);
       particles.points.visible = !aboveWater;
       bloom.strength = 0.15 + Math.min(depth / 600, 0.12);
-      scene.environmentIntensity = aboveWater
-        ? 0.52
-        : Math.max(0.1, 0.38 - depth / 2100) * (1 - ink * 0.45);
+      scene.environmentIntensity =
+        (aboveWater
+          ? 0.52
+          : Math.max(0.1, 0.38 - depth / 2100) * (1 - ink * 0.45)) *
+        (night ? 0.72 : 1);
     },
     render() {
       if (disposed) return;
@@ -72,8 +89,14 @@ export function createVisualPipeline(renderer, scene, camera) {
       scene.remove(particles.points);
       particles.geometry.dispose();
       particles.material.dispose();
-      if (scene.environment === environment.texture) scene.environment = null;
+      if (
+        scene.environment === environment.texture ||
+        scene.environment === nightEnvironment?.texture
+      )
+        scene.environment = null;
       environment.dispose();
+      nightEnvironment?.dispose();
+      nightEnvironment = null;
       bloom.dispose();
       renderPass.dispose();
       output.dispose();
@@ -85,34 +108,68 @@ export function createVisualPipeline(renderer, scene, camera) {
   };
 }
 
-/** 创建无外部依赖的柔光环境，供湿润皮肤和船窗反射；仅初始化时预过滤一次。 */
-export function createMarineEnvironment(renderer) {
+/**
+ * 创建无外部依赖的反射环境；日间默认用于夏威夷与图鉴，夜间不含暖色太阳。
+ * @param {THREE.WebGLRenderer} renderer 用于预过滤的渲染器。
+ * @param {{night?:boolean}} options 夜间开关，默认保留原日间环境。
+ * @returns {THREE.WebGLRenderTarget} 独立环境目标，由调用方缓存与释放。
+ */
+export function createMarineEnvironment(renderer, { night = false } = {}) {
   const backdrop = new THREE.Scene();
   const geometry = new THREE.SphereGeometry(20, 32, 20);
   const material = new THREE.ShaderMaterial({
     side: THREE.BackSide,
-    uniforms: {},
+    uniforms: {
+      lowerTone: {
+        value: new THREE.Vector3(
+          ...(night ? [0.025, 0.05, 0.075] : [0.075, 0.11, 0.105]),
+        ),
+      },
+      upperTone: {
+        value: new THREE.Vector3(
+          ...(night ? [0.09, 0.17, 0.26] : [0.46, 0.67, 0.74]),
+        ),
+      },
+      keyDirection: {
+        value: night
+          ? MOON_DIRECTION.clone()
+          : new THREE.Vector3(-0.5, 0.85, 0.25).normalize(),
+      },
+      keyTone: {
+        value: new THREE.Vector3(
+          ...(night ? [0.9, 1.3, 1.8] : [2.8, 2.65, 2.15]),
+        ),
+      },
+      keyPower: { value: night ? 96 : 24 },
+      fillTone: {
+        value: new THREE.Vector3(
+          ...(night ? [0.12, 0.22, 0.32] : [0.32, 0.5, 0.58]),
+        ),
+      },
+    },
     vertexShader: `varying vec3 vDirection;
       void main() { vDirection = position; gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0); }`,
     fragmentShader: `varying vec3 vDirection;
+      uniform vec3 lowerTone, upperTone, keyDirection, keyTone, fillTone;
+      uniform float keyPower;
       void main() {
         vec3 d = normalize(vDirection);
-        vec3 lower = vec3(0.075, 0.11, 0.105);
-        vec3 upper = vec3(0.46, 0.67, 0.74);
-        vec3 color = mix(lower, upper, smoothstep(-0.2, 0.85, d.y));
-        float sun = pow(max(0.0, dot(d, normalize(vec3(-0.5, 0.85, 0.25)))), 24.0);
+        vec3 color = mix(lowerTone, upperTone, smoothstep(-0.2, 0.85, d.y));
+        float key = pow(max(0.0, dot(d, keyDirection)), keyPower);
         float softbox = pow(max(0.0, dot(d, normalize(vec3(0.75, 0.38, -0.4)))), 7.0);
-        color += vec3(2.8, 2.65, 2.15) * sun + vec3(0.32, 0.5, 0.58) * softbox;
+        color += keyTone * key + fillTone * softbox;
         gl_FragColor = vec4(color, 1.0);
       }`,
   });
   backdrop.add(new THREE.Mesh(geometry, material));
   const generator = new THREE.PMREMGenerator(renderer);
-  const result = generator.fromScene(backdrop, 0.12, 0.1, 80);
-  generator.dispose();
-  geometry.dispose();
-  material.dispose();
-  return result;
+  try {
+    return generator.fromScene(backdrop, 0.12, 0.1, 80);
+  } finally {
+    generator.dispose();
+    geometry.dispose();
+    material.dispose();
+  }
 }
 
 function createMarineSnow() {

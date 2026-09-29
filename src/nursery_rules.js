@@ -33,12 +33,18 @@ export function isNursery(position) {
 
 /**
  * 返回普通猎手的固定领地与巡游中心，非猎手返回null。
- * populationIndex是同一物种内的稳定序号；仅第0只锤头鲨和白鲨属于外礁挑战。
+ * populationIndex是同一物种内的稳定序号；第0只可使用物种配置的外礁领地。
+ * 未提供配置时保留夏威夷锤头鲨与白鲨的既有领地，显式null可关闭外礁挑战。
  * 范围已内缩半条鱼体长加1米，可直接约束模型中心，避免头尾跨回安全区。
  */
 export function predatorTerritory(species, populationIndex = 0) {
   if (!species.predator) return null;
-  const edge = populationIndex === 0 ? EDGE_TERRITORIES[species.kind] : null;
+  const edge =
+    populationIndex === 0
+      ? species.edgeTerritory === undefined
+        ? EDGE_TERRITORIES[species.kind]
+        : species.edgeTerritory
+      : null;
   let cached = TERRITORY_CACHE.get(species);
   if (!cached) {
     cached = new Map();

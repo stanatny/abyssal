@@ -69,9 +69,9 @@ export function createMenuPicker() {
       if (!entry) return;
       if (entry.id !== current.trigger.value) {
         current.trigger.value = entry.id;
+        close();
         current.onSelect(entry);
-      }
-      close();
+      } else close();
     } else if (backdropPress && event.target === dialog && outside(event)) {
       close();
     }

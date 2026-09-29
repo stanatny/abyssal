@@ -1,5 +1,19 @@
 # v0.5.1 Public GitHub Pages release
 
+## 2026-09-29 — Atlantis lighthouse, city density, chase music and performance
+
+Development candidate on `feature/atlantis`; no commit, push, merge or main deployment. The original main worktree remains clean.
+
+- **402/402 unit tests** passed, including exact indexed/full collision comparisons, projected territory edges, geometry budgets and real-city ecology. `npm run check` and production build passed. The existing single-bundle size warning remains (1,182.89 kB minified / Vite-estimated 376.21 kB gzip).
+- Lighthouse support: **336 terrain samples**, eight surface views and a real normal-logic breach. The close front/side/narrow views confirm a continuous foundation rather than a floating tower. The first breach frame is not a useful close lighthouse view; that limitation remains in its report.
+- City ecology: **390 ordinary animals**, **114 city-school members**, 168 juvenile-edible nursery residents. All 114 observed city members moved, with no sampled solid/depth violations. The new deep school was consumed normally and returned through its **18-second** respawn path. Three screenshots, source hashes and detailed conditions are in `.local/atlantis_city_density/density_report.json`.
+- Music: 35 focused unit tests; nine real Web Audio offline renders; four real AI pursuit/guardian recordings. Initial combat notes were scheduled **6.7–12 ms** after detection. No clipped/non-finite samples; audible-output fade checks and the corrected async map/mute/pause/Home lifecycle passed. The original run retains its superseded synchronous-region assertion failure; the separate lifecycle report passed. Subjective listening remains with the user.
+- Loading: bilingual 1440×900 and 390×844 tests passed repeated map selection, visible loading paint, inert controls, start prevention, focus restoration, shader-failure rollback and re-entry. Two additional injected failures passed: partial creature generation reuses its 11 created individuals and completes the new map, and a reset failure does not contaminate the target cache with old-map animals.
+- All **70 bilingual layout/interaction checks** passed with zero console errors. Picker regression passed eight viewport/language combinations, including 320px and landscape; Home/input lifecycle passed 11 checks. Public build revisits passed at desktop and 390px in both languages, including guide filtering, all three guardian descriptions, start/pause/Home/re-entry, hidden production debug interface and asset SHA-256 equality.
+- Sequential same-Mac visible Chrome/Metal performance comparison: **high quality 51.2→59.1 FPS**, **smooth 54.7→59.5 FPS**, at the same controlled deep-city viewpoint with live ordinary AI. Main-loop CPU time was roughly halved and submitted triangles fell 39–43%. High-quality p95 remained 25.3 ms. Headless results remain noisy, including one narrow high-quality regression; they are preserved in [the full performance report](atlantis_performance.md). No physical-phone or Windows performance claim is made.
+
+Current public artifact: `index-DIEmivgv.js` / `index-C5YNSLJl.css`. Temporary public URL, process ownership, source/asset hashes and stop instructions remain in ignored `.local/atlantis_preview_state.json`. The verified preview serves the feature candidate; GitHub Pages/main remains unchanged.
+
 Verified: 2026-09-27. After the feature commit, the user explicitly requested pushing to GitHub, public play access, and README improvements. That authorization supersedes the “push not requested” status of the historical stages below.
 
 - Feature commit `53808ae` was pushed to `main` in public repository `stanatny/abyssal`. Installation, tests, formatting, build, and Pages deployment succeeded in [GitHub Actions run 36322697605](https://github.com/stanatny/abyssal/actions/runs/36322697605).
@@ -555,3 +569,33 @@ The user requested an impact review after an independent agent edited the shared
 - The balance document's stale candidate status was corrected to v0.6.13. AGENTS.md now requires one shared-checkout integration owner, isolated parallel work, and review/reporting of unexpected edits before integrating them. Only tests and development records differ from the release. This task creates a local audit commit; it does not push or create a new Pages release. Remote `main` was confirmed at `53150df`.
 
 Evidence: `.local/openclaw_audit/` contains the original `unreviewed_changes.patch`, `camera_comparison.json`, failing/passing camera logs, full unit/build/format logs, and served-asset/temporary-preview receipts. The picker, launch, and survival reports are copied there for this audit. Browser/touch emulation is not physical-device acceptance; natural full-round difficulty and low-end performance remain playtest limits. Passing lifecycle tests alone did not establish the quality of the discarded camera path.
+
+---
+
+# Atlantis feature candidate — separate preview, not released
+
+Verified: 2026-09-29. The candidate remains uncommitted on `feature/atlantis`, based on reviewed `462f2a8` and refreshed remote main `53150df`. The original main checkout is unchanged. No feature commit, push, merge, or Pages deployment is authorized until user review.
+
+Atlantis is the second enabled region with a moonlit surface, three small craft, islands, illuminated ancient city and Poseidon monument, seven new species among its 17-species/278-creature population, and one fixed Kraken guardian. The selected-region guide and all new player copy support English and Simplified Chinese. Hawaii retains its original population and shared gameplay rules. Kimi supplied isolated first-pass artwork; Codex independently inspected and refined anatomy, geometry, city foundations, lighting, collision, resource ownership, and runtime integration.
+
+Final local checks: 325 unit tests, 17 focused model tests after the last surface/fin refinement, formatting, production build, 29 existing gameplay browser checks during integration, and 11 final Atlantis browser groups passed. A controlled live encounter required five separate flank contacts to defeat Kraken, with actual incoming damage and normal victory settlement. Public static HTML/JS/CSS/audio matched the final local build; 1440px/390px public selection, bilingual guide, start/pause/resume, and narrow-layout checks passed without console errors or development globals.
+
+The existing bundle warning remains. Shared-host browser frame rates were low in both maps; the profiled redundant contact work was reduced, but physical-device performance is not established. Natural full-round pacing and true handheld controls remain unverified. The full evidence, initial failures and corrections, measured limits, and art inspection scope are in [Atlantis candidate verification](atlantis_verification.md). Current temporary URL/process ownership is in ignored local runtime records, not the published game URL.
+
+# Atlantis expanded-city revision — development preview
+
+Verified: 2026-09-29. User feedback superseded the earlier city/model art approval. Codex directly rebuilt the city into five districts covering 69.64% of the sea's horizontal area, including streets and plazas, with 222 buildings across 100 lots. The home change controls use a separate aligned row; the guide groups species by category/size and independently filters regions. Seven new regional animals were reviewed and revised, particularly seahorse and swordfish.
+
+355 unit tests, formatting, production build, 18 focused city tests, three city browser groups, seven guide layout groups, and the existing gameplay/Atlantis integration checks passed. Foundation, rotunda gallery, dome, and city ray-query defects found during review were fixed. Normal combat still requires the real size threshold and repeated flank contacts. The actual rebuilt public preview passed desktop/touch-emulated interactions and artifact equality checks.
+
+See the [current Atlantis verification](atlantis_verification.md) for exact evidence, before/after CPU profiles, raw frame-rate limits, and capture methods. Absolute headless frame throughput remains low; no physical-phone or natural complete-round claim is made. No commit, push, or main merge; user review is still required.
+
+# Atlantis lighting and territorial-guardian follow-up — development preview
+
+Verified: 2026-09-29. The main city now has 64 warm lanterns and brighter localized ambient/fog treatment; 23 darker peripheral relic/garden clusters retain contrast. Three independently controlled Krakens guard separate western, central, and rear-city territories. The rear guardian's final position was checked against actual rooftop approaches and the shared depth band. The Ocean Guide keeps one species entry and explains the multiple guardians in both languages. Existing feeding, 25m attack eligibility, repeated flank attacks, and 30m-plus-one-lord victory remain unchanged.
+
+The final source passed 370 unit tests. Focused browser lighting, Atlantis integration, real scenery inspection, and rebuilt public desktop/touch-emulated interactions passed. See the latest [Atlantis verification](atlantis_verification.md) section for guardian resource measurements, exact test scope, build artifacts, and staged-camera limits. Physical-phone performance and natural full-round balance remain unverified. Work stays uncommitted on `feature/atlantis`; original main and official Pages remain unchanged.
+
+# Atlantis living-city follow-up — development preview
+
+The current uncommitted feature adds city feeding stock, pearl-shell illumination, traversable multilevel ruins, Atlantis-specific music, and Home-only language switching. Returning Home clears the current expedition, input captures, effects, and music. See the current [Atlantis verification record](atlantis_verification.md), [ecology](atlantis_city_ecology.md), [underways](atlantis_underways.md), and [music](atlantis_music.md) for actual checks, staged-test assumptions, and listening/device limits. Main and official GitHub Pages are unchanged; user acceptance is still required before a feature merge.

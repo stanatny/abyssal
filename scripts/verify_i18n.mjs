@@ -101,6 +101,11 @@ async function openPage(viewport) {
 }
 
 async function setLanguage(page, locale) {
+  assert.equal(await page.evaluate(() => window.__ABYSSAL__.mode), "menu");
+  assert.equal(
+    await page.locator("header [data-language-select]").isEnabled(),
+    true,
+  );
   await page.evaluate((next) => {
     // 复用页面实际绑定的监听器，避免 Vite HMR 查询参数生成第二份语言模块。
     const control = document.querySelector("header [data-language-select]");
@@ -109,6 +114,11 @@ async function setLanguage(page, locale) {
   }, locale);
   await settle(page);
   assert.equal(await page.locator("html").getAttribute("lang"), locale);
+  const title = await page
+    .locator("header [data-language-select]")
+    .getAttribute("title");
+  if (title !== null)
+    assert.equal(title, locale === "en" ? "Language" : "语言");
 }
 
 async function assertEnglish(page, rootSelector) {
@@ -526,62 +536,62 @@ async function verifyRuntime(page, character) {
   await page.waitForFunction(
     () => document.querySelector("#sonar-control").disabled,
   );
-  await check(
-    page,
-    `${character}_playing_language_preserves_state`,
-    async () => {
-      const results = await page.evaluate(() => {
-        const setLanguage = (locale) => {
-          const control = document.querySelector(
-            "header [data-language-select]",
-          );
-          control.value = locale;
-          control.dispatchEvent(new Event("change", { bubbles: true }));
-        };
-        const g = window.__ABYSSAL__;
-        const beforePlayer = g.player;
-        const beforeAvatar = g.avatar;
-        const snapshot = () => ({
-          mode: g.mode,
-          player: JSON.parse(JSON.stringify(g.player)),
-          position: g.position.toArray(),
-          controls: g.controls,
-          sonar: g.sonar.state,
-          ink: { ...g.inkAbility },
-        });
-        const result = [];
-        for (const locale of ["zh-CN", "en"]) {
-          const before = snapshot();
-          setLanguage(locale);
-          result.push({
-            locale,
-            before,
-            after: snapshot(),
-            samePlayer: g.player === beforePlayer,
-            sameAvatar: g.avatar === beforeAvatar,
-            disabled: document.querySelector("#sonar-control").disabled,
-            skillLabel: document.querySelector("#sonar-control").textContent,
-          });
-        }
-        return result;
+  await check(page, `${character}_playing_language_is_locked`, async () => {
+    const results = await page.evaluate(() => {
+      const setLanguage = (locale) => {
+        const control = document.querySelector("header [data-language-select]");
+        control.value = locale;
+        control.dispatchEvent(new Event("change", { bubbles: true }));
+      };
+      const g = window.__ABYSSAL__;
+      const beforePlayer = g.player;
+      const beforeAvatar = g.avatar;
+      const snapshot = () => ({
+        mode: g.mode,
+        player: JSON.parse(JSON.stringify(g.player)),
+        position: g.position.toArray(),
+        controls: g.controls,
+        sonar: g.sonar.state,
+        ink: { ...g.inkAbility },
       });
-      for (const result of results) {
-        assert.deepEqual(result.after, result.before);
-        assert.ok(result.samePlayer && result.sameAvatar && result.disabled);
-        assert.ok(result.before.player.elapsed > 0);
-        const activeState =
-          character === "orca" ? result.before.sonar : result.before.ink;
-        assert.ok(activeState.readyAt > result.before.player.elapsed);
+      const result = [];
+      for (const locale of ["zh-CN", "en"]) {
+        const before = snapshot();
+        setLanguage(locale);
+        result.push({
+          locale,
+          before,
+          after: snapshot(),
+          samePlayer: g.player === beforePlayer,
+          sameAvatar: g.avatar === beforeAvatar,
+          disabled: document.querySelector("#sonar-control").disabled,
+          skillLabel: document.querySelector("#sonar-control").textContent,
+          language: document.documentElement.lang,
+          languageDisabled: document.querySelector(
+            "header [data-language-select]",
+          ).disabled,
+        });
       }
-      await assertEnglish(page, "body");
-      return results;
-    },
-  );
+      return result;
+    });
+    for (const result of results) {
+      assert.deepEqual(result.after, result.before);
+      assert.ok(result.samePlayer && result.sameAvatar && result.disabled);
+      assert.equal(result.language, "en");
+      assert.equal(result.languageDisabled, true);
+      assert.ok(result.before.player.elapsed > 0);
+      const activeState =
+        character === "orca" ? result.before.sonar : result.before.ink;
+      assert.ok(activeState.readyAt > result.before.player.elapsed);
+    }
+    await assertEnglish(page, "body");
+    return results;
+  });
   await page.click("#pause");
   await page.waitForFunction(() => window.__ABYSSAL__.mode === "paused");
   await check(
     page,
-    `${character}_pause_selector_preserves_player_and_skill`,
+    `${character}_pause_has_no_language_selector_and_preserves_skill`,
     async () => {
       const state = () =>
         page.evaluate(() => {
@@ -596,24 +606,45 @@ async function verifyRuntime(page, character) {
           };
         });
       const before = await state();
-      for (const locale of ["zh-CN", "en"]) {
-        await page
-          .locator("#overlay [data-language-select]")
-          .selectOption(locale);
-        await settle(page);
-        assert.deepEqual(await state(), before);
-        assert.equal(
-          await page.locator("header [data-language-select]").inputValue(),
-          locale,
-        );
-        if (locale === "en") await assertEnglish(page, "#overlay");
-      }
+      assert.equal(
+        await page.locator("#overlay [data-language-select]").count(),
+        0,
+      );
+      assert.equal(
+        await page.locator("header [data-language-select]").isDisabled(),
+        true,
+      );
+      assert.equal(await page.locator("html").getAttribute("lang"), "en");
+      await assertEnglish(page, "#overlay");
       await page.waitForTimeout(250);
       assert.deepEqual(await state(), before);
       await page.click("#resume");
       await page.waitForFunction(() => window.__ABYSSAL__.mode === "playing");
       assert.equal(await page.locator("#sonar-control").isDisabled(), true);
       return { pausedState: before, resumedWithCooldown: true };
+    },
+  );
+  await check(
+    page,
+    `${character}_return_home_unlocks_language_for_new_round`,
+    async () => {
+      await page.click("#pause");
+      await page.click("#return-menu");
+      await page.waitForFunction(() => window.__ABYSSAL__.mode === "menu");
+      assert.equal(await page.locator("#overlay").isHidden(), true);
+      await setLanguage(page, "zh-CN");
+      await page.click("#start");
+      await page.waitForFunction(() => window.__ABYSSAL__.mode === "playing");
+      assert.equal(await page.locator("html").getAttribute("lang"), "zh-CN");
+      assert.equal(
+        await page.locator("header [data-language-select]").isDisabled(),
+        true,
+      );
+      assert.equal(
+        await page.evaluate(() => window.__ABYSSAL__.player.characterId),
+        character,
+      );
+      return { language: "zh-CN", character, newRound: true };
     },
   );
 }
@@ -755,11 +786,11 @@ async function verifyLayouts(page, viewport) {
     await page.click(".guide-close");
   }
   await selectCharacter(page, "orca");
-  await page.click("#start");
-  await page.waitForFunction(() => window.__ABYSSAL__.mode === "playing");
-  await page.keyboard.press("KeyJ");
   for (const locale of ["en", "zh-CN"]) {
     await setLanguage(page, locale);
+    await page.click("#start");
+    await page.waitForFunction(() => window.__ABYSSAL__.mode === "playing");
+    await page.keyboard.press("KeyJ");
     await check(page, `${size}_${locale}_sonar_status_text`, async () => {
       // 仅布置已有展示接口的零组/一组/四组状态；不移动或改写任何生物和技能时钟。
       const states = await page.evaluate(() => {
@@ -834,23 +865,31 @@ async function verifyLayouts(page, viewport) {
         screenshot: await capture(page, `${size}_${locale}_hud`),
       };
     });
-  }
-  await page.click("#pause");
-  for (const locale of ["en", "zh-CN"]) {
-    await page.locator("#overlay [data-language-select]").selectOption(locale);
+    await page.click("#pause");
+    assert.equal(
+      await page.locator("#overlay [data-language-select]").count(),
+      0,
+    );
+    assert.equal(
+      await page.locator("header [data-language-select]").isDisabled(),
+      true,
+    );
     await settle(page);
     await check(page, `${size}_${locale}_pause_layout`, async () => {
       if (locale === "en") await assertEnglish(page, "#overlay");
       const layout = await assertLayout(page, [
         "#overlay",
         ".modal-card",
-        ".overlay-language",
+        "#resume",
+        "#return-menu",
       ]);
       return {
         ...layout,
         screenshot: await capture(page, `${size}_${locale}_pause`),
       };
     });
+    await page.click("#return-menu");
+    await page.waitForFunction(() => window.__ABYSSAL__.mode === "menu");
   }
 }
 

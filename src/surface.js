@@ -1,3 +1,4 @@
+import { createAtlantisSky, createAtlantisFleet } from "./atlantis_surface.js";
 import { tr, message } from "./i18n.js";
 import * as THREE from "three";
 import { createCreature } from "./creatures.js";
@@ -16,7 +17,7 @@ export function createSurface(
   scene,
   audio,
   notify,
-  { onEat, isSwallowing } = {},
+  { onEat, isSwallowing, regionId = "hawaii" } = {},
 ) {
   const root = new THREE.Group();
   root.name = "surface_environment";
@@ -30,7 +31,9 @@ export function createSurface(
     splashes = [];
   let state = createSurfaceState();
   let lastPosition = null;
-  const fleet = createShips(scene);
+  const night = regionId === "atlantis";
+  const fleet = night ? createAtlantisFleet(scene) : createShips(scene);
+  const nightSky = night ? createAtlantisSky(scene) : null;
   const dummy = new THREE.Object3D();
   const ringGeometry = keep(new THREE.RingGeometry(0.965, 1, 64));
   const rippleGeometry = keep(new THREE.RingGeometry(0.82, 1, 64));
@@ -301,10 +304,19 @@ export function createSurface(
     if (position) lastPosition = position.clone();
   }
 
-  function update(dt, time, player, position, camera, playing = true) {
+  function update(
+    dt,
+    time,
+    player,
+    position,
+    camera,
+    playing = true,
+    highQuality = true,
+  ) {
     const above = camera.position.y > WORLD.surfaceY;
-    sun.visible = above;
-    clouds.visible = above;
+    sun.visible = above && !night;
+    clouds.visible = above && !night;
+    nightSky?.update(time, position, { aboveWater: above, highQuality });
     fleet.update(time, position);
     for (const bird of birds) {
       bird.cooldown = Math.max(0, bird.cooldown - dt);
@@ -505,6 +517,7 @@ export function createSurface(
     dispose() {
       reset();
       fleet.dispose();
+      nightSky?.dispose();
       scene.remove(root);
       foam.dispose();
       // 实例矩阵缓冲独立释放，共享水滴几何仍由资源集合统一管理。

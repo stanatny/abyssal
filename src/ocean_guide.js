@@ -8,16 +8,52 @@ import {
 } from "./i18n.js";
 import * as THREE from "three";
 import { createCreature } from "./creatures.js";
-import { SPECIES, HUNGER_RULES } from "./simulation.js";
+import { HUNGER_RULES } from "./simulation.js";
+import { ALL_SPECIES, getRegionSpecies } from "./region_ecology.js";
 import { characterMovement } from "./character_rules.js";
 import { HUMAN_CATALOG, createHumanModel } from "./vehicle_models.js";
 import { BOSS_SPECIES, BOSS_BITE_HUNGER } from "./boss_rules.js";
 import { WORLD } from "./world_config.js";
-import { CHARACTERS } from "./expedition_config.js";
+import { CHARACTERS, REGIONS } from "./expedition_config.js";
 import { HUNTER_ABILITIES } from "./hunter_rules.js";
 import { REWARDS, RANDOM_REWARD_COUNT } from "./reward_config.js";
 import { createMarineEnvironment } from "./visual_pipeline.js";
 import "./ocean_guide.css";
+
+// 生物按由小到大的探索顺序展示，角色与人类活动单独归档。
+const GUIDE_CATEGORIES = [
+  { id: "shoal", name: "浅海鱼群" },
+  { id: "surface", name: "海面" },
+  { id: "hunter", name: "海洋霸主" },
+  { id: "ancient", name: "远古巨兽" },
+  { id: "lord", name: "深渊领主" },
+  { id: "player", name: "可选角色" },
+  { id: "human", name: "人类活动" },
+  { id: "reward", name: "海洋奖励" },
+];
+const CATEGORY_ORDER = new Map(
+  GUIDE_CATEGORIES.map((entry, index) => [entry.id, index]),
+);
+
+/** 按类别与实际体长排序；同长度使用稳定的档案ID，不随语言切换而跳位。 */
+function compareCatalogEntries(a, b) {
+  return (
+    (CATEGORY_ORDER.get(a.category) ?? 99) -
+      (CATEGORY_ORDER.get(b.category) ?? 99) ||
+    (a.length || 0) - (b.length || 0) ||
+    a.id.localeCompare(b.id)
+  );
+}
+
+/** 将已筛选的档案分组；列表标题与键盘浏览共用同一顺序。 */
+export function groupOceanCatalog(catalog) {
+  return GUIDE_CATEGORIES.map((group) => ({
+    ...group,
+    entries: catalog
+      .filter((entry) => entry.category === group.id)
+      .sort(compareCatalogEntries),
+  })).filter((group) => group.entries.length);
+}
 
 const DESCRIPTIONS = {
   seagull: {
@@ -78,8 +114,18 @@ const DESCRIPTIONS = {
   },
 };
 
-/** 图鉴目录ID与模型kind分开；角色乌贼只出现在可选角色，野生头足类使用独立章鱼模型。 */
-function buildOceanCatalog() {
+/**
+ * 构建完整图鉴，当前海域物种的数值使用实际生成配置。
+ * @param {string} [regionId] 当前海域；省略时使用完整目录的基础配置。
+ * @returns {object[]} 带实际海域归属、营养和双语检索词的档案。
+ */
+export function buildOceanCatalog(regionId) {
+  const regionalSpecies = new Map(
+    (regionId ? getRegionSpecies(regionId) : []).map((entry) => [
+      entry.kind,
+      entry,
+    ]),
+  );
   return [
     ...CHARACTERS.map((entry) => ({
       id: tr`player_${entry.id}`,
@@ -102,46 +148,95 @@ function buildOceanCatalog() {
       realSize: "3米幼年起步；起始尺寸、30米终局与技能强度属于游戏设定。",
       habitatNote: "可选角色共享自动接触捕食；特殊技能使用J或手机技能按钮。",
     })),
-    ...SPECIES.map((config) => ({
-      id: config.kind,
-      kind: config.kind,
-      name: config.label,
-      latin: config.latin,
-      category: config.category,
-      color: config.color,
-      role:
-        config.category === "ancient"
-          ? "远古巨兽"
-          : config.category === "hunter"
-            ? "海洋霸主"
-            : "海洋猎物",
-      length: config.length,
-      size: tr`${config.length} m`,
-      habitat: tr`${config.depthMin * WORLD.displayDepthScale}—${config.depthMax * WORLD.displayDepthScale} m（本作水层）`,
-      ability: HUNTER_ABILITIES[config.kind]?.label || config.ability,
-      text: config.description,
-      counter: config.counter,
-      tier: config.tier,
-      realSize: config.realSize,
-      habitatNote: config.habitatNote,
-    })),
+    ...ALL_SPECIES.map((entry) => regionalSpecies.get(entry.kind) || entry).map(
+      (config) => ({
+        id: config.kind,
+        kind: config.kind,
+        name: config.label,
+        latin: config.latin,
+        category: config.category,
+        color: config.color,
+        role:
+          config.category === "ancient"
+            ? "远古巨兽"
+            : config.category === "hunter"
+              ? "海洋霸主"
+              : "海洋猎物",
+        length: config.length,
+        nutrition: config.nutrition,
+        growth: config.growth,
+        speed: config.speed,
+        schoolSize: config.schoolSize,
+        size: tr`${config.length} m`,
+        habitat: tr`${config.depthMin * WORLD.displayDepthScale}—${Math.round(config.depthMax * WORLD.displayDepthScale)} m（本作水层）`,
+        ability: HUNTER_ABILITIES[config.kind]?.label || config.ability,
+        text: config.description,
+        counter: config.counter,
+        tier: config.tier,
+        realSize: config.realSize,
+        habitatNote: config.schoolProfiles?.some((group) => group.cityResident)
+          ? tr`${config.habitatNote} ${tr`亚特兰蒂斯另有鱼群栖息在古城街巷与上下柱廊。该深水分布为幻想生态；小鱼主要供较小角色补给，成年角色应寻找城区内的中大型猎物。`}`
+          : config.habitatNote,
+      }),
+    ),
     { id: "seagull", kind: "seagull", length: 2.6, ...DESCRIPTIONS.seagull },
     ...BOSS_SPECIES.map((config) => ({
       id: config.kind,
       kind: config.kind,
       ...DESCRIPTIONS[config.kind],
+      text:
+        config.kind === "kraken"
+          ? tr`${DESCRIPTIONS.kraken.text} ${tr`亚特兰蒂斯有三只克拉肯，分别守卫西侧城区、中庭和后城；每只拥有独立领地与生命值。达到30米并击败其中一只即可完成挑战。`}`
+          : DESCRIPTIONS[config.kind].text,
       length: config.length,
       size: tr`${config.length} m`,
       tier: 3,
-      habitat: tr`${config.depthMin * WORLD.displayDepthScale}—${config.depthMax * WORLD.displayDepthScale} m（幻想领地）`,
+      habitat: tr`${config.depthMin * WORLD.displayDepthScale}—${Math.round(config.depthMax * WORLD.displayDepthScale)} m（幻想领地）`,
     })),
     ...HUMAN_CATALOG,
-  ].map((entry) => ({
-    ...localizeRecord(entry),
-    searchText: `${entry.name} ${entry.ability} ${t(entry.name, [], "en")} ${t(entry.ability, [], "en")}`,
-  }));
+  ]
+    .map((entry) => ({
+      ...localizeRecord(entry),
+      regionIds: catalogRegionIds(entry),
+      searchText: `${entry.name} ${entry.ability} ${t(entry.name, [], "en")} ${t(entry.ability, [], "en")}`,
+    }))
+    .sort(compareCatalogEntries);
 }
 export let OCEAN_CATALOG = buildOceanCatalog();
+
+/** 归属直接沿用可玩海域的实际物种与领主名册，不把全量注册等同于生成。 */
+function catalogRegionIds(entry) {
+  return REGIONS.filter((region) => {
+    if (!region.available) return false;
+    if (entry.category === "lord") return region.bossKinds.includes(entry.kind);
+    if (["shoal", "hunter", "ancient"].includes(entry.category))
+      return region.speciesKinds.includes(entry.kind);
+    return true;
+  }).map((region) => region.id);
+}
+
+/**
+ * 组合海域、类别与双语关键词筛选，供列表与键盘浏览共用。
+ * @param {object[]} catalog 档案目录。
+ * @param {{regionId?:string,category?:string,search?:string}} filters 筛选条件。
+ * @returns {object[]} 满足全部条件的档案。
+ */
+export function filterOceanCatalog(
+  catalog,
+  { regionId, category = "all", search = "" } = {},
+) {
+  const query = search.trim().toLowerCase();
+  return catalog
+    .filter(
+      (entry) =>
+        (!regionId || entry.regionIds.includes(regionId)) &&
+        (category === "all" || entry.category === category) &&
+        `${entry.name}${entry.ability}${entry.latin}${entry.keywords || ""}${entry.searchText || ""}`
+          .toLowerCase()
+          .includes(query),
+    )
+    .sort(compareCatalogEntries);
+}
 
 // 奖励使用静态档案卡，沿用图鉴的检索与键盘切换，不创建额外三维上下文。
 function buildRewardDetails() {
@@ -185,6 +280,7 @@ function buildRewardCatalog() {
     }))
     .map((entry) => ({
       ...localizeRecord(entry),
+      regionIds: catalogRegionIds(entry),
       searchText: `${entry.name} ${entry.keywords} ${t(entry.name, [], "en")} ${t(entry.keywords, [], "en")}`,
     }));
 }
@@ -197,7 +293,7 @@ onLanguageChange(() => {
 /**
  * 创建首页海洋图鉴：分类检索、三维标本、奖励效果与生存建议。
  * @param {HTMLButtonElement} trigger 打开图鉴的首页按钮。
- * @returns {{open:Function,close:Function,isOpen:boolean}} 对话框控制器。
+ * @returns {{open:Function,close:Function,setRegion:Function,isOpen:boolean}} 对话框控制器；setRegion接收可用海域ID。
  */
 export function createOceanGuide(trigger) {
   const dialog = document.createElement("dialog");
@@ -209,6 +305,14 @@ export function createOceanGuide(trigger) {
     tr`<div class="guide-heading"><div><div class="guide-eyebrow">THE OCEAN ARCHIVE / 海洋档案</div><h2 id="guide-title">海洋图鉴</h2></div><button class="guide-close" aria-label="关闭海洋图鉴">关闭 <kbd>ESC</kbd></button></div><div class="guide-filters" role="group" aria-label="按档案分类筛选"></div><div class="guide-content"><aside class="guide-sidebar"><label for="guide-search">检索生物与奖励</label><input id="guide-search" type="search" placeholder="生物、奖励或能力" autocomplete="off"><div class="guide-list" aria-label="档案列表"></div></aside><section class="guide-detail" aria-label="当前档案资料"><div class="guide-preview" aria-label="生物三维展示"><span class="guide-specimen-tag">LIVE SPECIMEN / 可拖动旋转</span><div class="guide-variant-controls" role="group" aria-label="预览成年人物" hidden><span>人物外观</span><button type="button" data-human-sex="male" aria-pressed="true">男性</button><button type="button" data-human-sex="female" aria-pressed="false">女性</button></div><div class="guide-reward-display" hidden><div class="guide-eyebrow">OCEAN REWARDS / 海洋奖励</div><div class="guide-reward-orb" aria-hidden="true"><span></span></div><b class="guide-reward-effect"></b><small>在海洋中触碰拾取</small></div></div><div class="guide-info" aria-live="polite"></div></section></div><div class="guide-footer">本作生态、幻想生物与海洋奖励<span>← → 切换档案 · 生物可拖动旋转</span></div>`,
   );
   document.body.append(dialog);
+  const regionRow = document.createElement("div");
+  regionRow.className = "guide-region-row";
+  setMarkup(
+    regionRow,
+    `<label for="guide-region">海域范围</label><select id="guide-region" aria-label="筛选图鉴海域"></select>`,
+  );
+  dialog.querySelector(".guide-filters").after(regionRow);
+  const regionSelect = regionRow.querySelector("select");
   const filters = [
     { id: "all", name: "全部" },
     { id: "player", name: "可选角色" },
@@ -226,7 +330,10 @@ export function createOceanGuide(trigger) {
     variants = dialog.querySelector(".guide-variant-controls"),
     rewardDisplay = dialog.querySelector(".guide-reward-display"),
     input = dialog.querySelector("input");
-  let category = "all",
+  let selectedRegion = "hawaii",
+    regionScope = "current",
+    regionalCatalog = buildOceanCatalog(selectedRegion),
+    category = "all",
     selected = OCEAN_CATALOG[0],
     humanSex = "male",
     visible = OCEAN_CATALOG,
@@ -243,6 +350,42 @@ export function createOceanGuide(trigger) {
     pointerX = 0,
     lastInteraction = 0;
   const modelCache = new Map();
+  function syncRegionControl() {
+    const region = REGIONS.find((entry) => entry.id === selectedRegion);
+    setMarkup(
+      regionSelect,
+      tr`<option value="current">${tr`当前海域 · ${region.name}`}</option>${REGIONS.filter(
+        (entry) => entry.available,
+      )
+        .map((entry) => tr`<option value="${entry.id}">${entry.name}</option>`)
+        .join("")}<option value="all">全部海域</option>`,
+    );
+    regionSelect.value = regionScope;
+  }
+  function setRegion(regionId) {
+    if (!REGIONS.some((region) => region.id === regionId && region.available))
+      throw new Error(`Unknown guide region: ${regionId}`);
+    if (selectedRegion === regionId) return false;
+    selectedRegion = regionId;
+    regionScope = "current";
+    regionalCatalog = buildOceanCatalog(regionId);
+    syncRegionControl();
+    if (dialog.open) renderList();
+    return true;
+  }
+  syncRegionControl();
+  regionSelect.addEventListener("change", () => {
+    regionScope = regionSelect.value;
+    // 图鉴只切换资料配置；不调用远征选择或重建海域。
+    regionalCatalog = buildOceanCatalog(
+      regionScope === "current"
+        ? selectedRegion
+        : regionScope === "all"
+          ? undefined
+          : regionScope,
+    );
+    renderList();
+  });
   for (const button of variants.querySelectorAll("button")) {
     button.addEventListener("click", () => {
       humanSex = button.dataset.humanSex;
@@ -286,33 +429,53 @@ export function createOceanGuide(trigger) {
       category === "reward"
         ? REWARD_CATALOG
         : category === "all" && search
-          ? [...OCEAN_CATALOG, ...REWARD_CATALOG]
-          : OCEAN_CATALOG;
-    visible = catalog.filter(
-      (entry) =>
-        (category === "all" || entry.category === category) &&
-        tr`${entry.name}${entry.ability}${entry.latin}${entry.keywords || ""}${entry.searchText || ""}`
-          .toLowerCase()
-          .includes(search),
-    );
+          ? [...regionalCatalog, ...REWARD_CATALOG]
+          : regionalCatalog;
+    visible = filterOceanCatalog(catalog, {
+      category,
+      search,
+      regionId:
+        regionScope === "current"
+          ? selectedRegion
+          : regionScope === "all"
+            ? undefined
+            : regionScope,
+    });
     list.replaceChildren();
     for (const button of dialog.querySelectorAll(".guide-filters button"))
       button.setAttribute(
         "aria-pressed",
         String(button.dataset.category === category),
       );
-    for (const entry of visible) {
-      const button = document.createElement("button");
-      button.className = "guide-entry";
-      button.dataset.kind = entry.kind;
-      button.dataset.catalogId = entry.id;
-      button.style.setProperty("--specimen", entry.color);
+    for (const group of groupOceanCatalog(visible)) {
+      const section = document.createElement("section");
+      section.className = "guide-group";
+      section.dataset.guideCategory = group.id;
+      section.setAttribute("aria-labelledby", `guide-group-${group.id}`);
+      const heading = document.createElement("h3");
+      heading.className = "guide-group-heading";
+      heading.id = `guide-group-${group.id}`;
       setMarkup(
-        button,
-        tr`<i></i><span><b>${entry.name}</b><small>${entry.role}</small></span><em>${entry.size}</em>`,
+        heading,
+        tr`<span>${group.name}</span><small>${group.entries.length}</small>`,
       );
-      button.addEventListener("click", () => select(entry));
-      list.append(button);
+      const entries = document.createElement("div");
+      entries.className = "guide-group-entries";
+      section.append(heading, entries);
+      list.append(section);
+      for (const entry of group.entries) {
+        const button = document.createElement("button");
+        button.className = "guide-entry";
+        button.dataset.kind = entry.kind;
+        button.dataset.catalogId = entry.id;
+        button.style.setProperty("--specimen", entry.color);
+        setMarkup(
+          button,
+          tr`<i></i><span><b>${entry.name}</b><small>${entry.role}</small></span><em>${entry.size}</em>`,
+        );
+        button.addEventListener("click", () => select(entry));
+        entries.append(button);
+      }
     }
     if (!visible.length) {
       list.textContent = t("没有找到档案，试试生物、奖励或能力关键词。");
@@ -321,7 +484,7 @@ export function createOceanGuide(trigger) {
       if (model) model.visible = false;
       return;
     }
-    select(visible.includes(selected) ? selected : visible[0]);
+    select(visible.find((entry) => entry.id === selected.id) || visible[0]);
   }
   function setupRenderer() {
     if (renderer) return;
@@ -350,6 +513,43 @@ export function createOceanGuide(trigger) {
         "当前设备无法展示三维标本，仍可阅读资料",
       );
     }
+  }
+  function showRegionalFacts(entry) {
+    // 重选同一档案时setMarkup会复用内容，先清理本轮补充行以免重复。
+    for (const detail of info.querySelectorAll(
+      ".guide-availability, .guide-extra-fact, .guide-feeding-note",
+    ))
+      detail.remove();
+    const availability = document.createElement("div");
+    availability.className = "guide-availability";
+    const regionNames = REGIONS.filter((region) =>
+      entry.regionIds.includes(region.id),
+    )
+      .map((region) => t(region.name))
+      .join(" / ");
+    setMarkup(
+      availability,
+      tr`<small>出现海域</small><span>${regionNames}</span>`,
+    );
+    info.querySelector(".guide-name-row").after(availability);
+    if (!Number.isFinite(entry.nutrition)) return;
+    const nutrition = document.createElement("div");
+    nutrition.className = "guide-extra-fact";
+    setMarkup(
+      nutrition,
+      tr`<small>基础营养</small><b>${Number(entry.nutrition.toFixed(2))}</b>`,
+    );
+    const speed = document.createElement("div");
+    speed.className = "guide-extra-fact";
+    setMarkup(speed, tr`<small>基础游速</small><b>${entry.speed} m/s</b>`);
+    const facts = info.querySelector(".guide-facts");
+    facts.append(nutrition, speed);
+    const note = document.createElement("p");
+    note.className = "guide-feeding-note";
+    note.textContent = t(
+      "基础营养为游戏数值，实际收益随相对体型和鱼群规则调整；进食同时恢复生命并用于成长。",
+    );
+    facts.after(note);
   }
   function select(entry) {
     selected = entry;
@@ -394,6 +594,7 @@ export function createOceanGuide(trigger) {
         info,
         tr`<div class="guide-eyebrow">${entry.latin}</div><div class="guide-name-row"><h3>${entry.name}</h3><span>${entry.role}</span></div><div class="guide-facts"><div><small>持续时间</small><b>${entry.size}</b></div><div><small>获取方式</small><b>触碰拾取</b></div></div><h4>${entry.effect}</h4><p>${entry.text}</p><div class="guide-advice"><b>使用建议</b><p>${entry.counter}</p></div>`,
       );
+      showRegionalFacts(entry);
       return;
     }
     const combat =
@@ -412,6 +613,7 @@ export function createOceanGuide(trigger) {
       info,
       tr`<div class="guide-eyebrow">${entry.latin}</div><div class="guide-name-row"><h3>${entry.name}</h3><span>${entry.role}</span></div><div class="guide-facts"><div><small>本作尺度</small><b>${entry.size}</b></div><div><small>活动水层</small><b>${entry.habitat}</b></div></div><h4>${entry.ability}</h4><p>${entry.text}</p><div class="guide-advice"><b>生存建议</b><p>${entry.counter}</p></div><small class="guide-combat">${combat}</small>${survival}${entry.realSize ? tr`<div class="guide-advice"><b>生态注记</b><p>${entry.realSize} ${entry.habitatNote || ""}</p></div>` : ""}`,
     );
+    showRegionalFacts(entry);
     if (!renderer) return;
     if (model) scene.remove(model);
     const modelKey = isPerson ? tr`${entry.kind}_${humanSex}` : entry.kind;
@@ -492,8 +694,15 @@ export function createOceanGuide(trigger) {
   }
   onLanguageChange(() => {
     const selectedId = selected.id;
+    regionalCatalog = buildOceanCatalog(
+      regionScope === "current"
+        ? selectedRegion
+        : regionScope === "all"
+          ? undefined
+          : regionScope,
+    );
     selected =
-      [...OCEAN_CATALOG, ...REWARD_CATALOG].find(
+      [...regionalCatalog, ...REWARD_CATALOG].find(
         (entry) => entry.id === selectedId,
       ) || OCEAN_CATALOG[0];
     for (const filter of filters) {
@@ -502,6 +711,7 @@ export function createOceanGuide(trigger) {
       );
     }
     translateDOM(dialog);
+    syncRegionControl();
     if (dialog.open) renderList();
   });
   trigger.addEventListener("click", open);
@@ -515,6 +725,7 @@ export function createOceanGuide(trigger) {
   dialog.addEventListener("keydown", (event) => {
     if (
       event.target === input ||
+      event.target === regionSelect ||
       event.target.closest(".guide-variant-controls") ||
       !["ArrowLeft", "ArrowRight"].includes(event.key) ||
       !visible.length
@@ -564,6 +775,7 @@ export function createOceanGuide(trigger) {
       : {}),
     open,
     close,
+    setRegion,
     get isOpen() {
       return dialog.open;
     },

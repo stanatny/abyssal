@@ -8,6 +8,7 @@ import {
   normalizeLanguage,
   onLanguageChange,
   setLanguage,
+  setLanguageEnabled,
   t,
 } from "../src/i18n.js";
 import { UI_EN } from "../src/locales/ui_en.js";
@@ -136,6 +137,7 @@ test("world labels redraw in the same texture and release language subscriptions
   );
   globalThis.document = {
     documentElement: { lang: "zh-CN" },
+    querySelectorAll: () => [],
     createElement: () => ({ width: 0, height: 0, getContext: () => context }),
   };
   let label, reward;
@@ -169,4 +171,16 @@ test("world labels redraw in the same texture and release language subscriptions
     globalThis.document = originalDocument;
     setLanguage("zh-CN");
   }
+});
+
+// 本局内不可通过脚本触发change绕过菜单状态；回首页才恢复语言选择。
+test("expedition language lock rejects changes and home restores switching", () => {
+  setLanguage("en");
+  setLanguageEnabled(false);
+  assert.equal(setLanguage("zh-CN"), false);
+  assert.equal(getLanguage(), "en");
+  setLanguageEnabled(true);
+  setLanguage("zh-CN");
+  assert.equal(getLanguage(), "zh-CN");
+  setLanguage("en");
 });

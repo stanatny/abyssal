@@ -33,6 +33,39 @@ test("Unreleased and unknown expeditions cannot start", () => {
   assert.equal(CHARACTERS.filter((entry) => entry.available).length, 2);
 });
 
+test("Atlantis is the second playable destination for both existing characters", () => {
+  assert.deepEqual(
+    REGIONS.filter((entry) => entry.available).map((entry) => entry.id),
+    ["hawaii", "atlantis"],
+  );
+  assert.equal(REGIONS[1].id, "atlantis");
+  assert.deepEqual(
+    REGIONS.filter((entry) => !entry.available).map((entry) => entry.id),
+    ["mariana", "bermuda"],
+  );
+  for (const characterId of ["orca", "squid"]) {
+    const { region, character } = getExpedition("atlantis", characterId);
+    assert.equal(region.id, "atlantis");
+    assert.equal(character.id, characterId);
+    assert.equal(character.startLength, 3);
+    assert.deepEqual(region.bossKinds, ["kraken"]);
+    assert.equal(region.bossInstances.length, 3);
+    assert.ok(
+      region.bossInstances.every((instance) => instance.kind === "kraken"),
+    );
+    assert.ok(Object.isFrozen(region.bossInstances));
+    assert.ok(
+      region.bossInstances.every(
+        (instance) =>
+          Object.isFrozen(instance) && Object.isFrozen(instance.home),
+      ),
+    );
+    assert.deepEqual(region.bossHomes.kraken, region.bossInstances[0].home);
+    assert.equal(region.speciesKinds.includes("squid"), false);
+    assert.equal(new Set(region.speciesKinds).size, region.speciesKinds.length);
+  }
+});
+
 test("可选乌贼不再加入野生种群，章鱼独立占据现代生态位", () => {
   const { region, character } = getExpedition("hawaii", "squid");
   assert.equal(character.kind, "squid");
