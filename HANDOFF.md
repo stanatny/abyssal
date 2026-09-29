@@ -1,5 +1,19 @@
 # Current Development Handoff
 
+## Current release: v0.7.0 — Atlantis and regional performance
+
+The user approved publishing the accepted Atlantis feature and subsequent Hawaii performance/Skill follow-up to `main` on 2026-09-29, and requested a refreshed English README screenshot with the aligned selection controls. This authorization supersedes the local-only/uncommitted statuses in the historical sections below. The release includes the accepted `6025348` checkpoint, Hawaii collision indexing, the repository-local map-production Skill and its AGENTS/README entry points.
+
+Package metadata, the menu edition/footer and both languages identify v0.7.0. The README now describes two published destinations and uses a fresh capture of the actual English production interface. Follow the existing Pages workflow; verify the deployed commit, matching assets, region switching and the screenshot from the repository before reporting publication complete. The current release verification is in [verification.md](docs/verification.md). No tag or separate GitHub Release is requested. Future changes need their own commit/push authorization.
+
+## Included follow-up: Hawaii performance and reusable map production
+
+The accepted Atlantis candidate was committed locally as `6025348` on `feature/atlantis`, as requested. It has not been pushed or merged; main and official Pages remain unchanged. The subsequent Hawaii performance work and repository-local Skill are uncommitted for review.
+
+Hawaii now shares the existing static collision index for player movement, visibility/camera rays, and human-world queries. The 646 immutable environment colliders are indexed; moving ships and humans remain live inputs to the exact solver. The redundant combined-collider cache is removed. Art, visibility, 285-creature stock, prey navigation and survival values are unchanged. See [Hawaii performance](docs/hawaii_performance.md) for before/after conditions, precise measurements and verification limits.
+
+For future map assignments, AGENTS and README route to the [map-production Skill](.agents/skills/abyssal-map-production/SKILL.md) and its brief template. Kimi produces scoped first-pass artwork, with an early playable slice; Codex owns interfaces, shared systems and independent integrated review. The local Skill captures scale, regional identity, terrain fit and usable levels, ecology/food, music transitions, resource lifetime and performance without making Atlantis-specific numbers universal.
+
 ## Accepted Atlantis checkpoint: local feature-branch commit
 
 The user requested a second playable map on a new branch based on current main, with user acceptance before any merge. `feature/atlantis` starts from refreshed remote `53150df` plus the accepted local audit `462f2a8`; main and its published runtime remain unchanged. The user accepted the latest preview and authorized a local commit on 2026-09-29. This checkpoint does not authorize a push, merge, or release. The next task is Hawaii performance review and a repository-local map-production Skill; those follow-up changes require their own review. Codex owns integration and verification. Kimi supplied the initial environment and creature artwork in an isolated worktree; Codex directly rebuilt the city and integrated the revision under non-overlapping file ownership. See the [Atlantis plan](docs/atlantis_plan.md) and [ecology sources](docs/atlantis_ecology_sources.md).
@@ -12,7 +26,7 @@ The guide now groups small prey and surface animals before modern predators, Anc
 
 Atlantis retains 17 ordinary species / 390 individuals, including seven exclusive species; Hawaii retains 24 species / 285 individuals. Survival, nutrition, spawn-layer, and combat rules remain shared. The expanded-city baseline passed 355 unit tests, focused city/guide/model checks, and local browser integration; the latest follow-up and its additional checks are recorded below. A shared static index now covers player/NPC motion, visibility, camera and human rays while preserving exact collisions. The new build and the same temporary public preview were verified at desktop and phone viewports. The user accepted the latest combined preview; current artifact/process receipts belong only in ignored local records. Official Pages continues to serve released Hawaii. The accepted candidate is being committed locally; no push or merge is authorized. Natural full-round pacing and physical-device performance remain unverified.
 
-## Current follow-up: lighthouse fit, denser city schools, pursuit music and performance
+## Included follow-up: lighthouse fit, denser city schools, pursuit music and performance
 
 The lighthouse and coastal houses now fit actual island triangles, and island slopes face outward. City school stock increases from 88 to 114, with 390 ordinary animals overall and the 168-member juvenile nursery preserved. Real pursuit explicitly drives an immediate, stronger battle layer without replacing accepted exploration music. Region changes now show bilingual loading before construction, lock controls, warm shaders and recover the old map if preparation fails.
 

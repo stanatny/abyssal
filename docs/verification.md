@@ -1,8 +1,29 @@
-# v0.5.1 Public GitHub Pages release
+# Verification record
+
+## 2026-09-29 — v0.7.0 main-branch release
+
+The user authorized pushing the accepted Atlantis feature and the subsequent Hawaii/Skill work to main, and replacing the outdated README screenshot. This supersedes earlier local-only delivery statuses. The release uses the existing GitHub Pages workflow; no tag or GitHub Release is created.
+
+Preflight on the release source: **408/408 unit tests**, formatting, and production build passed. Version metadata and both localized menu footers are v0.7.0; the header edition is 07. A fresh 1440×1080 English screenshot was captured from the actual local production build at `docs/images/abyssal_v0_7_0.png` and visually inspected. Both selection cards, separate Tap-to-change rows, value rows and hints have matching top coordinates/heights; the screenshot includes the full menu and version footer. No screenshot-only styles or replacement scene were used.
+
+The preceding Hawaii/Atlantis gameplay, switching, bilingual and public-preview results below apply to the unchanged runtime apart from the release footer/edition. Deployment acceptance requires the Pages run to match the pushed commit, byte-matching production assets, both regions and languages, start/pause/Home, aligned English controls and the new README image in the remote main tree. Final workflow/asset/image receipts are retained under ignored `.local/release_v0_7_*`; report actual deployment status to the user only after these gates pass. Physical-device and full-round limits remain unchanged.
+
+## 2026-09-29 — accepted Atlantis checkpoint, Hawaii indexing and map-production Skill
+
+The user accepted the preceding preview and requested a local commit before the next work. `6025348` records the accepted Atlantis feature on `feature/atlantis`; no push or merge occurred. The Hawaii performance follow-up and repository-local Skill remain uncommitted for review. Main/official Pages are unchanged.
+
+- **408/408 unit tests** pass on the final source, including six new actual-Hawaii collision equivalence tests. The earlier run captured the new test fixture before its canvas stub was finished; it is retained in `.local/hawaii_unit.log`, with the completed full result in `.local/hawaii_unit_final.log`.
+- **29 game browser checks** pass; English desktop and Chinese 390px repeated region selection, input/focus restoration, loading failure rollback and re-entry pass with zero page errors. See `.local/hawaii_browser.log`, `.local/hawaii_loading.log` and `.local/region_loading/report.json`.
+- Two visible-window before/after performance passes at 1440×900 compare nursery, reef and volcanic depths in both quality modes. Nursery high-quality sampled main-loop CPU improves **11.5–12.0 → 9.1–9.7 ms/frame**, and p95 frame time **24–25 → 19–20 ms**. Mean FPS was already approximately 60. Other views, the first-pass smooth-nursery regression and measurement limits are retained in [Hawaii performance](hawaii_performance.md). No art, visibility, population or survival values were reduced.
+- Formatting and build pass. Production entry is `index-CnWMLQ8O.js` (1,182.56 kB; Vite estimate 376.09 kB gzip), CSS remains `index-C5YNSLJl.css`; the existing >500 kB bundle warning remains.
+- The rebuilt temporary public preview passes 1440px/390px Hawaii start/pause/Home and Atlantis selection/guide/both-language/re-entry checks, with no overflow, browser errors or development globals. Served HTML, JS, CSS and a bundled audio file match local bytes/hashes. Receipt: `.local/hawaii_public/report.json`; process and source provenance: `.local/atlantis_preview_state.json`. This host-side public revisit is not a physical-phone or separate-network acceptance.
+- The [repository-local Skill](../.agents/skills/abyssal-map-production/SKILL.md) and [brief template](../.agents/skills/abyssal-map-production/references/map_brief.md) pass Skill validation, formatting and relative-link checks. AGENTS and README provide discovery. A separate read-only Bermuda assignment exercise produced bounded Kimi/Codex file ownership, a playable first slice and real-scene/audio/ecology verification without inheriting Atlantis counts or granting commit permission. This checks planning behavior; it is not a completed Bermuda map or a guarantee of Kimi's future art quality.
+
+Raw benchmark images/profiles are in `.local/hawaii_performance/`. The matched nursery screenshots were visually compared. Physical-device performance and natural whole-round pacing remain unverified. The later Hawaii/Skill changes require their own review before another commit.
 
 ## 2026-09-29 — Atlantis lighthouse, city density, chase music and performance
 
-Development candidate on `feature/atlantis`; no commit, push, merge or main deployment. The original main worktree remains clean.
+Historical pre-commit candidate on `feature/atlantis`; no commit, push, merge or main deployment at the time of these checks. The original main worktree remains clean.
 
 - **402/402 unit tests** passed, including exact indexed/full collision comparisons, projected territory edges, geometry budgets and real-city ecology. `npm run check` and production build passed. The existing single-bundle size warning remains (1,182.89 kB minified / Vite-estimated 376.21 kB gzip).
 - Lighthouse support: **336 terrain samples**, eight surface views and a real normal-logic breach. The close front/side/narrow views confirm a continuous foundation rather than a floating tower. The first breach frame is not a useful close lighthouse view; that limitation remains in its report.
@@ -13,6 +34,8 @@ Development candidate on `feature/atlantis`; no commit, push, merge or main depl
 - Sequential same-Mac visible Chrome/Metal performance comparison: **high quality 51.2→59.1 FPS**, **smooth 54.7→59.5 FPS**, at the same controlled deep-city viewpoint with live ordinary AI. Main-loop CPU time was roughly halved and submitted triangles fell 39–43%. High-quality p95 remained 25.3 ms. Headless results remain noisy, including one narrow high-quality regression; they are preserved in [the full performance report](atlantis_performance.md). No physical-phone or Windows performance claim is made.
 
 Current public artifact: `index-DIEmivgv.js` / `index-C5YNSLJl.css`. Temporary public URL, process ownership, source/asset hashes and stop instructions remain in ignored `.local/atlantis_preview_state.json`. The verified preview serves the feature candidate; GitHub Pages/main remains unchanged.
+
+## Historical v0.5.1 public GitHub Pages release
 
 Verified: 2026-09-27. After the feature commit, the user explicitly requested pushing to GitHub, public play access, and README improvements. That authorization supersedes the “push not requested” status of the historical stages below.
 

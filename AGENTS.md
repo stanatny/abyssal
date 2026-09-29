@@ -8,6 +8,12 @@ Before adding or redrawing fish, playable characters, people, ships, environment
 
 Deliver models, animation, gameplay contact points, audio, and effects as a coherent whole. Inspect actual rendering and real triggers; passing automated tests does not establish visual or listening quality. Content below the standard may exist only in an explicitly labeled development prototype and must not be merged or released as a finished new category. Lowering the standard requires the user's explicit agreement. Continue normal implementation and verification within the authorized task without requesting approval for each production step.
 
+## Regional map production
+
+For a new region, a substantial map redraw, or a map-art assignment, read the repository-local [ABYSSAL Map Production Skill](.agents/skills/abyssal-map-production/SKILL.md) and prepare its [map brief](.agents/skills/abyssal-map-production/references/map_brief.md). Include those paths explicitly in Kimi's assignment so this works even without automatic Skill discovery. Kimi normally supplies the first art pass in scoped files; Codex owns the technical plan, shared gameplay integration, and independent final review.
+
+Define regional identity, playable scale/routes, model references, distributed food, exploration/chase/lord audio, interfaces, and runtime evidence before expanding an art kit across the map. Review a populated playable slice early. Judge the finished map in the actual game, including terrain fit, adult traversal, survival, bilingual guide, loading/lifecycle, and measured performance. Atlantis-specific coverage, guardian counts, and population totals are examples, not requirements for every region. The Skill does not grant commit or release permission.
+
 ## Rule and content synchronization
 
 Whenever a gameplay rule changes or an element is added, renamed, or removed, check the affected surfaces below before delivery. Update only relevant surfaces and use focused verification; this checklist does not require every historical test for every change.

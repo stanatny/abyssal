@@ -71,7 +71,7 @@ import {
   inkStatus,
   getCharacter,
 } from "./character_rules.js";
-import { bodyRadius, resolveMotion, castSegment } from "./collision.js";
+import { bodyRadius } from "./collision.js";
 
 import {
   resolveIndexedMotion,
@@ -217,12 +217,10 @@ const humans = createHumanActivity(scene, {
   heightAt: seabedHeight,
   worldColliders: terrainColliders,
   castWorld: (from, to, radius = 0) =>
-    ocean.city
-      ? castIndexedSegment(from, to, {
-          staticColliders: ocean.colliders,
-          radius,
-        })
-      : castSegment(from, to, terrainColliders, radius),
+    castIndexedSegment(from, to, {
+      staticColliders: ocean.colliders,
+      radius,
+    }),
   isSwallowing: (mesh) => feeding.has(mesh),
   onEat(point, length, entity) {
     feeding.start(entity.mesh, length);
@@ -269,13 +267,6 @@ let launchTransition = null;
 let movementLabel = "巡游";
 let lureFlash = 0,
   waterMotion = null;
-const solidColliders = [...ocean.colliders, ...surface.colliders];
-let staticColliderCount = solidColliders.length;
-function refreshDynamicColliders() {
-  solidColliders.length = staticColliderCount;
-  solidColliders.push(...humans.colliders);
-}
-refreshDynamicColliders();
 let lastCollision = null;
 let expedition = getExpedition();
 let inkAbility = createInkState();
@@ -444,15 +435,7 @@ async function selectRegion(region) {
 
 function refreshRegionState() {
   terrainColliders.splice(0, terrainColliders.length, ...ocean.colliders);
-  solidColliders.splice(
-    0,
-    solidColliders.length,
-    ...terrainColliders,
-    ...surface.colliders,
-  );
-  staticColliderCount = solidColliders.length;
   humans.reset();
-  refreshDynamicColliders();
   const region = expedition.region;
   encounters.reset(region.bossKinds, region.bossHomes, region.bossInstances);
   audio.setRegion?.(region.id);
@@ -926,7 +909,6 @@ function resetExpedition(preserveWorld = false) {
   if (!preserveWorld) {
     surface.reset();
     humans.reset();
-    refreshDynamicColliders();
     encounters.reset(
       expedition.region.bossKinds,
       expedition.region.bossHomes,
@@ -1112,8 +1094,6 @@ function togglePause() {
   else if (mode === "paused") resumeGame();
 }
 function queryWorldSegment(a, b, radius = 0) {
-  if (expedition.region.id !== "atlantis")
-    return castSegment(a, b, solidColliders, radius);
   return castIndexedSegment(a, b, {
     staticColliders: ocean.colliders,
     dynamicColliders: [...surface.colliders, ...humans.colliders],
@@ -1125,15 +1105,10 @@ function blockedBetween(a, b) {
 }
 function resolvePlayerMotion(previous, merge = false) {
   const radius = bodyRadius(player.length);
-  const solve =
-    expedition.region.id === "atlantis" ? resolveIndexedMotion : resolveMotion;
-  const result = solve(previous, position, {
-    ...(expedition.region.id === "atlantis"
-      ? {
-          staticColliders: ocean.colliders,
-          dynamicColliders: [...surface.colliders, ...humans.colliders],
-        }
-      : { colliders: solidColliders }),
+  // 各海域共用静态地形粗筛；船只与人类每次读取当前碰撞体，不能进入静态缓存。
+  const result = resolveIndexedMotion(previous, position, {
+    staticColliders: ocean.colliders,
+    dynamicColliders: [...surface.colliders, ...humans.colliders],
     radius,
     forward,
     length: player.length,
@@ -1274,7 +1249,6 @@ function updatePlayer(dt, roundDt) {
     speed,
     now: player.elapsed,
   });
-  refreshDynamicColliders();
   resolvePlayerMotion(previousPosition);
   avatar.position.copy(position);
   avatar.scale.setScalar(player.length);
@@ -2212,7 +2186,6 @@ function frame(now) {
       resolvePlayerMotion(beforeEntities, true);
     updatePickups(dt);
     humans.update(dt, player.elapsed, player, position, forward, { speed });
-    refreshDynamicColliders();
     const beforeEncounter = position.clone();
     const beforeBossLength = player.length;
     activeBoss = encounters.update(
