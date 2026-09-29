@@ -12,42 +12,43 @@ const triangles = (kit) =>
     0,
   );
 
-// 修改前记录的碰撞签名；三角预算覆盖所有受影响套件，防止壁龛误用完整路标网格。
+// 已验收碰撞体的九位小数签名；保留结构与顺序，忽略不同平台三角函数的末位浮点差异。
+// 1e-9 世界单位远小于网格精度与碰撞接触容差，不改变运行时几何。
 const BUDGETS = [
   [
     "courtyard",
     22064,
-    "9286cb8826402fa2c1950d62e20ad2531afe910ac675f2bd25bbca1874186885",
+    "f59a0681dec4bf71cc9570fde3e6aed56b5f804cbbf41c682ac0b53c47d13ee8",
   ],
   [
     "villa",
     5888,
-    "0bd1d945d34d4aae79ed410b3a15179e92467b0123ece3e4161384192d4b906a",
+    "c34f941b8b57c78488c6e7de8041baa0b9574e73e1644dd626744c1f5c80f3a5",
   ],
   [
     "stoa",
     25832,
-    "e7192c995700fed9bd8ecf6851afc2be19d0a1e8ae8218e7050f84e9a81ab9eb",
+    "bba4c28aa86c1a5b2d3c00976e99d75799ece3cbc7e13ae116e12d5e8516c737",
   ],
   [
     "rotunda",
     15848,
-    "36ef4dfd3307070047fba6ba7333229df76d5cd4a86bf3576a029a2161a056f2",
+    "6e2e09a892527c4ddf98fc6635f25f7711668840bf367e75b7e2710daaa03c46",
   ],
   [
     "tower",
     13612,
-    "337645dacd020848f64ffbcaf9162b9f4a4ac25b1e31885034bb16ebd1b89ed3",
+    "a4a8c57e0ee2deb4160037f71ef91f6f62c21116969f4f8a1343207641d7e9e9",
   ],
   [
     "gateway",
     22012,
-    "b7863105a7b69e1f0f04eda33417c608cb75f21b6eaa46752a3a836785f1b7cb",
+    "d89d0120116d8758842be3657bea0f26d4c302a420d4465ae67fd2962e31cee9",
   ],
   [
     "temple",
     62996,
-    "a78950fb3b6514bf5421a7fc7fac8f27b0a4dd65de4ff651bc3e5551741518e0",
+    "267d28320e1e2e3a0bc7aa93aa50154414ad784f36d1469c346a051455932370",
   ],
   [
     "column",
@@ -61,7 +62,7 @@ test("architecture stays within geometry budgets with unchanged collision", () =
     const kit = cityArchitecture(kind);
     assert.equal(triangles(kit), budget, kind);
     assert.equal(
-      createHash("sha256").update(JSON.stringify(kit.colliders)).digest("hex"),
+      collisionSignature(kit.colliders),
       signature,
       `${kind} collision changed`,
     );
@@ -153,4 +154,58 @@ test("rendered column keeps smooth entasis within 1 cm and preserves the capital
   assert.ok(Math.abs(bounds.max.y - 17.03069496154785) < 1e-6);
   assert.ok(Math.abs(bounds.max.z - 1.96) < 1e-6);
   material.dispose();
+});
+
+/** 仅规范测试快照的浮点表示；非有限数值必须失败，不能被 JSON 静默转成 null。 */
+function collisionSignature(colliders) {
+  const canonical = JSON.stringify(colliders, (_, value) => {
+    if (typeof value !== "number") return value;
+    assert.ok(Number.isFinite(value), "Collider values must be finite");
+    return Number(value.toFixed(9));
+  });
+  return createHash("sha256").update(canonical).digest("hex");
+}
+
+test("collision snapshots ignore floating-point noise but detect geometry and ordering changes", () => {
+  const original = cityArchitecture("rotunda").colliders;
+  const signature = collisionSignature(original);
+  for (const [kind, , expected] of BUDGETS) {
+    for (const noise of [-1e-13, 1e-13]) {
+      const roundoff = JSON.parse(
+        JSON.stringify(cityArchitecture(kind).colliders, (_, value) =>
+          typeof value === "number" ? value + noise : value,
+        ),
+      );
+      assert.equal(collisionSignature(roundoff), expected, kind);
+    }
+  }
+  for (const change of [
+    (c) => {
+      c[0].x += 1e-5;
+    },
+    (c) => {
+      c[0].halfSize.z += 1e-5;
+    },
+    (c) => {
+      c.find((collider) => collider.rotation).rotation.w += 1e-5;
+    },
+    (c) => {
+      c[0].type = "sphere";
+    },
+    (c) => {
+      [c[0], c[1]] = [c[1], c[0]];
+    },
+    (c) => {
+      c.pop();
+    },
+  ]) {
+    const changed = structuredClone(original);
+    change(changed);
+    assert.notEqual(collisionSignature(changed), signature);
+  }
+  for (const invalid of [NaN, Infinity, -Infinity]) {
+    const changed = structuredClone(original);
+    changed[0].x = invalid;
+    assert.throws(() => collisionSignature(changed), /must be finite/);
+  }
 });
