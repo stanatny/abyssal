@@ -1,6 +1,7 @@
 import * as THREE from "three";
 import { WORLD } from "./world_config.js";
-import { seabedHeight } from "./ocean.js";
+import { atlantisSeabedHeight as seabedHeight } from "./atlantis_terrain.js";
+import { createAtlantisTerrainMesh } from "./atlantis_terrain_mesh.js";
 import { createAtlantisCity } from "./atlantis_city.js";
 import { createAtlantisOutskirts } from "./atlantis_outskirts.js";
 import {
@@ -47,6 +48,7 @@ export function createAtlantisOcean(scene) {
 
   return {
     root,
+    heightAt: seabedHeight,
     city,
     outskirts,
     colliders,
@@ -80,15 +82,16 @@ export function createAtlantisOcean(scene) {
 /** 珍珠沙、冷色岩层与城基石灰岩共用真实海床，视觉起伏不另造碰撞地形。 */
 function createSeabed(keep, time) {
   const geometry = keep(
-    new THREE.PlaneGeometry(
-      WORLD.maxX - WORLD.minX + 120,
-      WORLD.maxZ - WORLD.minZ + 120,
-      144,
-      282,
-    ),
+    createAtlantisTerrainMesh({
+      minX: WORLD.minX - 60,
+      maxX: WORLD.maxX + 60,
+      minZ: WORLD.minZ - 120,
+      maxZ: WORLD.maxZ,
+      segmentsX: 144,
+      segmentsZ: 282,
+      heightAt: seabedHeight,
+    }),
   );
-  geometry.rotateX(-Math.PI / 2);
-  geometry.translate(0, 0, (WORLD.minZ + WORLD.maxZ - 120) * 0.5);
   const positions = geometry.attributes.position;
   const colors = new Float32Array(positions.count * 3);
   const pearl = new THREE.Color("#bbc8c6");
@@ -111,7 +114,6 @@ function createSeabed(keep, time) {
     color.toArray(colors, index * 3);
   }
   geometry.setAttribute("color", new THREE.BufferAttribute(colors, 3));
-  geometry.computeVertexNormals();
   const material = keep(
     new THREE.MeshStandardMaterial({
       vertexColors: true,

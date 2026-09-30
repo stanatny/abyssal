@@ -1,8 +1,30 @@
+import { ATLANTIS_EXCAVATION_SITES } from "./atlantis_terrain.js";
+
+// 港口鱼群跟随已验收的下厅回转区，避免建筑下挖后食物仍悬在旧廊道。
+const HARBOR_HALL = ATLANTIS_EXCAVATION_SITES.find(
+  (site) => site.reservation === "harbor_sanctuary",
+).turningCircle;
+const AGORA_SCHOOL = ATLANTIS_EXCAVATION_SITES.find(
+  (site) => site.reservation === "agora_bridges",
+).fishSanctuary;
+const TEMPLE_SITE = ATLANTIS_EXCAVATION_SITES.find(
+  (site) => site.reservation === "poseidon_main_temple",
+);
+const TEMPLE_SCHOOL = TEMPLE_SITE.fishSanctuary;
+const TEMPLE_TUNA = TEMPLE_SITE.secondaryFishSanctuary;
+
 // 城市水层是幻想海域的游戏改编；只复用已有物种，不改体长、营养或成长。
 const CITY_SCHOOLS = {
   spadefish: [
-    [-215, -81.696494285, -240.5, 8, 6, "harbor_sanctuary"],
-    [215, -226.355227942, -447.5, 8, 6, "agora_bridges"],
+    [HARBOR_HALL.x, HARBOR_HALL.y, HARBOR_HALL.z, 8, 6, "harbor_sanctuary"],
+    [
+      AGORA_SCHOOL.anchor.x,
+      AGORA_SCHOOL.anchor.y,
+      AGORA_SCHOOL.anchor.z,
+      AGORA_SCHOOL.count,
+      AGORA_SCHOOL.band,
+      "agora_bridges",
+    ],
     [-88, -400, -650, 8],
     [-215, -628.57513325, -999.5, 8, 6, "memorial_terrace"],
   ],
@@ -12,7 +34,14 @@ const CITY_SCHOOLS = {
     [88, -485, -770, 8],
     [-88, -580, -920, 8],
     [18, -402, -650, 8],
-    [32, -608, -968, 8],
+    [
+      TEMPLE_SCHOOL.anchor.x,
+      TEMPLE_SCHOOL.anchor.y,
+      TEMPLE_SCHOOL.anchor.z,
+      TEMPLE_SCHOOL.count,
+      TEMPLE_SCHOOL.band,
+      TEMPLE_SITE.reservation,
+    ],
   ],
   sunfish: [
     [-22, -180, -345, 4],
@@ -20,7 +49,15 @@ const CITY_SCHOOLS = {
   ],
   tuna: [
     [22, -270, -475, 9],
-    [-24, -510, -830, 9],
+    [-24, -510, -830, 6],
+    [
+      TEMPLE_TUNA.anchor.x,
+      TEMPLE_TUNA.anchor.y,
+      TEMPLE_TUNA.anchor.z,
+      TEMPLE_TUNA.count,
+      TEMPLE_TUNA.band,
+      TEMPLE_SITE.reservation,
+    ],
   ],
   ray: [
     [-20, -205, -375, 2],

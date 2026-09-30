@@ -68,12 +68,19 @@ try {
   await page.locator("header [data-language-select]").selectOption("en");
   await page.locator("#region-select").click();
   await page.locator('[data-choice-value="atlantis"]').click();
-  await frames();
+  await page.waitForFunction(
+    () =>
+      window.__ABYSSAL__?.expedition.region.id === "atlantis" &&
+      !window.__ABYSSAL__.regionLoading,
+  );
   const sites = await page.evaluate(async () => {
     const game = window.__ABYSSAL__,
       u = game.ocean.city.underways;
     if (!u) throw new Error("Integrated city.underways is unavailable");
     const { bodyRadius, resolveMotion } = await import("/src/collision.js");
+    const { seabedHeight } = await import("/src/ocean.js");
+    const { WORLD } = await import("/src/world_config.js");
+    const heightAt = game.ocean.heightAt || seabedHeight;
     const checks = [];
     for (const site of u.records)
       for (const route of [
@@ -105,8 +112,27 @@ try {
               length: 30,
               radius: bodyRadius(30),
               forward,
+              // 最终海域地面和身体余量参与求解，避免假地下通路通过验收。
+              floorHeight: (x, z) =>
+                heightAt(x, z) +
+                bodyRadius(30) +
+                Math.abs(forward.y) * Math.max(0, 30 * 0.42 - bodyRadius(30)) +
+                0.4,
+              bounds: {
+                minX: WORLD.minX + 5,
+                maxX: WORLD.maxX - 5,
+                minZ: WORLD.minZ + 5,
+                maxZ: WORLD.maxZ - 5,
+                minY: -WORLD.maxDepth + bodyRadius(30),
+                maxY: WORLD.surfaceY - 30 * 0.15,
+              },
             });
-            if (result.blocked || result.stuck)
+            const error = Math.hypot(
+              result.position.x - desired.x,
+              result.position.y - desired.y,
+              result.position.z - desired.z,
+            );
+            if (result.blocked || result.stuck || error > 0.15)
               throw new Error(
                 `${site.id} integrated route blocked: ${JSON.stringify(result.contacts.map((c) => c.collider.kind))}`,
               );

@@ -175,7 +175,7 @@ export function buildOceanCatalog(regionId) {
         tier: config.tier,
         realSize: config.realSize,
         habitatNote: config.schoolProfiles?.some((group) => group.cityResident)
-          ? tr`${config.habitatNote} ${tr`亚特兰蒂斯另有鱼群栖息在古城街巷与上下柱廊。该深水分布为幻想生态；小鱼主要供较小角色补给，成年角色应寻找城区内的中大型猎物。`}`
+          ? tr`${config.habitatNote} ${tr`亚特兰蒂斯另有鱼群栖息在古城街巷、上下柱廊、月湾古港地下厅、沉没市集内庭和波塞冬地宫。该深水分布为幻想生态；小鱼主要供较小角色补给，成年角色应寻找城区内的中大型猎物。住宅与神殿中的宝箱、陶器是探索陈设，不提供奖励。`}`
           : config.habitatNote,
       }),
     ),

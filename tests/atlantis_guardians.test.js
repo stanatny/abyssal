@@ -6,7 +6,7 @@ import { getExpedition } from "../src/expedition_config.js";
 import { BOSS_BITE_HUNGER } from "../src/boss_rules.js";
 import { consumePrey, createPlayer, tickVitals } from "../src/simulation.js";
 import { createAtlantisCity } from "../src/atlantis_city.js";
-import { seabedHeight } from "../src/ocean.js";
+import { atlantisSeabedHeight as seabedHeight } from "../src/atlantis_terrain.js";
 import { bodyRadius, isPositionBlocked } from "../src/collision.js";
 import { NURSERY, isNursery } from "../src/nursery_rules.js";
 import { WORLD } from "../src/world_config.js";

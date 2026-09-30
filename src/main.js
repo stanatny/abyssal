@@ -5,7 +5,7 @@ import "./style.css";
 import { createCreature } from "./creatures.js";
 import { createVisualPipeline } from "./visual_pipeline.js";
 import { createLaunchTransition } from "./launch_transition.js";
-import { createOcean, seabedHeight } from "./ocean.js";
+import { createOcean, seabedHeight as baseSeabedHeight } from "./ocean.js";
 import { createAtlantisOcean } from "./atlantis_ocean.js";
 import { MOON_DIRECTION } from "./atlantis_art_sky.js";
 import { getRegionSpecies } from "./region_ecology.js";
@@ -56,6 +56,7 @@ import {
   schoolSlot,
   sharesHabitat,
   speciesVisibilityDistance,
+  steerResidentHabitat,
 } from "./ecosystem_population.js";
 import { createHumanActivity } from "./human_activity.js";
 import {
@@ -194,7 +195,7 @@ const surfaceOptions = {
 };
 let surface = createSurface(scene, audio, notify, surfaceOptions);
 const encounters = createEncounters(scene, {
-  seabedHeight,
+  seabedHeight: activeSeabedHeight,
   audio,
   notify,
   onDamage() {
@@ -214,7 +215,7 @@ const humans = createHumanActivity(scene, {
   audio,
   notify,
   effects,
-  heightAt: seabedHeight,
+  heightAt: activeSeabedHeight,
   worldColliders: terrainColliders,
   castWorld: (from, to, radius = 0) =>
     castIndexedSegment(from, to, {
@@ -676,8 +677,12 @@ function getMarkerOcclusions() {
 function random(min, max) {
   return min + Math.random() * (max - min);
 }
+// 动态读取当前海域；回到首页换图或准备失败回滚时，不保留旧地图的海床闭包。
+function activeSeabedHeight(x, z) {
+  return (ocean.heightAt || baseSeabedHeight)(x, z);
+}
 function floorAt(x, z, margin = 4) {
-  return seabedHeight(x, z) + margin;
+  return activeSeabedHeight(x, z) + margin;
 }
 function speciesList() {
   return getRegionSpecies(expedition.region.id);
@@ -689,7 +694,7 @@ function spawnPosition(
   populationIndex = 0,
 ) {
   const context = {
-    heightAt: seabedHeight,
+    heightAt: activeSeabedHeight,
     colliders: ocean.colliders,
     playerPosition: position,
     forward,
@@ -1282,7 +1287,7 @@ function updatePlayer(dt, roundDt) {
   if (
     expedition.region.seabedHeat &&
     position.z < -680 &&
-    position.y < seabedHeight(position.x, position.z) + 4.5 &&
+    position.y < activeSeabedHeight(position.x, position.z) + 4.5 &&
     takeDamage(player, 12)
   ) {
     hitFlash = 0.55;
@@ -1392,7 +1397,7 @@ function updateSchools() {
     )
       continue;
     const next = habitatPosition(school.habitat, {
-      heightAt: seabedHeight,
+      heightAt: activeSeabedHeight,
       colliders: ocean.colliders,
       playerPosition: position,
       forward,
@@ -1403,7 +1408,7 @@ function updateSchools() {
     if (!next) continue;
     const placements = school.members.map((entity) =>
       habitatPosition(school.habitat, {
-        heightAt: seabedHeight,
+        heightAt: activeSeabedHeight,
         colliders: ocean.colliders,
         anchor: next.clone().add(entity.slot),
       }),
@@ -1633,11 +1638,22 @@ function updateEntities(dt) {
       entity.chase > 0 && species.depthMin < 100
         ? { ...species, depthMin: Math.max(5, species.depthMin - 10) }
         : schoolLayer || species;
+    const residentDirection = steerResidentHabitat(
+      species,
+      entity.populationIndex,
+      mesh.position,
+      direction,
+    );
+    direction.set(
+      residentDirection.x,
+      residentDirection.y,
+      residentDirection.z,
+    );
     const steered = steerWithinHabitat(
       mesh.position,
       direction,
       habitat,
-      seabedHeight,
+      activeSeabedHeight,
     );
     direction.set(steered.x, steered.y, steered.z);
     if (entity.chase <= 0) entity.heading = Math.atan2(steered.x, -steered.z);
@@ -1736,7 +1752,7 @@ function updateEntities(dt) {
         habitat,
         {
           colliders: ocean.city.colliders,
-          heightAt: seabedHeight,
+          heightAt: activeSeabedHeight,
           territory,
         },
       );
@@ -1787,12 +1803,13 @@ function updateEntities(dt) {
     // 只在玩家已进入合法水层时补充附近猎手，远处生成点仍在可见半径之外。
     if (
       !entity.school &&
+      !(species.residentRadius > 0) &&
       distance > 260 &&
       sharesHabitat(species, position) &&
       Math.random() < dt * 0.055
     ) {
       const next = habitatPosition(species, {
-        heightAt: seabedHeight,
+        heightAt: activeSeabedHeight,
         colliders: ocean.colliders,
         playerPosition: position,
         forward,

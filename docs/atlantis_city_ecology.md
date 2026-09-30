@@ -1,26 +1,26 @@
 # Atlantis city ecology
 
-The current candidate keeps 17 ordinary species and **390 individuals**. The preceding city revision had 374, following the original 278-animal candidate. Hawaii remains 24 species and 285 individuals. The shared hunger, nutrition, growth, healing, capture, lord-bite food, and 30-minute round rules are unchanged.
+The v0.7.1 revision keeps 17 ordinary species and **390 individuals**. The preceding city revision had 374, following the original 278-animal candidate. Hawaii remains 24 species and 285 individuals. The shared hunger, nutrition, growth, healing, capture, lord-bite food, and 30-minute round rules are unchanged.
 
 ## Population and spatial rules
 
-| Supply              | Original 278 | Current 390 | Placement                                                       |
-| ------------------- | -----------: | ----------: | --------------------------------------------------------------- |
-| Atlantic spadefish  |           72 |         104 | Six original nursery schools; four city schools of eight        |
-| Sardines            |           80 |         128 | Five original nursery schools; six city schools of eight        |
-| Sunfish             |           10 |          14 | Three shallow pairs; two city groups of four                    |
-| Tuna                |           30 |          42 | Four shallow/transition schools of six; two city groups of nine |
-| Rays                |           12 |          20 | Original six pairs; four city pairs                             |
-| Plesiosaurs         |            5 |           6 | City approach and avenue routes within original species depths  |
-| Pliosaurs           |            5 |           6 | City approach and avenue routes within original species depths  |
-| Mosasaurs           |            5 |           7 | Middle and deep city feeding routes                             |
-| Basilosaurus        |            4 |           6 | Deep city feeding routes                                        |
-| Megalodon           |            5 |           7 | Deep city feeding routes                                        |
-| Other seven species |           50 |          50 | Existing supply and predator restrictions                       |
+| Supply              | Original 278 | Current 390 | Placement                                                               |
+| ------------------- | -----------: | ----------: | ----------------------------------------------------------------------- |
+| Atlantic spadefish  |           72 |         104 | Six original nursery schools; four city schools of eight                |
+| Sardines            |           80 |         128 | Five original nursery schools; six city schools of eight                |
+| Sunfish             |           10 |          14 | Three shallow pairs; two city groups of four                            |
+| Tuna                |           30 |          42 | Four shallow/transition schools of six; three city groups of 9, 6 and 3 |
+| Rays                |           12 |          20 | Original six pairs; four city pairs                                     |
+| Plesiosaurs         |            5 |           6 | City approach and avenue routes within original species depths          |
+| Pliosaurs           |            5 |           6 | City approach and avenue routes within original species depths          |
+| Mosasaurs           |            5 |           7 | Middle and deep city feeding routes                                     |
+| Basilosaurus        |            4 |           6 | Deep city feeding routes                                                |
+| Megalodon           |            5 |           7 | Deep city feeding routes                                                |
+| Other seven species |           50 |          50 | Existing supply and predator restrictions                               |
 
 The original 168 juvenile-edible nursery residents remain. Ordinary predators cannot spawn, migrate, pursue, or deal hunting contact damage in the nursery. The single outer-reef blue shark remains the early challenge.
 
-The 80 city small fish are atmospheric schools, not a late-game nutrition substitute. They reuse existing polished spadefish and sardine assets. Three schools occupy the open lower galleries of Harbor Sanctuary, Agora Bridges, and Memorial Terrace, with six-world-meter bands on either side of their centers. The other city schools use twelve-meter bands. City residents stay around their local school centers and swim normally; their centers do not migrate back into the nursery. Their deeper placement is an explicit fantasy-region adaptation, not a claim about these animals' natural habitat.
+The 80 city small fish are atmospheric schools, not a late-game nutrition substitute. They reuse existing polished spadefish and sardine assets. The Harbor school now occupies the excavated lower hall at (-227, -177, -249), below the original seabed, using the site turning-circle metadata. Agora's eight-member group now occupies the lower cistern at (224,-349,-464), following its fish-sanctuary metadata; Memorial Terrace retains its raised lower-gallery school. Each has a six-world-meter band on either side of its center. The other city schools use twelve-meter bands. City residents stay around their local school centers and swim normally; their centers do not migrate back into the nursery. Their deeper placement is an explicit fantasy-region adaptation, not a claim about these animals' natural habitat.
 
 The 34 city medium prey connect districts; the preceding revision’s eight additional ancient animals and independent large-prey anchors continue to supply the city route. Per-species length, swim speed, base nutrition, growth and predator classification are unchanged. Large animals retain their original depth ranges. A 25–30 m player should seek these large prey; chasing tiny shoals is still inefficient.
 
@@ -87,3 +87,17 @@ The final density browser run on 2026-09-29 used `ABYSSAL_ECOLOGY_SCOPE=density 
 - `density_report.json` records the audit, movement, capture, natural respawn, source hashes and both-character nutrition model. `deep_city_small_school.png` and `deep_city_tuna_school.png` are controlled inspection views with normal light and fog; `deep_city_school_feed.png` records the actual feeding HUD and swallowing effects. The nine-member tuna school is visibly grouped in front of city architecture. The 0.3 m sardines are small at the 36 m inspection distance, so their count and behavior are supported by the live audit rather than a claim that every fish is individually legible in that image.
 
 This density run exercises one character's newly added school; the nutrition model covers both characters. It does not repeat the historical four large-prey captures or establish natural encounter rates, complete rounds, mobile control feel, or device frame rate. Performance comparisons belong to the separate matched-view performance report; the preceding 374-animal frame times are not a current benchmark.
+
+## Harbor excavation follow-up — September 30
+
+The existing eight-member Harbor school now uses the excavation metadata at `(-227,-177,-249)`, in the 171–183 world-depth band. Total and regional food stock, biology and nutrition are unchanged. This historical Harbor-only check preceded the Agora relocation below. Fourteen focused ecology tests passed using the final city/furniture/marine colliders, including initial placement, one minute of shared navigation/collision and school respawn placement. Actual Squid feeding and the ordinary 18-second respawn also passed: the consumed fish returned 0.55m from its original center without overlap, with matching source hashes and no browser errors. See [exploration verification](atlantis_exploration_verification.md). The earlier raised Harbor band and its screenshots above are historical evidence.
+
+## Agora excavation follow-up — September 30
+
+The existing eight Agora spadefish now use `fishSanctuary` metadata at `(224,-349,-464)`, in the 343–355 world-depth band. Memorial's anchor, nursery supply, regional totals and nutrition are unchanged. Five focused tests cover the full clear-water cylinder, all eight spawn slots, one minute of ordinary navigation, legal respawn placement and existing rules. The shared browser script selects this school using `ABYSSAL_ECOLOGY_CITY_SITE=agora_bridges`; actual ordinary movement, keyboard-driven feeding and normal 18-second respawn passed with no errors. Evidence is `.local/agora_ecology/school_agora_bridges_report.json`. School access remains a controlled encounter rather than a whole-round survival measurement.
+
+## Poseidon crypt follow-up — September 30
+
+The temple's lower water volume reuses eight city sardines at `(18,-691,-924)` and three of the previous nine deep-city tuna at `(-18,-691,-936)`. The other six tuna retain the original neighborhood anchor. The regional total remains 390, city-school stock 114, and juvenile-edible nursery stock 168. Splitting the tuna group raises school groups from 42 to 43 without adding animals. Both lower schools use the 684–698 world-depth band; site metadata owns their center-patrol radii and the shared habitat helpers own movement and respawn.
+
+This is an exploration habitat, not a replacement for large-prey feeding. At lengths 25/30 m the eleven small-to-medium fish provide only about 4.30/2.95 hunger in total under the unchanged undersized-prey rule. Grown characters must still seek larger animals in the surrounding city. The setting is fantasy ecology; sardines at this depth are not a claim about natural biological habitat. Final source checks and actual-game feeding evidence belong in the [exploration verification record](atlantis_exploration_verification.md).

@@ -159,6 +159,38 @@ export function initialSpeciesAnchor(species, index = 0) {
   return point;
 }
 
+/**
+ * 散居居民保留各自的活动范围；不改成同步鱼群，在活动区内保留近身逃逸。
+ * @param {object} species 含residentRadius与独立spawnAnchors的区域物种。
+ * @param {number} populationIndex 个体在同种居民中的稳定序号。
+ * @param {object} position 当前世界位置。
+ * @param {object} direction 当前巡游或逃逸方向。
+ * @returns {object} 靠近活动区边缘时柔和回转；其他物种直接返回原方向。
+ */
+export function steerResidentHabitat(
+  species,
+  populationIndex,
+  position,
+  direction,
+) {
+  const radius = species.residentRadius;
+  const anchors = species.spawnAnchors;
+  if (!(radius > 0) || !anchors?.length) return direction;
+  const anchor = anchors[populationIndex % anchors.length];
+  const dx = anchor[0] - position.x;
+  const dy = anchor[1] - position.y;
+  const dz = anchor[2] - position.z;
+  const distance = Math.hypot(dx, dy, dz);
+  if (distance < radius * 0.6) return direction;
+  const urgency = Math.min(1, (distance / radius - 0.6) / 0.4);
+  const weight = (urgency * urgency * (3 - 2 * urgency) * 2.5) / distance;
+  const x = direction.x + dx * weight;
+  const y = direction.y + dy * weight;
+  const z = direction.z + dz * weight;
+  const magnitude = Math.hypot(x, y, z) || 1;
+  return { x: x / magnitude, y: y / magnitude, z: z / magnitude };
+}
+
 /** 可见半径考虑中型动物与群体辨识，不再把海龟、蝠鲼与微小单鱼一律裁到85米。 */
 export function speciesVisibilityDistance(species, highQuality = true) {
   return species.length < 1
@@ -218,6 +250,15 @@ export function habitatPosition(
     padding = 0,
   } = {},
 ) {
+  const residentHome =
+    species.residentRadius > 0
+      ? initialSpeciesAnchor(species, populationIndex)
+      : null;
+  // 散居居民与固定鱼群一样在原栖息区复活，不能被普通猎手的远距补位逻辑搬走。
+  if (near && residentHome) {
+    near = false;
+    anchor = residentHome;
+  }
   if (near && (!playerPosition || !sharesHabitat(species, playerPosition)))
     return null;
   if (
@@ -252,8 +293,12 @@ export function habitatPosition(
       point.copy(anchor);
       if (attempt) {
         const angle = attempt * 2.399;
-        point.x += Math.cos(angle) * (3 + attempt * 1.7);
-        point.z += Math.sin(angle) * (3 + attempt * 1.7);
+        const spread =
+          species.residentRadius > 0
+            ? Math.min(species.residentRadius, 1 + attempt * 0.6)
+            : 3 + attempt * 1.7;
+        point.x += Math.cos(angle) * spread;
+        point.z += Math.sin(angle) * spread;
       }
     }
     point.x = THREE.MathUtils.clamp(point.x, WORLD.minX + 18, WORLD.maxX - 18);
@@ -264,6 +309,12 @@ export function habitatPosition(
     const top = -minimum;
     if (bottom > top) continue;
     point.y = THREE.MathUtils.clamp(point.y, bottom, top);
+    // 新地图的海床或边界校正也不能把居民挤出独立活动区；无合法空间应明确失败。
+    if (
+      residentHome &&
+      point.distanceTo(residentHome) > species.residentRadius + 1e-8
+    )
+      continue;
     if (
       near &&
       (point.distanceTo(playerPosition) < visibleRadius + 15 ||

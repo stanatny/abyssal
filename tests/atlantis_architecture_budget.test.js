@@ -12,28 +12,28 @@ const triangles = (kit) =>
     0,
   );
 
-// 已验收碰撞体的九位小数签名；保留结构与顺序，忽略不同平台三角函数的末位浮点差异。
+// 经屋顶行为回归核对的碰撞体九位小数签名；保留结构与顺序，忽略不同平台三角函数的末位浮点差异。
 // 1e-9 世界单位远小于网格精度与碰撞接触容差，不改变运行时几何。
 const BUDGETS = [
   [
     "courtyard",
-    22064,
-    "f59a0681dec4bf71cc9570fde3e6aed56b5f804cbbf41c682ac0b53c47d13ee8",
+    22136,
+    "7c79fc450908ab479ee46d3eec50a8c779977c9a13fefdf63b817fe9347ebb28",
   ],
   [
     "villa",
     5888,
-    "c34f941b8b57c78488c6e7de8041baa0b9574e73e1644dd626744c1f5c80f3a5",
+    "9c0ff196f9975658cad102351845e1777915be553e1e63af6ea08915152ced4d",
   ],
   [
     "stoa",
     25832,
-    "bba4c28aa86c1a5b2d3c00976e99d75799ece3cbc7e13ae116e12d5e8516c737",
+    "ca4d54ed3ddee40dced024067aa13e7d574195f26ae6f22ec9e16a98df7d063b",
   ],
   [
     "rotunda",
     15848,
-    "6e2e09a892527c4ddf98fc6635f25f7711668840bf367e75b7e2710daaa03c46",
+    "adc1accab690982ae6960afd88b7cbd97e89c2c76e0beef8fb4cf8212614b3cf",
   ],
   [
     "tower",
@@ -47,8 +47,8 @@ const BUDGETS = [
   ],
   [
     "temple",
-    62996,
-    "267d28320e1e2e3a0bc7aa93aa50154414ad784f36d1469c346a051455932370",
+    63068,
+    "f4b165d0abacce65afdf3f91b45b3767aca17b6e83b748940c444f988f243ee3",
   ],
   [
     "column",
@@ -57,7 +57,7 @@ const BUDGETS = [
   ],
 ];
 
-test("architecture stays within geometry budgets with unchanged collision", () => {
+test("architecture stays within reviewed geometry and collision budgets", () => {
   for (const [kind, budget, signature] of BUDGETS) {
     const kit = cityArchitecture(kind);
     assert.equal(triangles(kit), budget, kind);

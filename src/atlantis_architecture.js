@@ -111,6 +111,34 @@ class Builder {
       }
     }
   }
+  disk(mat, radius, height, x, y, z) {
+    this.cylinder(mat, radius, radius, height, x, y, z, false, 48);
+    // 每个长矩形连接相对的两条多边形边；24 块的并集精确覆盖48边形圆盘。
+    // 比大量轴对齐细条更省碰撞体，且没有圆盘外的隐形方角。
+    const count = 24,
+      halfAngle = Math.PI / (2 * count);
+    for (let i = 0; i < count; i++) {
+      const angle = ((i + 0.5) * Math.PI) / count;
+      this.colliders.push({
+        type: "box",
+        kind: "city_disk",
+        x,
+        y,
+        z,
+        halfSize: {
+          x: radius * Math.cos(halfAngle),
+          y: height / 2,
+          z: radius * Math.sin(halfAngle),
+        },
+        rotation: {
+          x: 0,
+          y: Math.sin(angle / 2),
+          z: 0,
+          w: Math.cos(angle / 2),
+        },
+      });
+    }
+  }
   column(x, y, z, h, r = 1) {
     // 台基、圆础、带收分的凹槽柱身、双层柱头与卷涡细部。
     this.box("marble", r * 2.8, 0.6, r * 2.8, x, y + 0.3, z);
@@ -147,9 +175,38 @@ class Builder {
         z + r * 0.91,
       ]);
   }
-  band(w, d, y, x = 0, z = 0) {
-    this.box("marble", w + 0.9, 0.55, d + 0.9, x, y, z);
-    this.box("bronze", w + 0.6, 0.17, d + 0.6, x, y + 0.42, z);
+  band(w, d, y, x = 0, z = 0, { border = 0, solid = false } = {}) {
+    // 庭院和破顶神殿只铺四边檐口；完整屋面则显式开启与网格同尺寸的实体碰撞。
+    for (const [material, width, depth, height, level] of [
+      ["marble", w + 0.9, d + 0.9, 0.55, y],
+      ["bronze", w + 0.6, d + 0.6, 0.17, y + 0.42],
+    ]) {
+      if (!border) this.box(material, width, height, depth, x, level, z, solid);
+      else {
+        for (const side of [-1, 1]) {
+          this.box(
+            material,
+            border,
+            height,
+            depth,
+            x + (side * (width - border)) / 2,
+            level,
+            z,
+            true,
+          );
+          this.box(
+            material,
+            width - border * 2,
+            height,
+            border,
+            x,
+            level,
+            z + (side * (depth - border)) / 2,
+            true,
+          );
+        }
+      }
+    }
     // 齿饰与交替的三陇板；只在视觉层细分，碰撞不逐齿增加。
     for (let k = -w / 2 + 0.7; k < w / 2; k += 2.4) {
       this.box("marble", 0.5, 0.65, 0.65, x + k, y - 0.45, z + d / 2 + 0.1);
@@ -289,13 +346,13 @@ function courtyard(b) {
   b.box("stone", 25, 12, 1.8, 0, 7.4, -11.1, true);
   for (const x of [-11.6, 11.6]) {
     b.box("stone", 1.8, 11.5, 24, x, 7.15, 0, true);
-    b.band(2.2, 24, 13.3, x);
+    b.band(2.2, 24, 13.3, x, 0, { solid: true });
   }
   for (const x of [-8.5, 8.5]) b.box("stone", 8, 10, 1.8, x, 6.4, 11.1, true);
   b.portal(0, 1.4, 11.5, 7, 10, 1.5);
-  b.band(25, 24, 13.7);
+  b.band(25, 24, 13.7, 0, 0, { border: 2.2 });
   for (const x of [-8, 8]) for (const z of [-6, 6]) b.column(x, 1.4, z, 9, 0.6);
-  for (const z of [-10, 10]) b.box("marble", 22, 0.4, 3, 0, 11.2, z);
+  for (const z of [-10, 10]) b.box("marble", 22, 0.4, 3, 0, 11.2, z, true);
   b.box("bronze", 11, 0.1, 10, 0, 1.45, 0, false, "#5e9691");
   for (const x of [-6.5, 6.5]) {
     b.box("lapisGlow", 1.3, 3.6, 0.15, x, 7, -10.15);
@@ -314,7 +371,7 @@ function villa(b) {
   for (const x of [-9, -3, 3, 9]) b.column(x, 1.7, 9, 13, 0.75);
   b.box("marble", 25, 1.3, 2.5, 0, 15.35, 9, true);
   b.pediment(27, 5, 2.2, 16, 9);
-  b.band(25, 22, 15.9);
+  b.band(25, 22, 15.9, 0, 0, { solid: true });
   b.box("stone", 25, 1.1, 14, 0, 15, -3.5, true);
   for (const x of [-7, 7]) {
     b.box("bronze", 3.6, 5, 0.2, x, 8, -9.35, false, "#365760");
@@ -333,7 +390,7 @@ function stoa(b) {
   for (const x of [-19, -11.4, -3.8, 3.8, 11.4, 19]) b.column(x, 2, 8.8, 18, 1);
   for (const x of [-20, 20]) b.box("stone", 2, 15, 15, x, 9.5, -1, true);
   b.box("marble", 43, 1.6, 3.2, 0, 20.8, 8.8, true);
-  b.band(44, 23, 22.2);
+  b.band(44, 23, 22.2, 0, 0, { solid: true });
   b.box("stone", 43, 1.2, 19, 0, 21.1, -1, true);
   for (const x of [-15, -5, 5, 15]) {
     b.portal(x, 3, -8.8, 5, 10, 0.5);
@@ -350,7 +407,7 @@ function rotunda(b) {
     const a = (i * Math.PI) / 6;
     b.column(Math.sin(a) * 13, 2, Math.cos(a) * 13, 20, 1);
   }
-  b.cylinder("marble", 15.7, 15.7, 1.8, 0, 23, 0, false, 48);
+  b.disk("marble", 15.7, 1.8, 0, 23, 0);
   const dome = new THREE.SphereGeometry(
     15.5,
     40,
@@ -474,7 +531,7 @@ function temple(b) {
     for (const z of [-15, 0, 15]) b.column(x, 4.2, z, 38, 1.9);
   for (const z of [-29, 29]) b.box("marble", 96, 3.4, 5, 0, 44, z, true);
   for (const x of [-43, 43]) b.box("marble", 5, 3.4, 62, x, 44, 0, true);
-  b.band(97, 66, 47);
+  b.band(97, 66, 47, 0, 0, { border: 6 });
   b.pediment(100, 14, 5, 48, 30);
   b.pediment(100, 14, 5, 48, -30);
   // 破损屋顶保留两翼，中央露天让巨像与深海光柱透出。

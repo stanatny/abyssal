@@ -6,7 +6,7 @@ import { createAtlantisCity } from "../src/atlantis_city.js";
 import { GEOMETRIES } from "../src/atlantis_art_geometry.js";
 import { createStaticColliderGrid } from "../src/static_collider_grid.js";
 import { castSegment, isPositionBlocked } from "../src/collision.js";
-import { seabedHeight } from "../src/ocean.js";
+import { atlantisSeabedHeight as seabedHeight } from "../src/atlantis_terrain.js";
 import { WORLD } from "../src/world_config.js";
 
 test("Outskirts occupy legal peripheral clearings and leave nursery, avenue and arena open", () => {

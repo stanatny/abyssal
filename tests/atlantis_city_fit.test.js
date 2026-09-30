@@ -10,7 +10,7 @@ import {
   cityCoverage,
   cityLots,
 } from "../src/atlantis_city_plan.js";
-import { seabedHeight } from "../src/ocean.js";
+import { atlantisSeabedHeight as seabedHeight } from "../src/atlantis_terrain.js";
 import { WORLD } from "../src/world_config.js";
 import { getExpedition } from "../src/expedition_config.js";
 import {
@@ -281,6 +281,10 @@ test("City disposal releases private geometry and instance buffers once, preserv
   const first = createAtlantisCity(parent, { heightAt: seabedHeight });
   const second = createAtlantisCity(parent, { heightAt: seabedHeight });
   const shared = new Set(GEOMETRIES.values());
+  const sharedMaterials = new Set();
+  second.root.traverse((node) => {
+    if (node.material) sharedMaterials.add(node.material);
+  });
   const geometries = new Map();
   const materials = new Map();
   const instances = new Map();
@@ -305,7 +309,9 @@ test("City disposal releases private geometry and instance buffers once, preserv
   for (const [geometry, count] of geometries)
     assert.equal(count, shared.has(geometry) ? 0 : 1, geometry.name);
   for (const count of instances.values()) assert.equal(count, 1);
-  for (const count of materials.values()) assert.equal(count, 0);
+  // 动态海洋材质携带实例时钟，归单个城市所有；静态建筑材质继续共享。
+  for (const [material, count] of materials)
+    assert.equal(count, sharedMaterials.has(material) ? 0 : 1);
   second.update(30, 1 / 60, new THREE.Vector3(0, -420, -730), false);
   second.root.traverse((node) => {
     if (node.geometry)

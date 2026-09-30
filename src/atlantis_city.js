@@ -11,6 +11,19 @@ import {
   createAtlantisUnderways,
   isAtlantisUnderwayReserved,
 } from "./atlantis_underways.js";
+import { createAtlantisTerrainMesh } from "./atlantis_terrain_mesh.js";
+import { createAtlantisHarborRuins } from "./atlantis_exploration_harbor.js";
+import { createAtlantisAgoraRuins } from "./atlantis_exploration_agora.js";
+import { createAtlantisCityMarine } from "./atlantis_city_marine.js";
+import { createAtlantisExplorationFurniture } from "./atlantis_exploration_furniture.js";
+import { createAtlantisResidentialInteriors } from "./atlantis_residential_interiors.js";
+import { createAtlantisPoseidonTemple } from "./atlantis_poseidon_temple.js";
+import {
+  POSEIDON_TEMPLE_SITE,
+  isPoseidonTempleReserved,
+} from "./atlantis_poseidon_site.js";
+import { selectMarineFacades } from "./atlantis_marine_anchors.js";
+import { ATLANTIS_EXCAVATION_SITES } from "./atlantis_terrain.js";
 import { cityArchitecture } from "./atlantis_architecture.js";
 import {
   ATLANTIS_CITY_BOUNDS,
@@ -41,6 +54,39 @@ export function createAtlantisCity(parent, { heightAt } = {}) {
   const random = seededRandom(9517);
   const records = [];
   let disposed = false;
+  // 特殊台基先保留空间，避免普通住宅在稍后放入的神殿、圆亭或塔楼中被掩埋。
+  const residentialReservations = [
+    ...[-187, 187].map((x) => ({
+      kind: "temple",
+      x,
+      z: -774,
+      scale: 0.96,
+      rotation: Math.PI / 2,
+    })),
+    ...[-177, 177].map((x) => ({
+      kind: "rotunda",
+      x,
+      z: -944,
+      scale: 0.85,
+      rotation: 0,
+    })),
+    ...[-253, 253].map((x) => ({
+      kind: "tower",
+      x,
+      z: -645,
+      scale: 1.1,
+      rotation: 0,
+    })),
+  ].map((r) => {
+    const kit = cityArchitecture(r.kind),
+      c = Math.abs(Math.cos(r.rotation)),
+      s = Math.abs(Math.sin(r.rotation));
+    return {
+      ...r,
+      width: (kit.width * c + kit.depth * s) * r.scale,
+      depth: (kit.width * s + kit.depth * c) * r.scale,
+    };
+  });
 
   function chunkFor(x, z) {
     const cx = Math.floor((x + 300) / 150),
@@ -174,7 +220,19 @@ export function createAtlantisCity(parent, { heightAt } = {}) {
       (Math.abs(Math.sin(rotation)) * kit.width +
         Math.abs(Math.cos(rotation)) * kit.depth) *
       scale;
-    if (!allowReserved && isAtlantisUnderwayReserved(x, z, width, depth))
+    if (
+      ["courtyard", "villa"].includes(kind) &&
+      residentialReservations.some(
+        (r) =>
+          Math.abs(x - r.x) < (width + r.width) / 2 &&
+          Math.abs(z - r.z) < (depth + r.depth) / 2,
+      )
+    )
+      return null;
+    if (
+      isPoseidonTempleReserved(x, z, width, depth) ||
+      (!allowReserved && isAtlantisUnderwayReserved(x, z, width, depth))
+    )
       return null;
     const terrain = footprintHeights(x, z, width, depth);
     const y =
@@ -221,7 +279,17 @@ export function createAtlantisCity(parent, { heightAt } = {}) {
       z,
       radius: Math.max(width, depth) * 0.4,
     });
-    records.push({ kind, x, z, y, width, depth, height: kit.height * scale });
+    records.push({
+      kind,
+      x,
+      z,
+      y,
+      width,
+      depth,
+      height: kit.height * scale,
+      scale,
+      rotation,
+    });
     return { x, y, z, kit };
   }
   function landmark(id, x, y, z) {
@@ -244,6 +312,7 @@ export function createAtlantisCity(parent, { heightAt } = {}) {
     [-956, -1078],
   ]) {
     for (let z = from; z > to; z -= 2) {
+      if (isPoseidonTempleReserved(0, z, 38, 2)) continue;
       if (Math.abs(((((z + 100) % 138) + 138) % 138) - 69) < 13) continue;
       const floor = footprintHeights(0, z, 38, 2);
       const top = floor.max + 0.28,
@@ -341,12 +410,36 @@ export function createAtlantisCity(parent, { heightAt } = {}) {
     });
     lamp("#edbf83", 4200, 165, t.x, t.y + 27, t.z);
   }
-  const rear = place("temple", 0, -911, { scale: 1.3 });
-  lamp("#e7b976", 6000, 200, 0, rear.y + 37, -885);
+  const temple = createAtlantisPoseidonTemple(root, {
+    heightAt,
+    hostColliders: colliders,
+    site: POSEIDON_TEMPLE_SITE,
+  });
+  colliders.push(...temple.colliders);
+  landmarks.push(...temple.landmarks);
+  records.push({
+    kind: "poseidon_temple",
+    x: 0,
+    z: -911,
+    y: POSEIDON_TEMPLE_SITE.templeFloorY,
+    width: 130,
+    depth: 100,
+    height: 82,
+    scale: 1,
+    rotation: 0,
+  });
+  for (const source of temple.lightSources)
+    lamp(
+      source.color,
+      source.intensity,
+      source.distance,
+      source.x,
+      source.y,
+      source.z,
+    );
   buildArena(root, instance, colliders, heightAt, materials, cube);
   const arenaY = heightAt(0, -735) + 0.5;
   landmark("arena", 0, arenaY + 1, -735);
-  landmark("main_temple", 0, rear.y + 30, -911);
   landmark("entrance_district", 0, heightAt(0, -115) + 12, -115);
   landmark("colonnade", 0, heightAt(0, -550) + 16, -550);
   const statueScale = 1.55,
@@ -387,14 +480,35 @@ export function createAtlantisCity(parent, { heightAt } = {}) {
   landmark("poseidon_statue", head.x, head.y, head.z);
   landmark("poseidon_trident", tip.x, tip.y, tip.z);
   landmark("rear_shrine", 0, heightAt(0, -1025) + 18, -1025);
-  lamp("#d8dec5", 9500, 210, 0, origin.y + 75, -840, true);
-  lamp("#6fbbff", 4800, 170, tip.x, tip.y - 2, tip.z, true);
+  lamp("#d8dec5", 9000, 210, -40, origin.y + 80, -825, true);
+  lamp("#6fbbff", 3000, 170, tip.x, tip.y - 2, tip.z, true);
   place("rotunda", 0, -1032, { scale: 1.3 });
 
   const underways = createAtlantisUnderways(root, { heightAt });
   colliders.push(...underways.colliders);
   obstacles.push(...underways.obstacles);
   landmarks.push(...underways.landmarks);
+  const exploration = createAtlantisHarborRuins(root, { heightAt });
+  colliders.push(...exploration.colliders);
+  landmarks.push(...exploration.landmarks);
+  const agora = createAtlantisAgoraRuins(root, {
+    heightAt,
+    site: ATLANTIS_EXCAVATION_SITES.find(
+      (site) => site.reservation === "agora_bridges",
+    ),
+    hostColliders: colliders,
+  });
+  colliders.push(...agora.colliders);
+  landmarks.push(...agora.landmarks);
+  for (const source of [...exploration.lightSources, ...agora.lightSources])
+    lamp(
+      source.color,
+      source.intensity,
+      source.distance,
+      source.x,
+      source.y,
+      source.z,
+    );
 
   // 贝珠柔光沿圣道和横街生长，避开建筑实体与中央战斗通道。
   const pearlSites = [];
@@ -445,7 +559,7 @@ export function createAtlantisCity(parent, { heightAt } = {}) {
   for (let i = 0; i < 700; i++) {
     const x = -266 + random() * 532,
       z = -110 - random() * 960;
-    if (Math.abs(x) < 22) continue;
+    if (Math.abs(x) < 22 || isPoseidonTempleReserved(x, z, 6, 6)) continue;
     const s = 0.5 + random() * 1.8;
     instance(debris, materials.stone, x, heightAt(x, z) + s * 0.22, z, {
       scale: [s, s * 0.5, s * 1.35],
@@ -477,6 +591,45 @@ export function createAtlantisCity(parent, { heightAt } = {}) {
     }
     chunk.batches.clear();
   }
+  // 陈设先占据实际空间，再让海洋生长避让家具；最终碰撞只在组装时合并。
+  const harborSite = ATLANTIS_EXCAVATION_SITES[0];
+  const facades = selectMarineFacades(colliders, {
+    near: harborSite.entrance.top,
+  });
+  const furniture = createAtlantisExplorationFurniture(root, {
+    heightAt,
+    site: harborSite,
+    hostColliders: colliders,
+    facades,
+  });
+  colliders.push(...furniture.colliders);
+  landmarks.push(...furniture.landmarks);
+  const marine = createAtlantisCityMarine(root, {
+    heightAt,
+    site: harborSite,
+    hostColliders: colliders,
+    facades,
+  });
+  colliders.push(...marine.colliders);
+  landmarks.push(...marine.landmarks);
+  const agoraMarine = createAtlantisCityMarine(root, {
+    heightAt,
+    site: ATLANTIS_EXCAVATION_SITES.find(
+      (site) => site.reservation === "agora_bridges",
+    ),
+    hostColliders: colliders,
+    seed: 7129,
+  });
+  agoraMarine.root.name = "atlantis_agora_marine";
+  colliders.push(...agoraMarine.colliders);
+  landmarks.push(...agoraMarine.landmarks);
+  const residential = createAtlantisResidentialInteriors(root, {
+    records,
+    heightAt,
+    hostColliders: colliders,
+  });
+  colliders.push(...residential.colliders);
+  landmarks.push(...residential.landmarks);
   // 固定数量动态点光复用，按玩家距离选最近灯位，避免全城数十盏灯进入每个着色器。
   const lightPool = Array.from({ length: 5 }, () => {
     const l = new THREE.PointLight(0xffffff, 0, 100, 2);
@@ -493,6 +646,13 @@ export function createAtlantisCity(parent, { heightAt } = {}) {
     ).length,
     pearlHabitats: records.filter((r) => r.kind === "pearl").length,
     multilevelComplexes: underways.records.length,
+    subterraneanSites: ATLANTIS_EXCAVATION_SITES.length,
+    agora: agora.stats,
+    marine: marine.stats,
+    agoraMarine: agoraMarine.stats,
+    furniture: furniture.stats,
+    residential: residential.stats,
+    temple: temple.stats,
     chunks: chunks.size,
     colliders: colliders.length,
   };
@@ -500,6 +660,13 @@ export function createAtlantisCity(parent, { heightAt } = {}) {
   function update(time, dt, position, highQuality = true) {
     if (disposed) return;
     underways.update(time, dt, position, highQuality);
+    exploration.update(time, dt, position, highQuality);
+    agora.update(time, dt, position, highQuality);
+    furniture.update(time, dt, position, highQuality);
+    marine.update(time, dt, position, highQuality);
+    agoraMarine.update(time, dt, position, highQuality);
+    residential.update(time, dt, position, highQuality);
+    temple.update(time, dt, position, highQuality);
     const reach = highQuality ? 350 : 275;
     for (const chunk of chunks.values())
       chunk.group.visible =
@@ -539,10 +706,24 @@ export function createAtlantisCity(parent, { heightAt } = {}) {
     stats,
     buildings: records,
     underways,
+    exploration,
+    agora,
+    furniture,
+    marine,
+    agoraMarine,
+    residential,
+    temple,
     update,
     dispose() {
       if (disposed) return;
       disposed = true;
+      residential.dispose();
+      temple.dispose();
+      marine.dispose();
+      agoraMarine.dispose();
+      furniture.dispose();
+      exploration.dispose();
+      agora.dispose();
       underways.dispose();
       parent.remove(root);
       for (const resource of owned) resource.dispose();
@@ -558,12 +739,17 @@ function buildPavement(root, heightAt, owned, materials) {
   for (let z = bounds.minZ; z < bounds.maxZ; z += 140)
     for (let x = bounds.minX; x < bounds.maxX; x += 137.5) {
       const w = Math.min(137.5, bounds.maxX - x),
-        d = Math.min(140, bounds.maxZ - z),
-        cx = x + w / 2,
-        cz = z + d / 2;
-      const geo = new THREE.PlaneGeometry(w, d, 16, 20);
-      geo.rotateX(-Math.PI / 2);
-      geo.translate(cx, 0, cz);
+        d = Math.min(140, bounds.maxZ - z);
+      const geo = createAtlantisTerrainMesh({
+        minX: x,
+        maxX: x + w,
+        minZ: z,
+        maxZ: z + d,
+        segmentsX: 16,
+        segmentsZ: 20,
+        heightAt,
+        offset: 0.22,
+      });
       const p = geo.attributes.position,
         colors = new Float32Array(p.count * 3),
         uv = geo.attributes.uv;
@@ -581,7 +767,6 @@ function buildPavement(root, heightAt, owned, materials) {
         uv.setXY(i, px / 16, pz / 16);
       }
       geo.setAttribute("color", new THREE.BufferAttribute(colors, 3));
-      geo.computeVertexNormals();
       geo.computeBoundingSphere();
       owned.add(geo);
       const mesh = new THREE.Mesh(geo, materials.stone);

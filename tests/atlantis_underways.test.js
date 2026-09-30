@@ -7,6 +7,7 @@ import {
   isAtlantisUnderwayReserved,
 } from "../src/atlantis_underways.js";
 import { seabedHeight } from "../src/ocean.js";
+import { WORLD } from "../src/world_config.js";
 import { bodyRadius, resolveMotion, castSegment } from "../src/collision.js";
 import {
   cityCoverage,
@@ -62,6 +63,20 @@ test("Thirty meter characters continuously cross both levels and the open vertic
               length: 30,
               radius: bodyRadius(30),
               forward: delta,
+              // 与真实主循环一致，不能仅证明空中的碰撞路线可走。
+              floorHeight: (x, z) =>
+                seabedHeight(x, z) +
+                bodyRadius(30) +
+                Math.abs(delta.y) * Math.max(0, 30 * 0.42 - bodyRadius(30)) +
+                0.4,
+              bounds: {
+                minX: WORLD.minX + 5,
+                maxX: WORLD.maxX - 5,
+                minZ: WORLD.minZ + 5,
+                maxZ: WORLD.maxZ - 5,
+                minY: -WORLD.maxDepth + bodyRadius(30),
+                maxY: WORLD.surfaceY - 30 * 0.15,
+              },
             });
             assert.equal(
               result.blocked,

@@ -1,0 +1,79 @@
+# Atlantis exploration revision — production brief
+
+## Accepted scope and publication — September 30
+
+The user accepted the complete owner-reviewed revision and authorized a commit and push to `main` as v0.7.1. Harbor and Agora are integrated and corrected; no Kimi work remains queued. The subsequent residential/Poseidon revision adds furnished ordinary homes and a third connected excavation below the main temple. See [Poseidon brief](atlantis_poseidon_brief.md) for that contract and [exploration verification](atlantis_exploration_verification.md) for final runtime evidence and limits. The scheduling, ownership and pending-task sections below preserve earlier checkpoints; they do not reopen completed assignments or restrict the user's latest publication authorization. Owner-corrected integration source is authoritative.
+
+## Historical continuation checkpoint — September 30, 01:47
+
+The next Kimi assignment is deferred by the user to **2026-09-30 01:47 Asia/Shanghai**, through Botmux task `0d535b24` in the existing topic. This supersedes the already executed September 29 20:50 scheduling note. Kimi's marine/furniture slice is delivered and frozen. Codex now owns corrections to the imported `atlantis_city_marine.js`, `atlantis_exploration_furniture.js`, and actual facade-anchor integration. Never copy the old art-worktree versions over these corrections. The current review and remaining acceptance evidence are in `atlantis_exploration_verification.md` and HANDOFF.
+
+After the owner accepts the corrected first slice, the remaining Kimi scope is **Agora**, plus any specifically requested marine extension. Before dispatch, prepare an updated read-only reference package from the current integration source and include its manifest. Allowed new source files are `atlantis_exploration_agora*.js`; code in existing city, terrain, Harbor, marine/furniture, ecology, main and architecture files is read-only. Documentation and ignored evidence remain allowed. Preview only on 5194; no stage/commit/push/build-dist or changes to unrelated services.
+
+### Agora delivery contract
+
+- Stay within the existing `agora_bridges` reservation: center `(215, -447.5)`, width 112, depth 124. Do not alter the raised bridge complex, adjacent city foundations, central combat route, or memorial district. Measure existing full footprints and supporting columns before choosing the excavation.
+- Use a distinct sunken archive/cistern composition: an open descent well, vaulted or stepped lower spaces, perimeter galleries and a second exit. Do not duplicate Harbor's rectangular room with another palette. At least two useful levels, an obvious descent below the original seabed, and a full adult turning area must remain connected.
+- Export a pure, immutable site description from a new `atlantis_exploration_agora_site.js`. It must provide bounded excavation/trench shapes, floor/ceiling values, entrances, shaft, adult turning space, and continuous route waypoints compatible with the Harbor metadata convention. A pure local excavation-height function may accompany it for the preview; outside the reservation it must return the supplied base height exactly. Codex will review and register the data in the existing shared terrain implementation. Do not create an alternative gameplay floor path.
+- `createAtlantisAgoraRuins(parent, { heightAt, site })` should return `{root, colliders, obstacles, landmarks, lightSources, records, stats, update, dispose}`. Keep coordinates based on the site. Use real shared geometry/materials, static colliders, and the existing five-light source pool. No enclosing room obstacle sphere, private RAF, or new light per decoration.
+- Account for both 30m characters, their full swept bodies, maximum dive angle, follow camera, turns and high-speed transitions. Harbor's 36m lower-room height and 28m shaft are useful measured precedents, not a substitute for checking Agora's own route. A head-height sphere or teleport into the basement cannot establish traversal.
+- Include restrained coral/fan/sponges and ancient furniture with actual support and collision. Reuse the corrected modules only through their declared interfaces; do not assume Harbor's placement table is an Agora design. Keep food lanes and selected lower-room school space unobstructed. Treasure chests remain decorative, without unrequested loot mechanics.
+- Show the original seabed and final floor separately in terrain/route evidence. Raycast actual ground triangles so a coarse terrain grid cannot bridge the excavation. Return two-way 3/16/30m paths, structural contact rays, both screen sizes, resource ownership and measured local draw/triangle cost. The owner repeats acceptance in the real game.
+
+### Owner preflight notes from the scheduled continuation
+
+The reference package was rechecked at dispatch: all 160 package hashes were valid and all referenced runtime source files matched the integration tree. Kimi acknowledged the latest package and Agora-only whitelist before beginning.
+
+The unchanged Agora raised structure has deck `-197.355227942`, original maximum-ground sample `-249.355227942` at `(265,-391.5)`, and raised lower-gallery center `-226.355227942`. The center seabed at `(215,-447.5)` is `-302.524492158`; a 1m sampling grid over the reservation finds approximately `-350.36..-244.53`. Thus its existing lower gallery is not underground. Preserve the six 11×11m footings centered at x=171/259 and z=-493.5/-447.5/-401.5, including their ground-support samples; preserve the raised deck height. The central open well is approximately x=195..235, z=-483.5..-411.5, with bridge ends and beams still requiring exact collision checks.
+
+For the isolated preview, new height sampling alone is insufficient: the adaptive mesh obtains refinement bounds from the terrain module's excavation-site list. A scoped ignored import shim may combine the original and new site metadata with the new local sampler, leaving reference and owner sources untouched. Verify actual rendered triangles; Codex owns the eventual shared terrain/mesh integration. These constraints were sent directly to Kimi; they do not prescribe a duplicate Harbor layout.
+
+## Historical ownership checkpoint — September 29, 17:45
+
+The user reports Kimi has reached its five-hour usage limit. Resume coordination at 20:50 Asia/Shanghai through the scheduled owner task `4bf2b5a7`; do not claim the quota has recovered before receiving a response. This checkpoint supersedes earlier ownership rows where they overlap.
+
+Codex has integrated and corrected the first Harbor draft in the integration tree. Codex now owns `atlantis_architecture.js`, `atlantis_terrain.js`, `atlantis_terrain_mesh.js`, `atlantis_exploration_harbor.js`, `atlantis_city.js`, `atlantis_ocean.js`, shared gameplay/ecology/localization, and their tests. Do not overwrite these with the stale art-worktree copies. The original drafts are preserved. Before further art, reconcile with the corrected terrain/Harbor module: actual lowest ground -194m, lower room 36m clear height, 28m shaft, corrected stair direction, moved perimeter columns, full-body routes, shared light-source metadata and adaptive ground/paving geometry. The first slice is still pending final visual acceptance.
+
+Remaining Kimi work: detailed attached marine scenery/coral/fans/sponges and compatible furniture polish in named new art modules, then the Agora underground slice after reviewing the corrected Harbor contract with Codex. Keep the same isolated art worktree and port 5194, no commit/push/build or main-service changes. Preserve adult routes and fish corridors; do not add an obstacle enclosing the entire interior, dispose cached geometry, or use artificial glowing wall bars as lighting.
+
+The user additionally requires future-map ecology reuse. Codex is correcting independent resident patrol/respawn through shared traits (`residentRadius`, `spawnAnchors`), keeping real sizes and regional rosters. Art placement must help creatures be discovered in normal follow-camera play; catalogue entries alone are insufficient. Read the updated map-production Skill/brief for the recurring movement, feeding/respawn and region-isolation acceptance checks.
+
+Status: local development after released v0.7.0 (`7a16217`). No commit, merge, push, or release is authorized. Codex owns the plan, shared integration and independent acceptance; Kimi develops the assigned regional artwork and structural fixes. Read AGENTS.md, README.md, HANDOFF.md, docs/asset_quality_standard.md and .agents/skills/abyssal-map-production/SKILL.md before editing.
+
+## Original scope and ownership (superseded by the latest checkpoint)
+
+The user wants solid roofs, a city visibly colonized by marine life, and genuine downward exploration into connected, furnished lower ruins. Preserve the accepted monumental city, its readable pearl lighting, dark outskirts, five districts, three Kraken territories, music, existing food stock and survival rules.
+
+- Codex integration branch: `feature/atlantis-exploration`; Kimi branch: `work/atlantis-exploration-art`, both based on `7a16217`.
+- Kimi may edit only `src/atlantis_architecture.js`, `src/atlantis_city.js`, `src/atlantis_ocean.js`, `src/atlantis_underways.js`; add `src/atlantis_exploration_*.js`, `src/atlantis_city_marine.js`, `src/atlantis_terrain.js`; write `docs/atlantis_exploration_art.md` and ignored `.local/` evidence/scripts. Report any additional required file before editing it.
+- Codex owns shared entry points, physics consumers, ecology, localization, guide, tests, integration and current documentation. No shared checkout edits by Kimi. Return an unstaged file inventory/diff; do not stage, commit, push, build dist, or replace existing services. Kimi may start a dedicated Vite preview on 5194; Codex owns 5193 and final build/preview. Do not touch other ports.
+- Root will copy reviewed source files into the integration worktree. Checkpoint messages remain in the current Lark topic.
+
+## Integration checkpoint
+
+Codex independently reproduced and fixed the roof defects while the first underground art slice was still in production. The integration implementation preserves real open courtyards and temple roof gaps, and adds exact slab/disk contact for the missing eaves, villa frontage and rotunda support. Do not overwrite this reviewed architecture file when importing the art delivery; compare any parallel roof result first. The source of truth for final combined acceptance is the integration branch. The remainder of Kimi's regional ownership is unchanged.
+
+## Structural contract
+
+1. Audit all roof families, including pitched surfaces, domes and pediments. Correct visible solid/collider mismatches using the same dimensions/transforms. Existing courtyard openings, doors and undercroft routes must remain open. No giant invisible enclosing boxes. Return failing baseline rays/coordinates and corrected checks from above, below and oblique directions.
+2. Build two connected lower ruin sites within the existing harbor sanctuary and Agora bridge reservations. Keep the deep memorial and central arena intact. Each must descend **below the original seabed**, through an unmistakable entrance into a covered hall, with a second exit or upward connection. At least two navigable levels, open wells, an adult turning area, and a continuous return route. Avoid a fake basement hidden under an unmodified terrain mesh or floor clamp.
+3. Initial terrain API: new `src/atlantis_terrain.js` exports pure `atlantisSeabedHeight(x,z)` and immutable excavation site metadata. It may import the unchanged base `seabedHeight` from ocean.js. Outside bounded first-two reservations it must equal the base exactly. Smooth/consistent transition at edges; lowest ground remains above the world minimum with adult clearance. If a different contract is needed, report before expansion.
+4. Rendered seabed and city pavement must actually follow or omit excavation openings. Platforms/roof slabs are separate static box colliders above the excavated floor: a single heightfield cannot represent stacked roofs. Codex will route player, camera, AI, spawn and human floor sampling through the active region's height function. Kimi's ocean wrapper returns `heightAt: atlantisSeabedHeight`. City foundations surrounding openings must not fill the passage.
+5. Keep collider arrays immutable after assembly; use existing shape formats and world transforms. Return route waypoints and clearances in records for independent continuous-body tests (3, 16, 30 m, both directions and high speed). Reserve full overlapping building footprints, not only centers. Tiny ornamental relief can remain visual; substantial chests/tables/solid coral must match collisions.
+
+## Art direction and cost
+
+- Marine colonization should grow from masonry seams, broken cornices, terraces and chamber floors: branching cold-water coral, layered plates/sponges, sea fans, anemones and restrained drifting vegetation. Use distinct coherent silhouettes, attached roots and detailed materials. Preserve ancient stone/aged bronze/lapis; avoid random primitive piles and excessive luminous clutter. Deep-water species are stylized marine scenery, not a biological reconstruction. Do not add unrequested prey species or alter combat.
+- Furnish visible rooms with ancient stone benches/tables, amphora groups, carved storage chests with aged bronze bands, shell inlays and scattered artifacts. Chests are exploration scenery in this revision, not a new loot system. Place readable pearl habitats inside rooms; no electric lamps. Leave central swimming and camera routes clear.
+- Use shared geometry/materials and spatial batches, existing update loop, distance culling and idempotent disposal. No per-frame allocations of geometry, no independent RAF, no new light per decorative item. Aim for a bounded local visible cost increase (roughly <=15% over corresponding live baseline); report actual costs rather than treating this as automatic acceptance. Retain both quality presets and existing density/AI.
+- Accepted v0.7.0 masonry, marine pearl fixtures and detailed nursery coral are the comparison assets. Entirely procedural original assets; record any external reference/license if used. No image-generation substitute for actual game captures.
+
+## Checkpoints and acceptance
+
+**First checkpoint:** fix demonstrable roof gaps and finish one representative harbor lower hall/entrance, furnishing cluster and marine patch. Send source inventory, route coordinates and close/normal views before duplicating a kit. Codex checks the slice in the actual game and feeds concrete defects back. Kimi may use a scoped local harness while shared terrain wiring is pending, clearly identifying that limit.
+
+**Expansion:** after owner review, complete the Agora lower structure and distribute bounded marine/furniture clusters across selected streets, courtyards and rooms. Existing nutritional city schools remain; Codex will verify legal movement/respawn and whether new routes need an allocation of existing fish.
+
+**Owner acceptance:** inspect actual follow-camera views at desktop and small-screen sizes, both characters, complete entrance/descent/lower-room/exit routes, real roof contacts, terrain seams and adult turns. Check food availability, both languages/guide descriptions, pause/Home/re-entry and resource stability. Run relevant unit/browser checks, formatting and build. Profile the populated scene in a visible browser with matched baseline; headless FPS and phone viewport emulation are not physical-device proof.
+
+Return exact changed files, assumptions, interface needs, route/collision reproduction data, asset counts/triangles/draws, screenshots, checks actually run and outstanding defects. Codex independently reviews; neither a screenshot nor a delegate's test report establishes integrated acceptance.

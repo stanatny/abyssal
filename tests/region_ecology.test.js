@@ -26,7 +26,10 @@ import {
 } from "../src/nursery_rules.js";
 import { createAtlantisCity } from "../src/atlantis_city.js";
 import { atlantisDistrict } from "../src/atlantis_city_plan.js";
-import { seabedHeight } from "../src/ocean.js";
+import {
+  ATLANTIS_EXCAVATION_SITES,
+  atlantisSeabedHeight as seabedHeight,
+} from "../src/atlantis_terrain.js";
 import { isPositionBlocked } from "../src/collision.js";
 import { steerWithinHabitat } from "../src/navigation.js";
 import {
@@ -356,17 +359,27 @@ test("逐群规模不能越界或遗失个体，学校深度和数量配置不�
   );
 });
 
-test("三处下层廊道各有八尾常驻小鱼，实际建筑和珍珠实体均不堵住群心", () => {
+test("两处地下厅与纪念廊道各有八尾常驻小鱼，实际建筑和陈设不堵住群心", () => {
   const profiles = getRegionSpecies("atlantis").flatMap((species) =>
     (species.schoolProfiles || [])
-      .filter((profile) => profile.citySite)
+      .filter((profile) =>
+        ["harbor_sanctuary", "agora_bridges", "memorial_terrace"].includes(
+          profile.citySite,
+        ),
+      )
       .map((profile) => ({ species, profile })),
   );
   assert.equal(profiles.length, 3);
   for (const { species, profile } of profiles) {
-    const site = CITY.underways.records.find(
+    const excavation = ATLANTIS_EXCAVATION_SITES.find(
+      (entry) => entry.reservation === profile.citySite,
+    );
+    const gallery = CITY.underways.records.find(
       (entry) => entry.id === profile.citySite,
     );
+    const sanctuary = excavation?.fishSanctuary;
+    const center = sanctuary?.anchor || excavation?.turningCircle;
+    const site = center ? { ...center, lowerY: center.y } : gallery;
     assert.ok(site);
     assert.equal(profile.count, 8);
     assert.ok(Math.abs(profile.anchor[0] - site.x) < 0.001);
@@ -411,7 +424,7 @@ test("深城密度增加优先重组现有中鱼，过渡带和大型营养库�
   );
   for (const [kind, expected] of [
     ["sunfish", [4, 4]],
-    ["tuna", [9, 9]],
+    ["tuna", [9, 6, 3]],
     ["ray", [2, 2, 2, 2]],
   ]) {
     const entry = species.find((item) => item.kind === kind);
@@ -435,12 +448,13 @@ test("深城密度增加优先重组现有中鱼，过渡带和大型营养库�
     cityProfiles
       .filter((profile) => profile.length < 1 && -profile.anchor[1] >= 300)
       .reduce((sum, profile) => sum + profile.count, 0),
-    56,
+    // Agora原有八尾白鲳迁至地下蓄水厅，总库存不变，但归入300m以下水层。
+    64,
   );
   const schools = species
     .filter((entry) => entry.schoolSize > 1)
     .flatMap((entry) => schoolPopulationGroups(entry));
-  assert.equal(schools.length, 42);
+  assert.equal(schools.length, 43);
   const sardine = species.find((entry) => entry.kind === "sardine");
   const extra = sardine.schoolProfiles
     .slice(-2)

@@ -33,6 +33,8 @@ Use one row per species or shared group. Distinguish decorative density from obt
 | ----------------------- | --------------------------------- | ---------------------------------------- | ---------------------------------------- | ------------------------------------------- |
 | Fill per proposed group |                                   |                                          |                                          |                                             |
 
+For every regional exclusive, identify its shared habitat behavior and discovery route. For independent residents, include separate `spawnAnchors` and `residentRadius`; for schools, give profiles and migration bands; for hunters, define territories and relocation restrictions. Record a normal-follow-camera sighting, drift check, consumption/respawn event, and map-switch isolation check. Tiny biological size is a design constraint, not a reason to silently enlarge the model or count it as a whole feeding school.
+
 Record food budgets at the representative body lengths required by AGENTS, using the shared rules and allowing travel, injury and battle reserves. State which native spawning, moving-prey feeding and normal-respawn cases will verify these assumptions.
 
 | Audio role     | Composition or reuse                                         | Actual trigger and exit                                          | Evidence / owner                               |

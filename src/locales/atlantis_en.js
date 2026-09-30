@@ -1,7 +1,7 @@
 /** 亚特兰蒂斯物种、地区与图鉴筛选文案；键保留中文原文。 */
 export const ATLANTIS_EN = Object.freeze({
-  "亚特兰蒂斯另有鱼群栖息在古城街巷与上下柱廊。该深水分布为幻想生态；小鱼主要供较小角色补给，成年角色应寻找城区内的中大型猎物。":
-    "In Atlantis, additional shoals inhabit the city streets and upper and lower galleries. This deep-water distribution is a fantasy ecosystem. Small fish mainly feed smaller characters; grown characters should seek medium and large prey within the city.",
+  "亚特兰蒂斯另有鱼群栖息在古城街巷、上下柱廊、月湾古港地下厅、沉没市集内庭和波塞冬地宫。该深水分布为幻想生态；小鱼主要供较小角色补给，成年角色应寻找城区内的中大型猎物。住宅与神殿中的宝箱、陶器是探索陈设，不提供奖励。":
+    "In Atlantis, shoals inhabit the streets, galleries, Moon Harbor halls, Drowned Agora cistern and Poseidon crypt. This deep-water distribution is a fantasy ecosystem. Small fish mainly feed smaller characters; grown characters should seek medium and large prey. Chests and pottery inside houses and temples are scenery and grant no rewards.",
   "亚特兰蒂斯有三只克拉肯，分别守卫西侧城区、中庭和后城；每只拥有独立领地与生命值。达到30米并击败其中一只即可完成挑战。":
     "Three Krakens guard Atlantis's western district, central court, and rear city, each with its own territory and health. Reach 30 m and defeat any one of them to complete the challenge.",
   "{0} {1}": "{0} {1}",
@@ -38,6 +38,8 @@ export const ATLANTIS_EN = Object.freeze({
   波塞冬古城: "City of Poseidon",
   "循着贝珠辉光抵达神殿，警惕守卫古城的克拉肯。":
     "Follow the glowing pearls to the temple and watch for the city's Kraken guardians.",
+  "沿珠光探索古城住宅与波塞冬神殿，穿过祭殿中央的开口进入地宫；留意克拉肯。":
+    "Follow the pearls through furnished houses and Poseidon's temple. The opening in its central floor leads to the crypt; watch for Krakens.",
   星渊裂谷: "Starless Rift",
   "离开城中光源便是暗渊，记得预留返程补给。":
     "Darkness lies beyond the city lights. Keep enough food for the journey back.",
@@ -55,12 +57,12 @@ export const ATLANTIS_EN = Object.freeze({
   "约0.15 m；直立模型尺度，不等同于水平鱼身长度":
     "About 0.15 m in upright model scale, not a horizontal fish-body measurement",
   草间悬停: "Seagrass Hovering",
-  "短吻、骨环躯干与卷曲尾巴构成直立轮廓，依靠小鳍缓慢移动。尾部可攀附海草等支撑物；本作在浅滩分散活动，不编成同步鱼群。":
-    "Its short snout, bony body rings, and curled tail form an upright silhouette, moved slowly by tiny fins. The tail can grip seagrass and other supports. In the game, seahorses are scattered residents rather than synchronized shoals.",
+  "短吻、骨环躯干与卷曲尾巴构成直立轮廓，依靠小鳍缓慢移动。尾部可攀附海草等支撑物；本作在浅滩各自的小范围内分散活动，不编成同步鱼群。":
+    "Its short snout, bony body rings, and curled tail form an upright silhouette, moved slowly by tiny fins. The tail can grip seagrass and other supports. In the game, each scattered resident stays within a small area of the shallows rather than joining a synchronized shoal.",
   "东北大西洋与地中海的浅海庇护水域；微小体型提供有限营养，主要补给仍来自附近鱼群。":
     "Sheltered shallow waters of the northeastern Atlantic and Mediterranean. Its tiny size provides little food; nearby fish schools remain the main supply.",
-  "在海草与残柱旁缓慢观察，无需为它长距离冲刺。":
-    "Look slowly around seagrass and broken columns. A long sprint is not worthwhile for this small meal.",
+  "沿出生点前方的浅滩缓游，靠近后辨认微小轮廓；虎鲸可用声呐辅助寻找。":
+    "Swim slowly through the shallows ahead of spawn and approach to see its tiny silhouette. Orca sonar can help locate it.",
   普通乌贼: "Common Cuttlefish",
   "本作整体尺度0.5 m；真实外套膜可达约0.45 m，量法不同":
     "Game model span: 0.5 m. Real mantle length can reach about 0.45 m; these are different measurements",
@@ -69,8 +71,8 @@ export const ATLANTIS_EN = Object.freeze({
     "Fin ribbons run along a broad, flattened mantle, with eight short arms and two retractile feeding tentacles before the head. Rippling fins support slow swimming. Real cuttlefish can travel in both directions; the game's default direction and speed are animation choices.",
   "东北大西洋与地中海沿岸陆架；本作在沙地附近分散活动，未启用变色或喷墨技能。":
     "Coastal shelves of the northeastern Atlantic and Mediterranean. These game residents move separately near sand; camouflage changes and ink abilities are not enabled.",
-  "从沙地与残墙旁接近，留意它宽扁的轮廓。":
-    "Approach around sandy patches and broken walls, watching for its broad, flat outline.",
+  "留意出生浅滩前方宽扁的轮廓；它们在各自的一小片水域活动，被吃掉后会回到原栖息区刷新。":
+    "Look for broad, flat silhouettes in the shallows ahead of spawn. Each resident roams a small area and respawns in its original habitat after being eaten.",
   大青鲨: "Blue Shark",
   "较大个体约3.8 m；多数个体更小":
     "A large individual of about 3.8 m; most are smaller",

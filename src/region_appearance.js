@@ -16,7 +16,8 @@ const ATLANTIS_ZONES = {
   abyss: {
     name: "波塞冬古城",
     code: "CITY OF POSEIDON",
-    description: "循着贝珠辉光抵达神殿，警惕守卫古城的克拉肯。",
+    description:
+      "沿珠光探索古城住宅与波塞冬神殿，穿过祭殿中央的开口进入地宫；留意克拉肯。",
   },
   hadal: {
     name: "星渊裂谷",
