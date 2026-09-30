@@ -1,3 +1,4 @@
+import { BermudaMusic, BERMUDA_SCORE } from "./music_bermuda.js";
 import { FishBiteBank } from "./fish_bite_assets.js";
 import { HumanVoiceBank } from "./human_voice_assets.js";
 import { createFeedingSound } from "./feeding_audio.js";
@@ -40,6 +41,7 @@ export class OceanAudio {
     this.musicDestinations = new Set();
     this.regionId = "hawaii";
     this.atlantisMusic = null;
+    this.bermudaMusic = null;
     this.retiredMusicRooms = [];
     this.pauseTimer = null;
     this.feedingVoices = new Map();
@@ -75,10 +77,17 @@ export class OceanAudio {
    * 可在用户手势前调用，不创建上下文；未知地图沿用夏威夷主题。
    */
   setRegion(regionId) {
-    const next = regionId === "atlantis" ? "atlantis" : "hawaii";
+    const next = ["hawaii", "atlantis", "bermuda"].includes(regionId)
+      ? regionId
+      : "hawaii";
     if (next === this.regionId) return next;
     this.regionId = next;
-    this.beat = next === "atlantis" ? ATLANTIS_SCORE.beat : 60 / 80;
+    this.beat =
+      next === "atlantis"
+        ? ATLANTIS_SCORE.beat
+        : next === "bermuda"
+          ? BERMUDA_SCORE.beat
+          : 60 / 80;
     this.step = 0;
     this.musicCombat = false;
     if (!this.ready) return next;
@@ -87,6 +96,7 @@ export class OceanAudio {
     this.replaceMusicRoom(now);
     this.nextStep = now + 0.14;
     if (next === "atlantis") this.ensureAtlantisMusic().reset(now);
+    if (next === "bermuda") this.ensureBermudaMusic().reset(now);
     return next;
   }
 
@@ -162,6 +172,7 @@ export class OceanAudio {
       this.stopMusic(this.context.currentTime);
       this.musicCombat = false;
       if (this.atlantisMusic) this.atlantisMusic.combatActive = false;
+      if (this.bermudaMusic) this.bermudaMusic.combatActive = false;
     }
     this.master.gain.setTargetAtTime(
       this.enabled ? 0.76 : 0,
@@ -170,7 +181,7 @@ export class OceanAudio {
     );
     if (this.enabled && !this.paused) {
       this.nextStep = this.context.currentTime + 0.035;
-      const phrase = this.regionId === "atlantis" ? 32 : 16;
+      const phrase = this.regionId !== "hawaii" ? 32 : 16;
       this.step -= this.step % phrase;
       this.resumeContext();
     }
@@ -248,6 +259,7 @@ export class OceanAudio {
     this.connectReverb();
     this.replaceMusicRoom(now);
     this.atlantisMusic?.reset(now);
+    this.bermudaMusic?.reset(now);
   }
 
   /**
@@ -277,6 +289,7 @@ export class OceanAudio {
     const now = this.context.currentTime;
     this.cleanMusicRooms(now);
     if (this.regionId === "atlantis") this.ensureAtlantisMusic().update(now);
+    if (this.regionId === "bermuda") this.ensureBermudaMusic().update(now);
     const intensity = Math.sqrt(this.lastDanger);
     const depthRatio = clamp(this.depth / 740, 0, 1);
     const muffling = 1 - this.ink * 0.67;
@@ -353,6 +366,8 @@ export class OceanAudio {
     while (this.nextStep < now + 0.23) {
       if (this.regionId === "atlantis")
         this.ensureAtlantisMusic().schedule(this.nextStep, this.step);
+      else if (this.regionId === "bermuda")
+        this.ensureBermudaMusic().schedule(this.nextStep, this.step);
       else this.scheduleMusicStep(this.nextStep, this.step);
       this.nextStep += subdivision;
       this.step += 1;
@@ -1210,6 +1225,44 @@ export class OceanAudio {
     this.reverbInput.connect(this.convolver).connect(this.reverbFilter);
   }
 
+  /** 百慕大音型复用现有音乐图，不另建音频上下文。 */
+  ensureBermudaMusic() {
+    this.bermudaMusic ??= new BermudaMusic(this);
+    return this.bermudaMusic;
+  }
+  /** 暴雷与幽灵炮击为原创合成音效，使用已有并发与暂停保护。 */
+  thunder(strength = 1) {
+    if (!this.effectReady("thunder", 8)) return;
+    const at = this.context.currentTime + 0.01;
+    this.noise(at, 2.8, 0.12 * strength, this.effects, 120, "lowpass", 0.18, {
+      end: 650,
+      hold: 0.45,
+    });
+    this.note(47, at, 0.9, 0.12 * strength, this.effects, {
+      end: 24,
+      type: "bass",
+      cutoff: 170,
+    });
+  }
+  ghostWarning() {
+    if (!this.effectReady("ghost_warning", 3)) return;
+    this.note(310, this.context.currentTime + 0.01, 1.2, 0.08, this.effects, {
+      end: 260,
+      type: "reed",
+      attack: 0.1,
+      cutoff: 1800,
+    });
+  }
+  ghostShot() {
+    if (!this.effectReady("ghost_shot", 1)) return;
+    const at = this.context.currentTime + 0.01;
+    this.noise(at, 0.8, 0.22, this.effects, 850, "lowpass", 0.02, { end: 220 });
+    this.note(75, at, 0.48, 0.16, this.effects, {
+      end: 30,
+      type: "bass",
+      cutoff: 450,
+    });
+  }
   ensureAtlantisMusic() {
     this.atlantisMusic ??= new AtlantisMusic(this);
     return this.atlantisMusic;

@@ -5,13 +5,22 @@
   display: grid;
   place-items: center;
   padding: 24px;
-  background: radial-gradient(ellipse at 50% 35%, #12353fe8, #020b17f5 75%);
+  background: radial-gradient(ellipse at 50% 35%, #12353f, #020b17 75%);
   color: #e5f1ed;
   outline: none;
   pointer-events: auto;
 }
 #region-loading[hidden] {
   display: none;
+}
+.region-loading-sea {
+  display: block;
+  font:
+    52px Georgia,
+    serif;
+  letter-spacing: 8px;
+  color: #c6d8d0;
+  margin-bottom: 24px;
 }
 .region-loading-card {
   width: min(100%, 360px);
@@ -56,10 +65,10 @@
 }
 .region-loading-track i {
   display: block;
-  width: 45%;
+  width: var(--region-progress, 12%);
   height: 100%;
   background: #b2cabc;
-  animation: region-tide 1.6s ease-in-out infinite alternate;
+  transition: width 0.3s ease;
 }
 #region-loading button {
   padding: 12px 24px;

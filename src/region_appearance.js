@@ -29,6 +29,32 @@ const ATLANTIS_ZONES = {
 /** 海域仅改变区域展示，深度阈值与饥饿计算仍由共享规则决定。 */
 export function regionZone(regionId, depth, position = null) {
   const zone = getZone(depth);
+  if (regionId === "bermuda")
+    return {
+      ...zone,
+      ...{
+        reef: {
+          name: "风暴礁湾",
+          code: "SHELTERED REEF",
+          description: "在安全礁湾成长，外海各水层都藏着危险。",
+        },
+        twilight: {
+          name: "迷雾外海",
+          code: "STORMBOUND SEA",
+          description: "表层海德拉、幽灵炮击与旋风阻断航路。",
+        },
+        abyss: {
+          name: "失落邮轮",
+          code: "THE LOST LINER",
+          description: "从破口和中庭进入沉船，警惕外围的巨兽。",
+        },
+        hadal: {
+          name: "百慕大深沟",
+          code: "BERMUDA TRENCH",
+          description: "远古猎手与深渊领主分守幽暗海沟。",
+        },
+      }[zone.id],
+    };
   if (regionId !== "atlantis") return zone;
   // 地理城区独立于饥饿深度分带；浅水上方仍使用海洋分带名称。
   const district =

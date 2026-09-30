@@ -1,7 +1,9 @@
+import { createBermudaOcean } from "./bermuda_ocean.js";
 import { initializeLanguage, setLanguageEnabled } from "./i18n.js";
 import { t, tr, message, setMarkup, onLanguageChange } from "./i18n.js";
 import * as THREE from "three";
 import "./style.css";
+import "./bermuda_ui.css";
 import { createCreature } from "./creatures.js";
 import { createVisualPipeline } from "./visual_pipeline.js";
 import { createLaunchTransition } from "./launch_transition.js";
@@ -84,10 +86,15 @@ initializeLanguage();
 const $ = (id) => document.getElementById(id);
 const Clamp = THREE.MathUtils.clamp;
 const canvas = $("ocean");
+const reducedMotionQuery = matchMedia("(prefers-reduced-motion: reduce)");
 const touchPointer = matchMedia("(pointer: coarse)");
 const targetPanels = document.querySelectorAll(
   "header, .location, .mission, #threat, #boss-panel, #notification, #ink-status, #breach-hint, #round-clock, #buffs, .vitals, .speed, #joystick, #sonar-panel, #sonar-control, #touch-skills, #touch-boost, #minimap",
 );
+const regionLoader = createRegionLoading();
+regionLoader.begin(t("夏威夷海滩"));
+$("loading").hidden = true;
+await regionLoader.paint();
 let renderer;
 try {
   renderer = new THREE.WebGLRenderer({
@@ -96,6 +103,8 @@ try {
     powerPreference: "high-performance",
   });
 } catch (error) {
+  regionLoader.end();
+  $("loading").hidden = false;
   $("loading").textContent = t(
     "无法启动 3D 画面，请使用支持 WebGL 2 的浏览器并开启硬件加速。",
   );
@@ -144,7 +153,6 @@ const terrainColliders = [...ocean.colliders];
 let loadedRegion = "hawaii";
 let regionLoading = false;
 let environmentContainer = null;
-const regionLoader = createRegionLoading();
 const populationCache = new Map();
 function prepareEnvironmentShadows(
   root = scene.getObjectByName("ocean_environment"),
@@ -361,15 +369,33 @@ async function selectRegion(region) {
   let detached = false;
   try {
     await regionLoader.paint();
+    regionLoader.stage("正在绘制海底与海岸…", 18);
+    await regionLoader.paint();
     // 新环境完整建成后才替换旧环境；失败时仍可回到原海域。
     nextOcean =
       region.id === "atlantis"
         ? createAtlantisOcean(container)
-        : createOcean(container);
+        : region.id === "bermuda"
+          ? createBermudaOcean(container, {
+              audio,
+              notify,
+              onDamage() {
+                hitFlash = 0.9;
+                effects.hurt(position, player.length);
+              },
+            })
+          : createOcean(container);
+    await regionLoader.paint();
+    regionLoader.stage("正在准备海面与生物…", 52);
     await regionLoader.paint();
     nextSurface = createSurface(container, audio, notify, {
       ...surfaceOptions,
       regionId: region.id,
+      heightAt: nextOcean.heightAt || baseSeabedHeight,
+      onDamage() {
+        hitFlash = 0.9;
+        effects.hurt(position, player.length);
+      },
     });
     await regionLoader.paint();
     feeding.reset();
@@ -416,8 +442,11 @@ async function selectRegion(region) {
       position,
       night: region.id === "atlantis",
     });
+    regionLoader.stage("正在准备光影…", 82);
+    await regionLoader.paint();
     await renderer.compileAsync(scene, camera);
     visuals.render();
+    regionLoader.stage("准备就绪", 100);
     previous.surface.dispose();
     previous.ocean.dispose();
     previous.environmentContainer?.removeFromParent();
@@ -458,11 +487,11 @@ async function selectRegion(region) {
 
 function refreshRegionState() {
   terrainColliders.splice(0, terrainColliders.length, ...ocean.colliders);
-  humans.reset();
   const region = expedition.region;
+  humans.reset(region.humanActivity);
   encounters.reset(region.bossKinds, region.bossHomes, region.bossInstances);
   audio.setRegion?.(region.id);
-  camera.far = region.id === "atlantis" ? 2400 : 650;
+  camera.far = region.id === "hawaii" ? 650 : 2400;
   camera.updateProjectionMatrix();
   prepareEnvironmentShadows(ocean.root);
   guide.setRegion(region.id);
@@ -475,15 +504,20 @@ function refreshRegionState() {
 
 function updateRegionPresentation() {
   const night = expedition.region.id === "atlantis";
+  const storm = expedition.region.id === "bermuda";
   setMarkup(
     document.querySelector(".intro"),
-    night
-      ? "循着月光与鱼群，潜入沉没古城。<br />在波塞冬的珠光下，迎战守卫克拉肯。"
-      : "穿过阳光与鱼群，潜向未知。<br />从幼年的生命，长成深渊的主宰。",
+    storm
+      ? "风暴遮蔽航路，幽灵炮声穿透浓雾。<br />探索失落沉船，挑战各水层的深渊领主。"
+      : night
+        ? "循着月光与鱼群，潜入沉没古城。<br />在波塞冬的珠光下，迎战守卫克拉肯。"
+        : "穿过阳光与鱼群，潜向未知。<br />从幼年的生命，长成深渊的主宰。",
   );
-  const labels = night
-    ? ["月辉浅滩", "沉没外城", "波塞冬古城"]
-    : ["珊瑚浅海", "幽蓝海沟", "火山深渊"];
+  const labels = storm
+    ? ["宁静礁湾", "风暴外海", "失落沉船"]
+    : night
+      ? ["月辉浅滩", "沉没外城", "波塞冬古城"]
+      : ["珊瑚浅海", "幽蓝海沟", "火山深渊"];
   document.querySelectorAll(".journey b span").forEach((node, index) => {
     node.textContent = t(labels[index]);
   });
@@ -936,7 +970,8 @@ function resetExpedition(preserveWorld = false) {
   // 首次出发沿用首页已经显示的世界，避免鱼群和船只在点击时重新随机跳位。
   if (!preserveWorld) {
     surface.reset();
-    humans.reset();
+    ocean.reset?.();
+    humans.reset(expedition.region.humanActivity);
     encounters.reset(
       expedition.region.bossKinds,
       expedition.region.bossHomes,
@@ -1258,6 +1293,14 @@ function updatePlayer(dt, roundDt) {
     boosting,
     length: player.length,
   });
+  const windLaunch = ocean.weather?.onMovement(
+    player,
+    previousPosition,
+    position,
+    forward,
+    { now: elapsed, dt, airborne: surface.airborne },
+  );
+  if (windLaunch) surface.launchImpulse(windLaunch, position, player.length);
   const visualPitch = waterMotion?.posePitch ?? pitch;
   const visualYaw = waterMotion?.poseYaw ?? yaw;
   rotation.set(
@@ -1265,6 +1308,7 @@ function updatePlayer(dt, roundDt) {
     visualYaw,
     -Clamp(inputX, -1, 1) * (wasAirborne ? 0.09 : 0.24),
   );
+  if (ocean.weather?.lifted) rotation.z += Math.sin(elapsed * 8) * 0.5;
   avatar.quaternion.slerp(
     new THREE.Quaternion().setFromEuler(rotation),
     1 - Math.exp(-8 * dt),
@@ -1925,6 +1969,7 @@ function atmosphere(dt) {
   const depth = -position.y;
   const blend = Clamp((depth - 25) / 350, 0, 1);
   const night = expedition.region.id === "atlantis";
+  const storm = expedition.region.id === "bermuda";
   const city = night ? cityLightBlend(position) : 0;
   const color = new THREE.Color(night ? "#103847" : "#155568").lerp(
     new THREE.Color(night ? "#040f1b" : "#030e1c"),
@@ -1933,6 +1978,15 @@ function atmosphere(dt) {
   if (night) color.lerp(new THREE.Color("#174652"), city * 0.72);
   const aboveWater = camera.position.y > WORLD.surfaceY;
   if (aboveWater) color.set(night ? "#060d20" : "#a0c7d1");
+  if (storm)
+    color
+      .set(aboveWater ? "#596970" : "#23434d")
+      .lerp(new THREE.Color("#081a24"), aboveWater ? 0 : blend * 0.75);
+  if (storm && ocean.weather?.flash)
+    color.lerp(
+      new THREE.Color("#91afbd"),
+      ocean.weather.flash * (aboveWater ? 0.55 : 0.14),
+    );
   document.body.classList.toggle("above-water", aboveWater);
   scene.background.lerp(color, Math.min(1, dt * (aboveWater ? 10 : 3)));
   scene.fog.color.copy(scene.background);
@@ -1944,6 +1998,10 @@ function atmosphere(dt) {
       : night
         ? 0.006 + blend * 0.001 - city * 0.0053
         : 0.008 + blend * 0.003) + (aboveWater ? 0 : effects.ink * 0.115);
+  if (storm)
+    scene.fog.density =
+      (aboveWater ? 0.0028 : 0.0065 - blend * 0.0023) +
+      (aboveWater ? 0 : effects.ink * 0.115);
   if (!aboveWater && effects.ink > 0.01) {
     scene.fog.color.lerp(new THREE.Color("#111120"), effects.ink);
     scene.background.lerp(new THREE.Color("#111120"), effects.ink);
@@ -1971,6 +2029,15 @@ function atmosphere(dt) {
     : aboveWater
       ? 3.0
       : 2.7 - blend * 2.45;
+  if (storm) {
+    ambient.color.set(0xa1bdc5);
+    ambient.groundColor.set(0x334850);
+    ambient.intensity = aboveWater ? 1.05 : 1.3 - blend * 0.35;
+    sun.color.set(0xb8ced7);
+    sun.intensity =
+      (aboveWater ? 1.25 : 1.5 - blend * 0.9) +
+      (ocean.weather?.flash || 0) * 0.7;
+  }
   rim.intensity = night ? 0.55 + city * 0.55 : 0.85 - blend * 0.35;
   if (night) sun.position.copy(position).addScaledVector(MOON_DIRECTION, 140);
   else sun.position.set(position.x - 50, position.y + 105, position.z + 50);
@@ -2058,8 +2125,21 @@ function updateHud() {
       )
       .join(""),
   );
-  $("threat").hidden = !threat;
-  if (threat) {
+  const ghostThreat = surface.ghostThreat;
+  const showGhost = ghostThreat && (ghostThreat.charging || !threat);
+  $("threat").hidden = !threat && !ghostThreat;
+  $("threat").classList.toggle("spectral-threat", !!showGhost);
+  if (showGhost) {
+    $("threat-title").textContent = t("飞翔的荷兰人号");
+    $("threat-detail").textContent = t(
+      ghostThreat.charging
+        ? "五炮齐射即将来袭 · 立即横向避开"
+        : "敌舰航域 · 深潜至280米以下脱离锁定",
+    );
+    $("threat-distance").textContent = t(
+      ghostThreat.charging ? "锁定" : "危险",
+    );
+  } else if (threat) {
     const hunter = threat.entity.hunter;
     $("threat-title").textContent = t(
       tr`${threat.entity.species.label} · ${hunter.phase === "windup" ? "技能蓄力" : hunter.phase === "active" ? hunter.ability.label : "正在追击"}`,
@@ -2200,7 +2280,14 @@ function frame(now) {
       e.mesh.visible = e.mesh.position.distanceTo(position) < 120;
       if (e.mesh.visible) e.mesh.userData.animate?.(elapsed + e.seed, 0.5);
     }
-    ocean.update(elapsed, position, dt, highQuality);
+    ocean.update(
+      elapsed,
+      position,
+      dt,
+      highQuality,
+      camera.position,
+      reducedMotionQuery.matches,
+    );
     surface.update(dt, elapsed, player, position, camera, false, highQuality);
   } else if (mode === "launching") {
     elapsed += dt;
@@ -2209,7 +2296,14 @@ function frame(now) {
       if (e.mesh.visible) e.mesh.userData.animate?.(elapsed + e.seed, 0.5);
     }
     atmosphere(dt);
-    ocean.update(elapsed, position, dt, highQuality);
+    ocean.update(
+      elapsed,
+      position,
+      dt,
+      highQuality,
+      camera.position,
+      reducedMotionQuery.matches,
+    );
     surface.update(dt, elapsed, player, position, camera, false, highQuality);
     audio.update(elapsed, 0, { depth: -position.y });
   } else if (mode === "playing") {
@@ -2274,7 +2368,14 @@ function frame(now) {
     lureFlash = Math.max(0, lureFlash - dt);
     $("lure-flash").style.opacity = Math.min(0.4, lureFlash * 0.18);
     atmosphere(dt);
-    ocean.update(elapsed, position, dt, highQuality);
+    ocean.update(
+      elapsed,
+      position,
+      dt,
+      highQuality,
+      camera.position,
+      reducedMotionQuery.matches,
+    );
     const bossCombat =
       activeBoss &&
       ["hunt", "windup", "attack", "recover", "disoriented"].includes(
@@ -2282,10 +2383,16 @@ function frame(now) {
       );
     audio.update(
       elapsed,
-      bossCombat ? 0.85 : threat ? Clamp(1 - threat.distance / 90, 0.1, 1) : 0,
+      bossCombat
+        ? 0.85
+        : threat
+          ? Clamp(1 - threat.distance / 90, 0.1, 1)
+          : surface.danger
+            ? 0.6
+            : 0,
       {
         boss: !!bossCombat,
-        pursuing: !!threat,
+        pursuing: !!threat || !!surface.danger,
         ink: effects.ink,
         depth: -position.y,
         aboveWater: camera.position.y > WORLD.surfaceY,
@@ -2345,7 +2452,7 @@ onLanguageChange(() => {
 $("start").addEventListener("click", () => {
   if (mode !== "menu") return;
   startGame({
-    transition: !matchMedia("(prefers-reduced-motion: reduce)").matches,
+    transition: !reducedMotionQuery.matches,
   });
 });
 $("resume").addEventListener("click", resumeGame);
@@ -2510,8 +2617,13 @@ canvas.addEventListener("webglcontextlost", (e) => {
 seedPopulation();
 seedPickups();
 updateRegionPresentation();
-$("loading").hidden = true;
+regionLoader.stage("正在准备光影…", 82);
+await regionLoader.paint();
+await renderer.compileAsync(scene, camera);
 requestAnimationFrame(frame);
+await regionLoader.paint();
+regionLoader.end();
+lastTime = performance.now();
 // 开发环境提供状态观察与场景跳转，用于验证终局与边界；生产构建不导出。
 if (import.meta.env.DEV)
   window.__ABYSSAL__ = {

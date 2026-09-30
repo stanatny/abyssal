@@ -283,6 +283,7 @@ export function createHumanActivity(
     );
   }
   function releaseDivers(submarine, now) {
+    if (activity.releasedDivers === false) return;
     const index = submarines.indexOf(submarine);
     const first =
       HUMAN_RULES.swimmerCount +
@@ -320,7 +321,9 @@ export function createHumanActivity(
       owner: "submarine",
     };
   }
-  function reset() {
+  let activity = {};
+  function reset(config = {}) {
+    activity = config;
     if (disposed) return;
     nextWarning = 0;
     nextHullNotice = 0;
@@ -328,7 +331,12 @@ export function createHumanActivity(
     colliders.length = 0;
     for (let i = 0; i < entities.length; i++) {
       const entity = entities[i];
-      entity.alive = !entity.reserved;
+      const allowed = entity.reserved
+        ? activity.releasedDivers !== false
+        : entity.kind === "swimmer"
+          ? activity.swimmers !== false
+          : activity.divers !== false;
+      entity.alive = !entity.reserved && allowed;
       entity.cooldown = entity.reserved ? Infinity : 0;
       entity.protectedUntil = 0;
       entity.respawnAt = Infinity;
@@ -361,20 +369,20 @@ export function createHumanActivity(
       );
       submarine.mesh.position.copy(safePosition(base, 12, i));
       submarine.mesh.rotation.set(0, 0, 0);
-      submarine.mesh.visible = true;
+      submarine.mesh.visible = activity.submarines !== false;
       submarine.collider = makeSubmarineCollider(submarine);
-      colliders.push(submarine.collider);
+      if (activity.submarines !== false) colliders.push(submarine.collider);
       submarine.mesh.userData.health = HUMAN_RULES.submarineHits;
       submarine.lights.forEach((lamp, n) => {
         lamp.position
           .copy(submarine.mesh.position)
           .add(new THREE.Vector3((n - 1) * 1.3, 4.2, 1.8));
-        lamp.visible = true;
+        lamp.visible = activity.submarines !== false;
       });
     }
     for (let i = 0; i < hazards.length; i++) {
       const hazard = hazards[i];
-      hazard.active = true;
+      hazard.active = activity.mines !== false;
       const band = Math.floor(i / 4);
       const base = new THREE.Vector3(
         -165 + (i % 4) * 100,
@@ -383,9 +391,9 @@ export function createHumanActivity(
       );
       hazard.mesh.position.copy(safePosition(base, 3, i * 1.6));
       hazard.mesh.rotation.y = i * 0.8;
-      hazard.mesh.visible = true;
+      hazard.mesh.visible = hazard.active;
       hazard.warning.position.copy(hazard.mesh.position);
-      hazard.warning.visible = true;
+      hazard.warning.visible = hazard.active;
     }
     updateSwimmerFoam(0);
     for (const particle of particles) {
@@ -439,6 +447,7 @@ export function createHumanActivity(
     const contacts = [],
       radius = bodyRadius(player.length);
     for (const submarine of submarines) {
+      if (activity.submarines === false) continue;
       if (submarine.state.destroyed) continue;
       const touching = bodySweep(
         previous,
@@ -625,6 +634,7 @@ export function createHumanActivity(
       }
     }
     for (const submarine of submarines) {
+      if (activity.submarines === false) continue;
       if (!submarine.state.destroyed) submarine.mesh.userData.animate?.(now);
     }
     let nearest = Infinity;

@@ -13,6 +13,7 @@ import { ALL_SPECIES, getRegionSpecies } from "./region_ecology.js";
 import { characterMovement } from "./character_rules.js";
 import { HUMAN_CATALOG, createHumanModel } from "./vehicle_models.js";
 import { BOSS_SPECIES, BOSS_BITE_HUNGER } from "./boss_rules.js";
+import { BERMUDA_HAZARDS } from "./bermuda_hazard_rules.js";
 import { WORLD } from "./world_config.js";
 import { CHARACTERS, REGIONS } from "./expedition_config.js";
 import { getHunterAbility } from "./hunter_rules.js";
@@ -29,6 +30,7 @@ const GUIDE_CATEGORIES = [
   { id: "lord", name: "深渊领主" },
   { id: "player", name: "可选角色" },
   { id: "human", name: "人类活动" },
+  { id: "hazard", name: "海域奇观与危险" },
   { id: "reward", name: "海洋奖励" },
 ];
 const CATEGORY_ORDER = new Map(
@@ -194,9 +196,18 @@ export function buildOceanCatalog(regionId) {
       length: config.length,
       size: tr`${config.length} m`,
       tier: 3,
-      habitat: tr`${config.depthMin * WORLD.displayDepthScale}—${Math.round(config.depthMax * WORLD.displayDepthScale)} m（幻想领地）`,
+      habitat:
+        regionId === "bermuda"
+          ? {
+              hydra: "风暴外海表层",
+              kraken: "沉船西侧深水",
+              mayan: "东南深沟",
+              leviathan: "最深海沟",
+            }[config.kind]
+          : tr`${config.depthMin * WORLD.displayDepthScale}—${Math.round(config.depthMax * WORLD.displayDepthScale)} m（幻想领地）`,
     })),
     ...HUMAN_CATALOG,
+    ...bermudaGuideEntries(),
   ]
     .map((entry) => ({
       ...localizeRecord(entry),
@@ -211,6 +222,16 @@ export let OCEAN_CATALOG = buildOceanCatalog();
 function catalogRegionIds(entry) {
   return REGIONS.filter((region) => {
     if (!region.available) return false;
+    if (entry.category === "hazard") return region.id === "bermuda";
+    if (entry.category === "human") {
+      const key = {
+        swimmer: "swimmers",
+        diver: "divers",
+        submarine: "submarines",
+        torpedo: "mines",
+      }[entry.kind];
+      return region.humanActivity?.[key] !== false;
+    }
     if (entry.category === "lord") return region.bossKinds.includes(entry.kind);
     if (["shoal", "hunter", "ancient"].includes(entry.category))
       return region.speciesKinds.includes(entry.kind);
@@ -239,6 +260,74 @@ export function filterOceanCatalog(
           .includes(query),
     )
     .sort(compareCatalogEntries);
+}
+
+/** 地图危险采用资料卡，不为非生物生成错误的鱼形标本。 */
+function bermudaGuideEntries() {
+  return [
+    {
+      id: "bermuda_wreck",
+      kind: "bermuda_wreck",
+      name: "失落远洋邮轮",
+      latin: "THE LOST OCEAN LINER",
+      role: "可探索沉船",
+      symbol: "⚓",
+      effect: "破口、贯通货舱与多层中庭",
+      habitat: "沉船海床",
+      text: "396米长的原创四烟囱邮轮沉在深水中。可由右舷大破口、艉部中央开口或敞开的中庭进入，货舱、楼梯与家具沿两翼布置。它是可进入的地貌，不是整船实心碰撞。",
+      counter:
+        "先声呐观察外围巨兽，在中央宽阔通道穿行；侧舱更适合小角色。船内贝珠微光帮助辨认入口。",
+      color: "#86bcb9",
+    },
+    {
+      id: "bermuda_ghost",
+      kind: "bermuda_ghost",
+      name: "飞翔的荷兰人号",
+      latin: "THE FLYING DUTCHMAN",
+      role: "表层危险",
+      symbol: "☠",
+      effect: "锁定炮击",
+      habitat: "浅滩外的西侧海面",
+      text: tr`戴维琼斯的飞翔的荷兰人号在${BERMUDA_HAZARDS.ghostRange}米内锁定目标。${BERMUDA_HAZARDS.ghostWindup}秒预警后五炮齐射，炮弹不追踪；直接命中或近距离爆炸造成${BERMUDA_HAZARDS.ghostDamage}点伤害，每${BERMUDA_HAZARDS.ghostCooldown}秒最多发起一轮。`,
+      counter:
+        "绿色预警圈先跟随你，在开火前0.6秒固定落点；横向冲刺避开，或下潜到显示深度280米以下。岩石和实体船壳能遮挡炮击与爆炸，鬼船不能被撞沉。",
+      color: "#7ce0bc",
+    },
+    {
+      id: "bermuda_spout",
+      kind: "bermuda_spout",
+      name: "龙卷水柱",
+      latin: "WATERSPOUT",
+      role: "风暴危险",
+      symbol: "↟",
+      effect: "卷起与落水",
+      habitat: "浅滩外的风暴海面",
+      text: tr`近海面进入水柱会被旋风卷起，造成${BERMUDA_HAZARDS.spoutDamage}点伤害并抛向空中，随后落回水中。同次接触有${BERMUDA_HAZARDS.spoutCooldown}秒冷却，安全浅滩不受影响。`,
+      counter:
+        "绕开灰白漏斗及水面泡沫圈，也可以从显示深度100米以下经过。不要在风暴中直线贴水面冲刺。",
+      color: "#a2b9c4",
+    },
+    {
+      id: "bermuda_rig",
+      kind: "bermuda_rig",
+      name: "外海钻井平台",
+      latin: "OFFSHORE PLATFORM",
+      role: "外海地标",
+      symbol: "▥",
+      effect: "海床支撑钢架",
+      habitat: "东侧外海",
+      text: "钻井架的支柱贯穿海面与海床，钢结构具有碰撞。远洋货轮与油轮缓慢行驶，沿用18米角色三次独立高速撞击规则；这一海域没有游泳者和潜水员。",
+      counter:
+        "从支柱之间穿过，利用船体遮挡追击与炮击；深潜前先确认自己的位置。",
+      color: "#d0b28f",
+    },
+  ].map((entry) => ({
+    ...entry,
+    category: "hazard",
+    length: 0,
+    ability: entry.effect,
+    size: "—",
+  }));
 }
 
 // 奖励使用静态档案卡，沿用图鉴的检索与键盘切换，不创建额外三维上下文。
@@ -326,6 +415,7 @@ export function createOceanGuide(trigger) {
     { id: "lord", name: "深渊领主" },
     { id: "surface", name: "海面" },
     { id: "human", name: "人类活动" },
+    { id: "hazard", name: "海域奇观与危险" },
   ];
   const list = dialog.querySelector(".guide-list"),
     info = dialog.querySelector(".guide-info"),
@@ -563,7 +653,8 @@ export function createOceanGuide(trigger) {
       );
     dialog.style.setProperty("--specimen", entry.color);
     preview.hidden = false;
-    const isReward = entry.category === "reward";
+    const isHazard = entry.category === "hazard";
+    const isReward = entry.category === "reward" || isHazard;
     const isPerson = ["swimmer", "diver"].includes(entry.kind);
     variants.hidden = !isPerson;
     preview.classList.toggle("has-variants", isPerson);
@@ -587,6 +678,12 @@ export function createOceanGuide(trigger) {
     dragging = false;
     if (isReward) {
       if (model) model.visible = false;
+      rewardDisplay.querySelector(".guide-eyebrow").textContent = t(
+        isHazard ? "海域奇观与危险" : "OCEAN REWARDS / 海洋奖励",
+      );
+      rewardDisplay.querySelector("small").textContent = t(
+        isHazard ? entry.habitat : "在海洋中触碰拾取",
+      );
       rewardDisplay.querySelector(".guide-reward-orb span").textContent = t(
         entry.symbol,
       );
@@ -597,6 +694,11 @@ export function createOceanGuide(trigger) {
         info,
         tr`<div class="guide-eyebrow">${entry.latin}</div><div class="guide-name-row"><h3>${entry.name}</h3><span>${entry.role}</span></div><div class="guide-facts"><div><small>持续时间</small><b>${entry.size}</b></div><div><small>获取方式</small><b>触碰拾取</b></div></div><h4>${entry.effect}</h4><p>${entry.text}</p><div class="guide-advice"><b>使用建议</b><p>${entry.counter}</p></div>`,
       );
+      if (isHazard)
+        setMarkup(
+          info,
+          tr`<div class="guide-eyebrow">${entry.latin}</div><div class="guide-name-row"><h3>${entry.name}</h3><span>${entry.role}</span></div><h4>${entry.effect}</h4><p>${entry.text}</p><div class="guide-advice"><b>生存建议</b><p>${entry.counter}</p></div>`,
+        );
       showRegionalFacts(entry);
       return;
     }
@@ -645,7 +747,7 @@ export function createOceanGuide(trigger) {
       !model ||
       !dialog.open ||
       preview.hidden ||
-      selected.category === "reward"
+      ["reward", "hazard"].includes(selected.category)
     )
       return;
     const width = preview.clientWidth,
@@ -675,7 +777,11 @@ export function createOceanGuide(trigger) {
     if (!dialog.open) return;
     const dt = Math.min((now - lastTime) / 1000, 0.04);
     lastTime = now;
-    if (model?.visible && renderer && selected.category !== "reward") {
+    if (
+      model?.visible &&
+      renderer &&
+      !["reward", "hazard"].includes(selected.category)
+    ) {
       if (!dragging && !reduceMotion && now - lastInteraction > 1200)
         rotation += dt * 0.14;
       model.rotation.y = rotation;
@@ -746,7 +852,7 @@ export function createOceanGuide(trigger) {
   });
   preview.addEventListener("pointerdown", (event) => {
     if (
-      selected.category === "reward" ||
+      ["reward", "hazard"].includes(selected.category) ||
       event.target.closest(".guide-variant-controls")
     )
       return;

@@ -1,3 +1,5 @@
+import { BERMUDA_SPECIES } from "./bermuda_species.js";
+import { bermudaEcology } from "./bermuda_ecology.js";
 import { ECOSYSTEM_SPECIES } from "./ecosystem_config.js";
 import { ATLANTIS_SPECIES } from "./atlantis_species.js";
 import { DEEP_GIANT_ANCHORS } from "./deep_giants.js";
@@ -10,6 +12,7 @@ import {
 export const ALL_SPECIES = Object.freeze([
   ...ECOSYSTEM_SPECIES,
   ...ATLANTIS_SPECIES,
+  ...BERMUDA_SPECIES,
 ]);
 
 /**
@@ -126,6 +129,7 @@ const ATLANTIS_OVERRIDES = {
 
 const REGION_SPECIES = Object.freeze({
   hawaii: ECOSYSTEM_SPECIES,
+  bermuda: bermudaEcology(ALL_SPECIES),
   atlantis: Object.freeze(
     Object.entries(ATLANTIS_OVERRIDES).map(([kind, overrides]) => {
       const source = ALL_SPECIES.find((entry) => entry.kind === kind);

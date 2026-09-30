@@ -41,8 +41,54 @@ export const REGIONS = Object.freeze([
     ),
     spawn: [0, -18, 75],
   },
+  {
+    id: "bermuda",
+    name: "百慕大三角",
+    available: true,
+    seabedHeat: false,
+    description:
+      "风暴遮蔽神秘外海，探索可进入的巨型沉船，避开龙卷水柱与幽灵炮击。安全浅滩之外，危险分布在各个水层。",
+    speciesKinds: REGION_SPECIES_KINDS.bermuda,
+    bossKinds: BOSS_SPECIES.map((s) => s.kind),
+    humanActivity: {
+      swimmers: false,
+      divers: false,
+      releasedDivers: false,
+      submarines: false,
+      mines: true,
+    },
+    bossInstances: Object.freeze(
+      [
+        {
+          id: "bermuda_hydra",
+          maxCenterY: -12,
+          kind: "hydra",
+          home: [165, -20, -300],
+          radius: 75,
+        },
+        {
+          id: "bermuda_kraken",
+          kind: "kraken",
+          home: [-170, -240, -540],
+          radius: 90,
+        },
+        {
+          id: "bermuda_maja",
+          kind: "mayan",
+          home: [170, -420, -800],
+          radius: 85,
+        },
+        {
+          id: "bermuda_leviathan",
+          kind: "leviathan",
+          home: [-70, -590, -1030],
+          radius: 75,
+        },
+      ].map((s) => Object.freeze({ ...s, home: Object.freeze(s.home) })),
+    ),
+    spawn: [0, -18, 75],
+  },
   { id: "mariana", name: "马里亚纳海沟", available: false },
-  { id: "bermuda", name: "百慕大三角", available: false },
 ]);
 
 /** 根据选项取可用配置；尚未开放的海域或角色不会被当作可玩内容。

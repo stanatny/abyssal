@@ -36,12 +36,12 @@ test("Unreleased and unknown expeditions cannot start", () => {
 test("Atlantis is the second playable destination for both existing characters", () => {
   assert.deepEqual(
     REGIONS.filter((entry) => entry.available).map((entry) => entry.id),
-    ["hawaii", "atlantis"],
+    ["hawaii", "atlantis", "bermuda"],
   );
   assert.equal(REGIONS[1].id, "atlantis");
   assert.deepEqual(
     REGIONS.filter((entry) => !entry.available).map((entry) => entry.id),
-    ["mariana", "bermuda"],
+    ["mariana"],
   );
   for (const characterId of ["orca", "squid"]) {
     const { region, character } = getExpedition("atlantis", characterId);

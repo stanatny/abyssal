@@ -1,3 +1,4 @@
+import { createBermudaFleet } from "./bermuda_fleet.js";
 import { createAtlantisSky, createAtlantisFleet } from "./atlantis_surface.js";
 import { tr, message } from "./i18n.js";
 import * as THREE from "three";
@@ -25,6 +26,8 @@ export function createSurface(
     castWorld,
     onImpact,
     onContact,
+    heightAt,
+    onDamage,
   } = {},
 ) {
   const root = new THREE.Group();
@@ -40,10 +43,22 @@ export function createSurface(
   let state = createSurfaceState();
   let lastPosition = null;
   const night = regionId === "atlantis";
-  const fleetOptions = { worldColliders, castWorld, onImpact, onContact };
-  const fleet = night
-    ? createAtlantisFleet(scene, fleetOptions)
-    : createShips(scene, fleetOptions);
+  const storm = regionId === "bermuda";
+  const fleetOptions = {
+    worldColliders,
+    castWorld,
+    onImpact,
+    onContact,
+    heightAt,
+    onDamage,
+    audio,
+    notify,
+  };
+  const fleet = storm
+    ? createBermudaFleet(scene, fleetOptions)
+    : night
+      ? createAtlantisFleet(scene, fleetOptions)
+      : createShips(scene, fleetOptions);
   const nightSky = night ? createAtlantisSky(scene) : null;
   const dummy = new THREE.Object3D();
   const ringGeometry = keep(new THREE.RingGeometry(0.965, 1, 64));
@@ -325,8 +340,8 @@ export function createSurface(
     highQuality = true,
   ) {
     const above = camera.position.y > WORLD.surfaceY;
-    sun.visible = above && !night;
-    clouds.visible = above && !night;
+    sun.visible = above && !night && !storm;
+    clouds.visible = above && !night && !storm;
     nightSky?.update(time, position, { aboveWater: above, highQuality });
     fleet.update(time, position);
     for (const bird of birds) {
@@ -508,6 +523,25 @@ export function createSurface(
   }
 
   return {
+    launchImpulse(velocity, position, length) {
+      state.airborne = true;
+      state.velocityX = velocity.x;
+      state.velocityY = velocity.y;
+      state.velocityZ = velocity.z;
+      state.chargeTime = state.chargeDistance = 0;
+      state.divingRequired = true;
+      state.reentryRemaining = state.reentryLockRemaining = 0;
+      position.y = Math.max(position.y, WORLD.surfaceY - length * 0.15 + 0.05);
+    },
+    get ghostThreat() {
+      return fleet.danger ? { charging: fleet.charging } : null;
+    },
+    get danger() {
+      return fleet.danger ?? false;
+    },
+    get ghost() {
+      return fleet.ghost;
+    },
     birds,
     ships: fleet.ships,
     colliders: fleet.colliders,

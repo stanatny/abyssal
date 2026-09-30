@@ -1,11 +1,18 @@
 import { UI_EN } from "./locales/ui_en.js";
 import { CATALOG_EN } from "./locales/catalog_en.js";
+import { BERMUDA_EN } from "./locales/bermuda_en.js";
 import { ATLANTIS_EN } from "./locales/atlantis_en.js";
 
 export const LANGUAGE_KEY = "abyssal-language";
 export const SUPPORTED_LANGUAGES = Object.freeze(["zh-CN", "en"]);
 const english = Object.freeze(
-  Object.assign(Object.create(null), CATALOG_EN, UI_EN, ATLANTIS_EN),
+  Object.assign(
+    Object.create(null),
+    CATALOG_EN,
+    UI_EN,
+    ATLANTIS_EN,
+    BERMUDA_EN,
+  ),
 );
 const listeners = new Set();
 const sources = new WeakMap();

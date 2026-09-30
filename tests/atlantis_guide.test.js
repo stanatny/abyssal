@@ -33,7 +33,7 @@ const placeholders = (value) =>
 
 test("the guide's full and regional catalogs agree with actual species and lord rosters", () => {
   const catalog = buildOceanCatalog();
-  assert.equal(catalog.length, 43);
+  assert.equal(catalog.length, 54);
   assert.equal(new Set(catalog.map((entry) => entry.id)).size, catalog.length);
   assert.deepEqual(kinds(ordinary(catalog)), kinds(ALL_SPECIES));
   for (const region of REGIONS.filter((entry) => entry.available)) {
@@ -54,7 +54,11 @@ test("the guide's full and regional catalogs agree with actual species and lord 
       "diver",
       "submarine",
       "torpedo",
-    ])
+    ].filter(
+      (kind) =>
+        region.id !== "bermuda" ||
+        !["swimmer", "diver", "submarine"].includes(kind),
+    ))
       assert.ok(
         visible.some((entry) => entry.kind === kind),
         `${region.id}: ${kind}`,
@@ -67,10 +71,11 @@ test("the guide's full and regional catalogs agree with actual species and lord 
   assert.deepEqual(catalog.find((entry) => entry.kind === "kraken").regionIds, [
     "hawaii",
     "atlantis",
+    "bermuda",
   ]);
   assert.deepEqual(
     catalog.find((entry) => entry.kind === "leviathan").regionIds,
-    ["hawaii"],
+    ["hawaii", "bermuda"],
   );
 });
 
@@ -206,7 +211,16 @@ test("the complete and regional archives group new species with peers in ascendi
     const groups = groupOceanCatalog(catalog);
     assert.deepEqual(
       groups.map((group) => group.id),
-      ["shoal", "surface", "hunter", "ancient", "lord", "player", "human"],
+      [
+        "shoal",
+        "surface",
+        "hunter",
+        "ancient",
+        "lord",
+        "player",
+        "human",
+        ...(regionId ? [] : ["hazard"]),
+      ],
     );
     assert.deepEqual(
       groups.flatMap((group) => group.entries),

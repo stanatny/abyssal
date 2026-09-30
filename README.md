@@ -6,13 +6,17 @@ A third-person ocean survival game for the browser. Choose an Orca or Giant Squi
 
 Published version: **v0.7.2 — Cross-region encounters and faster Atlantis loading**. Both Hawaii and Atlantis are playable. This release adds Gran Maja's refined appearance, rare deep-water Ichthyotitan hunters, surface-ship ramming, three-hit lord battles, a closer desktop camera and a more natural Hawaii seabed. Atlantis retains its furnished homes, illuminated city and three underground sites, while furniture-placement caching reduces destination preparation work.
 
-Aligned destination and character cards make expedition choices easier to browse in either language. The Ocean Guide covers both regions with independent filters, while shared collision indexing reduces CPU work in Hawaii and Atlantis. Both maps retain the same survival, growth, reward, and combat rules. GitHub Actions deploys `main` to the play URL above.
+Aligned destination and character cards make expedition choices easier to browse in either language. The published Ocean Guide covers both regions with independent filters, while shared collision indexing reduces CPU work in Hawaii and Atlantis. Both maps retain the same survival, growth, reward, and combat rules. GitHub Actions deploys `main` to the play URL above.
 
 ![ABYSSAL v0.7.2: actual English home screen with aligned Atlantis and Orca selectors](docs/images/abyssal_v0_7_2.png)
 
 Play in a modern desktop or phone browser with WebGL 2 support—no account or download required. Select a character on the home screen and start an expedition. Music activates after the first interaction. Fish feeding uses short water-Foley intake, bite, and bubble tails, with three variants that avoid consecutive repetition. Adult male/female swimmers and divers use corresponding performed human recordings at their original pitch, gradually muffled later in the clip to suggest submersion. Prey-gathering transitions and blood clouds remain. Sound can be disabled at any time. Assets are CC0; see [audio sources](docs/audio_sources.md).
 
 Starting an expedition smoothly rotates the home scene into the follow camera over about 1.65 seconds. The round timer and survival systems begin after control is handed over. You can pause and resume the transition; system reduced-motion preferences skip the camera travel.
+
+## Candidate: Bermuda Triangle (unreleased)
+
+The current feature work adds an advanced storm-sea destination: an enterable 396 m ocean-liner wreck, an offshore drilling platform, moving cargo vessels, the Flying Dutchman with a Davy Jones captain and dangerous five-cannon volleys, seven damaging waterspouts and seven exclusive creatures. Four Abyss Lords occupy different depth bands, including Hydra near the surface. The nursery remains protected and food-rich. Rough waves, reef arches, an aircraft wreck, a cargo-ship graveyard and hydrothermal colonies distinguish its surroundings. Initial preparation and destination changes use a staged full-screen loading view. Bermuda has a distinct eerie exploration/chase/guardian score and bilingual landmark/hazard Guide cards. See the [production contract](docs/bermuda_brief.md) and [candidate verification](docs/bermuda_verification.md). The published link above still serves v0.7.2 until separate acceptance and release authorization.
 
 ## Languages
 
@@ -61,12 +65,13 @@ Desktop swimming is keyboard-only; the mouse operates menus and the guide. The p
 
 ## What's in the ocean?
 
-Choose between **Hawaii** and **Atlantis Ruins**. Each destination has its own environment, surface fleet, population, music, and lord encounters. Region changes display a loading screen while the destination prepares. Mariana Trench and Bermuda Triangle remain unavailable future entrances.
+In this candidate, choose **Hawaii**, **Atlantis Ruins**, or **Bermuda Triangle**. Each destination has its own environment, surface fleet, population, music, and lord encounters. Region changes display a loading screen while the destination prepares. Mariana Trench remains an unavailable future entrance. Bermuda is an unreleased candidate.
 
-| Destination    | Ordinary species | Ordinary population | Lord encounters                            |
-| -------------- | ---------------- | ------------------- | ------------------------------------------ |
-| Hawaii         | 25               | 287                 | Two different lords selected each round    |
-| Atlantis Ruins | 18               | 392                 | Three Krakens in separate city territories |
+| Destination                  | Ordinary species | Ordinary population | Lord encounters                                        |
+| ---------------------------- | ---------------- | ------------------- | ------------------------------------------------------ |
+| Hawaii                       | 25               | 287                 | Two different lords selected each round                |
+| Atlantis Ruins               | 18               | 392                 | Three Krakens in separate city territories             |
+| Bermuda Triangle (candidate) | 20               | 313                 | Four fixed lords across surface and deeper territories |
 
 | Category             | Current content                                                                                                                              |
 | -------------------- | -------------------------------------------------------------------------------------------------------------------------------------------- |
@@ -76,7 +81,7 @@ Choose between **Hawaii** and **Atlantis Ruins**. Each destination has its own e
 | Abyss Lords          | Kraken, Gran Maja, Three-Headed Hydra, and Leviathan, using vortices, pulses, repeated breath attacks, and high-speed charges                |
 | Human activity       | Adult swimmers, adult divers, submarines, and horned contact mines; submarines require three separate rams meeting size and speed thresholds |
 
-The home-screen **Ocean Guide** contains **43 character, creature, and human-activity entries**, including **32 ordinary marine species**, plus a separate rewards section. It groups small prey and surface animals before modern predators, Ancient Giants, and Abyss Lords, with entries ordered by length within each group; playable characters and human activity have separate groups. Independent filters show the current expedition, Hawaii, Atlantis, or all regions without changing the selected expedition; each creature identifies its regions. It follows system light/dark appearance and responds to changes while open. Swimmer/diver details offer male/female model previews. **Giant Squid is playable only**; wild Giant Pacific Octopus and Common Cuttlefish use separate models and guide entries.
+The home-screen **Ocean Guide** contains **54 character, creature, human-activity and landmark/hazard entries** in the candidate, including **39 ordinary marine species**, plus a separate rewards section. It groups small prey and surface animals before modern predators, Ancient Giants, and Abyss Lords, with entries ordered by length within each group; playable characters and human activity have separate groups. Independent filters show the current expedition, Hawaii, Atlantis, Bermuda, or all regions without changing the selected expedition; each creature identifies its regions. It follows system light/dark appearance and responds to changes while open. Swimmer/diver details offer male/female model previews. **Giant Squid is playable only**; wild Giant Pacific Octopus and Common Cuttlefish use separate models and guide entries.
 
 These regions mix modern animals, Ancient Giants, and fantasy lords; it is not a reconstruction of real Hawaiian ecology. Lengths, depths, and speeds use game scale. Body length, wingspan, and tentacle length do not imply equivalent mass. See [ecological references and design choices](docs/ecology_sources_v0_5.md).
 

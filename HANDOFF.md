@@ -1,5 +1,13 @@
 # Current Development Handoff
 
+## Reviewed Bermuda Triangle candidate — feature branch
+
+Codex independently authored this region after the user explicitly canceled delegation. Work is on `feature/bermuda`, based on released v0.7.2 / `35960a0`. On October 1, the user authorized a commit and push of this reviewed candidate to `origin/feature/bermuda`. This supersedes earlier local-only instructions for this task. Main integration and formal Pages release are not requested; main and Pages remain unchanged. Read the [production contract](docs/bermuda_brief.md), [art and audio notes](docs/bermuda_art.md), and [verification](docs/bermuda_verification.md) before continuing.
+
+The revised candidate fixes shallow underwater sky/rain and visible terrain edges, and adds staged full-screen loading at boot/switch. Flying Dutchman now has a rebuilt planked hull, stern galleries, ragged sails, an offset Davy Jones captain, a visible warning and five-shot 40-damage broadside. It tracks during windup, fixing aim for the last 0.6 seconds. Seven waterspouts and GPU rough waves surround the protected nursery. The enterable liner is now 396 m with transformed ecology, contacts and routes; arches, aircraft/cargo wrecks, hydrothermal colonies and branching reefs fill side routes. Seven exclusive creatures, the storm HUD palette and a 46 BPM eerie soundtrack are redrawn. Shared survival/food/lord rules remain unchanged.
+
+Read the October 1 section in the verification record for fresh checks and remaining limits. Source and preview remain an unreleased feature-branch candidate; earlier first-pass metrics below the current verification section are historical. The latest static preview must be rebuilt and byte-matched after any source edit. Exact URL, hashes, process ownership and public checks stay in `.local/bermuda_preview/manifest.json`; no formal Pages publication is authorized. Natural full-round play, physical phones and subjective music listening are still user-review boundaries.
+
 ## Current release source: v0.7.2 — Cross-region encounters and Atlantis construction
 
 The user accepted the latest optimized preview and explicitly requested a commit and push to `main`. This supersedes the earlier local-only/no-push statements below. Include the reviewed `ee1fe16` cross-region revision and the constructor-local furniture host-edge cache. This release retains the exact reviewed ecology, contact shapes and visual data for the optimization; it does not introduce LOD, engine migration or a new pooling system.

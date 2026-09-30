@@ -1,4 +1,8 @@
 import {
+  BERMUDA_CREATURE_KINDS,
+  buildBermudaCreature,
+} from "./creature_bermuda.js";
+import {
   ATLANTIS_CREATURE_KINDS,
   buildAtlantisCreature,
 } from "./creature_atlantis.js";
@@ -58,7 +62,9 @@ export function createCreature(kind, length = 6, seed = 1) {
   let previousTime;
   let swimTime = phase;
 
-  if (ATLANTIS_CREATURE_KINDS.has(kind))
+  if (BERMUDA_CREATURE_KINDS.has(kind))
+    buildBermudaCreature(kind, root, motions);
+  else if (ATLANTIS_CREATURE_KINDS.has(kind))
     buildAtlantisCreature(kind, root, motions);
   else if (SHOAL_CREATURE_KINDS.has(kind))
     buildShoalCreature(kind, root, motions);

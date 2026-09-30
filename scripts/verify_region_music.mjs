@@ -6,6 +6,7 @@ import { chromium } from "@playwright/test";
 // 使用游戏的原生 Web Audio 图导出完整主题、动态分层与生命周期片段。
 const base = process.env.ABYSSAL_DEV_URL || "http://127.0.0.1:5179";
 const out = process.env.ABYSSAL_AUDIO_OUT || ".local/atlantis_music";
+const bermudaOnly = process.env.ABYSSAL_AUDIO_REGION === "bermuda";
 const lifecycleOnly = process.env.ABYSSAL_AUDIO_LIFECYCLE_ONLY === "1";
 await mkdir(out, { recursive: true });
 const browser = await chromium.launch({ channel: "chrome", headless: true });
@@ -47,8 +48,8 @@ async function captureGameEncounter(region, boss) {
   try {
     await page.goto(base);
     await page.waitForFunction(() => window.__ABYSSAL__);
-    if (region === "atlantis") {
-      await selectReviewRegion(page, "atlantis");
+    if (region !== "hawaii") {
+      await selectReviewRegion(page, region);
     }
     await page.locator("#start").click();
     await page.waitForFunction(() => window.__ABYSSAL__.mode === "playing");
@@ -77,8 +78,18 @@ async function captureGameEncounter(region, boss) {
         .connect(capture)
         .connect(silent)
         .connect(context.destination);
-      (audio.atlantisMusic?.pursuit ?? audio.chase).connect(capture, 0, 1);
-      (audio.atlantisMusic?.guardian ?? audio.bossLayer).connect(capture, 0, 2);
+      (
+        (audio.regionId === "bermuda"
+          ? audio.bermudaMusic
+          : audio.atlantisMusic
+        )?.pursuit ?? audio.chase
+      ).connect(capture, 0, 1);
+      (
+        (audio.regionId === "bermuda"
+          ? audio.bermudaMusic
+          : audio.atlantisMusic
+        )?.guardian ?? audio.bossLayer
+      ).connect(capture, 0, 2);
       const evidence = (window.regionalEncounter = {
         chunks: [],
         trace: [],
@@ -103,10 +114,15 @@ async function captureGameEncounter(region, boss) {
           phase: bossPhase(),
           hudThreat: !document.querySelector("#threat").hidden,
           pursuitGain:
-            audio.atlantisMusic?.pursuit.gain.value ?? audio.chase.gain.value,
+            (audio.regionId === "bermuda"
+              ? audio.bermudaMusic
+              : audio.atlantisMusic
+            )?.pursuit.gain.value ?? audio.chase.gain.value,
           guardianGain:
-            audio.atlantisMusic?.guardian.gain.value ??
-            audio.bossLayer.gain.value,
+            (audio.regionId === "bermuda"
+              ? audio.bermudaMusic
+              : audio.atlantisMusic
+            )?.guardian.gain.value ?? audio.bossLayer.gain.value,
           mode: game.mode,
         });
         return result;
@@ -118,8 +134,14 @@ async function captureGameEncounter(region, boss) {
             audio.chase,
             audio.chaseFast,
             audio.bossLayer,
-            audio.atlantisMusic?.pursuit,
-            audio.atlantisMusic?.guardian,
+            (audio.regionId === "bermuda"
+              ? audio.bermudaMusic
+              : audio.atlantisMusic
+            )?.pursuit,
+            (audio.regionId === "bermuda"
+              ? audio.bermudaMusic
+              : audio.atlantisMusic
+            )?.guardian,
           ].includes(args[4])
         )
           evidence.notes.push({
@@ -152,13 +174,22 @@ async function captureGameEncounter(region, boss) {
             initialPhase: target.state.phase,
           };
         }
-        const kind = region === "atlantis" ? "blue_shark" : "shark";
+        const kind =
+          region === "atlantis"
+            ? "blue_shark"
+            : region === "bermuda"
+              ? "tiger_shark"
+              : "shark";
         const target = game.entities.find(
           (entity) =>
             entity.species.kind === kind && entity.populationIndex === 0,
         );
         const position =
-          region === "atlantis" ? [-36, -50, -235] : [44, -60, -285];
+          region === "atlantis"
+            ? [-36, -50, -235]
+            : region === "bermuda"
+              ? [-90, -70, -420]
+              : [44, -60, -285];
         game.setPosition(...position);
         game.setFacing(0);
         target.hiddenFor = 0;
@@ -404,7 +435,7 @@ try {
         });
       },
     );
-    const offline = await page.evaluate(async () => {
+    const offline = await page.evaluate(async (bermudaOnly) => {
       const { OceanAudio } = await import("/src/audio.js");
       const measure = (buffer, from = 0, to = buffer.duration) => {
         const first = Math.floor(from * buffer.sampleRate);
@@ -474,63 +505,113 @@ try {
           binary += String.fromCharCode(...bytes.subarray(at, at + 8192));
         return btoa(binary);
       };
-      const cases = [
-        {
-          name: "atlantis_exploration",
-          region: "atlantis",
-          seconds: 154,
-          danger: 0,
-        },
-        {
-          name: "atlantis_chase",
-          region: "atlantis",
-          seconds: 40,
-          danger: 0.86,
-        },
-        {
-          name: "atlantis_distant_chase",
-          region: "atlantis",
-          seconds: 40,
-          danger: 0.1,
-        },
-        {
-          name: "hawaii_distant_chase",
-          region: "hawaii",
-          seconds: 40,
-          danger: 0.1,
-        },
-        {
-          name: "atlantis_guardian",
-          region: "atlantis",
-          seconds: 40,
-          danger: 1,
-          boss: true,
-        },
-        { name: "hawaii_reference", region: "hawaii", seconds: 40, danger: 0 },
-        {
-          name: "atlantis_feeding_warnings",
-          region: "atlantis",
-          seconds: 28,
-          danger: 0.92,
-          boss: true,
-          effects: true,
-        },
-        {
-          name: "region_switch_lifecycle",
-          region: "atlantis",
-          seconds: 22,
-          danger: 0,
-          lifecycle: true,
-        },
-        {
-          name: "atlantis_native_48000",
-          region: "atlantis",
-          seconds: 12,
-          danger: 1,
-          boss: true,
-          sampleRate: 48000,
-        },
-      ];
+      const cases = bermudaOnly
+        ? [
+            {
+              name: "bermuda_exploration",
+              region: "bermuda",
+              seconds: 168,
+              danger: 0,
+            },
+            {
+              name: "bermuda_chase",
+              region: "bermuda",
+              seconds: 40,
+              danger: 0.1,
+              pursuing: true,
+            },
+            {
+              name: "bermuda_guardian",
+              region: "bermuda",
+              seconds: 40,
+              danger: 1,
+              boss: true,
+            },
+            {
+              name: "bermuda_storm",
+              region: "bermuda",
+              seconds: 28,
+              danger: 0.7,
+              effects: true,
+            },
+            {
+              name: "bermuda_lifecycle",
+              region: "bermuda",
+              seconds: 22,
+              danger: 0,
+              lifecycle: true,
+            },
+            {
+              name: "bermuda_native_48000",
+              region: "bermuda",
+              seconds: 12,
+              danger: 1,
+              boss: true,
+              sampleRate: 48000,
+            },
+          ]
+        : [
+            {
+              name: "atlantis_exploration",
+              region: "atlantis",
+              seconds: 154,
+              danger: 0,
+            },
+            {
+              name: "atlantis_chase",
+              region: "atlantis",
+              seconds: 40,
+              danger: 0.86,
+            },
+            {
+              name: "atlantis_distant_chase",
+              region: "atlantis",
+              seconds: 40,
+              danger: 0.1,
+            },
+            {
+              name: "hawaii_distant_chase",
+              region: "hawaii",
+              seconds: 40,
+              danger: 0.1,
+            },
+            {
+              name: "atlantis_guardian",
+              region: "atlantis",
+              seconds: 40,
+              danger: 1,
+              boss: true,
+            },
+            {
+              name: "hawaii_reference",
+              region: "hawaii",
+              seconds: 40,
+              danger: 0,
+            },
+            {
+              name: "atlantis_feeding_warnings",
+              region: "atlantis",
+              seconds: 28,
+              danger: 0.92,
+              boss: true,
+              effects: true,
+            },
+            {
+              name: "region_switch_lifecycle",
+              region: "atlantis",
+              seconds: 22,
+              danger: 0,
+              lifecycle: true,
+            },
+            {
+              name: "atlantis_native_48000",
+              region: "atlantis",
+              seconds: 12,
+              danger: 1,
+              boss: true,
+              sampleRate: 48000,
+            },
+          ];
       const results = [];
       for (const entry of cases) {
         const sampleRate = entry.sampleRate || 24000;
@@ -559,7 +640,7 @@ try {
             if (at === 8) audio.setPaused(true);
             if (at === 10) audio.setPaused(false);
             if (at === 12) audio.setRegion("hawaii");
-            if (at === 15) audio.setRegion("atlantis");
+            if (at === 15) audio.setRegion(entry.region);
             if (at === 18) {
               audio.setPaused(true);
               audio.reset();
@@ -578,12 +659,19 @@ try {
           }
           audio.update(at, entry.danger, {
             boss: !!entry.boss,
+            pursuing: !!entry.pursuing,
             depth: 60 + Math.min(450, at * 6),
           });
           if (entry.effects) {
             if (at % 0.5 === 0) audio.eatFish(1.2);
-            if ([3, 12, 21].includes(at))
-              audio.eatHuman(1, at === 12 ? "female" : "male");
+            if ([3, 12, 21].includes(at)) {
+              if (bermudaOnly) audio.thunder(1);
+              else audio.eatHuman(1, at === 12 ? "female" : "male");
+            }
+            if (bermudaOnly && [5, 16].includes(at)) {
+              audio.ghostWarning();
+              audio.ghostShot();
+            }
             if ([6, 15, 24].includes(at)) audio.bossAttack("kraken");
             if ([9, 18].includes(at)) audio.sonar();
           }
@@ -629,7 +717,7 @@ try {
         results.push({ name: entry.name, ...detail, transitions });
       }
       return results;
-    });
+    }, bermudaOnly);
     for (const clip of offline) {
       assert.equal(clip.invalid, 0, `${clip.name}: non-finite samples`);
       assert.equal(clip.clipped, 0, `${clip.name}: clipping`);
@@ -646,6 +734,8 @@ try {
           "atlantis_exploration",
           "hawaii_reference",
           "region_switch_lifecycle",
+          "bermuda_exploration",
+          "bermuda_lifecycle",
         ].includes(clip.name)
       )
         assert.ok(
@@ -658,11 +748,15 @@ try {
           `${clip.name}: mute/pause leakage at ${silent.from}`,
         );
     }
-    report.contrast = [
-      ["atlantis_exploration", "atlantis_distant_chase", 1.6],
-      ["atlantis_exploration", "atlantis_chase", 1.6],
-      ["hawaii_reference", "hawaii_distant_chase", 1.2],
-    ].map(([calmName, combatName, minimumRatio]) => {
+    report.contrast = (
+      bermudaOnly
+        ? [["bermuda_exploration", "bermuda_chase", 1.6]]
+        : [
+            ["atlantis_exploration", "atlantis_distant_chase", 1.6],
+            ["atlantis_exploration", "atlantis_chase", 1.6],
+            ["hawaii_reference", "hawaii_distant_chase", 1.2],
+          ]
+    ).map(([calmName, combatName, minimumRatio]) => {
       const calm = offline.find((clip) => clip.name === calmName).comparison;
       const combat = offline.find(
         (clip) => clip.name === combatName,
@@ -686,7 +780,7 @@ try {
 
   if (process.env.ABYSSAL_AUDIO_OFFLINE_ONLY !== "1") {
     if (!lifecycleOnly)
-      for (const region of ["atlantis", "hawaii"])
+      for (const region of bermudaOnly ? ["bermuda"] : ["atlantis", "hawaii"])
         for (const boss of [false, true])
           await captureGameEncounter(region, boss);
     const game = await browser.newPage({

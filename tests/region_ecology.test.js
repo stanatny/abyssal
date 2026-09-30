@@ -53,8 +53,8 @@ test("海域名单隔离，两图仅在原有285与390尾库存上各加两只�
     SPECIES.reduce((sum, s) => sum + s.population, 0),
     287,
   );
-  assert.equal(ALL_SPECIES.length, 32);
-  assert.equal(new Set(ALL_SPECIES.map((s) => s.kind)).size, 32);
+  assert.equal(ALL_SPECIES.length, 39);
+  assert.equal(new Set(ALL_SPECIES.map((s) => s.kind)).size, 39);
   const atlantis = getRegionSpecies("atlantis");
   assert.equal(atlantis.length, 18);
   assert.equal(

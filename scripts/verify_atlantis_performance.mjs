@@ -3,11 +3,22 @@ import { mkdir, writeFile } from "node:fs/promises";
 const out = process.env.ABYSSAL_PERF_DIRECTORY || ".local/atlantis_performance";
 await mkdir(out, { recursive: true });
 const url = process.env.ABYSSAL_DEV_URL || "http://127.0.0.1:5179/";
+const region = process.env.ABYSSAL_PERF_REGION || "atlantis";
+const position = JSON.parse(
+  process.env.ABYSSAL_PERF_POSITION || "[75,-420,-730]",
+);
 const browser = await chromium.launch({
   channel: "chrome",
   headless: process.env.ABYSSAL_PERF_HEADED !== "1",
 });
-const report = { url, samples: [], errors: [], at: new Date().toISOString() };
+const report = {
+  url,
+  region,
+  position,
+  samples: [],
+  errors: [],
+  at: new Date().toISOString(),
+};
 try {
   const page = await browser.newPage({
     viewport: {
@@ -33,9 +44,10 @@ try {
   await page.waitForFunction(() => window.__ABYSSAL__);
   const t0 = Date.now();
   await page.click("#region-select");
-  await page.click('[data-choice-value="atlantis"]');
+  await page.click(`[data-choice-value="${region}"]`);
   await page.waitForFunction(
-    () => window.__ABYSSAL__.expedition.region.id === "atlantis",
+    (id) => window.__ABYSSAL__.expedition.region.id === id,
+    region,
   );
   await page.waitForFunction(() => !window.__ABYSSAL__.regionLoading);
   await page.waitForTimeout(800);
@@ -51,19 +63,19 @@ try {
       (await page.evaluate(() => window.__ABYSSAL__.visuals.enabled)) !== high
     )
       await page.click("#quality");
-    await page.evaluate(() => {
+    await page.evaluate((position) => {
       const g = window.__ABYSSAL__;
       g.setLength(25);
       g.player.health = 100;
       g.player.hunger = 100;
-      g.setPosition(75, -420, -730);
+      g.setPosition(...position);
       g.setFacing(0, -0.1);
-    });
+    }, position);
     await page.waitForTimeout(1500);
     const cdp = await page.context().newCDPSession(page);
     await cdp.send("Profiler.enable");
     await cdp.send("Profiler.start");
-    const sample = await page.evaluate(async () => {
+    const sample = await page.evaluate(async (position) => {
       const g = window.__ABYSSAL__,
         timings = [],
         parts = {};
@@ -90,7 +102,7 @@ try {
         const now = performance.now();
         timings.push(now - last);
         last = now;
-        g.setPosition(75, -420, -730);
+        g.setPosition(...position);
         g.setFacing(0, -0.1);
       }
       for (const f of window.__restore) f();
@@ -117,8 +129,9 @@ try {
         triangles: g.renderer.info.render.triangles,
         position: g.position.toArray(),
         gpu: ext ? gl.getParameter(ext.UNMASKED_RENDERER_WEBGL) : null,
+        dpr: devicePixelRatio,
       };
-    });
+    }, position);
     const { profile } = await cdp.send("Profiler.stop");
     const nodes = new Map(profile.nodes.map((n) => [n.id, n]));
     const parents = new Map(

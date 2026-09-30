@@ -32,12 +32,16 @@ export function createRegionLoading() {
       for (const [node] of locked) node.inert = true;
       setMarkup(
         panel,
-        tr`<div class="region-loading-card"><span class="region-loading-orbit" aria-hidden="true"></span><p class="region-loading-eyebrow">下一段旅程</p><h2 id="region-loading-title">${name}</h2><p role="status" aria-live="polite">正在准备海域…</p><span class="region-loading-track" aria-hidden="true"><i></i></span></div>`,
+        tr`<div class="region-loading-card"><span class="region-loading-sea" aria-hidden="true">≈</span><span class="region-loading-orbit" aria-hidden="true"></span><p class="region-loading-eyebrow">下一段旅程</p><h2 id="region-loading-title">${name}</h2><p role="status" aria-live="polite">正在准备海域…</p><span class="region-loading-track" aria-hidden="true"><i></i></span></div>`,
       );
       panel.hidden = false;
       panel.setAttribute("aria-busy", "true");
       document.body.dataset.regionLoading = "true";
       panel.focus({ preventScroll: true });
+    },
+    stage(label, percent) {
+      panel.querySelector('[role="status"]').textContent = t(label);
+      panel.style.setProperty("--region-progress", `${percent}%`);
     },
     // 两次RAF确保浏览器至少有一次绘制机会，不能在加载层出现前开始同步建模。
     paint() {
@@ -60,6 +64,7 @@ export function createRegionLoading() {
       );
     },
     end() {
+      panel.style.removeProperty("--region-progress");
       panel.hidden = true;
       panel.removeAttribute("aria-busy");
       delete document.body.dataset.regionLoading;

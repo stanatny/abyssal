@@ -589,6 +589,7 @@ export function createEncounters(
       id: `${species.kind}_${poolIndex}`,
       poolIndex,
       fixedHome: null,
+      maxCenterY: Infinity,
       state: createBossState(species),
       mesh,
       home: new THREE.Vector3(),
@@ -714,6 +715,7 @@ export function createEncounters(
       entry.state = createBossState(entry.state.species);
       entry.id = `${entry.state.species.kind}_${entry.poolIndex}`;
       entry.fixedHome = null;
+      entry.maxCenterY = Infinity;
       entry.radius = 110;
       entry.enabled = false;
       entry.mesh.visible = false;
@@ -725,6 +727,7 @@ export function createEncounters(
       if (instance) {
         entry.id = instance.id;
         entry.fixedHome = instance.home;
+        entry.maxCenterY = instance.maxCenterY ?? Infinity;
         entry.radius = instance.radius ?? 110;
       }
       place(entry, index);
@@ -990,11 +993,14 @@ export function createEncounters(
           entry.volleyShots += 1;
         }
       }
-      entry.mesh.position.y = Math.max(
-        entry.mesh.position.y,
-        seabedHeight(entry.mesh.position.x, entry.mesh.position.z) +
-          state.species.length * 0.2 +
-          3,
+      entry.mesh.position.y = Math.min(
+        entry.maxCenterY,
+        Math.max(
+          entry.mesh.position.y,
+          seabedHeight(entry.mesh.position.x, entry.mesh.position.z) +
+            state.species.length * 0.2 +
+            3,
+        ),
       );
       // 领主被限制在自己的领域附近，不会穿越整张地图追杀初生玩家。
       const fromHome = entry.mesh.position.clone().sub(entry.home);
