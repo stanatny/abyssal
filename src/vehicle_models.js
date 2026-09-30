@@ -52,7 +52,7 @@ export const HUMAN_CATALOG = Object.freeze([
     size: "18 m",
     habitat: `${180 * WORLD.displayDepthScale}—${400 * WORLD.displayDepthScale} m`,
     ability: "耐压艇壳",
-    text: "潜艇不能被直接吞食。角色达到8米后，以至少20米/秒的速度完成三次独立冲撞，才能破坏艇壳并释放三名潜水员。",
+    text: "潜艇不能被直接吞食。角色达到18米后，以至少20米/秒的速度完成三次独立冲撞，才能破坏艇壳并释放三名潜水员。海面小船需一次撞击，大型船需三次；船体破坏后停止阻挡，不提供额外食物。",
     counter: "每次撞击后需要离开艇壳再冲刺接近。贴着潜艇游动不会连续造成伤害。",
   },
   {

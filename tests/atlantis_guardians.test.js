@@ -3,7 +3,7 @@ import test from "node:test";
 import * as THREE from "three";
 import { createEncounters, findBossContact } from "../src/encounters.js";
 import { getExpedition } from "../src/expedition_config.js";
-import { BOSS_BITE_HUNGER } from "../src/boss_rules.js";
+import { BOSS_BITE_HUNGER, BOSS_REQUIRED_HITS } from "../src/boss_rules.js";
 import { consumePrey, createPlayer, tickVitals } from "../src/simulation.js";
 import { createAtlantisCity } from "../src/atlantis_city.js";
 import { atlantisSeabedHeight as seabedHeight } from "../src/atlantis_terrain.js";
@@ -237,7 +237,7 @@ test("向世界边缘追击时完整触腕仍在边界内，击败重生回到�
 });
 
 for (const character of ["orca", "squid"]) {
-  test(`${character}对每只守卫独立执行25米门槛、五次以上侧咬与每口8点饱食`, (t) => {
+  test(`${character}对每只守卫独立执行25米门槛、三次侧咬与每口8点饱食`, (t) => {
     const f = fixture(t, character);
     const inward = new THREE.Vector3(-1, 0, 0);
     for (const target of f.guardians) {
@@ -290,7 +290,7 @@ for (const character of ["orca", "squid"]) {
           f.step(1 / 60, inward);
         }
       }
-      assert.ok(bites >= 5);
+      assert.equal(bites, BOSS_REQUIRED_HITS);
       assert.equal(target.state.defeated, true);
       assert.equal(f.player.bossesDefeated, 1);
       assert.ok(

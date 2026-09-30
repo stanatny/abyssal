@@ -81,5 +81,5 @@ test("可选乌贼不再加入野生种群，章鱼独立占据现代生态位",
   assert.equal(octopus.category, "hunter");
   assert.equal(octopus.length, 5);
   assert.equal(octopus.schoolSize, 1);
-  assert.equal(SPECIES.length, 24);
+  assert.equal(SPECIES.length, 25);
 });

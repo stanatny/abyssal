@@ -8,7 +8,7 @@ export const HUMAN_RULES = Object.freeze({
   torpedoCount: 12,
   submarineHits: 3,
   impactSpeed: 20,
-  impactLength: 8,
+  impactLength: 18,
   impactCooldown: 0.8,
   releaseCount: 3,
   releaseProtection: 2,
@@ -18,29 +18,28 @@ export const HUMAN_RULES = Object.freeze({
   humanRespawnDistance: 115,
 });
 
-/** 创建单艇耐久状态；每次重开创建新状态，释放标志与碰撞锁一并清空。 */
-export function createSubmarineState() {
+/** 创建独立载具冲撞状态；maxHealth 是破坏所需次数，返回新的耐久与接触锁。 */
+export function createImpactState(maxHealth) {
   return {
-    health: HUMAN_RULES.submarineHits,
-    maxHealth: HUMAN_RULES.submarineHits,
+    health: maxHealth,
+    maxHealth,
     armed: true,
     destroyed: false,
-    released: false,
     lastImpact: -Infinity,
   };
 }
 
 /**
- * 结算一次独立冲撞。离开艇壳后才重新武装，停留在壳边无法持续扣耐久。
- * @param {object} state 潜艇耐久状态，将原地修改。
+ * 结算一次独立冲撞。离开船壳后才重新武装，停留在壳边无法持续扣耐久。
+ * @param {object} state 载具耐久状态，将原地修改。
  * @param {object} input touching、clear、speed、length、now，由世界扫掠提供。
- * @returns {{hit:boolean,destroyed:boolean,release:boolean}} 本次冲撞与一次性释放结果。
+ * @returns {{hit:boolean,destroyed:boolean}} 本次冲撞与破坏结果。
  */
-export function stepSubmarineImpact(
+export function stepImpact(
   state,
   { touching = false, clear = false, speed = 0, length = 0, now = 0 } = {},
 ) {
-  const result = { hit: false, destroyed: false, release: false };
+  const result = { hit: false, destroyed: false };
   if (state.destroyed) return result;
   if (clear) state.armed = true;
   if (!touching || !state.armed) return result;
@@ -60,10 +59,21 @@ export function stepSubmarineImpact(
   if (state.health === 0) {
     state.destroyed = true;
     result.destroyed = true;
-    result.release = !state.released;
-    state.released = true;
   }
   return result;
+}
+
+/** 创建单艇耐久状态；每次重开创建新状态，释放标志与碰撞锁一并清空。 */
+export function createSubmarineState() {
+  return { ...createImpactState(HUMAN_RULES.submarineHits), released: false };
+}
+
+/** 使用共享冲撞规则结算潜艇，并返回一次性潜水员释放标志。 */
+export function stepSubmarineImpact(state, input = {}) {
+  const result = stepImpact(state, input);
+  const release = result.destroyed && !state.released;
+  if (release) state.released = true;
+  return { ...result, release };
 }
 
 /** 捕食成年人，沿用普通进食的回血、营养和成长规则；刚脱艇者短暂保护。 */

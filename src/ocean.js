@@ -12,6 +12,7 @@ import {
 import { WORLD } from "./world_config.js";
 import { createBeachEnvironment, islandHeight } from "./beach_environment.js";
 import { createOceanExtra, LANDMARK_CLEARINGS } from "./ocean_extra.js";
+import { createHawaiiSeabedLife } from "./hawaii_seabed_life.js";
 
 /**
  * seabedHeight 返回海床高度，供游泳边界、AI 与场景共用。
@@ -74,7 +75,7 @@ export function createOcean(scene) {
   const terrainColors = [];
   const sand = new THREE.Color("#c2b48b");
   const shelfRock = new THREE.Color("#4f6b65");
-  const abyssRock = new THREE.Color("#263f49");
+  const abyssRock = new THREE.Color("#3b4245");
   for (let i = 0; i < terrainPosition.count; i += 1) {
     const x = terrainPosition.getX(i);
     const z = terrainPosition.getZ(i);
@@ -94,8 +95,8 @@ export function createOcean(scene) {
   const terrainMaterial = track(
     new THREE.MeshStandardMaterial({
       vertexColors: true,
-      roughness: 0.93,
-      metalness: 0.08,
+      roughness: 1,
+      metalness: 0,
     }),
   );
   terrainMaterial.onBeforeCompile = (shader) => {
@@ -129,14 +130,12 @@ export function createOcean(scene) {
         float d2 = cos(sandUv.y * 2.8 - oceanTime * 0.58 + cos(sandUv.x * 1.8));
         float fine = pow(max(0.0, 1.0 - abs(d1 + d2)), 9.0);
         diffuseColor.rgb += vec3(0.50, 0.64, 0.45) * (caustic * 0.12 + fine * 0.075) * shallow;
-        float deep = smoothstep(640.0, 820.0, -vOceanWorld.z);
-        float fault = abs(sin(sandUv.x * 0.13 + sin(sandUv.y * 0.12) * 2.5));
-        float lava = pow(max(0.0, 1.0 - fault), 28.0) * deep;
-        diffuseColor.rgb += vec3(0.68, 0.075, 0.008) * lava;
       `,
       );
   };
-  terrainMaterial.customProgramCacheKey = () => "abyssal_terrain_v1";
+  // 海床的细粒、岩层与凹坑改变法线而非游泳边界；发光仅来自独立海洋元素。
+  addSurfaceDetail(terrainMaterial, "stone", 1.1);
+  terrainMaterial.customProgramCacheKey = () => "abyssal_hawaii_terrain_v3";
   const terrain = new THREE.Mesh(terrainGeometry, terrainMaterial);
   terrain.receiveShadow = true;
   root.add(terrain);
@@ -548,53 +547,8 @@ export function createOcean(scene) {
   }
   root.add(shafts);
 
-  // 深海荧光菌丛提供远处可识别的路径与尺度。
-  const glowStemMaterial = track(
-    new THREE.MeshStandardMaterial({
-      color: "#193956",
-      emissive: "#123541",
-      emissiveIntensity: 0.65,
-      roughness: 0.68,
-    }),
-  );
-  const glowCapMaterial = track(
-    new THREE.MeshStandardMaterial({
-      color: "#60cde0",
-      emissive: "#24d8d6",
-      emissiveIntensity: 1.8,
-      roughness: 0.35,
-      transparent: true,
-      opacity: 0.85,
-    }),
-  );
-  const stemGeometry = track(new THREE.CylinderGeometry(0.12, 0.22, 1, 5));
-  const capGeometry = track(
-    new THREE.SphereGeometry(1, 8, 5, 0, Math.PI * 2, 0, Math.PI * 0.65),
-  );
-  const glowStems = new THREE.InstancedMesh(
-    stemGeometry,
-    glowStemMaterial,
-    240,
-  );
-  const glowCaps = new THREE.InstancedMesh(capGeometry, glowCapMaterial, 240);
-  for (let i = 0; i < 240; i += 1) {
-    const x = (rand() - 0.5) * 515;
-    const z = -155 - rand() * 975;
-    const height = 0.8 + rand() * 3.5;
-    const y = seabedHeight(x, z);
-    dummy.position.set(x, y + height * 0.5, z);
-    dummy.rotation.set(0, rand() * Math.PI, (rand() - 0.5) * 0.18);
-    dummy.scale.set(1, height, 1);
-    dummy.updateMatrix();
-    glowStems.setMatrixAt(i, dummy.matrix);
-    dummy.position.y = y + height;
-    dummy.scale.set(height * 0.36, height * 0.18, height * 0.36);
-    dummy.updateMatrix();
-    glowCaps.setMatrixAt(i, dummy.matrix);
-    color.setHSL(0.48 + rand() * 0.21, 0.7, 0.56);
-    glowCaps.setColorAt(i, color);
-  }
-  root.add(glowStems, glowCaps);
+  // 保留旧饰物的随机序列消耗，避免移动现有遗迹、热泉与碰撞体。
+  for (let sample = 0; sample < 240 * 6; sample += 1) rand();
 
   const ruinsMaterial = track(
     new THREE.MeshStandardMaterial({
@@ -754,11 +708,14 @@ export function createOcean(scene) {
     }
     ventSources.push({ x, y: y + height, z });
   }
+  // 只复用两个环境光槽；最深处的火山也能照亮附近的玄武岩。
+  const volcanoLights = [];
   for (let i = 0; i < 2; i += 1) {
     const source = ventSources[i];
-    const light = new THREE.PointLight("#ff642b", 75, 65, 2);
+    const light = new THREE.PointLight("#ff7837", 1200, 110, 2);
     light.position.set(source.x, source.y + 3, source.z);
     root.add(light);
+    volcanoLights.push(light);
   }
   for (let i = 0; i < 34; i += 1) {
     let x = (rand() - 0.5) * 380;
@@ -853,16 +810,50 @@ export function createOcean(scene) {
   });
 
   const beach = createBeachEnvironment(root, { seabedHeight });
+  const seabedLife = createHawaiiSeabedLife(root, {
+    heightAt: seabedHeight,
+    worldUniforms,
+    clearings: [...LANDMARK_CLEARINGS, ...colliders.map(seabedClearing)],
+  });
 
   return {
     root,
     obstacles,
     colliders,
     landmarks: extra.landmarks,
+    seabedLife,
     update(time, playerPosition) {
       worldUniforms.oceanTime.value = time;
+      let nearest = -1,
+        next = -1,
+        nearestDistance = Infinity,
+        nextDistance = Infinity;
+      for (let i = 0; i < volcanoes.length; i += 1) {
+        const source = ventSources[i];
+        const distance =
+          (source.x - playerPosition.x) ** 2 +
+          (source.y - playerPosition.y) ** 2 +
+          (source.z - playerPosition.z) ** 2;
+        if (distance < nearestDistance) {
+          next = nearest;
+          nextDistance = nearestDistance;
+          nearest = i;
+          nearestDistance = distance;
+        } else if (distance < nextDistance) {
+          next = i;
+          nextDistance = distance;
+        }
+      }
+      for (let i = 0; i < volcanoLights.length; i += 1) {
+        const index = i === 0 ? nearest : next;
+        const source = ventSources[index];
+        const light = volcanoLights[i];
+        light.position.set(source.x, source.y + 3, source.z);
+        light.intensity = 1200 * (0.95 + 0.05 * Math.sin(time * 0.7 + index));
+      }
       extra.update(time, playerPosition);
       beach.update(time);
+      seabedLife.update(time, playerPosition);
       for (let i = 0; i < moteCount; i += 1) {
         const seed = i * 4;
         const point = i * 3;
@@ -906,12 +897,12 @@ export function createOcean(scene) {
           source.z + Math.cos(i * 4.13 + lift * 0.13) * spread;
       }
       ventGeometry.attributes.position.needsUpdate = true;
-      glowCapMaterial.emissiveIntensity = 1.5 + Math.sin(time * 0.55) * 0.25;
     },
     dispose() {
       scene.remove(root);
       extra.dispose();
       beach.dispose();
+      seabedLife.dispose();
       root.traverse((node) => {
         if (node.isInstancedMesh) node.dispose();
       });
@@ -923,6 +914,24 @@ export function createOcean(scene) {
 /*********************************************
  * 内部工具
  ********************************************/
+
+// 用已有实体的保守水平包络保留净空，不新增或修改其碰撞数据。
+function seabedClearing(collider) {
+  if (collider.type === "capsule") {
+    const { a, b, radius } = collider;
+    return {
+      x: (a.x + b.x) * 0.5,
+      z: (a.z + b.z) * 0.5,
+      radius: Math.hypot(a.x - b.x, a.z - b.z) * 0.5 + radius,
+    };
+  }
+  const size = collider.axes || collider.halfSize;
+  return {
+    x: collider.x,
+    z: collider.z,
+    radius: size ? Math.hypot(size.x, size.y, size.z) : collider.radius || 0,
+  };
+}
 
 function seededRandom(seed) {
   let state = seed;

@@ -3,6 +3,8 @@
  * 现代物种取真实较大个体；水层按 UI 的 ×4 深度比例映射。古代复苏、
  * 捕食强度、营养与技能属于游戏设计，不作为现实行为或古生物生态结论。
  */
+import { DEEP_GIANT_SPECIES } from "./deep_giants.js";
+
 const POPULATIONS = {
   fish: 60,
   anchovy: 18,
@@ -328,6 +330,7 @@ export const ECOSYSTEM_SPECIES = Object.freeze(
       counter:
         "早期应保持远距，优先寻找地形和技能脱离；体长优势建立后才值得冒险。",
     }),
+    ...DEEP_GIANT_SPECIES,
   ]
     .sort(
       (a, b) =>
@@ -335,6 +338,9 @@ export const ECOSYSTEM_SPECIES = Object.freeze(
         a.length - b.length,
     )
     .map((entry) =>
-      Object.freeze({ ...entry, population: POPULATIONS[entry.kind] }),
+      Object.freeze({
+        ...entry,
+        population: POPULATIONS[entry.kind] ?? entry.population,
+      }),
     ),
 );

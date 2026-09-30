@@ -191,7 +191,14 @@ export const UI_EN = Object.freeze({
     "Breach · Glide through the air and reach a gull to feed",
   "捕食海鸥 · {0}": "Ate a gull · {0}",
   空中猎食成功: "Airborne catch",
-  "艇壳坚固 · 达到8米后可冲刺撞击": "Armored hull · Reach 8m to ram it",
+  "艇壳坚固 · 达到{0}米后可冲刺撞击": "Armored hull · Reach {0}m to ram it",
+  "船体坚固 · 达到{0}米后可冲刺撞击": "Armored ship · Reach {0}m to ram it",
+  "船体坚固 · 拉开距离后冲刺撞击":
+    "Armored ship · Back away, then sprint to ram",
+  "船体受损 · 还需 {0} 次冲撞": "Ship damaged · {0} more rams needed",
+  "船体破裂 · 船只正在沉没": "Hull broken · Ship sinking",
+  "巨型鱼龙压低长吻 · 侧向转弯避开冲撞":
+    "Ichthyotitan lowers its snout · Turn sideways to dodge the charge",
   "艇壳坚固 · 拉开距离后冲刺撞击":
     "Armored hull · Back away, then sprint to ram",
   "潜艇艇壳破裂 · 3 名潜水员正在游出": "Hull breached · 3 divers escaping",
@@ -245,7 +252,7 @@ export const UI_EN = Object.freeze({
     "From a young life to a ruler of the abyss.",
   开启远征: "Begin expedition",
   探索生物与它们的世界: "Meet the life beneath the waves",
-  收录生物: "Species cataloged",
+  收录档案: "Archive entries",
   "垂直海沟 / m": "Vertical trench / m",
   转向: "Steer",
   角色技能: "Special skill",

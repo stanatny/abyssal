@@ -1,4 +1,4 @@
-/** 深海主宰的独立战斗规则：领地、蓄力预警、攻击、虚弱与多次咬击。 */
+/** 深海主宰的独立战斗规则：领地、蓄力预警、攻击、恢复与三次有效侧咬。 */
 import { applyNutrition } from "./simulation.js";
 
 /*********************************************
@@ -23,6 +23,7 @@ export function createBossState(species) {
     contactReleaseTime: 0,
     ability: species.ability,
     attackCount: 0,
+    validatedHits: 0,
     defeated: false,
   };
 }
@@ -76,7 +77,7 @@ export function tickBoss(
   if (boss.phase === "dormant" || boss.phase === "return") return boss;
 
   let remaining = elapsed;
-  // 即使帧间隔较大也按顺序结算，不把预警、攻击或虚弱阶段凭空延长。
+  // 即使帧间隔较大也按顺序结算，不把预警、攻击或恢复阶段凭空延长。
   for (let transitions = 0; transitions < 64; transitions += 1) {
     if (
       boss.phase === "hunt" &&
@@ -166,7 +167,7 @@ export function isBossFlankContact({
 }
 
 /**
- * 结算接触后的自动咬击；只有虚弱窗口可造成高伤害，交战始终使用真实体长。
+ * 结算接触后的自动侧咬；每位领主恰需三次有效进攻，交战始终使用真实体长。
  * @param {object} player 玩家状态，将更新全局咬击冷却、有效命中的饱食补给和最终战利品。
  * @param {object} boss 主宰状态，将更新生命、冷却和击败状态。
  * @param {{inRange?:boolean,isFlank?:boolean}} options 场景确认嘴部接触实体、无遮挡且从侧翼朝内进攻。
@@ -195,12 +196,14 @@ export function hitBoss(
     return failure("cooldown");
   if (!boss.contactArmed) return failure("must_disengage");
 
-  const weak = boss.phase === "recover";
-  const strength =
-    14 + Math.max(-3, player.length - 24) * 1.3 + (weak ? 23 : 0);
-  // 单次伤害不超过总生命的24%，即使最大体长加狂食也无法跳过多次交战。
-  const damage = Math.min(boss.health, boss.maxHealth * 0.24, strength);
-  boss.health = Math.max(0, boss.health - damage);
+  // 整数命中数决定击败，最后一口直接清零，不让浮点余量要求第四次进攻。
+  const remainingHits = BOSS_REQUIRED_HITS - boss.validatedHits;
+  const damage = boss.health / remainingHits;
+  boss.validatedHits += 1;
+  boss.health =
+    boss.validatedHits === BOSS_REQUIRED_HITS
+      ? 0
+      : Math.max(0, boss.health - damage);
   // 只对真正造成伤害的一口补饱食，不提前发放击败后的治疗或成长奖励。
   const hungerRestored =
     damage > 0
@@ -211,7 +214,7 @@ export function hitBoss(
   boss.biteCooldown = 1.2;
   boss.contactArmed = false;
   boss.contactReleaseTime = 0;
-  if (boss.health > 0) {
+  if (boss.validatedHits < BOSS_REQUIRED_HITS) {
     if (boss.phase === "dormant" || boss.phase === "return")
       setPhase(boss, "hunt");
     return {
@@ -219,7 +222,7 @@ export function hitBoss(
       damage,
       hungerRestored,
       defeated: false,
-      reason: weak ? "weak_point" : "hit",
+      reason: "hit",
     };
   }
 
@@ -242,6 +245,9 @@ export function hitBoss(
 
 /** 有效咬伤领主时恢复的饱食上限，实际恢复不得超过100点总上限。 */
 export const BOSS_BITE_HUNGER = 8;
+
+/** 每位领主所需的有效侧翼攻击数；体长、狂食和恢复阶段均不会改变次数。 */
+export const BOSS_REQUIRED_HITS = 3;
 
 /** 主宰均属于tier3，必须通过hitBoss交战；不能作为普通猎物直接吞食。 */
 export const BOSS_SPECIES = Object.freeze(
@@ -268,7 +274,7 @@ export const BOSS_SPECIES = Object.freeze(
     },
     {
       kind: "mayan",
-      label: "遗迹主宰 · 玛雅巨兽",
+      label: "遗迹主宰 · 格兰玛雅",
       length: 48,
       health: 210,
       minAttackLength: 25,

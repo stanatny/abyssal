@@ -26,7 +26,7 @@ function randomSource(seed) {
   return () => (seed = (seed * 1664525 + 1013904223) >>> 0) / 2 ** 32;
 }
 
-test("24类285尾的实际生成点合法，中层补给与深层大猎物均有覆盖", () => {
+test("25类287尾的实际生成点合法，中层补给与深层大猎物均有覆盖", () => {
   const ocean = createOcean(new THREE.Scene());
   let count = 0;
   const centers = new Set();
@@ -79,8 +79,8 @@ test("24类285尾的实际生成点合法，中层补给与深层大猎物均有
         population.push({ species, point });
       }
     }
-    assert.equal(ECOSYSTEM_SPECIES.length, 24);
-    assert.equal(count, 285);
+    assert.equal(ECOSYSTEM_SPECIES.length, 25);
+    assert.equal(count, 287);
     assert.equal(centers.size, 5, "珊瑚鱼五群使用独立浅滩栖息点");
     const nursery = population.filter(({ point }) => isNursery(point));
     assert.ok(nursery.length >= 160);

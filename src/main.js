@@ -84,6 +84,7 @@ initializeLanguage();
 const $ = (id) => document.getElementById(id);
 const Clamp = THREE.MathUtils.clamp;
 const canvas = $("ocean");
+const touchPointer = matchMedia("(pointer: coarse)");
 const targetPanels = document.querySelectorAll(
   "header, .location, .mission, #threat, #boss-panel, #notification, #ink-status, #breach-hint, #round-clock, #buffs, .vitals, .speed, #joystick, #sonar-panel, #sonar-control, #touch-skills, #touch-boost, #minimap",
 );
@@ -187,6 +188,26 @@ const sonarMarkers = createSonarMarkers($("sonar-markers"));
 const sonarWave = createSonarWave(scene);
 const minimap = createMinimap($("minimap"));
 const surfaceOptions = {
+  worldColliders: terrainColliders,
+  castWorld: (from, to, radius = 0) =>
+    castIndexedSegment(from, to, { staticColliders: ocean.colliders, radius }),
+  onImpact(event) {
+    audio.hit?.(event.destroyed ? 1.2 : 0.7);
+    notify(
+      event.destroyed
+        ? "船体破裂 · 船只正在沉没"
+        : message`船体受损 · 还需 ${event.health} 次冲撞`,
+    );
+  },
+  onContact(event) {
+    if (event.now < nextShipNotice) return;
+    notify(
+      event.length < event.requiredLength
+        ? message`船体坚固 · 达到${event.requiredLength}米后可冲刺撞击`
+        : "船体坚固 · 拉开距离后冲刺撞击",
+    );
+    nextShipNotice = event.now + 4;
+  },
   isSwallowing: (mesh) => feeding.has(mesh),
   onEat(point, length, bird) {
     feeding.start(bird.mesh, length);
@@ -269,6 +290,7 @@ let movementLabel = "巡游";
 let lureFlash = 0,
   waterMotion = null;
 let lastCollision = null;
+let nextShipNotice = 0;
 let expedition = getExpedition();
 let inkAbility = createInkState();
 const jetDirection = new THREE.Vector3(0, 0, -1);
@@ -890,6 +912,7 @@ function resetExpedition(preserveWorld = false) {
   lastZone = "";
   lastNursery = null;
   lastCollision = null;
+  nextShipNotice = 0;
   notificationUntil = 0;
   hitFlash = 0;
   lureFlash = 0;
@@ -1253,6 +1276,10 @@ function updatePlayer(dt, roundDt) {
   humans.onMovement(player, previousPosition, position, forward, {
     speed,
     now: player.elapsed,
+  });
+  surface.onMovement(player, previousPosition, position, forward, {
+    speed,
+    now: elapsed,
   });
   resolvePlayerMotion(previousPosition);
   avatar.position.copy(position);
@@ -1851,7 +1878,7 @@ function updatePickups(dt) {
 }
 function followCameraPose() {
   const ratio = player.length / 6;
-  // 幼年镜头按体型拉近；六米后的追尾距离保持原有尺度。
+  // 幼年镜头按体型拉近；桌面端再轻微缩短距离，触屏维持原有视野。
   const juvenileRatio = Clamp(ratio, 0.4, 1);
   const closeView = THREE.MathUtils.lerp(
     0.88,
@@ -1862,9 +1889,11 @@ function followCameraPose() {
     0,
     4.8 * juvenileRatio + ratio * 1.4,
     (13 * juvenileRatio + ratio * 4) * closeView,
-  ).applyEuler(
-    new THREE.Euler((waterMotion?.posePitch ?? pitch) * 0.35, yaw, 0, "YXZ"),
-  );
+  )
+    .multiplyScalar(touchPointer.matches ? 1 : 0.9)
+    .applyEuler(
+      new THREE.Euler((waterMotion?.posePitch ?? pitch) * 0.35, yaw, 0, "YXZ"),
+    );
   const desired = position.clone().add(offset);
   desired.y = Math.max(desired.y, floorAt(desired.x, desired.z, 2));
   shortenCamera(desired);
@@ -1931,7 +1960,7 @@ function atmosphere(dt) {
       : 1.0 - blend * 0.58 + city * 2.5
     : aboveWater
       ? 1.6
-      : 1.35 - blend * 0.78;
+      : 1.35 - blend * 0.48;
   sun.color.set(night ? 0xc0d6ff : 0xfff2d6);
   if (night && !aboveWater)
     sun.color.lerp(new THREE.Color("#ffe2ad"), city * 0.62);

@@ -1,6 +1,7 @@
 import * as THREE from "three";
 import { WORLD } from "./world_config.js";
 import { createFluidTexture } from "./effect_textures.js";
+import { createSurfaceShipImpact } from "./surface_ship_impact.js";
 import {
   buildSkyDome,
   buildStarField,
@@ -114,9 +115,11 @@ export function createAtlantisSky(scene) {
  * 创建亚特兰蒂斯夜航小船队，契约严格对照 src/ships.js 的 createShips：
  * ships 元数据（root/anchor/length/width/heading/colliders/wake 等）、
  * box 格式 colliders（update 内经 root.localToWorld 回填世界坐标）、
- * update(time, playerPosition)、reset() 与 dispose()。
+ * @param {THREE.Scene} scene 主场景。
+ * @param {object} options 世界遮挡查询与 onImpact/onContact 回调。
+ * @returns {object} ships、colliders、onMovement、update(time, playerPosition)、reset 与 dispose。
  */
-export function createAtlantisFleet(scene) {
+export function createAtlantisFleet(scene, options = {}) {
   const group = new THREE.Group();
   group.name = "atlantis_fleet";
   scene.add(group);
@@ -219,9 +222,14 @@ export function createAtlantisFleet(scene) {
     return ship;
   });
 
+  const impact = createSurfaceShipImpact(scene, ships, colliders, options);
+  const colliderPoint = new THREE.Vector3();
+  let disposed = false;
   function update(time, playerPosition = null) {
+    if (disposed) return;
     timeUniform.value = time;
     for (const ship of ships) {
+      if (ship.state.destroyed) continue;
       const phase = time * ship.rate + ship.phase;
       ship.root.position.set(
         THREE.MathUtils.clamp(
@@ -245,17 +253,6 @@ export function createAtlantisFleet(scene) {
         ship.heading,
         Math.sin(time * 0.39 + ship.phase) * 0.011,
       );
-      ship.root.updateWorldMatrix(true, false);
-      for (const collider of ship.colliders) {
-        const point = ship.root.localToWorld(collider.localPosition.clone());
-        collider.x = point.x;
-        collider.y = point.y;
-        collider.z = point.z;
-        collider.rotation.x = ship.root.quaternion.x;
-        collider.rotation.y = ship.root.quaternion.y;
-        collider.rotation.z = ship.root.quaternion.z;
-        collider.rotation.w = ship.root.quaternion.w;
-      }
       // 灯火呼吸：两路不同频率正弦叠加，像风里的油灯。
       const flicker =
         0.88 +
@@ -268,18 +265,42 @@ export function createAtlantisFleet(scene) {
         (playerPosition.y > -65 &&
           ship.root.position.distanceTo(playerPosition) < 500);
     }
+    impact.update(time, playerPosition);
+    for (const ship of ships) {
+      if (ship.state.destroyed) continue;
+      ship.root.updateWorldMatrix(true, false);
+      for (const collider of ship.colliders) {
+        ship.root.localToWorld(colliderPoint.copy(collider.localPosition));
+        collider.x = colliderPoint.x;
+        collider.y = colliderPoint.y;
+        collider.z = colliderPoint.z;
+        collider.rotation.x = ship.root.quaternion.x;
+        collider.rotation.y = ship.root.quaternion.y;
+        collider.rotation.z = ship.root.quaternion.z;
+        collider.rotation.w = ship.root.quaternion.w;
+      }
+    }
   }
 
   update(0);
   return {
     ships,
     colliders,
+    onMovement: impact.onMovement,
     update,
     reset() {
+      if (disposed) return;
+      impact.reset();
       update(0);
     },
     dispose() {
+      if (disposed) return;
+      disposed = true;
+      impact.dispose();
       scene.remove(group);
+      group.traverse((node) => {
+        if (node.isInstancedMesh) node.dispose();
+      });
       for (const resource of resources) resource.dispose();
     },
   };

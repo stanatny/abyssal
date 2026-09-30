@@ -349,12 +349,12 @@ async function verifyCatalog(page) {
   await page.click("#open-guide");
   await settle(page);
   for (const [category, count] of [
-    ["all", 35],
+    ["all", 36],
     ["player", 2],
     ["reward", 3],
     ["shoal", 13],
     ["hunter", 5],
-    ["ancient", 6],
+    ["ancient", 7],
     ["lord", 4],
     ["surface", 1],
     ["human", 4],
@@ -470,7 +470,7 @@ async function verifyCatalog(page) {
       assert.equal(await page.locator(".guide-entry").count(), 0);
       assert.equal(await page.locator(".guide-info h3").count(), 0);
       await page.fill("#guide-search", "");
-      assert.equal(await page.locator(".guide-entry").count(), 35);
+      assert.equal(await page.locator(".guide-entry").count(), 36);
       assert.equal(
         await page
           .locator('.guide-entry[aria-pressed="true"]')
@@ -494,10 +494,14 @@ async function verifyCatalog(page) {
         ? [
             ["Megalodon", "megalodon"],
             ["Frenzy", "reward_frenzy"],
+            ["Ichthyotitan", "ichthyotitan"],
+            ["Gran Maja", "mayan"],
           ]
         : [
             ["巨齿鲨", "megalodon"],
             ["狂食", "reward_frenzy"],
+            ["巨型鱼龙", "ichthyotitan"],
+            ["格兰玛雅", "mayan"],
           ]) {
         await page.fill("#guide-search", query);
         assert.equal(await page.locator(".guide-entry").count(), 1);

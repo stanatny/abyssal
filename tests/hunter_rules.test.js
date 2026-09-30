@@ -3,11 +3,38 @@ import test from "node:test";
 import {
   HUNTER_ABILITIES,
   createHunterState,
+  getHunterAbility,
   tickHunter,
 } from "../src/hunter_rules.js";
 import { PLAYER_MOVEMENT, SPECIES } from "../src/simulation.js";
 
 const CLOSE = { hunting: true, distance: 12, lineOfSight: true };
+
+test("技能数据trait复用已有冲撞状态机，物种名与海域不影响能力路由", () => {
+  const source = SPECIES.find((s) => s.kind === "ichthyotitan");
+  const species = { ...source, kind: "future_ocean_giant" };
+  assert.equal(getHunterAbility(species), HUNTER_ABILITIES.mosasaur);
+  const state = createHunterState(species, 7);
+  assert.equal(state.enabled, true);
+  assert.equal(state.tell, source.hunterTell);
+  state.cooldown = 0;
+  tickHunter(state, 1.1, CLOSE);
+  assert.equal(state.phase, "active");
+  assert.equal(state.triggerCount, 1);
+  assert.equal(state.species.chaseSpeed * state.speedMultiplier, 42);
+  assert.equal(state.damageMultiplier, 1.4);
+  tickHunter(state, 1.3, CLOSE);
+  assert.equal(state.phase, "recover");
+  assert.equal(state.damageMultiplier, 1);
+  tickHunter(state, 2.8, CLOSE);
+  assert.equal(state.phase, "idle");
+  assert.equal(state.speedMultiplier, 1);
+  assert.equal(getHunterAbility({ kind: "future_small_fish" }), null);
+  assert.throws(
+    () => getHunterAbility({ ...species, hunterAbility: "__proto__" }),
+    /Unknown hunter ability profile/,
+  );
+});
 
 function ready(kind = "shark") {
   const state = createHunterState(

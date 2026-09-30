@@ -17,7 +17,15 @@ export function createSurface(
   scene,
   audio,
   notify,
-  { onEat, isSwallowing, regionId = "hawaii" } = {},
+  {
+    onEat,
+    isSwallowing,
+    regionId = "hawaii",
+    worldColliders,
+    castWorld,
+    onImpact,
+    onContact,
+  } = {},
 ) {
   const root = new THREE.Group();
   root.name = "surface_environment";
@@ -32,7 +40,10 @@ export function createSurface(
   let state = createSurfaceState();
   let lastPosition = null;
   const night = regionId === "atlantis";
-  const fleet = night ? createAtlantisFleet(scene) : createShips(scene);
+  const fleetOptions = { worldColliders, castWorld, onImpact, onContact };
+  const fleet = night
+    ? createAtlantisFleet(scene, fleetOptions)
+    : createShips(scene, fleetOptions);
   const nightSky = night ? createAtlantisSky(scene) : null;
   const dummy = new THREE.Object3D();
   const ringGeometry = keep(new THREE.RingGeometry(0.965, 1, 64));
@@ -501,6 +512,7 @@ export function createSurface(
     ships: fleet.ships,
     colliders: fleet.colliders,
     updateColliders: fleet.update,
+    onMovement: fleet.onMovement,
     applyCollision,
     move,
     update,

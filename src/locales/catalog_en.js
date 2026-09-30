@@ -1,4 +1,14 @@
 export const CATALOG_EN = Object.freeze({
+  巨型鱼龙: "Giant Ichthyotitan",
+  古海冲撞: "Ancient Sea Charge",
+  "不完整颌骨推算约20—26 m；本作28 m为游戏改编":
+    "Estimated at about 20–26 m from incomplete jawbones; the game's 28 m length is an adaptation",
+  "晚三叠世的巨大海生爬行动物，并非恐龙。化石以不完整下颌骨为主，完整身体形态仍有重建不确定性。本作以修长躯干、长吻、四枚鳍肢和竖向尾鳍塑造稀有深海猎手。":
+    "A huge Late Triassic marine reptile. Its fossils are mainly incomplete lower jawbones, leaving its full appearance uncertain. This game reconstructs a rare deep-water hunter with an elongated body, long snout, four flippers and a vertical tail.",
+  "已灭绝；28 m体长、1200—2720 m显示深度、24 m/s巡游与攻击大型角色均为游戏改编，不代表现实生态或已证实的身体重建。":
+    "Extinct. The 28 m length, displayed depth of 1200–2720 m, 24 m/s cruising and pursuit of large characters are game adaptations, not established biology or a confirmed body reconstruction.",
+  "20—25米时仍应绕开，观察蓄力后侧向闪避，用冲刺或地形脱离；真实体长超过28米才能捕食。":
+    "Avoid it at 20–25 m. Watch its windup, dodge sideways, then sprint or use terrain to escape. You can feed on it only after your actual length exceeds 28 m.",
   "每次有效咬击恢复{0}点饱食（最多100），不额外回血或成长；击败奖励另计。":
     "Each successful bite restores {0} hunger (capped at 100), without extra healing or growth. Defeat rewards are separate.",
   成长与深潜: "Growth and deep diving",
@@ -10,8 +20,8 @@ export const CATALOG_EN = Object.freeze({
     "A spherical mine with contact horns and red warning lights floats motionless in deep water. Contact makes it explode and disappear, dealing 28 damage on a hit. It is not food.",
   "留意球壳触角和红色警示环，留出距离绕行。水雷不会主动追踪角色。":
     "Watch for its contact horns and red warning ring, and give it room. Mines do not track the player.",
-  "25米可交战 · 技能后3秒恢复窗 · 至少5次侧翼攻击，命中后需脱离再接近":
-    "Fight at 25m · 3s recovery after abilities · At least 5 flank hits, disengaging between attacks",
+  "25米可交战 · 技能后3秒恢复窗 · 三次侧翼攻击，命中后需脱离再接近":
+    "Fight at 25m · 3s recovery after abilities · Three flank hits, disengaging between attacks",
   接触水雷: "Contact Mine",
   "已灭绝；本作复苏水层为幻想设定，不代表真实古海洋深度。":
     "Extinct. The game's revival depths are a fantasy setting, not a claim about real ancient ocean depths.",
@@ -278,7 +288,7 @@ export const CATALOG_EN = Object.freeze({
   "邓氏鱼张开重颚 · 冲刺拉开距离":
     "Dunkleosteus opens its heavy jaws · Sprint away",
   "漩涡主宰 · 克拉肯": "Vortex Lord · Kraken",
-  "遗迹主宰 · 玛雅巨兽": "Ruins Lord · Maya Beast",
+  "遗迹主宰 · 格兰玛雅": "Ruins Lord · Gran Maja",
   "三首主宰 · 海德拉": "Three-Headed Lord · Hydra",
   "深渊主宰 · 利维坦": "Abyss Lord · Leviathan",
   珊瑚浅海: "Coral Shallows",
@@ -310,8 +320,8 @@ export const CATALOG_EN = Object.freeze({
   深海潜艇: "Deep-Sea Submarine",
   可破坏载具: "Destructible Vehicle",
   耐压艇壳: "Pressure Hull",
-  "潜艇不能被直接吞食。角色达到8米后，以至少20米/秒的速度完成三次独立冲撞，才能破坏艇壳并释放三名潜水员。":
-    "Submarines cannot be swallowed. Reach 8 m and make three separate rams at a speed of at least 20 m/s to break the hull and release three divers.",
+  "潜艇不能被直接吞食。角色达到18米后，以至少20米/秒的速度完成三次独立冲撞，才能破坏艇壳并释放三名潜水员。海面小船需一次撞击，大型船需三次；船体破坏后停止阻挡，不提供额外食物。":
+    "Submarines cannot be swallowed. At 18 m and at least 20 m/s, make three separate rams to release three divers. Small surface boats need one ram and large ships three. Broken hulls stop blocking you; surface ships grant no extra food.",
   "每次撞击后需要离开艇壳再冲刺接近。贴着潜艇游动不会连续造成伤害。":
     "Leave the hull after each hit, then sprint back in. Swimming pressed against the submarine does not deal continuous damage.",
   深海危险物: "Deep-Sea Hazard",
@@ -331,11 +341,11 @@ export const CATALOG_EN = Object.freeze({
     "Predicts your path and places an abyssal vortex ahead, pulling nearby targets in and draining stamina. The center also deals damage. During pursuit, it intercepts your route instead of staying at the center of its territory.",
   "看到漩涡预警后改变路线，利用岩柱遮挡；技能后的3秒恢复期，从侧翼朝向躯干接近咬击，再退出接触范围。":
     "Change course when the vortex warning appears and use rock pillars for cover. During the 3-second recovery after its ability, approach inward from a flank to bite the body, then leave contact range.",
-  玛雅巨兽: "Maya Beast",
+  格兰玛雅: "Gran Maja",
   遗迹主宰: "Ruins Lord",
   遗迹脉冲: "Ruin Pulse",
-  "玛雅遗迹风格的原创幻想巨兽。蓄力时锁定你所在水层，向外发出高速脉冲；追击会压缩你和障碍物之间的空间。":
-    "An original fantasy beast inspired by Maya ruins. During its windup, it locks your depth layer and sends out a fast pulse. Its pursuit squeezes the space between you and nearby obstacles.",
+  "灰银色扁宽三角头、额前六枚蓝眼与红色牙龈中的密集齿列，连接粗大环褶的蛇形长躯。蓄力时锁定你所在水层，向外发出高速脉冲；追击会压缩你和障碍物之间的空间。外观重绘保留原技能与接触判定。":
+    "A silver-gray, broad triangular head has six blue forehead eyes and dense teeth set in red gums, followed by a long serpentine body with heavy ring folds. Its windup locks your depth before a fast outward pulse, while pursuit squeezes escape routes. The redraw preserves its existing abilities and contact area.",
   "观察锁定水层，在预警末段上浮或下潜；冲击环结束后的3秒恢复期，转向躯干侧翼发动接触攻击。":
     "Watch the locked depth layer and rise or dive near the end of the warning. During the 3-second recovery after the shock ring ends, turn toward the body's flank for a contact attack.",
   三头海德拉: "Three-Headed Hydra",

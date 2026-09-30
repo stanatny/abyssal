@@ -5,19 +5,34 @@
  ********************************************/
 
 /**
+ * 按物种数据读取共享技能配置，新增海域或物种无需增加运行时种类分支。
+ * @param {object} species 物种配置；hunterAbility可指定已存在的技能配置标识。
+ * @returns {object|null} 只读技能配置；普通无技能生物返回null，未知显式配置报错。
+ */
+export function getHunterAbility(species) {
+  const key = species.hunterAbility || species.kind;
+  const ability = Object.hasOwn(HUNTER_ABILITIES, key)
+    ? HUNTER_ABILITIES[key]
+    : null;
+  if (species.hunterAbility && !ability)
+    throw new Error(`Unknown hunter ability profile: ${key}`);
+  return ability;
+}
+
+/**
  * 为一条普通生物创建技能状态，不具备技能的物种返回enabled=false的空闲状态。
  * @param {{kind:string,speed:number}} species 生物配置。
  * @param {number|string} seed 个体种子，用于确定性错开首次释放与后续冷却。
  * @returns {object} 可原地更新的技能状态，timer表示当前阶段已过秒数。
  */
 export function createHunterState(species, seed = 1) {
-  const ability = HUNTER_ABILITIES[species.kind] || null;
+  const ability = getHunterAbility(species);
   const state = {
     species,
     ability,
     enabled: !!ability,
     type: ability?.type || null,
-    tell: ability?.tell || "",
+    tell: species.hunterTell || ability?.tell || "",
     phase: "idle",
     timer: 0,
     phaseDuration: Infinity,

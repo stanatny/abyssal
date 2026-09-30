@@ -45,21 +45,21 @@ const SPAWN = new THREE.Vector3(0, -18, 75);
 const CITY = createAtlantisCity(new THREE.Scene(), { heightAt: seabedHeight });
 const CITY_COLLIDERS = CITY.colliders;
 
-test("海域名单隔离，夏威夷保留24类285尾，亚特兰蒂斯17类390尾", () => {
+test("海域名单隔离，两图仅在原有285与390尾库存上各加两只巨型鱼龙", () => {
   assert.equal(SPECIES, ECOSYSTEM_SPECIES);
   assert.equal(getRegionSpecies(), ECOSYSTEM_SPECIES);
-  assert.equal(SPECIES.length, 24);
+  assert.equal(SPECIES.length, 25);
   assert.equal(
     SPECIES.reduce((sum, s) => sum + s.population, 0),
-    285,
+    287,
   );
-  assert.equal(ALL_SPECIES.length, 31);
-  assert.equal(new Set(ALL_SPECIES.map((s) => s.kind)).size, 31);
+  assert.equal(ALL_SPECIES.length, 32);
+  assert.equal(new Set(ALL_SPECIES.map((s) => s.kind)).size, 32);
   const atlantis = getRegionSpecies("atlantis");
-  assert.equal(atlantis.length, 17);
+  assert.equal(atlantis.length, 18);
   assert.equal(
     atlantis.reduce((sum, s) => sum + s.population, 0),
-    390,
+    392,
   );
   assert.deepEqual(
     REGION_SPECIES_KINDS.atlantis,
@@ -71,7 +71,7 @@ test("海域名单隔离，夏威夷保留24类285尾，亚特兰蒂斯17类390�
   );
   assert.equal(
     atlantis.filter((s) => REGION_SPECIES_KINDS.hawaii.includes(s.kind)).length,
-    10,
+    11,
   );
   for (const unique of ATLANTIS_SPECIES) {
     assert.ok(REGION_SPECIES_KINDS.atlantis.includes(unique.kind));
@@ -91,9 +91,9 @@ test("海域名单隔离，夏威夷保留24类285尾，亚特兰蒂斯17类390�
   assert.throws(() => getRegionSpecies("__proto__"), /Unknown ecology region/);
 });
 
-test("实际坡度与真实城市下，390个出生位置合法且幼年补给就在前方", () => {
+test("实际坡度与真实城市下，392个出生位置合法且幼年补给就在前方", () => {
   const population = seedPopulation();
-  assert.equal(population.length, 390);
+  assert.equal(population.length, 392);
   const nursery = population.filter(({ point }) => isNursery(point));
   assert.ok(nursery.length >= 168);
   assert.ok(nursery.every(({ species }) => !species.predator));

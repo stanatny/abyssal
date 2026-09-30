@@ -193,11 +193,11 @@ test("声呐捕食资格始终按真实体长，狂食吸食不会把较大猎�
   }
 });
 
-test("现代与古代24种普通生物均按目录体长与名称返回回声", () => {
+test("现代与古代25种普通生物均按目录体长与名称返回回声", () => {
   const contacts = detect(
     SPECIES.map((species, index) => fish(species.kind, index * 2, -100, -40)),
   );
-  assert.equal(contacts.length, 24);
+  assert.equal(contacts.length, 25);
   assert.deepEqual(
     contacts.map((entry) => entry.length),
     SPECIES.map((species) => species.length),

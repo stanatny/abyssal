@@ -363,8 +363,8 @@ test("深度边界与物种配置覆盖浅海至巨兽区", () => {
   assert.equal(getZone(250).id, "abyss");
   assert.equal(getZone(500).id, "hadal");
   assert.equal(getZone(NaN).id, "reef");
-  assert.equal(SPECIES.length, 24);
-  assert.equal(new Set(SPECIES.map((species) => species.kind)).size, 24);
+  assert.equal(SPECIES.length, 25);
+  assert.equal(new Set(SPECIES.map((species) => species.kind)).size, 25);
   assert.deepEqual(
     new Set(SPECIES.map((species) => species.category)),
     new Set(["shoal", "hunter", "ancient"]),
@@ -676,9 +676,10 @@ test("显式6米基线仍可完成快慢参考路线，慢速路线包括25米�
 });
 
 // 事件节奏模型，不代表真实导航试玩：有效捕食间隔已包含寻找与追逐；
-// 另计两次转场及战损，25米后假定75秒内抓住五次虚弱窗口击败克拉肯。
+// 另计两次转场及战损，25米后保守预留75秒完成三次有效侧咬击败克拉肯。
 // 沿用金枪鱼7秒、蝠鲼12秒、白鲨10秒、鮟鱇11秒、章鱼13秒、邓氏鱼16秒；
 // 相近猎手取10/16秒，龙王鲸与巨齿鲨按稀疏大猎物假设20秒。
+// 每图仅两只的新巨型鱼龙假定60秒，属于保守模型输入而非实测遭遇率。
 // 这些间隔没有模拟地图刷新与稀有领地，不能当作自然整局试玩时长。
 // 快慢档统一缩放捕食、转场及领主战时间，战损与回血仍走真实生存规则。
 // 捕食采用各物种水层内35%的代表深度，领主交战在世界深度550米；
@@ -710,6 +711,7 @@ const REFERENCE_INTERVALS = Object.freeze({
   mosasaur: 16,
   basilosaurus: 20,
   megalodon: 20,
+  ichthyotitan: 60,
 });
 
 // 使用实际进食收益选猎物，不依赖按类别排序的目录顺序；参考路线再按觅食间隔比较收益率。

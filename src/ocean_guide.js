@@ -15,7 +15,7 @@ import { HUMAN_CATALOG, createHumanModel } from "./vehicle_models.js";
 import { BOSS_SPECIES, BOSS_BITE_HUNGER } from "./boss_rules.js";
 import { WORLD } from "./world_config.js";
 import { CHARACTERS, REGIONS } from "./expedition_config.js";
-import { HUNTER_ABILITIES } from "./hunter_rules.js";
+import { getHunterAbility } from "./hunter_rules.js";
 import { REWARDS, RANDOM_REWARD_COUNT } from "./reward_config.js";
 import { createMarineEnvironment } from "./visual_pipeline.js";
 import "./ocean_guide.css";
@@ -80,13 +80,13 @@ const DESCRIPTIONS = {
       "看到漩涡预警后改变路线，利用岩柱遮挡；技能后的3秒恢复期，从侧翼朝向躯干接近咬击，再退出接触范围。",
   },
   mayan: {
-    name: "玛雅巨兽",
-    latin: "MAYAN GUARDIAN",
+    name: "格兰玛雅",
+    latin: "GRAN MAJA",
     category: "lord",
     role: "遗迹主宰",
-    color: "#e5c477",
+    color: "#a7b2b9",
     ability: "遗迹脉冲",
-    text: "玛雅遗迹风格的原创幻想巨兽。蓄力时锁定你所在水层，向外发出高速脉冲；追击会压缩你和障碍物之间的空间。",
+    text: "灰银色扁宽三角头、额前六枚蓝眼与红色牙龈中的密集齿列，连接粗大环褶的蛇形长躯。蓄力时锁定你所在水层，向外发出高速脉冲；追击会压缩你和障碍物之间的空间。外观重绘保留原技能与接触判定。",
     counter:
       "观察锁定水层，在预警末段上浮或下潜；冲击环结束后的3秒恢复期，转向躯干侧翼发动接触攻击。",
   },
@@ -169,7 +169,10 @@ export function buildOceanCatalog(regionId) {
         schoolSize: config.schoolSize,
         size: tr`${config.length} m`,
         habitat: tr`${config.depthMin * WORLD.displayDepthScale}—${Math.round(config.depthMax * WORLD.displayDepthScale)} m（本作水层）`,
-        ability: HUNTER_ABILITIES[config.kind]?.label || config.ability,
+        hunterAbility: config.hunterAbility,
+        ability: config.hunterAbility
+          ? config.ability
+          : getHunterAbility(config)?.label || config.ability,
         text: config.description,
         counter: config.counter,
         tier: config.tier,
@@ -597,13 +600,14 @@ export function createOceanGuide(trigger) {
       showRegionalFacts(entry);
       return;
     }
+    const hunter = getHunterAbility(entry);
     const combat =
       entry.category === "lord"
-        ? tr`${"25米可交战 · 技能后3秒恢复窗 · 至少5次侧翼攻击，命中后需脱离再接近"} · ${tr`每次有效咬击恢复${BOSS_BITE_HUNGER}点饱食（最多100），不额外回血或成长；击败奖励另计。`}`
+        ? tr`${"25米可交战 · 技能后3秒恢复窗 · 三次侧翼攻击，命中后需脱离再接近"} · ${tr`每次有效咬击恢复${BOSS_BITE_HUNGER}点饱食（最多100），不额外回血或成长；击败奖励另计。`}`
         : entry.category === "player"
           ? tr`巡游 ${characterMovement(entry.characterId).cruiseSpeed} m/s · 冲刺 ${characterMovement(entry.characterId).sprintSpeed} m/s`
-          : HUNTER_ABILITIES[entry.kind]
-            ? tr`蓄力 ${HUNTER_ABILITIES[entry.kind].windupDuration} 秒 · 技能冷却 ${HUNTER_ABILITIES[entry.kind].cooldownMin}—${HUNTER_ABILITIES[entry.kind].cooldownMax} 秒追击时间`
+          : hunter
+            ? tr`蓄力 ${hunter.windupDuration} 秒 · 技能冷却 ${hunter.cooldownMin}—${hunter.cooldownMax} 秒追击时间`
             : entry.role;
     const survival =
       entry.category === "player"

@@ -9,7 +9,11 @@ import {
   buildHunterCreature,
 } from "./creature_hunters.js";
 import * as THREE from "three";
-import { LORD_CREATURE_KINDS, buildLordCreature } from "./creature_lords.js";
+import {
+  LORD_CREATURE_KINDS,
+  buildLordCreature,
+  buildLegacyMayanContact,
+} from "./creature_lords.js";
 import {
   ANCIENT_CREATURE_KINDS,
   buildAncientCreature,
@@ -77,6 +81,12 @@ export function createCreature(kind, length = 6, seed = 1) {
   else buildFish(root, motions, random);
 
   mergeStaticParts(root, kind);
+  // 新外观不改变已发布领主的触碰区域；隐藏代理保持原动作与归一化。
+  if (kind === "mayan") {
+    root.userData.contactRoot = buildLegacyMayanContact(root, motions);
+    mergeStaticParts(root.userData.contactRoot, "mayan_legacy_contact");
+    root.userData.contactRoot.visible = false;
+  }
   root.scale.setScalar(length);
   root.userData.kind = kind;
   root.userData.length = length;

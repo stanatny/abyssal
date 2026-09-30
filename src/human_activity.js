@@ -11,6 +11,7 @@ import {
   stepSubmarineImpact,
 } from "./human_rules.js";
 import { HUMAN_CATALOG, createHumanModel } from "./vehicle_models.js";
+import { bodyClearOfHull } from "./surface_ship_impact.js";
 
 export { HUMAN_CATALOG, createHumanModel } from "./vehicle_models.js";
 
@@ -447,12 +448,13 @@ export function createHumanActivity(
         radius + 0.08,
         submarine.collider,
       );
-      const clear = !isPositionBlocked(previous, {
-        colliders: [submarine.collider],
-        radius: radius + 4,
-        length: player.length,
+      const clear = bodyClearOfHull(
+        previous,
         forward,
-      });
+        player.length,
+        radius,
+        submarine.collider,
+      );
       const newContact = touching && (submarine.state.armed || clear);
       const result = stepSubmarineImpact(submarine.state, {
         touching,
@@ -465,7 +467,7 @@ export function createHumanActivity(
         if (newContact && now >= nextHullNotice) {
           notify(
             player.length < HUMAN_RULES.impactLength
-              ? "艇壳坚固 · 达到8米后可冲刺撞击"
+              ? message`艇壳坚固 · 达到${HUMAN_RULES.impactLength}米后可冲刺撞击`
               : "艇壳坚固 · 拉开距离后冲刺撞击",
           );
           nextHullNotice = now + 4;

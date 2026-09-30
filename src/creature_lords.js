@@ -1,4 +1,5 @@
 import * as THREE from "three";
+import { buildGranMaja } from "./creature_gran_maja.js";
 import {
   sampleSection,
   sculptedFin,
@@ -25,7 +26,7 @@ export function buildLordCreature(kind, root, motions) {
   body.name = `${kind}_lord_anatomy`;
   root.add(body);
   if (kind === "kraken") buildKraken(body, motions);
-  else if (kind === "mayan") buildMayan(body, motions);
+  else if (kind === "mayan") buildGranMaja(body, motions);
   else if (kind === "hydra") buildHydra(body, motions);
   else if (kind === "leviathan") buildLeviathan(body, motions);
   else throw new Error(`Unknown abyssal lord: ${kind}`);
@@ -34,6 +35,25 @@ export function buildLordCreature(kind, root, motions) {
   const length = bounds.max.z - bounds.min.z;
   body.scale.setScalar(1 / length);
   body.position.z = -(bounds.max.z + bounds.min.z) / (2 * length);
+}
+
+/**
+ * 构建旧玛雅兽的原始接触网格和动作，供外观重绘后的规则兼容层使用。
+ * @param {THREE.Group} root 已完成外观合批的调用方根节点。
+ * @param {Function[]} motions 接收与旧模型一致的累计相位和运动强度。
+ * @returns {THREE.Group} 独立归一化的旧解剖组；隐藏和接触分发由调用方负责。
+ */
+export function buildLegacyMayanContact(root, motions) {
+  const body = new THREE.Group();
+  body.name = "mayan_legacy_contact_anatomy";
+  root.add(body);
+  buildMayan(body, motions);
+  body.updateMatrixWorld(true);
+  const bounds = new THREE.Box3().setFromObject(body);
+  const length = bounds.max.z - bounds.min.z;
+  body.scale.setScalar(1 / length);
+  body.position.z = -(bounds.max.z + bounds.min.z) / (2 * length);
+  return body;
 }
 
 const GEOMETRIES = new Map();

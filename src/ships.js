@@ -3,12 +3,15 @@ import { RoundedBoxGeometry } from "three/addons/geometries/RoundedBoxGeometry.j
 import { mergeGeometries } from "three/addons/utils/BufferGeometryUtils.js";
 import { addSurfaceDetail } from "./ocean_visuals.js";
 import { WORLD } from "./world_config.js";
+import { createSurfaceShipImpact } from "./surface_ship_impact.js";
 
 /**
- * 创建三艘原创程序化环境船舶；船壳和上层建筑参与实体碰撞，不参与伤害或捕食。
- * 返回 ships 元数据、有限高度 colliders、update(time, playerPosition)、reset 与 dispose。
+ * 创建三艘原创船舶，真实船壳可按共享体型、速度与独立接触门槛被冲撞破坏。
+ * @param {THREE.Scene} scene 主场景。
+ * @param {object} options 世界遮挡查询与 onImpact/onContact 回调。
+ * @returns {object} ships、colliders、onMovement、update(time, playerPosition)、reset 与 dispose。
  */
-export function createShips(scene) {
+export function createShips(scene, options = {}) {
   const group = new THREE.Group();
   group.name = "surface_ships";
   scene.add(group);
@@ -233,9 +236,14 @@ export function createShips(scene) {
     }
     return ship;
   });
+  const impact = createSurfaceShipImpact(scene, ships, colliders, options);
+  const colliderPoint = new THREE.Vector3();
+  let disposed = false;
   function update(time, playerPosition = null) {
+    if (disposed) return;
     timeUniform.value = time;
     for (const ship of ships) {
+      if (ship.state.destroyed) continue;
       const phase = time * ship.rate + ship.phase;
       ship.root.position.set(
         THREE.MathUtils.clamp(
@@ -259,32 +267,42 @@ export function createShips(scene) {
         ship.heading,
         Math.sin(time * 0.39 + ship.phase) * 0.009,
       );
+      ship.root.visible =
+        !playerPosition ||
+        (playerPosition.y > -65 &&
+          ship.root.position.distanceTo(playerPosition) < 500);
+    }
+    impact.update(time, playerPosition);
+    for (const ship of ships) {
+      if (ship.state.destroyed) continue;
       ship.root.updateWorldMatrix(true, false);
       for (const collider of ship.colliders) {
-        const point = ship.root.localToWorld(collider.localPosition.clone());
-        collider.x = point.x;
-        collider.y = point.y;
-        collider.z = point.z;
+        ship.root.localToWorld(colliderPoint.copy(collider.localPosition));
+        collider.x = colliderPoint.x;
+        collider.y = colliderPoint.y;
+        collider.z = colliderPoint.z;
         collider.rotation.x = ship.root.quaternion.x;
         collider.rotation.y = ship.root.quaternion.y;
         collider.rotation.z = ship.root.quaternion.z;
         collider.rotation.w = ship.root.quaternion.w;
       }
-      ship.root.visible =
-        !playerPosition ||
-        (playerPosition.y > -65 &&
-          ship.root.position.distanceTo(playerPosition) < 500);
     }
   }
   update(0);
   return {
     ships,
     colliders,
+    onMovement: impact.onMovement,
     update,
     reset() {
+      if (disposed) return;
+      impact.reset();
       update(0);
     },
     dispose() {
+      if (disposed) return;
+      disposed = true;
+      impact.dispose();
       scene.remove(group);
       group.traverse((node) => {
         if (node.isInstancedMesh) node.dispose();

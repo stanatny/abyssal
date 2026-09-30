@@ -1,5 +1,6 @@
 import { ECOSYSTEM_SPECIES } from "./ecosystem_config.js";
 import { ATLANTIS_SPECIES } from "./atlantis_species.js";
+import { DEEP_GIANT_ANCHORS } from "./deep_giants.js";
 import {
   addAtlantisCitySchools,
   atlantisLargePreyAnchors,
@@ -120,6 +121,7 @@ const ATLANTIS_OVERRIDES = {
   mosasaur: { population: 7 },
   basilosaurus: { population: 6 },
   megalodon: { population: 7 },
+  ichthyotitan: { spawnAnchors: DEEP_GIANT_ANCHORS.atlantis },
 };
 
 const REGION_SPECIES = Object.freeze({

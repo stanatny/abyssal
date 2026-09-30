@@ -17,7 +17,7 @@ function impact(state, now, extra = {}) {
   return stepSubmarineImpact(state, {
     touching: true,
     speed: 32,
-    length: 10,
+    length: HUMAN_RULES.impactLength,
     now,
     ...extra,
   });
@@ -90,7 +90,7 @@ test("真实扫掠在物理推开前计一次撞击，破艇移除碰撞并仅�
   const scene = new THREE.Scene();
   const activity = createHumanActivity(scene, { random: () => 0.5 });
   const player = createPlayer();
-  player.length = 10;
+  player.length = HUMAN_RULES.impactLength;
   const forward = new THREE.Vector3(1, 0, 0),
     sub = activity.submarines[0];
   const origin = sub.mesh.position.clone();

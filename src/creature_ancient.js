@@ -1,5 +1,6 @@
 import * as THREE from "three";
 import { mergeGeometries } from "three/addons/utils/BufferGeometryUtils.js";
+import { ICHTHYOTITAN_ANATOMY } from "./creature_ichthyotitan.js";
 import {
   bindAxialMotion,
   sampleSection,
@@ -7,7 +8,7 @@ import {
   skinMaterial,
 } from "./creature_surface.js";
 
-/** 六种史前动物采用独立解剖比例，共享资产、独立关节。 */
+/** 史前动物采用独立解剖比例，共享资产、独立关节。 */
 export const ANCIENT_CREATURE_KINDS = new Set([
   "dunkleosteus",
   "pliosaur",
@@ -15,11 +16,12 @@ export const ANCIENT_CREATURE_KINDS = new Set([
   "mosasaur",
   "basilosaurus",
   "megalodon",
+  "ichthyotitan",
 ]);
 
 /**
  * 构建头朝 -Z 的史前动物，并按包含尾鳍的全长归一化。
- * @param {string} kind 六种已注册的史前动物标识。
+ * @param {string} kind 已注册的史前动物标识。
  * @param {THREE.Group} root 外部创建的根节点。
  * @param {Function[]} motions 接收累积游泳相位与推进力度的实例动作列表。
  * @returns {void} 模型、独立关节与 normalizedLength 写入给定参数。
@@ -61,6 +63,7 @@ export function buildAncientCreature(kind, root, motions) {
 const GEOMETRY = new Map();
 const MATERIAL = new Map();
 const CONFIG = {
+  ichthyotitan: ICHTHYOTITAN_ANATOMY,
   dunkleosteus: {
     back: "#706b51",
     belly: "#b2ab82",
@@ -611,28 +614,43 @@ function buildFins(kind, body, swimming, config, motions) {
             [0.062, 0.124],
             [-0.018, 0.019],
           ]
-        : config.tail === "mosasaur"
+        : config.tail === "ichthyosaur"
           ? [
-              [-0.016, -0.007],
-              [0.09, -0.15],
-              [0.124, -0.17],
-              [0.114, -0.065],
-              [0.057, -0.012],
-              [0.09, 0.071],
-              [0.084, 0.125],
-              [0.032, 0.071],
-              [-0.016, 0.011],
+              [-0.018, -0.006],
+              [0.025, -0.077],
+              [0.102, -0.174],
+              [0.151, -0.207],
+              [0.149, -0.161],
+              [0.108, -0.06],
+              [0.061, -0.015],
+              [0.11, 0.078],
+              [0.128, 0.139],
+              [0.102, 0.123],
+              [0.031, 0.055],
+              [-0.018, 0.011],
             ]
-          : [
-              [-0.016, -0.02],
-              [0.09, -0.102],
-              [0.14, -0.112],
-              [0.119, -0.025],
-              [0.177, 0.087],
-              [0.152, 0.142],
-              [0.078, 0.106],
-              [-0.016, 0.019],
-            ];
+          : config.tail === "mosasaur"
+            ? [
+                [-0.016, -0.007],
+                [0.09, -0.15],
+                [0.124, -0.17],
+                [0.114, -0.065],
+                [0.057, -0.012],
+                [0.09, 0.071],
+                [0.084, 0.125],
+                [0.032, 0.071],
+                [-0.016, 0.011],
+              ]
+            : [
+                [-0.016, -0.02],
+                [0.09, -0.102],
+                [0.14, -0.112],
+                [0.119, -0.025],
+                [0.177, 0.087],
+                [0.152, 0.142],
+                [0.078, 0.106],
+                [-0.016, 0.019],
+              ];
   mesh(
     tail,
     `${kind}_caudal`,

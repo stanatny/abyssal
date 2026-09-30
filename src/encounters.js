@@ -21,6 +21,7 @@ import { createFluidTexture } from "./effect_textures.js";
  * @returns {THREE.Vector3|null} 首个实际接触点；没有接触时返回null。
  */
 export function findBossContact(mesh, mouth, radius) {
+  mesh = mesh.userData.contactRoot || mesh;
   if (!Number.isFinite(radius) || radius < 0) return null;
   mesh.updateWorldMatrix(true, true);
   const sphere = new THREE.Sphere();

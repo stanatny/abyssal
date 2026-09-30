@@ -335,6 +335,7 @@ try {
     b.heading.set(0, 0, -1);
     b.mesh.quaternion.identity();
     b.state.health = b.state.maxHealth;
+    b.state.validatedHits = 0;
     b.state.phase = "recover";
     b.previousPhase = "recover";
     b.state.timer = 0;
@@ -402,7 +403,7 @@ try {
     playerHealth: window.__ABYSSAL__.player.health,
     mass: window.__ABYSSAL__.player.mass,
   }));
-  assert.ok(firstBite.health >= firstBite.maximum * 0.76 - 1e-9);
+  assert.ok(Math.abs(firstBite.health - (firstBite.maximum * 2) / 3) < 1e-9);
   assert.ok(firstBite.cooldown > 0.5);
   assert.equal(firstBite.defeated, false);
   assert.ok(firstBite.hunger > 46.5 && firstBite.hunger <= 48);
@@ -446,6 +447,7 @@ try {
     const g = window.__ABYSSAL__,
       b = window.__testBoss;
     b.state.health = b.state.maxHealth;
+    b.state.validatedHits = 0;
     g.setPosition(b.mesh.position.x, b.mesh.position.y, b.mesh.position.z + 85);
   });
   // 固定遭遇位置验证多次真实接触咬击，终局不宣称自然通关。
@@ -484,7 +486,7 @@ try {
     }
     if ((await state()).mode === "won") break;
   }
-  assert.ok(hits >= 5);
+  assert.equal(hits, 3);
   assert.equal((await state()).mode, "won");
   assert.ok((await state()).player.bossesDefeated >= 1);
   checks.push(

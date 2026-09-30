@@ -43,8 +43,8 @@ function posedBounds(root) {
   return bounds;
 }
 
-test("六种远古模型纵长精确归一、极值姿态有效且处于实时面数预算", () => {
-  assert.equal(ANCIENT_CREATURE_KINDS.size, 6);
+test("远古模型纵长精确归一、极值姿态有效且处于实时面数预算", () => {
+  assert.equal(ANCIENT_CREATURE_KINDS.size, 7);
   for (const kind of ANCIENT_CREATURE_KINDS) {
     const { root, animate } = specimen(kind);
     assert.equal(root.userData.normalizedLength, 1);

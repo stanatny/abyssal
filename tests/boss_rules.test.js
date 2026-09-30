@@ -6,6 +6,7 @@ import { findBossContact } from "../src/encounters.js";
 import {
   BOSS_SPECIES,
   BOSS_BITE_HUNGER,
+  BOSS_REQUIRED_HITS,
   createBossState,
   hitBoss,
   tickBoss,
@@ -55,7 +56,7 @@ test("只有领地内发现玩家才苏醒，接近前保持追猎", () => {
   assert.equal(boss.timer, 0);
 });
 
-test("主宰完整经历蓄力预警、攻击和3秒虚弱，再开始下一轮", () => {
+test("主宰完整经历蓄力预警、攻击和3秒恢复，再开始下一轮", () => {
   const boss = createBossState(BOSS_SPECIES[0]);
   tickBoss(boss, 1, CLOSE);
   assert.equal(boss.phase, "windup");
@@ -202,6 +203,7 @@ test("领主最后一口先补饱食，再单次结算击败战利品，返回�
     player.hunger = 10;
     const mass = player.mass;
     const boss = createBossState(BOSS_SPECIES[0]);
+    boss.validatedHits = BOSS_REQUIRED_HITS - 1;
     boss.health = 1;
     const result = hitBoss(player, boss, FLANK);
     assert.equal(result.hit, true);
@@ -281,29 +283,70 @@ test("死亡、胜利或到时后即使保持接触也不伤害领主或领取�
   }
 });
 
-test("虚弱期间咬击伤害显著增加，所有主宰均需至少五次攻击", () => {
-  for (const species of BOSS_SPECIES) {
-    const regularBoss = createBossState(species);
-    const weakBoss = createBossState(species);
-    weakBoss.phase = "recover";
-    const regularHit = hitBoss(grownPlayer(), regularBoss, FLANK);
-    const weakHit = hitBoss(grownPlayer(), weakBoss, FLANK);
-    assert.ok(weakHit.damage > regularHit.damage * 1.7);
-    assert.ok(weakHit.damage < species.health / 4);
-    const player = grownPlayer();
+test("两角色在25至30米及所有阶段，四位领主恰需三次独立有效侧咬", () => {
+  assert.equal(BOSS_REQUIRED_HITS, 3);
+  for (const species of BOSS_SPECIES)
+    for (const characterId of ["orca", "squid"])
+      for (const length of [25, 27.5, 30])
+        for (const frenzy of [false, true])
+          for (const phase of [
+            "dormant",
+            "hunt",
+            "windup",
+            "attack",
+            "recover",
+            "return",
+            "disoriented",
+          ]) {
+            const player = grownPlayer(length, characterId);
+            if (frenzy) collectPickup(player, "frenzy");
+            const boss = createBossState(species);
+            assert.equal(boss.validatedHits, 0);
+            for (let hits = 1; hits <= BOSS_REQUIRED_HITS; hits += 1) {
+              boss.phase = phase;
+              const result = hitBoss(player, boss, FLANK);
+              assert.equal(result.hit, true);
+              assert.equal(boss.validatedHits, hits);
+              assert.ok(Math.abs(result.damage - species.health / 3) < 1e-9);
+              assert.equal(result.defeated, hits === BOSS_REQUIRED_HITS);
+              assert.equal(boss.defeated, hits === BOSS_REQUIRED_HITS);
+              if (hits < BOSS_REQUIRED_HITS) {
+                assert.ok(boss.health > 0);
+                assert.equal(player.bossesDefeated, 0);
+                tickVitals(player, 1.21);
+                tickBoss(boss, 1.21, CLOSE);
+                updateBossContact(boss, false, 0.35);
+              }
+            }
+            assert.equal(boss.health, 0);
+            assert.equal(boss.phase, "defeated");
+            assert.equal(player.bossesDefeated, 1);
+            assert.equal(player.won, player.length >= 30);
+          }
+});
+
+test("奇数或非整数生命值第三口直接归零，恢复期不增加伤害", () => {
+  for (const health of [101, 101.1, 1 / 7]) {
+    const species = { ...BOSS_SPECIES[0], health };
+    const player = grownPlayer(25);
     const boss = createBossState(species);
-    let hits = 0;
-    while (!boss.defeated && hits < 20) {
-      boss.phase = "recover";
-      assert.equal(hitBoss(player, boss, FLANK).hit, true);
-      hits += 1;
-      tickVitals(player, 1.21);
-      tickBoss(boss, 1.21, CLOSE);
-      updateBossContact(boss, false, 0.35);
+    let totalDamage = 0;
+    for (const phase of ["hunt", "recover", "attack"]) {
+      boss.phase = phase;
+      const result = hitBoss(player, boss, FLANK);
+      assert.equal(result.hit, true);
+      totalDamage += result.damage;
+      assert.ok(Math.abs(result.damage - health / 3) < 1e-9);
+      if (!boss.defeated) {
+        tickVitals(player, 1.21);
+        tickBoss(boss, 1.21, CLOSE);
+        updateBossContact(boss, false, 0.35);
+      }
     }
-    assert.ok(hits >= 5 && hits < 20);
-    assert.equal(player.bossesDefeated, 1);
-    assert.equal(player.won, true);
+    assert.equal(boss.validatedHits, 3);
+    assert.equal(boss.health, 0);
+    assert.equal(boss.defeated, true);
+    assert.ok(Math.abs(totalDamage - health) < 1e-9);
   }
 });
 
