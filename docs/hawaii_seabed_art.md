@@ -1,5 +1,9 @@
 # Hawaii deep-seabed art
 
+Release status: included in the user-authorized **v0.7.2** commit and push to `main`. See [release verification](verification.md) for current checks and deployment acceptance. Local-only authorization statements and earlier candidate measurements below are historical; they do not override the current release instruction.
+
+## Historical review context
+
 Status: scoped art source complete and frozen for owner review on `feature/global-ocean-polish`, based on v0.7.1 / `21cf9a4`. The scoped art assignment itself granted no commit, push, or release authority. The user subsequently authorized the owner to include the reviewed integration in one local commit; no push or release is requested. The integration owner retains camera, terrain shader, ecology, localization, and shared documentation ownership.
 
 ## Brief and boundaries

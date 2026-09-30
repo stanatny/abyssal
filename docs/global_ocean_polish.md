@@ -1,5 +1,9 @@
 # Cross-region survival and presentation revision
 
+Release status: included in the user-authorized **v0.7.2** commit and push to `main`. See [release verification](verification.md) for current checks and deployment acceptance. Local-only authorization statements and earlier candidate measurements below are historical; they do not override the current release instruction.
+
+## Historical review context
+
 Status: reviewed local candidate on `feature/global-ocean-polish`, based on published v0.7.1 / `21cf9a4`. The user subsequently authorized one local commit. Fresh pre-commit verification passed 629 unit tests and the runtime source still matches the reviewed public snapshot. This supersedes the earlier no-commit states in the records below; no push or release is authorized.
 
 ## Latest camera and Hawaii seabed refinement

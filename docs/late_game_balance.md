@@ -1,5 +1,9 @@
 # Late-game combat and rare deep-water hunters
 
+Release status: included in the user-authorized **v0.7.2** commit and push to `main`. See [release verification](verification.md) for current checks and deployment acceptance. Local-only authorization statements and earlier candidate measurements below are historical; they do not override the current release instruction.
+
+## Historical review context
+
 Candidate rules for the global-ocean polish work, September 30, 2026. This document supersedes the older five-hit and recovery-damage descriptions for the candidate; it does not rewrite historical release evidence. Model presentation, bilingual delivery and browser acceptance belong to the integration verification record.
 
 ## Three validated lord attacks

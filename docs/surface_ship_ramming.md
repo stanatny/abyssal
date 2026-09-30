@@ -1,5 +1,9 @@
 # Surface Ship Ramming
 
+Release status: included in the user-authorized **v0.7.2** commit and push to `main`. See [release verification](verification.md) for current checks and deployment acceptance. Local-only authorization statements and earlier candidate measurements below are historical; they do not override the current release instruction.
+
+## Historical review context
+
 Status: reviewed candidate included in the user-authorized local commit. No push or release is requested. This rule applies to both playable regions. It shares the submarine impact threshold and contact lock rather than adding a separate combat engine.
 
 ## Rules

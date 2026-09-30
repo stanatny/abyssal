@@ -155,6 +155,31 @@ test("A supporting deck is allowed without skipping intersecting rotated walls",
   assert.equal(furniture.stats.dropped.length, 0);
 });
 
+test("Rebuilding furniture reads a reused host's current transform and leaves host geometry unchanged", (t) => {
+  const host = {
+    type: "box",
+    x: -193.8,
+    y: -193,
+    z: -228.4,
+    halfSize: { x: 0.1, y: 0.1, z: 0.1 },
+    rotation: { x: 0, y: 0, z: 0, w: 1 },
+  };
+  const before = structuredClone(host);
+  const first = createFixture(t, { hostColliders: [host] });
+  assert.ok(first.stats.dropped.some((item) => item.kind === "table"));
+  assert.deepEqual(host, before);
+
+  // 同一对象从桌内阻挡物改为支撑楼板，下一次构造不得保留旧棱边。
+  host.y = -195;
+  host.halfSize = { x: 4, y: 1, z: 4 };
+  const moved = structuredClone(host);
+  const second = createFixture(t, { hostColliders: [host] });
+  const clear = createFixture(t);
+  assert.deepEqual(second.stats, clear.stats);
+  assert.deepEqual(second.colliders, clear.colliders);
+  assert.deepEqual(host, moved);
+});
+
 test("Street amphora retreats past the projecting foundation and is supported across the real slope", (t) => {
   const facade = {
     center: { x: -251.83866066327317, z: -164.0639279592782 },

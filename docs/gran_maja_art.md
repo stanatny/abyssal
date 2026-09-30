@@ -1,5 +1,9 @@
 # Gran Maja appearance revision
 
+Release status: included in the user-authorized **v0.7.2** commit and push to `main`. See [release verification](verification.md) for current checks and deployment acceptance. Local-only authorization statements and earlier candidate measurements below are historical; they do not override the current release instruction.
+
+## Historical review context
+
 Status: revision 2 local candidate, independently reviewed by the integration owner and included in the user-authorized local commit of the reviewed preview. No push or release is requested. This changes the appearance of the existing lord with stable internal kind `mayan`. It does not change its configured length, abilities, contact region, or release status. The earlier blue fish interpretation was rejected by the owner and is historical work, not an accepted visual baseline.
 
 ## Current reference and adaptation

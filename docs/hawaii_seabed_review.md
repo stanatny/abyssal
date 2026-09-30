@@ -1,5 +1,9 @@
 # Desktop camera and Hawaii seabed review
 
+Release status: included in the user-authorized **v0.7.2** commit and push to `main`. See [release verification](verification.md) for current checks and deployment acceptance. Local-only authorization statements and earlier candidate measurements below are historical; they do not override the current release instruction.
+
+## Historical review context
+
 Status: owner-reviewed source in the `feature/global-ocean-polish` candidate, based on v0.7.1 / `21cf9a4`. The user subsequently authorized a local commit of the reviewed preview. This visual refinement preserves the previously reviewed Gran Maja, combat, ecology and survival changes. Fresh pre-commit verification passed 629 unit tests; no push or formal Pages release is requested.
 
 ## Implemented behavior

@@ -209,7 +209,7 @@ function boxEdges(box) {
  * 宿主检测复用游戏的形状扫掠；盒棱双向检查同时覆盖包含关系和旋转墙面。
  * 略微收缩底面以允许真实楼板接触，不再跳过带 rotation 的实体。
  */
-function overlapsHost(queryHosts, box) {
+function overlapsHost(queryHosts, box, hostEdges) {
   const candidate = {
     ...box,
     y: box.y + 0.02,
@@ -233,7 +233,12 @@ function overlapsHost(queryHosts, box) {
   for (const host of hosts) {
     if (edges.some(([a, b]) => castSegment(a, b, [host]))) return true;
     if (host.type === "box") {
-      if (boxEdges(host).some(([a, b]) => castSegment(a, b, [candidate])))
+      let cachedEdges = hostEdges.get(host);
+      if (!cachedEdges) {
+        cachedEdges = boxEdges(host);
+        hostEdges.set(host, cachedEdges);
+      }
+      if (cachedEdges.some(([a, b]) => castSegment(a, b, [candidate])))
         return true;
     } else if (host.type === "capsule") {
       if (castSegment(host.a, host.b, [candidate], host.radius)) return true;
@@ -905,6 +910,8 @@ export function createAtlantisExplorationFurniture(
   // 宿主快照索引不污染集成方稍后仍在追加的城市碰撞数组。
   const hostGrid = createStaticColliderGrid([...hostColliders]);
   const queryHosts = (min, max) => [...hostGrid.query(min, max), ...colliders];
+  // 同步构造期间宿主形状不变；仅缓存宿主盒，原始/缩底候选仍独立计算。
+  let hostEdges = new WeakMap();
   const EXTENTS = {
     bench: { halfX: 1.8, halfZ: 0.68, height: 1.5 },
     table: { halfX: 1.38, halfZ: 1.38, height: 1.7 },
@@ -923,7 +930,9 @@ export function createAtlantisExplorationFurniture(
       (bottom + floor + extent.height * scale) / 2,
       z,
     );
-    return !blockedByKeepOut(zones, box) && !overlapsHost(queryHosts, box);
+    return (
+      !blockedByKeepOut(zones, box) && !overlapsHost(queryHosts, box, hostEdges)
+    );
   }
   function canPlaceGroup(item) {
     if (!customLayout)
@@ -957,7 +966,7 @@ export function createAtlantisExplorationFurniture(
       center.z,
       yaw,
     );
-    return !overlapsHost(queryHosts, box);
+    return !overlapsHost(queryHosts, box, hostEdges);
   }
   for (const item of groups ?? (SITE ? planGroups(SITE) : [])) {
     if (!canPlaceGroup(item)) {
@@ -1024,8 +1033,12 @@ export function createAtlantisExplorationFurniture(
     scatter ?? (SITE ? planScatter(SITE, random) : [])
   ).filter((t) => {
     const box = furnitureBox(1, 0.5, 1, t.x, t.y + 0.25, t.z);
-    return !blockedByKeepOut(zones, box) && !overlapsHost(queryHosts, box);
+    return (
+      !blockedByKeepOut(zones, box) && !overlapsHost(queryHosts, box, hostEdges)
+    );
   });
+  // 布置结束后主动解除临时缓存引用，不随 update/dispose 闭包保留。
+  hostEdges = null;
   const scatterMeshes = scatterPieces(scatterTransforms, seed + 3);
 
   b.bucket.build(atlantisMaterials(), root, owned);

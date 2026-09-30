@@ -4,11 +4,11 @@ A third-person ocean survival game for the browser. Choose an Orca or Giant Squi
 
 **[Play the published game](https://stanatny.github.io/abyssal/)** · [GitHub repository](https://github.com/stanatny/abyssal)
 
-Published version: **v0.7.1 — Atlantis interiors and subterranean exploration**. Both Hawaii and Atlantis are playable. Atlantis now includes furnished residences, marine growth, three connected underground sites, and a rebuilt Poseidon monument and temple, alongside its five city districts, seven exclusive species, three Kraken guardians, and regional music. This development branch also contains the [unreleased cross-region survival revision](#cross-region-survival-revision-unreleased-candidate); candidate rules below are not yet published to the play URL.
+Published version: **v0.7.2 — Cross-region encounters and faster Atlantis loading**. Both Hawaii and Atlantis are playable. This release adds Gran Maja's refined appearance, rare deep-water Ichthyotitan hunters, surface-ship ramming, three-hit lord battles, a closer desktop camera and a more natural Hawaii seabed. Atlantis retains its furnished homes, illuminated city and three underground sites, while furniture-placement caching reduces destination preparation work.
 
 Aligned destination and character cards make expedition choices easier to browse in either language. The Ocean Guide covers both regions with independent filters, while shared collision indexing reduces CPU work in Hawaii and Atlantis. Both maps retain the same survival, growth, reward, and combat rules. GitHub Actions deploys `main` to the play URL above.
 
-![Unreleased cross-region candidate: actual English home screen with aligned Atlantis and Orca selectors](docs/images/abyssal_global_candidate.png)
+![ABYSSAL v0.7.2: actual English home screen with aligned Atlantis and Orca selectors](docs/images/abyssal_v0_7_2.png)
 
 Play in a modern desktop or phone browser with WebGL 2 support—no account or download required. Select a character on the home screen and start an expedition. Music activates after the first interaction. Fish feeding uses short water-Foley intake, bite, and bubble tails, with three variants that avoid consecutive repetition. Adult male/female swimmers and divers use corresponding performed human recordings at their original pitch, gradually muffled later in the clip to suggest submersion. Prey-gathering transitions and blood clouds remain. Sound can be disabled at any time. Assets are CC0; see [audio sources](docs/audio_sources.md).
 
@@ -80,9 +80,9 @@ The home-screen **Ocean Guide** contains **43 character, creature, and human-act
 
 These regions mix modern animals, Ancient Giants, and fantasy lords; it is not a reconstruction of real Hawaiian ecology. Lengths, depths, and speeds use game scale. Body length, wingspan, and tentacle length do not imply equivalent mass. See [ecological references and design choices](docs/ecology_sources_v0_5.md).
 
-## Cross-region survival revision (unreleased candidate)
+## Cross-region encounters
 
-This branch adds **Giant Ichthyotitan**, a rare 28 m Ancient Giant, with two individuals in each region's open deep-water routes. At 20–25 m it remains a dangerous predator: its warning precedes a committed charge, so dodge sideways before sprinting away. Actual length must exceed 28 m before feeding on it. The 28 m size, revived habitat and predatory behavior are game adaptations; the fossil-based estimate and uncertain body reconstruction are explained in the guide and [balance notes](docs/late_game_balance.md).
+**Giant Ichthyotitan** is a rare 28 m Ancient Giant, with two individuals in each region's open deep-water routes. At 20–25 m it remains a dangerous predator: its warning precedes a committed charge, so dodge sideways before sprinting away. Actual length must exceed 28 m before feeding on it. The 28 m size, revived habitat and predatory behavior are game adaptations; the fossil-based estimate and uncertain body reconstruction are explained in the guide and [balance notes](docs/late_game_balance.md).
 
 **Gran Maja** replaces the former Maya Beast's appearance with a broad silver-gray triangular head, six blue forehead eyes, dense teeth in red gums and a long serpentine body with heavy ring folds. Its existing pulse abilities, territory and contact area are preserved independently of the new artwork. Every Abyss Lord now requires **three separate valid flank bites**, with disengagement and cooldown between hits. The 25 m challenge gate and **30 m plus at least one lord defeat** victory condition remain shared by both regions.
 
@@ -90,7 +90,7 @@ At **18 m** and an impact speed of at least **20 m/s**, both characters can ram 
 
 The desktop follow-camera offset is 10% shorter, while touch controls retain their existing camera rig. Hawaii's deep floor has matte rock grain, strata and shallow mineral rubble instead of broad artificial ground glow. Rooted, feathered sea pens provide restrained light from their tiny polyps; volcanic lava and the existing two nearby environmental light slots remain. This scenery does not change feeding stocks, terrain heights or solid contacts. See [the camera and seabed review](docs/hawaii_seabed_review.md).
 
-See [the working plan and verification record](docs/global_ocean_polish.md) for candidate evidence and limits. Formal Pages remains published v0.7.1 until separately authorized.
+See [the integration verification record](docs/global_ocean_polish.md) for evidence and limits, and [release verification](docs/verification.md) for the main-branch checks.
 
 ## Atlantis expedition
 
@@ -142,6 +142,8 @@ New or redrawn creatures, humans, environments, audio, and effects must meet the
 
 For a new region or substantial map redraw, use the repository-local [map-production Skill](.agents/skills/abyssal-map-production/SKILL.md) and its [brief template](.agents/skills/abyssal-map-production/references/map_brief.md). These provide the Kimi art assignment and Codex integration/review contract, including ecology, regional audio, traversal, and performance. The current [Hawaii performance follow-up](docs/hawaii_performance.md) reuses static collision indexing without changing the map art or feeding rules.
 
+The [Atlantis construction optimization](docs/atlantis_construction_optimization.md) reuses immutable host edges during furniture placement. Serial Mac measurements show a modest reduction in region-switch waiting while preserving the complete city layout, geometry, and collision data.
+
 The project uses JavaScript, Three.js, and Vite. Models, animation, music, and most event effects are procedural; adult screams use bundled CC0 human recordings. Node.js 22.12+ and a WebGL 2 browser are recommended.
 
 ```bash
@@ -166,7 +168,7 @@ Pushing to `main` runs installation, unit tests, formatting, and build through [
 
 ## Project status and next steps
 
-**v0.7.1** adds furnished Atlantis homes, marine scenery, three underground exploration sites and the resculpted Poseidon monument and temple. It corrects roof contacts and regional residents' habitat persistence while preserving population totals and shared survival/combat rules. The preceding v0.7.0 introduced Atlantis, regional guide filters and shared collision indexing. Hawaii retains its artwork, population and gameplay. See [Hawaii performance](docs/hawaii_performance.md) and [Atlantis performance](docs/atlantis_performance.md) for measurements and their limits. The repository-local [map-production Skill](.agents/skills/abyssal-map-production/SKILL.md) documents the production and review process for future regions.
+**v0.7.2** delivers the cross-region encounter, camera/seabed and Atlantis construction improvements described above. The preceding **v0.7.1** added furnished Atlantis homes, marine scenery, three underground exploration sites and the resculpted Poseidon monument and temple. That release corrected roof contacts and regional residents' habitat persistence while preserving population totals and shared survival/combat rules. The preceding v0.7.0 introduced Atlantis, regional guide filters and shared collision indexing. The current Hawaii scenery retains its feeding population and terrain contacts. See [Hawaii performance](docs/hawaii_performance.md) and [Atlantis performance](docs/atlantis_performance.md) for measurements and their limits. The repository-local [map-production Skill](.agents/skills/abyssal-map-production/SKILL.md) documents the production and review process for future regions.
 
 Release checks and earlier evidence are in [verification](docs/verification.md) and [Atlantis verification](docs/atlantis_verification.md). Deployment status is available in [GitHub Actions](https://github.com/stanatny/abyssal/actions/workflows/pages.yml). Candidate and local-only statements in older development records preserve their status at the time.
 
