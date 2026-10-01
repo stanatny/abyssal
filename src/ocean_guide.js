@@ -80,7 +80,7 @@ const DESCRIPTIONS = {
     role: "遗迹主宰",
     color: "#a7b2b9",
     ability: "遗迹脉冲",
-    text: "灰银色扁宽三角头、额前六枚蓝眼与红色牙龈中的密集齿列，连接粗大环褶的蛇形长躯。蓄力时锁定你所在水层，向外发出高速脉冲；追击会压缩你和障碍物之间的空间。外观重绘保留原技能与接触判定。",
+    text: "灰银色扁宽三角头、额前六枚蓝眼与红色牙龈中的密集齿列，连接粗大环褶的蛇形长躯。蓄力时锁定你所在水层，向外发出高速脉冲；追击会压缩你和障碍物之间的空间。",
     counter:
       "观察锁定水层，在预警末段上浮或下潜；冲击环结束后的3秒恢复期，转向躯干侧翼发动接触攻击。",
   },
@@ -195,7 +195,9 @@ export function buildOceanCatalog(regionId) {
       kind: config.kind,
       ...DESCRIPTIONS[config.kind],
       text:
-        regionId === "mariana"
+        tr`未交战时也会在自己的领地内缓慢巡游，靠近时才发动追猎。` +
+        " " +
+        (regionId === "mariana"
           ? config.kind === "hydra"
             ? tr`${DESCRIPTIONS.hydra.text} ${tr`三头巨龙海德拉守卫远离出生点的外海水面，是第一道压力帘的必经守卫。达到25米后，从侧面完成三次独立咬击，击败它即可开启2600米处的第一道压力帘；本局不再复活。`}`
             : tr`${DESCRIPTIONS[config.kind].text} ${tr`本海域的守关领主被击败后不再复活，压力帘随之开启。需成长至30米、突破四关并抵达海沟底部。`}`
@@ -203,7 +205,7 @@ export function buildOceanCatalog(regionId) {
             ? tr`${DESCRIPTIONS[config.kind].text} ${tr`本海域必须击败全部四位深渊领主；各领主只出现一次。`}`
             : regionId === "atlantis" && config.kind === "kraken"
               ? tr`${DESCRIPTIONS.kraken.text} ${tr`亚特兰蒂斯有三只克拉肯，分别守卫西侧城区、中庭和后城；每只拥有独立领地与生命值。每局随机由其中一只守护波塞冬地宫的圣珠，身份不会预先公开。先在城区公共建筑寻找海螺钥匙。海螺铭文可提供建筑线索；钥匙与真正守宝者的印记齐全，波塞冬地宫宝箱才会开启。达到30米并吞食箱中圣珠才能胜利。所有领主本局不再复活。`}`
-              : tr`${DESCRIPTIONS[config.kind].text} ${tr`每局击败后不再复活。夏威夷成长至30米并击败任意一位即可胜利。`}`,
+              : tr`${DESCRIPTIONS[config.kind].text} ${tr`每局击败后不再复活。夏威夷成长至30米并击败任意一位即可胜利。`}`),
       length: config.length,
       size: tr`${config.length} m`,
       tier: 3,

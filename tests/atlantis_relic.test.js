@@ -24,7 +24,9 @@ test("Sacred pearl has a fixed world capture center, unlocks without resizing, a
       relic.update(time, world, reduced);
       pearl.getWorldPosition(world);
       assert.deepEqual(world.toArray(), [0, -699, -922]);
-      assert.ok(pearl.material.emissiveIntensity >= 1.55);
+      // 圣珠可辨识但不再过曝；同时约束呼吸亮度下限与上限。
+      assert.ok(pearl.material.emissiveIntensity >= 0.59 - 1e-9);
+      assert.ok(pearl.material.emissiveIntensity <= 0.71 + 1e-9);
     }
   relic.setState({ relicUnlocked: true, relicCollected: true });
   assert.equal(pearl.visible, false);

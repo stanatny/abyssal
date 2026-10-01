@@ -7,7 +7,7 @@ import {
   paintStone,
   seededRandom,
 } from "./atlantis_art_geometry.js";
-import { pearlHabitat } from "./atlantis_pearl.js";
+import { pearlHabitat, PEARL_LIGHT_INTENSITY } from "./atlantis_pearl.js";
 import { ATLANTIS_EXCAVATION_SITES } from "./atlantis_terrain.js";
 
 // 本模块由 ATLANTIS_EXCAVATION_SITES[0] 的不可变元数据驱动装配;
@@ -986,7 +986,7 @@ function buildPearlNiches(b, lightSources) {
       y: floor + habitat.lightHeight,
       z,
       color: "#ffe3ab",
-      intensity: 800,
+      intensity: PEARL_LIGHT_INTENSITY,
       distance: 60,
     });
     for (const part of habitat.parts)

@@ -249,13 +249,16 @@ export const BOSS_BITE_HUNGER = 8;
 /** 每位领主所需的有效侧翼攻击数；体长、狂食和恢复阶段均不会改变次数。 */
 export const BOSS_REQUIRED_HITS = 3;
 
+/** 未指定地图领地时采用的领域半径；固定守卫仍使用各地图的实际配置。 */
+export const BOSS_DEFAULT_TERRITORY_RADIUS = 125;
+
 /** 主宰均属于tier3，必须通过hitBoss交战；不能作为普通猎物直接吞食。 */
 export const BOSS_SPECIES = Object.freeze(
   [
     {
       kind: "kraken",
       label: "漩涡主宰 · 克拉肯",
-      length: 42,
+      length: 48,
       health: 180,
       minAttackLength: 25,
       speed: 37,
@@ -275,7 +278,7 @@ export const BOSS_SPECIES = Object.freeze(
     {
       kind: "mayan",
       label: "遗迹主宰 · 格兰玛雅",
-      length: 48,
+      length: 55,
       health: 210,
       minAttackLength: 25,
       speed: 38,
@@ -295,7 +298,7 @@ export const BOSS_SPECIES = Object.freeze(
     {
       kind: "hydra",
       label: "三首主宰 · 海德拉",
-      length: 46,
+      length: 53,
       health: 220,
       minAttackLength: 25,
       speed: 39,
@@ -315,7 +318,7 @@ export const BOSS_SPECIES = Object.freeze(
     {
       kind: "leviathan",
       label: "深渊主宰 · 利维坦",
-      length: 55,
+      length: 63,
       health: 240,
       minAttackLength: 25,
       speed: 40,

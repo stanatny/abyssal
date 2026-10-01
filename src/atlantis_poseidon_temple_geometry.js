@@ -5,7 +5,7 @@ import {
   cachedGeometry,
   paintStone,
 } from "./atlantis_art_geometry.js";
-import { pearlHabitat } from "./atlantis_pearl.js";
+import { pearlHabitat, PEARL_LIGHT_INTENSITY } from "./atlantis_pearl.js";
 
 let SharedRitualMaterials = null;
 
@@ -284,7 +284,7 @@ export class PoseidonTempleBuilder {
       y: floor + scale * 1.36,
       z: z - scale * 0.22,
       color: "#e3d5a5",
-      intensity: 1800 * scale,
+      intensity: PEARL_LIGHT_INTENSITY * scale ** 2,
       distance: 100,
     });
   }

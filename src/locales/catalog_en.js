@@ -337,6 +337,8 @@ export const CATALOG_EN = Object.freeze({
   克拉肯: "Kraken",
   漩涡主宰: "Vortex Lord",
   深渊漩涡: "Abyssal Vortex",
+  "未交战时也会在自己的领地内缓慢巡游，靠近时才发动追猎。":
+    "Patrols slowly inside its territory even when undisturbed, and begins hunting only when you approach.",
   "预判你的前进位置布置深渊漩涡，牵引附近目标并抽走体力，漩涡中心还会造成伤害。追击时会拦截路线，而不是只停留在领地中心。":
     "Predicts your path and places an abyssal vortex ahead, pulling nearby targets in and draining stamina. The center also deals damage. During pursuit, it intercepts your route instead of staying at the center of its territory.",
   "看到漩涡预警后改变路线，利用岩柱遮挡；技能后的3秒恢复期，从侧翼朝向躯干接近咬击，再退出接触范围。":
@@ -344,8 +346,8 @@ export const CATALOG_EN = Object.freeze({
   格兰玛雅: "Gran Maja",
   遗迹主宰: "Ruins Lord",
   遗迹脉冲: "Ruin Pulse",
-  "灰银色扁宽三角头、额前六枚蓝眼与红色牙龈中的密集齿列，连接粗大环褶的蛇形长躯。蓄力时锁定你所在水层，向外发出高速脉冲；追击会压缩你和障碍物之间的空间。外观重绘保留原技能与接触判定。":
-    "A silver-gray, broad triangular head has six blue forehead eyes and dense teeth set in red gums, followed by a long serpentine body with heavy ring folds. Its windup locks your depth before a fast outward pulse, while pursuit squeezes escape routes. The redraw preserves its existing abilities and contact area.",
+  "灰银色扁宽三角头、额前六枚蓝眼与红色牙龈中的密集齿列，连接粗大环褶的蛇形长躯。蓄力时锁定你所在水层，向外发出高速脉冲；追击会压缩你和障碍物之间的空间。":
+    "A silver-gray, broad triangular head has six blue forehead eyes and dense teeth set in red gums, followed by a long serpentine body with heavy ring folds. Its windup locks your depth before a fast outward pulse, while pursuit squeezes escape routes.",
   "观察锁定水层，在预警末段上浮或下潜；冲击环结束后的3秒恢复期，转向躯干侧翼发动接触攻击。":
     "Watch the locked depth layer and rise or dive near the end of the warning. During the 3-second recovery after the shock ring ends, turn toward the body's flank for a contact attack.",
   三头海德拉: "Three-Headed Hydra",
@@ -381,6 +383,7 @@ export const CATALOG_EN = Object.freeze({
   海洋猎物: "Ocean Prey",
   "{0}—{1} m（本作水层）": "{0}–{1} m (in-game depth layer)",
   "{0}—{1} m（幻想领地）": "{0}–{1} m (fantasy territory)",
+  "{0} m（幻想领地）": "{0} m (fantasy territory)",
   即时恢复: "Instant Recovery",
   "医疗 恢复 补充 生命 体力 饥饿":
     "medical recover replenish health stamina hunger",

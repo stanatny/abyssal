@@ -3,6 +3,7 @@ import * as THREE from "three";
 import { createCreature } from "./creatures.js";
 import {
   BOSS_SPECIES,
+  BOSS_DEFAULT_TERRITORY_RADIUS,
   createBossState,
   tickBoss,
   hitBoss,
@@ -12,6 +13,8 @@ import {
 import { takeDamage } from "./simulation.js";
 import { makeLabel } from "./rewards.js";
 import { createFluidTexture } from "./effect_textures.js";
+
+const FORWARD_AXIS = new THREE.Vector3(0, 0, -1);
 
 /**
  * 检查嘴部小球是否触及领主实际网格或已进入闭合躯干；触腕间空隙不计接触。
@@ -595,7 +598,7 @@ export function createEncounters(
       mesh,
       home: new THREE.Vector3(),
       enabled: false,
-      radius: 110,
+      radius: BOSS_DEFAULT_TERRITORY_RADIUS,
       ring,
       label,
       fx: createAbilityFx(
@@ -606,6 +609,18 @@ export function createEncounters(
       ),
       previousPhase: "dormant",
       heading: new THREE.Vector3(0, 0, -1),
+      // 实例有独立巡游相位，转向及位移复用临时对象；切图和重开均恢复起始相位。
+      patrolStart: (91 + bosses.length) * 2.399963,
+      patrolAngle: 0,
+      motion: {
+        target: new THREE.Vector3(),
+        side: new THREE.Vector3(),
+        candidate: new THREE.Vector3(),
+        lookahead: new THREE.Vector3(),
+        next: new THREE.Vector3(),
+        offset: new THREE.Vector3(),
+        orientation: new THREE.Quaternion(),
+      },
       attackOrigin: new THREE.Vector3(),
       lockTarget: new THREE.Vector3(),
       contactCooldown: 0,
@@ -662,6 +677,7 @@ export function createEncounters(
     entry.lastBiteResult = null;
     entry.lastAttackSide = false;
     entry.phaseHit = false;
+    entry.patrolAngle = entry.patrolStart;
     entry.heading.set(0, 0, -1);
     entry.mesh.quaternion.identity();
     entry.attackOrigin.set(0, 0, 0);
@@ -716,7 +732,7 @@ export function createEncounters(
       entry.fixedHome = null;
       entry.persistentDefeat = true;
       entry.maxCenterY = Infinity;
-      entry.radius = 110;
+      entry.radius = BOSS_DEFAULT_TERRITORY_RADIUS;
       entry.enabled = false;
       entry.mesh.visible = false;
       entry.label.visible = false;
@@ -729,7 +745,7 @@ export function createEncounters(
         entry.persistentDefeat = true;
         entry.fixedHome = instance.home;
         entry.maxCenterY = instance.maxCenterY ?? Infinity;
-        entry.radius = instance.radius ?? 110;
+        entry.radius = instance.radius ?? BOSS_DEFAULT_TERRITORY_RADIUS;
       }
       place(entry, index);
     });
@@ -827,30 +843,56 @@ export function createEncounters(
     });
   }
   function moveBoss(entry, direction, speed, dt, blockedBetween) {
+    if (dt <= 0 || speed <= 0) return;
     const step = speed * dt;
     const origin = entry.mesh.position;
-    const candidates = [direction];
-    const side = new THREE.Vector3(-direction.z, 0, direction.x).normalize();
-    // 领地岩柱会实际挡住追猎；主动绕侧面和上方接近，而非卡住或穿石追杀。
-    for (const offset of [
-      side,
-      side.clone().negate(),
-      new THREE.Vector3(0, 1, 0),
-    ])
-      candidates.push(
-        direction.clone().addScaledVector(offset, 1.6).normalize(),
-      );
-    const clear = candidates.find(
-      (candidate) =>
-        !blockedBetween(
-          origin,
-          origin.clone().addScaledVector(candidate, Math.max(7, step + 4)),
-        ),
-    );
+    const { side, candidate, lookahead, next } = entry.motion;
+    side.set(-direction.z, 0, direction.x).normalize();
+    let clear = false;
+    // 保留原有的直行、左右绕行和上方避障顺序，不在每帧生成候选数组及向量。
+    for (let i = 0; i < 4; i++) {
+      candidate.copy(direction);
+      if (i === 1 || i === 2)
+        candidate.addScaledVector(side, i === 1 ? 1.6 : -1.6).normalize();
+      else if (i === 3) {
+        candidate.y += 1.6;
+        candidate.normalize();
+      }
+      lookahead.copy(origin).addScaledVector(candidate, Math.max(7, step + 4));
+      if (!blockedBetween(origin, lookahead)) {
+        clear = true;
+        break;
+      }
+    }
     if (!clear) return;
-    entry.heading.lerp(clear, 1 - Math.exp(-dt * 3.6)).normalize();
-    const next = origin.clone().addScaledVector(entry.heading, step);
+    entry.heading.lerp(candidate, 1 - Math.exp(-dt * 3.6)).normalize();
+    next.copy(origin).addScaledVector(entry.heading, step);
     if (!blockedBetween(origin, next)) origin.copy(next);
+  }
+  /** 未发现玩家时沿领域内部的缓慢椭圆巡游；所有位置连续积分，返巢后不瞬移。 */
+  function patrolBoss(entry, dt, blockedBetween) {
+    if (dt <= 0) return;
+    const radius = Math.min(38, entry.radius * 0.32);
+    const speed = 3.4;
+    entry.patrolAngle += (dt * speed) / radius;
+    const direction = entry.motion.target
+      .set(
+        Math.sin(entry.patrolAngle) * radius * 0.8,
+        Math.sin(entry.patrolAngle * 0.75) * 2.4,
+        Math.cos(entry.patrolAngle) * radius,
+      )
+      .add(entry.home)
+      .sub(entry.mesh.position);
+    const distance = direction.length();
+    if (distance < 0.1) return;
+    direction.divideScalar(distance);
+    moveBoss(
+      entry,
+      direction,
+      Math.min(speed, distance / dt),
+      dt,
+      blockedBetween,
+    );
   }
   /** 喷墨只打断已在交战中的领主；十秒内停留原地，未射出的招式全部取消。 */
   function disorient(center, radius, now, duration = 10) {
@@ -884,6 +926,7 @@ export function createEncounters(
   }
   function update(dt, time, player, position, forward, { blockedBetween }) {
     if (disposed) return null;
+    dt = Number.isFinite(dt) ? Math.max(0, dt) : 0;
     active = null;
     if (player.dead || player.won || player.timedOut) return active;
     if (hasPlayerPosition && dt > 0) {
@@ -949,16 +992,7 @@ export function createEncounters(
           moveBoss(entry, back, 22, dt, blockedBetween);
         }
       } else if (state.phase === "dormant") {
-        entry.mesh.position
-          .copy(entry.home)
-          .add(
-            new THREE.Vector3(
-              Math.sin(time * 0.08) * 17,
-              Math.sin(time * 0.2) * 3,
-              Math.cos(time * 0.08) * 17,
-            ),
-          );
-        entry.heading.set(Math.cos(time * 0.08), 0, -Math.sin(time * 0.08));
+        patrolBoss(entry, dt, blockedBetween);
       } else if (attack && state.ability === "charge") {
         const old = entry.mesh.position.clone();
         const next = old
@@ -1000,14 +1034,16 @@ export function createEncounters(
         ),
       );
       // 领主被限制在自己的领域附近，不会穿越整张地图追杀初生玩家。
-      const fromHome = entry.mesh.position.clone().sub(entry.home);
+      const fromHome = entry.motion.offset
+        .copy(entry.mesh.position)
+        .sub(entry.home);
       if (fromHome.length() > entry.radius + 22)
         entry.mesh.position
           .copy(entry.home)
           .add(fromHome.setLength(entry.radius + 22));
       entry.mesh.quaternion.slerp(
-        new THREE.Quaternion().setFromUnitVectors(
-          new THREE.Vector3(0, 0, -1),
+        entry.motion.orientation.setFromUnitVectors(
+          FORWARD_AXIS,
           entry.heading,
         ),
         Math.min(1, dt * 2),
@@ -1015,7 +1051,7 @@ export function createEncounters(
       if (state.phase !== "disoriented")
         entry.mesh.userData.animate?.(
           time,
-          attack ? 2.5 : recover ? 0.35 : 1.2,
+          attack ? 2.5 : recover ? 0.35 : state.phase === "dormant" ? 0.7 : 1.2,
         );
       entry.ring.visible = windup || attack;
       entry.ring.position.copy(

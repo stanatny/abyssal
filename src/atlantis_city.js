@@ -1,3 +1,4 @@
+import { PEARL_LIGHT_INTENSITY } from "./atlantis_pearl.js";
 import {
   finishScenePreparation,
   constructionScope,
@@ -565,7 +566,7 @@ export function* createAtlantisCitySteps(parent, { heightAt } = {}) {
         base: heightAt(x, z) + 0.3,
         rotation: x < 0 ? -0.55 : 0.55,
       });
-      if (t) lamp("#ffe3ab", 45, 58, t.x, t.y + 1.65, t.z);
+      if (t) lamp("#ffe3ab", PEARL_LIGHT_INTENSITY, 58, t.x, t.y + 1.65, t.z);
     }
 
     for (const site of underways.records)
@@ -579,7 +580,7 @@ export function* createAtlantisCitySteps(parent, { heightAt } = {}) {
             rotation: end > 0 ? 0 : Math.PI,
             allowReserved: true,
           });
-          lamp("#ffe3ab", 45, 58, t.x, t.y + 1.65, t.z);
+          lamp("#ffe3ab", PEARL_LIGHT_INTENSITY, 58, t.x, t.y + 1.65, t.z);
         }
 
     // 建造零散残件、柱鼓与陶罐，既有尺度参照，又不让大鱼卡在碎石碰撞中。

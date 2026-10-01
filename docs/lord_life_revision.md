@@ -1,0 +1,41 @@
+# Softer pearls and living lord territories
+
+Reviewed follow-up after released v0.8.1 / `3bbcd07`, requested on 2026-10-01. After reviewing the candidate, the user explicitly authorized committing and pushing it to `main` as v0.8.2. This supersedes the earlier local-only status.
+
+## Appearance and scope
+
+- Shell-pearl emission falls from 1.2 to 0.45; the unlocked quest pearl changes from 1.7 ± 0.15 to 0.65 ± 0.06. Its locked state, exact contact point, chest, visibility and victory settlement remain unchanged. The previous 18–65-unit decorative emission fade remains.
+- Initial same-view captures showed that reducing emission alone did not fix the blown-out crypt shells. Temple shell point lights were 1800 × scale, versus 45 for ordinary city shells; Harbor/Agora niches used 800. These marine sources now share `PEARL_LIGHT_INTENSITY = 45`, with temple intensity scaled by area (`scale²`). Light count, color, range, positions, ambient fill and city fog remain; do not solve glare by darkening the whole city or adding lights.
+- Lord real lengths change from 42 / 48 / 46 / 55 m to 48 / 55 / 53 / 63 m. Models and their existing contact roots scale together; no unrelated contact-geometry redraw is made. Automatic Guide/sonar length values follow the configuration. Skill reach/damage, combat speeds, health, three effective flank hits and 25 m eligibility stay shared and unchanged.
+- Default territory radius changes from 110 to 125. Atlantis uses 125 / 78 / 86 (formerly 110 / 68 / 75); Bermuda uses 86 / 103 / 98 / 86 (75 / 90 / 85 / 75); Mariana uses 75 for surface Hydra and 98 for its other guardians (65 / 85). Fixed anchors shift locally where necessary to retain battle space, territory gaps and boundary clearance. Gate depths and regional objectives remain unchanged.
+
+## Continuous idle motion
+
+The former dormant motion directly placed every lord on the same 17-unit, very slow circle. Returning to dormancy reset its position to that orbit. The new target is a bounded ellipse around its own home, with independent instance phase and a small vertical sway. Actual movement integrates at at most 3.4 units/s through the same solid-cover steering as pursuit. Patrol center motion stays well inside the territory; the existing combat leash of radius + 22 is retained. Return-to-patrol never teleports to the orbit. No attacks are cast just for ambience; existing detection/line-of-sight and battle states still govern combat.
+
+Patrol advances only with valid active-game delta time; ink disorientation and defeated/terminal states stop movement. Reset reuses models and restores each instance's independent phase. Steering vectors/quaternion are held per instance instead of constructing candidate arrays/vectors every frame. No extra RAF, geometry, textures or animation loop is added. This does not by itself prove a frame-rate or temperature improvement.
+
+## Review evidence and rollback
+
+Ignored `.local/lord_life_review/` retains baseline source copies, same-camera actual-game pearl images, unit/browser logs and delivery manifests. Development positioning, hidden HUD/animals and an explicitly unlocked quest chest isolate material review; these captures are not natural quest completion. No screenshot-only lighting is added.
+
+The first expanded western Atlantis anchor intersected a real building at the battle-space test point `(-217, -385, -578)`. It was rejected; the corrected anchors preserve the accepted 30 m navigation-space assertions without weakening them. Seven actual Atlantis guardian integration checks and six new patrol/lifecycle tests pass. The latter isolate movement in empty water; they do not substitute for actual map collision and native-game checks.
+
+Final scene review, broader tests, public build checks and remaining limits are recorded below as completed. Rollback can restore the changed pearl materials/light source values and lord motion/configuration independently; no save migration is involved. Physical-device appearance, thermal behavior and natural full-round balancing require user playtesting.
+
+### Completed source and scene checks
+
+- The fresh full unit suite passes **696/696**, including the accepted Atlantis geometry oracle, adult navigation/battle-space checks, both characters' three-hit lord combat, gate progression, treasure settlement and the six new patrol/lifecycle checks. The authenticated geometry fixture is unchanged. Two initial failures asserted superseded values (the court's old Z anchor and the old bright pearl emission); their expectations now cover the intentional new anchor and the restrained emission range while preserving contact, visibility and quest assertions. Original logs remain beside the final passing log.
+- Twelve same-camera final pearl views cover the crypt gallery, shell niche and sacred pearl at 1440×900 and 390×667, in High and Smooth. Baseline, emission-only intermediate and corrected-light images are retained separately. The accepted result retains shell ridges, pearl surfaces and localized marine lighting; the surrounding crypt stays readable. All captures use the actual game scene with staged positions and no additional review-only lights.
+- In four actual regional worlds, all **13 enabled lords** pass an 80-second, 30 Hz controlled patrol check: continuous bounded motion, no dormant attack, independent headings, no sampled body contact against the actual map's static colliders/barriers, and no page/console errors. Native pause also preserves their positions. Body clearance is sampled once per simulated second; this is neither exhaustive collision proof nor an 80-second natural gameplay session.
+- Twenty final keyframes (0/20/40/60/80 seconds in each region) replay those measured poses in the actual scene with normal regional atmosphere and visibility. An earlier capture pass had hidden lord meshes and nursery atmosphere; it is archived separately and excluded from visual acceptance. This follow-up retains existing animation meshes, terrain, ecological populations and the fixed point-light pool. No FPS or physical-device heat benefit is claimed.
+
+### Completed compiled-preview checks
+
+The first public browser pass found an existing untranslated single-depth habitat template in Mariana's non-Hydra lord cards. The missing English entry is now supplied, and the existing Mariana Guide regression covers all four lords' real lengths, patrol descriptions and translated habitat fields. The subsequent focused Guide/localization suite passes **16/16**; this is distinct from the preceding 696-test full run.
+
+The final build passes formatting and production compilation (the existing >500 kB bundle warning remains). Eight native-input public cases cover all four regions at English 1440×900 and Chinese 390×667: selection, Guide and the affected lord descriptions/sizes, start length, ability input, pause/help/resume, return home, language availability and horizontal overflow. Both characters alternate across the regions. All eight pass with zero page/console errors; production exposes no development API. These are functional smoke checks, not natural lord defeats or full-round survival tests.
+
+All 172 runtime-source fingerprints match the candidate. The restricted local and public servers return the same eight build artifacts (16 byte/hash matches); five private/directory paths are denied, and a temporary harmless asset verifies same-address refresh before removal. Previous hashed assets remain available for already-open clients, while the current index is replaced only after its new assets are copied. At the time of candidate review, the preview manifest recorded the uncommitted candidate separately from the previously verified v0.8.1 Pages release; no release action had yet been performed. Subsequent v0.8.2 release checks and deployment gates are recorded in [verification](verification.md).
+
+Evidence paths within `.local/lord_life_review/`: `full_units_final.log`, `locale_retry.log`, `check.log`, `build.log`, `before/`, `final_after/`, `regions/report.json`, `public/native_report.json`, `delivery_report.json`, and the retained initial-failure logs/reports. Physical-device appearance and natural encounter balancing remain user-playtest boundaries.

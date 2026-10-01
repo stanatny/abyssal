@@ -223,7 +223,7 @@ test("The 30 m approach avenue and Kraken battle volume remain genuinely open", 
   }
   const [homeX, homeY, homeZ] =
     getExpedition("atlantis").region.bossHomes.kraken;
-  assert.deepEqual([homeX, homeY, homeZ], [0, -420, -730]);
+  assert.deepEqual([homeX, homeY, homeZ], [0, -420, -815]);
   for (const y of [homeY - 25, homeY, homeY + 25]) {
     for (const x of [-65, -30, 0, 30, 65]) {
       for (const z of [homeZ - 65, homeZ - 30, homeZ, homeZ + 30, homeZ + 65]) {

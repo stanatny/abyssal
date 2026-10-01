@@ -282,7 +282,7 @@ export function atlantisMaterials() {
   const pearl = new THREE.MeshPhysicalMaterial({
     color: "#fff0bd",
     emissive: "#ffe1a4",
-    emissiveIntensity: 1.2,
+    emissiveIntensity: 0.45,
     roughness: 0.2,
     metalness: 0.05,
     clearcoat: 1,

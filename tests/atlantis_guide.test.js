@@ -9,6 +9,7 @@ import { setLanguage, t } from "../src/i18n.js";
 import { ATLANTIS_EN } from "../src/locales/atlantis_en.js";
 import { CATALOG_EN } from "../src/locales/catalog_en.js";
 import { UI_EN } from "../src/locales/ui_en.js";
+import { BOSS_SPECIES } from "../src/boss_rules.js";
 
 // Node只忽略样式导入；实际图鉴模块和数据构建逻辑照常执行。
 const cssHook = registerHooks({
@@ -106,7 +107,13 @@ test("Mariana guide distinguishes its adult start and mandatory first Hydra gate
     const rules = catalog.find((e) => e.kind === "mariana_thresholds");
     assert.match(rules.text, locale === "en" ? /all four gates/ : /全部四关/);
     assert.match(rules.habitat, locale === "en" ? /4,000/ : /4000/);
-    for (const e of [hydra, rules])
+    const lords = catalog.filter((e) => e.category === "lord");
+    for (const lord of lords) {
+      const species = BOSS_SPECIES.find((e) => e.kind === lord.kind);
+      assert.equal(lord.length, species.length);
+      assert.match(lord.text, locale === "en" ? /Patrols slowly/ : /缓慢巡游/);
+    }
+    for (const e of [...lords, rules])
       for (const key of ["text", "counter", "habitat"])
         if (locale === "en")
           assert.equal(chinese.test(e[key]), false, `${e.kind} ${key}`);

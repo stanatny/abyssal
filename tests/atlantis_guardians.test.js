@@ -78,9 +78,9 @@ test("三个固定克拉肯共用物种规则，但领地互不重叠且远离�
     assert.deepEqual(entry.home.toArray(), atlantis.bossInstances[index].home);
     assert.ok(-entry.home.y >= entry.state.species.depthMin);
     assert.ok(-entry.home.y <= entry.state.species.depthMax);
-    // 28米包住真实42米克拉肯各姿态顶点，22米为现有追击超出领地的上限。
-    assert.ok(entry.home.x - entry.radius - 22 - 28 >= WORLD.minX);
-    assert.ok(entry.home.x + entry.radius + 22 + 28 <= WORLD.maxX);
+    // 32米包住真实48米克拉肯各姿态顶点，22米为现有追击超出领地的上限。
+    assert.ok(entry.home.x - entry.radius - 22 - 32 >= WORLD.minX);
+    assert.ok(entry.home.x + entry.radius + 22 + 32 <= WORLD.maxX);
     assert.ok(entry.home.z + entry.radius + 22 < NURSERY.minZ);
     assert.equal(isNursery(entry.home), false);
     for (const other of f.guardians.slice(index + 1))

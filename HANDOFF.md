@@ -1,5 +1,11 @@
 # Current Development Handoff
 
+## Authorized release: v0.8.2 — living lord territories and softer pearls
+
+The user accepted the reviewed pearl and lord follow-up and explicitly requested committing and pushing it to `main`. This supersedes the follow-up's prior local-only status. Read [the implementation and review](docs/lord_life_revision.md): restrained marine pearl lighting, continuous collision-aware idle patrol/return, larger real lord bodies and territories, separated Atlantis guardians, unchanged regional endings and synchronized bilingual Guide. Preserve the fixed light pool, accepted city geometry and independent preparation oracle. Version metadata and both menu footers are v0.8.2; the labeled v0.8.0 README image remains an interface reference because the menu layout is unchanged.
+
+Complete fresh formatting, full units and a production build before fast-forwarding the clean main worktree and pushing. Verify the Pages workflow for the exact pushed SHA, served artifact bytes and native four-region desktop/touch-viewport flows. Evidence and receipts belong in ignored `.local/release_v0_8_2/`; report a playable release only after these gates pass. No tag, separate GitHub Release or personal Skill publication is requested.
+
 ## Authorized release: v0.8.1 — local marine glow
 
 On October 1, the user accepted the restrained Atlantis lighting review and authorized committing and pushing it to `main`. This supersedes the local-only status of that review. Read [the lighting review](docs/atlantis_light_review.md). The material factory removes rectangular lapis-inlay emission and softly fades decorative shell-pearl and inscription emission between 18 and 65 world units. Existing local illumination, city visibility, architecture, colliders, ecology and objectives remain intact. Version metadata and both menu languages are synchronized to v0.8.1; the v0.8.0 README image remains a labeled interface reference, since the interface is unchanged.

@@ -119,7 +119,7 @@ export function createAtlantisRelic(parent, { records = [] } = {}) {
       seal.visible = !unlocked;
       pearl.visible = unlocked && !collected;
       crown.visible = !collected;
-      pearlMat.emissiveIntensity = unlocked ? 1.7 : 0.1;
+      pearlMat.emissiveIntensity = unlocked ? 0.65 : 0.1;
     },
     update(time, position, reducedMotion = false) {
       if (disposed) return;
@@ -140,7 +140,7 @@ export function createAtlantisRelic(parent, { records = [] } = {}) {
       // 核心接触点固定；呼吸只改变材质，不能令圣珠与拾取范围错位。
       if (unlocked)
         pearlMat.emissiveIntensity =
-          1.7 + (reducedMotion ? 0 : Math.sin(time * 1.4) * 0.15);
+          0.65 + (reducedMotion ? 0 : Math.sin(time * 1.4) * 0.06);
     },
     reset() {
       keyArt.reset();

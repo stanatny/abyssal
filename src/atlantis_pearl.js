@@ -1,6 +1,9 @@
 import * as THREE from "three";
 import { atlantisMaterials, cachedGeometry } from "./atlantis_art_geometry.js";
 
+// 普通路标和地宫壁龛共用克制的贝珠照明强度；缩放灯具按面积调整。
+export const PEARL_LIGHT_INTENSITY = 45;
+
 const habitats = new Map();
 /** 幻想发光贝珠：放射肋双壳、虹彩内壁、厚贝缘与藏在壳内的珍珠；不作为现实物种。 */
 export function pearlHabitat({ detail = "full" } = {}) {

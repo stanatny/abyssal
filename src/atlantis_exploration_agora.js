@@ -6,7 +6,7 @@ import {
   paintStone,
   seededRandom,
 } from "./atlantis_art_geometry.js";
-import { pearlHabitat } from "./atlantis_pearl.js";
+import { pearlHabitat, PEARL_LIGHT_INTENSITY } from "./atlantis_pearl.js";
 import { createAtlantisExplorationFurniture } from "./atlantis_exploration_furniture.js";
 import { AGORA_EXCAVATION_SITE } from "./atlantis_exploration_agora_site.js";
 
@@ -991,7 +991,7 @@ function buildPearlNiches(b, lightSources) {
       y: floor + habitat.lightHeight,
       z,
       color: "#ffe3ab",
-      intensity: 800,
+      intensity: PEARL_LIGHT_INTENSITY,
       distance: 60,
     });
     for (const part of habitat.parts)

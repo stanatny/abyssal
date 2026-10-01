@@ -1,3 +1,15 @@
+# v0.8.2 — Living lord territories and softer pearls
+
+Release preparation: 2026-10-01. The user reviewed the [pearl and lord follow-up](lord_life_revision.md) and explicitly authorized committing and pushing it to `main`. This supersedes the earlier local-only status. The release includes restrained shell/quest-pearl lighting, continuous independent territorial patrols, moderately larger real lord bodies/territories and the associated anchor and bilingual Guide corrections. Shared 25 m eligibility, three flank hits, abilities, ecology and regional endings remain. Version metadata and both menu footers are v0.8.2; the labeled v0.8.0 README image remains an interface reference for the unchanged menu layout.
+
+The fresh release full unit suite passes **696/696** on local Node 26.10.0, including the final Mariana Guide localization fix. Project formatting and production compilation pass with the existing >500 kB bundle warning. Eight fresh local compiled-build native-input cases pass across all four regions in English desktop and Chinese touch-viewport emulation, alternating both characters. All eight build artifacts match, with zero page/console errors or production development API. The authenticated accepted-source architecture/collider oracle is unchanged. Earlier controlled review evidence remains separate: twelve final pearl views across High/Smooth and desktop/narrow viewports, and 80-second, 30 Hz patrol checks for 13 enabled lords in all four actual maps, with sampled solid-body clearance and twenty actual-scene keyframes. These are controlled checks, not natural full-round gameplay or physical-device performance measurements.
+
+Fresh compiled-build and formal deployment receipts belong in ignored `.local/release_v0_8_2/`. Release acceptance requires the exact pushed main SHA's Pages workflow to succeed, all eight served build artifacts to match the release build, and native four-region checks in English desktop (1440×900) and Chinese touch-viewport emulation (390×667) to pass. Those checks cover version labels, region objectives, Guide/lord sizes and descriptions, starting lengths, ability input, pause/help/resume, reachable actions, Home/language state and horizontal overflow, alternating both characters. Production must expose no development API and log no page/console errors. A successful push alone is not a playable-release claim. No tag, separate GitHub Release or personal Skill update is requested.
+
+Physical phones, the user's network, natural full-round balancing and thermal/battery behavior remain unverified.
+
+---
+
 # v0.8.1 — Restrained Atlantis decorative light
 
 Release preparation: 2026-10-01. The user accepted the [lighting refinement](atlantis_light_review.md) and authorized committing and pushing it to `main`. This supersedes that review's earlier local-only status. Runtime changes are confined to the shared Atlantis material factory; release metadata and both menu version labels are synchronized. The labeled v0.8.0 README image remains an accurate reference for the unchanged interface.
