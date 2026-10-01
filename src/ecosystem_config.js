@@ -1,3 +1,4 @@
+import { HAWAII_ANCIENTS } from "./regional_ancients.js";
 /**
  * 海洋生态配置；length 是模型与碰撞的游戏米数，depth 是世界坐标深度。
  * 现代物种取真实较大个体；水层按 UI 的 ×4 深度比例映射。古代复苏、
@@ -331,6 +332,7 @@ export const ECOSYSTEM_SPECIES = Object.freeze(
         "早期应保持远距，优先寻找地形和技能脱离；体长优势建立后才值得冒险。",
     }),
     ...DEEP_GIANT_SPECIES,
+    ...HAWAII_ANCIENTS,
   ]
     .sort(
       (a, b) =>

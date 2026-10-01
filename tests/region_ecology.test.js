@@ -45,21 +45,24 @@ const SPAWN = new THREE.Vector3(0, -18, 75);
 const CITY = createAtlantisCity(new THREE.Scene(), { heightAt: seabedHeight });
 const CITY_COLLIDERS = CITY.colliders;
 
-test("海域名单隔离，两图仅在原有285与390尾库存上各加两只巨型鱼龙", () => {
+test("海域名单隔离，夏威夷313个体与亚特兰蒂斯412个体保持各自实际库存", () => {
   assert.equal(SPECIES, ECOSYSTEM_SPECIES);
-  assert.equal(getRegionSpecies(), ECOSYSTEM_SPECIES);
-  assert.equal(SPECIES.length, 25);
+  assert.deepEqual(
+    getRegionSpecies().filter((s) => s.category !== "invertebrate"),
+    ECOSYSTEM_SPECIES,
+  );
+  assert.equal(SPECIES.length, 26);
   assert.equal(
     SPECIES.reduce((sum, s) => sum + s.population, 0),
-    287,
+    293,
   );
-  assert.equal(ALL_SPECIES.length, 45);
-  assert.equal(new Set(ALL_SPECIES.map((s) => s.kind)).size, 45);
+  assert.equal(ALL_SPECIES.length, 49);
+  assert.equal(new Set(ALL_SPECIES.map((s) => s.kind)).size, 49);
   const atlantis = getRegionSpecies("atlantis");
-  assert.equal(atlantis.length, 18);
+  assert.equal(atlantis.length, 20);
   assert.equal(
     atlantis.reduce((sum, s) => sum + s.population, 0),
-    392,
+    412,
   );
   assert.deepEqual(
     REGION_SPECIES_KINDS.atlantis,
@@ -67,11 +70,11 @@ test("海域名单隔离，两图仅在原有285与390尾库存上各加两只�
   );
   assert.deepEqual(
     REGION_SPECIES_KINDS.hawaii,
-    SPECIES.map((s) => s.kind),
+    getRegionSpecies("hawaii").map((s) => s.kind),
   );
   assert.equal(
     atlantis.filter((s) => REGION_SPECIES_KINDS.hawaii.includes(s.kind)).length,
-    11,
+    13,
   );
   for (const unique of ATLANTIS_SPECIES) {
     assert.ok(REGION_SPECIES_KINDS.atlantis.includes(unique.kind));
@@ -93,7 +96,7 @@ test("海域名单隔离，两图仅在原有285与390尾库存上各加两只�
 
 test("实际坡度与真实城市下，392个出生位置合法且幼年补给就在前方", () => {
   const population = seedPopulation();
-  assert.equal(population.length, 392);
+  assert.equal(population.length, 412);
   const nursery = population.filter(({ point }) => isNursery(point));
   assert.ok(nursery.length >= 168);
   assert.ok(nursery.every(({ species }) => !species.predator));
@@ -101,7 +104,16 @@ test("实际坡度与真实城市下，392个出生位置合法且幼年补给�
   const edible = nursery.filter(({ species }) =>
     canEat(juvenile, species.length),
   );
-  assert.equal(edible.length, 168);
+  assert.equal(
+    edible.filter(
+      ({ species }) => !species.benthic && species.category !== "invertebrate",
+    ).length,
+    168,
+  );
+  assert.ok(
+    edible.filter(({ species }) => species.category === "invertebrate")
+      .length >= 16,
+  );
   assert.equal(
     edible.filter(({ species }) => species.schoolSize > 1).length,
     152,
@@ -512,7 +524,11 @@ function seedPopulation() {
       );
       assert.ok(
         point.y >=
-          seabedHeight(point.x, point.z) + species.length * 0.35 + 3 - 0.001,
+          seabedHeight(point.x, point.z) +
+            (species.benthic
+              ? species.floorOffset
+              : species.length * 0.35 + 3) -
+            0.001,
       );
       assert.equal(
         isPositionBlocked(point, {

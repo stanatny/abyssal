@@ -1,3 +1,9 @@
+import {
+  createExpeditionObjective,
+  advanceExpeditionObjective,
+  expeditionObjectiveHint,
+  ATLANTIS_RELIC,
+} from "./expedition_objectives.js";
 import { createWorldBoundary, WORLD_EDGE_INSET } from "./world_boundary.js";
 import { createMarianaOcean } from "./mariana_ocean.js";
 import { MARIANA_GATES, MARIANA_REFUGE } from "./mariana_config.js";
@@ -253,6 +259,7 @@ const humans = createHumanActivity(scene, {
   castWorld: (from, to, radius = 0) =>
     castIndexedSegment(from, to, {
       staticColliders: ocean.colliders,
+      dynamicColliders: [...(ocean.barriers || []), ...surface.colliders],
       radius,
     }),
   isSwallowing: (mesh) => feeding.has(mesh),
@@ -672,7 +679,19 @@ function updateSonar() {
             guardian: Boolean(g.guideToGuardian && i >= ocean.progress.opened),
             open: i < ocean.progress.opened,
           }))
-      : [],
+      : objectiveState?.relicUnlocked && !objectiveState.relicCollected
+        ? [{ ...ATLANTIS_RELIC, open: false, relic: true }]
+        : objectiveState?.clueRead &&
+            !objectiveState.keyCollected &&
+            ocean.relic?.keyArt.getPoint(objectiveState.keySiteId)
+          ? [
+              {
+                ...ocean.relic.keyArt.getPoint(objectiveState.keySiteId),
+                open: false,
+                key: true,
+              },
+            ]
+          : [],
   });
   const character = getCharacter(player.characterId);
   const skill = character.active;
@@ -963,6 +982,7 @@ function seedPickups() {
     item.mesh.visible = true;
   }
 }
+let objectiveState;
 let currentNotification = "";
 function notify(source, duration = 3) {
   currentNotification = source;
@@ -976,7 +996,9 @@ function resetExpedition(preserveWorld = false) {
   $("hud").inert = false;
   expedition = setup.getSelection();
   player = createPlayer(expedition.character.id, expedition.startLength);
-  player.expeditionComplete = !expedition.region.completion;
+  player.expeditionComplete = false;
+  objectiveState = createExpeditionObjective(expedition.region);
+  ocean.relic?.reset();
   selectAvatar(expedition.character);
   inkAbility = createInkState();
   position.fromArray(expedition.region.spawn);
@@ -1159,6 +1181,9 @@ function renderOverlay(kind) {
           ? tr`30 分钟探索结束 · 最终体长 ${player.length.toFixed(1)} 米\n捕食 ${player.eaten} 次 · 击败领主 ${player.bossesDefeated} 位\n本次未达成深渊霸主；继续积累经验，再次出发。`
           : tr`WASD 转向，空格冲刺，J 角色技能，K 慢游。接触自动咬击。\n${getCharacter(player.characterId).active.name}：${getCharacter(player.characterId).active.description}\n水下蓄势后向上破水；受伤进食优先治疗。`,
   );
+  if (won)
+    $("overlay-body").textContent +=
+      "\n" + t(expedition.region.objective.completed);
   setMarkup(
     $("resume"),
     won || dead || timeup
@@ -1380,6 +1405,7 @@ function updatePlayer(dt, roundDt) {
     now: elapsed,
   });
   resolvePlayerMotion(previousPosition);
+  humans.defense.recordMovement(previousPosition, position);
   avatar.position.copy(position);
   avatar.scale.setScalar(player.length);
   avatar.userData.animate?.(elapsed, jet ? 2.8 : boosting ? 2.2 : 0.9, {
@@ -1656,7 +1682,9 @@ function updateEntities(dt) {
       entity.cooldown <= 0
     ) {
       direction.copy(mesh.position).sub(position).normalize();
-      moveSpeed = Math.min(10, moveSpeed + (nurseryResident ? 0.8 : 1.5));
+      moveSpeed =
+        species.escapeSpeed ??
+        Math.min(10, moveSpeed + (nurseryResident ? 0.8 : 1.5));
     } else if (entity.school) {
       const target = entity.school.center
         .clone()
@@ -1796,13 +1824,15 @@ function updateEntities(dt) {
     }
     direction.normalize();
     const previousHabitatPosition = mesh.position.clone();
+    if (species.benthic) direction.y = 0;
     entity.velocity.lerp(direction, Math.min(1, dt * 2));
+    if (species.benthic) entity.velocity.y = 0;
     mesh.position.addScaledVector(entity.velocity, moveSpeed * dt);
     if (layeredSchool) pushFromRocks(mesh.position, species.length * 0.12);
     let floor = floorAt(
       mesh.position.x,
       mesh.position.z,
-      species.length * 0.28 + 2,
+      species.benthic ? species.floorOffset : species.length * 0.28 + 2,
     );
     mesh.position.x = Clamp(
       mesh.position.x,
@@ -1898,6 +1928,25 @@ function updateEntities(dt) {
             -contact.direction.z,
           );
         }
+      }
+    }
+    if (species.benthic) {
+      const floorPoint =
+        activeSeabedHeight(mesh.position.x, mesh.position.z) +
+        (species.floorOffset ?? 0);
+      mesh.position.y = floorPoint;
+      if (
+        floorPoint > -habitat.depthMin ||
+        floorPoint < -habitat.depthMax ||
+        blockedBetween(
+          previousHabitatPosition,
+          mesh.position,
+          species.length * 0.15,
+        )
+      ) {
+        mesh.position.copy(previousHabitatPosition);
+        entity.heading += Math.PI * 0.6;
+        entity.velocity.multiplyScalar(-1);
       }
     }
     mesh.quaternion.slerp(
@@ -2212,10 +2261,15 @@ function updateHud() {
             ? "狩猎海洋霸主，探索深水区"
             : player.length < 25
               ? "挑战远古巨兽，成长至 25 米"
-              : player.bossesDefeated
-                ? "深渊印记已得 · 成长至 30 米"
-                : "25 米后挑战主宰 · 接触咬击",
+              : expeditionObjectiveHint(objectiveState, player),
   );
+  if (
+    objectiveState.regionId === "atlantis" &&
+    (objectiveState.clueRead || objectiveState.keyCollected)
+  )
+    $("objective").textContent = t(
+      expeditionObjectiveHint(objectiveState, player),
+    );
   if (ocean.progress) {
     const { opened, next } = ocean.progress;
     $("objective").textContent = t(
@@ -2239,8 +2293,9 @@ function updateHud() {
       .join(""),
   );
   const ghostThreat = surface.ghostThreat;
+  const submarineThreat = humans.defense.threat;
   const showGhost = ghostThreat && (ghostThreat.charging || !threat);
-  $("threat").hidden = !threat && !ghostThreat;
+  $("threat").hidden = !threat && !ghostThreat && !submarineThreat;
   $("threat").classList.toggle("spectral-threat", !!showGhost);
   if (showGhost) {
     $("threat-title").textContent = t("飞翔的荷兰人号");
@@ -2251,6 +2306,18 @@ function updateHud() {
     );
     $("threat-distance").textContent = t(
       ghostThreat.charging ? "锁定" : "危险",
+    );
+  } else if (submarineThreat) {
+    $("threat-title").textContent = t("潜艇鱼雷反击");
+    $("threat-detail").textContent = t(
+      submarineThreat.phase === "windup"
+        ? "鱼雷正在锁定 · 准备横向闪避"
+        : "直航鱼雷来袭 · 转向或借实体掩护",
+    );
+    $("threat-distance").textContent = t(
+      submarineThreat.phase === "windup"
+        ? `${submarineThreat.remaining.toFixed(1)}s`
+        : `${Math.round(submarineThreat.distance)}m`,
     );
   } else if (threat) {
     const hunter = threat.entity.hunter;
@@ -2452,6 +2519,53 @@ function frame(now) {
       },
     );
     ocean.updateProgress?.(player, position, encounters.bosses, notify);
+    const relicPosition = swallowPoint.set(
+      ATLANTIS_RELIC.x,
+      ATLANTIS_RELIC.y,
+      ATLANTIS_RELIC.z,
+    );
+    const relicContact =
+      expedition.region.id === "atlantis" &&
+      capturePoint(captureContact).distanceToSquared(relicPosition) <
+        (ATLANTIS_RELIC.radius + player.length * 0.06) ** 2 &&
+      !blockedBetween(position, relicPosition);
+    const objectiveEvent = advanceExpeditionObjective(
+      objectiveState,
+      player,
+      encounters.bosses,
+      {
+        relicContact,
+        keyContact: (() => {
+          const point = ocean.relic?.keyArt.getPoint(objectiveState.keySiteId);
+          return (
+            !!point &&
+            captureContact.distanceToSquared(point) <
+              (4 + player.length * 0.06) ** 2 &&
+            !blockedBetween(position, point)
+          );
+        })(),
+        clueContact:
+          ocean.relic?.keyArt.locations.some(
+            (site) =>
+              position.distanceToSquared(site.clue) < 16 ** 2 &&
+              !blockedBetween(position, site.clue),
+          ) || false,
+        trenchArrived: !!ocean.progress?.arrived,
+      },
+    );
+    ocean.relic?.setState(objectiveState);
+    if (objectiveEvent.clueFound)
+      notify(expeditionObjectiveHint(objectiveState, player), 6);
+    if (objectiveEvent.keyFound) {
+      audio.pickup();
+      notify("海螺钥匙已找到 · 保留至神庙地宫开启宝箱", 6);
+    }
+    if (objectiveEvent.unlocked)
+      notify("钥匙与守宝印记齐全 · 波塞冬宝箱已开启", 6);
+    if (objectiveEvent.collected) {
+      audio.pickup();
+      notify("圣珠已吞食 · 亚特兰蒂斯的秘密已解开", 6);
+    }
     if (!position.equals(beforeEncounter) || player.length !== beforeBossLength)
       resolvePlayerMotion(beforeEncounter, true);
     avatar.position.copy(position);
@@ -2501,12 +2615,12 @@ function frame(now) {
         ? 0.85
         : threat
           ? Clamp(1 - threat.distance / 90, 0.1, 1)
-          : surface.danger
+          : surface.danger || humans.defense.threat
             ? 0.6
             : 0,
       {
         boss: !!bossCombat,
-        pursuing: !!threat || !!surface.danger,
+        pursuing: !!threat || !!surface.danger || !!humans.defense.threat,
         ink: effects.ink,
         depth: -position.y,
         aboveWater: camera.position.y > WORLD.surfaceY,
@@ -2812,6 +2926,9 @@ if (import.meta.env.DEV)
     },
     get lastCollision() {
       return lastCollision;
+    },
+    get objective() {
+      return objectiveState;
     },
     get expedition() {
       return expedition;

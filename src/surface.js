@@ -1,3 +1,4 @@
+import { regionalBirds, sampleBirdFlight } from "./surface_birds.js";
 import { createMarianaFleet, createMarianaSky } from "./mariana_surface.js";
 import { createBermudaFleet } from "./bermuda_fleet.js";
 import { createAtlantisSky, createAtlantisFleet } from "./atlantis_surface.js";
@@ -106,12 +107,16 @@ export function createSurface(
     [40, 10.5, -176],
     [-45, 10, -218],
   ];
+  const birdKinds = regionalBirds(regionId);
   for (let i = 0; i < 28; i += 1) {
-    const creature = createCreature("seagull", 1.6, i + 17);
+    const species = birdKinds[i % 3 === 0 ? 1 : 0];
+    const creature = createCreature(species.kind, species.length, i + 17);
     root.add(creature);
     const anchor = new THREE.Vector3(...(localAnchors[i] || [0, 9, 0]));
     birds.push({
       mesh: creature,
+      species,
+      flight: { point: new THREE.Vector3(), velocity: new THREE.Vector3() },
       anchor,
       phase: i * 1.7,
       cooldown: 0,
@@ -368,13 +373,9 @@ export function createSurface(
         bird.anchor.copy(bird.ship.root.position);
         bird.anchor.y = WORLD.surfaceY + 5 + (bird.phase % 3);
       }
-      const radius = bird.ship ? 16 : 8;
-      bird.mesh.position.set(
-        bird.anchor.x + Math.sin(time * 0.16 + bird.phase) * radius,
-        bird.anchor.y + Math.sin(time * 0.65 + bird.phase) * 0.8,
-        bird.anchor.z + Math.cos(time * 0.16 + bird.phase) * radius,
-      );
-      bird.mesh.rotation.y = -time * 0.16 - bird.phase;
+      const flight = sampleBirdFlight(bird, time, worldBounds, bird.flight);
+      bird.mesh.position.copy(flight.point);
+      bird.mesh.rotation.set(flight.pitch, flight.yaw, flight.bank, "YXZ");
       bird.mesh.visible =
         bird.cooldown <= 0 &&
         position.y > -45 &&
@@ -385,14 +386,14 @@ export function createSurface(
         state.airborne &&
         bird.cooldown <= 0 &&
         bird.mesh.position.distanceTo(position) < player.length * 0.32 + 1.5 &&
-        consumePrey(player, { length: 2.6, nutrition: 28, growth: 0.28 })
+        consumePrey(player, bird.species)
       ) {
         bird.cooldown = 35;
         bird.mesh.visible = false;
         audio.eat();
-        onEat?.(bird.mesh.position, 2.6, bird);
+        onEat?.(bird.mesh.position, bird.species.length, bird);
         notify(
-          message`捕食海鸥 · ${player.lastMeal?.healed > 0 ? message`生命 +${Math.round(player.lastMeal.healed)}` : "空中猎食成功"}`,
+          message`捕食${bird.species.name} · ${player.lastMeal?.healed > 0 ? message`生命 +${Math.round(player.lastMeal.healed)}` : "空中猎食成功"}`,
           2,
         );
       }

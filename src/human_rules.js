@@ -18,6 +18,19 @@ export const HUMAN_RULES = Object.freeze({
   humanRespawnDistance: 115,
 });
 
+/** 潜艇直航鱼雷独立于接触水雷；蓄力锁定结束后航向不再改变。 */
+export const SUBMARINE_DEFENSE_RULES = Object.freeze({
+  minimumLength: 8,
+  range: 95,
+  windup: 2.2,
+  cooldown: 14,
+  speed: 32,
+  lifetime: 5,
+  damage: 20,
+  radius: 0.55,
+  poolSize: 6,
+});
+
 /** 创建独立载具冲撞状态；maxHealth 是破坏所需次数，返回新的耐久与接触锁。 */
 export function createImpactState(maxHealth) {
   return {

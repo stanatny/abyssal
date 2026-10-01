@@ -1,3 +1,4 @@
+import { getRegionSpecies } from "../src/region_ecology.js";
 import test from "node:test";
 import assert from "node:assert/strict";
 import {
@@ -14,7 +15,7 @@ test("Current expedition uses Hawaii and the base orca with the full species ros
   assert.equal(character.id, "orca");
   assert.deepEqual(
     new Set(region.speciesKinds),
-    new Set(SPECIES.map((entry) => entry.kind)),
+    new Set(getRegionSpecies("hawaii").map((entry) => entry.kind)),
   );
   assert.deepEqual(
     new Set(region.bossKinds),
@@ -81,5 +82,5 @@ test("可选乌贼不再加入野生种群，章鱼独立占据现代生态位",
   assert.equal(octopus.category, "hunter");
   assert.equal(octopus.length, 5);
   assert.equal(octopus.schoolSize, 1);
-  assert.equal(SPECIES.length, 25);
+  assert.equal(SPECIES.length, 26);
 });

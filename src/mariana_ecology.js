@@ -257,6 +257,7 @@ export function marianaEcology(allSpecies) {
         [55, -2610, -350],
       ],
     },
+    shonisaurus: {},
     ichthyotitan: {
       population: 3,
       depthMin: 435,

@@ -894,3 +894,36 @@
     line-height: 1.5;
   }
 }
+
+.guide-region-intro {
+  flex-shrink: 0;
+  padding: 8px 22px;
+  border-block: 1px solid var(--guide-border, #6a8a843b);
+  font-size: 12px;
+}
+.guide-region-intro summary {
+  display: flex;
+  align-items: baseline;
+  flex-wrap: wrap;
+  gap: 5px 12px;
+  justify-content: space-between;
+  cursor: pointer;
+  line-height: 1.6;
+}
+.guide-region-intro summary::before {
+  content: "⌄";
+}
+.guide-region-intro summary span {
+  margin-left: auto;
+  font-size: 10px;
+  opacity: 0.76;
+}
+.guide-region-intro p {
+  margin: 8px 0;
+  line-height: 1.7;
+}
+@media (max-width: 620px) {
+  .guide-region-intro {
+    padding: 8px 14px;
+  }
+}

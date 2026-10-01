@@ -1,3 +1,4 @@
+import { SURFACE_BIRDS } from "./surface_birds.js";
 import { marianaGuideEntries } from "./mariana_guide.js";
 import { MARIANA_GATES } from "./mariana_config.js";
 import {
@@ -26,6 +27,7 @@ import "./ocean_guide.css";
 // 生物按由小到大的探索顺序展示，角色与人类活动单独归档。
 const GUIDE_CATEGORIES = [
   { id: "shoal", name: "小型鱼与鱼群" },
+  { id: "invertebrate", name: "海洋无脊椎" },
   { id: "surface", name: "海面" },
   { id: "hunter", name: "海洋霸主" },
   { id: "ancient", name: "远古巨兽" },
@@ -60,18 +62,6 @@ export function groupOceanCatalog(catalog) {
 }
 
 const DESCRIPTIONS = {
-  seagull: {
-    name: "海鸥",
-    latin: "SURFACE GULL",
-    category: "surface",
-    role: "水面猎物",
-    color: "#e2edf2",
-    ability: "海面盘旋",
-    text: "在水面和船只附近飞行。虎鲸可以在跃出水面时捕食接近嘴部的海鸥。",
-    counter: "从水下提前蓄速上冲，出水后靠惯性接近；浮在水面才按加速无法起飞。",
-    habitat: "海面上空",
-    size: "2.6 m",
-  },
   kraken: {
     name: "克拉肯",
     latin: "KRAKEN",
@@ -154,7 +144,7 @@ export function buildOceanCatalog(regionId) {
           : "遇到猎手追击时在水下喷墨脱身，提前把头朝向安全出口；喷射会受到礁石和船体阻挡。松开冲刺可发挥灵活转向的被动。",
       characterId: entry.id,
       realSize:
-        "其他海域3米幼年起步，马里亚纳15米起步；起始尺寸、30米终局与技能强度属于游戏设定。",
+        "其他海域3米幼年起步，马里亚纳15米起步；起始尺寸、30米体长上限与技能强度属于游戏设定。",
       habitatNote: "可选角色共享自动接触捕食；特殊技能使用J或手机技能按钮。",
     })),
     ...ALL_SPECIES.map((entry) => regionalSpecies.get(entry.kind) || entry).map(
@@ -187,11 +177,19 @@ export function buildOceanCatalog(regionId) {
         tier: config.tier,
         realSize: config.realSize,
         habitatNote: config.schoolProfiles?.some((group) => group.cityResident)
-          ? tr`${config.habitatNote} ${tr`亚特兰蒂斯另有鱼群栖息在古城街巷、上下柱廊、月湾古港地下厅、沉没市集内庭和波塞冬地宫。该深水分布为幻想生态；小鱼主要供较小角色补给，成年角色应寻找城区内的中大型猎物。住宅与神殿中的宝箱、陶器是探索陈设，不提供奖励。`}`
+          ? tr`${config.habitatNote} ${tr`亚特兰蒂斯另有鱼群栖息在古城街巷、上下柱廊、月湾古港地下厅、沉没市集内庭和波塞冬地宫。该深水分布为幻想生态；小鱼主要供较小角色补给，成年角色应寻找城区内的中大型猎物。普通住宅宝箱与陶器是探索陈设；公共建筑隐藏着海螺钥匙；需钥匙与真正守宝者的印记才能打开神庙地宫宝箱，箱中圣珠是本海域的胜利宝物。`}`
           : config.habitatNote,
       }),
     ),
-    { id: "seagull", kind: "seagull", length: 2.6, ...DESCRIPTIONS.seagull },
+    ...SURFACE_BIRDS.map((b) => ({
+      ...b,
+      id: b.kind,
+      category: "surface",
+      role: "水面猎物",
+      habitat: "海面上空",
+      counter:
+        "从水下提前蓄速上冲，出水后靠惯性接近；浮在水面才按加速无法起飞。",
+    })),
     ...BOSS_SPECIES.map((config) => ({
       id: config.kind,
       kind: config.kind,
@@ -200,10 +198,12 @@ export function buildOceanCatalog(regionId) {
         regionId === "mariana"
           ? config.kind === "hydra"
             ? tr`${DESCRIPTIONS.hydra.text} ${tr`三头巨龙海德拉守卫远离出生点的外海水面，是第一道压力帘的必经守卫。达到25米后，从侧面完成三次独立咬击，击败它即可开启2600米处的第一道压力帘；本局不再复活。`}`
-            : tr`${DESCRIPTIONS[config.kind].text} ${tr`本海域的守关领主被击败后不再复活，压力帘随之开启。需突破四关并抵达海沟底部；其他海域的胜利条件不变。`}`
-          : config.kind === "kraken"
-            ? tr`${DESCRIPTIONS.kraken.text} ${tr`亚特兰蒂斯有三只克拉肯，分别守卫西侧城区、中庭和后城；每只拥有独立领地与生命值。达到30米并击败其中一只即可完成挑战。`}`
-            : DESCRIPTIONS[config.kind].text,
+            : tr`${DESCRIPTIONS[config.kind].text} ${tr`本海域的守关领主被击败后不再复活，压力帘随之开启。需成长至30米、突破四关并抵达海沟底部。`}`
+          : regionId === "bermuda"
+            ? tr`${DESCRIPTIONS[config.kind].text} ${tr`本海域必须击败全部四位深渊领主；各领主只出现一次。`}`
+            : regionId === "atlantis" && config.kind === "kraken"
+              ? tr`${DESCRIPTIONS.kraken.text} ${tr`亚特兰蒂斯有三只克拉肯，分别守卫西侧城区、中庭和后城；每只拥有独立领地与生命值。每局随机由其中一只守护波塞冬地宫的圣珠，身份不会预先公开。先在城区公共建筑寻找海螺钥匙。海螺铭文可提供建筑线索；钥匙与真正守宝者的印记齐全，波塞冬地宫宝箱才会开启。达到30米并吞食箱中圣珠才能胜利。所有领主本局不再复活。`}`
+              : tr`${DESCRIPTIONS[config.kind].text} ${tr`每局击败后不再复活。夏威夷成长至30米并击败任意一位即可胜利。`}`,
       length: config.length,
       size: tr`${config.length} m`,
       tier: 3,
@@ -222,6 +222,24 @@ export function buildOceanCatalog(regionId) {
                 }[config.kind]
               : tr`${config.depthMin * WORLD.displayDepthScale}—${Math.round(config.depthMax * WORLD.displayDepthScale)} m（幻想领地）`,
     })),
+    {
+      id: "atlantis_key_chest",
+      kind: "atlantis_key_chest",
+      name: "海螺钥匙与神庙宝箱",
+      latin: "CONCH KEY & TEMPLE CHEST",
+      category: "hazard",
+      role: "遗迹解谜",
+      regionIds: ["atlantis"],
+      color: "#e5c589",
+      symbol: "⚿",
+      size: "任务宝物",
+      length: 0,
+      habitat: "古城公共建筑与波塞冬地宫",
+      effect: "寻钥匙 · 解封 · 寻宝",
+      text: "每局有一把海螺钥匙藏在月湾圣所、市集柱廊或纪念圣厅的下层。接近海螺铭文可获得建筑线索，雷达随后提供方向。钥匙与真正守宝克拉肯的印记可以按任意顺序获得；两者齐全才开启神庙地宫的宝箱。成长至30米后吞食圣珠即可胜利。",
+      counter:
+        "钥匙不提供营养，也不会替代守宝者的印记。普通房屋的宝箱是陈设。三处公共建筑均有成年角色可游过的廊道；回到主界面开启新局后，钥匙和守宝者重新抽取。",
+    },
     ...HUMAN_CATALOG,
     ...bermudaGuideEntries(),
     ...marianaGuideEntries(),
@@ -248,13 +266,20 @@ function catalogRegionIds(entry) {
         swimmer: "swimmers",
         diver: "divers",
         submarine: "submarines",
+        attack_torpedo: "submarines",
         torpedo: "mines",
       }[entry.kind];
       return region.humanActivity?.[key] !== false;
     }
     if (entry.category === "lord") return region.bossKinds.includes(entry.kind);
-    if (["shoal", "hunter", "ancient"].includes(entry.category))
+    if (["shoal", "hunter", "ancient", "invertebrate"].includes(entry.category))
       return region.speciesKinds.includes(entry.kind);
+    if (entry.category === "surface")
+      return (
+        SURFACE_BIRDS.find((b) => b.kind === entry.kind)?.regions.includes(
+          region.id,
+        ) ?? false
+      );
     return true;
   }).map((region) => region.id);
 }
@@ -424,6 +449,9 @@ export function createOceanGuide(trigger) {
     `<label for="guide-region">海域范围</label><select id="guide-region" aria-label="筛选图鉴海域"></select>`,
   );
   dialog.querySelector(".guide-filters").after(regionRow);
+  const regionIntro = document.createElement("details");
+  regionIntro.className = "guide-region-intro";
+  regionRow.after(regionIntro);
   const regionSelect = regionRow.querySelector("select");
   const filters = [
     { id: "all", name: "全部" },
@@ -433,6 +461,7 @@ export function createOceanGuide(trigger) {
     { id: "hunter", name: "海洋霸主" },
     { id: "ancient", name: "远古巨兽" },
     { id: "lord", name: "深渊领主" },
+    { id: "invertebrate", name: "海洋无脊椎" },
     { id: "surface", name: "海面" },
     { id: "human", name: "人类活动" },
     { id: "hazard", name: "海域奇观与危险" },
@@ -536,6 +565,14 @@ export function createOceanGuide(trigger) {
     dialog.querySelector(".guide-filters").append(button);
   }
   function renderList() {
+    const regionId = regionScope === "current" ? selectedRegion : regionScope;
+    const region = REGIONS.find((r) => r.id === regionId);
+    setMarkup(
+      regionIntro,
+      region
+        ? tr`<summary>${region.name}<span>${region.objective.difficulty} · ${tr`${region.speciesKinds.length} 种生物`}</span></summary><p>${region.description}</p><p><b>远征目标</b> · ${region.objective.summary}</p><p>${region.objective.food}</p>`
+        : tr`<summary>四大海域<span>探索 · 生存 · 独立结局</span></summary><p>选择一个海域，查看它的独有生物、食物层级与胜利条件。所有深渊领主击败后本局不再刷新。</p>`,
+    );
     const search = input.value.trim().toLowerCase();
     // 默认“全部”保留生物总览；输入关键词时，也可直接找到奖励档案。
     const catalog =

@@ -5,9 +5,26 @@ import { mergeGeometries } from "three/addons/utils/BufferGeometryUtils.js";
 import { WORLD } from "./world_config.js";
 import { createArticulatedHuman } from "./human_models.js";
 import { createContactMine } from "./contact_mine.js";
+import { createAttackTorpedoModel } from "./submarine_defense.js";
 
 /** 图鉴与场景共用的成人、潜艇与水雷资料；人类角色全部为成年人。 */
 export const HUMAN_CATALOG = Object.freeze([
+  {
+    id: "attack_torpedo",
+    kind: "attack_torpedo",
+    name: "潜艇直航鱼雷",
+    latin: "STRAIGHT-RUNNING TORPEDO",
+    category: "human",
+    role: "潜艇反击",
+    color: "#c0d6d9",
+    length: 3,
+    size: "3 m",
+    habitat: "潜艇附近水域",
+    ability: "预警后直航",
+    text: "潜艇会对靠近的8米以上角色锁定2.2秒，再发射直航鱼雷。命中损失20生命；同艇至少间隔14秒再次发射。鱼雷最多航行5秒，不能被吞食。",
+    counter:
+      "观察闪烁的艇灯和预警；发射后横向闪避，或利用礁石与建筑阻挡。安全浅滩与幼体不会被锁定。",
+  },
   {
     id: "swimmer",
     kind: "swimmer",
@@ -53,7 +70,8 @@ export const HUMAN_CATALOG = Object.freeze([
     habitat: `${180 * WORLD.displayDepthScale}—${400 * WORLD.displayDepthScale} m`,
     ability: "耐压艇壳",
     text: "潜艇不能被直接吞食。角色达到18米后，以至少20米/秒的速度完成三次独立冲撞，才能破坏艇壳并释放三名潜水员。海面小船需一次撞击，大型船需三次；船体破坏后停止阻挡，不提供额外食物。",
-    counter: "每次撞击后需要离开艇壳再冲刺接近。贴着潜艇游动不会连续造成伤害。",
+    counter:
+      "每次撞击后需要离开艇壳再冲刺接近。潜艇会预警后发射直航鱼雷；横向闪避或借实体掩护。贴着潜艇游动不会连续造成伤害。",
   },
   {
     id: "torpedo",
@@ -80,6 +98,7 @@ export const HUMAN_CATALOG = Object.freeze([
  * @returns {THREE.Group} 含 animate(time)、dispose() 的有限资源模型。
  */
 export function createHumanModel(kind, length = 1, sex = "male") {
+  if (kind === "attack_torpedo") return createAttackTorpedoModel(length);
   if (kind === "swimmer" || kind === "diver")
     return createArticulatedHuman(kind, length, sex);
   if (kind === "torpedo") return createContactMine(length);

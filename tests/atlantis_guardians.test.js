@@ -223,12 +223,11 @@ test("向世界边缘追击时完整触腕仍在边界内，击败重生回到�
     }
     target.state.defeated = true;
     target.state.health = 0;
-    target.respawn = 0.1;
     f.position.fromArray(atlantis.spawn);
-    f.step(0.2);
-    assert.equal(target.state.defeated, false);
-    assert.equal(target.state.health, 180);
-    assert.deepEqual(target.mesh.position.toArray(), target.home.toArray());
+    f.step(400);
+    assert.equal(target.state.defeated, true);
+    assert.equal(target.state.health, 0);
+    assert.equal(target.mesh.visible, false);
     assert.deepEqual(
       target.home.toArray(),
       atlantis.bossInstances.find((instance) => instance.id === target.id).home,
@@ -341,7 +340,6 @@ test("喷墨和冷却各归自己的实例，重开与切图复用网格且清�
       entry.state.defeated = true;
       entry.state.health = 0;
       entry.state.biteCooldown = 3;
-      entry.respawn = 200;
       entry.disorientedUntil = 100;
       entry.phaseHit = true;
       entry.ring.visible = entry.fx.group.visible = true;
@@ -366,7 +364,7 @@ test("喷墨和冷却各归自己的实例，重开与切图复用网格且清�
       assert.equal(entry.state.health, entry.state.maxHealth);
       assert.equal(entry.state.biteCooldown, 0);
       assert.equal(entry.disorientedUntil, 0);
-      assert.equal(entry.respawn, 0);
+      assert.equal(entry.persistentDefeat, true);
       assert.equal(entry.phaseHit, false);
       assert.equal(entry.ring.visible, false);
       assert.equal(entry.fx.group.visible, false);

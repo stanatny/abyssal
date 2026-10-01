@@ -262,7 +262,7 @@ test("All regional fish and school slots have legal positions in their configure
     );
   }
 });
-test("Six new creatures have distinct finite geometry, independent animation and bilingual guide copy", () => {
+test("Seven exclusive creatures have distinct finite geometry, independent animation and bilingual guide copy", () => {
   for (const s of MARIANA_SPECIES) {
     const a = createCreature(s.kind, 1),
       b = createCreature(s.kind, 1);
@@ -277,13 +277,16 @@ test("Six new creatures have distinct finite geometry, independent animation and
     a.traverse((n) => {
       if (n.isSkinnedMesh) skins.push(n);
     });
-    assert.ok(skins.length >= 3, `${s.kind}: continuous fins must be skinned`);
+    assert.ok(
+      skins.length >= (s.kind === "shonisaurus" ? 1 : 3),
+      `${s.kind}: continuous fins must be skinned`,
+    );
     assert.ok(
       skins.every((n) => n.skeleton === skins[0].skeleton),
       `${s.kind}: body and attached fins share bones`,
     );
 
-    assert.ok(a.userData.marianaAnatomy);
+    assert.ok(a.userData.marianaAnatomy || a.userData.ancientAnatomy);
     for (const key of [
       "label",
       "ability",

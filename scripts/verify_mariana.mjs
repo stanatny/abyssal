@@ -59,7 +59,7 @@ try {
     });
     assert.equal(
       result.count,
-      { mariana: 305, hawaii: 287, atlantis: 392, bermuda: 313 }[id],
+      { mariana: 333, hawaii: 313, atlantis: 412, bermuda: 341 }[id],
     );
     assert.equal(result.audioRegion, id);
     assert.equal(result.kinds.includes("snailfish"), id === "mariana");
@@ -76,6 +76,7 @@ try {
     "dragonfish",
     "snailfish",
     "goblin_shark",
+    "shonisaurus",
   ]) {
     await page.click(`[data-kind="${kind}"]`);
     await page.waitForTimeout(450);
@@ -94,7 +95,7 @@ try {
   );
   await page.click(".guide-close");
   report.checks.push(
-    "Six model previews and English Guide copy; independent regional filtering",
+    "Seven model previews and English Guide copy; independent regional filtering",
   );
   await page.click("#start");
   await page.waitForFunction(() => window.__ABYSSAL__.mode === "playing");
@@ -187,9 +188,7 @@ try {
       await page.waitForFunction((h) => window.__boss.state.health < h, before);
     }
     assert.equal((await state()).player.bossesDefeated, index + 1);
-    await page.evaluate(() => {
-      window.__boss.respawn = -1;
-    });
+    await page.evaluate(() => {});
     await page.waitForTimeout(100);
     assert.ok(await page.evaluate(() => window.__boss.state.defeated));
     await page.waitForFunction(

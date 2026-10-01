@@ -363,8 +363,8 @@ test("深度边界与物种配置覆盖浅海至巨兽区", () => {
   assert.equal(getZone(250).id, "abyss");
   assert.equal(getZone(500).id, "hadal");
   assert.equal(getZone(NaN).id, "reef");
-  assert.equal(SPECIES.length, 25);
-  assert.equal(new Set(SPECIES.map((species) => species.kind)).size, 25);
+  assert.equal(SPECIES.length, 26);
+  assert.equal(new Set(SPECIES.map((species) => species.kind)).size, 26);
   assert.deepEqual(
     new Set(SPECIES.map((species) => species.category)),
     new Set(["shoal", "hunter", "ancient"]),
@@ -712,6 +712,7 @@ const REFERENCE_INTERVALS = Object.freeze({
   basilosaurus: 20,
   megalodon: 20,
   ichthyotitan: 60,
+  archelon: 20,
 });
 
 // 使用实际进食收益选猎物，不依赖按类别排序的目录顺序；参考路线再按觅食间隔比较收益率。

@@ -1,3 +1,4 @@
+import { MARIANA_ANCIENTS } from "./regional_ancients.js";
 /** 海沟独有生物保留实际体型；跨层大型猎物另由地图数据明确标注为幻想生态。 */
 const entries = [
   [
@@ -91,8 +92,8 @@ const entries = [
     "先判断体型；小角色用岩壁和冲刺脱离追逐。",
   ],
 ];
-export const MARIANA_SPECIES = Object.freeze(
-  entries.map(
+export const MARIANA_SPECIES = Object.freeze([
+  ...entries.map(
     ([
       kind,
       label,
@@ -131,4 +132,5 @@ export const MARIANA_SPECIES = Object.freeze(
         realSize: "模型采用物种参考体型；密度、出生点和战斗行为属于玩法调整。",
       }),
   ),
-);
+  ...MARIANA_ANCIENTS,
+]);

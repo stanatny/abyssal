@@ -1,3 +1,4 @@
+import { createAtlantisRelic } from "./atlantis_relic.js";
 import * as THREE from "three";
 import { WORLD } from "./world_config.js";
 import { atlantisSeabedHeight as seabedHeight } from "./atlantis_terrain.js";
@@ -31,12 +32,17 @@ export function createAtlantisOcean(scene) {
   const colliders = [];
   const obstacles = [];
   let disposed = false;
+  const reducedMotion =
+    typeof matchMedia === "function"
+      ? matchMedia("(prefers-reduced-motion: reduce)")
+      : null;
 
   root.add(createSeabed(keep, time));
   root.add(createMoonlitWater(keep, time));
   createOutskirts(root, keep, random, colliders, obstacles);
   const nursery = createNursery(root, keep, time, random);
   const city = createAtlantisCity(root, { heightAt: seabedHeight });
+  const relic = createAtlantisRelic(root, { records: city.underways.records });
   colliders.push(...city.colliders);
   obstacles.push(...city.obstacles);
   const outskirts = createAtlantisOutskirts(root, {
@@ -50,6 +56,10 @@ export function createAtlantisOcean(scene) {
     root,
     heightAt: seabedHeight,
     city,
+    relic,
+    reset() {
+      relic.reset();
+    },
     outskirts,
     colliders,
     obstacles,
@@ -57,6 +67,7 @@ export function createAtlantisOcean(scene) {
     update(elapsed, position, dt = 0, highQuality = true) {
       if (disposed) return;
       time.value = elapsed;
+      relic.update(elapsed, position, reducedMotion?.matches || false);
       nursery.visible = position.z > -390;
       city.update(elapsed, dt, position, highQuality);
       outskirts.update(elapsed, position, dt, highQuality);
@@ -64,6 +75,7 @@ export function createAtlantisOcean(scene) {
     dispose() {
       if (disposed) return;
       disposed = true;
+      relic.dispose();
       outskirts.dispose();
       city.dispose();
       root.removeFromParent();

@@ -68,7 +68,7 @@ try {
       assert.equal(state.menu, false);
       assert.equal(state.focus, "region-select");
       assert.equal(state.language, false);
-      assert.equal(state.entities, region === "atlantis" ? 392 : 287);
+      assert.equal(state.entities, region === "atlantis" ? 392 : 293);
       assert.equal(state.environments, 1);
     }
     const loads = await page.evaluate(() => window.__loads);

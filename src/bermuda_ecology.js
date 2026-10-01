@@ -154,6 +154,24 @@ export function bermudaEcology(allSpecies) {
       ],
     },
     dunkleosteus: { population: 5 },
+    pliosaur: {
+      population: 4,
+      spawnAnchors: [
+        [-115, -250, -650],
+        [120, -340, -780],
+        [-125, -420, -870],
+        [110, -480, -955],
+      ],
+    },
+    plesiosaur: {
+      population: 4,
+      spawnAnchors: [
+        [115, -220, -590],
+        [-120, -320, -745],
+        [125, -400, -850],
+        [-105, -495, -975],
+      ],
+    },
     mosasaur: { population: 6 },
     megalodon: { population: 7 },
     livyatan: {

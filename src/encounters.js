@@ -589,7 +589,7 @@ export function createEncounters(
       id: `${species.kind}_${poolIndex}`,
       poolIndex,
       fixedHome: null,
-      persistentDefeat: false,
+      persistentDefeat: true,
       maxCenterY: Infinity,
       state: createBossState(species),
       mesh,
@@ -608,7 +608,6 @@ export function createEncounters(
       heading: new THREE.Vector3(0, 0, -1),
       attackOrigin: new THREE.Vector3(),
       lockTarget: new THREE.Vector3(),
-      respawn: 0,
       contactCooldown: 0,
       phaseHit: false,
       disorientedUntil: 0,
@@ -668,7 +667,6 @@ export function createEncounters(
     entry.attackOrigin.set(0, 0, 0);
     entry.lockTarget.set(0, 0, 0);
     entry.lockedVelocity.set(0, 0, 0);
-    entry.respawn = 0;
     entry.slot = index;
     entry.label.position.copy(entry.home).add(new THREE.Vector3(0, 25, 0));
     entry.label.scale.set(30, 7.5, 1);
@@ -716,7 +714,7 @@ export function createEncounters(
       entry.state = createBossState(entry.state.species);
       entry.id = `${entry.state.species.kind}_${entry.poolIndex}`;
       entry.fixedHome = null;
-      entry.persistentDefeat = false;
+      entry.persistentDefeat = true;
       entry.maxCenterY = Infinity;
       entry.radius = 110;
       entry.enabled = false;
@@ -728,7 +726,7 @@ export function createEncounters(
     selected.forEach(({ entry, instance }, index) => {
       if (instance) {
         entry.id = instance.id;
-        entry.persistentDefeat = !!instance.persistentDefeat;
+        entry.persistentDefeat = true;
         entry.fixedHome = instance.home;
         entry.maxCenterY = instance.maxCenterY ?? Infinity;
         entry.radius = instance.radius ?? 110;
@@ -878,6 +876,12 @@ export function createEncounters(
     }
     return affected;
   }
+  function hideDefeated(entry) {
+    entry.mesh.visible = entry.label.visible = entry.ring.visible = false;
+    entry.fx.group.visible = false;
+    if (entry.fx.ability === "charge")
+      for (const puff of entry.fx.trail) puff.sprite.visible = false;
+  }
   function update(dt, time, player, position, forward, { blockedBetween }) {
     if (disposed) return null;
     active = null;
@@ -897,17 +901,7 @@ export function createEncounters(
       const state = entry.state;
       if (!entry.enabled) continue;
       if (state.defeated) {
-        entry.mesh.visible = false;
-        entry.label.visible = false;
-        entry.ring.visible = false;
-        entry.fx.group.visible = false;
-        if (entry.fx.ability === "charge")
-          for (const puff of entry.fx.trail) puff.sprite.visible = false;
-        entry.respawn -= dt;
-        if (entry.respawn <= 0 && !entry.persistentDefeat) {
-          entry.state = createBossState(state.species);
-          place(entry, entry.slot);
-        }
+        hideDefeated(entry);
         continue;
       }
       const distance = entry.mesh.position.distanceTo(position),
@@ -1128,7 +1122,10 @@ export function createEncounters(
               : message`侧翼咬击 ${Math.round(result.damage)} · ${result.hungerRestored > 0 ? message`饱食 +${Math.round(result.hungerRestored)}` : recover ? "弱点命中，脱离后再进攻" : "脱离接触，等待技能后的侧翼破绽"}`,
             2,
           );
-          if (result.defeated) entry.respawn = 150 + Math.random() * 60;
+          if (result.defeated) {
+            hideDefeated(entry);
+            continue;
+          }
         }
       }
       if (

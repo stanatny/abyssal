@@ -1,6 +1,6 @@
 export const MARIANA_EN = Object.freeze({
-  "其他海域3米幼年起步，马里亚纳15米起步；起始尺寸、30米终局与技能强度属于游戏设定。":
-    "Start at 3m in other regions and 15m in Mariana. Starting sizes, the 30m endpoint and abilities are gameplay settings.",
+  "其他海域3米幼年起步，马里亚纳15米起步；起始尺寸、30米体长上限与技能强度属于游戏设定。":
+    "Start at 3m in other regions and 15m in Mariana. Starting sizes, the 30m length cap and abilities are gameplay settings.",
   "三头巨龙海德拉守卫远离出生点的外海水面，是第一道压力帘的必经守卫。达到25米后，从侧面完成三次独立咬击，击败它即可开启2600米处的第一道压力帘；本局不再复活。":
     "Hydra guards the offshore surface, away from the nursery. It is the mandatory first guardian: from 25m, land three separate flank bites to open the first pressure seal at 2,600m. It stays defeated for this expedition.",
   远离安全浅滩的外海表层: "Offshore surface, away from the safe shelf",
@@ -123,8 +123,8 @@ export const MARIANA_EN = Object.freeze({
     "Beyond the final gate, follow the warm glow beneath the stone arches. An original procedural SpongeBob and pineapple-house Easter egg awaits: a fantasy scene, not real hadal ecology.",
   "探索时可绕着菠萝屋游动；彩蛋是陈设，不提供食物或额外奖励。":
     "Swim around the pineapple house. This decorative Easter egg provides no food or bonus rewards.",
-  "本海域的守关领主被击败后不再复活，压力帘随之开启。需突破四关并抵达海沟底部；其他海域的胜利条件不变。":
-    "Defeated gatekeepers do not respawn during this expedition. Their pressure seals open; clear all four gates and reach the trench floor. Other regions retain their existing victory conditions.",
+  "本海域的守关领主被击败后不再复活，压力帘随之开启。需成长至30米、突破四关并抵达海沟底部。":
+    "Defeated gatekeepers do not respawn during this expedition. Their pressure seals open; reach 30 m, clear all four gates and reach the trench floor.",
   "边界 · 请转向": "Edge · Turn back",
   "海域边界无法通行，请转向": "Impassable region boundary. Turn back.",
   海沟观测艇: "Trench survey tender",

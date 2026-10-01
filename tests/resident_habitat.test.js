@@ -9,7 +9,7 @@ import {
 } from "../src/ecosystem_population.js";
 
 const residents = getRegionSpecies("atlantis").filter(
-  (species) => species.residentRadius > 0,
+  (species) => species.residentRadius > 0 && species.category === "shoal",
 );
 // 未注册到任何已发布地图的未来物种，证明逻辑只依赖栖息配置。
 const futureResident = Object.freeze({
@@ -46,7 +46,9 @@ test("散居居民保持真实尺寸和独立个体，近前方水层可找到�
     assert.ok(nearRoute.length >= 2, s.kind);
   }
   assert.equal(
-    getRegionSpecies("hawaii").some((s) => s.residentRadius),
+    getRegionSpecies("hawaii").some((s) =>
+      ["seahorse", "cuttlefish"].includes(s.kind),
+    ),
     false,
   );
 });

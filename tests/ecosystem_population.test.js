@@ -26,7 +26,7 @@ function randomSource(seed) {
   return () => (seed = (seed * 1664525 + 1013904223) >>> 0) / 2 ** 32;
 }
 
-test("25类287尾的实际生成点合法，中层补给与深层大猎物均有覆盖", () => {
+test("26类293尾的实际生成点合法，中层补给与深层大猎物均有覆盖", () => {
   const ocean = createOcean(new THREE.Scene());
   let count = 0;
   const centers = new Set();
@@ -79,8 +79,8 @@ test("25类287尾的实际生成点合法，中层补给与深层大猎物均有
         population.push({ species, point });
       }
     }
-    assert.equal(ECOSYSTEM_SPECIES.length, 25);
-    assert.equal(count, 287);
+    assert.equal(ECOSYSTEM_SPECIES.length, 26);
+    assert.equal(count, 293);
     assert.equal(centers.size, 5, "珊瑚鱼五群使用独立浅滩栖息点");
     const nursery = population.filter(({ point }) => isNursery(point));
     assert.ok(nursery.length >= 160);
@@ -324,6 +324,8 @@ test("远距补位遵守当前水层且在可见半径外，不把深海动物�
         null,
       );
     }
+    // 散居动物重生回原栖息地，不应按远距猎手补位。
+    if (species.residentRadius) continue;
     // 外礁两只挑战者在小领地中真实巡游，不要求它们能跨过可见半径迁移。
     const populationIndex = predatorTerritory(species, 0)?.edge ? 1 : 0;
     const playerPosition = initialSpeciesAnchor(species, populationIndex);

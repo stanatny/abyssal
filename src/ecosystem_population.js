@@ -178,7 +178,7 @@ export function steerResidentHabitat(
   if (!(radius > 0) || !anchors?.length) return direction;
   const anchor = anchors[populationIndex % anchors.length];
   const dx = anchor[0] - position.x;
-  const dy = anchor[1] - position.y;
+  const dy = species.benthic ? 0 : anchor[1] - position.y;
   const dz = anchor[2] - position.z;
   const distance = Math.hypot(dx, dy, dz);
   if (distance < radius * 0.6) return direction;
@@ -254,6 +254,9 @@ export function habitatPosition(
     species.residentRadius > 0
       ? initialSpeciesAnchor(species, populationIndex)
       : null;
+  if (residentHome && species.benthic)
+    residentHome.y =
+      heightAt(residentHome.x, residentHome.z) + (species.floorOffset ?? 0);
   // 散居居民与固定鱼群一样在原栖息区复活，不能被普通猎手的远距补位逻辑搬走。
   if (near && residentHome) {
     near = false;
@@ -279,7 +282,9 @@ export function habitatPosition(
   const radius =
     Math.max(0.45, species.length * (species.cityHabitat ? 0.55 : 0.18)) +
     padding;
-  const floorMargin = Math.max(3 + species.length * 0.35, radius + 1.5);
+  const floorMargin = species.benthic
+    ? (species.floorOffset ?? 0)
+    : Math.max(3 + species.length * 0.35, radius + 1.5);
   const visibleRadius = speciesVisibilityDistance(species, highQuality);
   const ahead = Math.atan2(forward.x, forward.z);
   for (let attempt = 0; attempt < 48; attempt++) {
@@ -312,11 +317,17 @@ export function habitatPosition(
     const bottom = Math.max(-maximum, heightAt(point.x, point.z) + floorMargin);
     const top = -minimum;
     if (bottom > top) continue;
-    point.y = THREE.MathUtils.clamp(point.y, bottom, top);
+    point.y = species.benthic
+      ? heightAt(point.x, point.z) + floorMargin
+      : THREE.MathUtils.clamp(point.y, bottom, top);
+    if (point.y < -maximum || point.y > top) continue;
     // 新地图的海床或边界校正也不能把居民挤出独立活动区；无合法空间应明确失败。
     if (
       residentHome &&
-      point.distanceTo(residentHome) > species.residentRadius + 1e-8
+      (species.benthic
+        ? Math.hypot(point.x - residentHome.x, point.z - residentHome.z)
+        : point.distanceTo(residentHome)) >
+        species.residentRadius + 1e-8
     )
       continue;
     if (

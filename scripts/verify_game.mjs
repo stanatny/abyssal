@@ -201,7 +201,7 @@ try {
     const g = window.__ABYSSAL__;
     g.startGame();
     g.entities.forEach((e) => (e.hiddenFor = 999));
-    // 海鸥规则体长为2.6米，使用已成长个体验证空中捕食。
+    // 使用实际表层鸟类体长，已成长个体验证空中捕食。
     g.setLength(6);
     // 从足够深的无遮挡水域起跳，避开新增海床和船体碰撞。
     g.setPosition(200, -35, -100);
@@ -220,12 +220,14 @@ try {
   await page.evaluate(() => {
     const g = window.__ABYSSAL__,
       b = g.surface.birds[0],
-      t = g.elapsed;
+      t = g.elapsed,
+      radius = 22 + (b.phase % 7),
+      angle = (t * b.species.speed) / radius + b.phase;
     b.cooldown = 0;
     b.anchor.set(
-      g.position.x - Math.sin(t * 0.16 + b.phase) * 8,
+      g.position.x - Math.sin(angle) * radius,
       g.position.y - Math.sin(t * 0.65 + b.phase) * 0.8,
-      g.position.z - Math.cos(t * 0.16 + b.phase) * 9,
+      g.position.z - Math.cos(angle) * radius * 0.72,
     );
   });
   await page.waitForFunction(

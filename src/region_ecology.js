@@ -1,3 +1,6 @@
+import { NONFISH_SPECIES, nonfishEcology } from "./nonfish_ecology.js";
+import { WORLD } from "./world_config.js";
+import { MARIANA_WORLD } from "./mariana_config.js";
 import { MARIANA_SPECIES } from "./mariana_species.js";
 import { marianaEcology } from "./mariana_ecology.js";
 import { BERMUDA_SPECIES } from "./bermuda_species.js";
@@ -16,6 +19,7 @@ export const ALL_SPECIES = Object.freeze([
   ...ATLANTIS_SPECIES,
   ...BERMUDA_SPECIES,
   ...MARIANA_SPECIES,
+  ...NONFISH_SPECIES,
 ]);
 
 /**
@@ -131,29 +135,40 @@ const ATLANTIS_OVERRIDES = {
 };
 
 const REGION_SPECIES = Object.freeze({
-  hawaii: ECOSYSTEM_SPECIES,
-  mariana: marianaEcology(ALL_SPECIES),
-  bermuda: bermudaEcology(ALL_SPECIES),
+  hawaii: Object.freeze([
+    ...ECOSYSTEM_SPECIES,
+    ...nonfishEcology("hawaii", WORLD),
+  ]),
+  mariana: Object.freeze([
+    ...marianaEcology(ALL_SPECIES),
+    ...nonfishEcology("mariana", MARIANA_WORLD),
+  ]),
+  bermuda: Object.freeze([
+    ...bermudaEcology(ALL_SPECIES),
+    ...nonfishEcology("bermuda", WORLD),
+  ]),
   atlantis: Object.freeze(
-    Object.entries(ATLANTIS_OVERRIDES).map(([kind, overrides]) => {
-      const source = ALL_SPECIES.find((entry) => entry.kind === kind);
-      const regionSpecies = addAtlantisCitySchools({
-        ...source,
-        ...overrides,
-        cityHabitat: true,
-      });
-      if (
-        [
-          "plesiosaur",
-          "pliosaur",
-          "mosasaur",
-          "basilosaurus",
-          "megalodon",
-        ].includes(kind)
-      )
-        regionSpecies.spawnAnchors = atlantisLargePreyAnchors(regionSpecies);
-      return freezeRecord(regionSpecies);
-    }),
+    Object.entries(ATLANTIS_OVERRIDES)
+      .map(([kind, overrides]) => {
+        const source = ALL_SPECIES.find((entry) => entry.kind === kind);
+        const regionSpecies = addAtlantisCitySchools({
+          ...source,
+          ...overrides,
+          cityHabitat: true,
+        });
+        if (
+          [
+            "plesiosaur",
+            "pliosaur",
+            "mosasaur",
+            "basilosaurus",
+            "megalodon",
+          ].includes(kind)
+        )
+          regionSpecies.spawnAnchors = atlantisLargePreyAnchors(regionSpecies);
+        return freezeRecord(regionSpecies);
+      })
+      .concat(nonfishEcology("atlantis", WORLD)),
   ),
 });
 

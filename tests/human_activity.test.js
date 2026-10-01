@@ -314,7 +314,7 @@ test("普通人延迟并避开玩家视野补位，潜艇释放者不会自动�
 test("游泳组、潜水组和每艇释放组稳定交替男女，重开不改ID或性别", () => {
   const activity = createHumanActivity(new THREE.Scene());
   try {
-    assert.equal(HUMAN_CATALOG.length, 4);
+    assert.equal(HUMAN_CATALOG.length, 5);
     const groups = [
       activity.entities.filter((entity) => entity.kind === "swimmer"),
       activity.entities.filter(

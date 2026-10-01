@@ -202,9 +202,21 @@ export function createMinimap(container) {
               : next.y > position.y
                 ? tr`守卫 ↑ ${Math.round((next.y - position.y) * world.displayDepthScale)}m`
                 : tr`守卫 ↓ ${Math.round((position.y - next.y) * world.displayDepthScale)}m`
-            : next.final
-              ? tr`秘境 ↓ ${Math.max(0, Math.round((position.y - next.y) * world.displayDepthScale))}m`
-              : tr`关卡 ↓ ${Math.max(0, Math.round((position.y - next.y) * world.displayDepthScale))}m`,
+            : next.key
+              ? Math.abs(next.y - position.y) <= 3
+                ? "钥匙建筑 · 同层"
+                : next.y > position.y
+                  ? tr`钥匙建筑 ↑ ${Math.round((next.y - position.y) * world.displayDepthScale)}m`
+                  : tr`钥匙建筑 ↓ ${Math.round((position.y - next.y) * world.displayDepthScale)}m`
+              : next.relic
+                ? Math.abs(next.y - position.y) <= 3
+                  ? "圣珠 · 同层"
+                  : next.y > position.y
+                    ? tr`圣珠 ↑ ${Math.round((next.y - position.y) * world.displayDepthScale)}m`
+                    : tr`圣珠 ↓ ${Math.round((position.y - next.y) * world.displayDepthScale)}m`
+                : next.final
+                  ? tr`秘境 ↓ ${Math.max(0, Math.round((position.y - next.y) * world.displayDepthScale))}m`
+                  : tr`关卡 ↓ ${Math.max(0, Math.round((position.y - next.y) * world.displayDepthScale))}m`,
         );
       const edge = nearestWorldBoundary(position, world);
       const nearEdge = edge.distance < BOUNDARY_NOTICE_DISTANCE;

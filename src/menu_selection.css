@@ -461,3 +461,128 @@
     padding-bottom: 7px;
   }
 }
+
+/* 当前海域的目标在出发前直接可读，长英文自动换行。 */
+.region-brief {
+  margin: 14px 0;
+  padding: 15px 17px;
+  border: 1px solid #aacac335;
+  border-left: 3px solid #b6dba1;
+  border-radius: 12px;
+  background: #092b30c9;
+}
+.region-brief-heading {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px 14px;
+  align-items: baseline;
+  justify-content: space-between;
+  color: #dfedce;
+  font-size: 12px;
+}
+#region-species-count {
+  color: #a8c7bb;
+  font-size: 11px;
+}
+.region-brief p {
+  margin: 8px 0 0;
+  font-size: 12px;
+  line-height: 1.7;
+  color: #b7cec5;
+}
+.region-brief #region-food {
+  color: #9caead;
+  font-size: 11px;
+}
+.region-goal {
+  display: grid;
+  gap: 4px;
+  padding-top: 9px;
+  border-top: 1px solid #9bbbaf25;
+}
+.region-goal b {
+  color: #d9e8ce;
+  font-size: 10px;
+  letter-spacing: 1.2px;
+}
+.region-goal span {
+  color: #e5efd9;
+}
+
+/* 海域规则独立成区；手机折叠长概览，目标保持展开并能绕过固定页头滚动。 */
+.region-overview summary {
+  min-height: 36px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+  color: #b9d0c8;
+  font-size: 11px;
+  list-style: none;
+}
+.region-overview summary::before {
+  content: "+";
+}
+.region-overview[open] summary::before {
+  content: "−";
+}
+.region-overview summary:focus-visible {
+  outline: 2px solid #c6d4b6;
+  outline-offset: 2px;
+}
+#menu {
+  scroll-padding-top: calc(88px + env(safe-area-inset-top));
+}
+@media (max-width: 700px) {
+  #menu {
+    top: calc(56px + env(safe-area-inset-top));
+    scroll-padding-top: 16px;
+  }
+  #menu .menu-copy {
+    margin-top: 28px;
+  }
+  .region-brief {
+    padding: 12px 13px;
+  }
+  .region-overview summary {
+    min-height: 36px;
+  }
+  .region-goal {
+    margin-top: 0;
+  }
+}
+
+/* 首页滚动内容始终避开页头；小屏的出发和图鉴入口固定在底部。 */
+@media (min-width: 701px) {
+  #menu {
+    top: 76px;
+    scroll-padding-top: 16px;
+  }
+  #menu .menu-copy {
+    margin-top: 48px;
+  }
+}
+@media (max-width: 700px) {
+  #menu {
+    padding-bottom: calc(96px + env(safe-area-inset-bottom));
+  }
+  #menu .menu-actions {
+    position: fixed;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    z-index: 12;
+    margin: 0;
+    padding: 12px 18px calc(12px + env(safe-area-inset-bottom));
+    background: linear-gradient(#08252bf2, #061b20);
+    border-top: 1px solid #afcdc52e;
+  }
+}
+@media (max-height: 500px) and (min-width: 701px) {
+  #menu {
+    top: 50px;
+  }
+  #menu .menu-copy {
+    margin-top: 28px;
+  }
+}

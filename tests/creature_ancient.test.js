@@ -44,7 +44,7 @@ function posedBounds(root) {
 }
 
 test("远古模型纵长精确归一、极值姿态有效且处于实时面数预算", () => {
-  assert.equal(ANCIENT_CREATURE_KINDS.size, 7);
+  assert.equal(ANCIENT_CREATURE_KINDS.size, 9);
   for (const kind of ANCIENT_CREATURE_KINDS) {
     const { root, animate } = specimen(kind);
     assert.equal(root.userData.normalizedLength, 1);
@@ -72,7 +72,10 @@ test("远古模型纵长精确归一、极值姿态有效且处于实时面数�
       animate(phase, effort);
       const size = posedBounds(root).getSize(new THREE.Vector3());
       assert.ok(size.z > 0.85 && size.z < 1.1, `${kind}: posed length`);
-      assert.ok(size.x > 0.2 && size.x < 0.95, `${kind}: posed width`);
+      assert.ok(
+        size.x > 0.2 && size.x < (kind === "archelon" ? 1.35 : 0.95),
+        `${kind}: posed width`,
+      );
       assert.ok(size.y > 0.08 && size.y < 0.6, `${kind}: posed height`);
     }
   }
@@ -109,8 +112,10 @@ test("远古动物共享表面资源，独立骨骼、下颌与四鳍改变真�
     posedBounds(a.root);
     const after = torso.getVertexPosition(index, new THREE.Vector3());
     assert.ok(
-      after.distanceTo(before) > 0.0001,
-      `${kind}: real skin deformation`,
+      kind === "archelon"
+        ? after.distanceTo(before) < 1e-6
+        : after.distanceTo(before) > 0.0001,
+      `${kind}: rigid shell or real axial skin deformation`,
     );
     assert.notEqual(jaw.rotation.x, jawAngle);
     assert.notEqual(flipper.rotation.z, finAngle);

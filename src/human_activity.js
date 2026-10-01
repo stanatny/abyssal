@@ -12,6 +12,7 @@ import {
 } from "./human_rules.js";
 import { HUMAN_CATALOG, createHumanModel } from "./vehicle_models.js";
 import { bodyClearOfHull } from "./surface_ship_impact.js";
+import { createSubmarineDefense } from "./submarine_defense.js";
 
 export { HUMAN_CATALOG, createHumanModel } from "./vehicle_models.js";
 
@@ -322,12 +323,21 @@ export function createHumanActivity(
     };
   }
   let activity = {};
+  const defense = createSubmarineDefense(group, {
+    submarines,
+    castWorld,
+    audio,
+    notify,
+    explode: emit,
+    onDamage,
+  });
   function reset(config = {}) {
     activity = config;
     if (disposed) return;
     nextWarning = 0;
     nextHullNotice = 0;
     nextSwimmerHint = 4;
+    defense.reset();
     colliders.length = 0;
     for (let i = 0; i < entities.length; i++) {
       const entity = entities[i];
@@ -637,6 +647,20 @@ export function createHumanActivity(
       if (activity.submarines === false) continue;
       if (!submarine.state.destroyed) submarine.mesh.userData.animate?.(now);
     }
+    defense.update(
+      dt,
+      now,
+      player,
+      position,
+      forward,
+      activity.submarines !== false,
+    );
+    for (const submarine of submarines) {
+      const warning = defense.states.get(submarine.id)?.phase === "windup";
+      submarine.lights[0]?.material.color.setHex(
+        warning && Math.sin(now * 12) > 0 ? 0xff8757 : 0x85e6cb,
+      );
+    }
     let nearest = Infinity;
     for (const hazard of hazards) {
       if (!hazard.active) continue;
@@ -675,6 +699,7 @@ export function createHumanActivity(
   function dispose() {
     if (disposed) return;
     disposed = true;
+    defense.dispose();
     swimmerFoam.dispose();
     for (const model of models) model.userData.dispose();
     for (const resource of resources) resource.dispose();
@@ -688,6 +713,7 @@ export function createHumanActivity(
     onMovement,
     entities,
     submarines,
+    defense,
     hazards,
     swimmerFoam,
     colliders,

@@ -25,7 +25,7 @@ cssHook.deregister();
 const chinese = /[\u3400-\u9fff]/u;
 const ordinary = (entries) =>
   entries.filter((entry) =>
-    ["shoal", "hunter", "ancient"].includes(entry.category),
+    ["shoal", "hunter", "ancient", "invertebrate"].includes(entry.category),
   );
 const kinds = (entries) => entries.map((entry) => entry.kind).sort();
 const placeholders = (value) =>
@@ -33,7 +33,7 @@ const placeholders = (value) =>
 
 test("the guide's full and regional catalogs agree with actual species and lord rosters", () => {
   const catalog = buildOceanCatalog();
-  assert.equal(catalog.length, 63);
+  assert.equal(catalog.length, 71);
   assert.equal(new Set(catalog.map((entry) => entry.id)).size, catalog.length);
   assert.deepEqual(kinds(ordinary(catalog)), kinds(ALL_SPECIES));
   for (const region of REGIONS.filter((entry) => entry.available)) {
@@ -248,13 +248,14 @@ test("the complete and regional archives group new species with peers in ascendi
       groups.map((group) => group.id),
       [
         "shoal",
+        "invertebrate",
         "surface",
         "hunter",
         "ancient",
         "lord",
         "player",
         "human",
-        ...(regionId ? [] : ["hazard"]),
+        ...(catalog.some((e) => e.category === "hazard") ? ["hazard"] : []),
       ],
     );
     assert.deepEqual(
@@ -286,7 +287,7 @@ test("the complete and regional archives group new species with peers in ascendi
   }
 });
 
-test("Three guardian instances share one bilingual species entry and retain the one-defeat victory rule", () => {
+test("Three guardian instances share one bilingual species entry describing the hidden treasure quest", () => {
   try {
     for (const locale of ["en", "zh-CN"]) {
       setLanguage(locale);
@@ -298,11 +299,11 @@ test("Three guardian instances share one bilingual species entry and retain the 
       assert.equal(lords[0].kind, "kraken");
       assert.match(
         lords[0].text,
-        locale === "en" ? /Three Krakens/ : /三只克拉肯/,
+        locale === "en" ? /three independent Krakens/i : /三只克拉肯/,
       );
       assert.match(
         lords[0].text,
-        locale === "en" ? /defeat any one/ : /击败其中一只/,
+        locale === "en" ? /secretly guards Poseidon/ : /身份不会预先公开/,
       );
       assert.match(lords[0].text, /30/);
     }
@@ -324,9 +325,7 @@ test("city feeding profiles show their actual deep layers and bilingual fantasy 
       );
       assert.match(
         entry.habitatNote,
-        language === "en"
-          ? /fantasy ecosystem.*grown characters/i
-          : /幻想生态.*成年角色/u,
+        language === "en" ? /fantasy ecology.*adults/i : /幻想生态.*成年角色/u,
       );
     }
   }

@@ -237,3 +237,22 @@
     height: 13px;
   }
 }
+
+.picker-region-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 14px;
+  color: #b9d1c6;
+  font-size: 11px;
+}
+.picker-region-meta b {
+  color: #d9e5c0;
+  font-weight: 500;
+}
+.picker-goal {
+  padding-top: 7px;
+  border-top: 1px solid #a1bdb629;
+  color: #dae8cc;
+  font-size: 12px;
+  line-height: 1.7;
+}

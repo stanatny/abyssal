@@ -33,7 +33,11 @@ test("新增巨兽只加两只，不扩大旧物种或幼年食物库存", () =>
     ["atlantis", 390, 17],
   ]) {
     const population = getRegionSpecies(region);
-    const old = population.filter((species) => species.kind !== "ichthyotitan");
+    const old = population.filter(
+      (species) =>
+        !["ichthyotitan", "archelon"].includes(species.kind) &&
+        species.category !== "invertebrate",
+    );
     const giant = population.find((species) => species.kind === "ichthyotitan");
     assert.equal(old.length, kinds);
     assert.equal(

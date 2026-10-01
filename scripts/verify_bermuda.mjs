@@ -124,7 +124,7 @@ try {
       assert.equal(row.audio, region);
       if (region === "bermuda") assert.deepEqual(row.violations, []);
       if (region === "bermuda") {
-        assert.equal(row.count, 313);
+        assert.equal(row.count, 321);
         assert.equal(row.humans, 0);
       }
     }

@@ -10,6 +10,8 @@ import {
 
 /** 史前动物采用独立解剖比例，共享资产、独立关节。 */
 export const ANCIENT_CREATURE_KINDS = new Set([
+  "archelon",
+  "shonisaurus",
   "dunkleosteus",
   "pliosaur",
   "plesiosaur",
@@ -41,7 +43,7 @@ export function buildAncientCreature(kind, root, motions) {
   );
   const swimming = bindAxialMotion(torso, motions, {
     axis: kind === "basilosaurus" ? "x" : "y",
-    amplitude: kind === "basilosaurus" ? 0.11 : 0.052,
+    amplitude: kind === "archelon" ? 0 : kind === "basilosaurus" ? 0.11 : 0.052,
     frequency: config.frequency || 0.82,
   });
   swimming.name = `${kind}_continuous_body`;
@@ -63,6 +65,76 @@ export function buildAncientCreature(kind, root, motions) {
 const GEOMETRY = new Map();
 const MATERIAL = new Map();
 const CONFIG = {
+  archelon: {
+    back: "#687965",
+    belly: "#c3bf97",
+    fin: "#78856a",
+    iris: "#bda56c",
+    profile: [
+      [-0.51, 0.008, 0.019, 0.025],
+      [-0.48, 0.047, 0.043, 0.021],
+      [-0.41, 0.061, 0.049, 0.013],
+      [-0.33, 0.043, 0.034, 0],
+      [-0.23, 0.146, 0.082, 0],
+      [-0.1, 0.274, 0.117, 0.018],
+      [0.1, 0.303, 0.121, 0.019],
+      [0.27, 0.244, 0.097, 0.008],
+      [0.36, 0.112, 0.051, -0.002],
+      [0.405, 0.024, 0.016, 0],
+      [0.48, 0.002, 0.003, 0],
+    ],
+    mouth: {
+      front: -0.508,
+      hinge: -0.405,
+      roof: 0.018,
+      gap: 0.016,
+      thickness: 0.012,
+      teeth: 0,
+      tooth: 0,
+    },
+    eye: [-0.432, 0.044, 0.0085],
+    paddles: [
+      [-0.19, 0.175, 0.39, 0.19],
+      [0.235, 0.204, 0.15, 0.095],
+    ],
+    tail: "point",
+    frequency: 0.64,
+    shell: true,
+  },
+  shonisaurus: {
+    back: "#4b5c77",
+    belly: "#c4c1ad",
+    fin: "#65768d",
+    iris: "#c7b270",
+    profile: [
+      [-0.56, 0.006, 0.012, 0.035],
+      [-0.51, 0.022, 0.019, 0.035],
+      [-0.4, 0.034, 0.03, 0.04],
+      [-0.3, 0.064, 0.06, 0.03],
+      [-0.18, 0.139, 0.159, 0.004],
+      [-0.04, 0.172, 0.2, -0.012],
+      [0.14, 0.153, 0.179, -0.016],
+      [0.31, 0.088, 0.105, -0.025],
+      [0.43, 0.025, 0.035, -0.043],
+      [0.48, 0.008, 0.016, -0.06],
+    ],
+    mouth: {
+      front: -0.553,
+      hinge: -0.305,
+      roof: 0.022,
+      gap: 0.018,
+      thickness: 0.01,
+      teeth: 0,
+      tooth: 0,
+    },
+    eye: [-0.298, 0.067, 0.015],
+    paddles: [
+      [-0.13, 0.14, 0.31, 0.105],
+      [0.2, 0.135, 0.27, 0.085],
+    ],
+    tail: "ichthyosaur",
+    frequency: 0.69,
+  },
   ichthyotitan: ICHTHYOTITAN_ANATOMY,
   dunkleosteus: {
     back: "#706b51",
@@ -378,7 +450,7 @@ function buildMouth(kind, body, config, motions) {
     ancientSkin(kind),
   );
   const dental = plain(config.armor ? "#c4b78b" : "#ded7b4", 0.47);
-  for (const lower of [false, true]) {
+  for (const lower of m.teeth > 0 ? [false, true] : []) {
     const target = lower ? hinge : body;
     mesh(
       target,
@@ -670,6 +742,25 @@ function buildFins(kind, body, swimming, config, motions) {
 }
 
 function buildSurfaceDetails(kind, body, config) {
+  if (config.shell)
+    mesh(
+      body,
+      `${kind}_leathery_carapace_margin`,
+      () => {
+        const parts = [];
+        for (const side of [-1, 1]) {
+          const points = [];
+          for (let n = 0; n <= 30; n++) {
+            const z = -0.23 + (n / 30) * 0.6;
+            const [rx, ry, cy] = sampleSection(config.profile, z);
+            points.push([side * rx * 0.92, cy + ry * 0.4, z]);
+          }
+          parts.push(tube(points, 0.004));
+        }
+        return combine(parts);
+      },
+      plain("#98a180", 0.7),
+    );
   if (config.armor) {
     mesh(
       body,

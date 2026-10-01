@@ -2,8 +2,6 @@
 export const ATLANTIS_EN = Object.freeze({
   "亚特兰蒂斯另有鱼群栖息在古城街巷、上下柱廊、月湾古港地下厅、沉没市集内庭和波塞冬地宫。该深水分布为幻想生态；小鱼主要供较小角色补给，成年角色应寻找城区内的中大型猎物。住宅与神殿中的宝箱、陶器是探索陈设，不提供奖励。":
     "In Atlantis, shoals inhabit the streets, galleries, Moon Harbor halls, Drowned Agora cistern and Poseidon crypt. This deep-water distribution is a fantasy ecosystem. Small fish mainly feed smaller characters; grown characters should seek medium and large prey. Chests and pottery inside houses and temples are scenery and grant no rewards.",
-  "亚特兰蒂斯有三只克拉肯，分别守卫西侧城区、中庭和后城；每只拥有独立领地与生命值。达到30米并击败其中一只即可完成挑战。":
-    "Three Krakens guard Atlantis's western district, central court, and rear city, each with its own territory and health. Reach 30 m and defeat any one of them to complete the challenge.",
   "{0} {1}": "{0} {1}",
   月湾古港: "Moon Harbor",
   沉没市集: "Drowned Agora",
