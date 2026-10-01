@@ -10,20 +10,20 @@ const MAP_SIZE = 100;
  * @param {{x:number,z:number}} position 世界位置；-Z为北，+X为东。
  * @returns {{x:number,y:number}} 地图坐标，不改变输入。
  */
-export function projectMinimapPosition(position) {
-  const width = WORLD.maxX - WORLD.minX;
-  const depth = WORLD.maxZ - WORLD.minZ;
+export function projectMinimapPosition(position, world = WORLD) {
+  const width = world.maxX - world.minX;
+  const depth = world.maxZ - world.minZ;
   const scale = (MAP_SIZE - MAP_PADDING * 2) / Math.max(width, depth);
-  const centerX = (WORLD.minX + WORLD.maxX) / 2;
-  const centerZ = (WORLD.minZ + WORLD.maxZ) / 2;
+  const centerX = (world.minX + world.maxX) / 2;
+  const centerZ = (world.minZ + world.maxZ) / 2;
   return {
     x:
       50 +
-      (clamp(finite(position?.x, centerX), WORLD.minX, WORLD.maxX) - centerX) *
+      (clamp(finite(position?.x, centerX), world.minX, world.maxX) - centerX) *
         scale,
     y:
       50 +
-      (clamp(finite(position?.z, centerZ), WORLD.minZ, WORLD.maxZ) - centerZ) *
+      (clamp(finite(position?.z, centerZ), world.minZ, world.maxZ) - centerZ) *
         scale,
   };
 }
@@ -38,6 +38,7 @@ export function getMinimapState({
   forward,
   spawn,
   fallbackHeading = 0,
+  world = WORLD,
 }) {
   const player = readPoint(position);
   const home = readPoint(spawn);
@@ -85,8 +86,8 @@ export function getMinimapState({
         ? tr`下潜 ${descent}m`
         : tr`水深 ${depth}m`;
   return {
-    player: projectMinimapPosition(player),
-    home: projectMinimapPosition(home),
+    player: projectMinimapPosition(player, world),
+    home: projectMinimapPosition(home, world),
     heading,
     bearing,
     relativeBearing:

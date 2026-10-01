@@ -33,7 +33,7 @@ const placeholders = (value) =>
 
 test("the guide's full and regional catalogs agree with actual species and lord rosters", () => {
   const catalog = buildOceanCatalog();
-  assert.equal(catalog.length, 54);
+  assert.equal(catalog.length, 63);
   assert.equal(new Set(catalog.map((entry) => entry.id)).size, catalog.length);
   assert.deepEqual(kinds(ordinary(catalog)), kinds(ALL_SPECIES));
   for (const region of REGIONS.filter((entry) => entry.available)) {
@@ -56,8 +56,12 @@ test("the guide's full and regional catalogs agree with actual species and lord 
       "torpedo",
     ].filter(
       (kind) =>
-        region.id !== "bermuda" ||
-        !["swimmer", "diver", "submarine"].includes(kind),
+        !(
+          (region.id === "bermuda" &&
+            ["swimmer", "diver", "submarine"].includes(kind)) ||
+          (region.id === "mariana" &&
+            ["swimmer", "diver", "submarine", "torpedo"].includes(kind))
+        ),
     ))
       assert.ok(
         visible.some((entry) => entry.kind === kind),
@@ -72,11 +76,42 @@ test("the guide's full and regional catalogs agree with actual species and lord 
     "hawaii",
     "atlantis",
     "bermuda",
+    "mariana",
   ]);
   assert.deepEqual(
     catalog.find((entry) => entry.kind === "leviathan").regionIds,
-    ["hawaii", "bermuda"],
+    ["hawaii", "bermuda", "mariana"],
   );
+});
+
+test("Mariana guide distinguishes its adult start and mandatory first Hydra gate in both languages", () => {
+  for (const locale of ["zh-CN", "en"]) {
+    setLanguage(locale);
+    const catalog = filterOceanCatalog(buildOceanCatalog("mariana"), {
+      regionId: "mariana",
+    });
+    for (const id of ["orca", "squid"]) {
+      const player = catalog.find((e) => e.kind === id);
+      assert.equal(player.length, 15);
+      assert.match(player.size, /15/);
+    }
+    const hydra = catalog.find((e) => e.kind === "hydra");
+    assert.match(
+      hydra.text,
+      locale === "en"
+        ? /mandatory first guardian.*open the first pressure seal/
+        : /第一道压力帘的必经守卫.*开启2600米/,
+    );
+    assert.match(hydra.habitat, locale === "en" ? /surface/ : /表层/);
+    const rules = catalog.find((e) => e.kind === "mariana_thresholds");
+    assert.match(rules.text, locale === "en" ? /all four gates/ : /全部四关/);
+    assert.match(rules.habitat, locale === "en" ? /4,000/ : /4000/);
+    for (const e of [hydra, rules])
+      for (const key of ["text", "counter", "habitat"])
+        if (locale === "en")
+          assert.equal(chinese.test(e[key]), false, `${e.kind} ${key}`);
+  }
+  setLanguage("zh-CN");
 });
 
 test("new guide entries retain configured size, nutrition, movement, and ability facts", () => {
@@ -236,7 +271,7 @@ test("the complete and regional archives group new species with peers in ascendi
       }
     }
     if (regionId !== "hawaii") {
-      assert.equal(groups[0].entries[0].kind, "seahorse");
+      assert.equal(groups[0].entries[0].length, 0.15);
       assert.ok(
         groups
           .find((group) => group.id === "hunter")

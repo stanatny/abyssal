@@ -1,3 +1,7 @@
+import {
+  nearestWorldBoundary,
+  BOUNDARY_NOTICE_DISTANCE,
+} from "./world_boundary.js";
 import { t, tr, setMarkup } from "./i18n.js";
 import { WORLD } from "./world_config.js";
 import { isNursery } from "./nursery_rules.js";
@@ -46,8 +50,8 @@ export function createMinimap(container) {
     <text class="minimap-north" x="16" y="19">N ↑</text>
     <text class="minimap-zone" x="15" y="37">深</text>
     <text class="minimap-zone" x="77" y="81">浅</text>
-    <path class="minimap-home-route"/>
-    <g class="minimap-contacts"></g>
+    <path class="minimap-home-route"/><path class="minimap-boundary"/>
+    <g class="minimap-waypoints"></g><g class="minimap-contacts"></g>
     <path class="minimap-home" d="M 0 -2.7 L 2.7 0 L 0 2.7 L -2.7 0 Z"/>
     <g class="minimap-player"><circle r="4.8"/><path d="M 0 -4.5 L 3 3.5 L 0 2 L -3 3.5 Z"/></g>
     <g class="minimap-attitude">
@@ -57,6 +61,7 @@ export function createMinimap(container) {
     </g>
   </svg><span class="minimap-pitch-label" aria-hidden="true"></span><div class="minimap-caption"><span class="minimap-home-label"></span><span class="minimap-depth-label"></span></div>`,
   );
+  const boundary = container.querySelector(".minimap-boundary");
   const route = container.querySelector(".minimap-home-route");
   const playerMarker = container.querySelector(".minimap-player");
   const homeMarker = container.querySelector(".minimap-home");
@@ -68,6 +73,8 @@ export function createMinimap(container) {
 
   function reset() {
     snapshot = null;
+    boundary.setAttribute("d", "");
+    delete container.dataset.boundary;
     dots.clear();
     contactLayer.replaceChildren();
     container.dataset.sonarActive = "false";
@@ -93,14 +100,60 @@ export function createMinimap(container) {
 
   reset();
   return {
-    update({ position, forward, spawn, contacts = [], sonarActive = false }) {
+    update({
+      position,
+      forward,
+      spawn,
+      contacts = [],
+      sonarActive = false,
+      world = WORLD,
+      waypoints = [],
+    }) {
       if (disposed) return null;
+      const nw = projectMinimapPosition(
+          { x: world.minX, z: world.minZ },
+          world,
+        ),
+        se = projectMinimapPosition({ x: world.maxX, z: world.maxZ }, world);
+      const basin = container.querySelector(".minimap-basin");
+      for (const [k, v] of Object.entries({
+        x: nw.x,
+        y: nw.y,
+        width: se.x - nw.x,
+        height: se.y - nw.y,
+      }))
+        basin.setAttribute(k, String(v));
+      container.querySelector(".minimap-contours").style.opacity =
+        waypoints.length ? "0" : "1";
+      const waypointLayer = container.querySelector(".minimap-waypoints");
+      while (waypointLayer.children.length < waypoints.length) {
+        const dot = document.createElementNS(SVG_NAMESPACE, "circle");
+        waypointLayer.append(dot);
+      }
+      while (waypointLayer.children.length > waypoints.length)
+        waypointLayer.lastChild.remove();
+      waypoints.forEach((w, i) => {
+        const p = projectMinimapPosition(w, world),
+          dot = waypointLayer.children[i];
+        dot.setAttribute("cx", String(p.x));
+        dot.setAttribute("cy", String(p.y));
+        dot.setAttribute("r", "3");
+        dot.setAttribute(
+          "fill",
+          w.final ? "#edc876" : w.open ? "#73cfb4" : "#bb98d9",
+        );
+        dot.setAttribute(
+          "opacity",
+          Math.abs(w.y - position.y) < 500 ? ".9" : ".25",
+        );
+      });
       const nursery = isNursery(position);
       snapshot = getMinimapState({
         position,
         forward,
         spawn,
         fallbackHeading: snapshot?.heading,
+        world,
       });
       snapshot.attitude = getSwimmingAttitude(forward);
       container.dataset.pitch = String(snapshot.attitude.degrees);
@@ -140,6 +193,33 @@ export function createMinimap(container) {
       homeLabel.textContent = t(snapshot.homeLabel);
       container.dataset.nursery = String(nursery);
       depthLabel.textContent = t(nursery ? "安全浅滩" : snapshot.depthLabel);
+      const next = waypoints.find((w) => !w.open);
+      if (next && !nursery)
+        depthLabel.textContent = t(
+          next.guardian
+            ? Math.abs(next.y - position.y) <= 3
+              ? "守卫 · 同层"
+              : next.y > position.y
+                ? tr`守卫 ↑ ${Math.round((next.y - position.y) * world.displayDepthScale)}m`
+                : tr`守卫 ↓ ${Math.round((position.y - next.y) * world.displayDepthScale)}m`
+            : next.final
+              ? tr`秘境 ↓ ${Math.max(0, Math.round((position.y - next.y) * world.displayDepthScale))}m`
+              : tr`关卡 ↓ ${Math.max(0, Math.round((position.y - next.y) * world.displayDepthScale))}m`,
+        );
+      const edge = nearestWorldBoundary(position, world);
+      const nearEdge = edge.distance < BOUNDARY_NOTICE_DISTANCE;
+      container.dataset.boundary = String(nearEdge);
+      const paths = [
+        `M ${nw.x} ${nw.y} V ${se.y}`,
+        `M ${se.x} ${nw.y} V ${se.y}`,
+        `M ${nw.x} ${nw.y} H ${se.x}`,
+        `M ${nw.x} ${se.y} H ${se.x}`,
+      ];
+      boundary.setAttribute("d", nearEdge ? paths[edge.edge] : "");
+      if (nearEdge) {
+        depthLabel.textContent = t("边界 · 请转向");
+        container.setAttribute("aria-label", t("海域边界无法通行，请转向"));
+      }
       const activeIds = new Set();
       if (sonarActive) {
         for (const [index, contact] of contacts.entries()) {
@@ -156,7 +236,7 @@ export function createMinimap(container) {
             contactLayer.append(dot);
             dots.set(id, dot);
           }
-          const point = projectMinimapPosition(contact.position);
+          const point = projectMinimapPosition(contact.position, world);
           dot.setAttribute("cx", String(point.x));
           dot.setAttribute("cy", String(point.y));
           dot.setAttribute("r", contact.boss ? "2.2" : "1.5");

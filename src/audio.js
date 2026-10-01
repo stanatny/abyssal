@@ -1,3 +1,4 @@
+import { MarianaMusic, MARIANA_SCORE } from "./music_mariana.js";
 import { BermudaMusic, BERMUDA_SCORE } from "./music_bermuda.js";
 import { FishBiteBank } from "./fish_bite_assets.js";
 import { HumanVoiceBank } from "./human_voice_assets.js";
@@ -42,6 +43,7 @@ export class OceanAudio {
     this.regionId = "hawaii";
     this.atlantisMusic = null;
     this.bermudaMusic = null;
+    this.marianaMusic = null;
     this.retiredMusicRooms = [];
     this.pauseTimer = null;
     this.feedingVoices = new Map();
@@ -77,17 +79,19 @@ export class OceanAudio {
    * 可在用户手势前调用，不创建上下文；未知地图沿用夏威夷主题。
    */
   setRegion(regionId) {
-    const next = ["hawaii", "atlantis", "bermuda"].includes(regionId)
+    const next = ["hawaii", "atlantis", "bermuda", "mariana"].includes(regionId)
       ? regionId
       : "hawaii";
     if (next === this.regionId) return next;
     this.regionId = next;
     this.beat =
-      next === "atlantis"
-        ? ATLANTIS_SCORE.beat
-        : next === "bermuda"
-          ? BERMUDA_SCORE.beat
-          : 60 / 80;
+      next === "mariana"
+        ? MARIANA_SCORE.beat
+        : next === "atlantis"
+          ? ATLANTIS_SCORE.beat
+          : next === "bermuda"
+            ? BERMUDA_SCORE.beat
+            : 60 / 80;
     this.step = 0;
     this.musicCombat = false;
     if (!this.ready) return next;
@@ -97,6 +101,7 @@ export class OceanAudio {
     this.nextStep = now + 0.14;
     if (next === "atlantis") this.ensureAtlantisMusic().reset(now);
     if (next === "bermuda") this.ensureBermudaMusic().reset(now);
+    if (next === "mariana") this.ensureMarianaMusic().reset(now);
     return next;
   }
 
@@ -173,6 +178,7 @@ export class OceanAudio {
       this.musicCombat = false;
       if (this.atlantisMusic) this.atlantisMusic.combatActive = false;
       if (this.bermudaMusic) this.bermudaMusic.combatActive = false;
+      if (this.marianaMusic) this.marianaMusic.combatActive = false;
     }
     this.master.gain.setTargetAtTime(
       this.enabled ? 0.76 : 0,
@@ -260,6 +266,7 @@ export class OceanAudio {
     this.replaceMusicRoom(now);
     this.atlantisMusic?.reset(now);
     this.bermudaMusic?.reset(now);
+    this.marianaMusic?.reset(now);
   }
 
   /**
@@ -290,6 +297,7 @@ export class OceanAudio {
     this.cleanMusicRooms(now);
     if (this.regionId === "atlantis") this.ensureAtlantisMusic().update(now);
     if (this.regionId === "bermuda") this.ensureBermudaMusic().update(now);
+    if (this.regionId === "mariana") this.ensureMarianaMusic().update(now);
     const intensity = Math.sqrt(this.lastDanger);
     const depthRatio = clamp(this.depth / 740, 0, 1);
     const muffling = 1 - this.ink * 0.67;
@@ -368,6 +376,8 @@ export class OceanAudio {
         this.ensureAtlantisMusic().schedule(this.nextStep, this.step);
       else if (this.regionId === "bermuda")
         this.ensureBermudaMusic().schedule(this.nextStep, this.step);
+      else if (this.regionId === "mariana")
+        this.ensureMarianaMusic().schedule(this.nextStep, this.step);
       else this.scheduleMusicStep(this.nextStep, this.step);
       this.nextStep += subdivision;
       this.step += 1;
@@ -1226,6 +1236,10 @@ export class OceanAudio {
   }
 
   /** 百慕大音型复用现有音乐图，不另建音频上下文。 */
+  ensureMarianaMusic() {
+    this.marianaMusic ??= new MarianaMusic(this);
+    return this.marianaMusic;
+  }
   ensureBermudaMusic() {
     this.bermudaMusic ??= new BermudaMusic(this);
     return this.bermudaMusic;

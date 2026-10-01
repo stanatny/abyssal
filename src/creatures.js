@@ -1,4 +1,8 @@
 import {
+  MARIANA_CREATURE_KINDS,
+  buildMarianaCreature,
+} from "./creature_mariana.js";
+import {
   BERMUDA_CREATURE_KINDS,
   buildBermudaCreature,
 } from "./creature_bermuda.js";
@@ -62,7 +66,9 @@ export function createCreature(kind, length = 6, seed = 1) {
   let previousTime;
   let swimTime = phase;
 
-  if (BERMUDA_CREATURE_KINDS.has(kind))
+  if (MARIANA_CREATURE_KINDS.has(kind))
+    buildMarianaCreature(kind, root, motions);
+  else if (BERMUDA_CREATURE_KINDS.has(kind))
     buildBermudaCreature(kind, root, motions);
   else if (ATLANTIS_CREATURE_KINDS.has(kind))
     buildAtlantisCreature(kind, root, motions);

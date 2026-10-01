@@ -39,6 +39,22 @@ export function createExpeditionSetup(
     container.querySelector("#region-description").textContent = t(
       entry.description || "",
     );
+    container.querySelector(".survival-tip").textContent = t(
+      entry.departureHint ||
+        "幼年先在安全浅滩吃鱼群；长大后，小鱼补给会衰减。越深越耗饱食，向下寻找更大的猎物，吃饱再挑战领主。",
+    );
+    const note = document.querySelector(".specimen p"),
+      depth = document.querySelector(".menu-stats > div:nth-child(3) b");
+    if (note)
+      note.textContent = t(
+        entry.completion
+          ? "15米起步，成长至30米，突破四道守关，抵达万米秘境。"
+          : "从鱼群中成长，向主宰发起挑战。30 米 + 一枚深渊印记，成为霸主。",
+      );
+    if (depth)
+      depth.textContent = entry.world
+        ? String(entry.world.maxDepth * entry.world.displayDepthScale)
+        : "2500+";
     if (notifyChange) onRegionChange?.(entry);
   }
   for (const [trigger, entries, title, character, onSelect] of [

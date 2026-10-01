@@ -1,6 +1,7 @@
 import assert from "node:assert/strict";
 import test, { before, after } from "node:test";
 import * as THREE from "three";
+import { createMarianaFleet } from "../src/mariana_surface.js";
 import { createShips } from "../src/ships.js";
 import { createAtlantisFleet } from "../src/atlantis_surface.js";
 import {
@@ -18,6 +19,7 @@ import {
 } from "../src/human_rules.js";
 
 const factories = [
+  ["Mariana", createMarianaFleet, [3, 1]],
   ["Hawaii", createShips, [3, 3, 1]],
   ["Atlantis", createAtlantisFleet, [1, 1, 1]],
 ];

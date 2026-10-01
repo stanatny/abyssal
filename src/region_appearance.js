@@ -29,6 +29,35 @@ const ATLANTIS_ZONES = {
 /** 海域仅改变区域展示，深度阈值与饥饿计算仍由共享规则决定。 */
 export function regionZone(regionId, depth, position = null) {
   const zone = getZone(depth);
+  if (regionId === "mariana") {
+    const row =
+      depth < 80
+        ? [
+            "珍珠浅棚",
+            "PACIFIC SHELF",
+            "从15米起步，沿岩壁寻找大鱼；外海水面有三头巨龙。",
+          ]
+        : depth < 650
+          ? [
+              "回声裂谷",
+              "ECHO CANYON",
+              "沿发光生物辨认下降路线，先寻找更大的食物。",
+            ]
+          : depth < 1375
+            ? ["幽蓝阶渊", "BLUE DESCENT", "穿过开阔岩廊，寻找下一位守关领主。"]
+            : depth < 2150
+              ? [
+                  "超深渊回廊",
+                  "HADAL GALLERIES",
+                  "观察微小狮子鱼，寻找巨兽补给与最后的守卫。",
+                ]
+              : [
+                  "挑战者秘境",
+                  "CHALLENGER REFUGE",
+                  "最深处藏着一抹暖光，沿光亮寻找秘密。",
+                ];
+    return { ...zone, name: row[0], code: row[1], description: row[2] };
+  }
   if (regionId === "bermuda")
     return {
       ...zone,

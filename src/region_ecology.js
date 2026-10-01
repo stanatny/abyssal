@@ -1,3 +1,5 @@
+import { MARIANA_SPECIES } from "./mariana_species.js";
+import { marianaEcology } from "./mariana_ecology.js";
 import { BERMUDA_SPECIES } from "./bermuda_species.js";
 import { bermudaEcology } from "./bermuda_ecology.js";
 import { ECOSYSTEM_SPECIES } from "./ecosystem_config.js";
@@ -13,6 +15,7 @@ export const ALL_SPECIES = Object.freeze([
   ...ECOSYSTEM_SPECIES,
   ...ATLANTIS_SPECIES,
   ...BERMUDA_SPECIES,
+  ...MARIANA_SPECIES,
 ]);
 
 /**
@@ -129,6 +132,7 @@ const ATLANTIS_OVERRIDES = {
 
 const REGION_SPECIES = Object.freeze({
   hawaii: ECOSYSTEM_SPECIES,
+  mariana: marianaEcology(ALL_SPECIES),
   bermuda: bermudaEcology(ALL_SPECIES),
   atlantis: Object.freeze(
     Object.entries(ATLANTIS_OVERRIDES).map(([kind, overrides]) => {

@@ -1,3 +1,6 @@
+import { createWorldBoundary, WORLD_EDGE_INSET } from "./world_boundary.js";
+import { createMarianaOcean } from "./mariana_ocean.js";
+import { MARIANA_GATES, MARIANA_REFUGE } from "./mariana_config.js";
 import { createBermudaOcean } from "./bermuda_ocean.js";
 import { initializeLanguage, setLanguageEnabled } from "./i18n.js";
 import { t, tr, message, setMarkup, onLanguageChange } from "./i18n.js";
@@ -117,6 +120,7 @@ renderer.toneMappingExposure = 1.03;
 renderer.shadowMap.enabled = true;
 renderer.shadowMap.type = THREE.PCFSoftShadowMap;
 const scene = new THREE.Scene();
+const worldBoundary = createWorldBoundary(scene);
 scene.background = new THREE.Color("#155568");
 scene.fog = new THREE.FogExp2("#155568", 0.009);
 const camera = new THREE.PerspectiveCamera(
@@ -342,10 +346,13 @@ function selectAvatar(character) {
     caption.querySelector("span").textContent = t(
       tr`${character.id === "orca" ? "ORCINUS ORCA" : "ARCHITEUTHIS DUX"} · PLAYER`,
     );
-    caption.querySelector("strong").textContent = t(
-      tr`${character.name} · 幼年个体`,
-    );
+    caption.querySelector("strong").textContent = t(specimenCaption(character));
   }
+}
+function specimenCaption(character) {
+  return expedition.region.startLength
+    ? tr`${character.name} · ${expedition.region.startLength}米起步`
+    : tr`${character.name} · 幼年个体`;
 }
 async function selectRegion(region) {
   if (regionLoading || mode !== "menu" || loadedRegion === region.id) return;
@@ -373,24 +380,27 @@ async function selectRegion(region) {
     await regionLoader.paint();
     // 新环境完整建成后才替换旧环境；失败时仍可回到原海域。
     nextOcean =
-      region.id === "atlantis"
-        ? createAtlantisOcean(container)
-        : region.id === "bermuda"
-          ? createBermudaOcean(container, {
-              audio,
-              notify,
-              onDamage() {
-                hitFlash = 0.9;
-                effects.hurt(position, player.length);
-              },
-            })
-          : createOcean(container);
+      region.id === "mariana"
+        ? createMarianaOcean(container)
+        : region.id === "atlantis"
+          ? createAtlantisOcean(container)
+          : region.id === "bermuda"
+            ? createBermudaOcean(container, {
+                audio,
+                notify,
+                onDamage() {
+                  hitFlash = 0.9;
+                  effects.hurt(position, player.length);
+                },
+              })
+            : createOcean(container);
     await regionLoader.paint();
     regionLoader.stage("正在准备海面与生物…", 52);
     await regionLoader.paint();
     nextSurface = createSurface(container, audio, notify, {
       ...surfaceOptions,
       regionId: region.id,
+      worldBounds: region.world || WORLD,
       heightAt: nextOcean.heightAt || baseSeabedHeight,
       onDamage() {
         hitFlash = 0.9;
@@ -503,21 +513,29 @@ function refreshRegionState() {
 }
 
 function updateRegionPresentation() {
+  document.querySelector(".specimen strong").textContent = t(
+    specimenCaption(setup.getSelection().character),
+  );
   const night = expedition.region.id === "atlantis";
   const storm = expedition.region.id === "bermuda";
+  const trench = expedition.region.id === "mariana";
   setMarkup(
     document.querySelector(".intro"),
-    storm
-      ? "风暴遮蔽航路，幽灵炮声穿透浓雾。<br />探索失落沉船，挑战各水层的深渊领主。"
-      : night
-        ? "循着月光与鱼群，潜入沉没古城。<br />在波塞冬的珠光下，迎战守卫克拉肯。"
-        : "穿过阳光与鱼群，潜向未知。<br />从幼年的生命，长成深渊的主宰。",
+    trench
+      ? "循着生物微光，潜入世界最深的海沟。<br />突破四道守关，寻找万米深处的秘密。"
+      : storm
+        ? "风暴遮蔽航路，幽灵炮声穿透浓雾。<br />探索失落沉船，挑战各水层的深渊领主。"
+        : night
+          ? "循着月光与鱼群，潜入沉没古城。<br />在波塞冬的珠光下，迎战守卫克拉肯。"
+          : "穿过阳光与鱼群，潜向未知。<br />从幼年的生命，长成深渊的主宰。",
   );
-  const labels = storm
-    ? ["宁静礁湾", "风暴外海", "失落沉船"]
-    : night
-      ? ["月辉浅滩", "沉没外城", "波塞冬古城"]
-      : ["珊瑚浅海", "幽蓝海沟", "火山深渊"];
+  const labels = trench
+    ? ["珍珠浅棚", "幽蓝阶渊", "挑战者秘境"]
+    : storm
+      ? ["宁静礁湾", "风暴外海", "失落沉船"]
+      : night
+        ? ["月辉浅滩", "沉没外城", "波塞冬古城"]
+        : ["珊瑚浅海", "幽蓝海沟", "火山深渊"];
   document.querySelectorAll(".journey b span").forEach((node, index) => {
     node.textContent = t(labels[index]);
   });
@@ -638,6 +656,23 @@ function updateSonar() {
     spawn: expedition.region.spawn,
     contacts: scan.contacts,
     sonarActive: visible,
+    world: activeWorld(),
+    waypoints: ocean.progress
+      ? ocean.progress.opened === MARIANA_GATES.length
+        ? [{ ...MARIANA_REFUGE, open: false, final: true }]
+        : MARIANA_GATES.map((g, i) => ({
+            x:
+              g.guideToGuardian && i >= ocean.progress.opened ? g.home[0] : g.x,
+            y:
+              g.guideToGuardian && i >= ocean.progress.opened
+                ? g.home[1]
+                : -g.depth,
+            z:
+              g.guideToGuardian && i >= ocean.progress.opened ? g.home[2] : g.z,
+            guardian: Boolean(g.guideToGuardian && i >= ocean.progress.opened),
+            open: i < ocean.progress.opened,
+          }))
+      : [],
   });
   const character = getCharacter(player.characterId);
   const skill = character.active;
@@ -734,6 +769,9 @@ function random(min, max) {
   return min + Math.random() * (max - min);
 }
 // 动态读取当前海域；回到首页换图或准备失败回滚时，不保留旧地图的海床闭包。
+function activeWorld() {
+  return expedition.region.world || WORLD;
+}
 function activeSeabedHeight(x, z) {
   return (ocean.heightAt || baseSeabedHeight)(x, z);
 }
@@ -906,12 +944,17 @@ function seedPickups() {
       i < 3
         ? new THREE.Vector3((i - 1) * 13, -19 - i * 5, 40 - i * 28)
         : spawnPosition(
-            { depthMin: 20, depthMax: 710, length: 2 },
+            {
+              depthMin: 20,
+              depthMax: activeWorld().maxDepth - 30,
+              length: 2,
+              worldBounds: activeWorld(),
+            },
             false,
             new THREE.Vector3(
-              random(WORLD.minX + 18, WORLD.maxX - 18),
-              -random(20, 710),
-              random(WORLD.minZ + 18, WORLD.maxZ - 18),
+              random(activeWorld().minX + 18, activeWorld().maxX - 18),
+              -random(20, activeWorld().maxDepth - 30),
+              random(activeWorld().minZ + 18, activeWorld().maxZ - 18),
             ),
           );
     item.mesh.position.copy(point);
@@ -932,11 +975,10 @@ function resetExpedition(preserveWorld = false) {
   $("menu").inert = false;
   $("hud").inert = false;
   expedition = setup.getSelection();
-  player = createPlayer(expedition.character.id);
+  player = createPlayer(expedition.character.id, expedition.startLength);
+  player.expeditionComplete = !expedition.region.completion;
   selectAvatar(expedition.character);
   inkAbility = createInkState();
-  player.length = expedition.character.startLength;
-  player.mass = (player.length / 6) ** 3;
   position.fromArray(expedition.region.spawn);
   yaw = 0;
   pitch = 0;
@@ -1030,7 +1072,11 @@ function startGame({ transition = false } = {}) {
   lastTime = performance.now();
 }
 function announceDeparture() {
-  notify("这里是安全浅滩 · 穿过鱼群补给成长\n长到约4米，再探索外礁", 6);
+  notify(
+    expedition.region.departureHint ||
+      "这里是安全浅滩 · 穿过鱼群补给成长\n长到约4米，再探索外礁",
+    6,
+  );
 }
 function updateLaunch(roundDt) {
   const progress = launchTransition.advance(roundDt);
@@ -1159,7 +1205,11 @@ function togglePause() {
 function queryWorldSegment(a, b, radius = 0) {
   return castIndexedSegment(a, b, {
     staticColliders: ocean.colliders,
-    dynamicColliders: [...surface.colliders, ...humans.colliders],
+    dynamicColliders: [
+      ...(ocean.barriers || []),
+      ...surface.colliders,
+      ...humans.colliders,
+    ],
     radius,
   });
 }
@@ -1171,7 +1221,11 @@ function resolvePlayerMotion(previous, merge = false) {
   // 各海域共用静态地形粗筛；船只与人类每次读取当前碰撞体，不能进入静态缓存。
   const result = resolveIndexedMotion(previous, position, {
     staticColliders: ocean.colliders,
-    dynamicColliders: [...surface.colliders, ...humans.colliders],
+    dynamicColliders: [
+      ...(ocean.barriers || []),
+      ...surface.colliders,
+      ...humans.colliders,
+    ],
     radius,
     forward,
     length: player.length,
@@ -1184,11 +1238,11 @@ function resolvePlayerMotion(previous, merge = false) {
           0.4,
       ),
     bounds: {
-      minX: WORLD.minX + 5,
-      maxX: WORLD.maxX - 5,
-      minZ: WORLD.minZ + 5,
-      maxZ: WORLD.maxZ - 5,
-      minY: -WORLD.maxDepth + radius,
+      minX: activeWorld().minX + WORLD_EDGE_INSET,
+      maxX: activeWorld().maxX - WORLD_EDGE_INSET,
+      minZ: activeWorld().minZ + WORLD_EDGE_INSET,
+      maxZ: activeWorld().maxZ - WORLD_EDGE_INSET,
+      minY: -activeWorld().maxDepth + radius,
       maxY: surface.airborne
         ? undefined
         : WORLD.surfaceY - player.length * 0.15,
@@ -1750,8 +1804,16 @@ function updateEntities(dt) {
       mesh.position.z,
       species.length * 0.28 + 2,
     );
-    mesh.position.x = Clamp(mesh.position.x, WORLD.minX + 8, WORLD.maxX - 8);
-    mesh.position.z = Clamp(mesh.position.z, WORLD.minZ + 8, WORLD.maxZ - 8);
+    mesh.position.x = Clamp(
+      mesh.position.x,
+      activeWorld().minX + 8,
+      activeWorld().maxX - 8,
+    );
+    mesh.position.z = Clamp(
+      mesh.position.z,
+      activeWorld().minZ + 8,
+      activeWorld().maxZ - 8,
+    );
     // 深海生物遇到浅坡时退回可容纳的水层，不能被海床一路推到浅滩。
     if (
       (habitat.depthMin >= 100 || layeredSchool) &&
@@ -1970,6 +2032,7 @@ function atmosphere(dt) {
   const blend = Clamp((depth - 25) / 350, 0, 1);
   const night = expedition.region.id === "atlantis";
   const storm = expedition.region.id === "bermuda";
+  const trench = expedition.region.id === "mariana";
   const city = night ? cityLightBlend(position) : 0;
   const color = new THREE.Color(night ? "#103847" : "#155568").lerp(
     new THREE.Color(night ? "#040f1b" : "#030e1c"),
@@ -2002,6 +2065,31 @@ function atmosphere(dt) {
     scene.fog.density =
       (aboveWater ? 0.0028 : 0.0065 - blend * 0.0023) +
       (aboveWater ? 0 : effects.ink * 0.115);
+  if (trench) {
+    const deep = Clamp(depth / 2200, 0, 1);
+    const refuge =
+      depth > 2550
+        ? 1 -
+          Clamp(
+            Math.hypot(
+              position.x - MARIANA_REFUGE.x,
+              position.y - MARIANA_REFUGE.y,
+              position.z - MARIANA_REFUGE.z,
+            ) / 190,
+            0,
+            1,
+          )
+        : 0;
+    color
+      .set(aboveWater ? "#aac4cb" : "#103845")
+      .lerp(new THREE.Color("#0b142c"), aboveWater ? 0 : deep);
+    color.lerp(new THREE.Color("#354453"), refuge * 0.5);
+    scene.background.lerp(color, Math.min(1, dt * 3));
+    scene.fog.color.copy(scene.background);
+    scene.fog.density =
+      (aboveWater ? 0.0013 : 0.0027 + deep * 0.0005) +
+      (aboveWater ? 0 : effects.ink * 0.115);
+  }
   if (!aboveWater && effects.ink > 0.01) {
     scene.fog.color.lerp(new THREE.Color("#111120"), effects.ink);
     scene.background.lerp(new THREE.Color("#111120"), effects.ink);
@@ -2038,6 +2126,19 @@ function atmosphere(dt) {
       (aboveWater ? 1.25 : 1.5 - blend * 0.9) +
       (ocean.weather?.flash || 0) * 0.7;
   }
+  if (trench && aboveWater) {
+    ambient.color.set(0xb6c9d4);
+    ambient.intensity = 1.6;
+    sun.color.set(0xc5d5e0);
+    sun.intensity = 1.3;
+  }
+  if (trench && !aboveWater) {
+    ambient.color.set(0x9cbbd9);
+    ambient.groundColor.set(0x394761);
+    ambient.intensity = 1.45 - Clamp(depth / 2000, 0, 1) * 0.32;
+    sun.color.set(0xb3cbdc);
+    sun.intensity = 0.8 - Clamp(depth / 900, 0, 1) * 0.58;
+  }
   rim.intensity = night ? 0.55 + city * 0.55 : 0.85 - blend * 0.35;
   if (night) sun.position.copy(position).addScaledVector(MOON_DIRECTION, 140);
   else sun.position.set(position.x - 50, position.y + 105, position.z + 50);
@@ -2070,7 +2171,9 @@ function updateHud() {
     notify(
       nursery
         ? "回到安全浅滩 · 猎手停止追击"
-        : "离开安全浅滩 · 外礁有少量猎手，建议4米后探索",
+        : expedition.region.startLength
+          ? "离开安全浅滩 · 沿岩壁捕捉大鱼，25米后挑战守关领主"
+          : "离开安全浅滩 · 外礁有少量猎手，建议4米后探索",
       4,
     );
   }
@@ -2097,7 +2200,7 @@ function updateHud() {
   $("growth").style.width = getProgress(player) + "%";
   $("speed").textContent = t(Math.round(speed));
   $("depth-dot").style.top =
-    Clamp((-position.y / WORLD.maxDepth) * 100, 0, 100) + "%";
+    Clamp((-position.y / activeWorld().maxDepth) * 100, 0, 100) + "%";
   $("objective").textContent = t(
     nursery && player.length < 4
       ? "安心吃鱼群 · 成长至 4 米"
@@ -2113,6 +2216,16 @@ function updateHud() {
                 ? "深渊印记已得 · 成长至 30 米"
                 : "25 米后挑战主宰 · 接触咬击",
   );
+  if (ocean.progress) {
+    const { opened, next } = ocean.progress;
+    $("objective").textContent = t(
+      player.length < 25
+        ? "沿岩壁觅食 · 25米后挑战首位守卫"
+        : next
+          ? tr`击败守卫 ${opened + 1}/${MARIANA_GATES.length} · ${next.guideToGuardian ? "海面海德拉" : next.name}`
+          : "四道关卡已开 · 成长至30米，抵达海沟底部",
+    );
+  }
   $("notification").style.opacity = elapsed < notificationUntil ? "1" : "0";
   setMarkup(
     $("buffs"),
@@ -2338,6 +2451,7 @@ function frame(now) {
         blockedBetween,
       },
     );
+    ocean.updateProgress?.(player, position, encounters.bosses, notify);
     if (!position.equals(beforeEncounter) || player.length !== beforeBossLength)
       resolvePlayerMotion(beforeEncounter, true);
     avatar.position.copy(position);
@@ -2420,6 +2534,13 @@ function frame(now) {
     hitFlash = Math.max(0, hitFlash - dt * 1.6);
     $("damage").style.opacity = hitFlash;
   }
+  worldBoundary.update(
+    elapsed,
+    position,
+    activeWorld(),
+    mode === "playing" || mode === "paused",
+    ocean.rockyBoundarySides === true,
+  );
   visuals.update({
     time: elapsed,
     depth: -position.y,
@@ -2438,8 +2559,9 @@ onLanguageChange(() => {
   $("notification").textContent = t(currentNotification);
   const selected =
     mode === "menu" ? setup.getSelection().character : expedition.character;
-  document.querySelector(".specimen strong").textContent =
-    tr`${selected.name} · 幼年个体`;
+  document.querySelector(".specimen strong").textContent = t(
+    specimenCaption(selected),
+  );
   occlusionsAt = -Infinity;
   if (["paused", "won", "dead", "timeup"].includes(mode)) renderOverlay(mode);
   $("movement-mode").textContent = t(movementLabel);

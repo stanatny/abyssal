@@ -1,3 +1,4 @@
+import { MARIANA_WORLD, MARIANA_GATES } from "./mariana_config.js";
 import { REGION_SPECIES_KINDS } from "./region_ecology.js";
 import { BOSS_SPECIES } from "./boss_rules.js";
 
@@ -88,13 +89,43 @@ export const REGIONS = Object.freeze([
     ),
     spawn: [0, -18, 75],
   },
-  { id: "mariana", name: "马里亚纳海沟", available: false },
+  {
+    id: "mariana",
+    name: "马里亚纳海沟",
+    available: true,
+    seabedHeat: false,
+    description:
+      "沿海沟岩壁逐层下潜，突破四位深渊守卫，抵达万米深处的秘密。15米起步，沿上层岩壁捕捉大鱼；25米后挑战守关领主。",
+    world: MARIANA_WORLD,
+    startLength: 15,
+    departureHint:
+      "15米起步 · 沿上层岩壁寻找大鱼\n25米后先挑战外海海德拉，开启第一道压力帘",
+    speciesKinds: REGION_SPECIES_KINDS.mariana,
+    bossKinds: MARIANA_GATES.map((g) => g.kind),
+    bossInstances: MARIANA_GATES.map((g) => ({
+      id: g.id,
+      kind: g.kind,
+      home: g.home,
+      radius: g.radius,
+      maxCenterY: g.maxCenterY,
+      persistentDefeat: true,
+    })),
+    humanActivity: {
+      swimmers: false,
+      divers: false,
+      releasedDivers: false,
+      submarines: false,
+      mines: false,
+    },
+    spawn: [0, -18, 75],
+    completion: "trench_descent",
+  },
 ]);
 
 /** 根据选项取可用配置；尚未开放的海域或角色不会被当作可玩内容。
  * @param {string} regionId 海域标识。
  * @param {string} characterId 角色标识。
- * @returns {{region:object,character:object}} 已验证的选择。
+ * @returns {{region:object,character:object,startLength:number}} 已验证的选择。
  */
 export function getExpedition(regionId = "hawaii", characterId = "orca") {
   const region = REGIONS.find(
@@ -104,5 +135,9 @@ export function getExpedition(regionId = "hawaii", characterId = "orca") {
     (entry) => entry.id === characterId && entry.available,
   );
   if (!region || !character) throw new Error("Expedition is not available");
-  return { region, character };
+  return {
+    region,
+    character,
+    startLength: region.startLength ?? character.startLength,
+  };
 }

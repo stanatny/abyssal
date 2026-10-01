@@ -19,6 +19,7 @@ import {
  * @returns {{x:number,y:number,z:number}} 新的单位方向，不修改任何输入。
  */
 export function steerWithinHabitat(position, direction, species, seabedHeight) {
+  const world = species.worldBounds || WORLD;
   const desired = normalize(direction, { x: 0, y: 0, z: -1 });
   const lookAhead = clamp(species.speed * 2.5 + species.length * 0.5, 25, 70);
   const predictedX = position.x + desired.x * lookAhead;
@@ -35,17 +36,17 @@ export function steerWithinHabitat(position, direction, species, seabedHeight) {
     urgency = Math.max(urgency, weight);
   }
 
-  if (position.x > WORLD.maxX - lookAhead) {
-    avoid(-1, 0, 1 - (WORLD.maxX - position.x) / lookAhead);
+  if (position.x > world.maxX - lookAhead) {
+    avoid(-1, 0, 1 - (world.maxX - position.x) / lookAhead);
   }
-  if (position.x < WORLD.minX + lookAhead) {
-    avoid(1, 0, 1 - (position.x - WORLD.minX) / lookAhead);
+  if (position.x < world.minX + lookAhead) {
+    avoid(1, 0, 1 - (position.x - world.minX) / lookAhead);
   }
-  if (position.z > WORLD.maxZ - lookAhead) {
-    avoid(0, -1, 1 - (WORLD.maxZ - position.z) / lookAhead);
+  if (position.z > world.maxZ - lookAhead) {
+    avoid(0, -1, 1 - (world.maxZ - position.z) / lookAhead);
   }
-  if (position.z < WORLD.minZ + lookAhead) {
-    avoid(0, 1, 1 - (position.z - WORLD.minZ) / lookAhead);
+  if (position.z < world.minZ + lookAhead) {
+    avoid(0, 1, 1 - (position.z - world.minZ) / lookAhead);
   }
 
   const margin = species.length * 0.28 + 2;
@@ -123,15 +124,16 @@ export function resolveCreatureMotion(
   habitat,
   { colliders, heightAt, territory = null },
 ) {
+  const world = habitat.worldBounds || WORLD;
   const radius = Math.max(0.45, habitat.length * 0.18);
   if (!colliders?.length) return null;
   const extent = Math.max(0, habitat.length * 0.42 - radius);
   const bounds = {
-    minX: territory?.minX ?? WORLD.minX + 8,
-    maxX: territory?.maxX ?? WORLD.maxX - 8,
-    minZ: territory?.minZ ?? WORLD.minZ + 8,
-    maxZ: territory?.maxZ ?? WORLD.maxZ - 8,
-    minY: -(habitat.depthMax || WORLD.maxDepth),
+    minX: territory?.minX ?? world.minX + 8,
+    maxX: territory?.maxX ?? world.maxX - 8,
+    minZ: territory?.minZ ?? world.minZ + 8,
+    maxZ: territory?.maxZ ?? world.maxZ - 8,
+    minY: -(habitat.depthMax || world.maxDepth),
     maxY: -(habitat.depthMin || 5),
   };
   let cached = STRUCTURE_GRIDS.get(colliders);

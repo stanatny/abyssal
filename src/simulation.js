@@ -11,16 +11,24 @@ import { getCharacter } from "./character_rules.js";
  * Public API
  ********************************************/
 
-/** 根据可选角色创建幼年个体；质量仍以6米个体为单位，返回可更新的玩家状态。 */
-export function createPlayer(characterId = "orca") {
+/** 根据角色和远征起始体长创建玩家；未指定体长时使用角色默认值，质量以6米个体为单位。 */
+export function createPlayer(
+  characterId = "orca",
+  startLength = getCharacter(characterId).startLength,
+) {
+  if (!Number.isFinite(startLength) || startLength < 3 || startLength >= 30)
+    throw new RangeError(
+      "Starting length must be between 3 (inclusive) and 30 meters",
+    );
   const character = getCharacter(characterId);
   return {
     characterId: character.id,
     health: 100,
     stamina: 100,
     hunger: 100,
-    mass: (character.startLength / 6) ** 3,
-    length: character.startLength,
+    startLength,
+    mass: (startLength / 6) ** 3,
+    length: startLength,
     eaten: 0,
     elapsed: 0,
     timedOut: false,
@@ -205,7 +213,10 @@ export function applyNutrition(player, reward, efficiency = 1) {
     growth: player.mass - previousMass,
     nutrition: player.hunger - previousHunger,
   };
-  player.won = player.length >= 30 && player.bossesDefeated >= 1;
+  player.won =
+    player.length >= 30 &&
+    player.bossesDefeated >= 1 &&
+    (player.expeditionComplete ?? true);
   return player.lastMeal;
 }
 
@@ -267,7 +278,8 @@ export function getZone(depth) {
 
 /** 根据玩家体长返回0–100的成长百分比；胜利还需击败至少一位主宰。 */
 export function getProgress(player) {
-  const startLength = getCharacter(player.characterId).startLength;
+  const startLength =
+    player.startLength ?? getCharacter(player.characterId).startLength;
   return Math.max(
     0,
     Math.min(100, ((player.length - startLength) / (30 - startLength)) * 100),

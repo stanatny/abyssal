@@ -1,3 +1,5 @@
+import { marianaGuideEntries } from "./mariana_guide.js";
+import { MARIANA_GATES } from "./mariana_config.js";
 import {
   t,
   tr,
@@ -15,7 +17,7 @@ import { HUMAN_CATALOG, createHumanModel } from "./vehicle_models.js";
 import { BOSS_SPECIES, BOSS_BITE_HUNGER } from "./boss_rules.js";
 import { BERMUDA_HAZARDS } from "./bermuda_hazard_rules.js";
 import { WORLD } from "./world_config.js";
-import { CHARACTERS, REGIONS } from "./expedition_config.js";
+import { CHARACTERS, REGIONS, getExpedition } from "./expedition_config.js";
 import { getHunterAbility } from "./hunter_rules.js";
 import { REWARDS, RANDOM_REWARD_COUNT } from "./reward_config.js";
 import { createMarineEnvironment } from "./visual_pipeline.js";
@@ -23,7 +25,7 @@ import "./ocean_guide.css";
 
 // 生物按由小到大的探索顺序展示，角色与人类活动单独归档。
 const GUIDE_CATEGORIES = [
-  { id: "shoal", name: "浅海鱼群" },
+  { id: "shoal", name: "小型鱼与鱼群" },
   { id: "surface", name: "海面" },
   { id: "hunter", name: "海洋霸主" },
   { id: "ancient", name: "远古巨兽" },
@@ -122,6 +124,10 @@ const DESCRIPTIONS = {
  * @returns {object[]} 带实际海域归属、营养和双语检索词的档案。
  */
 export function buildOceanCatalog(regionId) {
+  const startingLength = (entry) =>
+    regionId
+      ? getExpedition(regionId, entry.id).startLength
+      : entry.startLength;
   const regionalSpecies = new Map(
     (regionId ? getRegionSpecies(regionId) : []).map((entry) => [
       entry.kind,
@@ -137,8 +143,8 @@ export function buildOceanCatalog(regionId) {
       category: "player",
       role: "可选角色",
       color: entry.kind === "orca" ? "#a1e8d5" : "#c2a5e8",
-      length: entry.startLength,
-      size: tr`${entry.startLength}—30 m（成长玩法）`,
+      length: startingLength(entry),
+      size: tr`${startingLength(entry)}—30 m（成长玩法）`,
       habitat: "本作海洋全域",
       ability: tr`主动 · ${entry.active.name} / 被动 · ${entry.passive.name}`,
       text: tr`${entry.active.description} 激活起冷却${entry.active.cooldown}秒。被动：${entry.passive.description}`,
@@ -147,7 +153,8 @@ export function buildOceanCatalog(regionId) {
           ? "用声呐判断前方猎物体长和捕食资格，雷达保留周围回声。高速冲刺可追捕猎物或拉开距离，水下连续蓄势后才能破水。"
           : "遇到猎手追击时在水下喷墨脱身，提前把头朝向安全出口；喷射会受到礁石和船体阻挡。松开冲刺可发挥灵活转向的被动。",
       characterId: entry.id,
-      realSize: "3米幼年起步；起始尺寸、30米终局与技能强度属于游戏设定。",
+      realSize:
+        "其他海域3米幼年起步，马里亚纳15米起步；起始尺寸、30米终局与技能强度属于游戏设定。",
       habitatNote: "可选角色共享自动接触捕食；特殊技能使用J或手机技能按钮。",
     })),
     ...ALL_SPECIES.map((entry) => regionalSpecies.get(entry.kind) || entry).map(
@@ -190,24 +197,34 @@ export function buildOceanCatalog(regionId) {
       kind: config.kind,
       ...DESCRIPTIONS[config.kind],
       text:
-        config.kind === "kraken"
-          ? tr`${DESCRIPTIONS.kraken.text} ${tr`亚特兰蒂斯有三只克拉肯，分别守卫西侧城区、中庭和后城；每只拥有独立领地与生命值。达到30米并击败其中一只即可完成挑战。`}`
-          : DESCRIPTIONS[config.kind].text,
+        regionId === "mariana"
+          ? config.kind === "hydra"
+            ? tr`${DESCRIPTIONS.hydra.text} ${tr`三头巨龙海德拉守卫远离出生点的外海水面，是第一道压力帘的必经守卫。达到25米后，从侧面完成三次独立咬击，击败它即可开启2600米处的第一道压力帘；本局不再复活。`}`
+            : tr`${DESCRIPTIONS[config.kind].text} ${tr`本海域的守关领主被击败后不再复活，压力帘随之开启。需突破四关并抵达海沟底部；其他海域的胜利条件不变。`}`
+          : config.kind === "kraken"
+            ? tr`${DESCRIPTIONS.kraken.text} ${tr`亚特兰蒂斯有三只克拉肯，分别守卫西侧城区、中庭和后城；每只拥有独立领地与生命值。达到30米并击败其中一只即可完成挑战。`}`
+            : DESCRIPTIONS[config.kind].text,
       length: config.length,
       size: tr`${config.length} m`,
       tier: 3,
       habitat:
-        regionId === "bermuda"
-          ? {
-              hydra: "风暴外海表层",
-              kraken: "沉船西侧深水",
-              mayan: "东南深沟",
-              leviathan: "最深海沟",
-            }[config.kind]
-          : tr`${config.depthMin * WORLD.displayDepthScale}—${Math.round(config.depthMax * WORLD.displayDepthScale)} m（幻想领地）`,
+        regionId === "mariana" && config.kind === "hydra"
+          ? "远离安全浅滩的外海表层"
+          : regionId === "mariana" &&
+              MARIANA_GATES.some((g) => g.kind === config.kind)
+            ? tr`${MARIANA_GATES.find((g) => g.kind === config.kind).depth * 4} m（幻想领地）`
+            : regionId === "bermuda"
+              ? {
+                  hydra: "风暴外海表层",
+                  kraken: "沉船西侧深水",
+                  mayan: "东南深沟",
+                  leviathan: "最深海沟",
+                }[config.kind]
+              : tr`${config.depthMin * WORLD.displayDepthScale}—${Math.round(config.depthMax * WORLD.displayDepthScale)} m（幻想领地）`,
     })),
     ...HUMAN_CATALOG,
     ...bermudaGuideEntries(),
+    ...marianaGuideEntries(),
   ]
     .map((entry) => ({
       ...localizeRecord(entry),
@@ -222,7 +239,10 @@ export let OCEAN_CATALOG = buildOceanCatalog();
 function catalogRegionIds(entry) {
   return REGIONS.filter((region) => {
     if (!region.available) return false;
-    if (entry.category === "hazard") return region.id === "bermuda";
+    if (entry.category === "hazard")
+      return entry.regionIds
+        ? entry.regionIds.includes(region.id)
+        : region.id === "bermuda";
     if (entry.category === "human") {
       const key = {
         swimmer: "swimmers",
@@ -409,7 +429,7 @@ export function createOceanGuide(trigger) {
     { id: "all", name: "全部" },
     { id: "player", name: "可选角色" },
     { id: "reward", name: "海洋奖励" },
-    { id: "shoal", name: "浅海鱼群" },
+    { id: "shoal", name: "小型鱼与鱼群" },
     { id: "hunter", name: "海洋霸主" },
     { id: "ancient", name: "远古巨兽" },
     { id: "lord", name: "深渊领主" },

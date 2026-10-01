@@ -1,3 +1,4 @@
+import { createMarianaFleet, createMarianaSky } from "./mariana_surface.js";
 import { createBermudaFleet } from "./bermuda_fleet.js";
 import { createAtlantisSky, createAtlantisFleet } from "./atlantis_surface.js";
 import { tr, message } from "./i18n.js";
@@ -22,6 +23,7 @@ export function createSurface(
     onEat,
     isSwallowing,
     regionId = "hawaii",
+    worldBounds = WORLD,
     worldColliders,
     castWorld,
     onImpact,
@@ -44,6 +46,7 @@ export function createSurface(
   let lastPosition = null;
   const night = regionId === "atlantis";
   const storm = regionId === "bermuda";
+  const trench = regionId === "mariana";
   const fleetOptions = {
     worldColliders,
     castWorld,
@@ -58,8 +61,14 @@ export function createSurface(
     ? createBermudaFleet(scene, fleetOptions)
     : night
       ? createAtlantisFleet(scene, fleetOptions)
-      : createShips(scene, fleetOptions);
-  const nightSky = night ? createAtlantisSky(scene) : null;
+      : trench
+        ? createMarianaFleet(scene, fleetOptions)
+        : createShips(scene, fleetOptions);
+  const nightSky = night
+    ? createAtlantisSky(scene)
+    : trench
+      ? createMarianaSky(scene)
+      : null;
   const dummy = new THREE.Object3D();
   const ringGeometry = keep(new THREE.RingGeometry(0.965, 1, 64));
   const rippleGeometry = keep(new THREE.RingGeometry(0.82, 1, 64));
@@ -286,9 +295,17 @@ export function createSurface(
       surfaceY: WORLD.surfaceY,
     });
     position.set(
-      THREE.MathUtils.clamp(result.position.x, WORLD.minX + 5, WORLD.maxX - 5),
+      THREE.MathUtils.clamp(
+        result.position.x,
+        worldBounds.minX + 5,
+        worldBounds.maxX - 5,
+      ),
       result.position.y,
-      THREE.MathUtils.clamp(result.position.z, WORLD.minZ + 5, WORLD.maxZ - 5),
+      THREE.MathUtils.clamp(
+        result.position.z,
+        worldBounds.minZ + 5,
+        worldBounds.maxZ - 5,
+      ),
     );
     if (position.x !== result.position.x) state.velocityX = 0;
     if (position.z !== result.position.z) state.velocityZ = 0;
@@ -340,8 +357,8 @@ export function createSurface(
     highQuality = true,
   ) {
     const above = camera.position.y > WORLD.surfaceY;
-    sun.visible = above && !night && !storm;
-    clouds.visible = above && !night && !storm;
+    sun.visible = above && !night && !storm && !trench;
+    clouds.visible = above && !night && !storm && !trench;
     nightSky?.update(time, position, { aboveWater: above, highQuality });
     fleet.update(time, position);
     for (const bird of birds) {

@@ -589,6 +589,7 @@ export function createEncounters(
       id: `${species.kind}_${poolIndex}`,
       poolIndex,
       fixedHome: null,
+      persistentDefeat: false,
       maxCenterY: Infinity,
       state: createBossState(species),
       mesh,
@@ -715,6 +716,7 @@ export function createEncounters(
       entry.state = createBossState(entry.state.species);
       entry.id = `${entry.state.species.kind}_${entry.poolIndex}`;
       entry.fixedHome = null;
+      entry.persistentDefeat = false;
       entry.maxCenterY = Infinity;
       entry.radius = 110;
       entry.enabled = false;
@@ -726,6 +728,7 @@ export function createEncounters(
     selected.forEach(({ entry, instance }, index) => {
       if (instance) {
         entry.id = instance.id;
+        entry.persistentDefeat = !!instance.persistentDefeat;
         entry.fixedHome = instance.home;
         entry.maxCenterY = instance.maxCenterY ?? Infinity;
         entry.radius = instance.radius ?? 110;
@@ -901,7 +904,7 @@ export function createEncounters(
         if (entry.fx.ability === "charge")
           for (const puff of entry.fx.trail) puff.sprite.visible = false;
         entry.respawn -= dt;
-        if (entry.respawn <= 0) {
+        if (entry.respawn <= 0 && !entry.persistentDefeat) {
           entry.state = createBossState(state.species);
           place(entry, entry.slot);
         }

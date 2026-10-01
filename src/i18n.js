@@ -1,3 +1,4 @@
+import { MARIANA_EN } from "./locales/mariana_en.js";
 import { UI_EN } from "./locales/ui_en.js";
 import { CATALOG_EN } from "./locales/catalog_en.js";
 import { BERMUDA_EN } from "./locales/bermuda_en.js";
@@ -12,6 +13,7 @@ const english = Object.freeze(
     UI_EN,
     ATLANTIS_EN,
     BERMUDA_EN,
+    MARIANA_EN,
   ),
 );
 const listeners = new Set();

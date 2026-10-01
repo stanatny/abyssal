@@ -268,9 +268,13 @@ export function habitatPosition(
       !inPredatorTerritory(species, populationIndex, playerPosition))
   )
     return null;
+  const world = species.worldBounds || WORLD;
   const point = new THREE.Vector3();
   const minimum = species.depthMin ?? 5,
-    maximum = Math.min(species.depthMax ?? 710, 715);
+    maximum = Math.min(
+      species.depthMax ?? world.maxDepth - 30,
+      world.maxDepth - 25,
+    );
   // 城区出生保留整条鱼的转向空间，避免中心合法而头尾嵌进墙面。
   const radius =
     Math.max(0.45, species.length * (species.cityHabitat ? 0.55 : 0.18)) +
@@ -301,8 +305,8 @@ export function habitatPosition(
         point.z += Math.sin(angle) * spread;
       }
     }
-    point.x = THREE.MathUtils.clamp(point.x, WORLD.minX + 18, WORLD.maxX - 18);
-    point.z = THREE.MathUtils.clamp(point.z, WORLD.minZ + 18, WORLD.maxZ - 18);
+    point.x = THREE.MathUtils.clamp(point.x, world.minX + 18, world.maxX - 18);
+    point.z = THREE.MathUtils.clamp(point.z, world.minZ + 18, world.maxZ - 18);
     // 不把领地外候选强行钳到边缘，否则远距补位会沿一道线密集堆积。
     if (!inPredatorTerritory(species, populationIndex, point)) continue;
     const bottom = Math.max(-maximum, heightAt(point.x, point.z) + floorMargin);

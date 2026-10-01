@@ -39,6 +39,8 @@ export function isNursery(position) {
  */
 export function predatorTerritory(species, populationIndex = 0) {
   if (!species.predator) return null;
+  const world = species.worldBounds || WORLD;
+  const regionTerritory = species.hunterTerritory;
   const edge =
     populationIndex === 0
       ? species.edgeTerritory === undefined
@@ -59,16 +61,18 @@ export function predatorTerritory(species, populationIndex = 0) {
     floorDepth <= 140
       ? (40 - floorDepth) * 2
       : -200 - (floorDepth - 140) / 0.72;
-  const center = edge?.center || {
-    x: 0,
-    y: -depth,
-    z: Math.max(WORLD.minZ + 90, Math.min(-425, depthZ)),
-  };
+  const center = edge?.center ||
+    regionTerritory?.center || {
+      x: 0,
+      y: -depth,
+      z: Math.max(world.minZ + 90, Math.min(-425, depthZ)),
+    };
   const territory = Object.freeze({
-    minX: (edge?.minX ?? WORLD.minX + 8) + padding,
-    maxX: (edge?.maxX ?? WORLD.maxX - 8) - padding,
-    minZ: (edge?.minZ ?? WORLD.minZ + 8) + padding,
-    maxZ: (edge?.maxZ ?? NURSERY.outerSeaLimit) - padding,
+    minX: (edge?.minX ?? regionTerritory?.minX ?? world.minX + 8) + padding,
+    maxX: (edge?.maxX ?? regionTerritory?.maxX ?? world.maxX - 8) - padding,
+    minZ: (edge?.minZ ?? regionTerritory?.minZ ?? world.minZ + 8) + padding,
+    maxZ:
+      (edge?.maxZ ?? regionTerritory?.maxZ ?? NURSERY.outerSeaLimit) - padding,
     center: Object.freeze({ ...center }),
     edge: !!edge,
   });

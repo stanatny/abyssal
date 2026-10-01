@@ -189,3 +189,15 @@
 .minimap[data-nursery="true"] .minimap-depth-label {
   color: #aee9ba;
 }
+
+/* 边界字幕复用雷达现有空间；不遮挡触屏按钮。 */
+.minimap-boundary {
+  fill: none;
+  stroke: #efbd71;
+  stroke-width: 2.3;
+}
+.minimap[data-boundary="true"] .minimap-depth-label {
+  color: #ffd28b;
+  font-size: 10.5px;
+  font-weight: 700;
+}
