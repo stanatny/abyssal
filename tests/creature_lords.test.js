@@ -142,3 +142,64 @@ test("领主侧腹在多种朝向可命中，触腕与三颈之间保持真实�
     null,
   );
 });
+
+test("新增分段触腕、长颈和蛇尾在完整摆动中保持真实网格接触", () => {
+  for (const [kind, distalName] of [
+    ["kraken", "kraken_arm_0_distal"],
+    ["hydra", "hydra_neck_surface_0_distal"],
+    ["leviathan", "leviathan_serpent_tail_distal"],
+  ]) {
+    const { root, motions } = fixture(kind, 53);
+    root.position.set(17, -450, -83);
+    root.rotation.set(0.25, 1.1, -0.13);
+    const distal = root.getObjectByName(distalName);
+    const surface = distal.children.find((part) => part.isMesh);
+    const index = Math.floor(surface.geometry.attributes.position.count * 0.8);
+    const vertex = new THREE.Vector3().fromBufferAttribute(
+      surface.geometry.attributes.position,
+      index,
+    );
+    const samples = [];
+    for (let phase = 0; phase <= (Math.PI * 2) / 0.21; phase += 1) {
+      for (const motion of motions) motion(phase, phase < 12 ? 0.7 : 2.5);
+      root.updateMatrixWorld(true);
+      const point = vertex.clone().applyMatrix4(surface.matrixWorld);
+      assert.ok(
+        findBossContact(root, point, 0.08),
+        `${kind}: moving surface at ${phase}`,
+      );
+      samples.push(point);
+    }
+    assert.ok(
+      samples.some((point) => point.distanceTo(samples[0]) > 0.2),
+      `${kind}: distal vertices actually move`,
+    );
+    assert.equal(
+      root.userData.contactRoot,
+      undefined,
+      `${kind}: no invisible substitute contact`,
+    );
+  }
+});
+
+test("海德拉三枚吻端锚点跟随各自长颈，旋转缩放后仍相互独立", () => {
+  const { root, motions } = fixture("hydra", 53);
+  const anchors = root.userData.mouthAnchors;
+  assert.equal(anchors.length, 3);
+  root.position.set(21, -25, -301);
+  root.rotation.set(0.2, 0.8, 0.1);
+  const before = anchors.map((anchor) =>
+    anchor.getWorldPosition(new THREE.Vector3()),
+  );
+  for (const motion of motions) motion(11, 2.5);
+  const after = anchors.map((anchor) =>
+    anchor.getWorldPosition(new THREE.Vector3()),
+  );
+  for (let i = 0; i < 3; i++) {
+    assert.ok(after[i].distanceTo(before[i]) > 0.15);
+    assert.ok(after[i].distanceTo(root.position) < 53 * 0.7);
+    assert.equal(anchors[i].parent.name, `hydra_dragon_head_${i + 1}`);
+    for (let j = i + 1; j < 3; j++)
+      assert.ok(after[i].distanceTo(after[j]) > 5);
+  }
+});

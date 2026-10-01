@@ -66,6 +66,35 @@ function fixture(kind) {
   };
 }
 
+test("海德拉吐息从当前摆动吻端发射，三次射击保留原间隔", () => {
+  const f = fixture("hydra");
+  f.entry.mesh.rotation.set(0.12, 0.35, 0.08);
+  f.entry.mesh.userData.animate(0, 0.7);
+  f.entry.state.phase = "attack";
+  f.entry.previousPhase = "attack";
+  f.entry.state.timer = 0;
+  f.entry.volleyShots = 0;
+  f.entry.lockTarget.copy(f.position);
+  for (const [index, timer] of [
+    [0, 0],
+    [1, 0.45],
+    [2, 0.9],
+  ]) {
+    const expected = f.entry.mesh.userData.mouthAnchors[index].getWorldPosition(
+      new THREE.Vector3(),
+    );
+    f.entry.state.timer = timer;
+    f.encounters.update(0, timer, f.player, f.position, f.forward, {
+      blockedBetween: () => false,
+    });
+    const projectiles = f.scene.children.filter(
+      (part) => part.name === "hydra_breath_projectile",
+    );
+    assert.equal(projectiles.length, index + 1);
+    assert.ok(projectiles.at(-1).position.distanceTo(expected) < 1e-6);
+  }
+});
+
 for (const kind of ["kraken", "mayan", "hydra", "leviathan"]) {
   test(`${kind} 进入领地后的首轮技能可以命中停留玩家，锁定后变向能够躲开`, () => {
     const standing = fixture(kind);

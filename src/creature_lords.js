@@ -30,6 +30,8 @@ export function buildLordCreature(kind, root, motions) {
   else if (kind === "hydra") buildHydra(body, motions);
   else if (kind === "leviathan") buildLeviathan(body, motions);
   else throw new Error(`Unknown abyssal lord: ${kind}`);
+  if (body.userData.mouthAnchors)
+    root.userData.mouthAnchors = body.userData.mouthAnchors;
   body.updateMatrixWorld(true);
   const bounds = new THREE.Box3().setFromObject(body);
   const length = bounds.max.z - bounds.min.z;
@@ -166,16 +168,18 @@ function buildKraken(body, motions) {
       y * 0.1 - 0.015,
       -0.06,
     ]);
+    const reach = 1 + (index % 3) * 0.045;
     const points = [
       [0, 0, 0],
       [x * 0.1, y * 0.09, -0.15],
-      [x * 0.23, y * 0.18, -0.34],
-      [x * 0.31, y * 0.26, -0.46],
-      [x * 0.36 + curl * 0.014, y * 0.29, -0.35],
-      [x * 0.32 + curl * 0.012, y * 0.26, -0.27],
-      [x * 0.28, y * 0.23, -0.31],
+      [x * 0.22, y * 0.17, -0.36],
+      [x * 0.37 * reach, y * 0.29, -0.61 * reach],
+      [x * 0.46 * reach + curl * 0.025, y * 0.34, -0.6],
+      [x * 0.49 * reach + curl * 0.02, y * 0.36, -0.47],
+      [x * 0.42 * reach, y * 0.3, -0.405],
+      [x * 0.36 * reach, y * 0.26, -0.475],
     ];
-    tube(
+    const limb = articulatedTube(
       arm,
       `kraken_arm_${index}`,
       points,
@@ -183,11 +187,11 @@ function buildKraken(body, motions) {
       0.002,
       "#725477",
       SURFACE,
-      48,
+      52,
       12,
       0.76,
     );
-    const curve = curveFrom(points);
+    const curve = limb.curve;
     for (let row = 0; row < 2; row++)
       for (let cup = 0; cup < 8; cup++) {
         const t = 0.09 + cup * 0.102;
@@ -201,7 +205,7 @@ function buildKraken(body, motions) {
           .normalize();
         const radius = THREE.MathUtils.lerp(0.06, 0.002, t ** 0.76);
         const sucker = add(
-          arm,
+          limb.parentAt(t),
           colored(
             "kraken_sucker",
             () => new THREE.TorusGeometry(0.71, 0.29, 4, 8),
@@ -212,7 +216,8 @@ function buildKraken(body, motions) {
         sucker.position
           .copy(point)
           .addScaledVector(facing, radius * 0.91)
-          .addScaledVector(sideways, (row ? 1 : -1) * radius * 0.35);
+          .addScaledVector(sideways, (row ? 1 : -1) * radius * 0.35)
+          .sub(limb.originAt(t));
         sucker.quaternion.setFromUnitVectors(
           new THREE.Vector3(0, 0, 1),
           facing,
@@ -224,6 +229,12 @@ function buildKraken(body, motions) {
       arm.rotation.x = Math.sin(time * 0.3 + angle) * 0.085 * power;
       arm.rotation.y = Math.cos(time * 0.27 + angle) * 0.095 * power;
       arm.rotation.z = Math.sin(time * 0.24 + angle) * 0.09 * power;
+      // 末梢与臂根错相卷曲，冲刺时稍收拢；不拉动游戏根节点。
+      limb.distal.rotation.set(
+        Math.sin(time * 0.37 + angle - 0.8) * 0.06 * power,
+        Math.cos(time * 0.34 + angle - 0.7) * 0.07 * power,
+        Math.sin(time * 0.31 + angle) * 0.035,
+      );
     });
   }
 }
@@ -576,6 +587,7 @@ function buildMayan(body, motions) {
 }
 
 function buildHydra(body, motions) {
+  body.userData.mouthAnchors = [];
   const profile = [
     [-0.13, 0.095, 0.09],
     [0, 0.17, 0.15],
@@ -665,37 +677,39 @@ function buildHydra(body, motions) {
     const points =
       side === 0
         ? [
-            [0, -0.02, 0.065],
-            [0, 0.12, 0],
-            [0, 0.27, -0.11],
-            [0, 0.305, -0.26],
+            [0, -0.025, 0.065],
+            [0, 0.105, 0.008],
+            [0.018, 0.285, -0.13],
+            [0.014, 0.36, -0.28],
+            [0, 0.338, -0.385],
           ]
         : [
             [side * 0.02, -0.04, 0.1],
-            [side * 0.085, 0.055, -0.01],
-            [side * 0.18, 0.12, -0.13],
-            [side * 0.205, 0.175, -0.29],
+            [side * 0.1, 0.07, -0.02],
+            [side * 0.165, 0.215, -0.17],
+            [side * 0.225, 0.26, -0.29],
+            [side * 0.26, 0.215, -0.405],
           ];
-    tube(
+    const limb = articulatedTube(
       neck,
       `hydra_neck_surface_${index}`,
       points,
       0.066,
       0.039,
-      "#416e64",
+      side === 0 ? "#536e55" : "#416e64",
       SURFACE,
       40,
       14,
       0.7,
     );
     // 腹部甲节顺着颈线生长，颜色与厚度随颈部收细。
-    const curve = curveFrom(points);
+    const curve = limb.curve;
     for (let band = 1; band < 9; band++) {
       const t = band / 10,
         center = curve.getPointAt(t),
         tangent = curve.getTangentAt(t);
       const plate = add(
-        neck,
+        limb.parentAt(t),
         armor(
           `hydra_neck_band_${index}_${band}`,
           0.041 * (1 - t * 0.32),
@@ -705,8 +719,20 @@ function buildHydra(body, motions) {
         ),
         SURFACE,
       );
-      plate.position.copy(center).add(new THREE.Vector3(0, -0.028, -0.02));
-      plate.quaternion.setFromUnitVectors(new THREE.Vector3(0, 0, 1), tangent);
+      const underside = new THREE.Vector3(0, -1, 0)
+        .projectOnPlane(tangent)
+        .normalize();
+      const radius = THREE.MathUtils.lerp(0.066, 0.039, t ** 0.7);
+      plate.position
+        .copy(center)
+        .addScaledVector(underside, radius * 0.92)
+        .sub(limb.originAt(t));
+      const lateral = new THREE.Vector3()
+        .crossVectors(underside, tangent)
+        .normalize();
+      plate.quaternion.setFromRotationMatrix(
+        new THREE.Matrix4().makeBasis(lateral, underside, tangent),
+      );
     }
     for (let ridge = 0; ridge < 9; ridge++) {
       const t = 0.13 + ridge * 0.084,
@@ -717,7 +743,7 @@ function buildHydra(body, motions) {
         .projectOnPlane(tangent)
         .normalize();
       const scute = add(
-        neck,
+        limb.parentAt(t),
         armor(
           `hydra_dorsal_neck_scale_${index}_${ridge}`,
           0.029 * (1 - t * 0.22),
@@ -727,7 +753,10 @@ function buildHydra(body, motions) {
         ),
         SURFACE,
       );
-      scute.position.copy(center).addScaledVector(normal, radius * 0.92);
+      scute.position
+        .copy(center)
+        .addScaledVector(normal, radius * 0.92)
+        .sub(limb.originAt(t));
       const lateral = new THREE.Vector3()
         .crossVectors(normal, tangent)
         .normalize();
@@ -735,39 +764,55 @@ function buildHydra(body, motions) {
         new THREE.Matrix4().makeBasis(lateral, normal, tangent),
       );
     }
-    const head = group(neck, `hydra_dragon_head_${index + 1}`, points.at(-1));
+    const tip = new THREE.Vector3(...points.at(-1)).sub(limb.originAt(1));
+    const head = group(
+      limb.distal,
+      `hydra_dragon_head_${index + 1}`,
+      tip.toArray(),
+    );
     const skull = [
-      [-0.17, 0.029, 0.027, 0.008],
-      [-0.135, 0.044, 0.037, 0.011],
-      [-0.07, 0.057, 0.047, 0.008],
-      [0.005, 0.045, 0.044],
-      [0.042, 0.008, 0.015],
+      [-0.242, 0.012, 0.014, 0.009],
+      [-0.217, 0.027, 0.022, 0.009],
+      [-0.16, 0.035, 0.027, 0.016],
+      [-0.086, 0.054, 0.049, 0.018],
+      [-0.018, 0.05, 0.048, 0.003],
+      [0.046, 0.01, 0.016],
     ];
     add(
       head,
-      shape(`hydra_skull_${index}`, skull, "#416b63", "#849f84", {
-        ribs: 5,
-        relief: 0.025,
-        rings: 30,
-        sides: 20,
-      }),
+      shape(
+        `hydra_skull_${index}`,
+        skull,
+        side === 0 ? "#596e53" : "#416b63",
+        "#849f84",
+        {
+          ribs: 5,
+          relief: 0.014,
+          rings: 36,
+          sides: 20,
+        },
+      ),
       SURFACE,
       "hydra_carved_skull",
     );
-    ellipsoid(head, DARK, [0, -0.022, -0.107], [0.037, 0.012, 0.065]);
+    ellipsoid(head, DARK, [0, -0.027, -0.115], [0.039, 0.013, 0.083]);
     const jaw = group(head, `hydra_jaw_${index + 1}`, [0, -0.052, -0.005]);
+    const mouth = group(head, `hydra_mouth_${index + 1}`, [0, -0.035, -0.238]);
+    body.userData.mouthAnchors.push(mouth);
     add(
       jaw,
       shape(
         `hydra_jaw_surface_${index}`,
         [
-          [-0.162, 0.023, 0.014],
-          [-0.12, 0.035, 0.02],
-          [-0.05, 0.042, 0.024],
+          [-0.234, 0.012, 0.01],
+          [-0.207, 0.025, 0.013],
+          [-0.145, 0.03, 0.017],
+          [-0.067, 0.039, 0.024],
           [0.007, 0.023, 0.011],
         ],
         "#859478",
         "#b1b695",
+        { rings: 28, sides: 20 },
       ),
       SURFACE,
     );
@@ -801,13 +846,35 @@ function buildHydra(body, motions) {
         0.014,
         "#6d9078",
       );
+      ellipsoid(
+        head,
+        DARK,
+        [eyeSide * 0.026, 0.016, -0.198],
+        [0.0035, 0.006, 0.01],
+      );
+      tube(
+        head,
+        `hydra_gum_${index}_${eyeSide}`,
+        [
+          [eyeSide * 0.022, -0.02, -0.222],
+          [eyeSide * 0.035, -0.022, -0.145],
+          [eyeSide * 0.043, -0.027, -0.056],
+        ],
+        0.0034,
+        0.004,
+        "#865c62",
+        SURFACE,
+        12,
+        6,
+      );
       tube(
         head,
         `hydra_horn_${index}_${eyeSide}`,
         [
           [eyeSide * 0.029, 0.03, 0],
-          [eyeSide * 0.055, 0.078, 0.055],
-          [eyeSide * 0.069, 0.095, 0.12],
+          [eyeSide * 0.047, 0.081, 0.04],
+          [eyeSide * 0.068, 0.113, 0.105],
+          [eyeSide * 0.06, 0.109, 0.16],
         ],
         0.014,
         0.001,
@@ -832,14 +899,14 @@ function buildHydra(body, motions) {
         SURFACE,
         false,
       ).position.x = eyeSide * 0.05;
-      for (let tooth = 0; tooth < 4; tooth++) {
-        const z = -0.055 - tooth * 0.026,
-          x = eyeSide * (0.035 - tooth * 0.003);
+      for (let tooth = 0; tooth < 6; tooth++) {
+        const z = -0.056 - tooth * 0.029,
+          x = eyeSide * (0.04 - tooth * 0.0036);
         fang(
           head,
           `hydra_upper_tooth_${index}_${eyeSide}_${tooth}`,
           [x, -0.018, z],
-          [x * 0.88, -0.067 - (tooth % 2) * 0.01, z - 0.01],
+          [x * 0.88, -0.052 - (tooth % 3 === 1 ? 0.018 : 0), z - 0.01],
           tooth % 2 ? 0.0045 : 0.0065,
         );
         fang(
@@ -856,8 +923,13 @@ function buildHydra(body, motions) {
       const pitch =
         Math.cos(time * 0.28 + index * 1.6) * 0.045 - effort * 0.009;
       neck.rotation.set(pitch, yaw, Math.sin(time * 0.21 + index) * 0.025);
-      head.rotation.y = -yaw * 0.7;
-      jaw.rotation.x = -0.11 - Math.sin(time * 0.42 + index) * 0.055;
+      limb.distal.rotation.set(
+        Math.sin(time * 0.28 + index * 1.6 - 0.6) * 0.042,
+        Math.sin(time * 0.32 + index * 1.9 - 0.8) * 0.05,
+        Math.sin(time * 0.21 + index - 0.7) * 0.015,
+      );
+      head.rotation.set(Math.sin(time * 0.24 + index) * 0.025, -yaw * 0.7, 0);
+      jaw.rotation.x = -0.065 - Math.sin(time * 0.42 + index) * 0.04;
     });
   }
 }
@@ -898,19 +970,19 @@ function buildLeviathan(body, motions) {
     "leviathan_predator_skull",
   );
   // 贴合身体的细鳞与头骨的大板采用同一曲面坐标，保持装甲的连续重量感。
-  for (let row = 0; row < 9; row++)
-    for (let sector = 0; sector < 7; sector++) {
-      const z = -0.14 + row * 0.064 + (sector % 2) * 0.018;
+  for (let row = 0; row < 10; row++)
+    for (let sector = 0; sector < 8; sector++) {
+      const z = -0.14 + row * 0.054 + (sector % 2) * 0.014;
       shell(
         body,
         `leviathan_scale_${row}_${sector}`,
         profile,
-        z - 0.035,
-        z + 0.041,
-        0.04 + sector * 0.52,
-        0.28,
-        0.0075,
-        "#2f5266",
+        z - 0.031,
+        z + 0.034,
+        0.02 + sector * 0.45,
+        0.25,
+        0.0048,
+        sector % 3 === 1 ? "#3c5d6a" : "#2f5266",
       );
     }
   for (let row = 0; row < 4; row++) {
@@ -949,6 +1021,30 @@ function buildLeviathan(body, motions) {
   for (const side of [-1, 1]) {
     ellipsoid(body, DARK, [side * 0.14, 0.069, -0.34], [0.027, 0.024, 0.043]);
     ellipsoid(body, AQUA, [side * 0.16, 0.071, -0.354], [0.01, 0.008, 0.024]);
+    ellipsoid(body, DARK, [side * 0.169, 0.072, -0.355], [0.003, 0.005, 0.008]);
+    ellipsoid(
+      body,
+      DARK,
+      [side * 0.063, 0.062, -0.492],
+      [0.008, 0.0035, 0.014],
+    );
+    // 厚唇嵌在颚缘，尖齿从牙床长出，不悬浮在敞开的口腔里。
+    tube(
+      body,
+      `leviathan_upper_lip_${side}`,
+      [
+        [side * 0.035, 0.01, -0.555],
+        [side * 0.082, 0.008, -0.48],
+        [side * 0.12, -0.012, -0.355],
+        [side * 0.13, -0.035, -0.28],
+      ],
+      0.005,
+      0.008,
+      "#537383",
+      SURFACE,
+      16,
+      6,
+    );
     shell(
       body,
       `leviathan_brow_${side}`,
@@ -1104,26 +1200,110 @@ function buildLeviathan(body, motions) {
     SURFACE,
     true,
   );
-  const tail = group(body, "leviathan_tail", [0, 0, 0.465]);
-  fin(
+  const tail = group(body, "leviathan_tail", [0, 0, 0]);
+  const tailPoints = [
+    [0, 0, 0.24],
+    [0.025, 0.002, 0.38],
+    [0.095, 0.019, 0.56],
+    [0.13, 0.035, 0.72],
+    [0.08, 0.046, 0.88],
+    [-0.04, 0.055, 0.99],
+    [-0.14, 0.065, 0.95],
+  ];
+  const limb = articulatedTube(
     tail,
-    "leviathan_crescent_tail",
+    "leviathan_serpent_tail",
+    tailPoints,
+    0.08,
+    0.0028,
+    "#2f5060",
+    SURFACE,
+    40,
+    12,
+    0.8,
+  );
+  for (let band = 0; band < 8; band++) {
+    const t = 0.07 + band * 0.105;
+    const center = limb.curve.getPointAt(t);
+    const tangent = limb.curve.getTangentAt(t);
+    const normal = new THREE.Vector3(0, 1, 0)
+      .projectOnPlane(tangent)
+      .normalize();
+    const lateral = new THREE.Vector3()
+      .crossVectors(normal, tangent)
+      .normalize();
+    const radius = THREE.MathUtils.lerp(0.08, 0.0028, t ** 0.8);
+    const parent = limb.parentAt(t);
+    for (const side of [-1, 0, 1]) {
+      const plate = add(
+        parent,
+        armor(
+          `leviathan_tail_plate_${band}_${side}`,
+          radius * 0.55,
+          0.004,
+          0.055 * (1 - t * 0.6),
+          "#496977",
+        ),
+        SURFACE,
+      );
+      plate.position
+        .copy(center)
+        .addScaledVector(normal, radius * (side === 0 ? 0.93 : 0.45))
+        .addScaledVector(lateral, side * radius * 0.72)
+        .sub(limb.originAt(t));
+      plate.quaternion.setFromRotationMatrix(
+        new THREE.Matrix4().makeBasis(lateral, normal, tangent),
+      );
+    }
+    if (band % 2 === 1 && band < 7) {
+      const crest = fin(
+        parent,
+        `leviathan_tail_crest_${band}`,
+        [
+          [-0.025, 0],
+          [0.012, 0.045 * (1 - t)],
+          [0.059, 0.05 * (1 - t)],
+          [0.04, 0],
+        ],
+        0.006,
+        "vertical",
+        "#557786",
+      );
+      crest.position
+        .copy(center)
+        .addScaledVector(normal, radius * 0.9)
+        .sub(limb.originAt(t));
+      crest.quaternion.setFromRotationMatrix(
+        new THREE.Matrix4().makeBasis(lateral, normal, tangent),
+      );
+    }
+  }
+  const tipPosition = new THREE.Vector3(...tailPoints.at(-1)).sub(
+    limb.originAt(1),
+  );
+  const tip = group(limb.distal, "leviathan_tail_tip", tipPosition.toArray());
+  fin(
+    tip,
+    "leviathan_serpent_paddle",
     [
       [0, 0],
-      [0.04, -0.08],
-      [0.025, -0.205],
-      [0.11, -0.16],
-      [0.14, 0],
-      [0.11, 0.16],
-      [0.025, 0.205],
-      [0.04, 0.08],
+      [0.014, -0.032],
+      [0.045, -0.074],
+      [0.063, -0.052],
+      [0.044, 0],
+      [0.063, 0.052],
+      [0.045, 0.074],
+      [0.014, 0.032],
     ],
-    0.025,
-    "horizontal",
+    0.012,
+    "vertical",
     "#416879",
   );
   motions.push((time, effort) => {
-    tail.rotation.x = Math.sin(time * 0.6) * (0.12 + effort * 0.025);
+    tail.rotation.y = Math.sin(time * 0.4) * (0.025 + effort * 0.007);
+    limb.distal.rotation.y =
+      Math.sin(time * 0.4 - 0.9) * (0.055 + effort * 0.01);
+    limb.distal.rotation.x = Math.sin(time * 0.29 - 0.6) * 0.018;
     jaw.rotation.x = -0.1 + Math.sin(time * 0.29) * 0.015;
   });
 }
@@ -1279,6 +1459,104 @@ function curveFrom(points) {
     false,
     "centripetal",
   );
+}
+
+/**
+ * 两段连续曲面沿同一中心线取样，关节处埋入一圈以避免小幅弯曲露缝。
+ * 静态几何与材质共享，独立关节变换同时用于渲染和实际网格接触。
+ */
+function articulatedTube(
+  parent,
+  key,
+  points,
+  base,
+  tip,
+  color,
+  material = SURFACE,
+  segments = 40,
+  sides = 12,
+  power = 1,
+  split = 0.56,
+) {
+  const curve = curveFrom(points);
+  const cut = Math.round(segments * split);
+  const cutT = cut / segments;
+  const pivot = curve.getPointAt(cutT);
+  const distal = group(parent, `${key}_distal`, pivot.toArray());
+  const frames = curve.computeFrenetFrames(segments, false);
+  const jointRadius = THREE.MathUtils.lerp(base, tip, cutT ** power);
+  const joint = add(
+    parent,
+    colored(`${key}_joint`, () => new THREE.SphereGeometry(1, 12, 8), color),
+    material,
+  );
+  joint.position.copy(pivot);
+  joint.scale.set(jointRadius * 1.04, jointRadius * 1.04, jointRadius * 2.7);
+  joint.quaternion.setFromUnitVectors(
+    new THREE.Vector3(0, 0, 1),
+    frames.tangents[cut],
+  );
+  for (const [part, from, to, origin] of [
+    [parent, 0, cut + 1, new THREE.Vector3()],
+    [distal, cut - 1, segments, pivot],
+  ]) {
+    const geometry = colored(
+      `${key}_section_${from}_${to}`,
+      () => {
+        const positions = [],
+          indices = [];
+        const stride = sides + 1;
+        for (let i = from; i <= to; i++) {
+          const t = i / segments;
+          const center = curve.getPointAt(t).sub(origin);
+          const radius = THREE.MathUtils.lerp(base, tip, t ** power);
+          for (let j = 0; j <= sides; j++) {
+            const angle = (j / sides) * Math.PI * 2;
+            const p = center
+              .clone()
+              .addScaledVector(frames.normals[i], Math.cos(angle) * radius)
+              .addScaledVector(frames.binormals[i], Math.sin(angle) * radius);
+            positions.push(p.x, p.y, p.z);
+          }
+        }
+        for (let i = 0; i < to - from; i++)
+          for (let j = 0; j < sides; j++) {
+            const a = i * stride + j,
+              b = a + stride;
+            indices.push(a, a + 1, b, a + 1, b + 1, b);
+          }
+        for (const [ring, reverse] of [
+          [0, true],
+          [to - from, false],
+        ]) {
+          const center = positions.length / 3;
+          const p = curve.getPointAt((from + ring) / segments).sub(origin);
+          positions.push(p.x, p.y, p.z);
+          for (let j = 0; j < sides; j++) {
+            const a = ring * stride + j;
+            indices.push(center, reverse ? a + 1 : a, reverse ? a : a + 1);
+          }
+        }
+        const g = new THREE.BufferGeometry();
+        g.setAttribute(
+          "position",
+          new THREE.Float32BufferAttribute(positions, 3),
+        );
+        g.setIndex(indices);
+        g.computeVertexNormals();
+        return g;
+      },
+      color,
+    );
+    add(part, geometry, material, `${key}_continuous_surface`);
+  }
+  const zero = new THREE.Vector3();
+  return {
+    curve,
+    distal,
+    parentAt: (t) => (t < cutT ? parent : distal),
+    originAt: (t) => (t < cutT ? zero : pivot),
+  };
 }
 
 function tube(

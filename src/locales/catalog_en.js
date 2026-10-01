@@ -337,6 +337,8 @@ export const CATALOG_EN = Object.freeze({
   克拉肯: "Kraken",
   漩涡主宰: "Vortex Lord",
   深渊漩涡: "Abyssal Vortex",
+  "北欧海怪传说启发的原创形象：八条长触腕舒展盘卷，双列吸盘沿腕内侧排列；臂根与末梢错相摆动。":
+    "An original design inspired by Nordic sea-monster legends: eight long arms sweep and curl, with paired sucker rows on their inner surfaces. Arm bases and tips move in delayed phases.",
   "未交战时也会在自己的领地内缓慢巡游，靠近时才发动追猎。":
     "Patrols slowly inside its territory even when undisturbed, and begins hunting only when you approach.",
   "预判你的前进位置布置深渊漩涡，牵引附近目标并抽走体力，漩涡中心还会造成伤害。追击时会拦截路线，而不是只停留在领地中心。":
@@ -353,6 +355,8 @@ export const CATALOG_EN = Object.freeze({
   三头海德拉: "Three-Headed Hydra",
   三首主宰: "Three-Headed Lord",
   三重吐息: "Triple Breath",
+  "借鉴希腊多首水蛇的蜿蜒长颈，保留本作三头设定。修长吻部、后掠角冠与腹甲相连，三个头会独立巡视。":
+    "Sinuous necks draw on the Greek many-headed water serpent, while retaining this game's three heads. Elongated snouts and swept horns connect to belly armor; each head surveys independently.",
   "三个头以0.45秒间隔依次发射吐息，并根据你的移动预判落点。连续射击会逼迫你多次改变路线，已射出的弹丸不会转弯追踪。":
     "Its three heads fire breath attacks in sequence, 0.45 seconds apart, predicting impact points from your movement. Successive shots force repeated course changes; projectiles already fired do not turn to track you.",
   "连续侧向变向或利用岩石挡住三轮吐息，不要躲过第一发就直线前进。齐射后的3秒恢复期可从身体侧翼反击。":
@@ -360,6 +364,8 @@ export const CATALOG_EN = Object.freeze({
   利维坦: "Leviathan",
   深渊主宰: "Abyss Lord",
   毁灭冲锋: "Devastating Charge",
+  "《约伯记》的紧密甲鳞与巨颚、《以赛亚书》的曲折海蛇意象启发了这条原创海兽：重甲前躯连接侧向游摆的长尾，并非真实动物复原。":
+    "Close armor scales and mighty jaws from Job, and the twisting sea-serpent imagery of Isaiah, inspire this original beast. Its armored forebody leads into a long, laterally undulating tail; it is not a reconstruction of a real animal.",
   "深渊中体型最大的领主，会拦截你的逃跑路线，蓄力末段锁定方向后以100米/秒高速冲撞。普通冲刺无法直线甩开。":
     "The largest lord in the abyss intercepts your escape route, then locks its direction late in the windup and charges at 100 m/s. A normal sprint cannot outrun it in a straight line.",
   "等待最后的路线锁定提示，立即侧向避开冲撞；冲锋后3秒恢复期从躯干侧面向内切入，咬中后拉开再进攻。":

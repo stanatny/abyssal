@@ -808,12 +808,17 @@ export function createEncounters(
       entry.heading.x,
     ).normalize();
     const mesh = new THREE.Mesh(ballGeo, fxMat);
+    mesh.name = "hydra_breath_projectile";
     mesh.scale.setScalar(2.6);
-    mesh.position
-      .copy(entry.mesh.position)
-      .addScaledVector(entry.heading, state.species.length * 0.35)
-      .addScaledVector(side, (headIndex - 1) * state.species.length * 0.16)
-      .add(new THREE.Vector3(0, state.species.length * 0.06, 0));
+    const mouth = entry.mesh.userData.mouthAnchors?.[headIndex];
+    // 吐息从摆动后的真实吻端发射；预判、射速、伤害和三连节奏保持共享规则。
+    if (mouth) mouth.getWorldPosition(mesh.position);
+    else
+      mesh.position
+        .copy(entry.mesh.position)
+        .addScaledVector(entry.heading, state.species.length * 0.35)
+        .addScaledVector(side, (headIndex - 1) * state.species.length * 0.16)
+        .add(new THREE.Vector3(0, state.species.length * 0.06, 0));
     const glow = fxSprite(fxTextures.dot, COLORS.volley, 0.75);
     glow.scale.setScalar(9);
     mesh.add(glow);

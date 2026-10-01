@@ -1,3 +1,15 @@
+# v0.8.3 — Articulated Abyss Lords
+
+Release preparation: 2026-10-01. The user accepted the [Kraken, Hydra and Leviathan refinement](lord_anatomy_revision.md) and explicitly authorized committing and pushing it to `main`. This supersedes its prior candidate-only status. Longer curling arms, articulated tapered Hydra heads and a more detailed armored serpent silhouette share the same runtime and Guide assets. Their configured 48 / 53 / 63 m lengths, territories, patrols, skills, three-flank-hit rules and regional objectives remain intact. Hydra breath originates at its actual moving snouts while preserving prediction, cadence, speed and damage. Gran Maja and the authenticated accepted-source architecture/collider oracle are unchanged. Version metadata and both menu footers are v0.8.3; the labeled v0.8.0 README image remains an interface reference for the unchanged menu.
+
+Fresh release checks: **699/699 unit tests**, project formatting and production compilation pass on local Node 26.10.0. The existing >500 kB bundle warning remains. Eight fresh compiled-build native-input cases pass across four regions in English desktop (1440×900) and Chinese touch-viewport emulation (390×667), alternating Orca and Giant Squid. All eight served artifacts match the release build. The checks cover new appearance copy, configured lord sizes, regional objectives, starting length, Guide/selection, ability input, pause/help/resume, reachable actions, Home/language state and horizontal overflow. There are zero page/console errors and no production development API. Earlier controlled art/contact, animation, allocation-cycle and short desktop-frame evidence remains separate in the linked model review; it is not reported as a fresh full rerun or a performance improvement.
+
+Exact source/build fingerprints, local native-input evidence and subsequent deployment receipts belong in ignored `.local/release_v0_8_3/`. Release acceptance requires the Pages workflow for the exact pushed main SHA to succeed, all eight served build artifacts to match, and the same eight native four-region English-desktop/Chinese-touch cases to pass at the formal URL. A successful push alone is not a playable-release claim. No tag, separate GitHub Release or personal Skill publication is requested.
+
+Physical phones, the user's network, natural full-round combat and sustained thermal/battery behavior remain unverified.
+
+---
+
 # v0.8.2 — Living lord territories and softer pearls
 
 Release preparation: 2026-10-01. The user reviewed the [pearl and lord follow-up](lord_life_revision.md) and explicitly authorized committing and pushing it to `main`. This supersedes the earlier local-only status. The release includes restrained shell/quest-pearl lighting, continuous independent territorial patrols, moderately larger real lord bodies/territories and the associated anchor and bilingual Guide corrections. Shared 25 m eligibility, three flank hits, abilities, ecology and regional endings remain. Version metadata and both menu footers are v0.8.2; the labeled v0.8.0 README image remains an interface reference for the unchanged menu layout.
