@@ -13,11 +13,13 @@ import { t, tr, message, setMarkup, onLanguageChange } from "./i18n.js";
 import * as THREE from "three";
 import "./style.css";
 import "./bermuda_ui.css";
+import "./overlay_ui.css";
+import "./hud_adaptive.css";
 import { createCreature } from "./creatures.js";
 import { createVisualPipeline } from "./visual_pipeline.js";
 import { createLaunchTransition } from "./launch_transition.js";
 import { createOcean, seabedHeight as baseSeabedHeight } from "./ocean.js";
-import { createAtlantisOcean } from "./atlantis_ocean.js";
+import { createAtlantisOceanAsync } from "./atlantis_ocean.js";
 import { MOON_DIRECTION } from "./atlantis_art_sky.js";
 import { getRegionSpecies } from "./region_ecology.js";
 import { regionZone, cityLightBlend } from "./region_appearance.js";
@@ -193,6 +195,15 @@ const effects = createCombatEffects(scene);
 const frenzyEffect = createFrenzyEffect(scene);
 const captureStart = new THREE.Vector3();
 const previousPreyPosition = new THREE.Vector3();
+// 生物逐个更新；这些中间值不写入持久状态，避免每尾鱼每帧分配向量。
+const entityMouth = new THREE.Vector3();
+const entityDirection = new THREE.Vector3();
+const entityTarget = new THREE.Vector3();
+const entityOffset = new THREE.Vector3();
+const previousHabitatPosition = new THREE.Vector3();
+const entityOrientation = new THREE.Quaternion();
+const entityUnitVelocity = new THREE.Vector3();
+const modelForward = new THREE.Vector3(0, 0, -1);
 const captureContact = new THREE.Vector3();
 const preyContact = new THREE.Vector3();
 const swallowPoint = new THREE.Vector3();
@@ -305,6 +316,7 @@ let threat = null,
   uiClock = 0,
   activeBoss = null;
 let launchTransition = null;
+let worldRenderDirty = true;
 let movementLabel = "巡游";
 let lureFlash = 0,
   waterMotion = null;
@@ -361,6 +373,15 @@ function specimenCaption(character) {
     ? tr`${character.name} · ${expedition.region.startLength}米起步`
     : tr`${character.name} · 幼年个体`;
 }
+const atlantisPreparationProgress = {
+  seabed: 25,
+  "city-start": 28,
+  temple: 34,
+  underways: 38,
+  marine: 43,
+  residential: 47,
+  "city-ready": 50,
+};
 async function selectRegion(region) {
   if (regionLoading || mode !== "menu" || loadedRegion === region.id) return;
   regionLoading = true;
@@ -390,7 +411,13 @@ async function selectRegion(region) {
       region.id === "mariana"
         ? createMarianaOcean(container)
         : region.id === "atlantis"
-          ? createAtlantisOcean(container)
+          ? await createAtlantisOceanAsync(container, {
+              onStep(label) {
+                const progress = atlantisPreparationProgress[label];
+                if (progress)
+                  regionLoader.stage("正在绘制海底与海岸…", progress);
+              },
+            })
           : region.id === "bermuda"
             ? createBermudaOcean(container, {
                 audio,
@@ -1082,6 +1109,7 @@ function startGame({ transition = false } = {}) {
   $("overlay").hidden = true;
   $("hud").hidden = false;
   $("pause").hidden = false;
+  $("pause").textContent = t("暂停");
   $("notification").hidden = false;
   audio.setRegion?.(expedition.region.id);
   audio.start();
@@ -1126,6 +1154,7 @@ function updateLaunch(roundDt) {
 }
 function showOverlay(kind) {
   mode = kind;
+  worldRenderDirty = true;
   $("sonar-panel").hidden = true;
   sonarMarkers.reset();
   sonarWave.reset();
@@ -1174,16 +1203,33 @@ function renderOverlay(kind) {
   );
   $("overlay-body").textContent = t(
     won
-      ? tr`你已长成 ${player.length.toFixed(1)} 米的顶级掠食者。\n捕食 ${player.eaten} 次 · 生存 ${Math.floor(player.elapsed / 60)} 分 ${Math.floor(player.elapsed % 60)} 秒`
+      ? expedition.region.objective.completed
       : dead
-        ? tr`最终体长 ${player.length.toFixed(1)} 米 · 捕食 ${player.eaten} 次\n${player.hunger <= 0 ? "饥饿夺走了你的生命。长大后需要更大的猎物。" : activeBoss ? "主宰比冲刺更快。观察技能前摇、侧向闪避，并利用恢复期撤出领地。" : "保留一段冲刺体力，借助岩柱切断追击者的视线。"}`
+        ? player.hunger <= 0
+          ? "饥饿夺走了你的生命。长大后需要更大的猎物。"
+          : activeBoss
+            ? "主宰比冲刺更快。观察技能前摇、侧向闪避，并利用恢复期撤出领地。"
+            : "保留一段冲刺体力，借助岩柱切断追击者的视线。"
         : timeup
-          ? tr`30 分钟探索结束 · 最终体长 ${player.length.toFixed(1)} 米\n捕食 ${player.eaten} 次 · 击败领主 ${player.bossesDefeated} 位\n本次未达成深渊霸主；继续积累经验，再次出发。`
-          : tr`WASD 转向，空格冲刺，J 角色技能，K 慢游。接触自动咬击。\n${getCharacter(player.characterId).active.name}：${getCharacter(player.characterId).active.description}\n水下蓄势后向上破水；受伤进食优先治疗。`,
+          ? "30分钟探索已结束。本次未达成海域目标，可以再次出发。"
+          : "远征已暂停，生存与技能计时已停止。",
   );
-  if (won)
-    $("overlay-body").textContent +=
-      "\n" + t(expedition.region.objective.completed);
+  const time = `${String(Math.floor(player.elapsed / 60)).padStart(2, "0")}:${String(Math.floor(player.elapsed % 60)).padStart(2, "0")}`;
+  setMarkup(
+    $("overlay-stats"),
+    tr`<div><dt>体长</dt><dd>${player.length.toFixed(1)} <small>m</small></dd></div><div><dt>探索时长</dt><dd>${time}</dd></div><div><dt>捕食次数</dt><dd>${player.eaten}</dd></div><div><dt>击败领主</dt><dd>${player.bossesDefeated}</dd></div>`,
+  );
+  $("overlay-progress").hidden = won;
+  $("overlay-region").textContent = tr`当前任务 · ${expedition.region.name}`;
+  $("overlay-step").textContent = $("objective").textContent;
+  $("overlay-help").hidden = won || dead || timeup;
+  $("pause").hidden = won || dead || timeup;
+  $("pause").textContent = t("继续探索");
+  $("overlay-help").open = false;
+  const ability = getCharacter(player.characterId).active;
+  $("overlay-skill").textContent =
+    tr`${ability.name}：${ability.description} 激活起冷却${ability.cooldown}秒。`;
+  $("overlay-rule").textContent = t(expedition.region.objective.summary);
   setMarkup(
     $("resume"),
     won || dead || timeup
@@ -1218,6 +1264,7 @@ function resumeGame() {
     mode = launchTransition ? "launching" : "playing";
     lastTime = performance.now();
     $("overlay").hidden = true;
+    $("pause").textContent = t("暂停");
     audio.start();
     audio.setPaused(false);
     canvas.focus({ preventScroll: true });
@@ -1577,7 +1624,7 @@ function updateEntities(dt) {
   updateSchools();
   threat = null;
   let bestThreat = Infinity;
-  const mouth = capturePoint(new THREE.Vector3());
+  const mouth = capturePoint(entityMouth);
   for (const entity of entities) {
     previousPreyPosition.copy(entity.mesh.position);
     const { species, mesh } = entity;
@@ -1604,10 +1651,7 @@ function updateEntities(dt) {
     }
     if (stepFlyingFish(entity, dt, player.elapsed, position)) {
       mesh.visible = mesh.position.distanceTo(position) < 180;
-      mesh.quaternion.setFromUnitVectors(
-        new THREE.Vector3(0, 0, -1),
-        entity.velocity,
-      );
+      mesh.quaternion.setFromUnitVectors(modelForward, entity.velocity);
       mesh.userData.animate?.(elapsed + entity.seed, 1.4);
       eatEntity(entity, mouth, previousPreyPosition, dt);
       continue;
@@ -1657,7 +1701,7 @@ function updateEntities(dt) {
       sight &&
       distance < 26;
     let moveSpeed = species.speed || 5;
-    const direction = new THREE.Vector3();
+    const direction = entityDirection.set(0, 0, 0);
     if (
       predator &&
       -position.y >= species.depthMin - 20 &&
@@ -1686,11 +1730,11 @@ function updateEntities(dt) {
         species.escapeSpeed ??
         Math.min(10, moveSpeed + (nurseryResident ? 0.8 : 1.5));
     } else if (entity.school) {
-      const target = entity.school.center
-        .clone()
+      const target = entityTarget
+        .copy(entity.school.center)
         .add(entity.slot)
         .add(
-          new THREE.Vector3(
+          entityOffset.set(
             Math.sin(elapsed * 0.2 + entity.school.seed) *
               (learning || nurseryResident ? 2.4 : 8),
             Math.sin(elapsed * 0.35 + entity.seed) *
@@ -1823,7 +1867,7 @@ function updateEntities(dt) {
         direction.addScaledVector(temp.normalize(), ((safe - d) / safe) * 3);
     }
     direction.normalize();
-    const previousHabitatPosition = mesh.position.clone();
+    previousHabitatPosition.copy(mesh.position);
     if (species.benthic) direction.y = 0;
     entity.velocity.lerp(direction, Math.min(1, dt * 2));
     if (species.benthic) entity.velocity.y = 0;
@@ -1950,9 +1994,9 @@ function updateEntities(dt) {
       }
     }
     mesh.quaternion.slerp(
-      new THREE.Quaternion().setFromUnitVectors(
-        new THREE.Vector3(0, 0, -1),
-        entity.velocity.clone().normalize(),
+      entityOrientation.setFromUnitVectors(
+        modelForward,
+        entityUnitVelocity.copy(entity.velocity).normalize(),
       ),
       Math.min(1, dt * 3),
     );
@@ -2440,7 +2484,10 @@ function frame(now) {
   // 同帧排队的 RAF 时间戳可能早于刚完成的初始化，不能让时钟倒退。
   lastTime = Math.max(lastTime, now);
   // 图鉴打开时只渲染独立标本，避免两套海洋场景同时消耗图形资源。
-  if (guide.isOpen || regionLoading) return;
+  if (guide.isOpen || regionLoading || document.hidden) return;
+  // 暂停及结算是静止画面；进入、尺寸或画质变化才重绘，不持续提交 GPU 工作。
+  const animatedWorld = ["menu", "launching", "playing"].includes(mode);
+  if (!animatedWorld && !worldRenderDirty) return;
   if (mode === "menu") {
     elapsed += dt;
     // 首页展示独立构图；开始游戏后按真实体长恢复缩放。
@@ -2664,6 +2711,7 @@ function frame(now) {
     night: expedition.region.id === "atlantis",
   });
   visuals.render();
+  worldRenderDirty = false;
 }
 
 onLanguageChange(() => {
@@ -2698,6 +2746,7 @@ $("sound").addEventListener("click", () => {
   $("sound").textContent = t(audio.toggle() ? "声音 · 开" : "声音 · 关");
 });
 $("quality").addEventListener("click", () => {
+  worldRenderDirty = true;
   highQuality = !highQuality;
   renderer.setPixelRatio(highQuality ? Math.min(devicePixelRatio, 1.5) : 0.8);
   renderer.shadowMap.enabled = highQuality;
@@ -2705,11 +2754,16 @@ $("quality").addEventListener("click", () => {
   $("quality").textContent = t(highQuality ? "画质 · 高" : "画质 · 流畅");
 });
 window.addEventListener("resize", () => {
+  worldRenderDirty = true;
   occlusionsAt = -Infinity;
   camera.aspect = innerWidth / innerHeight;
   camera.updateProjectionMatrix();
   renderer.setSize(innerWidth, innerHeight);
   visuals.resize();
+});
+canvas.addEventListener("webglcontextrestored", () => {
+  worldRenderDirty = true;
+  $("loading").hidden = true;
 });
 window.addEventListener("keydown", (e) => {
   if (regionLoading) {
@@ -2720,8 +2774,10 @@ window.addEventListener("keydown", (e) => {
   if (!$("overlay").hidden && e.code === "Tab") {
     // 暂停及结算时只在面板内循环，隐藏的重开按钮不参与焦点顺序。
     const buttons = [
-      ...$("overlay").querySelectorAll("input, button, select"),
-    ].filter((button) => !button.hidden && button.getClientRects().length);
+      ...$("overlay").querySelectorAll(
+        'input, button, select, textarea, summary, [tabindex="0"]',
+      ),
+    ].filter((button) => !button.disabled && button.getClientRects().length);
     const index = buttons.indexOf(document.activeElement);
     const next =
       index < 0
@@ -2848,7 +2904,9 @@ canvas.addEventListener("webglcontextlost", (e) => {
   e.preventDefault();
   if (mode === "playing" || mode === "launching") showOverlay("paused");
   $("loading").hidden = false;
-  $("loading").textContent = t("图形上下文已中断，请刷新页面重新潜入。");
+  $("loading").textContent = t(
+    "图形上下文已中断，正在尝试恢复。若未恢复，请刷新页面。",
+  );
 });
 seedPopulation();
 seedPickups();

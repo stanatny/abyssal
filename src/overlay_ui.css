@@ -1,0 +1,206 @@
+/* 暂停与结算共享层级；正文可以滚动，继续/返回始终留在独立操作区。 */
+body:has(#overlay:not([hidden])) #hud {
+  visibility: hidden;
+}
+.modal-card {
+  display: flex;
+  flex-direction: column;
+  width: min(600px, calc(100vw - 32px));
+  max-width: 600px;
+  max-height: calc(
+    100dvh - 32px - env(safe-area-inset-top) - env(safe-area-inset-bottom)
+  );
+  padding: 30px 32px 20px;
+  overflow: hidden;
+}
+.overlay-content {
+  min-height: 0;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  scrollbar-width: thin;
+  scrollbar-color: #8aaca0 transparent;
+  padding: 0 3px;
+}
+.modal h2 {
+  margin: 16px 0 12px;
+  font-size: clamp(26px, 3vw, 36px);
+  line-height: 1.25;
+  letter-spacing: 1px;
+  text-wrap: balance;
+}
+.modal #overlay-body {
+  max-width: none;
+  margin: 0 0 18px;
+  line-height: 1.65;
+  font-size: 13px;
+}
+.overlay-stats {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 12px;
+  margin: 0 0 16px;
+  padding: 14px 0;
+  border-block: 1px solid #aac5b833;
+  text-align: left;
+}
+.overlay-stats dt {
+  color: #acc5ba;
+  font-size: 11px;
+  line-height: 1.4;
+}
+.overlay-stats dd {
+  margin: 5px 0 0;
+  color: #eef2e5;
+  font-size: 22px;
+  font-variant-numeric: tabular-nums;
+}
+.overlay-stats dd small {
+  font-size: 11px;
+  color: #acc5ba;
+}
+.overlay-progress {
+  margin-bottom: 12px;
+  padding: 10px 12px;
+  border-left: 2px solid #b8d0b5;
+  background: #0e353aaa;
+  text-align: left;
+}
+.overlay-progress small {
+  display: block;
+  margin-bottom: 5px;
+  color: #aac6bd;
+  font-size: 10px;
+  line-height: 1.45;
+}
+.overlay-progress strong {
+  color: #e2efdd;
+  font-size: 13px;
+  line-height: 1.6;
+  font-weight: 500;
+}
+.overlay-help {
+  text-align: left;
+  font-size: 12px;
+}
+.overlay-help summary {
+  display: flex;
+  align-items: center;
+  min-height: 44px;
+  gap: 10px;
+  color: #c7dccd;
+  cursor: pointer;
+  list-style: none;
+}
+.overlay-help summary::-webkit-details-marker {
+  display: none;
+}
+.overlay-help summary::before {
+  content: "+";
+  font-size: 19px;
+}
+.overlay-help[open] summary::before {
+  content: "−";
+}
+.overlay-help p {
+  max-width: none;
+  margin: 0 0 12px;
+  line-height: 1.7;
+  font-size: 12px;
+}
+.touch-help {
+  display: none;
+}
+.overlay-actions {
+  flex-shrink: 0;
+  display: grid;
+  grid-template-columns: 1.2fr 1fr;
+  gap: 12px;
+  padding-top: 16px;
+}
+.modal .overlay-actions button {
+  min-width: 0;
+  width: 100%;
+  min-height: 48px;
+  margin: 0;
+  padding: 10px 14px;
+  line-height: 1.5;
+  font-size: 12px;
+  letter-spacing: 0;
+}
+.overlay-actions .text-button {
+  border: 1px solid #b5cdbb70;
+  background: #0d303655;
+}
+.overlay-help summary:focus-visible,
+.overlay-actions button:focus-visible {
+  outline: 2px solid #e6efd7;
+  outline-offset: 3px;
+}
+/* 游玩时语言已经锁定，腾出顶栏空间给可操作的画质、声音与暂停。 */
+body:has(#hud:not([hidden])) header :is(.language-control, .edition) {
+  display: none;
+}
+@media (pointer: coarse) {
+  .keyboard-help {
+    display: none;
+  }
+  .touch-help {
+    display: block;
+  }
+  body:has(#hud:not([hidden])) .header-tools button {
+    min-width: 44px;
+    min-height: 44px;
+  }
+  .ability-details summary,
+  .expedition-settings summary,
+  .region-overview summary,
+  .guide-filters button {
+    min-height: 44px;
+  }
+}
+@media (max-width: 700px) {
+  .modal-card {
+    padding: 22px 18px 18px;
+  }
+  .modal h2 {
+    font-size: 27px;
+  }
+  .overlay-stats {
+    gap: 8px;
+  }
+  .overlay-stats dt {
+    font-size: 10px;
+  }
+  .overlay-stats dd {
+    font-size: 20px;
+  }
+}
+@media (max-width: 360px) {
+  .modal-card {
+    padding-inline: 14px;
+  }
+  .overlay-stats {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 10px 20px;
+  }
+}
+@media (max-height: 500px) {
+  .modal-card {
+    padding: 14px 24px;
+  }
+  .modal h2 {
+    margin: 8px 0;
+    font-size: 25px;
+  }
+  .modal #overlay-body {
+    margin-bottom: 10px;
+    font-size: 12px;
+  }
+  .overlay-stats {
+    margin-bottom: 10px;
+    padding-block: 10px;
+  }
+  .overlay-actions {
+    padding-top: 10px;
+  }
+}

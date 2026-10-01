@@ -1,5 +1,9 @@
+import {
+  finishScenePreparation,
+  constructionScope,
+} from "./scene_preparation.js";
 import * as THREE from "three";
-import { createAtlantisFurnitureBatch } from "./atlantis_exploration_furniture.js";
+import { createAtlantisFurnitureBatchSteps } from "./atlantis_exploration_furniture.js";
 import {
   bodyRadius,
   castSegment,
@@ -19,9 +23,9 @@ import {
  * 在普通住宅的真实楼板上布置共享雕刻家具，每街区按材质批处理。
  * @param {THREE.Object3D} parent 城市父节点。
  * @param {object} options records 建筑记录、heightAt 海床、hostColliders 完整宿主碰撞和 seed 布局种子。
- * @returns {object} root、colliders、landmarks、lightSources、stats、update 和幂等 dispose。
+ * @returns {Generator<string, object>} 分片迭代器；结束值包含场景、实体、统计和生命周期接口。
  */
-export function createAtlantisResidentialInteriors(
+export function* createAtlantisResidentialInteriorsSteps(
   parent,
   { records = [], heightAt, hostColliders = [], seed = 5173 } = {},
 ) {
@@ -40,143 +44,154 @@ export function createAtlantisResidentialInteriors(
     districts = new Map(),
     dropped = [],
     excludedHomes = [];
-  for (const home of plans) {
-    const access = selectJuvenileAccess(home, hostGrid, heightAt);
-    if (!access) {
-      excludedHomes.push({
-        id: home.id,
-        record: home.record,
-        reason: "blocked_existing_entrance",
-      });
-      continue;
-    }
-    home.access = access;
-    if (!districts.has(home.district))
-      districts.set(home.district, { homes: [], groups: [] });
-    const district = districts.get(home.district);
-    district.homes.push(home);
-    const chosenHomeGroups = new Map();
-    for (const original of home.groups) {
-      const candidates = residentialPlacementCandidates(home, original);
-      const item = candidates.find(
-        (candidate) =>
-          !overlapsOtherSlot(
-            candidate,
-            home.groups.map((other) => chosenHomeGroups.get(other.id) ?? other),
-          ) && !supportFailure(candidate, heightAt, hostGrid),
-      );
-      if (!item)
-        dropped.push({
-          id: original.id,
-          homeId: home.id,
-          kind: original.kind,
-          reason: supportFailure(original, heightAt, hostGrid),
+  const scope = constructionScope(root);
+  try {
+    for (const home of plans) {
+      yield "residential-access";
+      const access = selectJuvenileAccess(home, hostGrid, heightAt);
+      if (!access) {
+        excludedHomes.push({
+          id: home.id,
+          record: home.record,
+          reason: "blocked_existing_entrance",
         });
-      else {
-        chosenHomeGroups.set(item.id, item);
-        district.groups.push(item);
+        continue;
+      }
+      home.access = access;
+      if (!districts.has(home.district))
+        districts.set(home.district, { homes: [], groups: [] });
+      const district = districts.get(home.district);
+      district.homes.push(home);
+      const chosenHomeGroups = new Map();
+      for (const original of home.groups) {
+        const candidates = residentialPlacementCandidates(home, original);
+        const item = candidates.find(
+          (candidate) =>
+            !overlapsOtherSlot(
+              candidate,
+              home.groups.map(
+                (other) => chosenHomeGroups.get(other.id) ?? other,
+              ),
+            ) && !supportFailure(candidate, heightAt, hostGrid),
+        );
+        if (!item)
+          dropped.push({
+            id: original.id,
+            homeId: home.id,
+            kind: original.kind,
+            reason: supportFailure(original, heightAt, hostGrid),
+          });
+        else {
+          chosenHomeGroups.set(item.id, item);
+          district.groups.push(item);
+        }
       }
     }
-  }
-  const batches = [];
-  const placedGroups = [];
-  const placed = { bench: 0, table: 0, chest: 0, amphora: 0 };
-  let triangles = 0,
-    meshes = 0;
-  for (const [id, district] of districts) {
-    if (!district.groups.length) continue;
-    const batch = createAtlantisFurnitureBatch(root, {
-      heightAt,
-      hostColliders,
-      groups: district.groups,
-      seed,
+    const batches = [];
+    const placedGroups = [];
+    const placed = { bench: 0, table: 0, chest: 0, amphora: 0 };
+    let triangles = 0,
+      meshes = 0;
+    for (const [id, district] of districts) {
+      yield "residential-district";
+      if (!district.groups.length) continue;
+      const batch = scope.own(
+        yield* createAtlantisFurnitureBatchSteps(root, {
+          heightAt,
+          hostColliders,
+          groups: district.groups,
+          seed,
+        }),
+      );
+      batch.root.name = `atlantis_residential_${id}`;
+      const bounds = districtBounds(district.homes);
+      batches.push({ id, batch, bounds });
+      for (const collider of batch.colliders)
+        collider.kind = "residential_furniture";
+      colliders.push(...batch.colliders);
+      dropped.push(...batch.stats.dropped);
+      placedGroups.push(...batch.stats.placedGroups);
+      for (const kind of Object.keys(placed))
+        placed[kind] += batch.stats.placed[kind];
+      triangles += batch.stats.triangles;
+      meshes += batch.root.children.filter((child) => child.isMesh).length;
+    }
+    const placedIds = new Set(placedGroups.map((item) => item.id));
+    const activePlans = [...districts.values()].flatMap(({ homes }) => homes);
+    const chosenGroups = new Map(
+      [...districts.values()]
+        .flatMap(({ groups }) => groups)
+        .map((item) => [item.id, item]),
+    );
+    const layouts = activePlans.map((home) => {
+      const groups = home.groups
+        .filter((item) => placedIds.has(item.id))
+        .map((item) => chosenGroups.get(item.id));
+      if (groups.length)
+        landmarks.push({
+          id: home.id,
+          position: new THREE.Vector3(
+            home.access.turningCenter.x,
+            home.floorY + 1.8,
+            home.access.turningCenter.z,
+          ),
+        });
+      return { ...home, groups };
     });
-    batch.root.name = `atlantis_residential_${id}`;
-    const bounds = districtBounds(district.homes);
-    batches.push({ id, batch, bounds });
-    for (const collider of batch.colliders)
-      collider.kind = "residential_furniture";
-    colliders.push(...batch.colliders);
-    dropped.push(...batch.stats.dropped);
-    placedGroups.push(...batch.stats.placedGroups);
-    for (const kind of Object.keys(placed))
-      placed[kind] += batch.stats.placed[kind];
-    triangles += batch.stats.triangles;
-    meshes += batch.root.children.filter((child) => child.isMesh).length;
-  }
-  const placedIds = new Set(placedGroups.map((item) => item.id));
-  const activePlans = [...districts.values()].flatMap(({ homes }) => homes);
-  const chosenGroups = new Map(
-    [...districts.values()]
-      .flatMap(({ groups }) => groups)
-      .map((item) => [item.id, item]),
-  );
-  const layouts = activePlans.map((home) => {
-    const groups = home.groups
-      .filter((item) => placedIds.has(item.id))
-      .map((item) => chosenGroups.get(item.id));
-    if (groups.length)
-      landmarks.push({
-        id: home.id,
-        position: new THREE.Vector3(
-          home.access.turningCenter.x,
-          home.floorY + 1.8,
-          home.access.turningCenter.z,
+    const stats = {
+      plannedHomes: plans.length,
+      eligibleHomes: activePlans.length,
+      excludedHomes,
+      furnishedHomes: layouts.filter((home) => home.groups.length > 0).length,
+      fullyFurnishedHomes: layouts.filter((home) =>
+        ["bench", "chest"].every((kind) =>
+          home.groups.some((item) => item.kind === kind),
         ),
-      });
-    return { ...home, groups };
-  });
-  const stats = {
-    plannedHomes: plans.length,
-    eligibleHomes: activePlans.length,
-    excludedHomes,
-    furnishedHomes: layouts.filter((home) => home.groups.length > 0).length,
-    fullyFurnishedHomes: layouts.filter((home) =>
-      ["bench", "chest"].every((kind) =>
-        home.groups.some((item) => item.kind === kind),
-      ),
-    ).length,
-    plannedGroups: plans.reduce((sum, home) => sum + home.groups.length, 0),
-    placed,
-    placedGroups,
-    dropped,
-    triangles,
-    meshes,
-    colliders: colliders.length,
-    districts: batches.map(({ id, batch, bounds }) => ({
-      id,
-      bounds,
-      triangles: batch.stats.triangles,
-      groups: batch.stats.placedGroups.length,
-    })),
-    layouts,
-  };
-  root.userData.residentialStats = stats;
-  let disposed = false;
-  return {
-    root,
-    colliders,
-    landmarks,
-    lightSources,
-    stats,
-    update(time, dt, position, highQuality = true) {
-      if (disposed) return;
-      for (const { batch, bounds } of batches) {
-        batch.update(time, dt, position, highQuality);
-        batch.root.visible =
-          !position ||
-          distanceToBounds(position, bounds) < (highQuality ? 235 : 190);
-      }
-    },
-    dispose() {
-      if (disposed) return;
-      disposed = true;
-      for (const { batch } of batches) batch.dispose();
-      parent.remove(root);
-      root.clear();
-      colliders.length = landmarks.length = lightSources.length = 0;
-    },
-  };
+      ).length,
+      plannedGroups: plans.reduce((sum, home) => sum + home.groups.length, 0),
+      placed,
+      placedGroups,
+      dropped,
+      triangles,
+      meshes,
+      colliders: colliders.length,
+      districts: batches.map(({ id, batch, bounds }) => ({
+        id,
+        bounds,
+        triangles: batch.stats.triangles,
+        groups: batch.stats.placedGroups.length,
+      })),
+      layouts,
+    };
+    root.userData.residentialStats = stats;
+    let disposed = false;
+    return scope.finish({
+      root,
+      colliders,
+      landmarks,
+      lightSources,
+      stats,
+      update(time, dt, position, highQuality = true) {
+        if (disposed) return;
+        for (const { batch, bounds } of batches) {
+          batch.update(time, dt, position, highQuality);
+          batch.root.visible =
+            !position ||
+            distanceToBounds(position, bounds) < (highQuality ? 235 : 190);
+        }
+      },
+      dispose() {
+        if (disposed) return;
+        disposed = true;
+        for (const { batch } of batches) batch.dispose();
+        parent.remove(root);
+        root.clear();
+        colliders.length = landmarks.length = lightSources.length = 0;
+      },
+    });
+  } finally {
+    scope.close();
+  }
 }
 
 // 完整占地同时检查海床与实际楼板；中心点正确不能证明边缘没有浮空或埋入坡面。
@@ -290,4 +305,11 @@ function overlapsOtherSlot(item, groups) {
       item.localZ + a.minZ < other.localZ + b.maxZ
     );
   });
+}
+
+/** 同步工厂：参数与 Steps 一致，直接返回完成的场景接口，供工具和测试使用。 */
+export function createAtlantisResidentialInteriors(...args) {
+  return finishScenePreparation(
+    createAtlantisResidentialInteriorsSteps(...args),
+  );
 }

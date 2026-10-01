@@ -1,3 +1,7 @@
+import {
+  finishScenePreparation,
+  constructionScope,
+} from "./scene_preparation.js";
 import * as THREE from "three";
 import {
   MergeBucket,
@@ -873,9 +877,9 @@ function facadeFooting(heightAt, x, z) {
  * @param {number} [options.seed] 布置随机种子。
  * @param {object[]} [options.groups] 可选世界坐标陈设表；省略时采用港湾布局。
  * @param {object[]} [options.scatter] 可选散落器物表；省略时采用港湾布局。
- * @returns {object} root、colliders、lightSources、landmarks、update、dispose、stats。
+ * @returns {Generator<string, object>} 分片迭代器；结束值包含场景、实体、统计和生命周期接口。
  */
-export function createAtlantisExplorationFurniture(
+export function* createAtlantisExplorationFurnitureSteps(
   parent,
   {
     heightAt,
@@ -900,237 +904,249 @@ export function createAtlantisExplorationFurniture(
     colliders = [],
     landmarks = [],
     lightSources = [];
-  const random = seededRandom(seed);
-  const zones = SITE ? keepOuts(SITE) : [];
-  const b = new FurnitureBuilder(colliders);
-  const dropped = [];
-  const placedGroups = [];
-  const placed = { bench: 0, table: 0, chest: 0, amphora: 0 };
+  const scope = constructionScope(root, owned, { disposeInstances: false });
+  try {
+    const random = seededRandom(seed);
+    const zones = SITE ? keepOuts(SITE) : [];
+    const b = new FurnitureBuilder(colliders);
+    const dropped = [];
+    const placedGroups = [];
+    const placed = { bench: 0, table: 0, chest: 0, amphora: 0 };
 
-  // 宿主快照索引不污染集成方稍后仍在追加的城市碰撞数组。
-  const hostGrid = createStaticColliderGrid([...hostColliders]);
-  const queryHosts = (min, max) => [...hostGrid.query(min, max), ...colliders];
-  // 同步构造期间宿主形状不变；仅缓存宿主盒，原始/缩底候选仍独立计算。
-  let hostEdges = new WeakMap();
-  const EXTENTS = {
-    bench: { halfX: 1.8, halfZ: 0.68, height: 1.5 },
-    table: { halfX: 1.38, halfZ: 1.38, height: 1.7 },
-    chest: { halfX: 1.36, halfZ: 0.94, height: 2.4 },
-    amphora: { halfX: 1.7, halfZ: 1.5, height: 2.4 },
-  };
-  function canPlace(kind, x, floor, z, bottom = floor, yaw = 0, scale = 1) {
-    const extent = EXTENTS[kind];
-    const c = Math.abs(Math.cos(yaw)),
-      s = Math.abs(Math.sin(yaw));
-    const box = furnitureBox(
-      (extent.halfX * c + extent.halfZ * s) * 2 * scale,
-      floor + extent.height * scale - bottom,
-      (extent.halfX * s + extent.halfZ * c) * 2 * scale,
-      x,
-      (bottom + floor + extent.height * scale) / 2,
-      z,
-    );
-    return (
-      !blockedByKeepOut(zones, box) && !overlapsHost(queryHosts, box, hostEdges)
-    );
-  }
-  function canPlaceGroup(item) {
-    if (!customLayout)
-      return canPlace(
-        item.kind,
-        item.x,
-        item.floor,
-        item.z,
-        item.floor,
-        item.yaw ?? 0,
+    // 宿主快照索引不污染集成方稍后仍在追加的城市碰撞数组。
+    const hostGrid = createStaticColliderGrid([...hostColliders]);
+    const queryHosts = (min, max) => [
+      ...hostGrid.query(min, max),
+      ...colliders,
+    ];
+    // 同步构造期间宿主形状不变；仅缓存宿主盒，原始/缩底候选仍独立计算。
+    let hostEdges = new WeakMap();
+    const EXTENTS = {
+      bench: { halfX: 1.8, halfZ: 0.68, height: 1.5 },
+      table: { halfX: 1.38, halfZ: 1.38, height: 1.7 },
+      chest: { halfX: 1.36, halfZ: 0.94, height: 2.4 },
+      amphora: { halfX: 1.7, halfZ: 1.5, height: 2.4 },
+    };
+    function canPlace(kind, x, floor, z, bottom = floor, yaw = 0, scale = 1) {
+      const extent = EXTENTS[kind];
+      const c = Math.abs(Math.cos(yaw)),
+        s = Math.abs(Math.sin(yaw));
+      const box = furnitureBox(
+        (extent.halfX * c + extent.halfZ * s) * 2 * scale,
+        floor + extent.height * scale - bottom,
+        (extent.halfX * s + extent.halfZ * c) * 2 * scale,
+        x,
+        (bottom + floor + extent.height * scale) / 2,
+        z,
       );
-    const { bounds } = furniturePrototype(item);
-    const scale = item.scale ?? 1,
-      yaw = item.yaw ?? 0;
-    const q = new THREE.Quaternion().setFromAxisAngle(
-      new THREE.Vector3(0, 1, 0),
-      yaw,
-    );
-    const size = bounds.getSize(new THREE.Vector3()).multiplyScalar(scale);
-    const center = bounds
-      .getCenter(new THREE.Vector3())
-      .multiplyScalar(scale)
-      .applyQuaternion(q)
-      .add(new THREE.Vector3(item.x, item.floor, item.z));
-    const box = furnitureBox(
-      size.x,
-      size.y,
-      size.z,
-      center.x,
-      center.y,
-      center.z,
-      yaw,
-    );
-    return !overlapsHost(queryHosts, box, hostEdges);
-  }
-  for (const item of groups ?? (SITE ? planGroups(SITE) : [])) {
-    if (!canPlaceGroup(item)) {
-      dropped.push({
-        id: item.id,
-        kind: item.kind,
-        x: item.x,
-        z: item.z,
-        reason: "keepout_or_host",
-      });
-      continue;
+      return (
+        !blockedByKeepOut(zones, box) &&
+        !overlapsHost(queryHosts, box, hostEdges)
+      );
     }
-    if (customLayout) placePrototype(b, furniturePrototype(item), item);
-    else if (item.kind === "bench")
-      stoneBench(b, item.x, item.floor, item.z, item.yaw ?? 0);
-    else if (item.kind === "table") stoneTable(b, item.x, item.floor, item.z);
-    else if (item.kind === "chest")
-      storageChest(b, item.x, item.floor, item.z, item.yaw ?? 0);
-    else if (item.kind === "amphora")
-      amphoraCluster(b, item.x, item.floor, item.z, item.count, item.seed);
-    placed[item.kind] += 1;
-    placedGroups.push({ ...item });
-  }
-
-  // facade.center 是真实墙面上的点；normal 为指向街道的世界 XZ 法线。
-  // 按托盘投影留出墙面净距，无论朝向都不能让基座嵌入立面。
-  for (const facade of facades ?? []) {
-    const normal = new THREE.Vector2(facade.normal.x, facade.normal.z);
-    if (!normal.lengthSq()) continue;
-    normal.normalize();
-    const offset = Math.abs(normal.x) * 1.7 + Math.abs(normal.y) * 1.5 + 0.6;
-    let placement = null;
-    // 柱脚和地基可以突出于墙面；有限向外退让后仍须通过同一实体/游线检测。
-    for (let attempt = 0; attempt < 5; attempt += 1) {
-      const distance = offset + attempt * 0.6;
-      const x = facade.center.x + normal.x * distance;
-      const z = facade.center.z + normal.y * distance;
-      const footing = facadeFooting(heightAt, x, z);
-      if (!canPlace("amphora", x, footing.floor, z, footing.bottom)) continue;
-      placement = { x, z, ...footing };
-      break;
-    }
-    if (!placement) {
-      dropped.push({
-        kind: "amphora",
-        x: facade.center.x,
-        z: facade.center.z,
-        reason: "keepout_or_host",
-      });
-      continue;
-    }
-    const { x: fx, z: fz, ...footing } = placement;
-    const height = footing.floor - footing.bottom;
-    b.box("stone", 3.4, height, 2.6, fx, footing.bottom + height / 2, fz, {
-      solid: true,
-      tint: "#97a79e",
-    });
-    amphoraCluster(b, fx, footing.floor, fz, 3, seed + 17);
-    placed.amphora += 1;
-  }
-
-  // 散落器物(视觉小件,实例化,无碰撞);连同本组新碰撞一起避让。
-  const scatterTransforms = (
-    scatter ?? (SITE ? planScatter(SITE, random) : [])
-  ).filter((t) => {
-    const box = furnitureBox(1, 0.5, 1, t.x, t.y + 0.25, t.z);
-    return (
-      !blockedByKeepOut(zones, box) && !overlapsHost(queryHosts, box, hostEdges)
-    );
-  });
-  // 布置结束后主动解除临时缓存引用，不随 update/dispose 闭包保留。
-  hostEdges = null;
-  const scatterMeshes = scatterPieces(scatterTransforms, seed + 3);
-
-  b.bucket.build(atlantisMaterials(), root, owned);
-  for (const mesh of scatterMeshes) {
-    root.add(mesh);
-    owned.add({ dispose: () => mesh.dispose() });
-  }
-  for (const mesh of root.children) {
-    if (!mesh.isMesh && !mesh.isInstancedMesh) continue;
-    mesh.receiveShadow = true;
-    mesh.geometry.computeBoundingSphere();
-  }
-
-  if (SITE) {
-    const origin = siteOrigin(SITE);
-    landmarks.push(
-      {
-        id: "furniture_lower_hall_banquet",
-        position: new THREE.Vector3(
-          origin.x + 21.2,
-          SITE.levels[1].floorY + 2,
-          origin.z + 19.6,
-        ),
-      },
-      {
-        id: "furniture_upper_gallery_corner",
-        position: new THREE.Vector3(
-          origin.x - 29,
-          SITE.levels[0].floorY + 2,
-          origin.z + 15,
-        ),
-      },
-    );
-  }
-
-  const triangles =
-    [...owned].reduce((sum, resource) => {
-      if (resource.attributes?.position)
-        return (
-          sum +
-          (resource.index?.count ?? resource.attributes.position.count) / 3
+    function canPlaceGroup(item) {
+      if (!customLayout)
+        return canPlace(
+          item.kind,
+          item.x,
+          item.floor,
+          item.z,
+          item.floor,
+          item.yaw ?? 0,
         );
-      return sum;
-    }, 0) +
-    scatterMeshes.reduce(
-      (sum, mesh) =>
-        sum +
-        ((mesh.geometry.index?.count ??
-          mesh.geometry.attributes.position.count) *
-          mesh.count) /
-          3,
-      0,
-    );
-  const stats = {
-    site: SITE?.id ?? "custom_furnishing_batch",
-    placed,
-    dropped,
-    placedGroups,
-    scatter: scatterTransforms.length,
-    colliders: colliders.length,
-    triangles: Math.round(triangles),
-  };
-  root.userData.furnitureStats = stats;
-  const centerX = SITE ? (SITE.bounds.minX + SITE.bounds.maxX) / 2 : 0,
-    centerZ = SITE ? (SITE.bounds.minZ + SITE.bounds.maxZ) / 2 : 0;
-  let disposed = false;
-  return {
-    root,
-    colliders,
-    lightSources,
-    landmarks,
-    stats,
-    update(time, dt, position, highQuality = true) {
-      if (disposed) return;
-      root.visible =
-        !SITE ||
-        !position ||
-        Math.hypot(centerX - position.x, centerZ - position.z) <
-          (highQuality ? 400 : 330);
-      void time;
-      void dt;
-    },
-    dispose() {
-      if (disposed) return;
-      disposed = true;
-      parent.remove(root);
-      for (const resource of owned) resource.dispose();
-      owned.clear();
-      root.clear();
-      colliders.length = lightSources.length = landmarks.length = 0;
-    },
-  };
+      const { bounds } = furniturePrototype(item);
+      const scale = item.scale ?? 1,
+        yaw = item.yaw ?? 0;
+      const q = new THREE.Quaternion().setFromAxisAngle(
+        new THREE.Vector3(0, 1, 0),
+        yaw,
+      );
+      const size = bounds.getSize(new THREE.Vector3()).multiplyScalar(scale);
+      const center = bounds
+        .getCenter(new THREE.Vector3())
+        .multiplyScalar(scale)
+        .applyQuaternion(q)
+        .add(new THREE.Vector3(item.x, item.floor, item.z));
+      const box = furnitureBox(
+        size.x,
+        size.y,
+        size.z,
+        center.x,
+        center.y,
+        center.z,
+        yaw,
+      );
+      return !overlapsHost(queryHosts, box, hostEdges);
+    }
+    for (const item of groups ?? (SITE ? planGroups(SITE) : [])) {
+      yield "furniture-placement";
+      if (!canPlaceGroup(item)) {
+        dropped.push({
+          id: item.id,
+          kind: item.kind,
+          x: item.x,
+          z: item.z,
+          reason: "keepout_or_host",
+        });
+        continue;
+      }
+      if (customLayout) placePrototype(b, furniturePrototype(item), item);
+      else if (item.kind === "bench")
+        stoneBench(b, item.x, item.floor, item.z, item.yaw ?? 0);
+      else if (item.kind === "table") stoneTable(b, item.x, item.floor, item.z);
+      else if (item.kind === "chest")
+        storageChest(b, item.x, item.floor, item.z, item.yaw ?? 0);
+      else if (item.kind === "amphora")
+        amphoraCluster(b, item.x, item.floor, item.z, item.count, item.seed);
+      placed[item.kind] += 1;
+      placedGroups.push({ ...item });
+    }
+
+    // facade.center 是真实墙面上的点；normal 为指向街道的世界 XZ 法线。
+    // 按托盘投影留出墙面净距，无论朝向都不能让基座嵌入立面。
+    for (const facade of facades ?? []) {
+      yield "furniture-facade";
+      const normal = new THREE.Vector2(facade.normal.x, facade.normal.z);
+      if (!normal.lengthSq()) continue;
+      normal.normalize();
+      const offset = Math.abs(normal.x) * 1.7 + Math.abs(normal.y) * 1.5 + 0.6;
+      let placement = null;
+      // 柱脚和地基可以突出于墙面；有限向外退让后仍须通过同一实体/游线检测。
+      for (let attempt = 0; attempt < 5; attempt += 1) {
+        const distance = offset + attempt * 0.6;
+        const x = facade.center.x + normal.x * distance;
+        const z = facade.center.z + normal.y * distance;
+        const footing = facadeFooting(heightAt, x, z);
+        if (!canPlace("amphora", x, footing.floor, z, footing.bottom)) continue;
+        placement = { x, z, ...footing };
+        break;
+      }
+      if (!placement) {
+        dropped.push({
+          kind: "amphora",
+          x: facade.center.x,
+          z: facade.center.z,
+          reason: "keepout_or_host",
+        });
+        continue;
+      }
+      const { x: fx, z: fz, ...footing } = placement;
+      const height = footing.floor - footing.bottom;
+      b.box("stone", 3.4, height, 2.6, fx, footing.bottom + height / 2, fz, {
+        solid: true,
+        tint: "#97a79e",
+      });
+      amphoraCluster(b, fx, footing.floor, fz, 3, seed + 17);
+      placed.amphora += 1;
+    }
+
+    // 散落器物(视觉小件,实例化,无碰撞);连同本组新碰撞一起避让。
+    const scatterTransforms = (
+      scatter ?? (SITE ? planScatter(SITE, random) : [])
+    ).filter((t) => {
+      const box = furnitureBox(1, 0.5, 1, t.x, t.y + 0.25, t.z);
+      return (
+        !blockedByKeepOut(zones, box) &&
+        !overlapsHost(queryHosts, box, hostEdges)
+      );
+    });
+    // 布置结束后主动解除临时缓存引用，不随 update/dispose 闭包保留。
+    hostEdges = null;
+    const scatterMeshes = scatterPieces(scatterTransforms, seed + 3);
+
+    b.bucket.build(atlantisMaterials(), root, owned);
+    for (const mesh of scatterMeshes) {
+      root.add(mesh);
+      owned.add({ dispose: () => mesh.dispose() });
+    }
+    for (const mesh of root.children) {
+      if (!mesh.isMesh && !mesh.isInstancedMesh) continue;
+      mesh.receiveShadow = true;
+      mesh.geometry.computeBoundingSphere();
+    }
+
+    if (SITE) {
+      const origin = siteOrigin(SITE);
+      landmarks.push(
+        {
+          id: "furniture_lower_hall_banquet",
+          position: new THREE.Vector3(
+            origin.x + 21.2,
+            SITE.levels[1].floorY + 2,
+            origin.z + 19.6,
+          ),
+        },
+        {
+          id: "furniture_upper_gallery_corner",
+          position: new THREE.Vector3(
+            origin.x - 29,
+            SITE.levels[0].floorY + 2,
+            origin.z + 15,
+          ),
+        },
+      );
+    }
+
+    const triangles =
+      [...owned].reduce((sum, resource) => {
+        if (resource.attributes?.position)
+          return (
+            sum +
+            (resource.index?.count ?? resource.attributes.position.count) / 3
+          );
+        return sum;
+      }, 0) +
+      scatterMeshes.reduce(
+        (sum, mesh) =>
+          sum +
+          ((mesh.geometry.index?.count ??
+            mesh.geometry.attributes.position.count) *
+            mesh.count) /
+            3,
+        0,
+      );
+    const stats = {
+      site: SITE?.id ?? "custom_furnishing_batch",
+      placed,
+      dropped,
+      placedGroups,
+      scatter: scatterTransforms.length,
+      colliders: colliders.length,
+      triangles: Math.round(triangles),
+    };
+    root.userData.furnitureStats = stats;
+    const centerX = SITE ? (SITE.bounds.minX + SITE.bounds.maxX) / 2 : 0,
+      centerZ = SITE ? (SITE.bounds.minZ + SITE.bounds.maxZ) / 2 : 0;
+    let disposed = false;
+    return scope.finish({
+      root,
+      colliders,
+      lightSources,
+      landmarks,
+      stats,
+      update(time, dt, position, highQuality = true) {
+        if (disposed) return;
+        root.visible =
+          !SITE ||
+          !position ||
+          Math.hypot(centerX - position.x, centerZ - position.z) <
+            (highQuality ? 400 : 330);
+        void time;
+        void dt;
+      },
+      dispose() {
+        if (disposed) return;
+        disposed = true;
+        parent.remove(root);
+        for (const resource of owned) resource.dispose();
+        owned.clear();
+        root.clear();
+        colliders.length = lightSources.length = landmarks.length = 0;
+      },
+    });
+  } finally {
+    scope.close();
+  }
 }
 
 /**
@@ -1141,6 +1157,22 @@ export function createAtlantisExplorationFurniture(
  */
 export function createAtlantisFurnitureBatch(parent, options = {}) {
   return createAtlantisExplorationFurniture(parent, {
+    ...options,
+    customLayout: true,
+    facades: [],
+    scatter: [],
+  });
+}
+
+/** 同步工厂：参数与 Steps 一致，直接返回完成的场景接口，供工具和测试使用。 */
+export function createAtlantisExplorationFurniture(...args) {
+  return finishScenePreparation(
+    createAtlantisExplorationFurnitureSteps(...args),
+  );
+}
+
+export function* createAtlantisFurnitureBatchSteps(parent, options = {}) {
+  return yield* createAtlantisExplorationFurnitureSteps(parent, {
     ...options,
     customLayout: true,
     facades: [],

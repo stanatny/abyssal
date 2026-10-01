@@ -1,4 +1,19 @@
 export const UI_EN = Object.freeze({
+  "远征已暂停，生存与技能计时已停止。":
+    "Expedition paused. Survival and ability timers are frozen.",
+  "30分钟探索已结束。本次未达成海域目标，可以再次出发。":
+    "The 30-minute expedition has ended. The regional objective remains unfinished; you can try again.",
+  操作与海域规则: "Controls & regional objective",
+  "WASD 转向，空格冲刺，J 角色技能，K 慢游。接触自动咬击。":
+    "WASD to steer, Space to sprint, J for your skill, K to swim slowly. Contact triggers feeding or attacks.",
+  "拖动左侧摇杆转向，按住冲刺按钮加速；点击技能按钮释放主动技能。接触自动咬击。":
+    "Drag the left joystick to steer. Hold Sprint to accelerate; tap your skill to activate it. Contact triggers feeding or attacks.",
+  体长: "Length",
+  探索时长: "Time explored",
+  捕食次数: "Prey eaten",
+  击败领主: "Lords defeated",
+  "当前任务 · {0}": "Current task · {0}",
+  "{0}：{1} 激活起冷却{2}秒。": "{0}: {1} Cooldown starts on activation: {2}s.",
   下一段旅程: "Your next voyage",
   "正在准备海域…": "Preparing your destination…",
   "海域准备失败，已保留原海域。请稍后重试。":
@@ -111,8 +126,8 @@ export const UI_EN = Object.freeze({
   "声音 · 关": "Sound · Off",
   "画质 · 高": "Quality · High",
   "画质 · 流畅": "Quality · Low",
-  "图形上下文已中断，请刷新页面重新潜入。":
-    "Graphics context lost. Refresh the page to dive again.",
+  "图形上下文已中断，正在尝试恢复。若未恢复，请刷新页面。":
+    "Graphics context interrupted. Trying to restore it; refresh if it does not recover.",
   回声定位: "Echolocation",
   "前方 {0}组": "Groups {0}",
   转向探测: "Turn to scan",
@@ -264,7 +279,7 @@ export const UI_EN = Object.freeze({
     "Reach 30m and earn an abyssal mark to win.",
   "耳机体验更佳 · 推荐电脑全屏游玩":
     "Best with headphones · Desktop fullscreen recommended",
-  "海洋远征 / v0.7.2": "Ocean Expeditions / v0.7.2",
+  "海洋远征 / v0.8.0": "Ocean Expeditions / v0.8.0",
   生存状态: "Survival status",
   "m / 深度": "m / depth",
   食物链进化: "RISE THROUGH THE FOOD CHAIN",

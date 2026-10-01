@@ -2,7 +2,7 @@ import { t, tr, setMarkup } from "./i18n.js";
 import "./region_loading.css";
 
 /**
- * 切换海域时先展示加载层，再允许同步建模；保存并恢复焦点与已有inert状态。
+ * 切换海域时先展示加载层，再分阶段准备场景；保存并恢复焦点与已有inert状态。
  * @returns {object} begin(name)、paint()、fail()、end()，由调用方管理场景事务。
  */
 export function createRegionLoading() {

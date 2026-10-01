@@ -1,3 +1,7 @@
+import {
+  finishScenePreparation,
+  constructionScope,
+} from "./scene_preparation.js";
 import * as THREE from "three";
 import {
   MergeBucket,
@@ -54,9 +58,9 @@ export function isAtlantisUnderwayReserved(x, z, width = 0, depth = 0) {
  * 构建三处上下可穿行的抬升圣所，所有实体与碰撞共用尺寸。
  * @param {THREE.Object3D} parent 场景父节点。
  * @param {{heightAt:function}} options 已有海床采样函数。
- * @returns {object} 场景、碰撞、地标、记录、统计、更新与幂等释放接口。
+ * @returns {Generator<string, object>} 分片迭代器；结束值包含场景、实体、统计和生命周期接口。
  */
-export function createAtlantisUnderways(parent, { heightAt } = {}) {
+export function* createAtlantisUnderwaysSteps(parent, { heightAt } = {}) {
   if (!parent?.add || typeof heightAt !== "function")
     throw new Error(
       "Atlantis underways require a parent and seabed height function",
@@ -69,137 +73,143 @@ export function createAtlantisUnderways(parent, { heightAt } = {}) {
     obstacles = [],
     landmarks = [],
     records = [];
-  const materials = atlantisMaterials();
-  for (const site of ATLANTIS_UNDERWAY_SITES) {
-    const group = new THREE.Group();
-    group.name = site.id;
-    root.add(group);
-    const builder = new UnderwayBuilder(site, heightAt, colliders);
-    const maximum = builder.floorRange(0, 0, 100, 112).max;
-    const deck = maximum + 52;
-    buildGallery(builder, deck, maximum);
-    if (site.variant === "bridges") {
-      // 双翼上殿围出真实的露天竖井，两端石桥形成上下层环游路线。
-      for (const side of [-1, 1]) {
-        builder.box("stone", 30, 4, 112, side * 35, deck - 2, 0);
-        hall(builder, side * 35, deck, 0, 27, 94, 27, 8);
-      }
-      for (const z of [-46, 46])
-        builder.box("marble", 40, 4, 20, 0, deck - 2, z);
-    } else {
-      builder.box("stone", 100, 4, 112, 0, deck - 2, 0);
-      if (site.variant === "sanctuary")
-        hall(builder, 0, deck, 0, 86, 88, 33, 13);
-      else {
-        hall(builder, 0, deck, -25, 76, 53, 30, 11);
+  const scope = constructionScope(root, owned, { disposeInstances: false });
+  try {
+    const materials = atlantisMaterials();
+    for (const site of ATLANTIS_UNDERWAY_SITES) {
+      yield "underway-site";
+      const group = new THREE.Group();
+      group.name = site.id;
+      root.add(group);
+      const builder = new UnderwayBuilder(site, heightAt, colliders);
+      const maximum = builder.floorRange(0, 0, 100, 112).max;
+      const deck = maximum + 52;
+      buildGallery(builder, deck, maximum);
+      if (site.variant === "bridges") {
+        // 双翼上殿围出真实的露天竖井，两端石桥形成上下层环游路线。
         for (const side of [-1, 1]) {
-          hall(builder, side * 36, deck, 35, 24, 30, 20, 6);
-          builder.column(side * 43, deck, 6, 28, 2.2);
+          builder.box("stone", 30, 4, 112, side * 35, deck - 2, 0);
+          hall(builder, side * 35, deck, 0, 27, 94, 27, 8);
+        }
+        for (const z of [-46, 46])
+          builder.box("marble", 40, 4, 20, 0, deck - 2, z);
+      } else {
+        builder.box("stone", 100, 4, 112, 0, deck - 2, 0);
+        if (site.variant === "sanctuary")
+          hall(builder, 0, deck, 0, 86, 88, 33, 13);
+        else {
+          hall(builder, 0, deck, -25, 76, 53, 30, 11);
+          for (const side of [-1, 1]) {
+            hall(builder, side * 36, deck, 35, 24, 30, 20, 6);
+            builder.column(side * 43, deck, 6, 28, 2.2);
+          }
         }
       }
+      for (const x of [-49, 49])
+        builder.box("marble", 2, 1.4, 112, x, deck + 0.7, 0);
+      // 横向边缘压顶分开，入口保持敞开；层叠檐口、齿饰和铜嵌条继承王城语言。
+      for (const z of [-55, 55]) {
+        for (const x of [-37, 37])
+          builder.box("marble", 26, 1.4, 2, x, deck + 0.7, z);
+        builder.box("marble", 102, 1.1, 3, 0, deck - 1.3, z);
+        for (let x = -47; x <= 47; x += 5)
+          builder.box(
+            "bronze",
+            1.4,
+            2.4,
+            0.5,
+            x,
+            deck - 1.9,
+            z + Math.sign(z) * 1.7,
+            false,
+          );
+      }
+      builder.bucket.build(materials, group, owned);
+      group.traverse((mesh) => {
+        if (!mesh.isMesh) return;
+        mesh.receiveShadow = true;
+        mesh.geometry.computeBoundingSphere();
+      });
+      const lowerY = maximum + 23;
+      const record = {
+        ...site,
+        kind: "underway",
+        y: deck,
+        floorMaximum: maximum,
+        lowerY,
+        upperY: deck + 14,
+        height: deck - maximum + 49,
+        lowerRoute: [
+          { x: site.x, y: lowerY, z: site.z + 69 },
+          { x: site.x, y: lowerY, z: site.z - 69 },
+        ],
+        upperRoute: [
+          { x: site.x, y: deck + 14, z: site.z + 69 },
+          { x: site.x, y: deck + 14, z: site.z - 69 },
+        ],
+        verticalRoute:
+          site.variant === "bridges"
+            ? [
+                { x: site.x, y: lowerY, z: site.z },
+                { x: site.x, y: deck + 44, z: site.z },
+              ]
+            : null,
+        clearWidth: 64,
+        lowerClearance: 44,
+        group,
+      };
+      records.push(record);
+      landmarks.push({
+        id: site.id,
+        position: new THREE.Vector3(site.x, deck + 14, site.z),
+      });
     }
-    for (const x of [-49, 49])
-      builder.box("marble", 2, 1.4, 112, x, deck + 0.7, 0);
-    // 横向边缘压顶分开，入口保持敞开；层叠檐口、齿饰和铜嵌条继承王城语言。
-    for (const z of [-55, 55]) {
-      for (const x of [-37, 37])
-        builder.box("marble", 26, 1.4, 2, x, deck + 0.7, z);
-      builder.box("marble", 102, 1.1, 3, 0, deck - 1.3, z);
-      for (let x = -47; x <= 47; x += 5)
-        builder.box(
-          "bronze",
-          1.4,
-          2.4,
-          0.5,
-          x,
-          deck - 1.9,
-          z + Math.sign(z) * 1.7,
-          false,
-        );
-    }
-    builder.bucket.build(materials, group, owned);
-    group.traverse((mesh) => {
-      if (!mesh.isMesh) return;
-      mesh.receiveShadow = true;
-      mesh.geometry.computeBoundingSphere();
-    });
-    const lowerY = maximum + 23;
-    const record = {
-      ...site,
-      kind: "underway",
-      y: deck,
-      floorMaximum: maximum,
-      lowerY,
-      upperY: deck + 14,
-      height: deck - maximum + 49,
-      lowerRoute: [
-        { x: site.x, y: lowerY, z: site.z + 69 },
-        { x: site.x, y: lowerY, z: site.z - 69 },
-      ],
-      upperRoute: [
-        { x: site.x, y: deck + 14, z: site.z + 69 },
-        { x: site.x, y: deck + 14, z: site.z - 69 },
-      ],
-      verticalRoute:
-        site.variant === "bridges"
-          ? [
-              { x: site.x, y: lowerY, z: site.z },
-              { x: site.x, y: deck + 44, z: site.z },
-            ]
-          : null,
-      clearWidth: 64,
-      lowerClearance: 44,
-      group,
+    const stats = {
+      sites: records.length,
+      levels: 2,
+      meshes: owned.size,
+      colliders: colliders.length,
+      triangles: [...owned].reduce(
+        (sum, geometry) => sum + geometry.attributes.position.count / 3,
+        0,
+      ),
     };
-    records.push(record);
-    landmarks.push({
-      id: site.id,
-      position: new THREE.Vector3(site.x, deck + 14, site.z),
+    root.userData.underwayStats = stats;
+    let disposed = false;
+    return scope.finish({
+      root,
+      colliders,
+      obstacles,
+      landmarks,
+      records,
+      stats,
+      update(time, dt, position, highQuality = true) {
+        if (disposed) return;
+        for (const record of records)
+          record.group.visible =
+            !position ||
+            Math.hypot(record.x - position.x, record.z - position.z) <
+              (highQuality ? 400 : 330);
+        void time;
+        void dt;
+      },
+      dispose() {
+        if (disposed) return;
+        disposed = true;
+        parent.remove(root);
+        for (const geometry of owned) geometry.dispose();
+        owned.clear();
+        root.clear();
+        colliders.length =
+          obstacles.length =
+          landmarks.length =
+          records.length =
+            0;
+      },
     });
+  } finally {
+    scope.close();
   }
-  const stats = {
-    sites: records.length,
-    levels: 2,
-    meshes: owned.size,
-    colliders: colliders.length,
-    triangles: [...owned].reduce(
-      (sum, geometry) => sum + geometry.attributes.position.count / 3,
-      0,
-    ),
-  };
-  root.userData.underwayStats = stats;
-  let disposed = false;
-  return {
-    root,
-    colliders,
-    obstacles,
-    landmarks,
-    records,
-    stats,
-    update(time, dt, position, highQuality = true) {
-      if (disposed) return;
-      for (const record of records)
-        record.group.visible =
-          !position ||
-          Math.hypot(record.x - position.x, record.z - position.z) <
-            (highQuality ? 400 : 330);
-      void time;
-      void dt;
-    },
-    dispose() {
-      if (disposed) return;
-      disposed = true;
-      parent.remove(root);
-      for (const geometry of owned) geometry.dispose();
-      owned.clear();
-      root.clear();
-      colliders.length =
-        obstacles.length =
-        landmarks.length =
-        records.length =
-          0;
-    },
-  };
 }
 
 class UnderwayBuilder {
@@ -474,4 +484,9 @@ function hall(b, cx, floor, cz, width, depth, height, rise) {
       );
   }
   b.box("marble", 1.8, 1.6, depth + 4, cx, roofBase + rise + 0.3, cz);
+}
+
+/** 同步工厂：参数与 Steps 一致，直接返回完成的场景接口，供工具和测试使用。 */
+export function createAtlantisUnderways(...args) {
+  return finishScenePreparation(createAtlantisUnderwaysSteps(...args));
 }

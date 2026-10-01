@@ -703,11 +703,28 @@ export function createOceanGuide(trigger) {
   }
   function select(entry) {
     selected = entry;
-    for (const button of list.querySelectorAll("button"))
+    for (const button of list.querySelectorAll("button")) {
       button.setAttribute(
         "aria-pressed",
         String(button.dataset.catalogId === entry.id),
       );
+      if (button.dataset.catalogId === entry.id) {
+        // 只修正档案列表的滚动，不把手机资料页或标本展台拉走。
+        const row = button.getBoundingClientRect();
+        const bounds = list.getBoundingClientRect();
+        if (list.scrollWidth > list.clientWidth) {
+          if (row.right > bounds.right)
+            list.scrollLeft += row.right - bounds.right;
+          else if (row.left < bounds.left)
+            list.scrollLeft += row.left - bounds.left;
+        }
+        if (list.scrollHeight > list.clientHeight) {
+          if (row.bottom > bounds.bottom)
+            list.scrollTop += row.bottom - bounds.bottom;
+          else if (row.top < bounds.top) list.scrollTop += row.top - bounds.top;
+        }
+      }
+    }
     dialog.style.setProperty("--specimen", entry.color);
     preview.hidden = false;
     const isHazard = entry.category === "hazard";

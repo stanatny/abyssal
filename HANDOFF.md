@@ -1,5 +1,29 @@
 # Current Development Handoff
 
+## Authorized release: v0.8.0
+
+On October 1, the user authorized committing and pushing the accepted UI/performance follow-up, integrating the reviewed four-region branch into `main`, and checking the formal Pages game. This supersedes the historical no-push/no-main statements below. Release v0.8.0 includes the `3292104` feature checkpoint and the responsive Atlantis preparation and cross-device UI reviews. No engine migration, far-city LOD, ecology reduction or active-play frame cap is included. Update both version footers and the actual English README screenshot. Fresh release checks and deployment limits belong in [verification](docs/verification.md); exact source/artifact hashes and deployment receipts stay in ignored `.local/release_v0_8_0/`. Report a playable release only after the workflow for the pushed SHA succeeds and native public-site checks pass.
+
+The user also authorized publishing reusable performance and UI lessons to the private personal Skill repository. Keep project source, personal machine paths, raw evidence and temporary preview addresses out of that repository; use its managed maintenance workflow.
+
+## Historical review records
+
+## Current follow-up: cross-device interface review
+
+The user requested a complete UI/mode review while accepting the performance candidate below. Preserve that candidate and the pushed `3292104` baseline; this additional work remains uncommitted on `feature/mariana`, with no new push/main merge/release authorization. The selected secondary model continues independently without delegation. Read [the UI findings and validation](docs/ui_review_revision.md).
+
+Pause/results now separate scrollable content from reachable Continue/Dive Again and Return to Home actions, show structured round statistics, and explain the selected regional objective. Pause help follows keyboard/touch input and the actual character skill. The disabled language control is hidden during an expedition and returns at home. Selected destination/Guide rows scroll within their own panels. Additive CSS covers tablet, short laptop and narrow landscape HUD gaps; the landscape Guide preserves list/detail space. Keep the existing survival, objectives, art and pause-render lifecycle. Rebuild and byte-match the restricted preview before delivery; physical-device and natural full-round acceptance remain pending.
+
+The current preview has been rebuilt and verified: 32 native UI cases, eight landscape follow-ups, 16 final overlay cases, nine synthetic pressure layouts, 23 focused units, 29 shared browser checks and seven lifecycle groups pass. Eight public desktop/touch cases and 16 artifact byte matches pass, with all 172 runtime source fingerprints current. Evidence is retained in ignored `.local/ui_overall_review/`; failed fixed-delay lifecycle probes and transient public-navigation timeouts are recorded separately. Main/Pages remains unchanged.
+
+## Current follow-up: responsive loading and idle rendering
+
+The user now authorizes performance implementation, superseding the read-only exploration below. Work stays uncommitted on `feature/mariana` at the pushed `3292104` baseline; no new commit/push/main merge or formal release is authorized. The already selected secondary model works independently, without Kimi or subagents. Read [the implementation and current validation](docs/performance_preparation_revision.md).
+
+Pause/results retain the ocean frame until entry/resize/quality/context invalidation; active play remains uncapped and the home/launch/Guide animation remains intentional. Temporary actor-update objects are reused without changing AI, feeding, respawn or collision order. Atlantis browser loading cooperatively drains shared constructor iterators; synchronous factories remain for tools/tests. Task failures clean partial scenes before the existing transaction restores the previous region. Some indivisible art/driver tasks and other maps' constructors remain longer than the nominal 8 ms slice budget.
+
+The far-city LOD experiment was removed after repeated GPU results failed to establish a reliable gain. Preserve all original near assets and original visibility rules; do not revive prototype-only cached geometry or silently reduce art/ecology. Source/code fingerprints and rejected-prototype evidence are retained in ignored `.local/performance_implementation/`. Rebuild and byte-match the restricted current preview before delivery. Physical hot-device and sustained natural-round thermal/energy verification remain pending. Do not publish personal Skills or knowledge-library material yet.
+
 ## October 1 checkpoint and read-only performance exploration
 
 The user has authorized committing and pushing the completed four-region review and Atlantis puzzle/wildlife/submarine follow-up to the existing `feature/mariana` branch. This supersedes the no-commit/no-push statements in those historical review sections. Main integration and formal Pages publication are separate and have not been requested in this instruction. Preserve the current runtime snapshot and its 684-unit/native-browser evidence.

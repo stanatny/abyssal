@@ -37,6 +37,15 @@ export function createMenuPicker() {
     (choice || dialog.querySelector(".picker-close")).focus({
       preventScroll: true,
     });
+    if (choice && dialog.open) {
+      // 只滚动选择面板，避免当前海域藏在下方或带动首页滚动。
+      const optionBox = choice.getBoundingClientRect();
+      const panelBox = dialog.getBoundingClientRect();
+      if (optionBox.bottom > panelBox.bottom - 16)
+        dialog.scrollTop += optionBox.bottom - panelBox.bottom + 16;
+      else if (optionBox.top < panelBox.top + 16)
+        dialog.scrollTop += optionBox.top - panelBox.top - 16;
+    }
   }
   function close() {
     if (!dialog.open) return;

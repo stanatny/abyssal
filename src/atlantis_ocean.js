@@ -1,9 +1,14 @@
+import {
+  finishScenePreparation,
+  prepareScene,
+  constructionScope,
+} from "./scene_preparation.js";
 import { createAtlantisRelic } from "./atlantis_relic.js";
 import * as THREE from "three";
 import { WORLD } from "./world_config.js";
 import { atlantisSeabedHeight as seabedHeight } from "./atlantis_terrain.js";
-import { createAtlantisTerrainMesh } from "./atlantis_terrain_mesh.js";
-import { createAtlantisCity } from "./atlantis_city.js";
+import { createAtlantisTerrainMeshSteps } from "./atlantis_terrain_mesh.js";
+import { createAtlantisCitySteps } from "./atlantis_city.js";
 import { createAtlantisOutskirts } from "./atlantis_outskirts.js";
 import {
   addLeafDetail,
@@ -19,82 +24,96 @@ import {
 /**
  * 创建亚特兰蒂斯海床、育幼礁与月光海面，城市使用独立美术模块。
  * @param {THREE.Scene} scene 世界场景，不改变全局光照或共享地形高度。
- * @returns {object} root、实体与地标，以及update(time,position,dt,highQuality)、dispose。
+ * @returns {Generator<string, object>} 分片迭代器；结束值包含场景、实体、统计和生命周期接口。
  */
-export function createAtlantisOcean(scene) {
+export function* createAtlantisOceanSteps(scene) {
   const root = new THREE.Group();
   root.name = "ocean_environment";
   scene.add(root);
   const resources = new Set();
-  const keep = (resource) => (resources.add(resource), resource);
-  const time = { value: 0 };
-  const random = randomSource(41739);
-  const colliders = [];
-  const obstacles = [];
-  let disposed = false;
-  const reducedMotion =
-    typeof matchMedia === "function"
-      ? matchMedia("(prefers-reduced-motion: reduce)")
-      : null;
+  const scope = constructionScope(root, resources);
+  try {
+    const keep = (resource) => (resources.add(resource), resource);
+    const time = { value: 0 };
+    const random = randomSource(41739);
+    const colliders = [];
+    const obstacles = [];
+    let disposed = false;
+    const reducedMotion =
+      typeof matchMedia === "function"
+        ? matchMedia("(prefers-reduced-motion: reduce)")
+        : null;
 
-  root.add(createSeabed(keep, time));
-  root.add(createMoonlitWater(keep, time));
-  createOutskirts(root, keep, random, colliders, obstacles);
-  const nursery = createNursery(root, keep, time, random);
-  const city = createAtlantisCity(root, { heightAt: seabedHeight });
-  const relic = createAtlantisRelic(root, { records: city.underways.records });
-  colliders.push(...city.colliders);
-  obstacles.push(...city.obstacles);
-  const outskirts = createAtlantisOutskirts(root, {
-    heightAt: seabedHeight,
-    occupiedColliders: colliders,
-  });
-  colliders.push(...outskirts.colliders);
-  obstacles.push(...outskirts.obstacles);
+    root.add(yield* createSeabedSteps(keep, time));
+    yield "seabed";
+    root.add(createMoonlitWater(keep, time));
+    createOutskirts(root, keep, random, colliders, obstacles);
+    const nursery = createNursery(root, keep, time, random);
+    yield "city-start";
+    const city = scope.own(
+      yield* createAtlantisCitySteps(root, { heightAt: seabedHeight }),
+    );
+    yield "city-ready";
+    const relic = scope.own(
+      createAtlantisRelic(root, { records: city.underways.records }),
+    );
+    colliders.push(...city.colliders);
+    obstacles.push(...city.obstacles);
+    const outskirts = scope.own(
+      createAtlantisOutskirts(root, {
+        heightAt: seabedHeight,
+        occupiedColliders: colliders,
+      }),
+    );
+    colliders.push(...outskirts.colliders);
+    obstacles.push(...outskirts.obstacles);
 
-  return {
-    root,
-    heightAt: seabedHeight,
-    city,
-    relic,
-    reset() {
-      relic.reset();
-    },
-    outskirts,
-    colliders,
-    obstacles,
-    landmarks: city.landmarks,
-    update(elapsed, position, dt = 0, highQuality = true) {
-      if (disposed) return;
-      time.value = elapsed;
-      relic.update(elapsed, position, reducedMotion?.matches || false);
-      nursery.visible = position.z > -390;
-      city.update(elapsed, dt, position, highQuality);
-      outskirts.update(elapsed, position, dt, highQuality);
-    },
-    dispose() {
-      if (disposed) return;
-      disposed = true;
-      relic.dispose();
-      outskirts.dispose();
-      city.dispose();
-      root.removeFromParent();
-      root.traverse((node) => {
-        if (node.isInstancedMesh) node.dispose();
-      });
-      for (const resource of resources) resource.dispose();
-      resources.clear();
-      colliders.length = 0;
-      obstacles.length = 0;
-      root.clear();
-    },
-  };
+    return scope.finish({
+      root,
+      heightAt: seabedHeight,
+      city,
+      relic,
+      reset() {
+        relic.reset();
+      },
+      outskirts,
+      colliders,
+      obstacles,
+      landmarks: city.landmarks,
+      update(elapsed, position, dt = 0, highQuality = true) {
+        if (disposed) return;
+        time.value = elapsed;
+        relic.update(elapsed, position, reducedMotion?.matches || false);
+        nursery.visible = position.z > -390;
+        city.update(elapsed, dt, position, highQuality);
+        outskirts.update(elapsed, position, dt, highQuality);
+      },
+      dispose() {
+        if (disposed) return;
+        disposed = true;
+        relic.dispose();
+        outskirts.dispose();
+        city.dispose();
+        root.removeFromParent();
+        root.traverse((node) => {
+          if (node.isInstancedMesh) node.dispose();
+        });
+        for (const resource of resources) resource.dispose();
+        resources.clear();
+        colliders.length = 0;
+        obstacles.length = 0;
+        root.clear();
+      },
+    });
+  } finally {
+    scope.close();
+  }
 }
 
 /** 珍珠沙、冷色岩层与城基石灰岩共用真实海床，视觉起伏不另造碰撞地形。 */
-function createSeabed(keep, time) {
+function* createSeabedSteps(keep, time) {
   const geometry = keep(
-    createAtlantisTerrainMesh({
+    yield* createAtlantisTerrainMeshSteps({
       minX: WORLD.minX - 60,
       maxX: WORLD.maxX + 60,
       minZ: WORLD.minZ - 120,
@@ -112,6 +131,7 @@ function createSeabed(keep, time) {
   const marble = new THREE.Color("#7d989b");
   const color = new THREE.Color();
   for (let index = 0; index < positions.count; index++) {
+    if (index % 4096 === 0) yield "seabed-color";
     const x = positions.getX(index);
     const z = positions.getZ(index);
     const y = seabedHeight(x, z);
@@ -484,4 +504,19 @@ function randomSource(seed) {
     state = (state * 1664525 + 1013904223) >>> 0;
     return state / 4294967296;
   };
+}
+
+/** 同步工厂：参数与 Steps 一致，直接返回完成的场景接口，供工具和测试使用。 */
+export function createAtlantisOcean(...args) {
+  return finishScenePreparation(createAtlantisOceanSteps(...args));
+}
+
+/**
+ * 浏览器分片构建；同步工具仍可使用原有 createAtlantisOcean。
+ * @param {THREE.Object3D} scene 构造容器。
+ * @param {object} options 分片预算、任务让出及进度回调。
+ * @returns {Promise<object>} 完整海洋场景，失败时释放本次未完成资源。
+ */
+export function createAtlantisOceanAsync(scene, options) {
+  return prepareScene(createAtlantisOceanSteps(scene), options);
 }

@@ -1,3 +1,22 @@
+# v0.8.0 — Four regions, responsive preparation and UI
+
+Release preparation: 2026-10-01. The user authorized committing/pushing the accepted follow-up and releasing the reviewed `feature/mariana` content to `main`. This supersedes earlier candidate-only statuses. Source includes the reviewed `3292104` checkpoint, the [performance implementation](performance_preparation_revision.md) and the [cross-device UI review](ui_review_revision.md). Four destinations, distinct endings, the Atlantis key quest, ordinary wildlife and submarine retaliation are included.
+
+Fresh release checks:
+
+- **689/689 unit tests**, project formatting and production build passed. The existing >500 KB bundle warning remains; no claim of reduced transfer size is made.
+- Eight native compiled-build cases passed: four destinations in English desktop (1440×900) and Simplified Chinese touch emulation (390×667), alternating Orca/Giant Squid. Checks cover version metadata, region objectives, starting length, selection, Guide, ability activation, pause/help, reachable actions, HUD suppression/restoration, Home return and unlocked home language selection. No page/console errors or production development API. All eight served build files matched the corresponding local build before the final edition-label-only adjustment; the final release repeats artifact checks at its deployed URL.
+- README screenshot is captured from the actual English production interface, with aligned selectors, Atlantis objective and the new version. English README and both localized version footers are synchronized.
+- Earlier focused evidence remains separate: 32 UI matrix cases, 16 final overlay cases, nine synthetic panel-pressure views, 29 shared browser checks and seven lifecycle groups are recorded in the linked review. Those are not represented as fresh full reruns during this release.
+
+Measured performance remains the linked serial baseline → candidate → baseline record. Paused world draws fell from approximately 66 to zero in about 1.1 seconds. Warm Atlantis switches' longest observed task fell from roughly 1.6–1.9 seconds to 242–254 ms. First-entry total duration and active-play FPS/actor CPU did not show a reliable improvement. City art, collision and ecology data are retained; the far-city LOD experiment was removed after inconsistent GPU benefit.
+
+Release procedure verifies the exact pushed main SHA's Pages workflow, the served artifact bytes and native four-region bilingual flows. Deployment, source fingerprints and public browser receipts are retained under ignored `.local/release_v0_8_0/`; a successful push alone is not a playable-release claim. Production verification uses normal controls without developer-only state access. Historical candidate statuses below describe their time of execution.
+
+Limits: phone-sized browser emulation is not physical-phone testing. Controlled tests and staged outcomes do not establish natural 15–30 minute balance or thermal/battery behavior. No engine migration, default active-play frame cap, reduced food supply, or lower near-city quality is included.
+
+---
+
 # Verification record
 
 ## 2026-09-30 — v0.7.2 main-branch release

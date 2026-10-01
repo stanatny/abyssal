@@ -1,3 +1,4 @@
+import { finishScenePreparation } from "./scene_preparation.js";
 import * as THREE from "three";
 import { ATLANTIS_EXCAVATION_SITES } from "./atlantis_terrain.js";
 
@@ -5,9 +6,9 @@ import { ATLANTIS_EXCAVATION_SITES } from "./atlantis_terrain.js";
  * 只细分挖掘区附近的地表单元，防止原低密度三角形跨过坑口、穿入厅堂。
  * 外围仍沿用原网格密度；同一套采样可供海床和城市铺装使用。
  * @param {object} options 世界范围、原始分段数、共享高度函数与表面偏移。
- * @returns {THREE.BufferGeometry} 顶点位于世界坐标的带索引地表网格。
+ * @returns {Generator<string, THREE.BufferGeometry>} 逐行构造，结束值为世界坐标地表网格。
  */
-export function createAtlantisTerrainMesh({
+export function* createAtlantisTerrainMeshSteps({
   minX,
   maxX,
   minZ,
@@ -63,6 +64,7 @@ export function createAtlantisTerrainMesh({
     return areas;
   });
   for (let iz = 0; iz < segmentsZ; iz++) {
+    yield "terrain-row";
     for (let ix = 0; ix < segmentsX; ix++) {
       const x0 = minX + ix * dx,
         z0 = minZ + iz * dz;
@@ -141,4 +143,8 @@ export function createAtlantisTerrainMesh({
   geometry.setAttribute("normal", new THREE.Float32BufferAttribute(normals, 3));
   geometry.setIndex(indices);
   return geometry;
+}
+
+export function createAtlantisTerrainMesh(options) {
+  return finishScenePreparation(createAtlantisTerrainMeshSteps(options));
 }

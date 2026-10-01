@@ -57,7 +57,7 @@
             <option value="zh-CN" data-no-i18n>中文</option>
             <option value="en" data-no-i18n>English</option>
           </select></label
-        ><span class="edition">EXPEDITIONS / 07</span
+        ><span class="edition">EXPEDITIONS / 08</span
         ><button id="quality" title="切换画质">画质 · 高</button
         ><button id="sound" aria-label="切换声音">声音 · 开</button
         ><button id="pause" hidden>暂停</button>
@@ -103,7 +103,7 @@
       </aside>
       <footer class="menu-footer">
         <span>耳机体验更佳 · 推荐电脑全屏游玩</span
-        ><span>海洋远征 / v0.7.2</span>
+        ><span>海洋远征 / v0.8.0</span>
       </footer>
     </main>
     <section id="hud" hidden aria-label="生存状态">
@@ -222,17 +222,37 @@
       hidden
     >
       <div class="modal-card">
-        <div class="eyebrow" id="overlay-kicker">EXPEDITION PAUSED</div>
-        <h2 id="overlay-title">海洋在等你。</h2>
-        <p id="overlay-body">休息一下，再继续下潜。</p>
-        <button class="primary" id="resume">继续探索 <span>→</span></button
-        ><button
-          class="text-button"
-          id="return-menu"
-          title="结束本次探索，返回主界面"
-        >
-          返回主界面
-        </button>
+        <div class="overlay-content">
+          <div class="eyebrow" id="overlay-kicker">EXPEDITION PAUSED</div>
+          <h2 id="overlay-title">海洋在等你。</h2>
+          <p id="overlay-body">休息一下，再继续下潜。</p>
+          <dl id="overlay-stats" class="overlay-stats"></dl>
+          <section id="overlay-progress" class="overlay-progress">
+            <small id="overlay-region"></small>
+            <strong id="overlay-step"></strong>
+          </section>
+          <details id="overlay-help" class="overlay-help">
+            <summary>操作与海域规则</summary>
+            <p class="keyboard-help">
+              WASD 转向，空格冲刺，J 角色技能，K 慢游。接触自动咬击。
+            </p>
+            <p class="touch-help">
+              拖动左侧摇杆转向，按住冲刺按钮加速；点击技能按钮释放主动技能。接触自动咬击。
+            </p>
+            <p id="overlay-skill"></p>
+            <p id="overlay-rule"></p>
+          </details>
+        </div>
+        <div class="overlay-actions">
+          <button class="primary" id="resume">继续探索 <span>→</span></button
+          ><button
+            class="text-button"
+            id="return-menu"
+            title="结束本次探索，返回主界面"
+          >
+            返回主界面
+          </button>
+        </div>
       </div>
     </section>
     <div id="loading">正在唤醒海洋…</div>
