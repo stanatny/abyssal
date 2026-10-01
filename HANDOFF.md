@@ -4,6 +4,8 @@
 
 On October 1, the user authorized committing and pushing the accepted UI/performance follow-up, integrating the reviewed four-region branch into `main`, and checking the formal Pages game. This supersedes the historical no-push/no-main statements below. Release v0.8.0 includes the `3292104` feature checkpoint and the responsive Atlantis preparation and cross-device UI reviews. No engine migration, far-city LOD, ecology reduction or active-play frame cap is included. Update both version footers and the actual English README screenshot. Fresh release checks and deployment limits belong in [verification](docs/verification.md); exact source/artifact hashes and deployment receipts stay in ignored `.local/release_v0_8_0/`. Report a playable release only after the workflow for the pushed SHA succeeds and native public-site checks pass.
 
+Release commit `fb68a3d` is on main. Its initial CI stopped on a runtime-sensitive collider output hash, leaving formal Pages at the previous release. A test-only follow-up replaces platform-specific output hashes with an authenticated independent 46-module `3292104` source oracle and exact same-runtime geometry/collider comparisons. Preserve this strict test and the frozen source provenance; do not loosen contact/model assertions or regenerate the reference from current code. Verify the follow-up SHA's deployment and native production artifacts before reporting the new version live.
+
 The user also authorized publishing reusable performance and UI lessons to the private personal Skill repository. Keep project source, personal machine paths, raw evidence and temporary preview addresses out of that repository; use its managed maintenance workflow.
 
 ## Historical review records
