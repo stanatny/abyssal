@@ -1,3 +1,15 @@
+# v0.8.1 — Restrained Atlantis decorative light
+
+Release preparation: 2026-10-01. The user accepted the [lighting refinement](atlantis_light_review.md) and authorized committing and pushing it to `main`. This supersedes that review's earlier local-only status. Runtime changes are confined to the shared Atlantis material factory; release metadata and both menu version labels are synchronized. The labeled v0.8.0 README image remains an accurate reference for the unchanged interface.
+
+Fresh release checks: **690/690 unit tests**, project formatting and production build pass on local Node 26.10.0. The existing >500 KB build warning remains. The authenticated accepted-source oracle still verifies exact architecture, collider and obstacle data. Earlier light-review evidence remains distinct: 16 accepted staged scene pairs in High/Smooth and two viewport sizes, plus 12 native emission-only shader diagnostics. These checks retain the buildings, local illumination, point-light budget and gameplay; no FPS or temperature benefit is claimed.
+
+Two fresh compiled-build native-input Atlantis cases pass: English desktop Orca (1440×900) and Chinese touch-viewport Squid (390×667). Version labels, region objective, starting size, character/Guide selection, skill, pause/help, resume, HUD restoration and Home/language state pass with zero page/console errors or production development API. All eight served files match the release build. These local checks, exact source/build fingerprints and deployment receipts are retained in ignored `.local/release_v0_8_1/`. Release acceptance requires the Pages workflow for the exact pushed SHA to succeed, all eight served artifacts to match the release build, and English desktop Orca / Chinese touch-viewport Squid Atlantis flows to pass at the formal URL. A successful push alone does not establish that the patch is playable. No tag or separate GitHub Release is requested.
+
+Physical phones, the user's network, natural full-round pacing and thermal/battery behavior remain unverified.
+
+---
+
 # v0.8.0 — Four regions, responsive preparation and UI
 
 Release preparation: 2026-10-01. The user authorized committing/pushing the accepted follow-up and releasing the reviewed `feature/mariana` content to `main`. This supersedes earlier candidate-only statuses. Source includes the reviewed `3292104` checkpoint, the [performance implementation](performance_preparation_revision.md) and the [cross-device UI review](ui_review_revision.md). Four destinations, distinct endings, the Atlantis key quest, ordinary wildlife and submarine retaliation are included.

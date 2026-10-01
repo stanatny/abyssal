@@ -1,5 +1,11 @@
 # Current Development Handoff
 
+## Authorized release: v0.8.1 — local marine glow
+
+On October 1, the user accepted the restrained Atlantis lighting review and authorized committing and pushing it to `main`. This supersedes the local-only status of that review. Read [the lighting review](docs/atlantis_light_review.md). The material factory removes rectangular lapis-inlay emission and softly fades decorative shell-pearl and inscription emission between 18 and 65 world units. Existing local illumination, city visibility, architecture, colliders, ecology and objectives remain intact. Version metadata and both menu languages are synchronized to v0.8.1; the v0.8.0 README image remains a labeled interface reference, since the interface is unchanged.
+
+Complete formatting, full units and production build before integration. Keep the authenticated accepted-source preparation oracle unchanged. Release receipts, artifact fingerprints and native desktop/touch-viewport checks belong in ignored `.local/release_v0_8_1/`; report the patch live only after the exact pushed SHA deploys and the formal Pages checks pass. No tag, separate GitHub Release or personal Skill update is part of this patch.
+
 ## Authorized release: v0.8.0
 
 On October 1, the user authorized committing and pushing the accepted UI/performance follow-up, integrating the reviewed four-region branch into `main`, and checking the formal Pages game. This supersedes the historical no-push/no-main statements below. Release v0.8.0 includes the `3292104` feature checkpoint and the responsive Atlantis preparation and cross-device UI reviews. No engine migration, far-city LOD, ecology reduction or active-play frame cap is included. Update both version footers and the actual English README screenshot. Fresh release checks and deployment limits belong in [verification](docs/verification.md); exact source/artifact hashes and deployment receipts stay in ignored `.local/release_v0_8_0/`. Report a playable release only after the workflow for the pushed SHA succeeds and native public-site checks pass.

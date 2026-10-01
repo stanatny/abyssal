@@ -1,5 +1,9 @@
 # Atlantis Art Production Notes
 
+## October 1 lighting refinement — v0.8.1
+
+The [current material review](atlantis_light_review.md) supersedes the earlier luminous-wall-inlay presentation below. Rectangular lapis decoration is non-emissive, with shared weathered marble texture. Decorative pearl and inscription emission fades with real camera distance; local shell-pearl lighting and the fixed point-light pool remain. The user accepted this refinement and authorized the v0.8.1 main-branch patch; release evidence is recorded separately. The older source-status, lamp and first-pass statements below are historical production records, not the current release contract.
+
 Status: revised development candidate, not a main-branch release. Kimi authored the first city, night surface, fleet, and seven creature modules in an isolated worktree. Codex integrated and refined them, but the user rejected the prior city's scale/detail and creature/UI presentation. Those internal art-review conclusions are superseded. The current city replacement and seven-creature revision remain subject to integrated verification and user art review. The [verification record](atlantis_verification.md) retains historical measurements separately.
 
 ## Current marine-light and vertical-city revision

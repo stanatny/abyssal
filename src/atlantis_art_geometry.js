@@ -198,6 +198,22 @@ function applyFogRelief(material, relief) {
   material.customProgramCacheKey = () => `atl_fog_${relief}`;
 }
 
+/** 仅衰减远处装饰的自发光；共享实例按各片元距相机的真实距离计算，保留实体受光。 */
+function applyLocalGlow(material) {
+  const previousCompile = material.onBeforeCompile;
+  const previousKey = material.customProgramCacheKey;
+  material.onBeforeCompile = (shader, renderer) => {
+    previousCompile.call(material, shader, renderer);
+    shader.fragmentShader = shader.fragmentShader.replace(
+      "#include <emissivemap_fragment>",
+      `#include <emissivemap_fragment>
+       totalEmissiveRadiance *= 1.0 - smoothstep(18.0, 65.0, length(vViewPosition));`,
+    );
+  };
+  material.customProgramCacheKey = () =>
+    `${previousKey.call(material)}_local_glow_18_65`;
+}
+
 /**
  * 城市共享材质集（懒单例；dispose 不释放，跨实例复用）。
  * @returns {object} 命名材质表。
@@ -236,9 +252,12 @@ export function atlantisMaterials() {
     metalness: 0.1,
   });
   const lapisGlow = new THREE.MeshStandardMaterial({
+    map: stoneTexture("marble"),
+    vertexColors: true,
     color: "#10235c",
     emissive: "#4d8dff",
-    emissiveIntensity: 2.4,
+    // 保留套件的共享材质键；青金石嵌饰不再充当自发光灯窗。
+    emissiveIntensity: 0,
     roughness: 0.35,
     metalness: 0.15,
   });
@@ -271,14 +290,16 @@ export function atlantisMaterials() {
   });
   applyFogRelief(shell, 0.8);
   applyFogRelief(nacre, 0.75);
-  applyFogRelief(pearl, 0.55);
-  // 结构材只轻微减免，发光导引与火光减免更强，保证雾中剪影可读。
+  applyFogRelief(pearl, 1);
+  // 保留结构剪影，局部贝珠与纹饰不再穿透远处水雾。
   applyFogRelief(stone, 0.9);
   applyFogRelief(marble, 0.88);
   applyFogRelief(rockDark, 0.95);
   applyFogRelief(bronze, 0.85);
-  applyFogRelief(guideTeal, 0.58);
-  applyFogRelief(lapisGlow, 0.52);
+  applyFogRelief(guideTeal, 0.9);
+  applyFogRelief(lapisGlow, 0.9);
+  applyLocalGlow(guideTeal);
+  applyLocalGlow(pearl);
   SHARED_MATERIALS = {
     pearlReef,
     shell,
