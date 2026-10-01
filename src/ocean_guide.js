@@ -151,7 +151,8 @@ export function buildOceanCatalog(regionId) {
       characterId: entry.id,
       realSize:
         "其他海域3米幼年起步，马里亚纳15米起步；起始尺寸、30米体长上限与技能强度属于游戏设定。",
-      habitatNote: "可选角色共享自动接触捕食；特殊技能使用J或手机技能按钮。",
+      habitatNote:
+        "可选角色共享自动接触捕食；特殊技能使用J或手机技能按钮。陡角度低头撞到海床或地板时，会短暂平滑抬头到平游；仍可向上和左右转向，开阔水域不自动回正。",
     })),
     ...ALL_SPECIES.map((entry) => regionalSpecies.get(entry.kind) || entry).map(
       (config) => ({

@@ -1,5 +1,11 @@
 # Current Development Handoff
 
+## Current follow-up: grounded steering recovery
+
+The user authorized a local checkpoint of the completed gameplay revision: `1c6ffcb` on `feature/mariana`. It is not pushed. The user has now authorized a local commit of the reviewed seabed-steering fix before starting the separate Europa map. No push, main integration or formal release is authorized. Formal Pages remains v0.8.3.
+
+A steep nose-down character previously kept its heading after collision blocked downward motion. The shared movement path now starts a short, smooth recovery only after actual seabed or upward-facing solid-floor contact. It eases to level, preserves yaw and immediate upward input, and then releases control. Ordinary open-water diving, walls/ceilings, the surface breach and Squid Ink Jet retain their existing rules. No collision body, world geometry, feeding, survival or objective values change. Read [the ground-steering review](docs/ground_steering_revision.md) for validation and remaining limits. All 711 units, 22 targeted and 29 shared browser checks, formatting and build pass. The restricted candidate was rebuilt and byte-matched; native desktop/touch departure-to-floor recovery and both-language Guide copy pass locally/publicly. Evidence and 176 source fingerprints are in ignored `.local/ground_steering_review/`. Physical-phone feel still needs user review.
+
 ## Authorized local gameplay checkpoint
 
 Continue independently on `feature/mariana`, based on released v0.8.3 / `29d73d3`. The user requests stronger hunger/deep-water survival, per-region local top-ten completion records including playable character, and verification of the Mariana bottom Easter egg. The user has now authorized a local commit of this reviewed gameplay candidate before the separate seabed-steering follow-up. No push, main integration or formal publication is authorized. Read [the gameplay review](docs/gameplay_balance_revision.md).

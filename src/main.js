@@ -38,6 +38,7 @@ import {
 import { OceanAudio } from "./audio.js";
 import { steerWithinHabitat, resolveCreatureMotion } from "./navigation.js";
 import { stepSurfaceSteering } from "./surface_steering.js";
+import { needsGroundRecovery, stepGroundSteering } from "./ground_steering.js";
 import {
   preyCaptureRadius,
   sweptCaptureFraction,
@@ -323,6 +324,7 @@ let movementLabel = "巡游";
 let lureFlash = 0,
   waterMotion = null;
 let lastCollision = null;
+let groundRecovering = false;
 let nextShipNotice = 0;
 let expedition = getExpedition();
 let inkAbility = createInkState();
@@ -1043,6 +1045,7 @@ function resetExpedition(preserveWorld = false) {
   lastZone = "";
   lastNursery = null;
   lastCollision = null;
+  groundRecovering = false;
   nextShipNotice = 0;
   notificationUntil = 0;
   hitFlash = 0;
@@ -1323,6 +1326,16 @@ function queryWorldSegment(a, b, radius = 0) {
 function blockedBetween(a, b) {
   return queryWorldSegment(a, b) !== null;
 }
+function playerFloorHeight(x, z) {
+  const radius = bodyRadius(player.length);
+  return floorAt(
+    x,
+    z,
+    radius +
+      Math.abs(forward.y) * Math.max(0, player.length * 0.42 - radius) +
+      0.4,
+  );
+}
 function resolvePlayerMotion(previous, merge = false) {
   const radius = bodyRadius(player.length);
   // 各海域共用静态地形粗筛；船只与人类每次读取当前碰撞体，不能进入静态缓存。
@@ -1336,14 +1349,7 @@ function resolvePlayerMotion(previous, merge = false) {
     radius,
     forward,
     length: player.length,
-    floorHeight: (x, z) =>
-      floorAt(
-        x,
-        z,
-        radius +
-          Math.abs(forward.y) * Math.max(0, player.length * 0.42 - radius) +
-          0.4,
-      ),
+    floorHeight: playerFloorHeight,
     bounds: {
       minX: mode === "epilogue" ? -85 : activeWorld().minX + WORLD_EDGE_INSET,
       maxX: mode === "epilogue" ? 85 : activeWorld().maxX - WORLD_EDGE_INSET,
@@ -1371,6 +1377,7 @@ function resolvePlayerMotion(previous, merge = false) {
           stuck: lastCollision.stuck || result.stuck,
         }
       : result;
+  return result;
 }
 function pushFromRocks(point, radius) {
   for (const rock of ocean.obstacles) {
@@ -1416,22 +1423,34 @@ function updatePlayer(dt, roundDt) {
     depth: -position.y,
   }).boosting;
   const movement = characterMovement(player.characterId, boosting || jet);
+  if (wasAirborne || jet) groundRecovering = false;
   if (!jet) {
-    ({ yaw, pitch } = stepSurfaceSteering(
-      { yaw, pitch },
-      { x: inputX, y: inputY },
-      movement,
-      dt,
-      {
-        positionY: position.y,
-        length: player.length,
-        surfaceY: WORLD.surfaceY,
-        airborne: wasAirborne,
-        reentering: waterMotion?.reentering ?? false,
-        boosting,
-        divingRequired: surface.divingRequired,
-      },
-    ));
+    if (groundRecovering) {
+      const recovered = stepGroundSteering(
+        { yaw, pitch },
+        { x: inputX, y: inputY },
+        movement,
+        dt,
+      );
+      ({ yaw, pitch } = recovered);
+      groundRecovering = recovered.recovering;
+    } else {
+      ({ yaw, pitch } = stepSurfaceSteering(
+        { yaw, pitch },
+        { x: inputX, y: inputY },
+        movement,
+        dt,
+        {
+          positionY: position.y,
+          length: player.length,
+          surfaceY: WORLD.surfaceY,
+          airborne: wasAirborne,
+          reentering: waterMotion?.reentering ?? false,
+          boosting,
+          divingRequired: surface.divingRequired,
+        },
+      ));
+    }
     forward.set(0, 0, -1).applyEuler(new THREE.Euler(pitch, yaw, 0, "YXZ"));
   } else forward.copy(jetDirection);
   if (player.timedOut) return;
@@ -1489,7 +1508,19 @@ function updatePlayer(dt, roundDt) {
     speed,
     now: elapsed,
   });
-  resolvePlayerMotion(previousPosition);
+  const desiredY = position.y;
+  const movementCollision = resolvePlayerMotion(previousPosition);
+  if (
+    needsGroundRecovery(pitch, {
+      desiredY,
+      position,
+      floorY: playerFloorHeight(position.x, position.z),
+      contacts: movementCollision.contacts,
+      airborne: surface.airborne,
+      jet,
+    })
+  )
+    groundRecovering = true;
   humans.defense.recordMovement(previousPosition, position);
   avatar.position.copy(position);
   avatar.scale.setScalar(player.length);
@@ -3058,7 +3089,7 @@ if (import.meta.env.DEV)
     getCaptureStart: () => captureStart.clone(),
     getFeedingMouth: () => feedingMouth(new THREE.Vector3()),
     get controls() {
-      return { yaw, pitch, speed, pointer: { ...pointer } };
+      return { yaw, pitch, speed, pointer: { ...pointer }, groundRecovering };
     },
     get lastCollision() {
       return lastCollision;
@@ -3070,6 +3101,7 @@ if (import.meta.env.DEV)
       return expedition;
     },
     setPosition(x, y, z) {
+      groundRecovering = false;
       position.set(x, y, z);
       camera.position.set(x, y + 6, z + 18);
       lookTarget.set(x, y + 1, z - 10);

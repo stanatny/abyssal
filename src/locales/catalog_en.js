@@ -384,8 +384,8 @@ export const CATALOG_EN = Object.freeze({
     "When hunters pursue, release ink underwater to escape, first aiming toward a safe exit. Reefs and hulls block the jet. Release sprint to benefit from the flexible-turning passive.",
   "3米幼年起步；起始尺寸、30米终局与技能强度属于游戏设定。":
     "Start as a 3 m juvenile. Starting size, the 30 m endgame, and ability strength are game choices.",
-  "可选角色共享自动接触捕食；特殊技能使用J或手机技能按钮。":
-    "Both playable characters feed automatically on contact. Use J or the mobile ability button for special abilities.",
+  "可选角色共享自动接触捕食；特殊技能使用J或手机技能按钮。陡角度低头撞到海床或地板时，会短暂平滑抬头到平游；仍可向上和左右转向，开阔水域不自动回正。":
+    "All playable characters feed automatically on contact; use J or the mobile ability button for special abilities. A steep nose-down impact with the seabed or a floor briefly eases the heading back to level. You can still turn upward or sideways; open-water swimming never auto-levels.",
   远古巨兽: "Ancient Giants",
   海洋霸主: "Ocean Predators",
   海洋猎物: "Ocean Prey",
