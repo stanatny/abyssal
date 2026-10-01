@@ -1,4 +1,41 @@
 export const UI_EN = Object.freeze({
+  "通关角色 · {0}": "Completed with · {0}",
+  游览底部彩蛋: "Explore the Bottom Refuge",
+  返回结算: "Back to Results",
+  "通关后游览 · 菠萝屋与招手海绵 · 用暂停键返回结算":
+    "Refuge exploration · Pineapple house and waving sponge · Pause to return to results",
+  "深潜 ×{0}": "Deep ×{0}",
+
+  "幼年先在安全浅滩吃鱼群；幼年深潜会急剧消耗饱食。长大后更能适应深海，但小鱼补给会衰减，要寻找大型猎物，吃饱再挑战领主。":
+    "Feed in the safe shallows first; deep dives rapidly drain juvenile hunger. Growth improves deep-water endurance, but small prey gives diminishing food. Seek larger meals and feed before a lord fight.",
+  通关榜: "Time Records",
+  暂无通关记录: "No completed runs yet",
+  "最快 {0}": "Best {0}",
+  通关时间榜: "Fastest Expeditions",
+  "每个海域保留最快十次，仅保存在当前浏览器。":
+    "The ten fastest runs per region, saved only in this browser.",
+  关闭排行榜: "Close time records",
+  选择排行榜海域: "Choose record region",
+  名次: "Rank",
+  "探索者 / 化身": "Explorer / Character",
+  通关时间: "Finish time",
+  匿名探索者: "Unnamed Explorer",
+  "这片海域还没有通关记录。完成远征，留下你的名字。":
+    "No completed runs here yet. Finish an expedition and leave your name.",
+  "按实际游玩时间计时，暂停、加载和通关后游览不计入。":
+    "Uses active play time. Pauses, loading and post-victory exploration are excluded.",
+  "浏览器存储不可用，本次记录仅在当前页面保留。":
+    "Browser storage is unavailable. Records last only while this page is open.",
+  通关用时: "Finish Time",
+  排行榜名称: "Record Name",
+  "输入名称（最多24字）": "Your name (up to 24 characters)",
+  保存名称: "Save Name",
+  "查看本海域排行榜 →": "View This Region’s Records →",
+  "名称已保存。": "Name saved.",
+  "已记录第 {0} 名 · 可添加名称": "Recorded at #{0} · Add your name",
+  "本次未进入前十，再次出发挑战更快时间。":
+    "Outside the top ten. Dive again to beat your time.",
+
   "远征已暂停，生存与技能计时已停止。":
     "Expedition paused. Survival and ability timers are frozen.",
   "30分钟探索已结束。本次未达成海域目标，可以再次出发。":

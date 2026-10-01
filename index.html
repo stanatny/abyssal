@@ -77,6 +77,9 @@
             海洋图鉴 <small>探索生物与它们的世界</small>
           </button>
         </div>
+        <button id="open-records" class="records-open" type="button">
+          通关榜 <small id="region-best">暂无通关记录</small><span>↗</span>
+        </button>
         <div class="menu-stats">
           <div><b>43</b><span>收录档案</span></div>
           <div><b>04</b><span>深渊领主</span></div>
@@ -179,7 +182,8 @@
           </div>
           <div class="vital hunger">
             <div class="vital-head">
-              <span>饱食</span><b id="hunger-value">100</b>
+              <span>饱食 <small id="hunger-pressure"></small></span
+              ><b id="hunger-value">100</b>
             </div>
             <div class="meter"><i id="hunger-bar"></i></div>
           </div>
@@ -227,6 +231,7 @@
           <h2 id="overlay-title">海洋在等你。</h2>
           <p id="overlay-body">休息一下，再继续下潜。</p>
           <dl id="overlay-stats" class="overlay-stats"></dl>
+          <section id="run-record" class="run-result" hidden></section>
           <section id="overlay-progress" class="overlay-progress">
             <small id="overlay-region"></small>
             <strong id="overlay-step"></strong>
@@ -244,6 +249,9 @@
           </details>
         </div>
         <div class="overlay-actions">
+          <button id="visit-refuge" class="text-button" hidden>
+            游览底部彩蛋
+          </button>
           <button class="primary" id="resume">继续探索 <span>→</span></button
           ><button
             class="text-button"

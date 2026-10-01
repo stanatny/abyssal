@@ -798,7 +798,7 @@ export function createOceanGuide(trigger) {
             : entry.role;
     const survival =
       entry.category === "player"
-        ? tr`<div class="guide-advice guide-survival"><b>成长与深潜</b><p>幼年先在安全浅滩补给；体型越大，小鱼的营养与成长收益越低，逐步转向外礁中型猎物和深海巨兽。</p><p>${tr`显示深度${HUNGER_RULES.shallowDepth * WORLD.displayDepthScale}米内无额外饱食消耗，之后平滑增加，到${HUNGER_RULES.fullDepth * WORLD.displayDepthScale}米封顶为额外${Math.round(HUNGER_RULES.maxDepthBonus * 100)}%。深潜前吃饱；回浅海会降低消耗，空体力不会扣生命，饱食耗尽才会持续失血。`}</p></div>`
+        ? tr`<div class="guide-advice guide-survival"><b>成长与深潜</b><p>幼年先在安全浅滩补给；体型越大，小鱼的营养与成长收益越低，逐步转向外礁中型猎物和深海巨兽。</p><p>${tr`显示深度${HUNGER_RULES.shallowDepth * WORLD.displayDepthScale}米内没有深水加成；到${HUNGER_RULES.fullDepth * WORLD.displayDepthScale}米，3米幼年消耗为浅海的${1 + HUNGER_RULES.maxDepthBonus + HUNGER_RULES.juvenileDepthBonus}倍，${HUNGER_RULES.acclimatedLength}米及以上为${1 + HUNGER_RULES.maxDepthBonus}倍，中间平滑变化。深潜前吃饱，空体力不扣生命；饱食耗尽才会失血，回浅海会降低消耗。`}</p></div>`
         : "";
     setMarkup(
       info,

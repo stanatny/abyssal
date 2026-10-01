@@ -283,8 +283,11 @@ test("两角色各体长阶段都有真实可食补给，营养按共享规则�
             growth: fed.lastMeal.growth,
           };
       }
-      // 这是一次已获得食物后的30秒机动预算，不等同于自然游玩捕食频率。
-      assert.ok(best.seconds > 30, `${character} ${length}m reserve`);
+      // 幼年小群连续进食，一口预留12秒；中大型单口预留20秒机动预算，不等同于自然游玩捕食频率。
+      assert.ok(
+        best.seconds > (length === 3 ? 12 : 20),
+        `${character} ${length}m reserve`,
+      );
       assert.ok(best.healed > 0);
       if (length < 30) assert.ok(best.growth > 0);
       if (character === "orca")

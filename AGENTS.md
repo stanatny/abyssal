@@ -29,15 +29,17 @@ Whenever a gameplay rule changes or an element is added, renamed, or removed, ch
 
 ## Survival calculations and future maps
 
-Body size is the primary hunger cost: larger characters consume food faster. Keep this behavior shared by all maps in `src/simulation.js` through `hungerDrainRate()` and `HUNGER_RULES`, rather than adding independent per-map formulas. Current calculation, in hunger points per second:
+Body size sets the shallow hunger cost: larger characters consume food faster. Deep-water acclimation additionally penalizes juveniles, so growing toward 18 m can reduce their absolute deep-water drain despite increasing their shallow cost. Keep this behavior shared by all maps in `src/simulation.js` through `hungerDrainRate()` and `HUNGER_RULES`, rather than adding independent per-map formulas. Current calculation, in hunger points per second:
 
 ```text
 base = 0.22 + 0.02 * clamp(length - 3, 0, 3) + 0.03 * max(length - 6, 0)
-depthFactor = 1 + 0.30 * clamp((worldDepth - 45) / (500 - 45), 0, 1)
-hungerDrain = base * depthFactor
+depthPressure = clamp((worldDepth - 45) / (500 - 45), 0, 1)
+juvenile = max(0, 1 - (max(3, length) - 3) / (18 - 3))
+depthFactor = 1 + depthPressure * (0.5 + 4.5 * juvenile)
+hungerDrain = 2 * base * depthFactor
 ```
 
-`length` is actual character length. World depth is positive below the surface; displayed depth is `worldDepth * WORLD.displayDepthScale` (currently 4). The mild depth surcharge starts below 180 displayed meters and reaches its +30% cap at 2000 meters. Returning shallower lowers it. Do not accidentally pass displayed depth into the simulation or stack another regional penalty on top. If these values intentionally change, update this rule and the linked [balance notes](docs/survival_balance.md) with the shared implementation.
+`length` is actual character length. World depth is positive below the surface; displayed depth is `worldDepth * WORLD.displayDepthScale` (currently 4). The depth surcharge starts below 180 displayed meters and reaches its cap at 2000 meters: 6 times the same character’s shallow drain at 3 m, easing continuously to 1.5 times at 18 m and above. Base shallow drain is twice the v0.8.3 rate. Returning shallower lowers the surcharge. Hunger, stamina and their resource timers use actual active-round elapsed time, not the capped movement step. Pause, loading, hidden-page suspension and post-victory exploration must not advance survival or run records. Do not accidentally pass displayed depth into the simulation or stack another regional penalty on top. If these values intentionally change, update this rule and the linked [balance notes](docs/survival_balance.md) with the shared implementation.
 
 For every new map or ecology change:
 
@@ -60,6 +62,12 @@ Keep regional objectives in `src/expedition_objectives.js` and expose them throu
 - Mariana retains 30 m, all four ordered gatekeepers and actual arrival at the bottom refuge. Do not apply the secret relic or Bermuda ending to its gates.
 
 Every region must retain at least three ordinary kinds in each small-fish/shoal, modern-hunter and ancient category, including at least one exclusive kind per category. Shared species are allowed and should preserve a coherent food chain. Check actual regional registration, legal spawning, accessible feeding layers, normal respawn and corresponding threats at representative sizes. A catalog count or model-only harness cannot replace this runtime audit. New exclusives must match the accepted asset quality, anatomical references and performance budget.
+
+## Local completion records and post-victory exploration
+
+Record only a successfully completed regional objective. Keep the fastest ten records per region in the current browser, each including actual active-play milliseconds, optional display name, playable character ID and ruleset. Sort by time, not character, and always display the character in both results and leaderboard. Use the registered character IDs so future playable species do not require a second hard-coded roster. Failed/expired runs, pause, loading and post-victory time cannot create or improve a record. One round gets one immutable time/character identity; editing its name or reopening results must not create another row. Render names as text and tolerate unavailable storage without blocking play. This is local storage, not an online or tamper-proof ranking.
+
+Mariana may offer a bounded, safe tour of its existing bottom refuge after winning. Preserve the 30 m/four-guardian/arrival victory predicate, frozen result time and character, real terrain/prop collision, native keyboard/touch controls and a reachable return-to-results action. The decorative pineapple house and waving sponge grant no food or progression. Do not start another scored round or reaward victory during a tour.
 
 ## Non-fish wildlife and retaliating vehicles
 

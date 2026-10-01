@@ -44,7 +44,7 @@ export function createPlayer(
 }
 
 /**
- * 返回每秒饥饿消耗；幼年浅滩较宽容，深入海域时连续增加至最多30%。
+ * 返回每秒饥饿消耗；浅滩消耗翻倍，深水对未成长个体增加连续的生存压力。
  * @param {number} length 玩家实际体长；无效输入按3米幼年体型处理。
  * @param {number} depth 世界坐标海深，界面显示深度为其四倍；无效输入按浅滩处理。
  * @returns {number} 每秒消耗的饥饿值。
@@ -64,7 +64,18 @@ export function hungerDrainRate(length, depth = 18) {
         (HUNGER_RULES.fullDepth - HUNGER_RULES.shallowDepth),
     ),
   );
-  return baseRate * (1 + depthPressure * HUNGER_RULES.maxDepthBonus);
+  const juvenile = Math.max(
+    0,
+    1 - (safeLength - 3) / (HUNGER_RULES.acclimatedLength - 3),
+  );
+  return (
+    baseRate *
+    HUNGER_RULES.baseMultiplier *
+    (1 +
+      depthPressure *
+        (HUNGER_RULES.maxDepthBonus +
+          juvenile * HUNGER_RULES.juvenileDepthBonus))
+  );
 }
 
 /**
@@ -83,16 +94,9 @@ export function tickVitals(
   const remaining = Math.max(0, ROUND_DURATION - player.elapsed);
   const activeStep = Number.isFinite(roundDt) ? Math.max(0, roundDt) : 0;
   const roundElapsed = Math.min(activeStep, remaining);
-  // 远征时钟不受物理步长上限影响；最后一帧只扣截止前对应份额的资源。
-  // 无效时钟不推进本帧，无效资源步长不影响另行传入的有效远征时钟。
-  const elapsed =
-    activeStep > 0
-      ? Math.min(
-          (Number.isFinite(dt) ? Math.max(0, dt) : 0) *
-            (roundElapsed / activeStep),
-          remaining,
-        )
-      : 0;
+  // 生存与冷却按真实活跃时间推进，物理步长截断不能让低帧率玩家少消耗。
+  // 无效资源步长仍不改变资源，独立远征时钟沿用既有行为。
+  const elapsed = Number.isFinite(dt) && dt > 0 ? roundElapsed : 0;
 
   const flowTime = Math.min(elapsed, player.buffs.flow);
   const paidTime = elapsed - flowTime;
@@ -112,7 +116,7 @@ export function tickVitals(
   }
   if (player.exhausted && player.stamina >= 25) player.exhausted = false;
 
-  // 25米在最深水层满饱约可支撑90秒，给一次领主交战留出空间。
+  // 25米在深海约39秒耗尽饱食；有效领主咬击和途中大型猎物提供补给。
   // 深度不额外扣体力或生命；小鱼营养仍按既有体型差距衰减。
   const hungerRate = hungerDrainRate(player.length, depth);
   const fedTime = Math.min(elapsed, player.hunger / hungerRate);
@@ -297,7 +301,10 @@ export const ROUND_DURATION = 30 * 60;
 export const HUNGER_RULES = Object.freeze({
   shallowDepth: 45,
   fullDepth: 500,
-  maxDepthBonus: 0.3,
+  baseMultiplier: 2,
+  maxDepthBonus: 0.5,
+  juvenileDepthBonus: 4.5,
+  acclimatedLength: 18,
 });
 
 /** 玩家移动共享配置；速度以世界单位/秒计，体力以每秒变化量计。 */

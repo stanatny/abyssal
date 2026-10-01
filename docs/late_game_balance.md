@@ -1,5 +1,7 @@
 # Late-game combat and rare deep-water hunters
 
+The uncommitted [gameplay review](gameplay_balance_revision.md) supersedes this historical document’s hunger reserve and no-food battle assumptions. The three-hit combat contract, thresholds and loot are unchanged. Do not use the older 1.105-point deep drain or 75-second no-food reserve to evaluate the new candidate.
+
 Release status: included in the user-authorized **v0.7.2** commit and push to `main`. See [release verification](verification.md) for current checks and deployment acceptance. Local-only authorization statements and earlier candidate measurements below are historical; they do not override the current release instruction.
 
 ## Historical review context

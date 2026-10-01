@@ -1,5 +1,11 @@
 # Depth and food-chain balance
 
+## Current candidate
+
+The uncommitted gameplay follow-up supersedes the hunger curve and route budgets below. See [the current formula, evidence and limits](gameplay_balance_revision.md). Published v0.8.3 still uses the older curve until a release is explicitly authorized. The following v0.6.13 numbers remain historical evidence, not the current working candidate’s survival budgets.
+
+## Historical v0.6.13 record
+
 Status: released in v0.6.13 (`53150df`), following the v0.6.12 baseline (`73574d6`). This includes the earlier reduction to 18 random rewards plus three starters. The player requested forgiving juvenile shallows and a food chain that encourages progressively deeper exploration. The comparison tables retain the earlier baseline and intermediate candidate counts.
 
 ## Survival costs

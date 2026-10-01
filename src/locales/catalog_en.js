@@ -1,4 +1,6 @@
 export const CATALOG_EN = Object.freeze({
+  "显示深度{0}米内没有深水加成；到{1}米，3米幼年消耗为浅海的{2}倍，{3}米及以上为{4}倍，中间平滑变化。深潜前吃饱，空体力不扣生命；饱食耗尽才会失血，回浅海会降低消耗。":
+    "No deep-water surcharge within {0} displayed meters. At {1} m, a 3 m juvenile drains {2} times its shallow rate; at {3} m or larger, {4} times. Changes are gradual. Feed before diving; empty stamina does not damage health, empty hunger does. Returning shallower reduces the drain.",
   巨型鱼龙: "Giant Ichthyotitan",
   古海冲撞: "Ancient Sea Charge",
   "不完整颌骨推算约20—26 m；本作28 m为游戏改编":

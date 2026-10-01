@@ -33,6 +33,7 @@ import {
   getProgress,
   PLAYER_MOVEMENT,
   ROUND_DURATION,
+  hungerDrainRate,
 } from "./simulation.js";
 import { OceanAudio } from "./audio.js";
 import { steerWithinHabitat, resolveCreatureMotion } from "./navigation.js";
@@ -58,6 +59,7 @@ import { createSonarWave } from "./sonar_wave.js";
 import { createMinimap } from "./minimap.js";
 import { createRegionLoading } from "./region_loading.js";
 import { createExpeditionSetup } from "./menu_selection.js";
+import { createRunRecordsUI } from "./run_records_ui.js";
 import { getExpedition } from "./expedition_config.js";
 import { stepFlyingFish } from "./flying_fish.js";
 import {
@@ -344,6 +346,7 @@ const setup = createExpeditionSetup($("expedition-setup"), {
   onCharacterChange: selectAvatar,
   onRegionChange: selectRegion,
 });
+const runRecords = createRunRecordsUI(() => setup.getSelection().region.id);
 setMarkers(markersEnabled);
 function selectAvatar(character) {
   scene.remove(avatar);
@@ -547,6 +550,7 @@ function refreshRegionState() {
 }
 
 function updateRegionPresentation() {
+  runRecords.refreshBest();
   document.querySelector(".specimen strong").textContent = t(
     specimenCaption(setup.getSelection().character),
   );
@@ -1017,6 +1021,8 @@ function notify(source, duration = 3) {
   notificationUntil = elapsed + duration;
 }
 function resetExpedition(preserveWorld = false) {
+  delete document.body.dataset.epilogue;
+  runRecords.resetRound();
   launchTransition = null;
   document.body.classList.remove("launching");
   $("menu").inert = false;
@@ -1153,6 +1159,8 @@ function updateLaunch(roundDt) {
   }
 }
 function showOverlay(kind) {
+  const returningFromRefuge = mode === "epilogue";
+  delete document.body.dataset.epilogue;
   mode = kind;
   worldRenderDirty = true;
   $("sonar-panel").hidden = true;
@@ -1167,7 +1175,7 @@ function showOverlay(kind) {
   });
   document.body.classList.remove("sonar-active");
   audio.setPaused(kind !== "won");
-  if (kind === "won") audio.victory();
+  if (kind === "won" && !returningFromRefuge) audio.victory();
   resetInput();
   $("overlay").hidden = false;
   renderOverlay(kind);
@@ -1226,6 +1234,7 @@ function renderOverlay(kind) {
   $("pause").hidden = won || dead || timeup;
   $("pause").textContent = t("继续探索");
   $("overlay-help").open = false;
+  runRecords.showResult(player, expedition.region);
   const ability = getCharacter(player.characterId).active;
   $("overlay-skill").textContent =
     tr`${ability.name}：${ability.description} 激活起冷却${ability.cooldown}秒。`;
@@ -1237,6 +1246,31 @@ function renderOverlay(kind) {
       : "继续探索 <span>→</span>",
   );
   $("return-menu").hidden = false;
+  $("visit-refuge").hidden = !(won && expedition.region.id === "mariana");
+}
+/** 通关后仅在底部避难所游览；计时、食物、敌人和成绩冻结，保留实体碰撞。 */
+function visitRefuge() {
+  if (mode !== "won" || !player.won || expedition.region.id !== "mariana")
+    return;
+  mode = "epilogue";
+  document.body.dataset.epilogue = "true";
+  feeding.reset();
+  for (const burst of bursts) scene.remove(burst.mesh);
+  bursts.length = 0;
+  inkAbility = createInkState();
+  effects.reset();
+  frenzyEffect.reset();
+  $("ink-overlay").style.opacity = "0";
+  $("lure-flash").style.opacity = "0";
+  $("damage").style.opacity = "0";
+  $("target").hidden = true;
+  $("notification").hidden = true;
+  resetInput();
+  $("overlay").hidden = true;
+  $("pause").hidden = false;
+  $("pause").textContent = t("返回结算");
+  lastTime = performance.now();
+  canvas.focus({ preventScroll: true });
 }
 /** 结束本局并恢复同一海域的首页，下一次出发仍沿用首页到追尾的转场。 */
 function returnToMenu() {
@@ -1271,6 +1305,7 @@ function resumeGame() {
   } else startGame();
 }
 function togglePause() {
+  if (mode === "epilogue") return showOverlay("won");
   if (mode === "playing" || mode === "launching") showOverlay("paused");
   else if (mode === "paused") resumeGame();
 }
@@ -1310,14 +1345,17 @@ function resolvePlayerMotion(previous, merge = false) {
           0.4,
       ),
     bounds: {
-      minX: activeWorld().minX + WORLD_EDGE_INSET,
-      maxX: activeWorld().maxX - WORLD_EDGE_INSET,
-      minZ: activeWorld().minZ + WORLD_EDGE_INSET,
-      maxZ: activeWorld().maxZ - WORLD_EDGE_INSET,
+      minX: mode === "epilogue" ? -85 : activeWorld().minX + WORLD_EDGE_INSET,
+      maxX: mode === "epilogue" ? 85 : activeWorld().maxX - WORLD_EDGE_INSET,
+      minZ: mode === "epilogue" ? -540 : activeWorld().minZ + WORLD_EDGE_INSET,
+      maxZ: mode === "epilogue" ? -360 : activeWorld().maxZ - WORLD_EDGE_INSET,
       minY: -activeWorld().maxDepth + radius,
-      maxY: surface.airborne
-        ? undefined
-        : WORLD.surfaceY - player.length * 0.15,
+      maxY:
+        mode === "epilogue"
+          ? -2660
+          : surface.airborne
+            ? undefined
+            : WORLD.surfaceY - player.length * 0.15,
     },
   });
   position.copy(result.position);
@@ -2250,6 +2288,11 @@ function updateHud() {
     );
   }
   const remaining = Math.max(0, Math.ceil(ROUND_DURATION - player.elapsed));
+  const pressure =
+    hungerDrainRate(player.length, -position.y) /
+    hungerDrainRate(player.length, 0);
+  $("hunger-pressure").textContent =
+    pressure > 1.05 ? tr`深潜 ×${pressure.toFixed(1)}` : "";
   $("round-clock").textContent = t(
     tr`远征 ${String(Math.floor(remaining / 60)).padStart(2, "0")}:${String(remaining % 60).padStart(2, "0")}`,
   );
@@ -2484,9 +2527,12 @@ function frame(now) {
   // 同帧排队的 RAF 时间戳可能早于刚完成的初始化，不能让时钟倒退。
   lastTime = Math.max(lastTime, now);
   // 图鉴打开时只渲染独立标本，避免两套海洋场景同时消耗图形资源。
-  if (guide.isOpen || regionLoading || document.hidden) return;
+  if (guide.isOpen || runRecords.isOpen || regionLoading || document.hidden)
+    return;
   // 暂停及结算是静止画面；进入、尺寸或画质变化才重绘，不持续提交 GPU 工作。
-  const animatedWorld = ["menu", "launching", "playing"].includes(mode);
+  const animatedWorld = ["menu", "launching", "playing", "epilogue"].includes(
+    mode,
+  );
   if (!animatedWorld && !worldRenderDirty) return;
   if (mode === "menu") {
     elapsed += dt;
@@ -2681,6 +2727,35 @@ function frame(now) {
     if (player.dead) showOverlay("dead");
     else if (player.won) showOverlay("won");
   }
+  if (mode === "epilogue") {
+    elapsed += dt;
+    updatePlayer(dt, 0);
+    avatar.position.copy(position);
+    updateCamera(dt);
+    atmosphere(dt);
+    ocean.update(
+      elapsed,
+      position,
+      dt,
+      highQuality,
+      camera.position,
+      reducedMotionQuery.matches,
+    );
+    minimap.update({
+      position,
+      forward,
+      spawn: expedition.region.spawn,
+      contacts: [],
+      sonarActive: false,
+      world: activeWorld(),
+      waypoints: [{ ...MARIANA_REFUGE, open: false, final: true }],
+    });
+    updateHud();
+    $("objective").textContent = t(
+      "通关后游览 · 菠萝屋与招手海绵 · 用暂停键返回结算",
+    );
+    $("pause").textContent = t("返回结算");
+  }
   if (mode === "playing" || mode === "menu") {
     for (let i = bursts.length - 1; i >= 0; i--) {
       const b = bursts[i];
@@ -2741,6 +2816,7 @@ $("start").addEventListener("click", () => {
 });
 $("resume").addEventListener("click", resumeGame);
 $("return-menu").addEventListener("click", returnToMenu);
+$("visit-refuge").addEventListener("click", visitRefuge);
 $("pause").addEventListener("click", togglePause);
 $("sound").addEventListener("click", () => {
   $("sound").textContent = t(audio.toggle() ? "声音 · 开" : "声音 · 关");
@@ -2770,7 +2846,7 @@ window.addEventListener("keydown", (e) => {
     e.preventDefault();
     return;
   }
-  if (guide.isOpen) return;
+  if (guide.isOpen || runRecords.isOpen) return;
   if (!$("overlay").hidden && e.code === "Tab") {
     // 暂停及结算时只在面板内循环，隐藏的重开按钮不参与焦点顺序。
     const buttons = [
@@ -2802,7 +2878,7 @@ window.addEventListener("keydown", (e) => {
   )
     return;
   if (
-    mode === "playing" &&
+    (mode === "playing" || mode === "epilogue") &&
     ["Space", "ArrowUp", "ArrowDown", "ArrowLeft", "ArrowRight"].includes(
       e.code,
     )
@@ -2811,14 +2887,16 @@ window.addEventListener("keydown", (e) => {
   if (e.repeat) return;
   if (e.code === "Escape" || e.code === "KeyP") togglePause();
   else if (mode === "playing" && e.code === "KeyJ") activateCharacterSkill();
-  else if (mode === "playing") keys.add(e.code);
+  else if (mode === "playing" || mode === "epilogue") keys.add(e.code);
 });
 window.addEventListener("keyup", (e) => keys.delete(e.code));
 window.addEventListener("blur", () => {
   resetInput();
+  if (mode === "epilogue") return showOverlay("won");
   if (mode === "playing" || mode === "launching") showOverlay("paused");
 });
 document.addEventListener("visibilitychange", () => {
+  if (document.hidden && mode === "epilogue") return showOverlay("won");
   if (document.hidden && (mode === "playing" || mode === "launching"))
     showOverlay("paused");
 });
@@ -2865,7 +2943,7 @@ function moveJoystick(e) {
   joystick.firstElementChild.style.transform = tr`translate(${pointer.x * 28}px,${pointer.y * 28}px)`;
 }
 joystick.addEventListener("pointerdown", (e) => {
-  if (mode !== "playing") return;
+  if (mode !== "playing" && mode !== "epilogue") return;
   e.preventDefault();
   joystickId = e.pointerId;
   joystick.setPointerCapture(e.pointerId);
