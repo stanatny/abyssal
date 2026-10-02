@@ -1,3 +1,4 @@
+import { MECHANICAL_RULES } from "./mechanical_shark_rules.js";
 import { MAX_SWIM_PITCH } from "./steering_rules.js";
 
 /** 可选角色统一拥有一个主动技能与一个被动技能；数据与移动/冷却规则不依赖渲染器。 */
@@ -76,6 +77,32 @@ export const PLAYER_CHARACTERS = Object.freeze([
       name: "亡者共食",
       description:
         "仆从环游身旁，自动追捕附近不超过主角当前体长减5米的普通猎物，不攻击领主或载具。营养、回血、成长和捕食次数归主角，另按有效营养恢复体力；60秒后无伤害尸爆消失。",
+    },
+  },
+  {
+    id: "mechanical_shark",
+    kind: "mechanical_shark",
+    name: "机械鲨鱼",
+    latin: "TITANIUM SELACHIAN",
+    color: "#7bdbe8",
+    available: true,
+    startLength: 3,
+    description: "钢铁装甲 · 鱼雷压制",
+    ability: "深水鱼雷 · 冷却5秒",
+    active: {
+      id: "torpedo",
+      name: "深水鱼雷",
+      cooldown: MECHANICAL_RULES.cooldown,
+      range: MECHANICAL_RULES.range,
+      description:
+        "水下向前发射鱼雷，仅对前方7度内无遮挡目标轻微校准，转向总幅度不超过9度；准星提示预计目标。射程140米，爆炸半径14米。每发消耗10点生命、10点体力，生命须超过10点。比自己小的普通猎物一发击杀，其余普通生物需三发；击杀后直接计为吞噬，获得回血、饱食与成长。25米起可对领主造成一次咬击伤害。",
+    },
+    passive: {
+      id: "steel_body",
+      name: "钢铁之躯",
+      resistance: MECHANICAL_RULES.resistance,
+      description:
+        "承伤能力提高50%，攻击与环境伤害降至原来的三分之二；饥饿和技能消耗不减免。冲刺速度保持32米/秒，双推进器呈现尾焰。",
     },
   },
 ]);

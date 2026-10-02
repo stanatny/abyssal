@@ -2452,6 +2452,68 @@ kbd {
 #reticle span {
   display: none;
 }
+#reticle.aim-assisted {
+  opacity: 1;
+  border-color: #79e6ff;
+  box-shadow: 0 0 12px #46bde533;
+}
+#reticle.aim-assisted i {
+  background: #9cedff;
+}
+#reticle.aim-ineligible {
+  border-color: #ffbd78;
+}
+#torpedo-aim {
+  position: absolute;
+  left: 50%;
+  top: calc(50% + 26px);
+  transform: translateX(-50%);
+  width: max-content;
+  max-width: 260px;
+  text-align: center;
+  color: #afeafa;
+  text-shadow: 0 1px 4px #001018;
+  pointer-events: none;
+}
+#torpedo-aim b,
+#torpedo-aim small {
+  display: block;
+}
+#torpedo-aim b {
+  font-size: 13px;
+  font-weight: 600;
+}
+#torpedo-aim small {
+  font-size: 11px;
+  margin-top: 3px;
+}
+#torpedo-aim.ineligible {
+  color: #ffca94;
+}
+#torpedo-aim-point {
+  position: absolute;
+  width: 24px;
+  height: 24px;
+  transform: translate(-50%, -50%);
+  border: 1px solid #85dfffa6;
+  border-radius: 4px;
+  pointer-events: none;
+}
+#torpedo-aim-point.ineligible {
+  border-color: #ffbd78a6;
+}
+@media (max-width: 600px) {
+  #torpedo-aim {
+    max-width: 170px;
+    top: calc(50% + 22px);
+  }
+  #torpedo-aim b {
+    font-size: 11px;
+  }
+  #torpedo-aim small {
+    font-size: 10px;
+  }
+}
 #target {
   border-radius: 2px;
   background: #06222ba3;

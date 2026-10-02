@@ -171,6 +171,27 @@ export function consumePrey(player, prey) {
   return true;
 }
 
+/**
+ * 确认被投射物击杀的普通生物直接计为吞噬；身体接触仍使用consumePrey。
+ * @param {object} player 活跃角色状态。
+ * @param {object} prey 已通过真实爆炸、耐久与遮挡验证的普通猎物。
+ * @returns {boolean} 是否发放共享营养与一次捕食计数；不负责重复命中防护。
+ */
+export function consumeDefeatedPrey(player, prey) {
+  if (
+    player.dead ||
+    player.won ||
+    player.timedOut ||
+    !prey ||
+    prey.tier === 3 ||
+    !isPositive(prey.length)
+  )
+    return false;
+  applyNutrition(player, prey, preyNutritionEfficiency(player.length, prey));
+  player.eaten += 1;
+  return true;
+}
+
 /** 返回普通食物体型衰减比例，主角与仆从共享，不因饱食封顶丢失有效营养。 */
 export function preyNutritionEfficiency(length, prey) {
   // 猎物小于自身一半后，收益按比例平方衰减，迫使大鱼前往更深海域觅食。
@@ -240,7 +261,12 @@ export function takeDamage(player, amount) {
   ) {
     return false;
   }
-  player.health = Math.max(0, player.health - amount);
+  player.health = Math.max(
+    0,
+    player.health -
+      amount /
+        (getCharacter(player.characterId || "orca").passive.resistance || 1),
+  );
   player.invulnerable = 1.5;
   player.dead = player.health <= 0;
   return true;

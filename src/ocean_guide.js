@@ -42,12 +42,19 @@ const GUIDE_CATEGORIES = [
 const CATEGORY_ORDER = new Map(
   GUIDE_CATEGORIES.map((entry, index) => [entry.id, index]),
 );
+const CHARACTER_ORDER = new Map(
+  CHARACTERS.map((entry, index) => [entry.id, index]),
+);
 
-/** 按类别与实际体长排序；同长度使用稳定的档案ID，不随语言切换而跳位。 */
+/** 角色沿用选择菜单顺序；其他档案按类别与体长排序，不随语言切换而跳位。 */
 function compareCatalogEntries(a, b) {
   return (
     (CATEGORY_ORDER.get(a.category) ?? 99) -
       (CATEGORY_ORDER.get(b.category) ?? 99) ||
+    (a.category === "player" && b.category === "player"
+      ? (CHARACTER_ORDER.get(a.characterId) ?? CHARACTERS.length) -
+        (CHARACTER_ORDER.get(b.characterId) ?? CHARACTERS.length)
+      : 0) ||
     (a.length || 0) - (b.length || 0) ||
     a.id.localeCompare(b.id)
   );
@@ -172,9 +179,11 @@ export function buildOceanCatalog(regionId) {
       role: "可选角色",
       color: entry.color || (entry.kind === "orca" ? "#a1e8d5" : "#c2a5e8"),
       appearance:
-        entry.kind === "zombie_shark"
-          ? "原创亡灵鲨鱼：头颌、侧腹、背脊和尾柄有不规则撕裂与裸露骨架，断鳍和伤口带有血迹，低压眉骨与尖牙呈现凶狠神态；并非真实动物。"
-          : undefined,
+        entry.kind === "mechanical_shark"
+          ? "原创机械鲨鱼：深蓝与钴蓝分块装甲、铜色工程带、宽肩护甲、测距传感器、铰接鳍尾和腹部鱼雷舱；双推进器在冲刺时喷出蓝白与橙色尾焰。"
+          : entry.kind === "zombie_shark"
+            ? "原创亡灵鲨鱼：头颌、侧腹、背脊和尾柄有不规则撕裂与裸露骨架，断鳍和伤口带有血迹，低压眉骨与尖牙呈现凶狠神态；并非真实动物。"
+            : undefined,
       length: startingLength(entry),
       size: tr`${startingLength(entry)}—30 m（成长玩法）`,
       habitat: "本作海洋全域",
@@ -183,11 +192,13 @@ export function buildOceanCatalog(regionId) {
       counter:
         regionId === "europa"
           ? "冰壳下的海洋没有大气出口，无法跃出水面。陡角度接触冰顶会短暂回到平游；技能、捕食与岩拱碰撞规则不变。"
-          : entry.kind === "zombie_shark"
-            ? "先备好食物和退路再献祭；仆从不能代打领主，也不会提高主角吞食上限。体长正好5米时可以召唤，但尚无符合减5米限制的猎物。"
-            : entry.kind === "orca"
-              ? "用声呐判断前方猎物体长和捕食资格，雷达保留周围回声。高速冲刺可追捕猎物或拉开距离，水下连续蓄势后才能破水。"
-              : "遇到猎手追击时在水下喷墨脱身，提前把头朝向安全出口；喷射会受到礁石和船体阻挡。松开冲刺可发挥灵活转向的被动。",
+          : entry.kind === "mechanical_shark"
+            ? "先留足生命与体力再开火，利用掩体和射程压制。爆炸不穿墙；击杀的普通生物立即计为主角吞噬，未击杀不发放收益。不比自己小的普通生物和领主都需三次有效命中；领主必须达到25米。"
+            : entry.kind === "zombie_shark"
+              ? "先备好食物和退路再献祭；仆从不能代打领主，也不会提高主角吞食上限。体长正好5米时可以召唤，但尚无符合减5米限制的猎物。"
+              : entry.kind === "orca"
+                ? "用声呐判断前方猎物体长和捕食资格，雷达保留周围回声。高速冲刺可追捕猎物或拉开距离，水下连续蓄势后才能破水。"
+                : "遇到猎手追击时在水下喷墨脱身，提前把头朝向安全出口；喷射会受到礁石和船体阻挡。松开冲刺可发挥灵活转向的被动。",
       characterId: entry.id,
       realSize:
         "其他海域3米幼年起步，马里亚纳15米起步；起始尺寸、30米体长上限与技能强度属于游戏设定。",

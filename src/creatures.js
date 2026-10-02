@@ -1,4 +1,5 @@
 import { buildAbyssWeaver } from "./creature_abyss_weaver.js";
+import { buildMechanicalShark } from "./creature_mechanical_shark.js";
 import { buildZombieShark } from "./creature_zombie_shark.js";
 import { buildLumenStalker } from "./creature_lumen_stalker.js";
 import {
@@ -59,7 +60,12 @@ export function createCreature(kind, length = 6, seed = 1) {
   const random = seededRandom(seed);
   const phase = random() * Math.PI * 2;
   const motions = [];
-  const playerMotion = ["orca", "squid", "zombie_shark"].includes(kind)
+  const playerMotion = [
+    "orca",
+    "squid",
+    "zombie_shark",
+    "mechanical_shark",
+  ].includes(kind)
     ? createPlayerMotion(kind, phase)
     : null;
   if (playerMotion) {
@@ -74,7 +80,8 @@ export function createCreature(kind, length = 6, seed = 1) {
   let previousTime;
   let swimTime = phase;
 
-  if (kind === "zombie_shark") buildZombieShark(root, motions);
+  if (kind === "mechanical_shark") buildMechanicalShark(root, motions);
+  else if (kind === "zombie_shark") buildZombieShark(root, motions);
   else if (kind === "abyss_weaver") buildAbyssWeaver(root, motions);
   else if (kind === "lumen_stalker") buildLumenStalker(root, motions);
   else if (EUROPA_CREATURE_KINDS.has(kind))

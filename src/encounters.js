@@ -8,6 +8,7 @@ import {
   createBossState,
   tickBoss,
   hitBoss,
+  hitBossWithTorpedo,
   updateBossContact,
   isBossFlankContact,
 } from "./boss_rules.js";
@@ -571,7 +572,7 @@ function resetAbilityFx(fx) {
 /** 稀有领地战的空间表现：技能前摇、可躲避攻击、撤退边界与多次咬击。 */
 export function createEncounters(
   scene,
-  { seabedHeight, audio, notify, onDamage, onBite },
+  { seabedHeight, audio, notify, onDamage, onBite, onTorpedoHit },
 ) {
   const bosses = [],
     projectiles = [];
@@ -955,6 +956,22 @@ export function createEncounters(
     }
     return affected;
   }
+  function torpedoHit(player, entry, contact) {
+    if (!entry.enabled) return { hit: false };
+    const result = hitBossWithTorpedo(player, entry.state);
+    entry.lastTorpedoResult = result;
+    if (result.hit) {
+      onTorpedoHit?.(contact, entry.state.species.length);
+      notify(
+        result.defeated
+          ? message`击败 ${entry.state.species.label} · 深渊印记已获得`
+          : message`鱼雷命中 ${entry.state.species.label} · ${entry.state.validatedHits}/3`,
+        2,
+      );
+      if (result.defeated) hideDefeated(entry);
+    }
+    return result;
+  }
   function hideDefeated(entry) {
     entry.mesh.visible = entry.label.visible = entry.ring.visible = false;
     entry.fx.group.visible = false;
@@ -1336,6 +1353,7 @@ export function createEncounters(
     reset,
     dispose,
     disorient,
+    torpedoHit,
     get active() {
       return active;
     },

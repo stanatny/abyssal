@@ -87,3 +87,22 @@ fish_bite_2.wav
 Adjacent variants never repeat. Playback rate is `0.97—1.03`, base gain is `0.32`, and existing size-based volume scaling remains. Fish and human sounds use separate recording-bank instances with the shared `RecordedAudioBank` implementation; a loading failure in either category does not force the other to wait.
 
 If fish audio is not ready or fails to load, the event immediately uses a gentle filtered-noise fallback lasting 0.30 seconds with a 0.30 peak; it is not queued for later playback. These are implementation parameters and source records. Subjective listening quality and browser acceptance remain documented in this round's [feedback record](feedback_v0_6_8.md) and [verification record](verification.md).
+
+## Mechanical Shark candidate: original procedural weapon effects
+
+The authoring agent generated these original science-fiction effects in `OceanAudio.mechanicalLaunch()` and `mechanicalExplosion()` in `src/audio.js`. There is no external recording, source page or separately licensed sample. Runtime synthesis uses the existing bounded voice graph; exported listening WAVs are verification artifacts, not bundled runtime files. Do not describe these as authentic underwater explosion recordings.
+
+Launch layers: 180→510 Hz / 0.16 s charging transient, 88→45 Hz / 0.30 s pressure tone, and 820→290 Hz band-pass noise / 0.22 s. Their gains are 0.065 / 0.13 / 0.07, with short onset fades and 1,600 / 600 Hz tone cutoffs. Explosion layers: 112→32 Hz / 0.62 s pressure tone, 700→150 Hz low-pass noise / 0.32 s, 48→26 Hz / 0.70 s low tail and five quieter bubbles. Gains are 0.19 / 0.13 / 0.085, plus bubble gain 0.018; music ducks to 0.55 over 0.25 s. Launch/explosion rate limits are 0.30 / 0.15 s; skill cooldown is independently five active-play seconds. Mute and pause use the same master/context lifecycle as existing events.
+
+The ignored `audio.mjs` probe in the mechanical-character evidence directory renders both events and their overlap through the actual `OceanAudio` effects/master/reverb graph, with music and ambient buses disabled for isolation. Outputs are 2 s, stereo, 22,050 Hz, 16-bit PCM. Peak values are 0.1085 / 0.1172 / 0.1317, with zero clipped or nonfinite samples and zero remaining event voices. Export hashes identify this verification render, not runtime assets:
+
+```text
+mechanicalLaunch.wav
+  bd23cee2ab020a9d82a6a42d424f6324547122628a0746b701d64510f4e53024
+mechanicalExplosion.wav
+  30f127b3913ff2ec5ab35f937959dc44361c92dd1d395996a859657efb32d5b0
+combined.wav
+  d208d3d4921a936d1c8177289a568fc96c3f55d245a3f37ce81ecbdaffdad043
+```
+
+Actual native firing routes both events. The development candidate and game-path clips are provided for listening review; signal metrics do not establish subjective sound quality. See [the character verification](mechanical_shark_revision.md) for runtime and device limits.

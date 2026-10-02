@@ -42,6 +42,16 @@ The current review adds an original **Zombie Shark** as a third playable charact
 
 Selection, English/Chinese Guide, skill countdown and local records recognize this character. At exactly 5 m, a cast is legal but no positive-sized prey yet fits its feeding limit. This is an unreleased candidate, not a change to the published link. See [the rules, art and verification](docs/zombie_shark_revision.md).
 
+## Mechanical Shark candidate (not yet published)
+
+The Guide and character selection use the fixed roster order: **Orca → Giant Squid → Zombie Shark → Mechanical Shark**. Europa remains the final destination; all current characters and maps remain freely selectable.
+
+A fourth playable character adds an original armored machine with navy/cobalt shoulder plates, copper engineering bands, fierce optical sensors, articulated fins and tail, a ventral torpedo bay and twin sprint thrusters. It shares the standard growth curve, regional starts and 32 m/s base sprint; the Orca alone retains its 30% speed bonus.
+
+**Steel Body** increases effective resistance by 50%: attacks and hazards deal two-thirds of normal damage. Hunger and voluntary skill costs are unchanged. **Depth Torpedo** launches underwater with modest aim correction toward one unobstructed target within 7 degrees ahead. The launcher adjusts by at most 3 degrees; subsequent steering stays within 9 degrees of the original bearing, without changing targets. A reticle bracket identifies the candidate and estimates required hits. A dodging or occluded target releases assistance. It retains a 140 m range, 14 m blast and 5-second cooldown. Each cast pays a fixed 10 health and 10 stamina; health must exceed 10. Ordinary prey smaller than the current character are killed in one hit; equal/larger ordinary creatures require three. Kills immediately count as feeding using the shared nutrition, healing, growth and meal counters. Nonlethal hits grant no food. Solids block blasts. At 25 m, a valid lord explosion counts as one existing battle hit; smaller players cannot hurt lords. Pause freezes clocks; home and terminal states clear the bounded projectile/effect pools.
+
+See [the production contract](docs/mechanical_shark_brief.md), [initial validation](docs/mechanical_shark_revision.md) and [the visual/aim follow-up](docs/mechanical_shark_refinement.md). This remains a local development checkpoint on `feature/mechanical-shark`; the published game above is unchanged.
+
 ## Gameplay review candidate (not yet published)
 
 The current working candidate doubles base hunger consumption and adds stronger, size-dependent deep-water pressure. At 3 m, the full-depth drain is six times the same character’s shallow drain; this eases continuously to 1.5 times at 18 m and above. A HUD multiplier and both-language Guide explain the pressure. Survival timers follow actual active time even when rendering slows. Shallow feeding and large deep prey retain their existing populations and rewards.

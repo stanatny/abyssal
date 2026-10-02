@@ -1,4 +1,5 @@
 import * as THREE from "three";
+import { message } from "./i18n.js";
 import { SUBMARINE_DEFENSE_RULES as RULES } from "./human_rules.js";
 import { takeDamage } from "./simulation.js";
 import { bodyRadius, castSegment } from "./collision.js";
@@ -160,14 +161,16 @@ export function createSubmarineDefense(
     p.mesh.visible = false;
     explode?.(point, true);
     audio?.hit?.(1.15);
+    const healthBefore = player.health;
     if (
       direct &&
       player.length >= RULES.minimumLength &&
       !isNursery(playerPosition) &&
       takeDamage(player, RULES.damage)
     ) {
-      onDamage?.(RULES.damage, point.clone(), p);
-      notify?.("潜艇鱼雷命中 · 生命 -20", 3);
+      const actualDamage = healthBefore - player.health;
+      onDamage?.(actualDamage, point.clone(), p);
+      notify?.(message`潜艇鱼雷命中 · 生命 -${Math.round(actualDamage)}`, 3);
     }
   }
   function update(dt, now, player, position, forward, allowed = true) {

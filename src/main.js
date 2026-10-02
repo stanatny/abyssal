@@ -1,3 +1,5 @@
+import { createMechanicalTorpedoes } from "./mechanical_torpedoes.js";
+import { torpedoStatus, resetTorpedoTarget } from "./mechanical_shark_rules.js";
 import { attachDeepVents } from "./deep_vents.js";
 import {
   canPredatorRetaliate,
@@ -198,7 +200,7 @@ let avatar = createCreature("orca", 6);
 const avatarCache = new Map([["orca", avatar]]);
 avatar.traverse((mesh) => {
   if (mesh.isMesh) {
-    mesh.castShadow = true;
+    mesh.castShadow = !mesh.userData.noShadow;
     mesh.receiveShadow = true;
   }
 });
@@ -226,7 +228,7 @@ const feedingDirection = new THREE.Vector3();
 const feeding = createFeedingTransition({
   onMist: (point, length) => effects.mealMist(point, length),
 });
-let minion;
+let minion, torpedoes;
 const guide = createOceanGuide($("open-guide"));
 const sonar = createSonar($("sonar-panel"));
 const sonarMarkers = createSonarMarkers($("sonar-markers"));
@@ -268,6 +270,9 @@ const encounters = createEncounters(scene, {
   onDamage() {
     hitFlash = 0.9;
     effects.hurt(position, player.length);
+  },
+  onTorpedoHit(point, length) {
+    effects.blood(point, Math.min(length, 8));
   },
   onBite(point, length) {
     effects.blood(point, length);
@@ -326,6 +331,27 @@ const entities = [],
   pickups = [],
   bursts = [],
   schools = [];
+torpedoes = createMechanicalTorpedoes(scene, {
+  castWorld: queryWorldSegment,
+  heightAt: activeSeabedHeight,
+  waterHeightAt: (x, z) =>
+    surface.mode === "ice"
+      ? -0.4
+      : (surface.waterHeightAt?.(x, z, elapsed) ?? WORLD.surfaceY),
+  entities: () => entities,
+  bosses: () => encounters.bosses,
+  hitBoss: encounters.torpedoHit,
+  effects,
+  audio,
+  onLaunch() {
+    avatar.userData.triggerLaunch?.();
+  },
+  onBlast({ killed, hits, bossHits }) {
+    if (killed) notify(message`鱼雷爆炸 · 吞噬${killed}，另命中${hits}`, 2);
+    else if (hits > bossHits)
+      notify(message`鱼雷爆炸 · 命中${hits}，尚未击杀`, 2);
+  },
+});
 const keys = new Set();
 const pointer = { x: 0, y: 0 };
 const position = new THREE.Vector3(0, -18, 75);
@@ -333,6 +359,10 @@ const forward = new THREE.Vector3(0, 0, -1);
 const temp = new THREE.Vector3(),
   lookTarget = new THREE.Vector3();
 const rotation = new THREE.Euler(0, 0, 0, "YXZ");
+const aimOrigin = new THREE.Vector3(),
+  aimProjection = new THREE.Vector3();
+let aimPreview = null,
+  aimPreviewAt = -Infinity;
 const bubbleGeometry = new THREE.SphereGeometry(0.12, 5, 4);
 const bubbleMaterial = new THREE.MeshBasicMaterial({
   color: 0xb9ffee,
@@ -395,7 +425,7 @@ function selectAvatar(character) {
     avatar = createCreature(character.kind, 6);
     avatar.traverse((mesh) => {
       if (mesh.isMesh) {
-        mesh.castShadow = true;
+        mesh.castShadow = !mesh.userData.noShadow;
         mesh.receiveShadow = true;
       }
     });
@@ -498,6 +528,8 @@ async function selectRegion(region) {
     await regionLoader.paint();
     feeding.reset();
     minion.reset();
+    torpedoes?.reset();
+    resetTorpedoAim();
     effects.reset();
     frenzyEffect.reset();
     sonarMarkers.reset();
@@ -679,7 +711,40 @@ function activateSonar() {
   updateSonar();
   return true;
 }
+function mechanicalUnderwater() {
+  return (
+    !surface.airborne &&
+    (surface.mode === "ice" ||
+      position.y <
+        (surface.waterHeightAt?.(position.x, position.z, elapsed) ??
+          WORLD.surfaceY) -
+          player.length * 0.2)
+  );
+}
 function activateCharacterSkill() {
+  if (player.characterId === "mechanical_shark") {
+    if (mode !== "playing") return false;
+    const underwater = mechanicalUnderwater();
+    const status = torpedoStatus(torpedoes.state, player, underwater);
+    if (!status.usable) {
+      if (status.reason === "resources")
+        notify("鱼雷需要生命超过10点、体力至少10点", 2);
+      else if (status.reason === "underwater")
+        notify("潜入水下后可发射鱼雷", 2);
+      return false;
+    }
+    avatar.userData.getTorpedoMuzzle?.(swallowPoint);
+    const active = torpedoes.activate(
+      player,
+      swallowPoint,
+      forward,
+      underwater,
+    );
+    if (active) notify("鱼雷发射 · 生命 -10 · 体力 -10", 2);
+    updateSonar();
+    return active;
+  }
+
   if (player.characterId === "zombie_shark") {
     if (mode !== "playing") return false;
     const status = summonStatus(minion.state, player);
@@ -806,26 +871,37 @@ function updateSonar() {
   const character = getCharacter(player.characterId);
   const skill = character.active;
   const statusData =
-    player.characterId === "zombie_shark"
-      ? summonStatus(minion.state, player)
-      : player.characterId === "squid"
-        ? inkStatus(inkAbility, player.elapsed)
-        : scan;
+    player.characterId === "mechanical_shark"
+      ? torpedoStatus(torpedoes.state, player, mechanicalUnderwater())
+      : player.characterId === "zombie_shark"
+        ? summonStatus(minion.state, player)
+        : player.characterId === "squid"
+          ? inkStatus(inkAbility, player.elapsed)
+          : scan;
   const underwater =
     !surface.airborne && position.y < WORLD.surfaceY - player.length * 0.2;
   const usable =
     statusData.ready &&
-    (skill.id === "summon"
+    (["summon", "torpedo"].includes(skill.id)
       ? statusData.usable
       : player.characterId !== "squid" || underwater);
-  const shortName = { ink: "喷墨", sonar: "声呐", summon: "分裂" }[skill.id];
+  const shortName = {
+    ink: "喷墨",
+    sonar: "声呐",
+    summon: "分裂",
+    torpedo: "鱼雷",
+  }[skill.id];
   const activeLabel = { ink: "墨幕", sonar: "探测", summon: "仆从" }[skill.id];
   const blockedLabel =
-    skill.id === "summon"
-      ? statusData.reason === "length"
-        ? "需5米体长"
-        : "需三项各50"
-      : "需潜入水下";
+    skill.id === "torpedo"
+      ? statusData.reason === "resources"
+        ? "需生命>10/体力10"
+        : "需潜入水下"
+      : skill.id === "summon"
+        ? statusData.reason === "length"
+          ? "需5米体长"
+          : "需三项各50"
+        : "需潜入水下";
   const status = statusData.active
     ? tr`${activeLabel} ${Math.ceil(statusData.remaining)}s`
     : statusData.ready
@@ -843,7 +919,7 @@ function updateSonar() {
         ? statusData.lethal
           ? "致命献祭"
           : "就绪"
-        : skill.id === "summon"
+        : ["summon", "torpedo"].includes(skill.id)
           ? blockedLabel
           : "水下使用"
       : tr`${Math.ceil(statusData.active ? statusData.remaining : statusData.cooldownRemaining)}s`,
@@ -1150,6 +1226,8 @@ function resetExpedition(preserveWorld = false) {
   waterMotion = null;
   feeding.reset();
   minion.reset();
+  torpedoes?.reset();
+  resetTorpedoAim();
   effects.reset();
   frenzyEffect.reset();
   sonar.reset();
@@ -1260,7 +1338,11 @@ function updateLaunch(roundDt) {
   }
 }
 function showOverlay(kind) {
-  if (["dead", "won", "timeup"].includes(kind)) minion.reset();
+  if (["dead", "won", "timeup"].includes(kind)) {
+    minion.reset();
+    torpedoes.reset();
+    resetTorpedoAim();
+  }
   const returningFromRefuge = mode === "epilogue";
   delete document.body.dataset.epilogue;
   mode = kind;
@@ -1361,6 +1443,8 @@ function visitRefuge() {
   bursts.length = 0;
   inkAbility = createInkState();
   minion.reset();
+  torpedoes?.reset();
+  resetTorpedoAim();
   effects.reset();
   frenzyEffect.reset();
   $("ink-overlay").style.opacity = "0";
@@ -1812,6 +1896,7 @@ function eatEntity(entity, mouth, previousPrey = entity.mesh.position, dt = 0) {
   effects.bite(captureContact, forward, player.length);
   entity.hiddenFor = species.schoolSize > 1 ? 18 : 28;
   feeding.start(mesh, species.length);
+  resetTorpedoTarget(entity);
   entity.chase = 0;
   entity.flight = null;
   mesh.userData.setGliding?.(false);
@@ -1893,6 +1978,7 @@ function updateEntities(dt) {
               )
             : spawnPosition(species, true, null, entity.populationIndex),
         );
+        resetTorpedoTarget(entity);
         mesh.visible = true;
         entity.hunter = createHunterState(species, entity.seed + elapsed);
       }
@@ -2538,7 +2624,82 @@ function atmosphere(dt) {
   }
 }
 
+function resetTorpedoAim() {
+  aimPreview = null;
+  aimPreviewAt = -Infinity;
+  $("torpedo-aim").hidden = $("torpedo-aim-point").hidden = true;
+  $("reticle").classList.remove("aim-assisted", "aim-ineligible");
+}
+
 function updateHud() {
+  const aiming =
+    player.characterId === "mechanical_shark" &&
+    mode === "playing" &&
+    mechanicalUnderwater();
+  if (
+    aiming &&
+    (player.elapsed >= aimPreviewAt || player.elapsed < aimPreviewAt - 0.11)
+  ) {
+    avatar.userData.getTorpedoMuzzle?.(aimOrigin);
+    aimPreview = torpedoes.previewAim(aimOrigin, forward, player);
+    aimPreviewAt = player.elapsed + 0.1;
+  } else if (!aiming) {
+    aimPreview = null;
+    aimPreviewAt = -Infinity;
+  }
+  const aim = aimPreview;
+  const aimAlive =
+    aim &&
+    (aim.boss
+      ? aim.entity.enabled && !aim.entity.state.defeated
+      : aim.entity.hiddenFor <= 0);
+  $("reticle").classList.toggle("aim-assisted", Boolean(aimAlive));
+  $("reticle").classList.toggle(
+    "aim-ineligible",
+    Boolean(aimAlive && !aim.eligible),
+  );
+  $("torpedo-aim").hidden = !aimAlive;
+  $("torpedo-aim-point").hidden = true;
+  if (aimAlive) {
+    const species = aim.boss ? aim.entity.state.species : aim.entity.species;
+    const hits = aim.boss
+      ? aim.entity.state.validatedHits
+      : aim.entity.torpedoHits || 0;
+    const needed =
+      aim.boss || species.length >= player.length ? Math.max(1, 3 - hits) : 1;
+    $("torpedo-aim").querySelector("b").textContent = t(species.label);
+    $("torpedo-aim").querySelector("small").textContent = t(
+      aim.eligible
+        ? tr`轻微校准 · 预计${needed}发 · ${Math.round(aim.distance)}m`
+        : "领主体型门槛 · 需25米",
+    );
+    $("torpedo-aim").classList.toggle("ineligible", !aim.eligible);
+    aimProjection.copy(aim.entity.mesh.position).project(camera);
+    if (
+      aimProjection.z >= -1 &&
+      aimProjection.z <= 1 &&
+      Math.abs(aimProjection.x) < 0.88 &&
+      Math.abs(aimProjection.y) < 0.6
+    ) {
+      const marker = $("torpedo-aim-point");
+      marker.hidden = false;
+      marker.classList.toggle("ineligible", !aim.eligible);
+      marker.style.left = (aimProjection.x * 0.5 + 0.5) * innerWidth + "px";
+      marker.style.top = (-aimProjection.y * 0.5 + 0.5) * innerHeight + "px";
+      const label = $("torpedo-aim"),
+        margin = innerWidth <= 600 ? 93 : 138;
+      label.style.left =
+        Clamp(
+          (aimProjection.x * 0.5 + 0.5) * innerWidth,
+          margin,
+          innerWidth - margin,
+        ) + "px";
+      label.style.top =
+        (-aimProjection.y * 0.5 + 0.5) * innerHeight + 18 + "px";
+    } else {
+      $("torpedo-aim").hidden = true;
+    }
+  }
   for (const key of ["health", "stamina", "hunger"]) {
     $(key + "-value").textContent = t(Math.ceil(player[key]));
     $(key + "-bar").style.width = player[key] + "%";
@@ -2700,7 +2861,7 @@ function updateHud() {
   }
   let target = null,
     targetScore = Infinity;
-  for (const e of markersEnabled ? entities : []) {
+  for (const e of markersEnabled && !aimAlive ? entities : []) {
     if (!e.mesh.visible) continue;
     const d = e.mesh.position.distanceTo(position);
     if (d > 100 || blockedBetween(position, e.mesh.position)) continue;
@@ -2728,7 +2889,7 @@ function updateHud() {
           ? "#ffad8a"
           : "#c1d8dd";
     $("target").textContent = t(
-      tr`${{ shoal: "Ⅰ 浅海鱼群", hunter: "Ⅱ 海洋霸主", ancient: "Ⅲ 远古巨兽", alien: "外星生命" }[e.species.category] || "海洋生物"} · ${e.species.label} · ${e.species.length}m · ${edible ? (retaliates ? "可捕食 · 会反击" : "可捕食") : e.species.predator ? "危险" : "暂不可吞食"} / ${Math.round(d)}m`,
+      tr`${{ shoal: "Ⅰ 浅海鱼群", hunter: "Ⅱ 海洋霸主", ancient: "Ⅲ 远古巨兽", alien: "外星生命" }[e.species.category] || "海洋生物"} · ${e.species.label} · ${e.species.length}m${e.torpedoHits ? tr` · 鱼雷伤害${e.torpedoHits}/3` : ""} · ${edible ? (retaliates ? "可捕食 · 会反击" : "可捕食") : e.species.predator ? "危险" : "暂不可吞食"} / ${Math.round(d)}m`,
     );
   }
   $("boss-panel").hidden = !activeBoss;
@@ -2742,7 +2903,9 @@ function updateHud() {
     $("boss-tip").textContent = t(
       player.length < state.species.minAttackLength
         ? "体型不足 · 借地形与技能间隙撤出领地"
-        : tip,
+        : player.characterId === "mechanical_shark"
+          ? tr`鱼雷/侧咬 · 命中${state.validatedHits}/3 · 保留生命与体力`
+          : tip,
     );
     $("boss-phase").textContent = t(
       {
@@ -2776,9 +2939,25 @@ function updateHud() {
   );
   if (effects.ink > 0.35 || sonar.snapshot.active) $("target").hidden = true;
   keepTargetClear();
+  keepTargetClear($("torpedo-aim-point"));
+  if ($("torpedo-aim-point").hidden || effects.ink > 0.35)
+    $("torpedo-aim").hidden = true;
+  keepTargetClear($("torpedo-aim"));
+  // 窄屏上目标在雷达旁边时，保留真实方框，将文字收回准星下方。
+  if (
+    aimAlive &&
+    !$("torpedo-aim-point").hidden &&
+    effects.ink <= 0.35 &&
+    $("torpedo-aim").hidden
+  ) {
+    const label = $("torpedo-aim");
+    label.hidden = false;
+    label.style.left = "50%";
+    label.style.top = "calc(50% + 22px)";
+    keepTargetClear(label);
+  }
 }
-function keepTargetClear() {
-  const label = $("target");
+function keepTargetClear(label = $("target")) {
   if (label.hidden) return;
   const bounds = label.getBoundingClientRect();
   // 世界锚定标签遇到重要面板时暂时隐藏，避免挪动后误指向另一条鱼。
@@ -2874,7 +3053,9 @@ function frame(now) {
     const beforeEntities = position.clone();
     const beforeFeedingLength = player.length;
     minion.beforePreyMotion();
+    torpedoes.beforePreyMotion();
     updateEntities(dt);
+    torpedoes.update(dt, player);
     // 猎手击退与捕食成长也在本帧约束，不能等下一帧再把穿入实体的鱼推出。
     if (
       !position.equals(beforeEntities) ||
@@ -3333,6 +3514,7 @@ if (import.meta.env.DEV)
     setMarkers,
     activateSonar,
     activateCharacterSkill,
+    torpedoes,
     get inkAbility() {
       return inkAbility;
     },

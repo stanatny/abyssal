@@ -510,6 +510,46 @@ export class OceanAudio {
     }
   }
 
+  /** 科技发射用舱门瞬态、上行充能与低频水压，避免尖锐警笛。 */
+  mechanicalLaunch() {
+    if (!this.effectReady("mechanical-launch", 0.3)) return;
+    const at = this.context.currentTime + 0.006;
+    this.note(180, at, 0.16, 0.065, this.effects, {
+      end: 510,
+      attack: 0.012,
+      cutoff: 1600,
+    });
+    this.note(88, at + 0.06, 0.3, 0.13, this.effects, {
+      end: 45,
+      attack: 0.008,
+      cutoff: 600,
+    });
+    this.noise(at + 0.035, 0.22, 0.07, this.effects, 820, "bandpass", 0.012, {
+      end: 290,
+    });
+  }
+
+  /** 有界的水下爆炸：压缩冲击、低沉余响和气泡尾声；不是实录爆炸。 */
+  mechanicalExplosion() {
+    if (!this.effectReady("mechanical-explosion", 0.15)) return;
+    const at = this.context.currentTime + 0.006;
+    this.note(112, at, 0.62, 0.19, this.effects, {
+      end: 32,
+      attack: 0.006,
+      cutoff: 620,
+    });
+    this.noise(at, 0.32, 0.13, this.effects, 700, "lowpass", 0.009, {
+      end: 150,
+    });
+    this.note(48, at + 0.08, 0.7, 0.085, this.effects, {
+      end: 26,
+      attack: 0.04,
+      cutoff: 230,
+    });
+    this.bubbles(at + 0.1, 5, 0.018, 330, 0.09);
+    this.duckMusic(0.55, 0.25);
+  }
+
   /** 献祭用下沉的失谐低音和收束水流，沿用有界音效图和静音/暂停逻辑。 */
   summonUndead() {
     if (!this.effectReady("summon-undead", 0.5)) return;

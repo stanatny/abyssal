@@ -196,6 +196,33 @@ export function hitBoss(
     return failure("cooldown");
   if (!boss.contactArmed) return failure("must_disengage");
 
+  return settleBossHit(player, boss);
+}
+
+/** 有效鱼雷代替一口侧咬，保留真实25米门槛、间隔及同一击败结算。 */
+export function hitBossWithTorpedo(player, boss) {
+  if (
+    player.characterId !== "mechanical_shark" ||
+    player.dead ||
+    player.won ||
+    player.timedOut ||
+    boss.defeated ||
+    player.length < boss.species.minAttackLength ||
+    player.biteCooldown > 0 ||
+    boss.biteCooldown > 0
+  )
+    return {
+      hit: false,
+      damage: 0,
+      hungerRestored: 0,
+      defeated: false,
+      reason: "ineligible",
+    };
+  return settleBossHit(player, boss);
+}
+
+// 两种有效攻击共用命中数、食物、战利品和持久击败，不复制目标判定。
+function settleBossHit(player, boss) {
   // 整数命中数决定击败，最后一口直接清零，不让浮点余量要求第四次进攻。
   const remainingHits = BOSS_REQUIRED_HITS - boss.validatedHits;
   const damage = boss.health / remainingHits;
