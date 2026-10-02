@@ -1,3 +1,4 @@
+import { EuropaMusic, EUROPA_SCORE } from "./music_europa.js";
 import { MarianaMusic, MARIANA_SCORE } from "./music_mariana.js";
 import { BermudaMusic, BERMUDA_SCORE } from "./music_bermuda.js";
 import { FishBiteBank } from "./fish_bite_assets.js";
@@ -44,6 +45,7 @@ export class OceanAudio {
     this.atlantisMusic = null;
     this.bermudaMusic = null;
     this.marianaMusic = null;
+    this.europaMusic = null;
     this.retiredMusicRooms = [];
     this.pauseTimer = null;
     this.feedingVoices = new Map();
@@ -79,19 +81,27 @@ export class OceanAudio {
    * 可在用户手势前调用，不创建上下文；未知地图沿用夏威夷主题。
    */
   setRegion(regionId) {
-    const next = ["hawaii", "atlantis", "bermuda", "mariana"].includes(regionId)
+    const next = [
+      "hawaii",
+      "atlantis",
+      "bermuda",
+      "mariana",
+      "europa",
+    ].includes(regionId)
       ? regionId
       : "hawaii";
     if (next === this.regionId) return next;
     this.regionId = next;
     this.beat =
-      next === "mariana"
-        ? MARIANA_SCORE.beat
-        : next === "atlantis"
-          ? ATLANTIS_SCORE.beat
-          : next === "bermuda"
-            ? BERMUDA_SCORE.beat
-            : 60 / 80;
+      next === "europa"
+        ? EUROPA_SCORE.beat
+        : next === "mariana"
+          ? MARIANA_SCORE.beat
+          : next === "atlantis"
+            ? ATLANTIS_SCORE.beat
+            : next === "bermuda"
+              ? BERMUDA_SCORE.beat
+              : 60 / 80;
     this.step = 0;
     this.musicCombat = false;
     if (!this.ready) return next;
@@ -102,6 +112,7 @@ export class OceanAudio {
     if (next === "atlantis") this.ensureAtlantisMusic().reset(now);
     if (next === "bermuda") this.ensureBermudaMusic().reset(now);
     if (next === "mariana") this.ensureMarianaMusic().reset(now);
+    if (next === "europa") this.ensureEuropaMusic().reset(now);
     return next;
   }
 
@@ -179,6 +190,7 @@ export class OceanAudio {
       if (this.atlantisMusic) this.atlantisMusic.combatActive = false;
       if (this.bermudaMusic) this.bermudaMusic.combatActive = false;
       if (this.marianaMusic) this.marianaMusic.combatActive = false;
+      if (this.europaMusic) this.europaMusic.combatActive = false;
     }
     this.master.gain.setTargetAtTime(
       this.enabled ? 0.76 : 0,
@@ -267,6 +279,7 @@ export class OceanAudio {
     this.atlantisMusic?.reset(now);
     this.bermudaMusic?.reset(now);
     this.marianaMusic?.reset(now);
+    this.europaMusic?.reset(now);
   }
 
   /**
@@ -298,9 +311,11 @@ export class OceanAudio {
     if (this.regionId === "atlantis") this.ensureAtlantisMusic().update(now);
     if (this.regionId === "bermuda") this.ensureBermudaMusic().update(now);
     if (this.regionId === "mariana") this.ensureMarianaMusic().update(now);
+    if (this.regionId === "europa") this.ensureEuropaMusic().update(now);
     const intensity = Math.sqrt(this.lastDanger);
     const depthRatio = clamp(this.depth / 740, 0, 1);
     const muffling = 1 - this.ink * 0.67;
+    const europa = this.regionId === "europa";
     const combat = this.pursuing || this.boss;
     this.calm.gain.setTargetAtTime(
       this.boss ? 0.22 : combat ? 0.34 : 0.86,
@@ -343,15 +358,19 @@ export class OceanAudio {
       0.55,
     );
     this.waterGain.gain.setTargetAtTime(
-      this.aboveWater ? 0.035 : 0.058 + depthRatio * 0.023 + this.ink * 0.01,
+      (this.aboveWater ? 0.035 : 0.058 + depthRatio * 0.023 + this.ink * 0.01) *
+        (europa ? EUROPA_SCORE.ambientWater : 1),
       now,
       0.6,
     );
     this.currentGain.gain.setTargetAtTime(
-      this.aboveWater ? 0.012 : 0.021 + intensity * 0.012,
+      (this.aboveWater ? 0.012 : 0.021 + intensity * 0.012) *
+        (europa ? EUROPA_SCORE.ambientCurrent : 1),
       now,
       0.7,
     );
+    // 木卫二的短尾混音避免玻璃音型被长混响涂抹，其余地图保持既有湿度。
+    this.musicWet.gain.setTargetAtTime(europa ? 0.11 : 0.26, now, 0.4);
     if (!this.enabled) return;
     if (this.regionId === "hawaii" && combat && !this.musicCombat) {
       // 夏威夷保留既有音型，追击开始时立即给出短重拍，不等待当前探索拍点。
@@ -378,6 +397,8 @@ export class OceanAudio {
         this.ensureBermudaMusic().schedule(this.nextStep, this.step);
       else if (this.regionId === "mariana")
         this.ensureMarianaMusic().schedule(this.nextStep, this.step);
+      else if (this.regionId === "europa")
+        this.ensureEuropaMusic().schedule(this.nextStep, this.step);
       else this.scheduleMusicStep(this.nextStep, this.step);
       this.nextStep += subdivision;
       this.step += 1;
@@ -600,6 +621,47 @@ export class OceanAudio {
   bossAttack(kind) {
     if (!this.effectReady("boss_attack", 0.7)) return;
     const at = this.context.currentTime + 0.006;
+    if (kind === "lumen_stalker") {
+      for (let i = 0; i < 3; i++)
+        this.note(98 * (1 + i * 0.5), at + i * 0.11, 1.1, 0.09, this.effects, {
+          type: "glass",
+          end: 73.4 * (1 + i * 0.5),
+          attack: 0.11,
+          cutoff: 1250,
+          pan: (i - 1) * 0.24,
+        });
+      this.note(55, at + 0.16, 0.8, 0.1, this.effects, {
+        type: "warm",
+        attack: 0.13,
+        end: 41.2,
+        cutoff: 350,
+      });
+      this.duckMusic(0.6, 0.9);
+      return;
+    }
+    if (kind === "abyss_weaver") {
+      for (let i = 0; i < 3; i++)
+        this.note(
+          65.4 * (1 + i * 0.49),
+          at + i * 0.15,
+          1.8,
+          0.12,
+          this.effects,
+          {
+            type: "warm",
+            attack: 0.12,
+            end: 49 * (1 + i * 0.45),
+            cutoff: 850,
+            pan: (i - 1) * 0.3,
+          },
+        );
+      this.noise(at + 0.12, 0.65, 0.02, this.effects, 250, "bandpass", 0.16, {
+        end: 190,
+        q: 1.2,
+      });
+      this.duckMusic(0.58, 1.1);
+      return;
+    }
     const root =
       kind === "kraken"
         ? 43.65
@@ -1235,7 +1297,11 @@ export class OceanAudio {
     this.reverbInput.connect(this.convolver).connect(this.reverbFilter);
   }
 
-  /** 百慕大音型复用现有音乐图，不另建音频上下文。 */
+  /** 各海域音型复用现有音乐图，不另建音频上下文。 */
+  ensureEuropaMusic() {
+    if (!this.europaMusic) this.europaMusic = new EuropaMusic(this);
+    return this.europaMusic;
+  }
   ensureMarianaMusic() {
     this.marianaMusic ??= new MarianaMusic(this);
     return this.marianaMusic;

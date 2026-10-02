@@ -1,3 +1,4 @@
+import { EUROPA_EN } from "./locales/europa_en.js";
 import { LIVING_OCEAN_EN } from "./locales/living_ocean_en.js";
 import { REGIONS_REVISION_EN } from "./locales/regions_revision_en.js";
 import { MARIANA_EN } from "./locales/mariana_en.js";
@@ -18,6 +19,7 @@ const english = Object.freeze(
     MARIANA_EN,
     REGIONS_REVISION_EN,
     LIVING_OCEAN_EN,
+    EUROPA_EN,
   ),
 );
 const listeners = new Set();

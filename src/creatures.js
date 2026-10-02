@@ -1,3 +1,9 @@
+import { buildAbyssWeaver } from "./creature_abyss_weaver.js";
+import { buildLumenStalker } from "./creature_lumen_stalker.js";
+import {
+  EUROPA_CREATURE_KINDS,
+  buildEuropaCreature,
+} from "./creature_europa.js";
 import { WILDLIFE_KINDS, buildWildlife } from "./creature_wildlife.js";
 import {
   MARIANA_CREATURE_KINDS,
@@ -67,7 +73,11 @@ export function createCreature(kind, length = 6, seed = 1) {
   let previousTime;
   let swimTime = phase;
 
-  if (WILDLIFE_KINDS.has(kind)) buildWildlife(kind, root, motions);
+  if (kind === "abyss_weaver") buildAbyssWeaver(root, motions);
+  else if (kind === "lumen_stalker") buildLumenStalker(root, motions);
+  else if (EUROPA_CREATURE_KINDS.has(kind))
+    buildEuropaCreature(kind, root, motions);
+  else if (WILDLIFE_KINDS.has(kind)) buildWildlife(kind, root, motions);
   else if (MARIANA_CREATURE_KINDS.has(kind))
     buildMarianaCreature(kind, root, motions);
   else if (BERMUDA_CREATURE_KINDS.has(kind))

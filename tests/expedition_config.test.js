@@ -19,7 +19,9 @@ test("Current expedition uses Hawaii and the base orca with the full species ros
   );
   assert.deepEqual(
     new Set(region.bossKinds),
-    new Set(BOSS_SPECIES.map((entry) => entry.kind)),
+    new Set(
+      BOSS_SPECIES.filter((entry) => !entry.alien).map((entry) => entry.kind),
+    ),
   );
   assert.ok(region.spawn.every(Number.isFinite));
   assert.equal(character.startLength, 3);
@@ -37,7 +39,7 @@ test("Unreleased and unknown expeditions cannot start", () => {
 test("Atlantis is the second playable destination for both existing characters", () => {
   assert.deepEqual(
     REGIONS.filter((entry) => entry.available).map((entry) => entry.id),
-    ["hawaii", "atlantis", "bermuda", "mariana"],
+    ["hawaii", "atlantis", "bermuda", "mariana", "europa"],
   );
   assert.equal(REGIONS[1].id, "atlantis");
   assert.deepEqual(

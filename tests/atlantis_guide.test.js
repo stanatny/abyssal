@@ -26,7 +26,9 @@ cssHook.deregister();
 const chinese = /[\u3400-\u9fff]/u;
 const ordinary = (entries) =>
   entries.filter((entry) =>
-    ["shoal", "hunter", "ancient", "invertebrate"].includes(entry.category),
+    ["shoal", "hunter", "ancient", "invertebrate", "alien"].includes(
+      entry.category,
+    ),
   );
 const kinds = (entries) => entries.map((entry) => entry.kind).sort();
 const placeholders = (value) =>
@@ -34,7 +36,11 @@ const placeholders = (value) =>
 
 test("the guide's full and regional catalogs agree with actual species and lord rosters", () => {
   const catalog = buildOceanCatalog();
-  assert.equal(catalog.length, 71);
+  assert.equal(catalog.length, 92);
+  assert.equal(
+    catalog.filter((e) => e.regionIds.some((id) => id !== "europa")).length,
+    71,
+  );
   assert.equal(new Set(catalog.map((entry) => entry.id)).size, catalog.length);
   assert.deepEqual(kinds(ordinary(catalog)), kinds(ALL_SPECIES));
   for (const region of REGIONS.filter((entry) => entry.available)) {
@@ -58,6 +64,8 @@ test("the guide's full and regional catalogs agree with actual species and lord 
     ].filter(
       (kind) =>
         !(
+          (region.ecologyKind === "alien" &&
+            !["orca", "squid"].includes(kind)) ||
           (region.id === "bermuda" &&
             ["swimmer", "diver", "submarine"].includes(kind)) ||
           (region.id === "mariana" &&
@@ -188,7 +196,7 @@ test("region, category, and bilingual searches compose without hiding the full a
         ),
         ["kraken"],
       );
-      assert.equal(filterOceanCatalog(catalog, { category: "lord" }).length, 4);
+      assert.equal(filterOceanCatalog(catalog, { category: "lord" }).length, 6);
     }
   } finally {
     setLanguage("zh-CN");
@@ -254,6 +262,7 @@ test("the complete and regional archives group new species with peers in ascendi
     assert.deepEqual(
       groups.map((group) => group.id),
       [
+        ...(catalog.some((e) => e.category === "alien") ? ["alien"] : []),
         "shoal",
         "invertebrate",
         "surface",
@@ -279,7 +288,10 @@ test("the complete and regional archives group new species with peers in ascendi
       }
     }
     if (regionId !== "hawaii") {
-      assert.equal(groups[0].entries[0].length, 0.15);
+      assert.equal(
+        groups.find((g) => g.id === "shoal").entries[0].length,
+        0.15,
+      );
       assert.ok(
         groups
           .find((group) => group.id === "hunter")

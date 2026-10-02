@@ -186,3 +186,30 @@ test("领主在真实侧翼网格接触时只咬一次，离开实体后可以�
   assert.equal(f.events.bites, 2);
   assert.ok(f.entry.state.health < health);
 });
+
+test("织母真实前摇和扫网命中一次，垂直脱离与岩石遮挡均可规避", () => {
+  for (const strategy of ["standing", "up", "cover"]) {
+    const f = fixture("abyss_weaver");
+    f.position.set(0, -400, -70);
+    while (f.time < 6) {
+      if (
+        strategy === "up" &&
+        f.entry.state.phase === "windup" &&
+        f.entry.state.timer >= 1.5
+      )
+        f.position.y += 1;
+      f.step(1 / 60, strategy === "cover" ? () => true : () => false);
+    }
+    if (strategy === "standing") {
+      assert.equal(f.events.hits, 1);
+      assert.ok(Math.abs(f.player.health - 68) < 0.001);
+      assert.ok(f.entry.state.attackCount >= 1);
+      assert.ok(f.entry.fx.sectors.length === 3);
+      assert.equal(f.entry.state.phase, "recover");
+    } else {
+      assert.equal(f.events.hits, 0);
+      assert.equal(f.player.health, 100);
+    }
+    f.encounters.dispose();
+  }
+});

@@ -1,3 +1,4 @@
+import { EUROPA_WORLD } from "./europa_config.js";
 import { REGION_OBJECTIVES } from "./expedition_objectives.js";
 import { MARIANA_WORLD, MARIANA_GATES } from "./mariana_config.js";
 import { REGION_SPECIES_KINDS } from "./region_ecology.js";
@@ -16,7 +17,9 @@ export const REGIONS = Object.freeze(
       description:
         "从阳光海滩潜入火山深渊。珊瑚鱼群、远古巨兽与多位深渊领主在此共存。",
       speciesKinds: REGION_SPECIES_KINDS.hawaii,
-      bossKinds: BOSS_SPECIES.map((species) => species.kind),
+      bossKinds: BOSS_SPECIES.filter((species) => !species.alien).map(
+        (species) => species.kind,
+      ),
       spawn: [0, -18, 75],
     },
     {
@@ -52,7 +55,7 @@ export const REGIONS = Object.freeze(
       description:
         "风暴遮蔽神秘外海，探索可进入的巨型沉船，避开龙卷水柱与幽灵炮击。安全浅滩之外，危险分布在各个水层。",
       speciesKinds: REGION_SPECIES_KINDS.bermuda,
-      bossKinds: BOSS_SPECIES.map((s) => s.kind),
+      bossKinds: BOSS_SPECIES.filter((s) => !s.alien).map((s) => s.kind),
       humanActivity: {
         swimmers: false,
         divers: false,
@@ -121,6 +124,47 @@ export const REGIONS = Object.freeze(
       },
       spawn: [0, -18, 75],
       completion: "trench_descent",
+    },
+    {
+      id: "europa",
+      departureHint:
+        "这里是冰穹育幼湾 · 捕食小型游体补给成长\n长到约4米，再沿盐脉探索",
+      name: "木卫二冰下海洋",
+      available: true,
+      seabedHeat: false,
+      surfaceMode: "ice",
+      world: EUROPA_WORLD,
+      ecologyKind: "alien",
+      description:
+        "冰壳之下，盐脉与热泉孕育着幻想外星生命。探索五层栖地，挑战辉渊巡狩者与星渊织母。",
+      speciesKinds: REGION_SPECIES_KINDS.europa,
+      bossKinds: ["abyss_weaver", "lumen_stalker"],
+      bossInstances: [
+        {
+          id: "europa_lumen",
+          kind: "lumen_stalker",
+          home: [-90, -465, -570],
+          radius: 105,
+          maxCenterY: -360,
+          persistentDefeat: true,
+        },
+        {
+          id: "europa_weaver",
+          kind: "abyss_weaver",
+          home: [0, -730, -745],
+          radius: 140,
+          maxCenterY: -650,
+          persistentDefeat: true,
+        },
+      ],
+      humanActivity: {
+        swimmers: false,
+        divers: false,
+        releasedDivers: false,
+        submarines: false,
+        mines: false,
+      },
+      spawn: [0, -18, 75],
     },
   ].map((region) =>
     Object.freeze({ ...region, objective: REGION_OBJECTIVES[region.id] }),

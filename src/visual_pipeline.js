@@ -16,6 +16,7 @@ export function createVisualPipeline(renderer, scene, camera) {
   renderer.info.autoReset = false;
   const environment = createMarineEnvironment(renderer);
   let nightEnvironment = null;
+  let iceEnvironment = null;
   scene.environment = environment.texture;
   scene.environmentIntensity = 0.38;
   const target = new THREE.WebGLRenderTarget(innerWidth, innerHeight, {
@@ -48,12 +49,19 @@ export function createVisualPipeline(renderer, scene, camera) {
       aboveWater = false,
       ink = 0,
       night = false,
+      ice = false,
     }) {
       if (disposed) return;
       // 首次进入夜海才预过滤月光环境，反复切图直接复用两套渲染目标。
       if (night && !nightEnvironment)
         nightEnvironment = createMarineEnvironment(renderer, { night: true });
-      const reflection = night ? nightEnvironment.texture : environment.texture;
+      if (ice && !iceEnvironment)
+        iceEnvironment = createMarineEnvironment(renderer, { ice: true });
+      const reflection = ice
+        ? iceEnvironment.texture
+        : night
+          ? nightEnvironment.texture
+          : environment.texture;
       if (scene.environment !== reflection) scene.environment = reflection;
       particles.points.position.copy(position);
       particles.uniforms.time.value = reducedMotion ? 0 : time;
@@ -66,7 +74,7 @@ export function createVisualPipeline(renderer, scene, camera) {
         (aboveWater
           ? 0.52
           : Math.max(0.1, 0.38 - depth / 2100) * (1 - ink * 0.45)) *
-        (night ? 0.72 : 1);
+        (ice ? 0.6 : night ? 0.72 : 1);
     },
     render() {
       if (disposed) return;
@@ -91,12 +99,15 @@ export function createVisualPipeline(renderer, scene, camera) {
       particles.material.dispose();
       if (
         scene.environment === environment.texture ||
-        scene.environment === nightEnvironment?.texture
+        scene.environment === nightEnvironment?.texture ||
+        scene.environment === iceEnvironment?.texture
       )
         scene.environment = null;
       environment.dispose();
       nightEnvironment?.dispose();
+      iceEnvironment?.dispose();
       nightEnvironment = null;
+      iceEnvironment = null;
       bloom.dispose();
       renderPass.dispose();
       output.dispose();
@@ -114,7 +125,10 @@ export function createVisualPipeline(renderer, scene, camera) {
  * @param {{night?:boolean}} options 夜间开关，默认保留原日间环境。
  * @returns {THREE.WebGLRenderTarget} 独立环境目标，由调用方缓存与释放。
  */
-export function createMarineEnvironment(renderer, { night = false } = {}) {
+export function createMarineEnvironment(
+  renderer,
+  { night = false, ice = false } = {},
+) {
   const backdrop = new THREE.Scene();
   const geometry = new THREE.SphereGeometry(20, 32, 20);
   const material = new THREE.ShaderMaterial({
@@ -122,12 +136,20 @@ export function createMarineEnvironment(renderer, { night = false } = {}) {
     uniforms: {
       lowerTone: {
         value: new THREE.Vector3(
-          ...(night ? [0.025, 0.05, 0.075] : [0.075, 0.11, 0.105]),
+          ...(ice
+            ? [0.025, 0.055, 0.065]
+            : night
+              ? [0.025, 0.05, 0.075]
+              : [0.075, 0.11, 0.105]),
         ),
       },
       upperTone: {
         value: new THREE.Vector3(
-          ...(night ? [0.09, 0.17, 0.26] : [0.46, 0.67, 0.74]),
+          ...(ice
+            ? [0.11, 0.18, 0.21]
+            : night
+              ? [0.09, 0.17, 0.26]
+              : [0.46, 0.67, 0.74]),
         ),
       },
       keyDirection: {
@@ -137,13 +159,17 @@ export function createMarineEnvironment(renderer, { night = false } = {}) {
       },
       keyTone: {
         value: new THREE.Vector3(
-          ...(night ? [0.9, 1.3, 1.8] : [2.8, 2.65, 2.15]),
+          ...(ice ? [0, 0, 0] : night ? [0.9, 1.3, 1.8] : [2.8, 2.65, 2.15]),
         ),
       },
       keyPower: { value: night ? 96 : 24 },
       fillTone: {
         value: new THREE.Vector3(
-          ...(night ? [0.12, 0.22, 0.32] : [0.32, 0.5, 0.58]),
+          ...(ice
+            ? [0.13, 0.21, 0.22]
+            : night
+              ? [0.12, 0.22, 0.32]
+              : [0.32, 0.5, 0.58]),
         ),
       },
     },

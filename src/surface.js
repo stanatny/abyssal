@@ -1,3 +1,4 @@
+import { createIceCoveredSurface } from "./ice_surface.js";
 import { regionalBirds, sampleBirdFlight } from "./surface_birds.js";
 import { createMarianaFleet, createMarianaSky } from "./mariana_surface.js";
 import { createBermudaFleet } from "./bermuda_fleet.js";
@@ -24,6 +25,7 @@ export function createSurface(
     onEat,
     isSwallowing,
     regionId = "hawaii",
+    surfaceMode = "open",
     worldBounds = WORLD,
     worldColliders,
     castWorld,
@@ -33,6 +35,7 @@ export function createSurface(
     onDamage,
   } = {},
 ) {
+  if (surfaceMode === "ice") return createIceCoveredSurface({ worldBounds });
   const root = new THREE.Group();
   root.name = "surface_environment";
   scene.add(root);

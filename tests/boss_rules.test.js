@@ -33,12 +33,13 @@ function grownPlayer(length = 30, characterId = "orca") {
 }
 
 test("四位主宰均大于玩家上限，技能不同且栖息区在世界之内", () => {
-  assert.equal(BOSS_SPECIES.length, 4);
-  assert.equal(new Set(BOSS_SPECIES.map((s) => s.ability)).size, 4);
+  assert.equal(BOSS_SPECIES.filter((s) => !s.alien).length, 4);
+  assert.equal(BOSS_SPECIES.length, 6);
+  assert.equal(new Set(BOSS_SPECIES.map((s) => s.ability)).size, 5);
   for (const species of BOSS_SPECIES) {
     assert.equal(species.tier, 3);
     assert.ok(species.length > 30);
-    assert.ok(species.depthMax <= WORLD.maxDepth);
+    assert.ok(species.depthMax <= (species.alien ? 900 : WORLD.maxDepth));
     assert.ok(species.depthMin < species.depthMax);
     assert.ok(species.speed > PLAYER_MOVEMENT.sprintSpeed);
     assert.ok(species.windupDuration >= 1.6 && species.windupDuration <= 2.5);

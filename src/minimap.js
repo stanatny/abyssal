@@ -148,6 +148,11 @@ export function createMinimap(container) {
         );
       });
       const nursery = isNursery(position);
+      const nurseryLabel =
+        world.surfaceMode === "ice" ? "冰穹育幼湾" : "安全浅滩";
+      container.querySelectorAll(".minimap-zone")[1].textContent = t(
+        world.surfaceMode === "ice" ? "冰穹" : "浅",
+      );
       snapshot = getMinimapState({
         position,
         forward,
@@ -174,7 +179,7 @@ export function createMinimap(container) {
       container.setAttribute(
         "aria-label",
         t(
-          tr`海域雷达，北向固定，${snapshot.homeLabel}，${snapshot.depthLabel}，${snapshot.attitude.label}${nursery ? "，安全浅滩" : ""}`,
+          tr`海域雷达，北向固定，${snapshot.homeLabel}，${snapshot.depthLabel}，${snapshot.attitude.label}${nursery ? `，${nurseryLabel}` : ""}`,
         ),
       );
       playerMarker.setAttribute("visibility", "visible");
@@ -192,7 +197,7 @@ export function createMinimap(container) {
       );
       homeLabel.textContent = t(snapshot.homeLabel);
       container.dataset.nursery = String(nursery);
-      depthLabel.textContent = t(nursery ? "安全浅滩" : snapshot.depthLabel);
+      depthLabel.textContent = t(nursery ? nurseryLabel : snapshot.depthLabel);
       const next = waypoints.find((w) => !w.open);
       if (next && !nursery)
         depthLabel.textContent = t(

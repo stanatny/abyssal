@@ -1,3 +1,4 @@
+import { EUROPA_HABITATS } from "./europa_config.js";
 import * as THREE from "three";
 import { getZone } from "./simulation.js";
 import { atlantisDistrict } from "./atlantis_city_plan.js";
@@ -29,6 +30,22 @@ const ATLANTIS_ZONES = {
 /** 海域仅改变区域展示，深度阈值与饥饿计算仍由共享规则决定。 */
 export function regionZone(regionId, depth, position = null) {
   const zone = getZone(depth);
+  if (regionId === "europa") {
+    const index =
+      depth < 60 ? 0 : depth < 180 ? 1 : depth < 400 ? 2 : depth < 650 ? 3 : 4;
+    return {
+      ...zone,
+      name: EUROPA_HABITATS[index].name,
+      code: [
+        "ICE CRADLE",
+        "BRINE ARCHES",
+        "SUSPENDED GARDEN",
+        "THERMAL BASIN",
+        "WEAVER’S HOLLOW",
+      ][index],
+      description: "冰下幻想生态；沿盐脉、悬生群落与热泉寻找食物。",
+    };
+  }
   if (regionId === "mariana") {
     const row =
       depth < 80

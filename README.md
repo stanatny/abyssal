@@ -16,6 +16,20 @@ Play in a modern desktop or phone browser with WebGL 2 support—no account or d
 
 Starting an expedition smoothly rotates the home scene into the follow camera over about 1.65 seconds. The round timer and survival systems begin after control is handed over. You can pause and resume the transition; system reduced-motion preferences skip the camera travel.
 
+## Unreleased Europa candidate
+
+The current `feature/europa` review adds a fifth independent destination, **Europa**, beneath a solid ice ceiling. It is a fictional bonus expedition, directly selectable for now; future unlocking is unspecified. The published v0.8.3 version and the four-region reference sections below remain unchanged.
+
+Explore five connected habitats: Ice Cradle, Brine Arches, Suspended Garden, Thermal Basin and Weaver's Hollow. Sixteen original ordinary alien species form a layered 247-organism food chain. Only the two playable characters come from Earth; this destination has no terrestrial wildlife, active crews, surface fleet or atmospheric breach. An abandoned original research lander is a static exploration artifact. The separate Alien Life Guide filter identifies fictional lifeforms and their actual feeding roles.
+
+The alien roster now separates crystal-shelled shoals, articulated crawlers, radial blooms, broad gliders, eight-armed filterers, coiled-shell grazers, armored serpents and bell colonies. Their existing sizes, populations, food values and habitats remain intact.
+
+Two original persistent Abyss Lords inhabit different layers: the **Lumen Stalker** guards the Thermal Basin with eight long unbranched arms, concentrated light organs and a telegraphed locked charge; the **Abyss Weaver** occupies the deepest Hollow with a three-lobed mantle, six bifurcating arms and a three-sector Tidal Loom. Reach 30 m and defeat either local lord with three separate flank bites to complete the expedition. Shared survival, skills and character-aware local records remain in use. The revised tonal score reduces ambient hiss and contrasts quiet exploration with a faster pursuit rhythm.
+
+A crashed research lander at the Garden/Basin transition has a flooded, open-ended instrument gallery. Attached mineral clusters, restrained colonial glimmers and chemical plumes enrich the seafloor. Lumen Stalker now extends its eight arms into much longer returning coils, retaining its mantle and charge rules. The environment imagines possible water-rock chemistry; vents, life and luminous colonies on Europa are not established observations. See the [terrain follow-up](docs/europa_terrain_revision.md).
+
+Read the [production brief](docs/europa_brief.md), [candidate verification](docs/europa_verification.md) and [music/model refinement](docs/europa_refinement.md) for implementation evidence and remaining review limits. This candidate is not a formal release.
+
 ## Gameplay review candidate (not yet published)
 
 The current working candidate doubles base hunger consumption and adds stronger, size-dependent deep-water pressure. At 3 m, the full-depth drain is six times the same character’s shallow drain; this eases continuously to 1.5 times at 18 m and above. A HUD multiplier and both-language Guide explain the pressure. Survival timers follow actual active time even when rendering slows. Shallow feeding and large deep prey retain their existing populations and rewards.

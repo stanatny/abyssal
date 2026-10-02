@@ -15,6 +15,14 @@ export const ATLANTIS_KEY_SITES = Object.freeze([
 ]);
 
 export const REGION_OBJECTIVES = Object.freeze({
+  europa: Object.freeze({
+    kind: "growth_and_lord",
+    minimumLength: 30,
+    summary: "成长至30米，击败任一冰下深渊领主。",
+    completed: "冰下远征完成，已征服一位外星领主。",
+    difficulty: "幻想奖励远征",
+    food: "冰下鱼群 → 悬生巨游 → 冰下深渊领主",
+  }),
   hawaii: Object.freeze({
     kind: "growth_and_lord",
     minimumLength: 30,

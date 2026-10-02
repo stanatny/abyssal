@@ -1,3 +1,4 @@
+import { EUROPA_SPECIES } from "./europa_species.js";
 import { NONFISH_SPECIES, nonfishEcology } from "./nonfish_ecology.js";
 import { WORLD } from "./world_config.js";
 import { MARIANA_WORLD } from "./mariana_config.js";
@@ -20,6 +21,7 @@ export const ALL_SPECIES = Object.freeze([
   ...BERMUDA_SPECIES,
   ...MARIANA_SPECIES,
   ...NONFISH_SPECIES,
+  ...EUROPA_SPECIES,
 ]);
 
 /**
@@ -135,6 +137,7 @@ const ATLANTIS_OVERRIDES = {
 };
 
 const REGION_SPECIES = Object.freeze({
+  europa: EUROPA_SPECIES,
   hawaii: Object.freeze([
     ...ECOSYSTEM_SPECIES,
     ...nonfishEcology("hawaii", WORLD),

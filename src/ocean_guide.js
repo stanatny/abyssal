@@ -10,6 +10,7 @@ import {
   localizeRecord,
 } from "./i18n.js";
 import * as THREE from "three";
+import { europaGuideEntries } from "./europa_guide.js";
 import { createCreature } from "./creatures.js";
 import { HUNGER_RULES } from "./simulation.js";
 import { ALL_SPECIES, getRegionSpecies } from "./region_ecology.js";
@@ -26,6 +27,7 @@ import "./ocean_guide.css";
 
 // 生物按由小到大的探索顺序展示，角色与人类活动单独归档。
 const GUIDE_CATEGORIES = [
+  { id: "alien", name: "外星生命" },
   { id: "shoal", name: "小型鱼与鱼群" },
   { id: "invertebrate", name: "海洋无脊椎" },
   { id: "surface", name: "海面" },
@@ -62,6 +64,34 @@ export function groupOceanCatalog(catalog) {
 }
 
 const DESCRIPTIONS = {
+  lumen_stalker: {
+    name: "辉渊巡狩者",
+    latin: "EUROPA LIFEFORM L-02",
+    category: "lord",
+    role: "辉渊主宰",
+    color: "#94d8e9",
+    ability: "辉光突袭",
+    appearance:
+      "《木卫二报告》中的发光长足生物启发的原创形象：八条无分叉长腕向外舒展后回卷，形成围拢大型船体的轮廓；集中发光腔与腕上光点勾勒暗色肌体。",
+    text: "发光腔膨胀、长腕收拢时预告一次锁定冲锋；突袭后有3秒恢复期。守护热泉盆地，始终留在自己的领域附近。",
+    counter:
+      "看到冲锋流纹后横向闪避，利用岩拱遮挡；恢复时从侧翼咬击实体躯干，脱离至少0.35秒再回来。需要25米和三次有效侧咬。",
+    realSize: "幻想电影启发的原创外星海怪，不代表木卫二存在大型生命的证据。",
+  },
+  abyss_weaver: {
+    name: "星渊织母",
+    latin: "EUROPA LIFEFORM L-01",
+    category: "lord",
+    role: "冰下主宰",
+    color: "#bd98cb",
+    ability: "潮汐织网",
+    appearance:
+      "三叶外套包围脉动器官，六条分叉长腕沿压力纹路舒展，腹面放射口器缓慢开合。",
+    text: "展开长腕预告三段压力扇区，再扫出潮汐织网；扇区之间与上下均有逃生空间。",
+    counter:
+      "避开紫色压力带，利用岩拱遮挡；织网后的3秒恢复期，从侧面咬击躯干，再脱离接触。",
+    realSize: "仅为原创幻想外星海怪，不代表木卫二存在大型生命的证据。",
+  },
   kraken: {
     name: "克拉肯",
     latin: "KRAKEN",
@@ -145,9 +175,11 @@ export function buildOceanCatalog(regionId) {
       ability: tr`主动 · ${entry.active.name} / 被动 · ${entry.passive.name}`,
       text: tr`${entry.active.description} 激活起冷却${entry.active.cooldown}秒。被动：${entry.passive.description}`,
       counter:
-        entry.kind === "orca"
-          ? "用声呐判断前方猎物体长和捕食资格，雷达保留周围回声。高速冲刺可追捕猎物或拉开距离，水下连续蓄势后才能破水。"
-          : "遇到猎手追击时在水下喷墨脱身，提前把头朝向安全出口；喷射会受到礁石和船体阻挡。松开冲刺可发挥灵活转向的被动。",
+        regionId === "europa"
+          ? "冰壳下的海洋没有大气出口，无法跃出水面。陡角度接触冰顶会短暂回到平游；技能、捕食与岩拱碰撞规则不变。"
+          : entry.kind === "orca"
+            ? "用声呐判断前方猎物体长和捕食资格，雷达保留周围回声。高速冲刺可追捕猎物或拉开距离，水下连续蓄势后才能破水。"
+            : "遇到猎手追击时在水下喷墨脱身，提前把头朝向安全出口；喷射会受到礁石和船体阻挡。松开冲刺可发挥灵活转向的被动。",
       characterId: entry.id,
       realSize:
         "其他海域3米幼年起步，马里亚纳15米起步；起始尺寸、30米体长上限与技能强度属于游戏设定。",
@@ -163,11 +195,18 @@ export function buildOceanCatalog(regionId) {
         category: config.category,
         color: config.color,
         role:
-          config.category === "ancient"
-            ? "远古巨兽"
-            : config.category === "hunter"
-              ? "海洋霸主"
-              : "海洋猎物",
+          config.category === "alien"
+            ? {
+                hunter: "外星猎手",
+                giant: "外星巨游",
+                grazer: "外星滤食者",
+                resident: "外星底栖",
+              }[config.trophicRole]
+            : config.category === "ancient"
+              ? "远古巨兽"
+              : config.category === "hunter"
+                ? "海洋霸主"
+                : "海洋猎物",
         length: config.length,
         nutrition: config.nutrition,
         growth: config.growth,
@@ -207,15 +246,17 @@ export function buildOceanCatalog(regionId) {
         (DESCRIPTIONS[config.kind].appearance
           ? t(DESCRIPTIONS[config.kind].appearance) + " "
           : "") +
-        (regionId === "mariana"
-          ? config.kind === "hydra"
-            ? tr`${DESCRIPTIONS.hydra.text} ${tr`三头巨龙海德拉守卫远离出生点的外海水面，是第一道压力帘的必经守卫。达到25米后，从侧面完成三次独立咬击，击败它即可开启2600米处的第一道压力帘；本局不再复活。`}`
-            : tr`${DESCRIPTIONS[config.kind].text} ${tr`本海域的守关领主被击败后不再复活，压力帘随之开启。需成长至30米、突破四关并抵达海沟底部。`}`
-          : regionId === "bermuda"
-            ? tr`${DESCRIPTIONS[config.kind].text} ${tr`本海域必须击败全部四位深渊领主；各领主只出现一次。`}`
-            : regionId === "atlantis" && config.kind === "kraken"
-              ? tr`${DESCRIPTIONS.kraken.text} ${tr`亚特兰蒂斯有三只克拉肯，分别守卫西侧城区、中庭和后城；每只拥有独立领地与生命值。每局随机由其中一只守护波塞冬地宫的圣珠，身份不会预先公开。先在城区公共建筑寻找海螺钥匙。海螺铭文可提供建筑线索；钥匙与真正守宝者的印记齐全，波塞冬地宫宝箱才会开启。达到30米并吞食箱中圣珠才能胜利。所有领主本局不再复活。`}`
-              : tr`${DESCRIPTIONS[config.kind].text} ${tr`每局击败后不再复活。夏威夷成长至30米并击败任意一位即可胜利。`}`),
+        (config.alien
+          ? tr`${DESCRIPTIONS[config.kind].text} ${tr`成长至30米，击败任一冰下深渊领主。`}`
+          : regionId === "mariana"
+            ? config.kind === "hydra"
+              ? tr`${DESCRIPTIONS.hydra.text} ${tr`三头巨龙海德拉守卫远离出生点的外海水面，是第一道压力帘的必经守卫。达到25米后，从侧面完成三次独立咬击，击败它即可开启2600米处的第一道压力帘；本局不再复活。`}`
+              : tr`${DESCRIPTIONS[config.kind].text} ${tr`本海域的守关领主被击败后不再复活，压力帘随之开启。需成长至30米、突破四关并抵达海沟底部。`}`
+            : regionId === "bermuda"
+              ? tr`${DESCRIPTIONS[config.kind].text} ${tr`本海域必须击败全部四位深渊领主；各领主只出现一次。`}`
+              : regionId === "atlantis" && config.kind === "kraken"
+                ? tr`${DESCRIPTIONS.kraken.text} ${tr`亚特兰蒂斯有三只克拉肯，分别守卫西侧城区、中庭和后城；每只拥有独立领地与生命值。每局随机由其中一只守护波塞冬地宫的圣珠，身份不会预先公开。先在城区公共建筑寻找海螺钥匙。海螺铭文可提供建筑线索；钥匙与真正守宝者的印记齐全，波塞冬地宫宝箱才会开启。达到30米并吞食箱中圣珠才能胜利。所有领主本局不再复活。`}`
+                : tr`${DESCRIPTIONS[config.kind].text} ${tr`每局击败后不再复活。夏威夷成长至30米并击败任意一位即可胜利。`}`),
       length: config.length,
       size: tr`${config.length} m`,
       tier: 3,
@@ -255,6 +296,7 @@ export function buildOceanCatalog(regionId) {
     ...HUMAN_CATALOG,
     ...bermudaGuideEntries(),
     ...marianaGuideEntries(),
+    ...europaGuideEntries(),
   ]
     .map((entry) => ({
       ...localizeRecord(entry),
@@ -284,7 +326,11 @@ function catalogRegionIds(entry) {
       return region.humanActivity?.[key] !== false;
     }
     if (entry.category === "lord") return region.bossKinds.includes(entry.kind);
-    if (["shoal", "hunter", "ancient", "invertebrate"].includes(entry.category))
+    if (
+      ["shoal", "hunter", "ancient", "invertebrate", "alien"].includes(
+        entry.category,
+      )
+    )
       return region.speciesKinds.includes(entry.kind);
     if (entry.category === "surface")
       return (
@@ -467,6 +513,7 @@ export function createOceanGuide(trigger) {
   const regionSelect = regionRow.querySelector("select");
   const filters = [
     { id: "all", name: "全部" },
+    { id: "alien", name: "外星生命" },
     { id: "player", name: "可选角色" },
     { id: "reward", name: "海洋奖励" },
     { id: "shoal", name: "小型鱼与鱼群" },
@@ -583,7 +630,7 @@ export function createOceanGuide(trigger) {
       regionIntro,
       region
         ? tr`<summary>${region.name}<span>${region.objective.difficulty} · ${tr`${region.speciesKinds.length} 种生物`}</span></summary><p>${region.description}</p><p><b>远征目标</b> · ${region.objective.summary}</p><p>${region.objective.food}</p>`
-        : tr`<summary>四大海域<span>探索 · 生存 · 独立结局</span></summary><p>选择一个海域，查看它的独有生物、食物层级与胜利条件。所有深渊领主击败后本局不再刷新。</p>`,
+        : tr`<summary>五大海域<span>探索 · 生存 · 独立结局</span></summary><p>选择一个海域，查看它的独有生物、食物层级与胜利条件。所有深渊领主击败后本局不再刷新。</p>`,
     );
     const search = input.value.trim().toLowerCase();
     // 默认“全部”保留生物总览；输入关键词时，也可直接找到奖励档案。
@@ -850,6 +897,7 @@ export function createOceanGuide(trigger) {
       size.y * 0.75,
       size.length() * 0.23,
       0.6 / aspect,
+      (model.userData.guideRadius || 0) / Math.min(1, aspect),
     );
     camera.left = -half * aspect;
     camera.right = half * aspect;

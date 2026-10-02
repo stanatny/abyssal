@@ -2,6 +2,7 @@ import assert from "node:assert/strict";
 import test from "node:test";
 import { OceanAudio } from "../src/audio.js";
 import { AtlantisMusic, ATLANTIS_SCORE } from "../src/music_atlantis.js";
+import { EUROPA_SCORE } from "../src/music_europa.js";
 
 // 这里只验证乐句结构与调度契约，原生音频图另由浏览器脚本渲染验收。
 function fixture() {
@@ -88,6 +89,63 @@ function fixture() {
   audio.createGraph();
   return { audio, context, nodes };
 }
+
+test("Europa pursuit starts from actual pursuit even at zero danger, skips old beats and uses tonal score voices", () => {
+  const { audio, context } = fixture();
+  audio.setRegion("europa");
+  const score = audio.europaMusic,
+    notes = [],
+    noises = [];
+  audio.note = (...args) => notes.push(args);
+  audio.noise = (...args) => noises.push(args);
+  audio.drum = (...args) => noises.push(args);
+  audio.update(0, 0, { pursuing: false });
+  context.currentTime = 0.31;
+  audio.update(0.31, 0, { pursuing: true });
+  assert.ok(notes.some((n) => n[4] === score.pursuit && n[1] < 0.35));
+  const count = notes.length;
+  audio.update(0.31, 0, { pursuing: true });
+  assert.equal(notes.length, count);
+  context.currentTime = 40;
+  audio.update(40, 0, { pursuing: true });
+  assert.ok(notes.length - count <= 10);
+  for (let i = 0; i < 96; i++) score.schedule(50 + i, i);
+  for (let i = 0; i < 32; i++) score.scheduleCombat(200 + i / 4, i);
+  assert.equal(noises.length, 0);
+  audio.setPaused(true);
+  const pausedCount = notes.length;
+  context.currentTime = 42;
+  audio.update(42, 1, { boss: true });
+  assert.equal(notes.length, pausedCount);
+});
+
+test("Europa reduces ambient noise and wet mix locally, while switching to Earth restores the existing mix", () => {
+  const { audio, context } = fixture();
+  audio.update(0, 0, { depth: 400, pursuing: false });
+  const water = audio.waterGain.gain.value,
+    current = audio.currentGain.gain.value;
+  audio.setRegion("europa");
+  context.currentTime = 1;
+  audio.update(1, 0, { depth: 400, pursuing: false });
+  assert.ok(
+    Math.abs(audio.waterGain.gain.value - water * EUROPA_SCORE.ambientWater) <
+      1e-9,
+  );
+  assert.ok(
+    Math.abs(
+      audio.currentGain.gain.value - current * EUROPA_SCORE.ambientCurrent,
+    ) < 1e-9,
+  );
+  assert.equal(audio.musicWet.gain.value, 0.11);
+  for (const region of ["hawaii", "atlantis", "bermuda", "mariana"]) {
+    audio.setRegion(region);
+    context.currentTime++;
+    audio.update(context.currentTime, 0, { depth: 400, pursuing: false });
+    assert.equal(audio.waterGain.gain.value, water);
+    assert.equal(audio.currentGain.gain.value, current);
+    assert.equal(audio.musicWet.gain.value, 0.26);
+  }
+});
 
 test("选区可在用户手势前设置，不激活上下文；未知区域保留夏威夷主题", () => {
   const audio = new OceanAudio();

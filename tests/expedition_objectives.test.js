@@ -112,8 +112,20 @@ test("Mariana retains the bottom-arrival exception and rejects premature growth 
 test("All destinations have substantial and exclusive content in each ecological category", () => {
   for (const region of REGIONS) {
     const species = getRegionSpecies(region.id);
-    for (const category of ["shoal", "hunter", "ancient"]) {
-      const entries = species.filter((s) => s.category === category);
+    if (region.ecologyKind === "alien") {
+      assert.equal(species.length, 16);
+      assert.ok(species.every((s) => s.category === "alien"));
+    }
+    const roles =
+      region.ecologyKind === "alien"
+        ? ["grazer", "hunter", "giant"]
+        : ["shoal", "hunter", "ancient"];
+    for (const category of roles) {
+      const entries = species.filter(
+        (s) =>
+          (region.ecologyKind === "alien" ? s.trophicRole : s.category) ===
+          category,
+      );
       assert.ok(entries.length >= 3, `${region.id}: ${category}`);
       assert.ok(
         entries.some(

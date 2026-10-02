@@ -5,6 +5,9 @@ import {
   ATLANTIS_RELIC,
 } from "./expedition_objectives.js";
 import { createWorldBoundary, WORLD_EDGE_INSET } from "./world_boundary.js";
+import { createEuropaOceanAsync } from "./europa_ocean.js";
+import { needsIceRecovery, stepIceSteering } from "./ice_steering.js";
+import { stepSteering } from "./steering_rules.js";
 import { createMarianaOcean } from "./mariana_ocean.js";
 import { MARIANA_GATES, MARIANA_REFUGE } from "./mariana_config.js";
 import { createBermudaOcean } from "./bermuda_ocean.js";
@@ -324,7 +327,8 @@ let movementLabel = "巡游";
 let lureFlash = 0,
   waterMotion = null;
 let lastCollision = null;
-let groundRecovering = false;
+let groundRecovering = false,
+  iceRecovering = false;
 let nextShipNotice = 0;
 let expedition = getExpedition();
 let inkAbility = createInkState();
@@ -413,32 +417,39 @@ async function selectRegion(region) {
     await regionLoader.paint();
     // 新环境完整建成后才替换旧环境；失败时仍可回到原海域。
     nextOcean =
-      region.id === "mariana"
-        ? createMarianaOcean(container)
-        : region.id === "atlantis"
-          ? await createAtlantisOceanAsync(container, {
-              onStep(label) {
-                const progress = atlantisPreparationProgress[label];
-                if (progress)
-                  regionLoader.stage("正在绘制海底与海岸…", progress);
-              },
-            })
-          : region.id === "bermuda"
-            ? createBermudaOcean(container, {
-                audio,
-                notify,
-                onDamage() {
-                  hitFlash = 0.9;
-                  effects.hurt(position, player.length);
+      region.id === "europa"
+        ? await createEuropaOceanAsync(container, {
+            onStep() {
+              regionLoader.stage("正在雕刻冰壳与盐脉…", 35);
+            },
+          })
+        : region.id === "mariana"
+          ? createMarianaOcean(container)
+          : region.id === "atlantis"
+            ? await createAtlantisOceanAsync(container, {
+                onStep(label) {
+                  const progress = atlantisPreparationProgress[label];
+                  if (progress)
+                    regionLoader.stage("正在绘制海底与海岸…", progress);
                 },
               })
-            : createOcean(container);
+            : region.id === "bermuda"
+              ? createBermudaOcean(container, {
+                  audio,
+                  notify,
+                  onDamage() {
+                    hitFlash = 0.9;
+                    effects.hurt(position, player.length);
+                  },
+                })
+              : createOcean(container);
     await regionLoader.paint();
     regionLoader.stage("正在准备海面与生物…", 52);
     await regionLoader.paint();
     nextSurface = createSurface(container, audio, notify, {
       ...surfaceOptions,
       regionId: region.id,
+      surfaceMode: region.surfaceMode,
       worldBounds: region.world || WORLD,
       heightAt: nextOcean.heightAt || baseSeabedHeight,
       onDamage() {
@@ -490,6 +501,7 @@ async function selectRegion(region) {
       depth: 18,
       position,
       night: region.id === "atlantis",
+      ice: region.surfaceMode === "ice",
     });
     regionLoader.stage("正在准备光影…", 82);
     await regionLoader.paint();
@@ -556,31 +568,42 @@ function updateRegionPresentation() {
   document.querySelector(".specimen strong").textContent = t(
     specimenCaption(setup.getSelection().character),
   );
+  const ice = expedition.region.surfaceMode === "ice";
   const night = expedition.region.id === "atlantis";
   const storm = expedition.region.id === "bermuda";
   const trench = expedition.region.id === "mariana";
   setMarkup(
     document.querySelector(".intro"),
-    trench
-      ? "循着生物微光，潜入世界最深的海沟。<br />突破四道守关，寻找万米深处的秘密。"
-      : storm
-        ? "风暴遮蔽航路，幽灵炮声穿透浓雾。<br />探索失落沉船，挑战各水层的深渊领主。"
-        : night
-          ? "循着月光与鱼群，潜入沉没古城。<br />在波塞冬的珠光下，迎战守卫克拉肯。"
-          : "穿过阳光与鱼群，潜向未知。<br />从幼年的生命，长成深渊的主宰。",
+    ice
+      ? "潜入冰壳之下，循着盐脉与微光。<br />在陌生生命之间，寻找冰下的深渊领主。"
+      : trench
+        ? "循着生物微光，潜入世界最深的海沟。<br />突破四道守关，寻找万米深处的秘密。"
+        : storm
+          ? "风暴遮蔽航路，幽灵炮声穿透浓雾。<br />探索失落沉船，挑战各水层的深渊领主。"
+          : night
+            ? "循着月光与鱼群，潜入沉没古城。<br />在波塞冬的珠光下，迎战守卫克拉肯。"
+            : "穿过阳光与鱼群，潜向未知。<br />从幼年的生命，长成深渊的主宰。",
   );
-  const labels = trench
-    ? ["珍珠浅棚", "幽蓝阶渊", "挑战者秘境"]
-    : storm
-      ? ["宁静礁湾", "风暴外海", "失落沉船"]
-      : night
-        ? ["月辉浅滩", "沉没外城", "波塞冬古城"]
-        : ["珊瑚浅海", "幽蓝海沟", "火山深渊"];
+  const labels = ice
+    ? ["冰穹育幼", "悬生群落", "星渊深窟"]
+    : trench
+      ? ["珍珠浅棚", "幽蓝阶渊", "挑战者秘境"]
+      : storm
+        ? ["宁静礁湾", "风暴外海", "失落沉船"]
+        : night
+          ? ["月辉浅滩", "沉没外城", "波塞冬古城"]
+          : ["珊瑚浅海", "幽蓝海沟", "火山深渊"];
   document.querySelectorAll(".journey b span").forEach((node, index) => {
     node.textContent = t(labels[index]);
   });
   document.querySelector(".menu-stats b").textContent = String(
     OCEAN_CATALOG.length,
+  );
+  document.querySelectorAll(".menu-stats b")[1].textContent = String(
+    OCEAN_CATALOG.filter((entry) => entry.category === "lord").length,
+  ).padStart(2, "0");
+  document.querySelector(".depth-rail span").textContent = t(
+    ice ? "冰穹" : "浅海",
   );
 }
 function setMarkers(enabled) {
@@ -648,6 +671,7 @@ function activateCharacterSkill() {
     entity.chase = 0;
     entity.velocity.set(0, 0, 0);
     entity.hunter = createHunterState(entity.species, entity.seed);
+    entity.mesh.userData.setHunterPhase?.(entity.hunter.phase);
     entity.mesh.userData.disoriented = true;
     confused++;
   }
@@ -1045,7 +1069,7 @@ function resetExpedition(preserveWorld = false) {
   lastZone = "";
   lastNursery = null;
   lastCollision = null;
-  groundRecovering = false;
+  groundRecovering = iceRecovering = false;
   nextShipNotice = 0;
   notificationUntil = 0;
   hitFlash = 0;
@@ -1359,9 +1383,11 @@ function resolvePlayerMotion(previous, merge = false) {
       maxY:
         mode === "epilogue"
           ? -2660
-          : surface.airborne
-            ? undefined
-            : WORLD.surfaceY - player.length * 0.15,
+          : surface.ceilingHeight
+            ? surface.ceilingHeight(player.length, forward)
+            : surface.airborne
+              ? undefined
+              : WORLD.surfaceY - player.length * 0.15,
     },
   });
   position.copy(result.position);
@@ -1423,9 +1449,18 @@ function updatePlayer(dt, roundDt) {
     depth: -position.y,
   }).boosting;
   const movement = characterMovement(player.characterId, boosting || jet);
-  if (wasAirborne || jet) groundRecovering = false;
+  if (wasAirborne || jet) groundRecovering = iceRecovering = false;
   if (!jet) {
-    if (groundRecovering) {
+    if (iceRecovering && surface.mode === "ice") {
+      const recovered = stepIceSteering(
+        { yaw, pitch },
+        { x: inputX, y: inputY },
+        movement,
+        dt,
+      );
+      ({ yaw, pitch } = recovered);
+      iceRecovering = recovered.recovering;
+    } else if (groundRecovering) {
       const recovered = stepGroundSteering(
         { yaw, pitch },
         { x: inputX, y: inputY },
@@ -1434,6 +1469,13 @@ function updatePlayer(dt, roundDt) {
       );
       ({ yaw, pitch } = recovered);
       groundRecovering = recovered.recovering;
+    } else if (surface.mode === "ice") {
+      ({ yaw, pitch } = stepSteering(
+        { yaw, pitch },
+        { x: inputX, y: inputY },
+        movement,
+        dt,
+      ));
     } else {
       ({ yaw, pitch } = stepSurfaceSteering(
         { yaw, pitch },
@@ -1521,6 +1563,17 @@ function updatePlayer(dt, roundDt) {
     })
   )
     groundRecovering = true;
+  if (
+    surface.mode === "ice" &&
+    needsIceRecovery(pitch, {
+      desiredY,
+      position,
+      ceilingY: surface.ceilingHeight(player.length, forward),
+      contacts: movementCollision.contacts,
+      jet,
+    })
+  )
+    iceRecovering = true;
   humans.defense.recordMovement(previousPosition, position);
   avatar.position.copy(position);
   avatar.scale.setScalar(player.length);
@@ -2019,15 +2072,17 @@ function updateEntities(dt) {
       mesh.position,
       entity.velocity,
     );
-    if (ocean.city) {
-      // 城市的墙、柱与台阶使用真实碰撞体；夏威夷保留既有礁石导航。
+    const navigationColliders =
+      ocean.navigationColliders || ocean.city?.colliders;
+    if (navigationColliders) {
+      // 地图按能力提供真实静态导航体；未启用的海域保留原有礁石导航。
       const contact = resolveCreatureMotion(
         previousHabitatPosition,
         mesh.position,
         entity.velocity,
         habitat,
         {
-          colliders: ocean.city.colliders,
+          colliders: navigationColliders,
           heightAt: activeSeabedHeight,
           territory,
         },
@@ -2069,8 +2124,10 @@ function updateEntities(dt) {
       ),
       Math.min(1, dt * 3),
     );
-    if (distance < 180)
+    if (distance < 180) {
+      mesh.userData.setHunterPhase?.(hunter.phase);
       mesh.userData.animate?.(elapsed + entity.seed, moveSpeed / 6);
+    }
     if (
       !eatEntity(entity, mouth, previousPreyPosition, dt) &&
       predator &&
@@ -2201,7 +2258,8 @@ function atmosphere(dt) {
     blend,
   );
   if (night) color.lerp(new THREE.Color("#174652"), city * 0.72);
-  const aboveWater = camera.position.y > WORLD.surfaceY;
+  const ice = expedition.region.surfaceMode === "ice";
+  const aboveWater = !ice && camera.position.y > WORLD.surfaceY;
   if (aboveWater) color.set(night ? "#060d20" : "#a0c7d1");
   if (storm)
     color
@@ -2251,6 +2309,14 @@ function atmosphere(dt) {
     scene.fog.density =
       (aboveWater ? 0.0013 : 0.0027 + deep * 0.0005) +
       (aboveWater ? 0 : effects.ink * 0.115);
+  }
+  if (ice) {
+    color
+      .set("#163442")
+      .lerp(new THREE.Color("#111c32"), Clamp(depth / 850, 0, 1));
+    scene.background.lerp(color, Math.min(1, dt * 3));
+    scene.fog.color.copy(scene.background);
+    scene.fog.density = 0.0042 + effects.ink * 0.115;
   }
   if (!aboveWater && effects.ink > 0.01) {
     scene.fog.color.lerp(new THREE.Color("#111120"), effects.ink);
@@ -2307,6 +2373,16 @@ function atmosphere(dt) {
   sun.target.position.copy(position);
   sun.castShadow = highQuality && depth < 100;
   playerLight.intensity = 7 + blend * 21;
+  if (ice) {
+    ambient.color.set(0xa1bdcf);
+    ambient.groundColor.set(0x33415a);
+    ambient.intensity = 1.65 - blend * 0.28;
+    sun.color.set(0x9db5c6);
+    sun.intensity = 0.65;
+    sun.castShadow = false;
+    rim.intensity = 0.65;
+    playerLight.intensity = 12;
+  }
 }
 
 function updateHud() {
@@ -2337,19 +2413,31 @@ function updateHud() {
   if (lastNursery !== null && lastNursery !== nursery) {
     notify(
       nursery
-        ? "回到安全浅滩 · 猎手停止追击"
-        : expedition.region.startLength
-          ? "离开安全浅滩 · 沿岩壁捕捉大鱼，25米后挑战守关领主"
-          : "离开安全浅滩 · 外礁有少量猎手，建议4米后探索",
+        ? expedition.region.surfaceMode === "ice"
+          ? "回到冰穹育幼湾 · 猎手停止追击"
+          : "回到安全浅滩 · 猎手停止追击"
+        : expedition.region.surfaceMode === "ice"
+          ? "离开冰穹育幼湾 · 沿盐脉寻找大一些的猎物"
+          : expedition.region.startLength
+            ? "离开安全浅滩 · 沿岩壁捕捉大鱼，25米后挑战守关领主"
+            : "离开安全浅滩 · 外礁有少量猎手，建议4米后探索",
       4,
     );
   }
   lastNursery = nursery;
   $("hud").dataset.nursery = String(nursery);
-  $("zone-name").textContent = t(nursery ? "安全浅滩" : zone.name);
+  $("zone-name").textContent = t(
+    nursery
+      ? expedition.region.surfaceMode === "ice"
+        ? "冰穹育幼湾"
+        : "安全浅滩"
+      : zone.name,
+  );
   $("zone-code").textContent = t(
     nursery
-      ? "NURSERY LAGOON"
+      ? expedition.region.surfaceMode === "ice"
+        ? "ICE CRADLE"
+        : "NURSERY LAGOON"
       : zone.code ||
           {
             reef: "SUNLIT REEF",
@@ -2369,17 +2457,23 @@ function updateHud() {
   $("depth-dot").style.top =
     Clamp((-position.y / activeWorld().maxDepth) * 100, 0, 100) + "%";
   $("objective").textContent = t(
-    nursery && player.length < 4
-      ? "安心吃鱼群 · 成长至 4 米"
-      : nursery && player.length < 6
-        ? "已能探索外礁 · 留意单独猎手"
-        : player.length < 10
-          ? "捕食鱼群，成长至 10 米"
-          : player.length < 16
-            ? "狩猎海洋霸主，探索深水区"
-            : player.length < 25
-              ? "挑战远古巨兽，成长至 25 米"
-              : expeditionObjectiveHint(objectiveState, player),
+    expedition.region.surfaceMode === "ice" && player.length < 25
+      ? player.length < 6
+        ? "捕食冰下游体 · 成长后沿盐脉探索"
+        : player.length < 16
+          ? "寻找更大的外星猎物 · 探索悬生花园"
+          : "在热泉附近补给 · 成长至25米挑战外星领主"
+      : nursery && player.length < 4
+        ? "安心吃鱼群 · 成长至 4 米"
+        : nursery && player.length < 6
+          ? "已能探索外礁 · 留意单独猎手"
+          : player.length < 10
+            ? "捕食鱼群，成长至 10 米"
+            : player.length < 16
+              ? "狩猎海洋霸主，探索深水区"
+              : player.length < 25
+                ? "挑战远古巨兽，成长至 25 米"
+                : expeditionObjectiveHint(objectiveState, player),
   );
   if (
     objectiveState.regionId === "atlantis" &&
@@ -2440,7 +2534,7 @@ function updateHud() {
   } else if (threat) {
     const hunter = threat.entity.hunter;
     $("threat-title").textContent = t(
-      tr`${threat.entity.species.label} · ${hunter.phase === "windup" ? "技能蓄力" : hunter.phase === "active" ? hunter.ability.label : "正在追击"}`,
+      tr`${threat.entity.species.label} · ${hunter.phase === "windup" ? "技能蓄力" : hunter.phase === "active" ? threat.entity.species.ability || hunter.ability.label : "正在追击"}`,
     );
     $("threat-detail").textContent = t(
       hunter.phase === "windup"
@@ -2477,7 +2571,7 @@ function updateHud() {
         ? "#ffad8a"
         : "#c1d8dd";
     $("target").textContent = t(
-      tr`${{ shoal: "Ⅰ 浅海鱼群", hunter: "Ⅱ 海洋霸主", ancient: "Ⅲ 远古巨兽" }[e.species.category] || "海洋生物"} · ${e.species.label} · ${e.species.length}m · ${edible ? "可捕食" : e.species.predator ? "危险" : "暂不可吞食"} / ${Math.round(d)}m`,
+      tr`${{ shoal: "Ⅰ 浅海鱼群", hunter: "Ⅱ 海洋霸主", ancient: "Ⅲ 远古巨兽", alien: "外星生命" }[e.species.category] || "海洋生物"} · ${e.species.label} · ${e.species.length}m · ${edible ? "可捕食" : e.species.predator ? "危险" : "暂不可吞食"} / ${Math.round(d)}m`,
     );
   }
   $("boss-panel").hidden = !activeBoss;
@@ -2507,7 +2601,8 @@ function updateHud() {
   $("feeding-mode").textContent = t(
     player.health < 100 ? "进食优先回血" : "健康成长",
   );
-  $("breach-hint").hidden = position.y < -35 || !!activeBoss;
+  $("breach-hint").hidden =
+    surface.mode === "ice" || position.y < -35 || !!activeBoss;
   const charge = waterMotion?.charge || 0;
   $("breach-hint").textContent = t(
     surface.airborne
@@ -2747,7 +2842,9 @@ function frame(now) {
         pursuing: !!threat || !!surface.danger || !!humans.defense.threat,
         ink: effects.ink,
         depth: -position.y,
-        aboveWater: camera.position.y > WORLD.surfaceY,
+        aboveWater:
+          expedition.region.surfaceMode !== "ice" &&
+          camera.position.y > WORLD.surfaceY,
       },
     );
     uiClock += dt;
@@ -2812,9 +2909,12 @@ function frame(now) {
     time: elapsed,
     depth: -position.y,
     position,
-    aboveWater: camera.position.y > WORLD.surfaceY,
+    aboveWater:
+      expedition.region.surfaceMode !== "ice" &&
+      camera.position.y > WORLD.surfaceY,
     ink: effects.ink,
     night: expedition.region.id === "atlantis",
+    ice: expedition.region.surfaceMode === "ice",
   });
   visuals.render();
   worldRenderDirty = false;
@@ -3089,7 +3189,14 @@ if (import.meta.env.DEV)
     getCaptureStart: () => captureStart.clone(),
     getFeedingMouth: () => feedingMouth(new THREE.Vector3()),
     get controls() {
-      return { yaw, pitch, speed, pointer: { ...pointer }, groundRecovering };
+      return {
+        yaw,
+        pitch,
+        speed,
+        pointer: { ...pointer },
+        groundRecovering,
+        iceRecovering,
+      };
     },
     get lastCollision() {
       return lastCollision;
@@ -3101,7 +3208,7 @@ if (import.meta.env.DEV)
       return expedition;
     },
     setPosition(x, y, z) {
-      groundRecovering = false;
+      groundRecovering = iceRecovering = false;
       position.set(x, y, z);
       camera.position.set(x, y + 6, z + 18);
       lookTarget.set(x, y + 1, z - 10);

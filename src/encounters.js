@@ -1,3 +1,4 @@
+import { TIDAL_LOOM, loomAngle, inTidalLoom } from "./europa_loom.js";
 import { t, tr, message } from "./i18n.js";
 import * as THREE from "three";
 import { createCreature } from "./creatures.js";
@@ -122,18 +123,21 @@ function hasOddCrossings(distances) {
 }
 
 const TIPS = {
+  loom: "避开紫色压力带，从上下或扇区间隙撤离",
   vortex: "漩涡锁定游动路径 · 变向离开光圈，借岩柱阻断牵引",
   pulse: "快速上浮或下潜，避开脉冲所在水层",
   volley: "横向变向躲开三连弹，不要直线后退",
   charge: "冲锋锁定后侧向闪避，等待撞击后的硬直",
 };
 const SKILLS = {
+  loom: "潮汐织网",
   vortex: "深渊漩涡",
   pulse: "遗迹脉冲",
   volley: "三重吐息",
   charge: "毁灭冲锋",
 };
 const COLORS = {
+  loom: 0xb799d7,
   vortex: 0xbc8dff,
   pulse: 0x73ffd0,
   volley: 0xffa16f,
@@ -271,7 +275,23 @@ function createAbilityFx(scene, ability, color, textures) {
       side: THREE.DoubleSide,
       ...extra,
     });
-  if (ability === "vortex") {
+  if (ability === "loom") {
+    fx.sectors = [];
+    const g = new THREE.RingGeometry(
+      TIDAL_LOOM.innerRadius,
+      TIDAL_LOOM.outerRadius,
+      40,
+      2,
+      -TIDAL_LOOM.halfAngle,
+      TIDAL_LOOM.halfAngle * 2,
+    );
+    g.rotateX(-Math.PI / 2);
+    for (let i = 0; i < 3; i++) {
+      const m = new THREE.Mesh(g, additive({ opacity: 0.16 }));
+      group.add(m);
+      fx.sectors.push(m);
+    }
+  } else if (ability === "vortex") {
     fx.rings = [];
     for (let i = 0; i < 3; i += 1) {
       const mesh = new THREE.Mesh(
@@ -387,7 +407,19 @@ function updateAbilityFx(fx, entry, dt, time, windup, attack, ringSize) {
     1,
     state.timer / Math.max(0.001, state.phaseDuration),
   );
-  if (fx.ability === "vortex") {
+  if (fx.ability === "loom") {
+    fx.group.position.copy(entry.attackOrigin);
+    fx.sectors.forEach((m, i) => {
+      m.rotation.y = -loomAngle(
+        entry.heading,
+        state.timer,
+        state.phaseDuration,
+        attack,
+        i,
+      );
+      m.material.opacity = attack ? 0.3 : 0.1 + phaseT * 0.12;
+    });
+  } else if (fx.ability === "vortex") {
     fx.group.position.copy(entry.attackOrigin);
     const speed = attack ? 3.1 : 1.1;
     fx.spin += dt * speed;
@@ -1058,7 +1090,7 @@ export function createEncounters(
           time,
           attack ? 2.5 : recover ? 0.35 : state.phase === "dormant" ? 0.7 : 1.2,
         );
-      entry.ring.visible = windup || attack;
+      entry.ring.visible = state.ability !== "loom" && (windup || attack);
       entry.ring.position.copy(
         ["pulse", "vortex"].includes(state.ability)
           ? entry.attackOrigin
@@ -1079,7 +1111,35 @@ export function createEncounters(
         ? 0.35 + Math.sin(time * 12) * 0.2
         : 0.8;
       updateAbilityFx(entry.fx, entry, dt, time, windup, attack, ringSize);
+      entry.mesh.userData.setBossPhase?.(state.phase);
       if (attack && sight) {
+        if (
+          state.ability === "loom" &&
+          !entry.phaseHit &&
+          inTidalLoom(
+            position,
+            entry.attackOrigin,
+            entry.heading,
+            state.timer,
+            state.phaseDuration,
+            player.length * 0.12,
+          ) &&
+          !blockedBetween(entry.attackOrigin, position)
+        ) {
+          entry.phaseHit = damage(
+            player,
+            state.species.damage,
+            "潮汐织网命中 · 从上下或间隙撤离",
+          );
+          if (entry.phaseHit)
+            position.addScaledVector(
+              entry.motion.offset
+                .copy(position)
+                .sub(entry.attackOrigin)
+                .normalize(),
+              3,
+            );
+        }
         if (state.ability === "vortex") {
           const toCenter = entry.attackOrigin.clone().sub(position);
           const pullDistance = toCenter.length();
@@ -1269,7 +1329,7 @@ export function createEncounters(
     for (const texture of textures) texture.dispose();
     active = null;
   }
-  reset();
+  reset(BOSS_SPECIES.filter((s) => !s.alien).map((s) => s.kind));
   return {
     bosses,
     update,
