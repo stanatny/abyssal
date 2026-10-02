@@ -45,12 +45,32 @@ const SPAWN = new THREE.Vector3(0, -18, 75);
 const CITY = createAtlantisCity(new THREE.Scene(), { heightAt: seabedHeight });
 const CITY_COLLIDERS = CITY.colliders;
 
-test("海域名单隔离，夏威夷313个体与亚特兰蒂斯412个体保持各自实际库存", () => {
+test("海域名单隔离，夏威夷522个体与亚特兰蒂斯568个体保持各自实际库存", () => {
   assert.equal(SPECIES, ECOSYSTEM_SPECIES);
-  assert.deepEqual(
-    getRegionSpecies().filter((s) => s.category !== "invertebrate"),
-    ECOSYSTEM_SPECIES,
+  const hawaii = getRegionSpecies().filter(
+    (s) => s.category !== "invertebrate",
   );
+  assert.deepEqual(
+    hawaii.map((s) => s.kind),
+    ECOSYSTEM_SPECIES.map((s) => s.kind),
+  );
+  assert.equal(
+    getRegionSpecies().reduce((sum, s) => sum + s.population, 0),
+    522,
+  );
+  for (const s of hawaii) {
+    const original = ECOSYSTEM_SPECIES.find((entry) => entry.kind === s.kind);
+    for (const key of [
+      "length",
+      "nutrition",
+      "growth",
+      "speed",
+      "predator",
+      "depthMin",
+      "depthMax",
+    ])
+      assert.equal(s[key], original[key], `${s.kind}: ${key}`);
+  }
   assert.equal(SPECIES.length, 26);
   assert.equal(
     SPECIES.reduce((sum, s) => sum + s.population, 0),
@@ -64,7 +84,7 @@ test("海域名单隔离，夏威夷313个体与亚特兰蒂斯412个体保持�
   assert.equal(atlantis.length, 20);
   assert.equal(
     atlantis.reduce((sum, s) => sum + s.population, 0),
-    412,
+    568,
   );
   assert.deepEqual(
     REGION_SPECIES_KINDS.atlantis,
@@ -96,11 +116,11 @@ test("海域名单隔离，夏威夷313个体与亚特兰蒂斯412个体保持�
   assert.throws(() => getRegionSpecies("__proto__"), /Unknown ecology region/);
 });
 
-test("实际坡度与真实城市下，392个出生位置合法且幼年补给就在前方", () => {
+test("实际坡度与真实城市下，568个出生位置合法且幼年补给就在前方", () => {
   const population = seedPopulation();
-  assert.equal(population.length, 412);
+  assert.equal(population.length, 568);
   const nursery = population.filter(({ point }) => isNursery(point));
-  assert.ok(nursery.length >= 168);
+  assert.ok(nursery.length >= 206);
   assert.ok(nursery.every(({ species }) => !species.predator));
   const juvenile = createPlayer();
   const edible = nursery.filter(({ species }) =>
@@ -110,7 +130,7 @@ test("实际坡度与真实城市下，392个出生位置合法且幼年补给�
     edible.filter(
       ({ species }) => !species.benthic && species.category !== "invertebrate",
     ).length,
-    168,
+    206,
   );
   assert.ok(
     edible.filter(({ species }) => species.category === "invertebrate")
@@ -118,7 +138,7 @@ test("实际坡度与真实城市下，392个出生位置合法且幼年补给�
   );
   assert.equal(
     edible.filter(({ species }) => species.schoolSize > 1).length,
-    152,
+    190,
   );
   const close = edible.filter(({ point }) => point.distanceTo(SPAWN) < 35);
   assert.ok(close.length >= 28);
@@ -304,7 +324,7 @@ test("两角色各体长阶段都有真实可食补给，营养按共享规则�
   t.diagnostic(JSON.stringify(report));
 });
 
-test("城市十群80尾小鱼与34尾中型食物保持原营养值，不削减巨兽", () => {
+test("城市十群120尾小鱼与50尾中型食物保持原营养值，不削减巨兽", () => {
   const population = seedPopulation();
   const schools = getRegionSpecies("atlantis").flatMap((species) =>
     schoolPopulationGroups(species)
@@ -324,13 +344,13 @@ test("城市十群80尾小鱼与34尾中型食物保持原营养值，不削减�
     residents
       .filter(({ species }) => species.length < 1)
       .reduce((sum, { group }) => sum + group.count, 0),
-    80,
+    120,
   );
   assert.equal(
     residents
       .filter(({ species }) => species.length >= 3)
       .reduce((sum, { group }) => sum + group.count, 0),
-    34,
+    50,
   );
   const districts = new Set();
   for (const entry of population.filter(
@@ -363,20 +383,28 @@ test("逐群规模不能越界或遗失个体，学校深度和数量配置不�
   const groups = schoolPopulationGroups(species);
   assert.deepEqual(
     groups.map((group) => group.count),
-    [16, 16, 16, 16, 16, 8, 8, 8, 8, 8, 8],
+    [20, 20, 20, 20, 20, 12, 12, 12, 12, 12, 12],
   );
   assert.ok(Object.isFrozen(species.schoolProfiles[0].anchor));
   assert.throws(
-    () => schoolPopulationGroups({ ...species, population: 127 }),
+    () =>
+      schoolPopulationGroups({
+        ...species,
+        population: species.population - 1,
+      }),
     /Invalid school population/,
   );
   assert.throws(
-    () => schoolPopulationGroups({ ...species, population: 129 }),
+    () =>
+      schoolPopulationGroups({
+        ...species,
+        population: species.population + 1,
+      }),
     /Mismatched school profiles/,
   );
 });
 
-test("两处地下厅与纪念廊道各有八尾常驻小鱼，实际建筑和陈设不堵住群心", () => {
+test("两处地下厅与纪念廊道各有十二尾常驻小鱼，实际建筑和陈设不堵住群心", () => {
   const profiles = getRegionSpecies("atlantis").flatMap((species) =>
     (species.schoolProfiles || [])
       .filter((profile) =>
@@ -398,7 +426,7 @@ test("两处地下厅与纪念廊道各有八尾常驻小鱼，实际建筑和�
     const center = sanctuary?.anchor || excavation?.turningCircle;
     const site = center ? { ...center, lowerY: center.y } : gallery;
     assert.ok(site);
-    assert.equal(profile.count, 8);
+    assert.equal(profile.count, 12);
     assert.ok(Math.abs(profile.anchor[0] - site.x) < 0.001);
     assert.ok(Math.abs(profile.anchor[1] - site.lowerY) < 0.001);
     assert.ok(Math.abs(profile.anchor[2] - site.z) < 0.001);
@@ -416,12 +444,12 @@ test("两处地下厅与纪念廊道各有八尾常驻小鱼，实际建筑和�
   }
 });
 
-test("深城密度增加优先重组现有中鱼，过渡带和大型营养库存完整保留", () => {
+test("深城增密增加实际中鱼与大型食物库存，仍保留原有水层与城区锚点", () => {
   const species = getRegionSpecies("atlantis");
   const counts = Object.fromEntries(
     species.map((entry) => [entry.kind, entry.population]),
   );
-  assert.deepEqual([counts.sunfish, counts.tuna, counts.ray], [14, 42, 20]);
+  assert.deepEqual([counts.sunfish, counts.tuna, counts.ray], [24, 74, 36]);
   assert.deepEqual(
     [
       counts.plesiosaur,
@@ -430,19 +458,19 @@ test("深城密度增加优先重组现有中鱼，过渡带和大型营养库�
       counts.basilosaurus,
       counts.megalodon,
     ],
-    [6, 6, 7, 6, 7],
+    [9, 9, 11, 9, 11],
   );
   const medium = species.filter((entry) =>
     ["sunfish", "tuna", "ray"].includes(entry.kind),
   );
   assert.equal(
     medium.reduce((sum, entry) => sum + entry.population, 0),
-    76,
+    134,
   );
   for (const [kind, expected] of [
-    ["sunfish", [4, 4]],
-    ["tuna", [9, 6, 3]],
-    ["ray", [2, 2, 2, 2]],
+    ["sunfish", [6, 6]],
+    ["tuna", [14, 9, 3]],
+    ["ray", [3, 3, 3, 3]],
   ]) {
     const entry = species.find((item) => item.kind === kind);
     assert.deepEqual(
@@ -459,19 +487,19 @@ test("深城密度增加优先重组现有中鱼，过渡带和大型营养库�
   );
   assert.equal(
     cityProfiles.reduce((sum, profile) => sum + profile.count, 0),
-    114,
+    170,
   );
   assert.equal(
     cityProfiles
       .filter((profile) => profile.length < 1 && -profile.anchor[1] >= 300)
       .reduce((sum, profile) => sum + profile.count, 0),
-    // Agora原有八尾白鲳迁至地下蓄水厅，总库存不变，但归入300m以下水层。
-    64,
+    // 深层八个小鱼栖地各自增密50%，继续留在300m以下水层。
+    96,
   );
   const schools = species
     .filter((entry) => entry.schoolSize > 1)
     .flatMap((entry) => schoolPopulationGroups(entry));
-  assert.equal(schools.length, 43);
+  assert.equal(schools.length, 47);
   const sardine = species.find((entry) => entry.kind === "sardine");
   const extra = sardine.schoolProfiles
     .slice(-2)

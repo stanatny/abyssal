@@ -1,3 +1,8 @@
+import {
+  spreadFeedingSchools,
+  densifyFeedingSchools,
+} from "./feeding_distribution.js";
+import { hawaiiEcology } from "./hawaii_ecology.js";
 import { EUROPA_SPECIES } from "./europa_species.js";
 import { NONFISH_SPECIES, nonfishEcology } from "./nonfish_ecology.js";
 import { WORLD } from "./world_config.js";
@@ -136,10 +141,10 @@ const ATLANTIS_OVERRIDES = {
   ichthyotitan: { spawnAnchors: DEEP_GIANT_ANCHORS.atlantis },
 };
 
-const REGION_SPECIES = Object.freeze({
+const BASE_REGION_SPECIES = Object.freeze({
   europa: EUROPA_SPECIES,
   hawaii: Object.freeze([
-    ...ECOSYSTEM_SPECIES,
+    ...hawaiiEcology(ECOSYSTEM_SPECIES),
     ...nonfishEcology("hawaii", WORLD),
   ]),
   mariana: Object.freeze([
@@ -174,6 +179,16 @@ const REGION_SPECIES = Object.freeze({
       .concat(nonfishEcology("atlantis", WORLD)),
   ),
 });
+
+// 五张地图共用横向分群规则；保留各地图的合法水层、建筑居民和独特品种。
+const REGION_SPECIES = Object.freeze(
+  Object.fromEntries(
+    Object.entries(BASE_REGION_SPECIES).map(([id, species]) => [
+      id,
+      densifyFeedingSchools(spreadFeedingSchools(species)),
+    ]),
+  ),
+);
 
 /** 海域可生成种类清单，与实际种群使用同一个配置来源。 */
 export const REGION_SPECIES_KINDS = Object.freeze(

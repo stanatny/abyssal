@@ -152,7 +152,9 @@ function contactClass(contact) {
   return contact.boss
     ? "echo-boss"
     : contact.dangerous
-      ? "echo-danger"
+      ? contact.eligible
+        ? "echo-warning"
+        : "echo-danger"
       : contact.eligible
         ? "echo-prey"
         : "echo-neutral";

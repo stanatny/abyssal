@@ -1,7 +1,7 @@
 export const DEEP_EXPLORATION_EN = Object.freeze({
   "可捕食 · 会反击": "Edible · Retaliates",
-  "可被捕食不代表安全：体长优势不足5米时，猎手仍会追击，并能从侧后方咬伤你。正面用嘴捕获优先结算；至少大出5米后它才不再反击。":
-    "Edible does not mean harmless: with less than a 5m length advantage, hunters still pursue and can bite your flanks or tail. A valid mouth capture settles first. They stop retaliating once you are at least 5m longer.",
+  "可被捕食不代表安全：黄色标记表示可捕食但会反击，红色标记表示危险猎手。体长优势不足5米时，猎手仍会追击，并能从侧后方咬伤你。正面用嘴捕获优先结算；至少大出5米后它才不再反击。":
+    "Edible does not mean harmless: yellow marks edible creatures that retaliate; red marks dangerous hunters. With less than a 5m length advantage, hunters still pursue and can bite your flanks or tail. A valid mouth capture settles first. They stop retaliating once you are at least 5m longer.",
   深海热流: "Deep thermal surges",
   地形危险: "Environmental hazard",
   局部喷流: "Localized jet",

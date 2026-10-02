@@ -1,5 +1,9 @@
 # Mechanical Shark — first candidate verification
 
+The subsequent [ordinary durability follow-up](torpedo_durability_revision.md) changes equal/larger ordinary creatures to two hits; the three-hit observations below remain historical. Lords still require three valid hits.
+
+Historical evidence below used the former 5-second cooldown. The subsequent [touch/control follow-up](touch_slow_torpedo_revision.md) changes the current interval to 2 seconds; retain earlier measurements as historical evidence.
+
 Uncommitted development on `feature/mechanical-shark`, based on the accepted and pushed `e042fbb` checkpoint. No commit, push, main integration or formal release is authorized. Published Pages remains v0.8.3. The fourth character is available in the development candidate across all five destinations.
 
 This records the first completed candidate. The user then requested longer plumes, richer armor and weak aiming correction; current behavior and new evidence are in [the refinement](mechanical_shark_refinement.md). The first-pass measurements below remain historical comparisons.

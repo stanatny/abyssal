@@ -102,6 +102,8 @@ export function addAtlantisCitySchools(species) {
       nurseryResident: false,
       cityResident: true,
       citySite,
+      // 专属地下中鱼净空按原成年巡游验收，不能增加队形直到挤出通道。
+      ...(citySite && species.length >= 1 ? { densityLimit: count } : {}),
     });
   return {
     ...species,

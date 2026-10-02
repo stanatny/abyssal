@@ -1,5 +1,10 @@
 import { createMechanicalTorpedoes } from "./mechanical_torpedoes.js";
-import { torpedoStatus, resetTorpedoTarget } from "./mechanical_shark_rules.js";
+import {
+  MECHANICAL_RULES,
+  torpedoStatus,
+  resetTorpedoTarget,
+} from "./mechanical_shark_rules.js";
+import { BOSS_REQUIRED_HITS } from "./boss_rules.js";
 import { attachDeepVents } from "./deep_vents.js";
 import {
   canPredatorRetaliate,
@@ -115,7 +120,7 @@ const canvas = $("ocean");
 const reducedMotionQuery = matchMedia("(prefers-reduced-motion: reduce)");
 const touchPointer = matchMedia("(pointer: coarse)");
 const targetPanels = document.querySelectorAll(
-  "header, .location, .mission, #threat, #boss-panel, #notification, #ink-status, #breach-hint, #round-clock, #buffs, .vitals, .speed, #joystick, #sonar-panel, #sonar-control, #touch-skills, #touch-boost, #minimap",
+  "header, .location, .mission, #threat, #boss-panel, #notification, #ink-status, #breach-hint, #round-clock, #buffs, .vitals, .speed, #joystick, #sonar-panel, #sonar-control, #touch-skills, #touch-boost, #touch-slow, #minimap",
 );
 const regionLoader = createRegionLoading();
 regionLoader.begin(t("夏威夷海滩"));
@@ -381,6 +386,7 @@ let lastTime = performance.now(),
   lastNursery = null;
 let threat = null,
   touchBoost = false,
+  touchSlow = false,
   highQuality = true,
   hitFlash = 0,
   uiClock = 0,
@@ -885,6 +891,10 @@ function updateSonar() {
     (["summon", "torpedo"].includes(skill.id)
       ? statusData.usable
       : player.characterId !== "squid" || underwater);
+  // 浮点加减可能让整两秒略大于2，向上取整前消除数值误差，资格仍用原时钟。
+  const cooldownSeconds = Math.ceil(
+    Math.max(0, statusData.cooldownRemaining - 1e-9),
+  );
   const shortName = {
     ink: "喷墨",
     sonar: "声呐",
@@ -922,7 +932,7 @@ function updateSonar() {
         : ["summon", "torpedo"].includes(skill.id)
           ? blockedLabel
           : "水下使用"
-      : tr`${Math.ceil(statusData.active ? statusData.remaining : statusData.cooldownRemaining)}s`,
+      : tr`${statusData.active ? Math.ceil(statusData.remaining) : cooldownSeconds}s`,
   );
   for (const id of ["touch-sonar", "sonar-control"]) {
     const button = $(id);
@@ -935,7 +945,7 @@ function updateSonar() {
           : "blocked"
         : "cooldown";
     button.disabled = !usable || mode !== "playing";
-    button.dataset.remaining = String(Math.ceil(statusData.cooldownRemaining));
+    button.dataset.remaining = String(cooldownSeconds);
     button.style.setProperty(
       "--skill-progress",
       String(
@@ -1698,7 +1708,7 @@ function updatePlayer(dt, roundDt) {
       ? 72
       : boosting
         ? movement.sprintSpeed
-        : keys.has("KeyK")
+        : keys.has("KeyK") || touchSlow
           ? PLAYER_MOVEMENT.slowSpeed
           : PLAYER_MOVEMENT.cruiseSpeed;
   speed = THREE.MathUtils.damp(speed, targetSpeed, jet ? 18 : 3, dt);
@@ -1911,15 +1921,15 @@ function updateSchools() {
     // 基础鱼群与缓游礁鱼常驻育幼浅滩，出海后再返航也有稳定补给。
     if (
       school.habitat.cityResident ||
-      school.habitat.nurseryResident ||
-      (!school.species.schoolProfiles &&
-        ["fish", "sardine"].includes(school.kind))
+      school.habitat.fixedHabitat ||
+      school.habitat.nurseryResident
     )
       continue;
     if (player.elapsed < school.nextMigration) continue;
     school.nextMigration = player.elapsed + random(22, 38);
     if (
-      school.center.distanceTo(position) < 220 ||
+      school.center.distanceTo(position) <
+        speciesVisibilityDistance(school.species, highQuality) + 18 ||
       !sharesHabitat(
         school.habitat,
         position,
@@ -2665,12 +2675,17 @@ function updateHud() {
     const hits = aim.boss
       ? aim.entity.state.validatedHits
       : aim.entity.torpedoHits || 0;
+    const totalHits = aim.boss
+      ? BOSS_REQUIRED_HITS
+      : MECHANICAL_RULES.giantHits;
     const needed =
-      aim.boss || species.length >= player.length ? Math.max(1, 3 - hits) : 1;
+      aim.boss || species.length >= player.length
+        ? Math.max(1, totalHits - hits)
+        : 1;
     $("torpedo-aim").querySelector("b").textContent = t(species.label);
     $("torpedo-aim").querySelector("small").textContent = t(
       aim.eligible
-        ? tr`轻微校准 · 预计${needed}发 · ${Math.round(aim.distance)}m`
+        ? tr`目标锁定 · 预计${needed}发 · ${Math.round(aim.distance)}m`
         : "领主体型门槛 · 需25米",
     );
     $("torpedo-aim").classList.toggle("ineligible", !aim.eligible);
@@ -2882,14 +2897,15 @@ function updateHud() {
         canPredatorRetaliate(player.length, e.species.length);
     $("target").style.left = (p.x * 0.5 + 0.5) * innerWidth + "px";
     $("target").style.top = (-p.y * 0.5 + 0.5) * innerHeight - 18 + "px";
-    $("target").style.color =
-      edible && !retaliates
-        ? "#9ef5d3"
-        : e.species.predator
-          ? "#ffad8a"
-          : "#c1d8dd";
+    $("target").style.color = edible
+      ? retaliates
+        ? "#f3d36d"
+        : "#9ef5d3"
+      : e.species.predator
+        ? "#ffad8a"
+        : "#c1d8dd";
     $("target").textContent = t(
-      tr`${{ shoal: "Ⅰ 浅海鱼群", hunter: "Ⅱ 海洋霸主", ancient: "Ⅲ 远古巨兽", alien: "外星生命" }[e.species.category] || "海洋生物"} · ${e.species.label} · ${e.species.length}m${e.torpedoHits ? tr` · 鱼雷伤害${e.torpedoHits}/3` : ""} · ${edible ? (retaliates ? "可捕食 · 会反击" : "可捕食") : e.species.predator ? "危险" : "暂不可吞食"} / ${Math.round(d)}m`,
+      tr`${{ shoal: "Ⅰ 浅海鱼群", hunter: "Ⅱ 海洋霸主", ancient: "Ⅲ 远古巨兽", alien: "外星生命" }[e.species.category] || "海洋生物"} · ${e.species.label} · ${e.species.length}m${e.torpedoHits ? tr` · 鱼雷伤害${e.torpedoHits}/${MECHANICAL_RULES.giantHits}` : ""} · ${edible ? (retaliates ? "可捕食 · 会反击" : "可捕食") : e.species.predator ? "危险" : "暂不可吞食"} / ${Math.round(d)}m`,
     );
   }
   $("boss-panel").hidden = !activeBoss;
@@ -3386,6 +3402,23 @@ for (const event of ["pointerup", "pointercancel", "lostpointercapture"])
     boostPointerId = null;
     touchBoost = false;
   });
+// 慢游使用独立触点，不与键盘K互相覆盖；移出按钮后松手也会释放。
+$("touch-slow").addEventListener("pointerdown", (e) => {
+  if ((mode !== "playing" && mode !== "epilogue") || slowPointerId !== null)
+    return;
+  e.preventDefault();
+  slowPointerId = e.pointerId;
+  e.currentTarget.setPointerCapture(e.pointerId);
+  touchSlow = true;
+  e.currentTarget.setAttribute("aria-pressed", "true");
+});
+for (const event of ["pointerup", "pointercancel", "lostpointercapture"])
+  $("touch-slow").addEventListener(event, (e) => {
+    if (e.pointerId !== slowPointerId) return;
+    slowPointerId = null;
+    touchSlow = false;
+    e.currentTarget.setAttribute("aria-pressed", "false");
+  });
 for (const id of ["touch-sonar", "sonar-control"]) {
   $(id).addEventListener("click", () => {
     activateCharacterSkill();
@@ -3394,17 +3427,21 @@ for (const id of ["touch-sonar", "sonar-control"]) {
 }
 const joystick = $("joystick");
 let joystickId = null,
-  boostPointerId = null;
+  boostPointerId = null,
+  slowPointerId = null;
 /** 暂停与回首页共同释放旧触点，避免旧手指在下一局继续转向或冲刺。 */
 function resetInput() {
   keys.clear();
   touchBoost = false;
+  touchSlow = false;
+  $("touch-slow").setAttribute("aria-pressed", "false");
   pointer.x = pointer.y = 0;
   const captured = [
     [joystick, joystickId],
     [$("touch-boost"), boostPointerId],
+    [$("touch-slow"), slowPointerId],
   ];
-  joystickId = boostPointerId = null;
+  joystickId = boostPointerId = slowPointerId = null;
   for (const [control, id] of captured)
     if (id !== null && control.hasPointerCapture(id))
       control.releasePointerCapture(id);

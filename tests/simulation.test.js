@@ -515,7 +515,7 @@ test("25米深海无食会在约54秒死亡，大型食物仍可覆盖搜寻而�
     fed,
     SPECIES.find((s) => s.kind === "megalodon"),
   );
-  approximately(fed.hunger, 70);
+  approximately(fed.hunger, 100);
   tickVitals(fed, 18, { depth: 550 });
   assert.ok(fed.hunger > 12);
   assert.equal(fed.health, 100);
@@ -568,7 +568,7 @@ test("满血连续捕食珊瑚鱼在第17、27、66尾分别超过4、4.5、6米
   }
 });
 
-test("幼年成长抑制不影响营养与治疗，6米后的成长曲线保持原值", () => {
+test("幼年成长抑制不影响营养与治疗，成年小鱼继续按原规则衰减", () => {
   const prey = SPECIES.find((species) => species.kind === "fish");
   const player = createPlayer();
   player.health = 50;
@@ -599,7 +599,7 @@ test("成长需要多个食物链阶段，连续捕食仍能升级而无等待�
     assert.equal(consumePrey(player, prey), true);
   }
   assert.equal(player.length, 30);
-  assert.ok(player.eaten >= 50 && player.eaten <= 80);
+  assert.ok(player.eaten >= 30 && player.eaten <= 50);
   assert.ok(visited.size >= 6);
   assert.ok(
     [...visited].some(
@@ -630,7 +630,7 @@ test("补给意识明确的3米参考路线在快慢节奏下均可完成", (con
     const categories = new Set(route.map((entry) => entry.category));
     assert.ok(categories.has("hunter") && categories.has("ancient"));
   }
-  assert.ok(quick.player.elapsed > 500);
+  assert.ok(quick.player.elapsed > 250 && quick.player.elapsed < 500);
   assert.ok(normal.player.elapsed < ROUND_DURATION);
   assert.ok(completed.player.elapsed < ROUND_DURATION);
   assert.ok(quick.player.elapsed < normal.player.elapsed);

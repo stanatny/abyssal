@@ -63,6 +63,7 @@ export function bermudaEcology(allSpecies) {
     turtle: { population: 4 },
     sunfish: { population: 8 },
     tuna: {
+      fixedSchoolIndices: [3, 4],
       depthMax: 600,
       population: 40,
       schoolSize: 5,
@@ -79,6 +80,7 @@ export function bermudaEcology(allSpecies) {
       ],
     },
     ray: {
+      fixedSchoolIndices: [2],
       population: 20,
       schoolSize: 4,
       layeredSchools: true,
@@ -197,7 +199,21 @@ export function bermudaEcology(allSpecies) {
     Object.entries(overrides).map(([kind, extra]) => {
       const source = allSpecies.find((s) => s.kind === kind);
       if (!source) throw new Error(`Missing Bermuda species: ${kind}`);
-      return freeze({ ...source, ...extra });
+      const { fixedSchoolIndices, ...configuration } = extra;
+      const entry = { ...source, ...configuration };
+      // 沉船内部食物沿用已验收的通道锚点；外海群体仍走共享分散规则。
+      if (fixedSchoolIndices)
+        entry.schoolProfiles = entry.schoolAnchors.map((anchor, index) => ({
+          anchor: [...anchor],
+          count: Math.min(
+            entry.schoolSize,
+            entry.population - index * entry.schoolSize,
+          ),
+          depthMin: Math.max(entry.depthMin, -anchor[1] - 18),
+          depthMax: Math.min(entry.depthMax, -anchor[1] + 18),
+          fixedHabitat: fixedSchoolIndices.includes(index),
+        }));
+      return freeze(entry);
     }),
   );
 }

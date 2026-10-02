@@ -44,8 +44,8 @@ const RADIUS = Math.max(0.45, SPECIES.length * 0.18);
 
 after(() => CITY.dispose());
 
-test("Harbor retains its eight underground fish while other schools follow their own habitats", () => {
-  assert.equal(GROUP.count, 8);
+test("Harbor retains its twelve underground fish while other schools follow their own habitats", () => {
+  assert.equal(GROUP.count, 12);
   assert.deepEqual(ANCHOR.toArray(), [
     SITE.turningCircle.x,
     SITE.turningCircle.y,
@@ -72,9 +72,9 @@ test("Harbor retains its eight underground fish while other schools follow their
   }
 });
 
-test("All eight lower-hall spawn slots clear the real terrain, masonry and furniture", () => {
+test("All twelve lower-hall spawn slots clear the real terrain, masonry and furniture", () => {
   const points = spawnMembers();
-  assert.equal(new Set(points.map((point) => point.toArray().join())).size, 8);
+  assert.equal(new Set(points.map((point) => point.toArray().join())).size, 12);
   for (const point of points) assertInsideHall(point);
 });
 

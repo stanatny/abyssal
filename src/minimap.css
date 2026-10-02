@@ -82,6 +82,10 @@
   fill: #f6a879;
 }
 
+.minimap-contact.is-warning {
+  fill: #f3d36d;
+}
+
 .minimap-contact.is-boss {
   fill: #f18aca;
   stroke: #ffe0f0;

@@ -42,9 +42,9 @@ const RADIUS = Math.max(0.45, SPECIES.length * 0.18);
 
 after(() => CITY.dispose());
 
-test("Agora relocates its original eight spadefish into the bounded lower-cistern sanctuary", () => {
-  assert.equal(GROUP.count, 8);
-  assert.equal(GROUP.count, SANCTUARY.count);
+test("Agora hosts twelve spadefish in the same bounded lower-cistern sanctuary", () => {
+  assert.equal(GROUP.count, 12);
+  assert.equal(GROUP.count, Math.ceil(SANCTUARY.count * 1.5));
   assert.equal(SPECIES.length, 0.75);
   assert.equal(SPECIES.nutrition, 8);
   assert.equal(SPECIES.growth, 0.018);
@@ -86,9 +86,9 @@ test("The advertised Agora fish clearance contains legal water throughout the fu
   }
 });
 
-test("All eight Agora school slots stay distinct and clear terrain, masonry and furniture", () => {
+test("All twelve Agora school slots stay distinct and clear terrain, masonry and furniture", () => {
   const points = spawnMembers();
-  assert.equal(new Set(points.map((point) => point.toArray().join())).size, 8);
+  assert.equal(new Set(points.map((point) => point.toArray().join())).size, 12);
   for (const point of points) assertLegalWater(point);
 });
 

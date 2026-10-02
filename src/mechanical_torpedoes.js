@@ -13,7 +13,7 @@ import {
 } from "./mechanical_shark_rules.js";
 
 /**
- * 机械鲨鱼的有限校准鱼雷与爆炸结算；普通猎物击杀后沿用共享营养立即结算。
+ * 机械鲨鱼的锁定制导鱼雷与爆炸结算；普通猎物击杀后沿用共享营养立即结算。
  * @param {THREE.Object3D} parent 场景。
  * @param {object} options solids查询、环境边界、实体、领主命中、音效及捕食特效接口。
  * @returns {object} activate/beforePreyMotion/update/reset/dispose与有界池。
@@ -99,12 +99,8 @@ export function createMechanicalTorpedoes(
     const target = aim.select(origin, p.direction, player);
     p.target = target?.eligible ? target : null;
     p.aimCheckAt = player.elapsed + 0.12;
-    // 发射器只做三度微调，之后仍须在原朝向的九度走廊内飞行。
-    aim.steer(
-      p,
-      RULES.aimInitialDegrees / RULES.aimTurnDegrees,
-      player.elapsed,
-    );
+    // 只在发射时锁定前方七度内的目标；之后跟随该目标，不自动换猎物。
+    if (p.target) p.direction.copy(target.point).sub(origin).normalize();
     p.mesh.quaternion.setFromUnitVectors(axis, p.direction);
     p.distance = 0;
     p.expiresAt = player.elapsed + RULES.range / RULES.speed;

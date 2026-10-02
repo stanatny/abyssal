@@ -89,6 +89,9 @@
 .sonar-world-markers .echo-danger {
   color: #e6af93;
 }
+.sonar-world-markers .echo-warning {
+  color: #f3d36d;
+}
 .sonar-world-markers .echo-boss {
   color: #cabcdf;
 }

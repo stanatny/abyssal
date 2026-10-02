@@ -149,11 +149,13 @@ export function initialSpeciesAnchor(species, index = 0) {
     floorDepth <= 140
       ? (40 - floorDepth) * 2
       : -200 - (floorDepth - 140) / 0.72;
-  const point = new THREE.Vector3(
-    (index % 2 ? 1 : -1) * (20 + (index % 3) * 12),
-    -depth,
-    z,
-  );
+  const world = species.worldBounds || WORLD;
+  // 只有漫游猎手需要宽幅分布；奖励等通用位置查询保留原来的安全回退点。
+  const x = species.predator
+    ? (world.minX + world.maxX) / 2 +
+      ((index % 3) - 1) * (world.maxX - world.minX) * 0.22
+    : (index % 2 ? 1 : -1) * (20 + (index % 3) * 12);
+  const point = new THREE.Vector3(x, -depth, z);
   // 保留各自深度，仅把过于靠岸的猎手移到外海。
   if (territory) point.z = Math.min(point.z, territory.maxZ - 30 - index * 8);
   return point;

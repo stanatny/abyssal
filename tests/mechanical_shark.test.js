@@ -128,7 +128,7 @@ test("钢铁之躯抵抗普通攻击和危害，固定献祭及饥饿不减免",
   tickVitals(p, 1, false, 600);
   assert.equal(before - p.health, 7);
 });
-test("10点固定最大属性支付与5秒冷却原子结算，低血量不可自杀，失败不扣费", () => {
+test("10点固定最大属性支付与2秒冷却原子结算，低血量不可自杀，失败不扣费", () => {
   const p = player(),
     s = createTorpedoState();
   p.elapsed = 3;
@@ -137,7 +137,7 @@ test("10点固定最大属性支付与5秒冷却原子结算，低血量不可�
   assert.equal(activateTorpedo(s, p), true);
   assert.equal(p.health, 1);
   assert.equal(p.stamina, 0);
-  assert.equal(s.readyAt, 8);
+  assert.equal(s.readyAt, 5);
   assert.equal(s.shots, 1);
   const before = structuredClone({ p, s });
   assert.equal(activateTorpedo(s, p), false);
@@ -163,9 +163,9 @@ test("10点固定最大属性支付与5秒冷却原子结算，低血量不可�
     v = createTorpedoState();
   assert.equal(activateTorpedo(v, q, false), false);
   activateTorpedo(v, q);
-  q.elapsed = 4.99;
+  q.elapsed = 1.99;
   assert.equal(torpedoStatus(v, q).usable, false);
-  q.elapsed = 5;
+  q.elapsed = 2;
   assert.equal(torpedoStatus(v, q).usable, true);
 });
 test("射程末端自动爆炸且仅结算一次，资源池保持有界", () => {
@@ -198,15 +198,42 @@ test("爆炸成片击杀立即按共享营养结算，普通大猎物可被武�
   assert.equal(consumePrey(h.p, tooBig.species), false);
   assert.equal(consumeDefeatedPrey(h.p, tooBig.species), true);
 });
-test("相对体型相等或更大的生物需要三发，退休后不能重复命中", () => {
-  const e = creature(20),
-    p = player();
-  assert.equal(hitOrdinaryWithTorpedo(e, p), false);
-  assert.equal(hitOrdinaryWithTorpedo(e, p), false);
-  assert.equal(hitOrdinaryWithTorpedo(e, p), true);
-  e.hiddenFor = 28;
-  assert.equal(hitOrdinaryWithTorpedo(e, p), false);
-  assert.equal(e.torpedoHits, 3);
+test("相对体型相等或更大的生物需要两发，退休后不能重复命中", () => {
+  for (const length of [20, 28]) {
+    const e = creature(length),
+      p = player();
+    assert.equal(hitOrdinaryWithTorpedo(e, p), false);
+    assert.equal(hitOrdinaryWithTorpedo(e, p), true);
+    e.hiddenFor = 28;
+    assert.equal(hitOrdinaryWithTorpedo(e, p), false);
+    assert.equal(e.torpedoHits, 2);
+  }
+});
+test("真实弹体两次爆炸击杀更大的普通猎物，首发无收益，第二发只结算一次", () => {
+  const h = harness();
+  h.prey[0] = creature(28, -35);
+  assert.equal(consumePrey(h.p, h.prey[0].species), false);
+  assert.equal(h.tube.activate(h.p, h.origin, h.direction), true);
+  const initialMass = h.p.mass;
+  step(h, 40);
+  assert.equal(h.shots[0].killed, 0);
+  assert.equal(h.prey[0].torpedoHits, 1);
+  assert.equal(h.prey[0].hiddenFor, 0);
+  assert.equal(h.p.mass, initialMass);
+  assert.equal(h.p.eaten, 0);
+  step(h, 120);
+  assert.equal(h.tube.activate(h.p, h.origin, h.direction), true);
+  const expected = structuredClone(h.p);
+  consumeDefeatedPrey(expected, h.prey[0].species);
+  step(h, 40);
+  assert.equal(h.shots[1].killed, 1);
+  assert.ok(h.prey[0].hiddenFor > 0);
+  assert.equal(h.p.eaten, 1);
+  for (const key of ["mass", "length", "health", "hunger"])
+    assert.equal(h.p[key], expected[key]);
+  step(h, 120);
+  assert.equal(h.p.eaten, 1);
+  h.tube.dispose();
 });
 test("实墙及海床阻挡发射与范围伤害，目标同时移动仍能被扫掠命中", () => {
   const h = harness({ wall: true });
@@ -336,7 +363,7 @@ test("机械角色可记录本地成绩，实际身份不会降级成其他鱼",
   assert.equal(row?.character, "mechanical_shark");
 });
 
-test("耐久随本次相对体型变化，体型相等需要三发，成长后可一发击杀", () => {
+test("耐久随本次相对体型变化，体型相等需要两发，成长后可一发击杀", () => {
   const e = creature(20),
     p = player();
   assert.equal(hitOrdinaryWithTorpedo(e, p), false);

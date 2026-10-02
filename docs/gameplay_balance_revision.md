@@ -4,6 +4,8 @@ Status: reviewed gameplay checkpoint based on **v0.8.3 / `29d73d3`**. The publis
 
 ## Survival changes
 
+The later [mid/late progression follow-up](meal_progression_revision.md) keeps this hunger curve but increases ordinary medium/large meal rewards after 10 m. The food examples and event-route timings below describe the preceding checkpoint, not its newer rewards or completion pacing.
+
 The player reported that a juvenile could spend too long sprinting through deep water. Two causes matter: the released depth surcharge was only 30%, and resource consumption used the movement step capped at 0.04 seconds. At low rendering rates, hunger and stamina therefore depleted more slowly per real second even though the expedition clock continued. The candidate advances vitals and resource cooldowns using the actual active-round interval, clipped at the existing 30-minute deadline. Movement retains its collision-safe integration cap. Pause, loading, hidden-page suspension and results do not advance these systems.
 
 The shared `hungerDrainRate()` now uses:

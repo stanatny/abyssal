@@ -41,7 +41,7 @@ function frame(h, n = 1, move = () => {}) {
     h.tube.update(1 / 60, h.p);
   }
 }
-test("轻微偏离时准星与发射选同一目标，真实弹体修正后命中", () => {
+test("瞄准锁定与发射选择同一目标，真实制导弹体命中", () => {
   const h = fixture();
   const target = h.tube.previewAim(h.origin, h.direction, h.p);
   assert.equal(target.entity, h.e);
@@ -58,7 +58,7 @@ test("轻微偏离时准星与发射选同一目标，真实弹体修正后命�
   assert.equal(h.hits.length, 1);
   assert.equal(h.hits[0].killed, 1);
   assert.equal(h.p.eaten, 1);
-  assert.ok(max > 2 && max <= 9.00001);
+  assert.ok(max >= 4.9);
   h.tube.dispose();
 });
 test("七度之外、背后、超射程和墙后不提示或追踪", () => {
@@ -83,7 +83,7 @@ test("七度之外、背后、超射程和墙后不提示或追踪", () => {
   assert.equal(h.tube.previewAim(h.origin, h.direction, h.p), null);
   h.tube.dispose();
 });
-test("近处小鱼也能微调命中，发射偏转仍至多三度", () => {
+test("近处小鱼在窄角内锁定后直接朝目标发射", () => {
   for (const distance of [15, 25, 40]) {
     const h = fixture(6);
     h.e.mesh.position.set(
@@ -94,26 +94,39 @@ test("近处小鱼也能微调命中，发射偏转仍至多三度", () => {
     h.tube.activate(h.p, h.origin, h.direction);
     const initial =
       (h.direction.angleTo(h.tube.projectiles[0].direction) * 180) / Math.PI;
-    assert.ok(initial <= 3.00001);
+    assert.ok(initial >= 5.99 && initial <= 6.00001);
     frame(h, 120);
     assert.equal(h.p.eaten, 1);
     h.tube.dispose();
   }
 });
-test("目标离开九度走廊后停止校准且不重新锁定其他生物", () => {
+test("目标横移超出旧九度走廊仍持续追踪，距离裁剪不解除存活锁定", () => {
   const h = fixture();
   h.tube.activate(h.p, h.origin, h.direction);
   frame(h, 8);
-  h.e.mesh.position.x = 90;
+  h.e.mesh.position.x = 45;
+  h.e.mesh.visible = false;
   frame(h);
-  const shot = h.tube.projectiles[0],
-    frozen = shot.direction.clone();
-  assert.equal(shot.target, null);
-  const extra = { ...h.e, mesh: h.e.mesh.clone() };
-  extra.mesh.position.set(0, -50, -110);
+  const shot = h.tube.projectiles[0];
+  assert.equal(shot.target.entity, h.e);
+  frame(h, 110, () => (h.e.mesh.position.x += 0.08));
+  assert.equal(h.p.eaten, 1);
+  assert.ok(h.direction.angleTo(shot.direction) > Math.PI / 12);
+  h.tube.dispose();
+});
+test("退休后不自动改锁别的猎物，丢失目标仍受射程限制", () => {
+  const h = fixture();
+  h.tube.activate(h.p, h.origin, h.direction);
+  h.e.hiddenFor = 10;
+  const extra = { ...h.e, hiddenFor: 0, mesh: h.e.mesh.clone() };
+  extra.mesh.position.set(65, -50, -50);
   h.prey.push(extra);
-  frame(h, 6);
-  assert.ok(shot.direction.distanceTo(frozen) < 1e-10);
+  frame(h);
+  assert.equal(h.tube.projectiles[0].target, null);
+  frame(h, 125);
+  assert.equal(h.hits.length, 1);
+  assert.equal(h.p.eaten, 0);
+  assert.ok(h.tube.projectiles.every((p) => !p.active));
   h.tube.dispose();
 });
 test("慢速移动目标可命中，已退休目标不会继续追踪", () => {

@@ -1,6 +1,6 @@
 /** 机械鲨鱼的支付、冷却与普通生物耐久；与渲染器无关。 */
 export const MECHANICAL_RULES = Object.freeze({
-  cooldown: 5,
+  cooldown: 2,
   healthCost: 10,
   staminaCost: 10,
   resistance: 1.5,
@@ -8,12 +8,10 @@ export const MECHANICAL_RULES = Object.freeze({
   speed: 70,
   blastRadius: 14,
   projectileRadius: 0.28,
-  giantHits: 3,
+  giantHits: 2,
   poolSize: 2,
   aimConeDegrees: 7,
-  aimLimitDegrees: 9,
-  aimInitialDegrees: 3,
-  aimTurnDegrees: 22,
+  aimTurnDegrees: 240,
 });
 
 /** 创建独立发射时钟；活跃时间由共享主循环提供。 */

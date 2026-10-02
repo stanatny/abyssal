@@ -17,6 +17,8 @@ export const ATLANTIS_EN = Object.freeze({
   基础游速: "Base Swim Speed",
   "基础营养为游戏数值，实际收益随相对体型和鱼群规则调整；进食同时恢复生命并用于成长。":
     "Base nutrition is a game value. Actual gains depend on relative size and schooling rules; meals also restore health and support growth.",
+  "{0}米后，中大型猎物的收益随成长提高；到{1}米，成长收益最高为原来的{2}倍，营养最高{3}倍。小鱼仍有体型衰减，进食优先回血；领主与补给奖励不受此加成影响。":
+    "After {0} m, medium and large prey give increasing returns: at {1} m, up to {2}× growth and {3}× nutrition. Small-prey returns still diminish and meals heal first. Lord loot and pickups do not receive this bonus.",
   "从阳光海滩潜入火山深渊。珊瑚鱼群、远古巨兽与多位深渊领主在此共存。":
     "Dive from sunlit beaches into volcanic depths, home to reef fish, Ancient Giants, and several Abyss Lords.",
   "从月夜浅滩潜入贝珠辉光映照的沉没古城。独特鱼群栖息于列柱间，克拉肯守卫波塞冬神殿。":

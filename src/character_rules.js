@@ -88,14 +88,14 @@ export const PLAYER_CHARACTERS = Object.freeze([
     available: true,
     startLength: 3,
     description: "钢铁装甲 · 鱼雷压制",
-    ability: "深水鱼雷 · 冷却5秒",
+    ability: `深水鱼雷 · 冷却${MECHANICAL_RULES.cooldown}秒`,
     active: {
       id: "torpedo",
       name: "深水鱼雷",
       cooldown: MECHANICAL_RULES.cooldown,
       range: MECHANICAL_RULES.range,
       description:
-        "水下向前发射鱼雷，仅对前方7度内无遮挡目标轻微校准，转向总幅度不超过9度；准星提示预计目标。射程140米，爆炸半径14米。每发消耗10点生命、10点体力，生命须超过10点。比自己小的普通猎物一发击杀，其余普通生物需三发；击杀后直接计为吞噬，获得回血、饱食与成长。25米起可对领主造成一次咬击伤害。",
+        "水下发射鱼雷，锁定准星前方7度内的无遮挡目标，发射后持续追踪该目标，不自动换目标；遮挡或目标消失时解除锁定。射程140米，爆炸半径14米。每发消耗10点生命、10点体力，生命须超过10点。比自己小的普通猎物一发击杀，其余普通生物需两发；击杀后直接计为吞噬，获得回血、饱食与成长。25米起可对领主造成一次咬击伤害。",
     },
     passive: {
       id: "steel_body",

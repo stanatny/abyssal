@@ -86,7 +86,7 @@ export function createExpeditionSetup(
     );
     setMarkup(
       container.querySelector("#character-description"),
-      tr`<div class="character-traits"><span><small>主动</small><b>${entry.active.name}</b></span><span><small>被动</small><b>${entry.passive.name}</b></span></div><details class="ability-details"><summary>了解角色能力 <span>↗</span></summary><div><p><b>${entry.active.name}</b>${entry.active.description}</p><p><b>${entry.passive.name}</b>${entry.passive.description}</p></div></details>`,
+      tr`<div class="character-traits"><span><small>主动</small><b>${entry.active.name}</b></span><span><small>被动</small><b>${entry.passive.name}</b></span></div><details class="ability-details"><summary>了解角色能力 <span>↗</span></summary><div><p><b>${entry.active.name}</b>${entry.active.description} ${tr`冷却${entry.active.cooldown}秒`}</p><p><b>${entry.passive.name}</b>${entry.passive.description}</p></div></details>`,
     );
     container.querySelector(".ability-details").open = Boolean(expanded);
     if (notifyChange) onCharacterChange?.(entry);

@@ -259,7 +259,7 @@ export function createMinimap(container) {
           dot.setAttribute("r", contact.boss ? "2.2" : "1.5");
           dot.setAttribute(
             "class",
-            tr`minimap-contact ${contact.boss ? "is-boss" : contact.dangerous ? "is-danger" : contact.eligible ? "is-prey" : "is-neutral"}`,
+            tr`minimap-contact ${contact.boss ? "is-boss" : contact.dangerous ? (contact.eligible ? "is-warning" : "is-danger") : contact.eligible ? "is-prey" : "is-neutral"}`,
           );
         }
       }

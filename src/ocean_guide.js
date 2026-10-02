@@ -12,7 +12,7 @@ import {
 import * as THREE from "three";
 import { europaGuideEntries } from "./europa_guide.js";
 import { createCreature } from "./creatures.js";
-import { HUNGER_RULES } from "./simulation.js";
+import { HUNGER_RULES, PREY_REWARD_RULES } from "./simulation.js";
 import { ALL_SPECIES, getRegionSpecies } from "./region_ecology.js";
 import { characterMovement } from "./character_rules.js";
 import { HUMAN_CATALOG, createHumanModel } from "./vehicle_models.js";
@@ -193,7 +193,7 @@ export function buildOceanCatalog(regionId) {
         regionId === "europa"
           ? "冰壳下的海洋没有大气出口，无法跃出水面。陡角度接触冰顶会短暂回到平游；技能、捕食与岩拱碰撞规则不变。"
           : entry.kind === "mechanical_shark"
-            ? "先留足生命与体力再开火，利用掩体和射程压制。爆炸不穿墙；击杀的普通生物立即计为主角吞噬，未击杀不发放收益。不比自己小的普通生物和领主都需三次有效命中；领主必须达到25米。"
+            ? "先留足生命与体力再开火，利用掩体和射程压制。爆炸不穿墙；击杀的普通生物立即计为主角吞噬，未击杀不发放收益。不比自己小的普通生物需两次有效命中；领主仍需三次，且必须达到25米。"
             : entry.kind === "zombie_shark"
               ? "先备好食物和退路再献祭；仆从不能代打领主，也不会提高主角吞食上限。体长正好5米时可以召唤，但尚无符合减5米限制的猎物。"
               : entry.kind === "orca"
@@ -239,7 +239,7 @@ export function buildOceanCatalog(regionId) {
           : getHunterAbility(config)?.label || config.ability,
         text: config.description,
         counter: config.predator
-          ? tr`${config.counter} ${tr`可被捕食不代表安全：体长优势不足5米时，猎手仍会追击，并能从侧后方咬伤你。正面用嘴捕获优先结算；至少大出5米后它才不再反击。`}`
+          ? tr`${config.counter} ${tr`可被捕食不代表安全：黄色标记表示可捕食但会反击，红色标记表示危险猎手。体长优势不足5米时，猎手仍会追击，并能从侧后方咬伤你。正面用嘴捕获优先结算；至少大出5米后它才不再反击。`}`
           : config.counter,
         tier: config.tier,
         realSize: config.realSize,
@@ -524,6 +524,11 @@ onLanguageChange(() => {
   REWARD_CATALOG = buildRewardCatalog();
 });
 
+function feedingProgressionNote() {
+  const rules = PREY_REWARD_RULES;
+  return tr`${rules.startLength}米后，中大型猎物的收益随成长提高；到${rules.fullLength}米，成长收益最高为原来的${rules.maxGrowthMultiplier}倍，营养最高${rules.maxNutritionMultiplier}倍。小鱼仍有体型衰减，进食优先回血；领主与补给奖励不受此加成影响。`;
+}
+
 /**
  * 创建首页海洋图鉴：分类检索、三维标本、奖励效果与生存建议。
  * @param {HTMLButtonElement} trigger 打开图鉴的首页按钮。
@@ -794,9 +799,12 @@ export function createOceanGuide(trigger) {
     facts.append(nutrition, speed);
     const note = document.createElement("p");
     note.className = "guide-feeding-note";
-    note.textContent = t(
-      "基础营养为游戏数值，实际收益随相对体型和鱼群规则调整；进食同时恢复生命并用于成长。",
-    );
+    note.textContent =
+      t(
+        "基础营养为游戏数值，实际收益随相对体型和鱼群规则调整；进食同时恢复生命并用于成长。",
+      ) +
+      " " +
+      feedingProgressionNote();
     facts.after(note);
   }
   function select(entry) {
@@ -885,7 +893,7 @@ export function createOceanGuide(trigger) {
             : entry.role;
     const survival =
       entry.category === "player"
-        ? tr`<div class="guide-advice guide-survival"><b>成长与深潜</b><p>幼年先在安全浅滩补给；体型越大，小鱼的营养与成长收益越低，逐步转向外礁中型猎物和深海巨兽。</p><p>${tr`显示深度${HUNGER_RULES.shallowDepth * WORLD.displayDepthScale}米内没有深水加成；到${HUNGER_RULES.fullDepth * WORLD.displayDepthScale}米，3米幼年消耗为浅海的${1 + HUNGER_RULES.maxDepthBonus + HUNGER_RULES.juvenileDepthBonus}倍，${HUNGER_RULES.acclimatedLength}米及以上为${1 + HUNGER_RULES.maxDepthBonus}倍，中间平滑变化。深潜前吃饱，空体力不扣生命；饱食耗尽才会失血，回浅海会降低消耗。`}</p></div>`
+        ? tr`<div class="guide-advice guide-survival"><b>成长与深潜</b><p>幼年先在安全浅滩补给；体型越大，小鱼的营养与成长收益越低，逐步转向外礁中型猎物和深海巨兽。</p><p>${feedingProgressionNote()}</p><p>${tr`显示深度${HUNGER_RULES.shallowDepth * WORLD.displayDepthScale}米内没有深水加成；到${HUNGER_RULES.fullDepth * WORLD.displayDepthScale}米，3米幼年消耗为浅海的${1 + HUNGER_RULES.maxDepthBonus + HUNGER_RULES.juvenileDepthBonus}倍，${HUNGER_RULES.acclimatedLength}米及以上为${1 + HUNGER_RULES.maxDepthBonus}倍，中间平滑变化。深潜前吃饱，空体力不扣生命；饱食耗尽才会失血，回浅海会降低消耗。`}</p></div>`
         : "";
     setMarkup(
       info,

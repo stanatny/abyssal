@@ -2,9 +2,9 @@ import * as THREE from "three";
 import { MECHANICAL_RULES as RULES } from "./mechanical_shark_rules.js";
 
 /**
- * 小角度瞄准辅助；预览和发射共用选择规则，不跨目标重新锁定。
+ * 前方窄角锁定后持续制导；预览和发射共用选择规则，不跨目标重新锁定。
  * @param {object} options 实体、领主、遮挡和领主真实表面查询。
- * @returns {object} select返回当前候选，steer只调整已选弹体并限制偏航。
+ * @returns {object} select返回当前候选，steer追踪该目标并保留遮挡与退休检查。
  */
 export function createMechanicalAim({ entities, bosses, blocked, bossPoint }) {
   const delta = new THREE.Vector3(),
@@ -12,7 +12,6 @@ export function createMechanicalAim({ entities, bosses, blocked, bossPoint }) {
     turn = new THREE.Quaternion(),
     identity = new THREE.Quaternion();
   const cone = THREE.MathUtils.degToRad(RULES.aimConeDegrees),
-    limit = THREE.MathUtils.degToRad(RULES.aimLimitDegrees),
     rate = THREE.MathUtils.degToRad(RULES.aimTurnDegrees);
   function select(origin, direction, player) {
     let best = null,
@@ -56,18 +55,9 @@ export function createMechanicalAim({ entities, bosses, blocked, bossPoint }) {
       projectile.target = null;
       return;
     }
-    if (!e.mesh.visible) {
-      projectile.target = null;
-      return;
-    }
+    // mesh.visible也承担玩家距离裁剪，不能把仍存活的远处目标误判为退休。
     desired.copy(e.mesh.position).sub(projectile.mesh.position).normalize();
-    if (
-      desired.lengthSq() < 0.99 ||
-      projectile.initialDirection.angleTo(desired) > limit
-    ) {
-      projectile.target = null;
-      return;
-    }
+    if (desired.lengthSq() < 0.99) return;
     if (now >= projectile.aimCheckAt) {
       projectile.aimCheckAt = now + 0.12;
       const point = target.boss

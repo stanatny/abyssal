@@ -1,5 +1,11 @@
 # Mechanical Shark — visual and aiming refinement
 
+The subsequent [ordinary durability follow-up](torpedo_durability_revision.md) changes equal/larger ordinary creatures to two hits; the three-hit observations below remain historical. Lords still require three valid hits.
+
+Historical review: the later [homing and feeding follow-up](homing_feeding_revision.md) replaces the earlier limited steering corridor; its range, costs, 2-second cooldown and touch controls remain current.
+
+Historical evidence below used the former 5-second cooldown. The subsequent [touch/control follow-up](touch_slow_torpedo_revision.md) changes the current interval to 2 seconds; retain earlier measurements as historical evidence.
+
 Uncommitted follow-up on `feature/mechanical-shark`, based on `e042fbb`. The user requested longer flames, stronger multicolor technical armor, modest torpedo correction and an expected-target reticle. No commit, push, main integration or release is authorized. The first-pass evidence remains in [the historical revision](mechanical_shark_revision.md).
 
 ## Changes and preserved rules

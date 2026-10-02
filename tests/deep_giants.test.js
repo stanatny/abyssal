@@ -29,8 +29,8 @@ test("新增巨兽只加两只，不扩大旧物种或幼年食物库存", () =>
     1,
   );
   for (const [region, count, kinds] of [
-    ["hawaii", 285, 24],
-    ["atlantis", 390, 17],
+    ["hawaii", 491, 24],
+    ["atlantis", 546, 17],
   ]) {
     const population = getRegionSpecies(region);
     const old = population.filter(
@@ -139,9 +139,14 @@ test("20至25米两角色与狂食均不能吞食28米巨兽，普通冲刺能�
     adult.mass = (adult.length / 6) ** 3;
     adult.hunger = 0;
     assert.equal(canEat(adult, giant.length), true);
+    const previousMass = adult.mass;
     assert.equal(consumePrey(adult, giant), true);
-    assert.equal(adult.hunger, 86);
-    assert.equal(adult.lastMeal.nutrition, 86);
-    assert.ok(Math.abs(adult.lastMeal.growth - giant.growth) < 1e-9);
+    assert.equal(adult.hunger, 100);
+    assert.equal(adult.lastMeal.nutrition, 100);
+    assert.ok(
+      Math.abs(
+        adult.lastMeal.growth - Math.min(giant.growth * 4, 125 - previousMass),
+      ) < 1e-9,
+    );
   }
 });

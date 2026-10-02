@@ -48,7 +48,7 @@ test("Bermuda roster, protected nursery and regional inhabitants remain isolated
   assert.equal(region.available, true);
   assert.equal(
     getRegionSpecies("bermuda").reduce((n, s) => n + s.population, 0),
-    341,
+    474,
   );
   assert.equal(new Set(region.speciesKinds).size, 24);
   for (const line of [

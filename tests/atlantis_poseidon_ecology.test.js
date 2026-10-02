@@ -45,41 +45,41 @@ const RENDERED_TERRAIN = terrainTriangles();
 
 after(() => OCEAN.dispose());
 
-test("Poseidon preserves its food stock with 412 legal spawns including two deep giants and 168 juvenile nursery meals", () => {
+test("Poseidon preserves its food stock with 568 legal spawns including two deep giants and 206 juvenile nursery meals", () => {
   assert.equal(
     SPECIES.reduce((sum, species) => sum + species.population, 0),
-    412,
+    568,
   );
   const profiles = SPECIES.flatMap((species) => species.schoolProfiles || []);
   assert.equal(
     profiles
       .filter((profile) => profile.cityResident)
       .reduce((sum, profile) => sum + profile.count, 0),
-    114,
+    170,
   );
   assert.equal(
     SPECIES.filter((species) => species.schoolSize > 1).reduce(
       (sum, species) => sum + schoolPopulationGroups(species).length,
       0,
     ),
-    43,
+    47,
   );
   const tuna = SPECIES.find((species) => species.kind === "tuna");
-  assert.equal(tuna.population, 42);
+  assert.equal(tuna.population, 74);
   assert.deepEqual(
     tuna.schoolProfiles
       .filter((profile) => profile.cityResident)
       .map((profile) => profile.count),
-    [9, 6, 3],
+    [14, 9, 3],
   );
   assert.ok(
     tuna.schoolProfiles.some(
       (profile) =>
-        profile.count === 6 && profile.anchor.join() === "-24,-510,-830",
+        profile.count === 9 && profile.anchor.join() === "-24,-510,-830",
     ),
   );
   const sardine = SPECIES.find((species) => species.kind === "sardine");
-  assert.equal(sardine.population, 128);
+  assert.equal(sardine.population, 172);
   assert.equal(
     sardine.schoolProfiles.filter((profile) => profile.cityResident).length,
     6,
@@ -91,7 +91,13 @@ test("Poseidon preserves its food stock with 412 legal spawns including two deep
     false,
   );
   for (const { species, sanctuary, group, habitat, anchor } of SCHOOLS) {
-    assert.equal(group.count, sanctuary.count);
+    assert.equal(
+      group.count,
+      Math.min(
+        Math.ceil(sanctuary.count * 1.5),
+        habitat.densityLimit ?? Infinity,
+      ),
+    );
     assert.deepEqual(anchor.toArray(), Object.values(sanctuary.anchor));
     assert.deepEqual([habitat.depthMin, habitat.depthMax], [684, 698]);
     assert.equal(habitat.cityResident, true);
@@ -149,8 +155,8 @@ test("Poseidon preserves its food stock with 412 legal spawns including two deep
       total++;
     }
   }
-  assert.equal(total, 412);
-  assert.equal(nurseryMeals, 186);
+  assert.equal(total, 568);
+  assert.equal(nurseryMeals, 224);
 });
 
 for (const school of SCHOOLS) {
@@ -158,7 +164,13 @@ for (const school of SCHOOLS) {
 
   test(`${species.kind}: every distinct Poseidon school slot spawns at its requested underground position`, () => {
     const members = spawnMembers(school);
-    assert.equal(members.length, sanctuary.count);
+    assert.equal(
+      members.length,
+      Math.min(
+        Math.ceil(sanctuary.count * 1.5),
+        habitat.densityLimit ?? Infinity,
+      ),
+    );
     assert.equal(
       new Set(members.map(({ position }) => position.toArray().join())).size,
       group.count,

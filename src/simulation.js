@@ -166,7 +166,7 @@ export function canEat(player, preyLength) {
  */
 export function consumePrey(player, prey) {
   if (!prey || prey.tier === 3 || !canEat(player, prey.length)) return false;
-  applyNutrition(player, prey, preyNutritionEfficiency(player.length, prey));
+  applyNutrition(player, preyMealReward(player.length, prey));
   player.eaten += 1;
   return true;
 }
@@ -187,7 +187,7 @@ export function consumeDefeatedPrey(player, prey) {
     !isPositive(prey.length)
   )
     return false;
-  applyNutrition(player, prey, preyNutritionEfficiency(player.length, prey));
+  applyNutrition(player, preyMealReward(player.length, prey));
   player.eaten += 1;
   return true;
 }
@@ -200,6 +200,45 @@ export function preyNutritionEfficiency(length, prey) {
   const schoolEfficiency =
     prey.length < 1 && prey.schoolSize > 1 ? 0.7 * (6 / length) ** 4 : 0;
   return Math.min(1, Math.max(sizeEfficiency, schoolEfficiency));
+}
+
+/**
+ * 计算普通进食的有效收益；成年阶段加成与相对体型衰减共用，领主战利品不走此路径。
+ * @param {number} length 捕食前的主角实际体长。
+ * @param {{length:number,nutrition?:number,growth?:number}} prey 已验证捕食资格的普通猎物。
+ * @returns {{length:number,nutrition:number,growth:number}} 供共享营养结算使用的收益；幼年和治疗分配仍由applyNutrition处理。
+ */
+export function preyMealReward(length, prey) {
+  const rules = PREY_REWARD_RULES;
+  const stage = Math.max(
+    0,
+    Math.min(
+      1,
+      (length - rules.startLength) / (rules.fullLength - rules.startLength),
+    ),
+  );
+  // 2米以下的小鱼不靠成年加成变成高效食物，6米以上的猎物获得完整阶段加成。
+  const preyScale = Math.max(
+    0,
+    Math.min(
+      1,
+      (prey.length - rules.smallPreyLength) /
+        (rules.largePreyLength - rules.smallPreyLength),
+    ),
+  );
+  const bonus = stage * preyScale;
+  const efficiency = preyNutritionEfficiency(length, prey);
+  return {
+    length: prey.length,
+    nutrition:
+      nonNegative(prey.nutrition, 10 + prey.length * 1.5) *
+      efficiency *
+      (1 + (rules.maxNutritionMultiplier - 1) * bonus),
+    growth:
+      nonNegative(prey.growth, (prey.length / 6) ** 3 * 0.4) *
+      efficiency *
+      (1 + (rules.maxGrowthMultiplier - 1) * bonus),
+  };
 }
 
 /**
@@ -216,7 +255,7 @@ export function applyNutrition(player, reward, efficiency = 1) {
   const nutrition =
     nonNegative(reward.nutrition, 10 + preyLength * 1.5) * safeEfficiency;
   // 生态奖励沿用6米质量单位；幼年仅压低成长，避免一群小鱼跳过多个体型层级。
-  // 线性系数让第一群有明显成长反馈，6米后与原曲线完全相同。
+  // 线性系数让第一群有明显成长反馈；成年普通猎物加成已在共享进食入口计算。
   const juvenileGrowth = Math.min(1, player.length / 6);
   const growth =
     nonNegative(reward.growth, (preyLength / 6) ** 3 * 0.4) *
@@ -331,6 +370,16 @@ export const HUNGER_RULES = Object.freeze({
   maxDepthBonus: 0.5,
   juvenileDepthBonus: 4.5,
   acclimatedLength: 18,
+});
+
+/** 成年普通猎物收益加成，平滑提高中后期节奏，不放宽捕食或领主资格。 */
+export const PREY_REWARD_RULES = Object.freeze({
+  startLength: 10,
+  fullLength: 25,
+  smallPreyLength: 2,
+  largePreyLength: 6,
+  maxGrowthMultiplier: 4,
+  maxNutritionMultiplier: 1.5,
 });
 
 /** 玩家移动共享配置；速度以世界单位/秒计，体力以每秒变化量计。 */

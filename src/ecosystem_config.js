@@ -84,6 +84,7 @@ const ancient = (kind, label, length, speed, depthMin, depthMax, facts) => ({
 export const ECOSYSTEM_SPECIES = Object.freeze(
   [
     shoal("fish", "珊瑚鱼", 0.8, 4, 5, 34, 12, {
+      nurseryResident: true,
       latin: "REEF FISH ASSEMBLAGE",
       color: "#ffcf85",
       realSize: "多物种艺术组合 · 游戏0.8 m",
@@ -103,6 +104,7 @@ export const ECOSYSTEM_SPECIES = Object.freeze(
       counter: "一次穿过密集鱼群比追逐单尾更划算。",
     }),
     shoal("sardine", "沙丁鱼", 0.3, 5.1, 5, 30, 16, {
+      nurseryResident: true,
       latin: "SARDINOPS SAGAX",
       color: "#afdfcf",
       realSize: "较大个体约0.30 m",

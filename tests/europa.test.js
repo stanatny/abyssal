@@ -58,7 +58,15 @@ test("either local Europa lord counts once, unrelated defeats and sub-30 bodies 
 test("Europa registers 16 exclusive ordinary kinds and two isolated persistent alien lords", () => {
   const region = getExpedition("europa").region;
   const kinds = EUROPA_SPECIES.map((s) => s.kind);
-  assert.deepEqual(getRegionSpecies("europa"), EUROPA_SPECIES);
+  assert.deepEqual(
+    getRegionSpecies("europa").map((s) => [
+      s.kind,
+      s.length,
+      s.nutrition,
+      s.growth,
+    ]),
+    EUROPA_SPECIES.map((s) => [s.kind, s.length, s.nutrition, s.growth]),
+  );
   assert.equal(kinds.length, 16);
   assert.equal(new Set(kinds).size, 16);
   assert.equal(

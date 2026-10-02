@@ -43,8 +43,10 @@ export const UI_EN = Object.freeze({
   操作与海域规则: "Controls & regional objective",
   "WASD 转向，空格冲刺，J 角色技能，K 慢游。接触自动咬击。":
     "WASD to steer, Space to sprint, J for your skill, K to swim slowly. Contact triggers feeding or attacks.",
-  "拖动左侧摇杆转向，按住冲刺按钮加速；点击技能按钮释放主动技能。接触自动咬击。":
-    "Drag the left joystick to steer. Hold Sprint to accelerate; tap your skill to activate it. Contact triggers feeding or attacks.",
+  "拖动左侧摇杆转向，按住冲刺按钮加速，按住慢游按钮减速；点击技能按钮释放主动技能。接触自动咬击。":
+    "Drag the left joystick to steer. Hold Sprint to accelerate, hold Slow swim to decelerate, and tap your skill to activate it. Contact triggers feeding or attacks.",
+  按住慢游: "Hold to swim slowly",
+  "冷却{0}秒": "Cooldown: {0}s",
   体长: "Length",
   探索时长: "Time explored",
   捕食次数: "Prey eaten",

@@ -88,7 +88,11 @@ test("Upper trench contains an edible 15-to-25m chain without respawn or altered
       character,
       getExpedition("mariana", character).startLength,
     );
-    for (const s of stock) consumePrey(p, s);
+    for (const s of stock) {
+      consumePrey(p, s);
+      // 增密后库存更充裕；检验首次达到守门门槛，不要求吃光所有库存才到25米。
+      if (p.length >= 25) break;
+    }
     assert.ok(p.length >= 25 && p.length < 30, `${character}: ${p.length}`);
     assert.equal(p.won, false);
   }
