@@ -435,16 +435,21 @@ export function createHumanActivity(
   }
   function eatAt(player, entity, now, forward) {
     if (!consumeHuman(player, entity, now)) return;
+    retireMeal(entity, now);
+    effects?.bite?.(entity.mesh.position, forward, player.length);
+    audio?.eatHuman?.(entity.species.length, entity.sex);
+    onEat?.(entity.mesh.position.clone(), entity.species.length, entity);
+    if (!isSwallowing(entity.mesh)) entity.mesh.visible = false;
+  }
+  // 仆从在完成资格、真实接触和共享收益结算后复用同一人类刷新流程。
+  function retireMeal(entity, now) {
+    entity.alive = false;
     const delay =
       entity.kind === "swimmer"
         ? HUMAN_RULES.swimmerRespawn
         : HUMAN_RULES.diverRespawn;
     entity.cooldown = entity.reserved ? Infinity : delay;
     entity.respawnAt = entity.reserved ? Infinity : now + delay;
-    effects?.bite?.(entity.mesh.position, forward, player.length);
-    audio?.eatHuman?.(entity.species.length, entity.sex);
-    onEat?.(entity.mesh.position.clone(), entity.species.length, entity);
-    if (!isSwallowing(entity.mesh)) entity.mesh.visible = false;
   }
   function onMovement(
     player,
@@ -712,6 +717,7 @@ export function createHumanActivity(
     update,
     onMovement,
     entities,
+    retireMeal,
     submarines,
     defense,
     hazards,

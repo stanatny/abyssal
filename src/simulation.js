@@ -166,19 +166,19 @@ export function canEat(player, preyLength) {
  */
 export function consumePrey(player, prey) {
   if (!prey || prey.tier === 3 || !canEat(player, prey.length)) return false;
-
-  // 猎物小于自身一半后，收益按比例平方衰减，迫使大鱼前往更深海域觅食。
-  const sizeEfficiency = Math.min(
-    1,
-    (prey.length / (player.length * 0.5)) ** 2,
-  );
-  // 小鱼保持真实体长；幼年可穿过密群补给，大体型阶段收益快速递减。
-  const schoolEfficiency =
-    prey.length < 1 && prey.schoolSize > 1 ? 0.7 * (6 / player.length) ** 4 : 0;
-  const efficiency = Math.max(sizeEfficiency, schoolEfficiency);
-  applyNutrition(player, prey, efficiency);
+  applyNutrition(player, prey, preyNutritionEfficiency(player.length, prey));
   player.eaten += 1;
   return true;
+}
+
+/** 返回普通食物体型衰减比例，主角与仆从共享，不因饱食封顶丢失有效营养。 */
+export function preyNutritionEfficiency(length, prey) {
+  // 猎物小于自身一半后，收益按比例平方衰减，迫使大鱼前往更深海域觅食。
+  const sizeEfficiency = Math.min(1, (prey.length / (length * 0.5)) ** 2);
+  // 小鱼保持真实体长；幼年可穿过密群补给，大体型阶段收益快速递减。
+  const schoolEfficiency =
+    prey.length < 1 && prey.schoolSize > 1 ? 0.7 * (6 / length) ** 4 : 0;
+  return Math.min(1, Math.max(sizeEfficiency, schoolEfficiency));
 }
 
 /**

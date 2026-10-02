@@ -510,6 +510,44 @@ export class OceanAudio {
     }
   }
 
+  /** 献祭用下沉的失谐低音和收束水流，沿用有界音效图和静音/暂停逻辑。 */
+  summonUndead() {
+    if (!this.effectReady("summon-undead", 0.5)) return;
+    const at = this.context.currentTime + 0.006;
+    this.note(126, at, 0.72, 0.18, this.effects, {
+      end: 46,
+      attack: 0.025,
+      cutoff: 650,
+    });
+    this.note(132, at + 0.04, 0.58, 0.085, this.effects, {
+      end: 49,
+      attack: 0.04,
+      cutoff: 540,
+    });
+    this.noise(at, 0.32, 0.075, this.effects, 380, "bandpass", 0.025, {
+      end: 180,
+    });
+    this.duckMusic(0.7, 0.35);
+  }
+
+  /** 尸爆用短促水压冲击与气泡尾声，不使用真人惨叫或持续杂音。 */
+  corpseBurst() {
+    if (!this.effectReady("corpse-burst", 0.5)) return;
+    const at = this.context.currentTime + 0.006;
+    this.note(98, at, 0.55, 0.16, this.effects, {
+      end: 30,
+      attack: 0.008,
+      cutoff: 720,
+    });
+    this.noise(at + 0.02, 0.21, 0.1, this.effects, 640, "lowpass", 0.01, {
+      end: 190,
+    });
+    this.note(236, at + 0.07, 0.25, 0.035, this.effects, {
+      end: 110,
+      attack: 0.02,
+    });
+  }
+
   /** breach 播放从低通水流打开到空气的破水声；无参数，无返回值。 */
   breach() {
     if (!this.effectReady("breach", 0.3)) return;

@@ -3335,3 +3335,22 @@ body.launching #hud {
   opacity: var(--launch-hud, 0);
   pointer-events: none;
 }
+
+/* 尸鲨技能保留同一位置，条件不足和正在环游分别可读，不依赖颜色传达资格。 */
+.skill-button[data-state="blocked"],
+#sonar-control[data-state="blocked"] {
+  color: #c3cec8;
+  border-color: #8b9d9580;
+  background: #1c2b2bed;
+  box-shadow: none;
+}
+.skill-button[data-state="blocked"]::before {
+  opacity: 0;
+}
+.skill-button[data-skill="summon"][data-state="active"],
+#sonar-control[data-skill="summon"][data-state="active"] {
+  color: #ebeedb;
+  border-color: #aebc8b;
+  background: #334438ed;
+  box-shadow: inset 0 0 0 1px #ccd3a52b;
+}

@@ -51,6 +51,33 @@ export const PLAYER_CHARACTERS = Object.freeze([
         "未冲刺时左右转向和上浮/下潜转向更快；冲刺时恢复常规转向速度。松开方向仍保持当前游向。",
     },
   },
+  {
+    id: "zombie_shark",
+    kind: "zombie_shark",
+    name: "丧尸鲨鱼",
+    latin: "UNDEAD SELACHIAN",
+    color: "#b5c29a",
+    available: true,
+    startLength: 3,
+    description: "献祭召唤 · 环游猎仆",
+    ability: "尸鲨分裂 · 存活60秒，冷却60秒",
+    active: {
+      id: "summon",
+      name: "尸鲨分裂",
+      duration: 60,
+      cooldown: 60,
+      cost: 50,
+      minimumLength: 5,
+      description:
+        "达到5米且生命、体力、饱食各至少50点时，可消耗三项各50点召唤一只较小尸鲨，存活60秒，激活起冷却60秒。恰好50生命时献祭会致死。",
+    },
+    passive: {
+      id: "scavenger",
+      name: "亡者共食",
+      description:
+        "仆从环游身旁，自动追捕附近不超过主角当前体长减5米的普通猎物，不攻击领主或载具。营养、回血、成长和捕食次数归主角，另按有效营养恢复体力；60秒后无伤害尸爆消失。",
+    },
+  },
 ]);
 
 /** 读取已开放角色；未知标识直接报错，防止悄悄套用其他角色的技能。 */

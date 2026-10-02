@@ -255,6 +255,33 @@ export function createCombatEffects(scene) {
       drift: 8,
     });
   }
+  /** 尸鲨分裂与到期尸爆：收拢开场、骨白水泡和低密度腐红余雾，无范围伤害。 */
+  function undeadBurst(point, length, expiry = false) {
+    emit(point, {
+      color: expiry ? 0x69494e : 0x526a53,
+      count: 10,
+      size: Math.min(3.5, 0.6 + length * 0.12),
+      alpha: 0.38,
+      life: expiry ? 1.8 : 0.9,
+      drift: expiry ? 7 : 2.2,
+      grow: expiry ? 2.1 : 1.5,
+      spin: 0.5,
+      spread: length * 0.15,
+    });
+    emit(point, {
+      bubble: true,
+      color: 0xc1c7ad,
+      count: 14,
+      size: 0.22,
+      alpha: 0.6,
+      life: 1.3,
+      drift: expiry ? 11 : 3.5,
+      rise: 1.4,
+      grow: 1.2,
+      spread: length * 0.14,
+    });
+    if (expiry) mealMist(point, Math.min(8, length));
+  }
   function flash(point, color = 0x83edcd, size = 5) {
     emit(point, { color, count: 3, size, alpha: 0.45, life: 0.65, drift: 1 });
   }
@@ -432,6 +459,7 @@ export function createCombatEffects(scene) {
     mealMist,
     bite,
     hurt,
+    undeadBurst,
     flash,
     spawnInk,
     inkDensity,

@@ -36,10 +36,10 @@ const placeholders = (value) =>
 
 test("the guide's full and regional catalogs agree with actual species and lord rosters", () => {
   const catalog = buildOceanCatalog();
-  assert.equal(catalog.length, 92);
+  assert.equal(catalog.length, 93);
   assert.equal(
     catalog.filter((e) => e.regionIds.some((id) => id !== "europa")).length,
-    71,
+    72,
   );
   assert.equal(new Set(catalog.map((entry) => entry.id)).size, catalog.length);
   assert.deepEqual(kinds(ordinary(catalog)), kinds(ALL_SPECIES));

@@ -33,7 +33,7 @@ test("Unreleased and unknown expeditions cannot start", () => {
   }
   assert.throws(() => getExpedition("missing"), /not available/);
   assert.throws(() => getExpedition("hawaii", "shark"), /not available/);
-  assert.equal(CHARACTERS.filter((entry) => entry.available).length, 2);
+  assert.equal(CHARACTERS.filter((entry) => entry.available).length, 3);
 });
 
 test("Atlantis is the second playable destination for both existing characters", () => {

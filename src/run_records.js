@@ -1,5 +1,6 @@
 /** 本地通关榜：只接收完成的远征，按海域独立保留最快十次，存储失败不阻断游戏。 */
 import { ROUND_DURATION } from "./simulation.js";
+import { PLAYER_CHARACTERS } from "./character_rules.js";
 
 export const RUN_RECORD_KEY = "abyssal-runs-v1";
 export const RUN_RULESET = "survival-2026-10";
@@ -33,7 +34,7 @@ export function normalizeRunName(value) {
 export function createRunRecordStore(
   storage,
   regionIds,
-  characterIds = ["orca", "squid"],
+  characterIds = PLAYER_CHARACTERS.map((entry) => entry.id),
 ) {
   const allowed = new Set(regionIds),
     characters = new Set(characterIds);

@@ -20,7 +20,7 @@ Starting an expedition smoothly rotates the home scene into the follow camera ov
 
 The current `feature/europa` review adds a fifth independent destination, **Europa**, beneath a solid ice ceiling. It is a fictional bonus expedition, directly selectable for now; future unlocking is unspecified. The published v0.8.3 version and the four-region reference sections below remain unchanged.
 
-Explore five connected habitats: Ice Cradle, Brine Arches, Suspended Garden, Thermal Basin and Weaver's Hollow. Sixteen original ordinary alien species form a layered 247-organism food chain. Only the two playable characters come from Earth; this destination has no terrestrial wildlife, active crews, surface fleet or atmospheric breach. An abandoned original research lander is a static exploration artifact. The separate Alien Life Guide filter identifies fictional lifeforms and their actual feeding roles.
+Explore five connected habitats: Ice Cradle, Brine Arches, Suspended Garden, Thermal Basin and Weaver's Hollow. Sixteen original ordinary alien species form a layered 247-organism food chain. Only the playable characters come from Earth; this destination has no terrestrial wildlife, active crews, surface fleet or atmospheric breach. An abandoned original research lander is a static exploration artifact. The separate Alien Life Guide filter identifies fictional lifeforms and their actual feeding roles.
 
 The alien roster now separates crystal-shelled shoals, articulated crawlers, radial blooms, broad gliders, eight-armed filterers, coiled-shell grazers, armored serpents and bell colonies. Their existing sizes, populations, food values and habitats remain intact.
 
@@ -30,11 +30,19 @@ A crashed research lander at the Garden/Basin transition has a flooded, open-end
 
 Read the [production brief](docs/europa_brief.md), [candidate verification](docs/europa_verification.md) and [music/model refinement](docs/europa_refinement.md) for implementation evidence and remaining review limits. This candidate is not a formal release.
 
+## Unreleased Zombie Shark character
+
+The current review adds an original **Zombie Shark** as a third playable character in all five candidate destinations. Distributed tears expose bone across the skull, flanks, spine and tail, with bloodstained fins, a damaged jaw and a fierce narrow-eyed face; it uses the same growth curve, body-contact rules and regional objectives as the existing characters. Starts remain 3 m, except Mariana's 15 m.
+
+**Undead Fission** summons one smaller hunting companion for 60 seconds, with a 60-second cooldown starting on cast. The character must be at least 5 m and have at least 50 health, stamina and hunger; casting pays 50 of each immediately. Paying exactly 50 health is lethal. The companion circles nearby and pursues ordinary prey no longer than the owner's current length minus 5 m (a 20 m owner permits 15 m prey). It cannot attack lords or vehicles. Food, healing, growth and meal counts credit the owner, while effective meal nutrition also restores stamina. After 60 active-play seconds it disappears in a harmless corpse burst. Pause freezes both timers; home and terminal states clear it.
+
+Selection, English/Chinese Guide, skill countdown and local records recognize this character. At exactly 5 m, a cast is legal but no positive-sized prey yet fits its feeding limit. This is an unreleased candidate, not a change to the published link. See [the rules, art and verification](docs/zombie_shark_revision.md).
+
 ## Gameplay review candidate (not yet published)
 
 The current working candidate doubles base hunger consumption and adds stronger, size-dependent deep-water pressure. At 3 m, the full-depth drain is six times the same character’s shallow drain; this eases continuously to 1.5 times at 18 m and above. A HUD multiplier and both-language Guide explain the pressure. Survival timers follow actual active time even when rendering slows. Shallow feeding and large deep prey retain their existing populations and rewards.
 
-A local **Fastest Expeditions** board keeps the ten quickest successful runs per region, including the explorer’s optional name, **Orca or Giant Squid**, and completion time. Records persist in the same browser; there is no online ranking or account. Pausing, loading and post-win exploration do not count. Mariana’s results offer a safe visit to the existing pineapple-house and waving-sponge Easter egg without changing the recorded result. Read [the gameplay review](docs/gameplay_balance_revision.md) for measurements and limits. The published link above remains v0.8.3 until release is authorized.
+A local **Fastest Expeditions** board keeps the ten quickest successful runs per region, including the explorer’s optional name, **playable character**, and completion time. Records persist in the same browser; there is no online ranking or account. Pausing, loading and post-win exploration do not count. Mariana’s results offer a safe visit to the existing pineapple-house and waving-sponge Easter egg without changing the recorded result. Read [the gameplay review](docs/gameplay_balance_revision.md) for measurements and limits. The published link above remains v0.8.3 until release is authorized.
 
 ## cross-device interface review
 

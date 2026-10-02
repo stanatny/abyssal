@@ -165,10 +165,16 @@ export function buildOceanCatalog(regionId) {
       id: tr`player_${entry.id}`,
       kind: entry.kind,
       name: entry.name,
-      latin: entry.kind === "orca" ? "ORCINUS ORCA" : "ARCHITEUTHIS DUX",
+      latin:
+        entry.latin ||
+        (entry.kind === "orca" ? "ORCINUS ORCA" : "ARCHITEUTHIS DUX"),
       category: "player",
       role: "可选角色",
-      color: entry.kind === "orca" ? "#a1e8d5" : "#c2a5e8",
+      color: entry.color || (entry.kind === "orca" ? "#a1e8d5" : "#c2a5e8"),
+      appearance:
+        entry.kind === "zombie_shark"
+          ? "原创亡灵鲨鱼：头颌、侧腹、背脊和尾柄有不规则撕裂与裸露骨架，断鳍和伤口带有血迹，低压眉骨与尖牙呈现凶狠神态；并非真实动物。"
+          : undefined,
       length: startingLength(entry),
       size: tr`${startingLength(entry)}—30 m（成长玩法）`,
       habitat: "本作海洋全域",
@@ -177,9 +183,11 @@ export function buildOceanCatalog(regionId) {
       counter:
         regionId === "europa"
           ? "冰壳下的海洋没有大气出口，无法跃出水面。陡角度接触冰顶会短暂回到平游；技能、捕食与岩拱碰撞规则不变。"
-          : entry.kind === "orca"
-            ? "用声呐判断前方猎物体长和捕食资格，雷达保留周围回声。高速冲刺可追捕猎物或拉开距离，水下连续蓄势后才能破水。"
-            : "遇到猎手追击时在水下喷墨脱身，提前把头朝向安全出口；喷射会受到礁石和船体阻挡。松开冲刺可发挥灵活转向的被动。",
+          : entry.kind === "zombie_shark"
+            ? "先备好食物和退路再献祭；仆从不能代打领主，也不会提高主角吞食上限。体长正好5米时可以召唤，但尚无符合减5米限制的猎物。"
+            : entry.kind === "orca"
+              ? "用声呐判断前方猎物体长和捕食资格，雷达保留周围回声。高速冲刺可追捕猎物或拉开距离，水下连续蓄势后才能破水。"
+              : "遇到猎手追击时在水下喷墨脱身，提前把头朝向安全出口；喷射会受到礁石和船体阻挡。松开冲刺可发挥灵活转向的被动。",
       characterId: entry.id,
       realSize:
         "其他海域3米幼年起步，马里亚纳15米起步；起始尺寸、30米体长上限与技能强度属于游戏设定。",
@@ -850,7 +858,7 @@ export function createOceanGuide(trigger) {
         : "";
     setMarkup(
       info,
-      tr`<div class="guide-eyebrow">${entry.latin}</div><div class="guide-name-row"><h3>${entry.name}</h3><span>${entry.role}</span></div><div class="guide-facts"><div><small>本作尺度</small><b>${entry.size}</b></div><div><small>活动水层</small><b>${entry.habitat}</b></div></div><h4>${entry.ability}</h4><p>${entry.text}</p><div class="guide-advice"><b>生存建议</b><p>${entry.counter}</p></div><small class="guide-combat">${combat}</small>${survival}${entry.realSize ? tr`<div class="guide-advice"><b>生态注记</b><p>${entry.realSize} ${entry.habitatNote || ""}</p></div>` : ""}`,
+      tr`<div class="guide-eyebrow">${entry.latin}</div><div class="guide-name-row"><h3>${entry.name}</h3><span>${entry.role}</span></div><div class="guide-facts"><div><small>本作尺度</small><b>${entry.size}</b></div><div><small>活动水层</small><b>${entry.habitat}</b></div></div>${entry.category === "player" && entry.appearance ? tr`<p class="guide-appearance">${entry.appearance}</p>` : ""}<h4>${entry.ability}</h4><p>${entry.text}</p><div class="guide-advice"><b>生存建议</b><p>${entry.counter}</p></div><small class="guide-combat">${combat}</small>${survival}${entry.realSize ? tr`<div class="guide-advice"><b>生态注记</b><p>${entry.realSize} ${entry.habitatNote || ""}</p></div>` : ""}`,
     );
     showRegionalFacts(entry);
     if (!renderer) return;

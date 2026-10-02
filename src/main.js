@@ -92,6 +92,8 @@ import {
   getCharacter,
 } from "./character_rules.js";
 import { bodyRadius } from "./collision.js";
+import { createZombieMinion } from "./zombie_minion.js";
+import { consumeMinionPrey, summonStatus } from "./zombie_shark_rules.js";
 
 import {
   resolveIndexedMotion,
@@ -217,6 +219,7 @@ const feedingDirection = new THREE.Vector3();
 const feeding = createFeedingTransition({
   onMist: (point, length) => effects.mealMist(point, length),
 });
+let minion;
 const guide = createOceanGuide($("open-guide"));
 const sonar = createSonar($("sonar-panel"));
 const sonarMarkers = createSonarMarkers($("sonar-markers"));
@@ -243,7 +246,8 @@ const surfaceOptions = {
     );
     nextShipNotice = event.now + 4;
   },
-  isSwallowing: (mesh) => feeding.has(mesh),
+  isSwallowing: (mesh) =>
+    feeding.has(mesh) || Boolean(minion?.feeding.has(mesh)),
   onEat(point, length, bird) {
     feeding.start(bird.mesh, length);
     effects.bite(point, forward, player.length);
@@ -279,13 +283,36 @@ const humans = createHumanActivity(scene, {
       dynamicColliders: [...(ocean.barriers || []), ...surface.colliders],
       radius,
     }),
-  isSwallowing: (mesh) => feeding.has(mesh),
+  isSwallowing: (mesh) =>
+    feeding.has(mesh) || Boolean(minion?.feeding.has(mesh)),
   onEat(point, length, entity) {
     feeding.start(entity.mesh, length);
   },
   onDamage() {
     hitFlash = 0.85;
     effects.hurt(position, player.length);
+  },
+});
+minion = createZombieMinion(scene, {
+  effects,
+  audio,
+  blockedBetween,
+  resolveMovement: resolveMinionMotion,
+  onConsume(entity, state, owner) {
+    if (!consumeMinionPrey(state, owner, entity.species)) return false;
+    if (entity.alive !== undefined) humans.retireMeal(entity, owner.elapsed);
+    else {
+      entity.hiddenFor = entity.species.schoolSize > 1 ? 18 : 28;
+      entity.chase = 0;
+      entity.flight = null;
+      entity.mesh.userData.setGliding?.(false);
+    }
+    return true;
+  },
+  onMeal(entity) {
+    if (entity.sex) audio.eatHuman(entity.species.length, entity.sex);
+    else audio.eatFish(entity.species.length);
+    notify(message`仆从捕食 ${entity.species.label} · 收益归主角`, 1.4);
   },
 });
 const entities = [],
@@ -372,7 +399,7 @@ function selectAvatar(character) {
   const caption = document.querySelector(".specimen");
   if (caption) {
     caption.querySelector("span").textContent = t(
-      tr`${character.id === "orca" ? "ORCINUS ORCA" : "ARCHITEUTHIS DUX"} · PLAYER`,
+      tr`${character.latin || (character.id === "orca" ? "ORCINUS ORCA" : "ARCHITEUTHIS DUX")} · PLAYER`,
     );
     caption.querySelector("strong").textContent = t(specimenCaption(character));
   }
@@ -459,6 +486,7 @@ async function selectRegion(region) {
     });
     await regionLoader.paint();
     feeding.reset();
+    minion.reset();
     effects.reset();
     frenzyEffect.reset();
     sonarMarkers.reset();
@@ -641,6 +669,20 @@ function activateSonar() {
   return true;
 }
 function activateCharacterSkill() {
+  if (player.characterId === "zombie_shark") {
+    if (mode !== "playing") return false;
+    const status = summonStatus(minion.state, player);
+    if (!status.usable) {
+      if (status.reason === "length") notify("体长达到5米后才能分裂", 2);
+      else if (status.reason === "resources")
+        notify("召唤需要生命、体力、饱食各至少50点", 2);
+      return false;
+    }
+    const activated = minion.activate(player, position, forward);
+    if (activated) notify("尸鲨仆从已召唤 · 三项属性各消耗50点", 3);
+    updateSonar();
+    return activated;
+  }
   if (player.characterId !== "squid") return activateSonar();
   if (
     mode !== "playing" ||
@@ -753,28 +795,46 @@ function updateSonar() {
   const character = getCharacter(player.characterId);
   const skill = character.active;
   const statusData =
-    player.characterId === "squid"
-      ? inkStatus(inkAbility, player.elapsed)
-      : scan;
+    player.characterId === "zombie_shark"
+      ? summonStatus(minion.state, player)
+      : player.characterId === "squid"
+        ? inkStatus(inkAbility, player.elapsed)
+        : scan;
   const underwater =
     !surface.airborne && position.y < WORLD.surfaceY - player.length * 0.2;
   const usable =
-    statusData.ready && (player.characterId !== "squid" || underwater);
-  const shortName = player.characterId === "squid" ? "喷墨" : "声呐";
+    statusData.ready &&
+    (skill.id === "summon"
+      ? statusData.usable
+      : player.characterId !== "squid" || underwater);
+  const shortName = { ink: "喷墨", sonar: "声呐", summon: "分裂" }[skill.id];
+  const activeLabel = { ink: "墨幕", sonar: "探测", summon: "仆从" }[skill.id];
+  const blockedLabel =
+    skill.id === "summon"
+      ? statusData.reason === "length"
+        ? "需5米体长"
+        : "需三项各50"
+      : "需潜入水下";
   const status = statusData.active
-    ? tr`${player.characterId === "squid" ? "墨幕" : "探测"} ${Math.ceil(statusData.remaining)}s`
+    ? tr`${activeLabel} ${Math.ceil(statusData.remaining)}s`
     : statusData.ready
       ? usable
-        ? "就绪"
-        : "需潜入水下"
+        ? statusData.lethal
+          ? "致命献祭"
+          : "就绪"
+        : blockedLabel
       : tr`冷却 ${Math.ceil(statusData.cooldownRemaining)}s`;
   $("sonar-control").textContent = t(tr`J ${shortName} · ${status}`);
   $("touch-sonar").querySelector("span").textContent = t(shortName);
   $("touch-sonar-status").textContent = t(
     statusData.ready
       ? usable
-        ? "就绪"
-        : "水下使用"
+        ? statusData.lethal
+          ? "致命献祭"
+          : "就绪"
+        : skill.id === "summon"
+          ? blockedLabel
+          : "水下使用"
       : tr`${Math.ceil(statusData.active ? statusData.remaining : statusData.cooldownRemaining)}s`,
   );
   for (const id of ["touch-sonar", "sonar-control"]) {
@@ -783,7 +843,9 @@ function updateSonar() {
     button.dataset.state = statusData.active
       ? "active"
       : statusData.ready
-        ? "ready"
+        ? usable
+          ? "ready"
+          : "blocked"
         : "cooldown";
     button.disabled = !usable || mode !== "playing";
     button.dataset.remaining = String(Math.ceil(statusData.cooldownRemaining));
@@ -1076,6 +1138,7 @@ function resetExpedition(preserveWorld = false) {
   lureFlash = 0;
   waterMotion = null;
   feeding.reset();
+  minion.reset();
   effects.reset();
   frenzyEffect.reset();
   sonar.reset();
@@ -1186,6 +1249,7 @@ function updateLaunch(roundDt) {
   }
 }
 function showOverlay(kind) {
+  if (["dead", "won", "timeup"].includes(kind)) minion.reset();
   const returningFromRefuge = mode === "epilogue";
   delete document.body.dataset.epilogue;
   mode = kind;
@@ -1285,6 +1349,7 @@ function visitRefuge() {
   for (const burst of bursts) scene.remove(burst.mesh);
   bursts.length = 0;
   inkAbility = createInkState();
+  minion.reset();
   effects.reset();
   frenzyEffect.reset();
   $("ink-overlay").style.opacity = "0";
@@ -1404,6 +1469,33 @@ function resolvePlayerMotion(previous, merge = false) {
         }
       : result;
   return result;
+}
+/** 仆从复用世界粗筛和多球扫掠，独立约束海床、冰顶及动态船体，不穿墙追食。 */
+function resolveMinionMotion(previous, desired, heading, length) {
+  const r = bodyRadius(length);
+  const clearance =
+    r + Math.abs(heading.y) * Math.max(0, length * 0.42 - r) + 0.4;
+  return resolveIndexedMotion(previous, desired, {
+    staticColliders: ocean.colliders,
+    dynamicColliders: [
+      ...(ocean.barriers || []),
+      ...surface.colliders,
+      ...humans.colliders,
+    ],
+    radius: r,
+    forward: heading,
+    length,
+    floorHeight: (x, z) => floorAt(x, z, clearance),
+    bounds: {
+      minX: activeWorld().minX + WORLD_EDGE_INSET,
+      maxX: activeWorld().maxX - WORLD_EDGE_INSET,
+      minZ: activeWorld().minZ + WORLD_EDGE_INSET,
+      maxZ: activeWorld().maxZ - WORLD_EDGE_INSET,
+      minY: -activeWorld().maxDepth + r,
+      maxY:
+        surface.ceilingHeight?.(length, heading) ?? WORLD.surfaceY - clearance,
+    },
+  });
 }
 function pushFromRocks(point, radius) {
   for (const rock of ocean.obstacles) {
@@ -1753,7 +1845,7 @@ function updateEntities(dt) {
     entity.cooldown = Math.max(0, entity.cooldown - dt);
     if (entity.telegraph) entity.telegraph.visible = false;
     if (entity.hiddenFor > 0) {
-      if (!feeding.has(mesh)) mesh.visible = false;
+      if (!feeding.has(mesh) && !minion.feeding.has(mesh)) mesh.visible = false;
       entity.hiddenFor -= dt;
       if (entity.hiddenFor <= 0) {
         mesh.position.copy(
@@ -2716,6 +2808,7 @@ function frame(now) {
     }
     const beforeEntities = position.clone();
     const beforeFeedingLength = player.length;
+    minion.beforePreyMotion();
     updateEntities(dt);
     // 猎手击退与捕食成长也在本帧约束，不能等下一帧再把穿入实体的鱼推出。
     if (
@@ -2725,6 +2818,10 @@ function frame(now) {
       resolvePlayerMotion(beforeEntities, true);
     updatePickups(dt);
     humans.update(dt, player.elapsed, player, position, forward, { speed });
+    const beforeMinionLength = player.length;
+    minion.update(dt, player, position, forward, entities, humans.entities);
+    if (player.length !== beforeMinionLength)
+      resolvePlayerMotion(position, true);
     const beforeEncounter = position.clone();
     const beforeBossLength = player.length;
     activeBoss = encounters.update(
@@ -3142,6 +3239,7 @@ if (import.meta.env.DEV)
     entities,
     encounters,
     effects,
+    minion,
     frenzyEffect,
     feeding,
     guide,
