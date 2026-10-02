@@ -58,6 +58,8 @@ The subsequent **mid/late progression follow-up** increases effective ordinary-m
 
 See [the two-hit ordinary-prey follow-up](docs/torpedo_durability_revision.md), [the production contract](docs/mechanical_shark_brief.md), [initial validation](docs/mechanical_shark_revision.md) and [the visual/aim follow-up](docs/mechanical_shark_refinement.md). This reviewed development checkpoint is authorized for commit and push to `feature/mechanical-shark`; the published game above is unchanged.
 
+The reviewed feeding/combat iteration also establishes a reusable [gameplay iteration playbook](docs/gameplay_iteration_playbook.md) for diagnosing coverage, density, adult progression and cross-device feedback without blindly copying tuning values into future maps.
+
 ## Gameplay review candidate (not yet published)
 
 The current working candidate doubles base hunger consumption and adds stronger, size-dependent deep-water pressure. At 3 m, the full-depth drain is six times the same character’s shallow drain; this eases continuously to 1.5 times at 18 m and above. A HUD multiplier and both-language Guide explain the pressure. Survival timers follow actual active time even when rendering slows. Shallow feeding and large deep prey retain their existing populations and rewards.

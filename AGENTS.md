@@ -27,6 +27,10 @@ Whenever a gameplay rule changes or an element is added, renamed, or removed, ch
 - Adjust affected unit tests and browser scripts, including their expected copy and values. Check both languages and narrow layouts when presentation changes; check pause, expiry, restart, and resource cleanup when state or effects change. Record actual checks and remaining limits under the existing verification policy.
 - Search source, locales, current documentation, and verification scripts for obsolete names, numbers, and behavior claims. When delivering a preview, rebuild affected artifacts and verify that the served build contains the change; identify the candidate and published versions accurately.
 
+## Gameplay balance and discoverability reviews
+
+For reports about searching for food, slow growth, combat readability or missing device controls, use the [gameplay iteration playbook](docs/gameplay_iteration_playbook.md). Distinguish habitat coverage, actual local stock and meal economy before changing values; compare representative size/depth routes and keep controlled contract tests separate from natural player experience. Keep methods in that playbook and current tuning constants in the existing shared rules below.
+
 ## Survival calculations and future maps
 
 Body size sets the shallow hunger cost: larger characters consume food faster. Deep-water acclimation additionally penalizes juveniles, so growing toward 18 m can reduce their absolute deep-water drain despite increasing their shallow cost. Keep this behavior shared by all maps in `src/simulation.js` through `hungerDrainRate()` and `HUNGER_RULES`, rather than adding independent per-map formulas. Current calculation, in hunger points per second:
