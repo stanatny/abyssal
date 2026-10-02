@@ -36,10 +36,10 @@ const placeholders = (value) =>
 
 test("the guide's full and regional catalogs agree with actual species and lord rosters", () => {
   const catalog = buildOceanCatalog();
-  assert.equal(catalog.length, 93);
+  assert.equal(catalog.length, 94);
   assert.equal(
     catalog.filter((e) => e.regionIds.some((id) => id !== "europa")).length,
-    72,
+    73,
   );
   assert.equal(new Set(catalog.map((entry) => entry.id)).size, catalog.length);
   assert.deepEqual(kinds(ordinary(catalog)), kinds(ALL_SPECIES));
@@ -111,7 +111,7 @@ test("Mariana guide distinguishes its adult start and mandatory first Hydra gate
         ? /mandatory first guardian.*open the first pressure seal/
         : /第一道压力帘的必经守卫.*开启2600米/,
     );
-    assert.match(hydra.habitat, locale === "en" ? /surface/ : /表层/);
+    assert.match(hydra.habitat, locale === "en" ? /deep canyon/ : /深水岩谷/);
     const rules = catalog.find((e) => e.kind === "mariana_thresholds");
     assert.match(rules.text, locale === "en" ? /all four gates/ : /全部四关/);
     assert.match(rules.habitat, locale === "en" ? /4,000/ : /4000/);

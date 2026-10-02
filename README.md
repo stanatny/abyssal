@@ -16,9 +16,13 @@ Play in a modern desktop or phone browser with WebGL 2 support—no account or d
 
 Starting an expedition smoothly rotates the home scene into the follow camera over about 1.65 seconds. The round timer and survival systems begin after control is handed over. You can pause and resume the transition; system reduced-motion preferences skip the camera travel.
 
+## Deep exploration review
+
+The accepted development checkpoint on `feature/deep-exploration` follows Bermuda's real wave height while floating, adds directed side/rear retaliation from edible near-sized predators, and introduces small telegraphed deep thermal surges with safe bypasses. Mariana's rectangular terraces become irregular layered rock passages, with richer attached wall ecology and Hydra in the first deep canyon. Existing hunger, feeding values and regional endings remain intact. Read [the review and verification limits](docs/deep_exploration_revision.md). These changes are not yet published to Pages.
+
 ## Unreleased Europa candidate
 
-The current `feature/europa` review adds a fifth independent destination, **Europa**, beneath a solid ice ceiling. It is a fictional bonus expedition, directly selectable for now; future unlocking is unspecified. The published v0.8.3 version and the four-region reference sections below remain unchanged.
+The Europa candidate, retained in the current `feature/deep-exploration` worktree, adds a fifth independent destination, **Europa**, beneath a solid ice ceiling. It is a fictional bonus expedition, directly selectable for now; future unlocking is unspecified. The published v0.8.3 version and the four-region reference sections below remain unchanged.
 
 Explore five connected habitats: Ice Cradle, Brine Arches, Suspended Garden, Thermal Basin and Weaver's Hollow. Sixteen original ordinary alien species form a layered 247-organism food chain. Only the playable characters come from Earth; this destination has no terrestrial wildlife, active crews, surface fleet or atmospheric breach. An abandoned original research lander is a static exploration artifact. The separate Alien Life Guide filter identifies fictional lifeforms and their actual feeding roles.
 
@@ -58,7 +62,7 @@ Bermuda adds an advanced storm-sea destination: an enterable 396 m ocean-liner w
 
 ## Mariana Trench
 
-The fourth destination is a compact vertical expedition: **420 × 760 world units**, descending to an **11,120 m displayed depth limit**, 3.75 times the other regions' depth. A safe Pacific shelf leads through folded basalt walls, natural side arches, bioluminescent wayfinding and four sealed terraces. Both characters start at **15 m** in this region. The offshore surface Hydra is the first mandatory guardian: defeating it opens the 2,600 m seal. Kraken, Gran Maja and Leviathan then unlock the 4,000 / 5,500 / 8,600 m passages. Hydra remains away from the safe shelf; radar first points to its surface territory before guiding the descent. Each guardian still requires the shared 25 m eligibility and three separate flank bites. Defeated gatekeepers stay defeated for the round; opened passages allow return travel.
+The fourth destination is a compact vertical expedition: **420 × 760 world units**, descending to an **11,120 m displayed depth limit**, 3.75 times the other regions' depth. A safe Pacific shelf leads through folded basalt walls, natural side arches, bioluminescent wayfinding and four sealed terraces. All registered characters start at **15 m** in this region. Hydra in the first deep canyon is the first mandatory guardian: defeating it opens the 2,600 m seal. Kraken, Gran Maja and Leviathan then unlock the 4,000 / 5,500 / 8,600 m passages. Hydra remains away from the safe shelf; radar first points to its deep-water territory before guiding the descent. Each guardian still requires the shared 25 m eligibility and three separate flank bites. Defeated gatekeepers stay defeated for the round; opened passages allow return travel.
 
 Mariana has a regional completion requirement: **reach 30 m, defeat all four gatekeepers and reach the bottom refuge**. The four-region revision below supersedes the earlier shared ending for Atlantis and Bermuda. A warm, original procedural SpongeBob/pineapple-house Easter egg waits at the floor. It is decorative, not food. The map mixes real small deep-sea animals with explicitly fictional extreme-depth habitats for large Ancient Giants.
 

@@ -100,7 +100,7 @@ test("Upper trench contains an edible 15-to-25m chain without respawn or altered
       assert.equal(s[key], original[key]);
   }
 });
-test("Surface Hydra stays outside the nursery and is required to open the first gate", () => {
+test("Deep-water Hydra stays outside the nursery and is required to open the first gate", () => {
   const hydra = getExpedition("mariana").region.bossInstances.find(
     (b) => b.kind === "hydra",
   );
@@ -116,8 +116,8 @@ test("Surface Hydra stays outside the nursery and is required to open the first 
       .size,
     4,
   );
-  assert.equal(hydra.maxCenterY, -12);
-  assert.ok(hydra.home[1] > -40);
+  assert.equal(hydra.maxCenterY, undefined);
+  assert.ok(hydra.home[1] < -450 && hydra.home[1] > -G[0].depth);
   // 包含巡游、追击余量和躯干的保守包络，不只检查中心点。
   for (const x of [-1, 1])
     for (const z of [-1, 1])
@@ -322,4 +322,39 @@ test("Ocean disposal is idempotent and releases all owned draw resources", () =>
   assert.ok([...counts.values()].every((n) => n === 1));
   assert.equal(ocean.root.children.length, 0);
   assert.equal(ocean.colliders.length, 0);
+});
+
+test("Organic seals and solid shelves cannot be bypassed at their scalloped edges", () => {
+  const ocean = createMarianaOcean(new THREE.Scene());
+  for (const gate of G)
+    for (const length of [3, 30])
+      for (let i = 0; i < 32; i++) {
+        const a = (i * Math.PI) / 16;
+        for (const factor of [0.7, 1.02, 1.14, 1.35]) {
+          const x = gate.x + Math.cos(a) * gate.width * 0.5 * factor,
+            z = gate.z + Math.sin(a) * gate.depthSize * 0.5 * factor;
+          if (
+            x < W.minX + 5 ||
+            x > W.maxX - 5 ||
+            z < W.minZ + 5 ||
+            z > W.maxZ - 5
+          )
+            continue;
+          const start = { x, y: -gate.depth + 65, z },
+            end = { x, y: -gate.depth - 65, z };
+          const r = resolveMotion(start, end, {
+            bounds,
+            radius: bodyRadius(length),
+            length,
+            forward: { x: 0, y: -1, z: 0 },
+            colliders: [...ocean.colliders, ...ocean.barriers],
+            floorHeight: (x, z) => ocean.heightAt(x, z) + bodyRadius(length),
+          });
+          assert.ok(
+            r.blocked && r.position.y > -gate.depth - 40,
+            `${gate.id} ${length} ${i} ${factor}: ${r.position.y}`,
+          );
+        }
+      }
+  ocean.dispose();
 });

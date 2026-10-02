@@ -1,3 +1,4 @@
+import { canPredatorRetaliate } from "./predator_combat.js";
 /** 虎鲸主动声呐规则：以实际游玩秒数计时，不依赖相机、可见性或渲染器。 */
 import { canEat } from "./simulation.js";
 import { getCharacter } from "./character_rules.js";
@@ -90,7 +91,9 @@ export function detectSonarContacts({
     const eligible = boss
       ? playerAvailable && player.length >= species.minAttackLength
       : canEat(player, species.length);
-    const dangerous = boss || (species.predator && !eligible);
+    const dangerous =
+      boss ||
+      (species.predator && canPredatorRetaliate(player.length, species.length));
     contacts.push({
       id,
       kind: species.kind,
@@ -112,7 +115,9 @@ export function detectSonarContacts({
           ? "可交战 · 需多次接触"
           : "体型不足 · 避开领主"
         : eligible
-          ? "可捕食"
+          ? dangerous
+            ? "可捕食 · 会反击"
+            : "可捕食"
           : "不可捕食",
       priority: boss ? 3 : dangerous ? 2 : species.predator ? 1 : 0,
     });

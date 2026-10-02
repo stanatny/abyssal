@@ -16,17 +16,20 @@ export function createMarianaCliff(
     nu = back ? 28 : 34,
     nv = 12;
   const color = new THREE.Color(),
-    light = new THREE.Color(0x83929a),
-    dark = new THREE.Color(0x4c6374);
+    light = new THREE.Color(),
+    dark = new THREE.Color();
   for (let v = 0; v <= nv; v++)
     for (let u = 0; u <= nu; u++) {
       const along = THREE.MathUtils.lerp(uMin, uMax, u / nu),
         y = THREE.MathUtils.lerp(top, bottom, v / nv),
-        face = marianaCliffFace(along, y, back);
-      p.push(back ? along : side * face, y, back ? face : along);
+        face = marianaCliffFace(along, y, back, side);
+      p.push(back ? along : face, y, back ? face : along);
       const strata =
         0.5 + 0.5 * Math.sin(y * 0.18 + Math.sin(along * 0.018) * 2.7);
-      color.copy(dark).lerp(light, 0.28 + strata * 0.5);
+      const palette = marianaLayerPalette(y);
+      dark.set(palette[0]);
+      light.set(palette[1]);
+      color.copy(dark).lerp(light, 0.22 + strata * 0.55);
       color.toArray(colors, colors.length);
     }
   for (let v = 0; v < nv; v++)
@@ -35,17 +38,18 @@ export function createMarianaCliff(
         b = a + nu + 1;
       idx.push(a, b, a + 1, b, b + 1, a + 1);
       const ids = [a, a + 1, b, b + 1],
-        lo = back
-          ? Math.max(...ids.map((i) => p[i * 3 + 2]))
-          : Math.min(...ids.map((i) => Math.abs(p[i * 3])));
+        axis = back ? 2 : 0,
+        faces = ids.map((i) => p[i * 3 + axis]),
+        lo = back || side < 0 ? Math.max(...faces) : Math.min(...faces);
       const along = THREE.MathUtils.lerp(uMin, uMax, (u + 0.5) / nu),
         y = THREE.MathUtils.lerp(top, bottom, (v + 0.5) / nv);
+      const boundary = back ? -700 : side * 270;
       const center = back
-        ? [along, y, (lo - 690) / 2]
-        : [(side * (lo + 250)) / 2, y, along];
+        ? [along, y, (lo + boundary) / 2]
+        : [(lo + boundary) / 2, y, along];
       const dimensions = back
-        ? [(uMax - uMin) / nu, (top - bottom) / nv, lo + 690]
-        : [250 - lo, (top - bottom) / nv, (uMax - uMin) / nu];
+        ? [(uMax - uMin) / nu, (top - bottom) / nv, Math.abs(lo - boundary)]
+        : [Math.abs(boundary - lo), (top - bottom) / nv, (uMax - uMin) / nu];
       colliders.push({
         type: "box",
         id: `${id}_${u}_${v}`,
@@ -66,10 +70,27 @@ export function createMarianaCliff(
 }
 
 /** 岩壁与附着生态共用褶皱采样，防止独立坐标制造悬空礁石。 */
-export function marianaCliffFace(u, y, back = false) {
+export function marianaCliffFace(u, y, back = false, side = 1) {
   const folds =
-    Math.sin(u * 0.025 + y * 0.008) * 7 +
-    Math.sin(u * 0.071 - y * 0.013) * 3.5 +
-    Math.sin(u * 0.19 + y * 0.029) * 1.1;
-  return (back ? -628 : 201) + (back ? 1 : -1) * folds;
+    Math.sin(u * 0.021 + y * 0.009) * 13 +
+    Math.sin(u * 0.062 - y * 0.016) * 5 +
+    Math.sin(u * 0.17 + y * 0.034) * 2;
+  if (back) return -611 + folds * 0.8 + Math.sin(y * 0.006) * 17;
+  const center = Math.sin(y * 0.0048) * 24 + Math.sin(y * 0.013) * 7;
+  const width =
+    184 + Math.cos(y * 0.012) * 15 + Math.sin(u * 0.012 + y * 0.005) * 7;
+  return center + side * (width - folds);
+}
+
+/** 各层使用连续过渡的沉积岩色，不把深水全部染成同一种灰蓝。 */
+export function marianaLayerPalette(y) {
+  return y > -650
+    ? [0x485952, 0xb6b09a]
+    : y > -1000
+      ? [0x334c63, 0x91b2bc]
+      : y > -1375
+        ? [0x4c435d, 0xaa9cab]
+        : y > -2150
+          ? [0x353949, 0x7a91a7]
+          : [0x54616b, 0xb9c0b6];
 }

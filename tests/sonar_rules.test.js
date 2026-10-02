@@ -187,7 +187,7 @@ test("声呐捕食资格始终按真实体长，狂食吸食不会把较大猎�
       for (const contact of detect(entities, [], player)) {
         assert.equal(contact.eligible, canEat(player, contact.length));
         assert.equal(contact.eligible, contact.length < player.length);
-        assert.equal(contact.dangerous, !contact.eligible);
+        assert.equal(contact.dangerous, player.length - contact.length < 5);
       }
     }
   }

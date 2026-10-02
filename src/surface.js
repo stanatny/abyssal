@@ -32,6 +32,7 @@ export function createSurface(
     onImpact,
     onContact,
     heightAt,
+    waterHeightAt = () => WORLD.surfaceY,
     onDamage,
   } = {},
 ) {
@@ -48,6 +49,7 @@ export function createSurface(
     splashes = [];
   let state = createSurfaceState();
   let lastPosition = null;
+  let movementTime = 0;
   const night = regionId === "atlantis";
   const storm = regionId === "bermuda";
   const trench = regionId === "mariana";
@@ -229,7 +231,11 @@ export function createSurface(
       depthWrite: false,
     });
     const group = new THREE.Group();
-    group.position.set(point.x, WORLD.surfaceY + 0.12, point.z);
+    group.position.set(
+      point.x,
+      waterHeightAt(point.x, point.z, movementTime) + 0.12,
+      point.z,
+    );
     const ring = new THREE.Mesh(ringGeometry, material);
     ring.rotation.x = -Math.PI / 2;
     ring.renderOrder = 2;
@@ -287,12 +293,24 @@ export function createSurface(
 
   function move(
     dt,
-    { position, previousPosition, forward, speed, boosting, length },
+    {
+      position,
+      previousPosition,
+      forward,
+      speed,
+      boosting,
+      length,
+      now = movementTime + dt,
+    },
   ) {
     const previous =
       previousPosition ||
       lastPosition ||
       position.clone().addScaledVector(forward, -speed * dt);
+    movementTime = now;
+    // 空中落点按本帧水平惯性预估，采样与GPU水面相同的相位。
+    const x = state.airborne ? previous.x + state.velocityX * dt : position.x;
+    const z = state.airborne ? previous.z + state.velocityZ * dt : position.z;
     const result = stepSurface(state, dt, {
       previousPosition: previous,
       position,
@@ -300,7 +318,8 @@ export function createSurface(
       speed,
       boosting,
       length,
-      surfaceY: WORLD.surfaceY,
+      surfaceY: waterHeightAt(x, z, now),
+      previousSurfaceY: waterHeightAt(previous.x, previous.z, now - dt),
     });
     position.set(
       THREE.MathUtils.clamp(
@@ -364,7 +383,9 @@ export function createSurface(
     playing = true,
     highQuality = true,
   ) {
-    const above = camera.position.y > WORLD.surfaceY;
+    const above =
+      camera.position.y >
+      waterHeightAt(camera.position.x, camera.position.z, time);
     sun.visible = above && !night && !storm && !trench;
     clouds.visible = above && !night && !storm && !trench;
     nightSky?.update(time, position, { aboveWater: above, highQuality });
@@ -544,6 +565,7 @@ export function createSurface(
   }
 
   return {
+    waterHeightAt,
     launchImpulse(velocity, position, length) {
       state.airborne = true;
       state.velocityX = velocity.x;
@@ -552,7 +574,12 @@ export function createSurface(
       state.chargeTime = state.chargeDistance = 0;
       state.divingRequired = true;
       state.reentryRemaining = state.reentryLockRemaining = 0;
-      position.y = Math.max(position.y, WORLD.surfaceY - length * 0.15 + 0.05);
+      position.y = Math.max(
+        position.y,
+        waterHeightAt(position.x, position.z, movementTime) -
+          length * 0.15 +
+          0.05,
+      );
     },
     get ghostThreat() {
       return fleet.danger ? { charging: fleet.charging } : null;

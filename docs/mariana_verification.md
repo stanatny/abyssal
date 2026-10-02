@@ -1,5 +1,9 @@
 # Mariana candidate verification
 
+## Current October 2 refinement
+
+The uncommitted deep-exploration candidate moves Hydra into the first deep canyon, replaces rectangular terraces with organic shelves and keeps all four gates and the bottom ending. Read [the current evidence](deep_exploration_revision.md). Records below remain historical and do not describe this candidate’s guardian location or terrain.
+
 ## October 1 branch checkpoint
 
 The user authorized committing the reviewed candidate to `feature/mariana`, pushing it to the corresponding remote branch and checking the public game links. This supersedes earlier no-commit/no-push statements below. The reviewed 159-file runtime snapshot is unchanged from the final Hydra preview. The existing GitHub Pages source remains `main`; this branch push is not a Pages deployment. Exact commit/push and fresh public checks are retained in ignored `mariana_commit/`. Fresh checkpoint validation passed **667/667 unit tests**, full formatting and the production build (existing bundle-size warning only). The preview still matches all eight runtime artifacts and all 159 source hashes; English desktop and Chinese touch-viewport start/Guide/return flows pass with no browser errors. The published v0.7.2 Pages entry, JS/CSS and native start/pause/return flow also pass. Preview accessibility and Pages accessibility are verified separately; this does not deploy the new region to Pages.

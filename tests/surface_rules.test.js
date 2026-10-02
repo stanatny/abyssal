@@ -261,3 +261,42 @@ test("无效或零时间不推进飞行状态", () => {
     frame(trip.state, trip.position, { dt });
   assert.deepEqual(trip.state, before);
 });
+
+test("A floating body follows crests and troughs while submerged divers retain their depth", () => {
+  for (const length of [3, 15, 30]) {
+    const s = createSurfaceState();
+    let y = getSurfaceWaterline(length, 4),
+      water = 4;
+    for (const nextWater of [5.4, 3.1, 4.7, 2.8, 4]) {
+      const r = stepSurface(s, 1 / 60, {
+        previousPosition: { x: 0, y, z: 0 },
+        position: { x: 0, y, z: -0.3 },
+        forward: FLAT,
+        speed: 18,
+        boosting: true,
+        length,
+        surfaceY: nextWater,
+        previousSurfaceY: water,
+      });
+      assert.ok(
+        Math.abs(r.position.y - getSurfaceWaterline(length, nextWater)) < 1e-8,
+      );
+      assert.equal(r.launched, false);
+      assert.equal(r.charge, 0);
+      water = nextWater;
+      y = r.position.y;
+    }
+    const deepY = y - 12;
+    const r = stepSurface(s, 1 / 60, {
+      previousPosition: { x: 0, y: deepY, z: 0 },
+      position: { x: 0, y: deepY - 0.2, z: -0.3 },
+      forward: DOWN,
+      speed: 18,
+      boosting: false,
+      length,
+      surfaceY: 6,
+      previousSurfaceY: 4,
+    });
+    assert.equal(r.position.y, deepY - 0.2);
+  }
+});

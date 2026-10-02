@@ -1,15 +1,16 @@
 export const MARIANA_EN = Object.freeze({
   "其他海域3米幼年起步，马里亚纳15米起步；起始尺寸、30米体长上限与技能强度属于游戏设定。":
     "Start at 3m in other regions and 15m in Mariana. Starting sizes, the 30m length cap and abilities are gameplay settings.",
-  "三头巨龙海德拉守卫远离出生点的外海水面，是第一道压力帘的必经守卫。达到25米后，从侧面完成三次独立咬击，击败它即可开启2600米处的第一道压力帘；本局不再复活。":
-    "Hydra guards the offshore surface, away from the nursery. It is the mandatory first guardian: from 25m, land three separate flank bites to open the first pressure seal at 2,600m. It stays defeated for this expedition.",
-  远离安全浅滩的外海表层: "Offshore surface, away from the safe shelf",
+  "三头巨龙海德拉守卫首层深水岩谷，是第一道压力帘的必经守卫。达到25米后，从侧面完成三次独立咬击，击败它即可开启2600米处的第一道压力帘；本局不再复活。":
+    "Hydra guards the first deep canyon above its pressure seal, away from the nursery. It is the mandatory first guardian: from 25m, land three separate flank bites to open the first pressure seal at 2,600m. It stays defeated for this expedition.",
+  "首层深水岩谷，第一道压力帘上方":
+    "First deep canyon, above the first pressure seal",
   "离开安全浅滩 · 沿岩壁捕捉大鱼，25米后挑战守关领主":
     "Leaving the safe shelf · Hunt larger prey along the walls; challenge gatekeepers at 25m",
 
   "{0} · {1}米起步": "{0} · Start at {1}m",
-  "15米起步 · 沿上层岩壁寻找大鱼\n25米后先挑战外海海德拉，开启第一道压力帘":
-    "Start at 15m · Seek larger prey along the upper walls\nAt 25m, defeat offshore Hydra to open the first seal",
+  "15米起步 · 沿上层岩壁寻找大鱼\n25米后在首层深水挑战海德拉，开启第一道压力帘":
+    "Start at 15m · Seek larger prey along the upper walls\nAt 25m, defeat Hydra in the first deep canyon to open the first seal",
   "循着生物微光，潜入世界最深的海沟。<br />突破四道守关，寻找万米深处的秘密。":
     "Follow living lights into the world's deepest trench.<br />Overcome four guardians and find the secret far below.",
   "循着生物微光，潜入世界最深的海沟。":
@@ -25,7 +26,7 @@ export const MARIANA_EN = Object.freeze({
   "沿海沟岩壁逐层下潜，突破四位深渊守卫，抵达万米深处的秘密。15米起步，沿上层岩壁捕捉大鱼；25米后挑战守关领主。":
     "Descend through a vertical labyrinth, overcome four guardians and discover a secret ten kilometers below. Start at 15m, hunt larger prey along the upper walls and challenge gatekeepers at 25m.",
   潮汐之门: "Tidal Threshold",
-  海面海德拉: "Surface Hydra",
+  深水海德拉: "Deep-water Hydra",
   "守卫 · 同层": "Guardian · Same depth",
   "守卫 ↑ {0}m": "Guardian ↑ {0}m",
   "守卫 ↓ {0}m": "Guardian ↓ {0}m",
@@ -45,8 +46,8 @@ export const MARIANA_EN = Object.freeze({
   幽蓝阶渊: "Blue Descent",
   超深渊回廊: "Hadal Galleries",
   挑战者秘境: "Challenger Refuge",
-  "从15米起步，沿岩壁寻找大鱼；外海水面有三头巨龙。":
-    "Start at 15m and seek larger prey along the walls. Hydra guards the offshore surface.",
+  "从15米起步，沿岩壁寻找大鱼；首层深水有三头巨龙。":
+    "Start at 15m and seek larger prey along the walls. Hydra guards the first deep canyon.",
   "沿发光生物辨认下降路线，先寻找更大的食物。":
     "Follow the living lights down, seeking larger food before the first guardian.",
   "穿过开阔岩廊，寻找下一位守关领主。":
@@ -113,8 +114,8 @@ export const MARIANA_EN = Object.freeze({
   "2600、4000、5500与8600米关卡": "Gates at 2,600, 4,000, 5,500 and 8,600m",
   "本海域从15米起步。四位深渊领主依次解锁下降通道。达到25米后，从侧面完成三次独立咬击；击败守卫会永久开启本局的压力帘，可沿原路返航。达到30米、突破全部四关并抵达最深处秘境才能在本海域获胜。":
     "Start this expedition at 15m. Four Abyss Lords unlock the descent in order. At 25m, land three separate flank bites to defeat each guardian and open its seal for the rest of the expedition. Retreat remains possible. To win here, reach 30m, clear all four gates and arrive at the deepest refuge.",
-  "首关前沿岩壁寻找11～20米的猎物，长到25米后返回外海水面挑战海德拉，再依次挑战克拉肯、格兰玛雅和利维坦。雷达首先指向海德拉并提示上浮或下潜距离，之后标记下降通道。预留战斗补给。":
-    "Seek 11–20m prey along the upper walls. At 25m, return to the offshore surface to defeat Hydra, then face Kraken, Gran Maja and Leviathan in order. Radar first marks Hydra with an ascent or descent hint, then the descent passages. Reserve food for combat.",
+  "首关前沿岩壁寻找11～20米的猎物，长到25米后在首层深水挑战海德拉，再依次挑战克拉肯、格兰玛雅和利维坦。雷达首先指向海德拉并提示上浮或下潜距离，之后标记下降通道。预留战斗补给。":
+    "Seek 11–20m prey along the upper walls. At 25m, defeat Hydra in the first deep canyon, then face Kraken, Gran Maja and Leviathan in order. Radar first marks Hydra with an ascent or descent hint, then the descent passages. Reserve food for combat.",
   万米秘境: "The deepest refuge",
   探索彩蛋: "Hidden discovery",
   深处的一抹暖光: "A warm light below",

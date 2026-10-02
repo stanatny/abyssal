@@ -39,6 +39,7 @@ export function stepSurface(
     boosting,
     length = 6,
     surfaceY = 4,
+    previousSurfaceY = surfaceY,
   },
 ) {
   const elapsed = Math.max(0, finite(dt, 0));
@@ -47,6 +48,7 @@ export function stepSurface(
   const heading = point(forward || { x: 0, y: 0, z: -1 });
   const swimSpeed = Math.max(0, finite(speed, 0));
   const waterline = getSurfaceWaterline(length, surfaceY);
+  const previousWaterline = getSurfaceWaterline(length, previousSurfaceY);
   const diveDepth = Math.max(SURFACE_RULES.rearmDepth, length * 0.35);
   let launched = false;
   let landed = false;
@@ -88,14 +90,26 @@ export function stepSurface(
 
   state.posePitch = null;
   state.poseYaw = null;
-  if (previous.y <= waterline - diveDepth) state.divingRequired = false;
-  const crossed = previous.y < waterline - 0.001 && proposed.y >= waterline;
+  // 只输送贴近水面的身体，深潜输入保留；波谷下降也会带走浮力支撑。
+  const floatBand = Math.max(0.3, length * 0.035);
+  const floating =
+    previous.y >= previousWaterline - floatBand && heading.y >= -0.001;
+  // 贴水浮游维持吃水深度，避免小误差在连续上涨波峰中累积成失去支撑。
+  if (floating && waterline !== previousWaterline)
+    proposed.y += waterline - previous.y;
+  if (previous.y <= previousWaterline - diveDepth) state.divingRequired = false;
+  const crossed =
+    previous.y < previousWaterline - 0.001 && proposed.y >= waterline;
   const underwaterFraction = crossed
     ? clamp((waterline - previous.y) / (proposed.y - previous.y), 0, 1)
     : proposed.y < waterline
       ? 1
       : 0;
-  if (boosting && !state.divingRequired && previous.y < waterline - 0.001) {
+  if (
+    boosting &&
+    !state.divingRequired &&
+    previous.y < previousWaterline - 0.001
+  ) {
     const underwaterDistance =
       Math.hypot(
         proposed.x - previous.x,

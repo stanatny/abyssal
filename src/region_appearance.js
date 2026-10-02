@@ -52,7 +52,7 @@ export function regionZone(regionId, depth, position = null) {
         ? [
             "珍珠浅棚",
             "PACIFIC SHELF",
-            "从15米起步，沿岩壁寻找大鱼；外海水面有三头巨龙。",
+            "从15米起步，沿岩壁寻找大鱼；首层深水有三头巨龙。",
           ]
         : depth < 650
           ? [

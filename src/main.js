@@ -1,3 +1,8 @@
+import { attachDeepVents } from "./deep_vents.js";
+import {
+  canPredatorRetaliate,
+  predatorBiteContact,
+} from "./predator_combat.js";
 import {
   createExpeditionObjective,
   advanceExpeditionObjective,
@@ -168,7 +173,9 @@ scene.add(ambient, sun, rim);
 const playerLight = new THREE.PointLight(0x94ebdf, 12, 45, 1.2);
 scene.add(playerLight);
 const visuals = createVisualPipeline(renderer, scene, camera);
-let ocean = createOcean(scene);
+let ocean = attachDeepVents(createOcean(scene), "hawaii", {
+  heightAt: baseSeabedHeight,
+});
 const terrainColliders = [...ocean.colliders];
 let loadedRegion = "hawaii";
 let regionLoading = false;
@@ -470,6 +477,9 @@ async function selectRegion(region) {
                   },
                 })
               : createOcean(container);
+    attachDeepVents(nextOcean, region.id, {
+      heightAt: nextOcean.heightAt || baseSeabedHeight,
+    });
     await regionLoader.paint();
     regionLoader.stage("正在准备海面与生物…", 52);
     await regionLoader.paint();
@@ -479,6 +489,7 @@ async function selectRegion(region) {
       surfaceMode: region.surfaceMode,
       worldBounds: region.world || WORLD,
       heightAt: nextOcean.heightAt || baseSeabedHeight,
+      waterHeightAt: nextOcean.waterHeightAt,
       onDamage() {
         hitFlash = 0.9;
         effects.hurt(position, player.length);
@@ -1452,7 +1463,9 @@ function resolvePlayerMotion(previous, merge = false) {
             ? surface.ceilingHeight(player.length, forward)
             : surface.airborne
               ? undefined
-              : WORLD.surfaceY - player.length * 0.15,
+              : (surface.waterHeightAt?.(position.x, position.z, elapsed) ??
+                  WORLD.surfaceY) -
+                player.length * 0.15,
     },
   });
   position.copy(result.position);
@@ -1523,7 +1536,11 @@ function capturePoint(out) {
 function feedingMouth(out) {
   return avatar.userData.getFeedingMouth?.(out) ?? capturePoint(out);
 }
+const playerMovementStart = new THREE.Vector3();
+const predatorFacing = new THREE.Vector3();
+const playerFacing = new THREE.Vector3();
 function updatePlayer(dt, roundDt) {
+  playerMovementStart.copy(position);
   capturePoint(captureStart);
   const inputX =
     pointer.x + (keys.has("KeyD") ? 1 : 0) - (keys.has("KeyA") ? 1 : 0);
@@ -1577,7 +1594,9 @@ function updatePlayer(dt, roundDt) {
         {
           positionY: position.y,
           length: player.length,
-          surfaceY: WORLD.surfaceY,
+          surfaceY:
+            surface.waterHeightAt?.(position.x, position.z, elapsed) ??
+            WORLD.surfaceY,
           airborne: wasAirborne,
           reentering: waterMotion?.reentering ?? false,
           boosting,
@@ -1609,6 +1628,7 @@ function updatePlayer(dt, roundDt) {
     speed,
     boosting,
     length: player.length,
+    now: elapsed,
   });
   const windLaunch = ocean.weather?.onMovement(
     player,
@@ -1644,6 +1664,21 @@ function updatePlayer(dt, roundDt) {
   });
   const desiredY = position.y;
   const movementCollision = resolvePlayerMotion(previousPosition);
+  if (mode !== "epilogue") {
+    const jet = ocean.deepVents?.onMovement(
+      previousPosition,
+      position,
+      elapsed,
+    );
+    if (jet?.warning) notify("热流即将喷发 · 绕开橙色喷口", 3);
+    if (jet?.damage && takeDamage(player, jet.damage)) {
+      audio.hit();
+      hitFlash = 0.65;
+      effects.hurt(position, player.length);
+      notify("灼热喷流 · 横向游出热流", 2.5);
+    }
+  }
+
   if (
     needsGroundRecovery(pitch, {
       desiredY,
@@ -1887,8 +1922,11 @@ function updateEntities(dt) {
       mesh.position,
       position,
     );
-    const predator = species.predator && !edible && allowedHunt;
-    if (!allowedHunt) entity.chase = 0;
+    const predator =
+      species.predator &&
+      canPredatorRetaliate(player.length, species.length) &&
+      allowedHunt;
+    if (!predator) entity.chase = 0;
     const nurseryResident =
       entity.school?.habitat.nurseryResident ?? species.nurseryResident;
     const learning =
@@ -1925,7 +1963,16 @@ function updateEntities(dt) {
       entity.chase = 4;
     else entity.chase = Math.max(0, entity.chase - dt);
     if (predator && entity.chase > 0 && distance < 115 + species.length) {
-      direction.copy(position).sub(mesh.position).normalize();
+      direction.copy(position);
+      // 近似体型的猎手迂回侧后方；技能爆发仍保留既有锁向前摇与可躲避速度。
+      if (edible && distance < 80) {
+        playerFacing.set(0, 0, -1).applyQuaternion(avatar.quaternion);
+        const flank = entity.seed % 2 < 1 ? -1 : 1;
+        direction.addScaledVector(playerFacing, -player.length * 0.28);
+        direction.x += playerFacing.z * player.length * 0.24 * flank;
+        direction.z -= playerFacing.x * player.length * 0.24 * flank;
+      }
+      direction.sub(mesh.position).normalize();
       moveSpeed =
         species.chaseSpeed || Math.min(25, Math.max(15, species.speed || 16));
       const rank = distance / (species.length * 0.35 + 4);
@@ -2224,8 +2271,22 @@ function updateEntities(dt) {
       !eatEntity(entity, mouth, previousPreyPosition, dt) &&
       predator &&
       sight &&
-      distance < species.length * 0.43 + player.length * 0.2 &&
-      entity.cooldown <= 0
+      entity.cooldown <= 0 &&
+      predatorBiteContact({
+        previousPredator: previousPreyPosition,
+        predator: mesh.position,
+        predatorForward: predatorFacing
+          .set(0, 0, -1)
+          .applyQuaternion(mesh.quaternion),
+        predatorLength: species.length,
+        previousPlayer: playerMovementStart,
+        player: position,
+        playerForward: playerFacing
+          .set(0, 0, -1)
+          .applyQuaternion(avatar.quaternion),
+        playerLength: player.length,
+        edible,
+      })
     ) {
       if (
         takeDamage(
@@ -2580,7 +2641,7 @@ function updateHud() {
       player.length < 25
         ? "沿岩壁觅食 · 25米后挑战首位守卫"
         : next
-          ? tr`击败守卫 ${opened + 1}/${MARIANA_GATES.length} · ${next.guideToGuardian ? "海面海德拉" : next.name}`
+          ? tr`击败守卫 ${opened + 1}/${MARIANA_GATES.length} · ${next.guideToGuardian ? "深水海德拉" : next.name}`
           : "四道关卡已开 · 成长至30米，抵达海沟底部",
     );
   }
@@ -2654,16 +2715,20 @@ function updateHud() {
   $("target").hidden = !target;
   if (target) {
     const { e, p, d } = target,
-      edible = canEat(player, e.species.length);
+      edible = canEat(player, e.species.length),
+      retaliates =
+        e.species.predator &&
+        canPredatorRetaliate(player.length, e.species.length);
     $("target").style.left = (p.x * 0.5 + 0.5) * innerWidth + "px";
     $("target").style.top = (-p.y * 0.5 + 0.5) * innerHeight - 18 + "px";
-    $("target").style.color = edible
-      ? "#9ef5d3"
-      : e.species.predator
-        ? "#ffad8a"
-        : "#c1d8dd";
+    $("target").style.color =
+      edible && !retaliates
+        ? "#9ef5d3"
+        : e.species.predator
+          ? "#ffad8a"
+          : "#c1d8dd";
     $("target").textContent = t(
-      tr`${{ shoal: "Ⅰ 浅海鱼群", hunter: "Ⅱ 海洋霸主", ancient: "Ⅲ 远古巨兽", alien: "外星生命" }[e.species.category] || "海洋生物"} · ${e.species.label} · ${e.species.length}m · ${edible ? "可捕食" : e.species.predator ? "危险" : "暂不可吞食"} / ${Math.round(d)}m`,
+      tr`${{ shoal: "Ⅰ 浅海鱼群", hunter: "Ⅱ 海洋霸主", ancient: "Ⅲ 远古巨兽", alien: "外星生命" }[e.species.category] || "海洋生物"} · ${e.species.label} · ${e.species.length}m · ${edible ? (retaliates ? "可捕食 · 会反击" : "可捕食") : e.species.predator ? "危险" : "暂不可吞食"} / ${Math.round(d)}m`,
     );
   }
   $("boss-panel").hidden = !activeBoss;

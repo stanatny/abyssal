@@ -227,7 +227,9 @@ export function buildOceanCatalog(regionId) {
           ? config.ability
           : getHunterAbility(config)?.label || config.ability,
         text: config.description,
-        counter: config.counter,
+        counter: config.predator
+          ? tr`${config.counter} ${tr`可被捕食不代表安全：体长优势不足5米时，猎手仍会追击，并能从侧后方咬伤你。正面用嘴捕获优先结算；至少大出5米后它才不再反击。`}`
+          : config.counter,
         tier: config.tier,
         realSize: config.realSize,
         habitatNote: config.schoolProfiles?.some((group) => group.cityResident)
@@ -258,7 +260,7 @@ export function buildOceanCatalog(regionId) {
           ? tr`${DESCRIPTIONS[config.kind].text} ${tr`成长至30米，击败任一冰下深渊领主。`}`
           : regionId === "mariana"
             ? config.kind === "hydra"
-              ? tr`${DESCRIPTIONS.hydra.text} ${tr`三头巨龙海德拉守卫远离出生点的外海水面，是第一道压力帘的必经守卫。达到25米后，从侧面完成三次独立咬击，击败它即可开启2600米处的第一道压力帘；本局不再复活。`}`
+              ? tr`${DESCRIPTIONS.hydra.text} ${tr`三头巨龙海德拉守卫首层深水岩谷，是第一道压力帘的必经守卫。达到25米后，从侧面完成三次独立咬击，击败它即可开启2600米处的第一道压力帘；本局不再复活。`}`
               : tr`${DESCRIPTIONS[config.kind].text} ${tr`本海域的守关领主被击败后不再复活，压力帘随之开启。需成长至30米、突破四关并抵达海沟底部。`}`
             : regionId === "bermuda"
               ? tr`${DESCRIPTIONS[config.kind].text} ${tr`本海域必须击败全部四位深渊领主；各领主只出现一次。`}`
@@ -270,7 +272,7 @@ export function buildOceanCatalog(regionId) {
       tier: 3,
       habitat:
         regionId === "mariana" && config.kind === "hydra"
-          ? "远离安全浅滩的外海表层"
+          ? "首层深水岩谷，第一道压力帘上方"
           : regionId === "mariana" &&
               MARIANA_GATES.some((g) => g.kind === config.kind)
             ? tr`${MARIANA_GATES.find((g) => g.kind === config.kind).depth * 4} m（幻想领地）`
@@ -300,6 +302,24 @@ export function buildOceanCatalog(regionId) {
       text: "每局有一把海螺钥匙藏在月湾圣所、市集柱廊或纪念圣厅的下层。接近海螺铭文可获得建筑线索，雷达随后提供方向。钥匙与真正守宝克拉肯的印记可以按任意顺序获得；两者齐全才开启神庙地宫的宝箱。成长至30米后吞食圣珠即可胜利。",
       counter:
         "钥匙不提供营养，也不会替代守宝者的印记。普通房屋的宝箱是陈设。三处公共建筑均有成年角色可游过的廊道；回到主界面开启新局后，钥匙和守宝者重新抽取。",
+    },
+    {
+      id: "deep_thermal_vents",
+      kind: "deep_thermal_vents",
+      category: "hazard",
+      name: "深海热流",
+      latin: "THERMAL SURGES",
+      role: "地形危险",
+      symbol: "♨",
+      color: "#dca77b",
+      size: "局部喷流",
+      length: 0,
+      regionIds: ["hawaii", "atlantis", "bermuda", "mariana", "europa"],
+      ability: "观察预兆 · 绕行",
+      habitat: "深海岩床与台地边缘",
+      text: "喷口先出现3秒微弱的橙色热流预兆，再喷发4秒，随后安静17秒。进入喷流会损失12点生命，同一喷口至少间隔2.5秒才能再次造成伤害，体型再大也不能免疫。",
+      counter:
+        "喷流仅覆盖喷口上方约42米、半径10米的水体；横向绕行即可避开。它们不封锁守关入口、古城宝藏或育幼区，也不会提供食物。",
     },
     ...HUMAN_CATALOG,
     ...bermudaGuideEntries(),

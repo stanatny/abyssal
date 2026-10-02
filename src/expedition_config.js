@@ -104,7 +104,7 @@ export const REGIONS = Object.freeze(
       world: MARIANA_WORLD,
       startLength: 15,
       departureHint:
-        "15米起步 · 沿上层岩壁寻找大鱼\n25米后先挑战外海海德拉，开启第一道压力帘",
+        "15米起步 · 沿上层岩壁寻找大鱼\n25米后在首层深水挑战海德拉，开启第一道压力帘",
       speciesKinds: REGION_SPECIES_KINDS.mariana,
       bossKinds: MARIANA_GATES.map((g) => g.kind),
       bossInstances: MARIANA_GATES.map((g) => ({

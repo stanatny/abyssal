@@ -1,6 +1,6 @@
 import * as THREE from "three";
 import { createBermudaBiomes } from "./bermuda_biomes.js";
-import { createStormWater } from "./bermuda_water.js";
+import { createStormWater, stormWaveHeight } from "./bermuda_water.js";
 import { WORLD } from "./world_config.js";
 import { bermudaSeabedHeight } from "./bermuda_terrain.js";
 import { createBermudaTerrainMesh } from "./bermuda_terrain_mesh.js";
@@ -114,6 +114,7 @@ export function createBermudaOcean(parent, options = {}) {
   return {
     root,
     heightAt: bermudaSeabedHeight,
+    waterHeightAt: (x, z, now) => WORLD.surfaceY + stormWaveHeight(x, z, now),
     colliders,
     obstacles: [],
     landmarks: [...wreck.landmarks, ...biomes.landmarks],

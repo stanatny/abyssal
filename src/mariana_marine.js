@@ -100,7 +100,7 @@ export function addMarianaMarine({ root, keep, group, floor, time }) {
           yy = y + (random() - 0.5) * 10;
         const origin = back
           ? new THREE.Vector3(a, yy, -530)
-          : new THREE.Vector3(side * 145, yy, a);
+          : new THREE.Vector3(0, yy, a);
         const direction = back
           ? new THREE.Vector3(0, 0, -1)
           : new THREE.Vector3(side, 0, 0);
@@ -111,8 +111,8 @@ export function addMarianaMarine({ root, keep, group, floor, time }) {
           origin,
           direction,
           type,
-          (type === 4 ? 2.5 : type === 0 ? 1.7 : 1.3) +
-            random() * (type === 0 ? 1.2 : 0.6),
+          (type === 4 ? 1.8 : type === 0 ? 3.4 : 2.7) +
+            random() * (type === 0 ? 1.8 : 1.4),
           section,
         );
       }
@@ -166,6 +166,16 @@ export function addMarianaMarine({ root, keep, group, floor, time }) {
       );
       mesh.name = `trench_marine_${section}_${materials[type].name}`;
       matrices.forEach((matrix, i) => mesh.setMatrixAt(i, matrix));
+      const palette =
+        section < 4
+          ? [0xced6b6, 0xd39378, 0x8aac97, 0xd2b27e]
+          : section < 8
+            ? [0xa1c8cc, 0x988ed0, 0x7aa1c1, 0xc39da0]
+            : section < 12
+              ? [0xd1b7ce, 0x9c92c6, 0x8491ac, 0xc6b8a2]
+              : [0xd3d4c3, 0xb29ead, 0x9aafb1, 0xdacdb0];
+      const tint = new THREE.Color(type === 4 ? 0xffffff : palette[type]);
+      for (let i = 0; i < matrices.length; i++) mesh.setColorAt(i, tint);
       mesh.instanceMatrix.needsUpdate = true;
       mesh.computeBoundingBox();
       mesh.computeBoundingSphere();

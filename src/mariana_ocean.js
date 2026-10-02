@@ -1,3 +1,4 @@
+import { createMarianaLayer, createMarianaSeal } from "./mariana_layers.js";
 import { addMarianaMarine } from "./mariana_marine.js";
 import { addMarianaPassage } from "./mariana_passages.js";
 import { createMarianaCliff, marianaCliffFace } from "./mariana_cliffs.js";
@@ -53,12 +54,19 @@ export function createMarianaOcean(parent) {
     chunks.push({ g, y });
     return g;
   }
-  function solidBox(b, m, c, s) {
-    b.box(m, c, s, true);
-  }
   let rockIndex = 0;
   function rock(b, m, c, axes, tilt = 0) {
     const geo = new THREE.SphereGeometry(1, 16, 12);
+    const vertices = geo.attributes.position;
+    for (let j = 0; j < vertices.count; j++) {
+      const x = vertices.getX(j),
+        y = vertices.getY(j),
+        z = vertices.getZ(j);
+      const cut =
+        0.91 + 0.085 * Math.sin(x * 8 + z * 3) * Math.sin(y * 9 - z * 5);
+      vertices.setXYZ(j, x * cut, y * cut, z * cut);
+    }
+    geo.computeVertexNormals();
     geo.scale(...axes);
     b.add(geo, m, c, [0, tilt, tilt * 0.25]);
     const q = new THREE.Quaternion().setFromEuler(
@@ -91,7 +99,7 @@ export function createMarianaOcean(parent) {
       roughness: 0.93,
     }),
   );
-  addSurfaceDetail(cliffMaterial, "stone", 0.14);
+  addSurfaceDetail(cliffMaterial, "stone", 0.42);
   for (let section = 0; section < 16; section++) {
     const top = -section * 180,
       bottom = Math.max(-2780, top - 180),
@@ -124,6 +132,8 @@ export function createMarianaOcean(parent) {
     [3, [95, -1650, -420]],
     [4, [85, -2420, -400]],
   ]) {
+    const side = Math.sign(c[0]);
+    c[0] = marianaCliffFace(c[2], c[1], false, side) - side * 42;
     const g = group(`trench_spur_${i}`, c[1]),
       b = createBermudaBuilder(g, keep);
     rock(b, basalt, c, [62, 17, 76], i * 0.15);
@@ -147,103 +157,26 @@ export function createMarianaOcean(parent) {
         ),
       );
   }
+  const time = { value: 0 };
   for (const gate of MARIANA_GATES) {
-    const g = group(`terrace_${gate.id}`, -gate.depth),
-      b = createBermudaBuilder(g, keep),
-      y = -gate.depth;
-    const left = gate.x - gate.width / 2,
-      right = gate.x + gate.width / 2,
-      north = gate.z - gate.depthSize / 2,
-      south = gate.z + gate.depthSize / 2;
-    for (const [x, z, w, d] of [
-      [
-        (W.minX + left) / 2,
-        (W.minZ + W.maxZ) / 2,
-        left - W.minX,
-        W.maxZ - W.minZ,
-      ],
-      [
-        (right + W.maxX) / 2,
-        (W.minZ + W.maxZ) / 2,
-        W.maxX - right,
-        W.maxZ - W.minZ,
-      ],
-      [gate.x, (W.minZ + north) / 2, gate.width, north - W.minZ],
-      [gate.x, (south + W.maxZ) / 2, gate.width, W.maxZ - south],
-    ])
-      solidBox(b, basalt, [x, y - 12, z], [w, 24, d]);
-    // 孔缘分层岩脊以及连续发光贝床明确显示下降入口。
-    for (const side of [-1, 1])
-      for (let j = 0; j < 9; j++) {
-        rock(
-          b,
-          dark,
-          [gate.x + side * (gate.width / 2 + 8), y - 14, gate.z - 80 + j * 20],
-          [8, 22, 14],
-          0,
-        );
-        b.add(new THREE.SphereGeometry(1.2, 10, 8), glow, [
-          gate.x + side * (gate.width / 2 + 6),
-          y + 1.2,
-          gate.z - 80 + j * 20,
-        ]);
-      }
-    colliders.push(...b.finish());
-    const fieldMat = keep(
-      new THREE.MeshBasicMaterial({
-        color: gate.color,
-        transparent: true,
-        opacity: 0.3,
-        side: THREE.DoubleSide,
-        depthWrite: false,
-        blending: THREE.AdditiveBlending,
+    const g = group(`terrace_${gate.id}`, -gate.depth);
+    colliders.push(
+      ...createMarianaLayer(g, keep, {
+        gate,
+        material: cliffMaterial,
+        bounds: W,
       }),
     );
-    fieldMat.onBeforeCompile = (shader) => {
-      shader.uniforms.pressureTime = time;
-      shader.vertexShader = shader.vertexShader
-        .replace("#include <common>", "#include <common>\nvarying vec2 sealUv;")
-        .replace(
-          "#include <begin_vertex>",
-          "#include <begin_vertex>\nsealUv=uv;",
-        );
-      shader.fragmentShader = shader.fragmentShader
-        .replace(
-          "#include <common>",
-          "#include <common>\nvarying vec2 sealUv;uniform float pressureTime;",
-        )
-        .replace(
-          "#include <color_fragment>",
-          "#include <color_fragment>\nfloat r=length((sealUv-.5)*vec2(1.,1.1));float wave=pow(.5+.5*cos(r*90.-pressureTime*2.),14.);float vein=pow(.5+.5*sin(sealUv.x*80.+sin(sealUv.y*33.)+pressureTime),18.);diffuseColor.a*=.20+wave*.60+vein*.35;",
-        );
-    };
-    fieldMat.customProgramCacheKey = () => "mariana_pressure_seal_v1";
-    const membrane = new THREE.Mesh(
-      keep(new THREE.PlaneGeometry(gate.width, gate.depthSize)),
-      fieldMat,
-    );
-    membrane.rotation.x = -Math.PI / 2;
-    membrane.position.set(gate.x, y, gate.z);
-    membrane.name = `pressure_seal_${gate.id}`;
-    g.add(membrane);
-    const barrier = {
-      type: "box",
-      id: `seal_${gate.id}`,
-      x: gate.x,
-      y: y - 1,
-      z: gate.z,
-      halfSize: new THREE.Vector3(gate.width / 2, 2, gate.depthSize / 2),
-    };
-    barriers.push(barrier);
-    seals.push({ gate, membrane, barrier });
+    const seal = createMarianaSeal(g, keep, gate, time);
+    barriers.push(seal.barrier);
+    seals.push(seal);
     lightSources.push({
-      position: new THREE.Vector3(gate.x, y + 18, gate.z),
+      position: new THREE.Vector3(gate.x, -gate.depth + 20, gate.z),
       color: gate.color,
-      intensity: 100,
-      distance: 170,
+      intensity: 70,
+      distance: 180,
     });
   }
-  const time = { value: 0 };
   addMarianaMarine({ root, keep, group, floor, time });
   const rockGeo = keep(new THREE.IcosahedronGeometry(1, 2));
   const rp = rockGeo.attributes.position;
@@ -316,7 +249,8 @@ export function createMarianaOcean(parent) {
     for (let i = 0; i < 12; i++) {
       const z = -270 - Math.floor(i / 2) * 57,
         rootY = y + ((i % 3) - 1) * 13,
-        x = (i % 2 ? 1 : -1) * (marianaCliffFace(z, rootY) - 2),
+        side = i % 2 ? 1 : -1,
+        x = marianaCliffFace(z, rootY, false, side) - side * 2,
         sy = 3 + (i % 4);
       dummy.position.set(x, rootY, z);
       dummy.rotation.set(0.1, i * 0.7, 0.2);
@@ -423,6 +357,7 @@ export function createMarianaOcean(parent) {
     root,
     rockyBoundarySides: true,
     colliders,
+    navigationColliders: colliders,
     barriers,
     heightAt: marianaSeabedHeight,
     landmarks: [
