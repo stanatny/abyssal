@@ -1,3 +1,4 @@
+import { penglaiText as pt } from "./penglai_species.js";
 /** 各海域的终局状态与目标；不把普通食物或领主战利品当成特殊宝物。 */
 import { message } from "./i18n.js";
 
@@ -15,6 +16,23 @@ export const ATLANTIS_KEY_SITES = Object.freeze([
 ]);
 
 export const REGION_OBJECTIVES = Object.freeze({
+  penglai: Object.freeze({
+    kind: "all_lords",
+    minimumLength: 25,
+    summary: pt(
+      "击败青龙、白虎、朱雀与玄武，解除护阵后击败御剑真君。",
+      "Defeat Azure Dragon, White Tiger, Vermilion Bird and Black Tortoise, then break the ward and defeat the Sword Sage.",
+    ),
+    completed: pt(
+      "四象护阵已解，御剑真君已败，蓬莱远征完成。",
+      "The Four-Symbol ward is broken and the Sword Sage defeated. Penglai is complete.",
+    ),
+    difficulty: pt("云海神话征服", "Mythic cloud conquest"),
+    food: pt(
+      "莲池游灵 → 山间神兽 → 云海巨兽",
+      "Lotus spirits → Mountain creatures → Cloud giants",
+    ),
+  }),
   amazon: Object.freeze({
     kind: "all_lords",
     minimumLength: 30,
@@ -165,6 +183,10 @@ export function advanceExpeditionObjective(
 
 /** 大体型终局提示按地图独立显示，前期成长提示仍由共享HUD处理。 */
 export function expeditionObjectiveHint(objective, player) {
+  if (objective.regionId === "penglai")
+    return objective.defeated.size < 4
+      ? message`四象守卫 ${objective.defeated.size}/4 · 25米后挑战`
+      : "四象护阵已解 · 前往道观挑战御剑真君";
   if (objective.regionId === "atlantis")
     return !objective.keyCollected
       ? objective.clueRead

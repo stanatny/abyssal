@@ -53,7 +53,25 @@ export function steerWithinHabitat(position, direction, species, seabedHeight) {
   const requiredDepth = species.depthMin + margin;
   const predictedSeabed = seabedHeight(predictedX, predictedZ);
   const currentSeabed = seabedHeight(position.x, position.z);
-  if (predictedSeabed > -requiredDepth || currentSeabed > -requiredDepth) {
+  if (
+    species.groundbound &&
+    predictedSeabed < (species.minimumGroundHeight ?? world.surfaceY)
+  ) {
+    // 陆行者沿升坡转回岸上，不把水下地面也当成可行走的山径。
+    const sample = 8;
+    const dx =
+      seabedHeight(position.x + sample, position.z) -
+      seabedHeight(position.x - sample, position.z);
+    const dz =
+      seabedHeight(position.x, position.z + sample) -
+      seabedHeight(position.x, position.z - sample);
+    const length = Math.hypot(dx, dz);
+    if (length > 0.001) avoid(dx / length, dz / length, 1);
+  }
+  if (
+    !species.groundbound &&
+    (predictedSeabed > -requiredDepth || currentSeabed > -requiredDepth)
+  ) {
     // 海床梯度的反方向通往更深水域，可同时适应斜坡与横向海沟壁。
     const sample = 8;
     let deeperX =
@@ -125,6 +143,17 @@ export function resolveCreatureMotion(
   { colliders, heightAt, territory = null },
 ) {
   const world = habitat.worldBounds || WORLD;
+  if (
+    habitat.groundbound &&
+    heightAt(desired.x, desired.z) <
+      (habitat.minimumGroundHeight ?? world.surfaceY)
+  )
+    return {
+      position: { x: previous.x, y: previous.y, z: previous.z },
+      blocked: true,
+      direction: steerWithinHabitat(previous, direction, habitat, heightAt),
+      contacts: [],
+    };
   const radius = Math.max(0.45, habitat.length * 0.18);
   if (!colliders?.length) return null;
   const extent = Math.max(0, habitat.length * 0.42 - radius);
@@ -133,8 +162,13 @@ export function resolveCreatureMotion(
     maxX: territory?.maxX ?? world.maxX - 8,
     minZ: territory?.minZ ?? world.minZ + 8,
     maxZ: territory?.maxZ ?? world.maxZ - 8,
-    minY: -(habitat.depthMax || world.maxDepth),
-    maxY: -(habitat.depthMin || 5),
+    // 陆行生物跟随实际地形，不能被空域栖息高度推回半空。
+    minY: habitat.groundbound
+      ? -world.maxDepth
+      : -(habitat.depthMax ?? world.maxDepth),
+    maxY: habitat.groundbound
+      ? (world.maxAltitude ?? -(habitat.depthMin ?? 5))
+      : -(habitat.depthMin ?? 5),
   };
   let cached = STRUCTURE_GRIDS.get(colliders);
   if (!cached || cached.count !== colliders.length) {
@@ -160,7 +194,8 @@ export function resolveCreatureMotion(
     desired.x > bounds.maxX ||
     desired.z < bounds.minZ ||
     desired.z > bounds.maxZ;
-  const floorHeight = (x, z) => heightAt(x, z) + habitat.length * 0.28 + 2;
+  const floorHeight = (x, z) =>
+    heightAt(x, z) + (habitat.groundClearance ?? habitat.length * 0.28 + 2);
   const candidates = outside
     ? colliders
     : cached.grid.query(previous, desired, {
@@ -183,6 +218,19 @@ export function resolveCreatureMotion(
     bounds,
   };
   const result = resolveMotion(previous, desired, options);
+  // 陆行者不能借碰撞投影爬上屋顶；保留本帧已预告的跃高，沿原地面横向避让。
+  if (habitat.groundbound && result.position.y > desired.y + 0.75) {
+    const leapHeight = Math.max(
+      0,
+      desired.y - floorHeight(desired.x, desired.z),
+    );
+    result.position = {
+      x: previous.x,
+      y: floorHeight(previous.x, previous.z) + leapHeight,
+      z: previous.z,
+    };
+    result.blocked = true;
+  }
   // 陡坡上无法同时满足海床与栖息水层，保留前一合法位置并向深水回转。
   if (floorHeight(result.position.x, result.position.z) > maxY) {
     result.position = { x: previous.x, y: previous.y, z: previous.z };
@@ -215,7 +263,10 @@ export function resolveCreatureMotion(
   }
   return {
     ...result,
-    direction: normalize(escape, heading),
+    direction: normalize(
+      habitat.groundbound ? { ...escape, y: 0 } : escape,
+      heading,
+    ),
   };
 }
 

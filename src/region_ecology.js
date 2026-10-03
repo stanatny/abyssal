@@ -1,3 +1,4 @@
+import { PENGLAI_SPECIES } from "./penglai_species.js";
 import { AMAZON_SPECIES } from "./amazon_species.js";
 import {
   spreadFeedingSchools,
@@ -29,6 +30,7 @@ export const ALL_SPECIES = Object.freeze([
   ...NONFISH_SPECIES,
   ...EUROPA_SPECIES,
   ...AMAZON_SPECIES,
+  ...PENGLAI_SPECIES,
 ]);
 
 /**
@@ -144,6 +146,7 @@ const ATLANTIS_OVERRIDES = {
 };
 
 const BASE_REGION_SPECIES = Object.freeze({
+  penglai: PENGLAI_SPECIES,
   europa: EUROPA_SPECIES,
   amazon: AMAZON_SPECIES,
   hawaii: Object.freeze([

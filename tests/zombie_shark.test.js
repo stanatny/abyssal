@@ -81,7 +81,7 @@ test("第三角色沿用所有海域的起点、上限及技能目录", () => {
   for (const r of REGIONS.filter((r) => r.available))
     assert.equal(
       getExpedition(r.id, "zombie_shark").startLength,
-      r.id === "mariana" ? 15 : 3,
+      ["mariana", "penglai"].includes(r.id) ? 15 : 3,
     );
   const c = getCharacter("zombie_shark");
   assert.equal(c.active.cooldown, 60);

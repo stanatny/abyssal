@@ -1,0 +1,27 @@
+body[data-region="penglai"] .region-brief {
+  border-color: #99bfa0;
+  background: linear-gradient(
+    120deg,
+    rgba(33, 67, 59, 0.96),
+    rgba(35, 58, 55, 0.92)
+  );
+}
+body[data-region="penglai"] .expedition-choice {
+  border-color: #90b4a0;
+  background: rgba(33, 67, 59, 0.92);
+}
+body[data-region="penglai"] .zone {
+  border-left: 2px solid #a3c0a1;
+}
+body[data-region="penglai"] #hud {
+  --accent: #9ac1ae;
+}
+body[data-region="penglai"] .minimap-frame {
+  stroke: #c8b589;
+}
+body[data-region="penglai"] .minimap-home-route {
+  stroke: #b9cf9c;
+}
+body[data-region="penglai"] #depth-dot {
+  background: #d7bd83;
+}

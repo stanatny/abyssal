@@ -26,7 +26,7 @@ cssHook.deregister();
 const chinese = /[\u3400-\u9fff]/u;
 const ordinary = (entries) =>
   entries.filter((entry) =>
-    ["shoal", "hunter", "ancient", "invertebrate", "alien"].includes(
+    ["shoal", "hunter", "ancient", "invertebrate", "alien", "mythic"].includes(
       entry.category,
     ),
   );
@@ -36,9 +36,11 @@ const placeholders = (value) =>
 
 test("the guide's full and regional catalogs agree with actual species and lord rosters", () => {
   const catalog = buildOceanCatalog();
-  assert.equal(catalog.length, 117);
+  assert.equal(catalog.length, 140);
   assert.equal(
-    catalog.filter((e) => e.regionIds.some((id) => id !== "europa")).length,
+    catalog.filter((e) =>
+      e.regionIds.some((id) => id !== "europa" && id !== "penglai"),
+    ).length,
     96,
   );
   assert.equal(new Set(catalog.map((entry) => entry.id)).size, catalog.length);
@@ -64,7 +66,7 @@ test("the guide's full and regional catalogs agree with actual species and lord 
     ].filter(
       (kind) =>
         !(
-          (region.ecologyKind === "alien" &&
+          (["alien", "mythic"].includes(region.ecologyKind) &&
             !["orca", "squid"].includes(kind)) ||
           (region.id === "amazon" && !["orca", "squid"].includes(kind)) ||
           (region.id === "bermuda" &&
@@ -197,7 +199,10 @@ test("region, category, and bilingual searches compose without hiding the full a
         ),
         ["kraken"],
       );
-      assert.equal(filterOceanCatalog(catalog, { category: "lord" }).length, 8);
+      assert.equal(
+        filterOceanCatalog(catalog, { category: "lord" }).length,
+        13,
+      );
     }
   } finally {
     setLanguage("zh-CN");
@@ -263,6 +268,7 @@ test("the complete and regional archives group new species with peers in ascendi
     assert.deepEqual(
       groups.map((group) => group.id),
       [
+        ...(catalog.some((e) => e.category === "mythic") ? ["mythic"] : []),
         ...(catalog.some((e) => e.category === "alien") ? ["alien"] : []),
         "shoal",
         "invertebrate",

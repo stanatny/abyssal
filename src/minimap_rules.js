@@ -71,7 +71,7 @@ export function getMinimapState({
       : ["↑", "↗", "→", "↘", "↓", "↙", "←", "↖"][
           Math.round(bearing / (Math.PI / 4)) % 8
         ];
-  const homeLabel = nearby
+  let homeLabel = nearby
     ? elevation === "above"
       ? "浅滩正上方"
       : elevation === "below"
@@ -79,12 +79,25 @@ export function getMinimapState({
         : "浅滩附近"
     : tr`浅滩 ${arrow} ${formatDistance(distance)}`;
   const depth = Math.max(0, Math.round(-player.y * WORLD.displayDepthScale));
-  const depthLabel =
+  let depthLabel =
     elevation === "above"
       ? tr`上浮 ${ascent}m`
       : elevation === "below"
         ? tr`下潜 ${descent}m`
         : tr`水深 ${depth}m`;
+  if (world.surfaceMode === "aether") {
+    homeLabel = nearby
+      ? "莲池附近"
+      : tr`莲池 ${arrow} ${formatDistance(distance)}`;
+    depthLabel =
+      elevation === "above"
+        ? tr`上升 ${ascent}m`
+        : elevation === "below"
+          ? tr`下降 ${descent}m`
+          : player.y >= 4
+            ? tr`高度 ${Math.round((player.y - 4) * world.displayDepthScale)}m`
+            : tr`水深 ${depth}m`;
+  }
   return {
     player: projectMinimapPosition(player, world),
     home: projectMinimapPosition(home, world),

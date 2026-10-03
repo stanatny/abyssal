@@ -31,6 +31,28 @@ const ATLANTIS_ZONES = {
 /** 海域仅改变区域展示，深度阈值与饥饿计算仍由共享规则决定。 */
 export function regionZone(regionId, depth, position = null) {
   const zone = getZone(depth);
+  if (regionId === "penglai")
+    return {
+      ...zone,
+      name:
+        !position || position.z > -150
+          ? "莲池育幼湾"
+          : position.y < 4
+            ? "蓬莱莲池"
+            : position.y > 230
+              ? "九霄云海"
+              : "桃林仙山",
+      code:
+        !position || position.z > -150
+          ? "LOTUS NURSERY"
+          : position.y < 4
+            ? "LOTUS WATERS"
+            : position.y > 230
+              ? "CELESTIAL CLOUDS"
+              : "PEACH MOUNTAINS",
+      description:
+        "在浅水与云海间自由游动，寻找神话生灵；25米后挑战四神兽与御剑真君。",
+    };
   if (regionId === "amazon") {
     const bounds = position && amazonIslandBounds(position.z);
     const underIsland =

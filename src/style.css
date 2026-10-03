@@ -2521,6 +2521,45 @@ kbd {
 #reticle.aim-ineligible {
   border-color: #ffbd78;
 }
+/* 桌面机械准星沿实际发射线投影；四向刻线与中心点在明暗背景均可读。 */
+@media (pointer: fine) {
+  #reticle.mechanical-sight {
+    width: 42px;
+    height: 42px;
+    border: 0;
+    border-radius: 0;
+    opacity: 0.95;
+    color: #e9f6f4;
+    filter: drop-shadow(0 1px 2px #00151d);
+    background:
+      linear-gradient(currentColor, currentColor) left center / 11px 2px
+        no-repeat,
+      linear-gradient(currentColor, currentColor) right center / 11px 2px
+        no-repeat,
+      linear-gradient(currentColor, currentColor) center top / 2px 11px
+        no-repeat,
+      linear-gradient(currentColor, currentColor) center bottom / 2px 11px
+        no-repeat;
+  }
+  #reticle.mechanical-sight.aim-assisted {
+    color: #79e6ff;
+  }
+  #reticle.mechanical-sight.aim-ineligible {
+    color: #ffbd78;
+  }
+  #reticle.mechanical-sight i {
+    width: 3px;
+    height: 3px;
+    background: currentColor;
+  }
+  #reticle.mechanical-sight span {
+    display: block;
+    inset: 13px;
+    border: 1px solid currentColor;
+    border-radius: 2px;
+    opacity: 0.65;
+  }
+}
 #torpedo-aim {
   position: absolute;
   left: 50%;

@@ -1,3 +1,4 @@
+import { PenglaiMusic, PENGLAI_SCORE } from "./music_penglai.js";
 import { AmazonMusic, AMAZON_SCORE } from "./music_amazon.js";
 import { EuropaMusic, EUROPA_SCORE } from "./music_europa.js";
 import { MarianaMusic, MARIANA_SCORE } from "./music_mariana.js";
@@ -48,6 +49,7 @@ export class OceanAudio {
     this.marianaMusic = null;
     this.europaMusic = null;
     this.amazonMusic = null;
+    this.penglaiMusic = null;
     this.retiredMusicRooms = [];
     this.pauseTimer = null;
     this.feedingVoices = new Map();
@@ -90,23 +92,26 @@ export class OceanAudio {
       "mariana",
       "europa",
       "amazon",
+      "penglai",
     ].includes(regionId)
       ? regionId
       : "hawaii";
     if (next === this.regionId) return next;
     this.regionId = next;
     this.beat =
-      next === "amazon"
-        ? AMAZON_SCORE.beat
-        : next === "europa"
-          ? EUROPA_SCORE.beat
-          : next === "mariana"
-            ? MARIANA_SCORE.beat
-            : next === "atlantis"
-              ? ATLANTIS_SCORE.beat
-              : next === "bermuda"
-                ? BERMUDA_SCORE.beat
-                : 60 / 80;
+      next === "penglai"
+        ? PENGLAI_SCORE.beat
+        : next === "amazon"
+          ? AMAZON_SCORE.beat
+          : next === "europa"
+            ? EUROPA_SCORE.beat
+            : next === "mariana"
+              ? MARIANA_SCORE.beat
+              : next === "atlantis"
+                ? ATLANTIS_SCORE.beat
+                : next === "bermuda"
+                  ? BERMUDA_SCORE.beat
+                  : 60 / 80;
     this.step = 0;
     this.musicCombat = false;
     if (!this.ready) return next;
@@ -118,6 +123,7 @@ export class OceanAudio {
     if (next === "bermuda") this.ensureBermudaMusic().reset(now);
     if (next === "mariana") this.ensureMarianaMusic().reset(now);
     if (next === "europa") this.ensureEuropaMusic().reset(now);
+    if (next === "penglai") this.ensurePenglaiMusic().reset(now);
     if (next === "amazon") this.ensureAmazonMusic().reset(now);
     return next;
   }
@@ -198,6 +204,7 @@ export class OceanAudio {
       if (this.marianaMusic) this.marianaMusic.combatActive = false;
       if (this.europaMusic) this.europaMusic.combatActive = false;
       if (this.amazonMusic) this.amazonMusic.combatActive = false;
+      if (this.penglaiMusic) this.penglaiMusic.combatActive = false;
     }
     this.master.gain.setTargetAtTime(
       this.enabled ? 0.76 : 0,
@@ -288,6 +295,7 @@ export class OceanAudio {
     this.marianaMusic?.reset(now);
     this.europaMusic?.reset(now);
     this.amazonMusic?.reset(now);
+    this.penglaiMusic?.reset(now);
   }
 
   /**
@@ -321,9 +329,11 @@ export class OceanAudio {
     if (this.regionId === "mariana") this.ensureMarianaMusic().update(now);
     if (this.regionId === "europa") this.ensureEuropaMusic().update(now);
     if (this.regionId === "amazon") this.ensureAmazonMusic().update(now);
+    if (this.regionId === "penglai") this.ensurePenglaiMusic().update(now);
     const intensity = Math.sqrt(this.lastDanger);
     const depthRatio = clamp(this.depth / 740, 0, 1);
     const muffling = 1 - this.ink * 0.67;
+    const penglai = this.regionId === "penglai";
     const europa = this.regionId === "europa";
     const amazon = this.regionId === "amazon";
     const combat = this.pursuing || this.boss;
@@ -369,26 +379,34 @@ export class OceanAudio {
     );
     this.waterGain.gain.setTargetAtTime(
       (this.aboveWater ? 0.035 : 0.058 + depthRatio * 0.023 + this.ink * 0.01) *
-        (europa
-          ? EUROPA_SCORE.ambientWater
-          : amazon
-            ? AMAZON_SCORE.ambientWater
-            : 1),
+        (penglai
+          ? PENGLAI_SCORE.ambientWater
+          : europa
+            ? EUROPA_SCORE.ambientWater
+            : amazon
+              ? AMAZON_SCORE.ambientWater
+              : 1),
       now,
       0.6,
     );
     this.currentGain.gain.setTargetAtTime(
       (this.aboveWater ? 0.012 : 0.021 + intensity * 0.012) *
-        (europa
-          ? EUROPA_SCORE.ambientCurrent
-          : amazon
-            ? AMAZON_SCORE.ambientCurrent
-            : 1),
+        (penglai
+          ? PENGLAI_SCORE.ambientCurrent
+          : europa
+            ? EUROPA_SCORE.ambientCurrent
+            : amazon
+              ? AMAZON_SCORE.ambientCurrent
+              : 1),
       now,
       0.7,
     );
     // 木卫二的短尾混音避免玻璃音型被长混响涂抹，其余地图保持既有湿度。
-    this.musicWet.gain.setTargetAtTime(europa ? 0.11 : 0.26, now, 0.4);
+    this.musicWet.gain.setTargetAtTime(
+      europa ? 0.11 : penglai ? 0.17 : 0.26,
+      now,
+      0.4,
+    );
     if (!this.enabled) return;
     if (this.regionId === "hawaii" && combat && !this.musicCombat) {
       // 夏威夷保留既有音型，追击开始时立即给出短重拍，不等待当前探索拍点。
@@ -417,6 +435,8 @@ export class OceanAudio {
         this.ensureMarianaMusic().schedule(this.nextStep, this.step);
       else if (this.regionId === "europa")
         this.ensureEuropaMusic().schedule(this.nextStep, this.step);
+      else if (this.regionId === "penglai")
+        this.ensurePenglaiMusic().schedule(this.nextStep, this.step);
       else if (this.regionId === "amazon")
         this.ensureAmazonMusic().schedule(this.nextStep, this.step);
       else this.scheduleMusicStep(this.nextStep, this.step);
@@ -1396,6 +1416,10 @@ export class OceanAudio {
   }
 
   /** 各海域音型复用现有音乐图，不另建音频上下文。 */
+  ensurePenglaiMusic() {
+    this.penglaiMusic ??= new PenglaiMusic(this);
+    return this.penglaiMusic;
+  }
   ensureAmazonMusic() {
     this.amazonMusic ??= new AmazonMusic(this);
     return this.amazonMusic;

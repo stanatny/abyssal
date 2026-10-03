@@ -52,6 +52,8 @@ export function createVisualPipeline(renderer, scene, camera) {
       ice = false,
     }) {
       if (disposed) return;
+      // 天空高度不是负水深，不能向辉光与颗粒着色器传入负强度。
+      depth = aboveWater ? 0 : Math.max(0, Number.isFinite(depth) ? depth : 0);
       // 首次进入夜海才预过滤月光环境，反复切图直接复用两套渲染目标。
       if (night && !nightEnvironment)
         nightEnvironment = createMarineEnvironment(renderer, { night: true });

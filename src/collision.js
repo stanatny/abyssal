@@ -266,6 +266,25 @@ function sweep(start, end, collider, radius) {
   const delta = sub(end, start);
   const inside = penetration(start, collider, radius);
   if (inside) return { time: 0, normal: inside.normal };
+  if (collider.type === "sphere_shell") {
+    const local = sub(start, collider);
+    const interior = magnitude(local) < collider.radius;
+    const boundary = interior
+      ? Math.max(EPSILON, collider.radius - collider.thickness / 2 - radius)
+      : collider.radius + collider.thickness / 2 + radius;
+    const a = dot(delta, delta);
+    if (a < EPSILON) return null;
+    const b = dot(local, delta);
+    const disc = b * b - a * (dot(local, local) - boundary * boundary);
+    if (disc < 0) return null;
+    const time = (-b + (interior ? 1 : -1) * Math.sqrt(disc)) / a;
+    if (time < -EPSILON || time > 1) return null;
+    const normal = normalize(add(local, scale(delta, Math.max(0, time))));
+    return {
+      time: Math.max(0, time),
+      normal: scale(normal, interior ? -1 : 1),
+    };
+  }
   if (collider.type === "box") {
     const local = toLocal(sub(start, collider), collider.rotation);
     const direction = toLocal(delta, collider.rotation);
@@ -331,6 +350,22 @@ function sweep(start, end, collider, radius) {
 }
 
 function penetration(point, collider, radius) {
+  // 薄球壳只阻挡边界，内部空间仍可正常移动；身体扫掠和射线共用此形状。
+  if (collider.type === "sphere_shell") {
+    const local = sub(point, collider),
+      distance = magnitude(local);
+    const inner = Math.max(
+      EPSILON,
+      collider.radius - collider.thickness / 2 - radius,
+    );
+    const outer = collider.radius + collider.thickness / 2 + radius;
+    if (distance <= inner + EPSILON || distance >= outer - EPSILON) return null;
+    const inward = distance - inner < outer - distance;
+    return {
+      depth: inward ? distance - inner : outer - distance,
+      normal: scale(normalize(local), inward ? -1 : 1),
+    };
+  }
   if (collider.type === "box") {
     const local = toLocal(sub(point, collider), collider.rotation);
     const half = addScalar(collider.halfSize, radius);
@@ -442,6 +477,8 @@ function expandedAxes(axes, radius) {
 }
 
 function colliderReach(collider, radius = 0) {
+  if (collider.type === "sphere_shell")
+    return collider.radius + collider.thickness / 2 + radius;
   if (collider.boundsRadius !== undefined)
     return collider.boundsRadius + radius;
   if (collider.type === "box")

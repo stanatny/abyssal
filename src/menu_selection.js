@@ -58,9 +58,19 @@ export function createExpeditionSetup(
       depth = document.querySelector(".menu-stats > div:nth-child(3) b");
     if (note) note.textContent = t(entry.objective.summary);
     if (depth)
-      depth.textContent = entry.world
-        ? String(entry.world.maxDepth * entry.world.displayDepthScale)
-        : "2500+";
+      depth.textContent =
+        entry.surfaceMode === "aether"
+          ? String(entry.world.maxAltitude * entry.world.displayDepthScale)
+          : entry.world
+            ? String(entry.world.maxDepth * entry.world.displayDepthScale)
+            : "2500+";
+    const verticalLabel = document.querySelector(
+      ".menu-stats > div:nth-child(3) span",
+    );
+    if (verticalLabel)
+      verticalLabel.textContent = t(
+        entry.surfaceMode === "aether" ? "云海高度 / m" : "垂直海沟 / m",
+      );
     if (notifyChange) onRegionChange?.(entry);
   }
   for (const [trigger, entries, title, character, onSelect] of [

@@ -28,16 +28,16 @@ export function createWorldBoundary(parent) {
     transparent: true,
     depthWrite: false,
     side: THREE.DoubleSide,
-    uniforms: { time, player, cliffMask: { value: 0 } },
+    uniforms: { time, player, cliffMask: { value: 0 }, aerial: { value: 0 } },
     vertexShader: `varying vec3 wp;
       void main(){wp=(modelMatrix*vec4(position,1.)).xyz;
       gl_Position=projectionMatrix*viewMatrix*vec4(wp,1.);}`,
-    fragmentShader: `uniform float time; uniform vec3 player; uniform float cliffMask; varying vec3 wp;
+    fragmentShader: `uniform float time; uniform vec3 player; uniform float cliffMask; uniform float aerial; varying vec3 wp;
       void main(){
         if(cliffMask>0.5 && wp.y<0. && wp.z < -90.) discard;
         float d=length(wp.xz-player.xz);
         float fade=(1.-smoothstep(18.,110.,d))*(1.-smoothstep(45.,115.,abs(wp.y-player.y)));
-        fade*=1.-smoothstep(7.,25.,wp.y);
+        fade*=mix(1.-smoothstep(7.,25.,wp.y),1.,aerial);
         float along=wp.x+wp.z;
         float flow=sin(along*.17+sin(wp.y*.09-time*.7)*2.7+time*.8);
         float strands=pow(max(0.,flow),30.);
@@ -68,6 +68,7 @@ export function createWorldBoundary(parent) {
       if (disposed) return;
       root.visible = visible;
       material.uniforms.cliffMask.value = rockySides ? 1 : 0;
+      material.uniforms.aerial.value = world.surfaceMode === "aether" ? 1 : 0;
       time.value = elapsed;
       player.value.copy(position);
       if (current !== world) {
@@ -76,8 +77,9 @@ export function createWorldBoundary(parent) {
           maxX = world.maxX - WORLD_EDGE_INSET;
         const minZ = world.minZ + WORLD_EDGE_INSET,
           maxZ = world.maxZ - WORLD_EDGE_INSET;
-        const height = world.maxDepth + 40,
-          centerY = 20 - world.maxDepth / 2;
+        const top = world.surfaceMode === "aether" ? world.maxAltitude : 40;
+        const height = world.maxDepth + top,
+          centerY = (top - world.maxDepth) / 2;
         planes.forEach((p, i) => {
           p.rotation.y = i < 2 ? Math.PI / 2 : 0;
           p.position.set(

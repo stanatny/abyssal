@@ -135,10 +135,22 @@ export function schoolPopulationGroups(species) {
 export function initialSpeciesAnchor(species, index = 0) {
   const territory = predatorTerritory(species, index);
   if (territory?.edge) return new THREE.Vector3().copy(territory.center);
-  if (species.spawnAnchors?.length)
-    return new THREE.Vector3(
+  if (species.spawnAnchors?.length) {
+    const point = new THREE.Vector3(
       ...species.spawnAnchors[index % species.spawnAnchors.length],
     );
+    if (species.scatterPopulation) {
+      const ring = Math.floor(index / species.spawnAnchors.length),
+        angle = index * 2.399 + (species.kind.length % 5) * 0.9;
+      const radius = Math.min(
+        species.residentRadius * 0.66,
+        species.length * (1.15 + ring * 0.6),
+      );
+      point.x += Math.cos(angle) * radius;
+      point.z += Math.sin(angle) * radius;
+    }
+    return point;
+  }
   const count = Math.max(1, species.population || 1);
   // 远古巨兽延伸至本物种水层下部，现代种类沿用原分布比例。
   const spread = species.category === "ancient" ? 0.8 : 0.68;
@@ -180,7 +192,8 @@ export function steerResidentHabitat(
   if (!(radius > 0) || !anchors?.length) return direction;
   const anchor = anchors[populationIndex % anchors.length];
   const dx = anchor[0] - position.x;
-  const dy = species.benthic ? 0 : anchor[1] - position.y;
+  const dy =
+    species.benthic || species.groundbound ? 0 : anchor[1] - position.y;
   const dz = anchor[2] - position.z;
   const distance = Math.hypot(dx, dy, dz);
   if (distance < radius * 0.6) return direction;
@@ -218,6 +231,24 @@ export function sharesHabitat(species, position, margin = 12) {
 
 /** 返回密集但不重叠的队形偏移，微小鱼也能组成容易发现的整体轮廓。 */
 export function schoolSlot(species, index) {
+  if (species.formation) {
+    const spacing = Math.max(
+      3,
+      species.length *
+        (species.formationSpacing ??
+          (species.formation === "vee" ? 1.55 : 1.25)),
+    );
+    if (species.formation === "vee") {
+      const row = Math.ceil(index / 2),
+        side = index % 2 ? -1 : 1;
+      return new THREE.Vector3(row * side * spacing, 0, row * spacing * 0.85);
+    }
+    return new THREE.Vector3(
+      ((index % 3) - 1) * spacing,
+      0,
+      Math.floor(index / 3) * spacing,
+    );
+  }
   const spacing =
     species.length < 1
       ? Math.max(1, species.length * 1.3)
@@ -256,9 +287,12 @@ export function habitatPosition(
     species.residentRadius > 0
       ? initialSpeciesAnchor(species, populationIndex)
       : null;
-  if (residentHome && species.benthic)
+  if (residentHome && (species.benthic || species.groundbound))
     residentHome.y =
-      heightAt(residentHome.x, residentHome.z) + (species.floorOffset ?? 0);
+      heightAt(residentHome.x, residentHome.z) +
+      (species.groundbound
+        ? (species.groundClearance ?? species.length * 0.28 + 2)
+        : (species.floorOffset ?? 0));
   // 散居居民与固定鱼群一样在原栖息区复活，不能被普通猎手的远距补位逻辑搬走。
   if (near && residentHome) {
     near = false;
@@ -275,18 +309,24 @@ export function habitatPosition(
     return null;
   const world = species.worldBounds || WORLD;
   const point = new THREE.Vector3();
-  const minimum = species.depthMin ?? 5,
+  const minimum = species.groundbound
+      ? -(world.maxAltitude ?? 0)
+      : (species.depthMin ?? 5),
     maximum = Math.min(
-      species.depthMax ?? world.maxDepth - 30,
+      species.groundbound
+        ? world.maxDepth - 25
+        : (species.depthMax ?? world.maxDepth - 30),
       world.maxDepth - 25,
     );
   // 城区出生保留整条鱼的转向空间，避免中心合法而头尾嵌进墙面。
   const radius =
     Math.max(0.45, species.length * (species.cityHabitat ? 0.55 : 0.18)) +
     padding;
-  const floorMargin = species.benthic
-    ? (species.floorOffset ?? 0)
-    : Math.max(3 + species.length * 0.35, radius + 1.5);
+  const floorMargin = species.groundbound
+    ? (species.groundClearance ?? species.length * 0.28 + 2)
+    : species.benthic
+      ? (species.floorOffset ?? 0)
+      : Math.max(3 + species.length * 0.35, radius + 1.5);
   const visibleRadius = speciesVisibilityDistance(species, highQuality);
   const ahead = Math.atan2(forward.x, forward.z);
   for (let attempt = 0; attempt < 48; attempt++) {
@@ -316,17 +356,24 @@ export function habitatPosition(
     point.z = THREE.MathUtils.clamp(point.z, world.minZ + 18, world.maxZ - 18);
     // 不把领地外候选强行钳到边缘，否则远距补位会沿一道线密集堆积。
     if (!inPredatorTerritory(species, populationIndex, point)) continue;
+    if (
+      species.groundbound &&
+      heightAt(point.x, point.z) <
+        (species.minimumGroundHeight ?? world.surfaceY)
+    )
+      continue;
     const bottom = Math.max(-maximum, heightAt(point.x, point.z) + floorMargin);
     const top = -minimum;
     if (bottom > top) continue;
-    point.y = species.benthic
-      ? heightAt(point.x, point.z) + floorMargin
-      : THREE.MathUtils.clamp(point.y, bottom, top);
+    point.y =
+      species.benthic || species.groundbound
+        ? heightAt(point.x, point.z) + floorMargin
+        : THREE.MathUtils.clamp(point.y, bottom, top);
     if (point.y < -maximum || point.y > top) continue;
     // 新地图的海床或边界校正也不能把居民挤出独立活动区；无合法空间应明确失败。
     if (
       residentHome &&
-      (species.benthic
+      (species.benthic || species.groundbound
         ? Math.hypot(point.x - residentHome.x, point.z - residentHome.z)
         : point.distanceTo(residentHome)) >
         species.residentRadius + 1e-8
@@ -340,9 +387,21 @@ export function habitatPosition(
       continue;
     const candidates =
       colliders.length >= 256
-        ? queryStaticColliders(colliders, point, point, { radius })
+        ? queryStaticColliders(colliders, point, point, {
+            radius,
+            padding: species.groundbound ? species.length * 0.42 : 0,
+          })
         : colliders;
-    if (isPositionBlocked(point, { radius, colliders: candidates })) continue;
+    if (
+      isPositionBlocked(point, {
+        radius,
+        colliders: candidates,
+        ...(species.groundbound
+          ? { forward: { x: 0, y: 0, z: -1 }, length: species.length }
+          : {}),
+      })
+    )
+      continue;
     return point.clone();
   }
   return null;

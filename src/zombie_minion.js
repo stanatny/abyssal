@@ -18,7 +18,15 @@ import {
  */
 export function createZombieMinion(
   scene,
-  { resolveMovement, blockedBetween, onConsume, onMeal, effects, audio } = {},
+  {
+    resolveMovement,
+    blockedBetween,
+    onConsume,
+    onMeal,
+    effects,
+    audio,
+    accessible = (entry) => entry.mesh.position.y < 0,
+  } = {},
 ) {
   const state = createSummonState();
   const feeding = createFeedingTransition({
@@ -135,7 +143,7 @@ export function createZombieMinion(
       (entry.hiddenFor || 0) <= 0 &&
       entry.alive !== false &&
       !(entry.protectedUntil > player.elapsed) &&
-      entry.mesh.position.y < 0 &&
+      accessible(entry) &&
       entry.mesh.position.distanceToSquared(position) <=
         MINION_RULES.searchRadius ** 2;
     if (target && (!available(target) || returning)) target = null;

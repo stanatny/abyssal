@@ -1,4 +1,8 @@
 import {
+  PENGLAI_CREATURE_KINDS,
+  buildPenglaiCreature,
+} from "./creature_penglai.js";
+import {
   AMAZON_CREATURE_KINDS,
   buildAmazonCreature,
 } from "./creature_amazon.js";
@@ -88,6 +92,8 @@ export function createCreature(kind, length = 6, seed = 1) {
   else if (kind === "zombie_shark") buildZombieShark(root, motions);
   else if (kind === "abyss_weaver") buildAbyssWeaver(root, motions);
   else if (kind === "lumen_stalker") buildLumenStalker(root, motions);
+  else if (PENGLAI_CREATURE_KINDS.has(kind))
+    buildPenglaiCreature(kind, root, motions);
   else if (AMAZON_CREATURE_KINDS.has(kind))
     buildAmazonCreature(kind, root, motions);
   else if (EUROPA_CREATURE_KINDS.has(kind))
@@ -143,7 +149,8 @@ export function createCreature(kind, length = 6, seed = 1) {
         : THREE.MathUtils.clamp(time - previousTime, 0, 0.12);
     previousTime = time;
     swimTime += delta * (1.7 + effort * 1.1);
-    for (const motion of motions) motion(swimTime, effort);
+    for (const motion of motions)
+      motion(motionState?.gaitPhase ?? swimTime, effort, motionState);
   };
   return root;
 }

@@ -66,6 +66,37 @@ function fixture(kind) {
   };
 }
 
+test("默认夏威夷首页初始名单不包含独立地图的领主，首次出发沿用名单仍安全", (t) => {
+  // 反向抽签优先取物种池末尾，确保新增的独立地图领主不会只因随机运气漏检。
+  const random = Math.random;
+  let encounters;
+  try {
+    Math.random = () => 0;
+    encounters = createEncounters(new THREE.Scene(), {
+      seabedHeight: () => -900,
+      audio: { hit: noop, eat: noop, bossAttack: noop },
+      notify: noop,
+      onDamage: noop,
+      onBite: noop,
+    });
+  } finally {
+    Math.random = random;
+  }
+  t.after(() => encounters.dispose());
+  const enabled = encounters.bosses.filter((b) => b.enabled);
+  assert.equal(enabled.length, 2);
+  for (const b of enabled) {
+    assert.ok(
+      ["kraken", "mayan", "hydra", "leviathan"].includes(b.state.species.kind),
+    );
+    assert.ok(
+      !b.state.species.alien &&
+        !b.state.species.freshwater &&
+        !b.state.species.mythic,
+    );
+  }
+});
+
 test("海德拉吐息从当前摆动吻端发射，三次射击保留原间隔", () => {
   const f = fixture("hydra");
   f.entry.mesh.rotation.set(0.12, 0.35, 0.08);

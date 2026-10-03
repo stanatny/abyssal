@@ -1,3 +1,4 @@
+import { PENGLAI_LORDS } from "./penglai_lords.js";
 import { AMAZON_LORDS } from "./amazon_lords.js";
 /** 深海主宰的独立战斗规则：领地、蓄力预警、攻击、恢复与三次有效侧咬。 */
 import { applyNutrition } from "./simulation.js";
@@ -26,7 +27,15 @@ export function createBossState(species) {
     attackCount: 0,
     validatedHits: 0,
     defeated: false,
+    pursuitStarted: false,
   };
+}
+
+/** 只有配置持续追击的、已解锁领主进入领域后记住玩家；新状态自然重置。 */
+export function bossEngagement(boss, atHome) {
+  if (boss.defeated || boss.locked) return false;
+  if (boss.species.persistentPursuit && atHome) boss.pursuitStarted = true;
+  return atHome || boss.pursuitStarted;
 }
 
 /**
@@ -69,7 +78,8 @@ export function tickBoss(
   }
 
   if (boss.phase === "dormant" || boss.phase === "return") {
-    if (lineOfSight && distance <= 220) setPhase(boss, "hunt");
+    if ((lineOfSight && distance <= 220) || boss.pursuitStarted)
+      setPhase(boss, "hunt");
     else if (boss.phase === "return") {
       boss.timer += elapsed;
       if (boss.timer >= boss.phaseDuration) setPhase(boss, "dormant");
@@ -189,9 +199,12 @@ export function hitBoss(
   if (player.dead || player.won || player.timedOut)
     return failure("player_unavailable");
   if (boss.defeated) return failure("boss_defeated");
+  if (boss.locked) return failure("guardian_locked");
   const minimum = boss.species.minAttackLength;
   if (player.length < minimum) return failure("too_small");
   if (!inRange) return failure("out_of_range");
+  if (boss.species.guardedPhases?.includes(boss.phase))
+    return failure("shell_guarded");
   if (!isFlank) return failure("armored_angle");
   if (player.biteCooldown > 0 || boss.biteCooldown > 0)
     return failure("cooldown");
@@ -208,6 +221,8 @@ export function hitBossWithTorpedo(player, boss) {
     player.won ||
     player.timedOut ||
     boss.defeated ||
+    boss.locked ||
+    boss.species.guardedPhases?.includes(boss.phase) ||
     player.length < boss.species.minAttackLength ||
     player.biteCooldown > 0 ||
     boss.biteCooldown > 0
@@ -406,6 +421,7 @@ export const BOSS_SPECIES = Object.freeze(
       attackDuration: 1.5,
     },
     ...AMAZON_LORDS,
+    ...PENGLAI_LORDS,
   ].map((species) => Object.freeze(species)),
 );
 
@@ -416,12 +432,18 @@ export const BOSS_SPECIES = Object.freeze(
 function setPhase(boss, phase) {
   boss.phase = phase;
   boss.timer = 0;
+  if (phase === "windup" && boss.species.abilityCycle?.length)
+    boss.ability =
+      boss.species.abilityCycle[
+        boss.attackCount % boss.species.abilityCycle.length
+      ];
+  const timings = boss.species.abilityTimings?.[boss.ability];
   boss.phaseDuration = {
     dormant: Infinity,
     hunt: 1,
-    windup: boss.species.windupDuration,
-    attack: boss.species.attackDuration,
-    recover: 3,
+    windup: timings?.windup ?? boss.species.windupDuration,
+    attack: timings?.attack ?? boss.species.attackDuration,
+    recover: timings?.recover ?? 3,
     return: 4,
     defeated: Infinity,
     disoriented: Infinity,

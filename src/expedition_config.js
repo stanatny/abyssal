@@ -1,3 +1,5 @@
+import { PENGLAI_WORLD, PENGLAI_BOSS_INSTANCES } from "./penglai_config.js";
+import { penglaiText as pt } from "./penglai_species.js";
 import { AMAZON_WORLD } from "./amazon_config.js";
 import { AMAZON_BOSS_INSTANCES } from "./amazon_lords.js";
 import { EUROPA_WORLD } from "./europa_config.js";
@@ -20,7 +22,7 @@ export const REGIONS = Object.freeze(
         "从阳光海滩潜入火山深渊。珊瑚鱼群、远古巨兽与多位深渊领主在此共存。",
       speciesKinds: REGION_SPECIES_KINDS.hawaii,
       bossKinds: BOSS_SPECIES.filter(
-        (species) => !species.alien && !species.freshwater,
+        (species) => !species.alien && !species.freshwater && !species.mythic,
       ).map((species) => species.kind),
       spawn: [0, -18, 75],
     },
@@ -57,9 +59,9 @@ export const REGIONS = Object.freeze(
       description:
         "风暴遮蔽神秘外海，探索可进入的巨型沉船，避开龙卷水柱与幽灵炮击。安全浅滩之外，危险分布在各个水层。",
       speciesKinds: REGION_SPECIES_KINDS.bermuda,
-      bossKinds: BOSS_SPECIES.filter((s) => !s.alien && !s.freshwater).map(
-        (s) => s.kind,
-      ),
+      bossKinds: BOSS_SPECIES.filter(
+        (s) => !s.alien && !s.freshwater && !s.mythic,
+      ).map((s) => s.kind),
       humanActivity: {
         swimmers: false,
         divers: false,
@@ -184,6 +186,35 @@ export const REGIONS = Object.freeze(
           persistentDefeat: true,
         },
       ],
+      humanActivity: {
+        swimmers: false,
+        divers: false,
+        releasedDivers: false,
+        submarines: false,
+        mines: false,
+      },
+      spawn: [0, -18, 75],
+    },
+    {
+      id: "penglai",
+      startLength: 15,
+      name: pt("蓬莱仙境", "Penglai Sanctuary"),
+      available: true,
+      seabedHeat: false,
+      surfaceMode: "aether",
+      world: PENGLAI_WORLD,
+      ecologyKind: "mythic",
+      description: pt(
+        "15米起步，游于莲池，行于云海。穿越桃林与浮空仙山，击败四象神兽，解除道观结界，再挑战御剑真君。",
+        "Start at 15 m, swim in lotus waters and fly through clouds. Explore peach groves and floating mountains, defeat the Four Symbols, open the monastery ward and challenge the Sword Sage.",
+      ),
+      departureHint: pt(
+        "15米起步 · 沿莲池与桃林觅食\n25米后挑战四神兽，全部击败才能进入道观结界",
+        "Start at 15 m · Feed among lotus waters and peach groves\nAt 25 m challenge the Four Symbols; all four open the monastery",
+      ),
+      speciesKinds: REGION_SPECIES_KINDS.penglai,
+      bossKinds: PENGLAI_BOSS_INSTANCES.map((b) => b.kind),
+      bossInstances: PENGLAI_BOSS_INSTANCES,
       humanActivity: {
         swimmers: false,
         divers: false,

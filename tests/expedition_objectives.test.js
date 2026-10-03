@@ -117,9 +117,11 @@ test("All destinations have substantial and exclusive content in each ecological
       assert.ok(species.every((s) => s.category === "alien"));
     }
     const roles =
-      region.ecologyKind === "alien"
-        ? ["grazer", "hunter", "giant"]
-        : ["shoal", "hunter", "ancient"];
+      region.ecologyKind === "mythic"
+        ? ["mythic"]
+        : region.ecologyKind === "alien"
+          ? ["grazer", "hunter", "giant"]
+          : ["shoal", "hunter", "ancient"];
     for (const category of roles) {
       const entries = species.filter(
         (s) =>

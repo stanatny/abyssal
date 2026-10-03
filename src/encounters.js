@@ -1,3 +1,8 @@
+import {
+  groundCreatureClearance,
+  uprightHeadingQuaternion,
+} from "./ground_creatures.js";
+import { pgSword } from "./creature_penglai_art.js";
 import { TIDAL_LOOM, loomAngle, inTidalLoom } from "./europa_loom.js";
 import { t, tr, message } from "./i18n.js";
 import * as THREE from "three";
@@ -7,6 +12,7 @@ import {
   BOSS_DEFAULT_TERRITORY_RADIUS,
   createBossState,
   tickBoss,
+  bossEngagement,
   hitBoss,
   hitBossWithTorpedo,
   updateBossContact,
@@ -124,6 +130,7 @@ function hasOddCrossings(distances) {
 }
 
 const TIPS = {
+  swords: "御剑将至 · 横向闪避或绕山石遮挡",
   loom: "避开紫色压力带，从上下或扇区间隙撤离",
   vortex: "漩涡锁定游动路径 · 变向离开光圈，借岩柱阻断牵引",
   pulse: "快速上浮或下潜，避开脉冲所在水层",
@@ -131,6 +138,7 @@ const TIPS = {
   charge: "冲锋锁定后侧向闪避，等待撞击后的硬直",
 };
 const SKILLS = {
+  swords: "隔空御剑",
   loom: "潮汐织网",
   vortex: "深渊漩涡",
   pulse: "遗迹脉冲",
@@ -138,6 +146,7 @@ const SKILLS = {
   charge: "毁灭冲锋",
 };
 const COLORS = {
+  swords: 0xd8d6a1,
   loom: 0xb799d7,
   vortex: 0xbc8dff,
   pulse: 0x73ffd0,
@@ -357,7 +366,7 @@ function createAbilityFx(scene, ability, color, textures) {
       group.add(sprite);
       fx.sparks.push(sprite);
     }
-  } else if (ability === "volley") {
+  } else if (["volley", "swords"].includes(ability)) {
     fx.warnOrbs = [];
     for (let i = 0; i < 3; i += 1) {
       const sprite = fxSprite(textures.dot, color, 0);
@@ -482,7 +491,7 @@ function updateAbilityFx(fx, entry, dt, time, windup, attack, ringSize) {
       sprite.scale.setScalar(2.4);
       sprite.material.opacity = windup ? 0.25 + gather * 0.4 : 0;
     }
-  } else if (fx.ability === "volley") {
+  } else if (["volley", "swords"].includes(fx.ability)) {
     fx.group.position.copy(entry.mesh.position);
     const forward = entry.heading,
       side = new THREE.Vector3(-forward.z, 0, forward.x).normalize();
@@ -664,6 +673,12 @@ export function createEncounters(
       lastBiteResult: null,
       lastAttackSide: false,
     };
+    entry.fxVariants = [
+      entry.fx,
+      ...(species.abilityCycle || [])
+        .filter((a) => a !== species.ability)
+        .map((a) => createAbilityFx(scene, a, COLORS[a], fxTextures)),
+    ];
     bosses.push(entry);
     return entry;
   }
@@ -701,9 +716,19 @@ export function createEncounters(
     const fixedHome = entry.fixedHome ?? bossHomes[species.kind];
     if (fixedHome) entry.home.fromArray(fixedHome);
     entry.mesh.position.copy(entry.home);
+    if (species.groundbound) {
+      entry.home.y =
+        seabedHeight(entry.home.x, entry.home.z) +
+        groundCreatureClearance(entry.mesh, species.length, 3);
+      entry.mesh.position.copy(entry.home);
+    }
     entry.mesh.visible = true;
     entry.enabled = true;
     entry.previousPhase = "dormant";
+    for (const fx of entry.fxVariants) resetAbilityFx(fx);
+    entry.fx = entry.fxVariants.find(
+      (fx) => fx.ability === entry.state.ability,
+    );
     entry.contactCooldown = 0;
     entry.disorientedUntil = 0;
     entry.volleyShots = 0;
@@ -765,6 +790,7 @@ export function createEncounters(
       entry.fixedHome = null;
       entry.persistentDefeat = true;
       entry.maxCenterY = Infinity;
+      entry.requiresGuardians = [];
       entry.radius = BOSS_DEFAULT_TERRITORY_RADIUS;
       entry.enabled = false;
       entry.mesh.visible = false;
@@ -777,10 +803,13 @@ export function createEncounters(
         entry.id = instance.id;
         entry.persistentDefeat = true;
         entry.fixedHome = instance.home;
+        entry.requiresGuardians = instance.requiresGuardians ?? [];
         entry.maxCenterY = instance.maxCenterY ?? Infinity;
         entry.radius = instance.radius ?? BOSS_DEFAULT_TERRITORY_RADIUS;
       }
       place(entry, index);
+      entry.state.locked = entry.requiresGuardians?.length > 0;
+      entry.mesh.userData.setLocked?.(entry.state.locked);
     });
   }
   function damage(player, amount, message) {
@@ -795,12 +824,11 @@ export function createEncounters(
   function lockAttack(entry, playerPosition) {
     const { state } = entry;
     const distance = entry.mesh.position.distanceTo(playerPosition);
-    const flightTime =
-      state.ability === "volley"
-        ? distance / state.species.projectileSpeed
-        : state.ability === "charge"
-          ? distance / state.species.chargeSpeed
-          : 0.25;
+    const flightTime = ["volley", "swords"].includes(state.ability)
+      ? distance / (state.species.projectileSpeed ?? 85)
+      : state.ability === "charge"
+        ? distance / state.species.chargeSpeed
+        : 0.25;
     entry.lockedVelocity.copy(playerVelocity);
     entry.lockTarget
       .copy(playerPosition)
@@ -817,18 +845,21 @@ export function createEncounters(
     if (state.ability === "vortex") entry.attackOrigin.copy(entry.lockTarget);
     if (state.ability === "pulse") entry.attackOrigin.y = entry.lockTarget.y;
     const targetDirection = entry.lockTarget.clone().sub(entry.mesh.position);
+    if (state.species.groundbound) targetDirection.y = 0;
     if (targetDirection.lengthSq() > 0.001)
       entry.heading.copy(targetDirection.normalize());
   }
   function enterPhase(entry, playerPosition) {
     const state = entry.state;
     if (state.phase === "windup") {
+      for (const fx of entry.fxVariants) resetAbilityFx(fx);
+      entry.fx = entry.fxVariants.find((fx) => fx.ability === state.ability);
       lockAttack(entry, playerPosition);
       entry.phaseHit = false;
       entry.volleyShots = 0;
       notify(
-        message`${state.species.label} · ${SKILLS[state.ability]}\n${TIPS[state.ability]}`,
-        state.species.windupDuration + 0.4,
+        message`${state.species.label} · ${state.species.skillLabels?.[state.ability] ?? SKILLS[state.ability]}\n${state.species.skillTips?.[state.ability] ?? TIPS[state.ability]}`,
+        state.phaseDuration + 0.4,
       );
       audio.bossAttack?.(state.species.kind);
     }
@@ -840,25 +871,39 @@ export function createEncounters(
       0,
       entry.heading.x,
     ).normalize();
-    const mesh = new THREE.Mesh(ballGeo, fxMat);
-    mesh.name = "hydra_breath_projectile";
+    const mesh =
+      state.ability === "swords"
+        ? new THREE.Group()
+        : new THREE.Mesh(ballGeo, fxMat);
+    if (state.ability === "swords") {
+      const blade = pgSword(mesh, [0, 0, 0], 6);
+      blade.rotation.x = -Math.PI / 2;
+    }
+    mesh.name =
+      state.ability === "swords"
+        ? "sage_sword_projectile"
+        : "hydra_breath_projectile";
     mesh.scale.setScalar(2.6);
     const mouth = entry.mesh.userData.mouthAnchors?.[headIndex];
+    const head = entry.mesh.userData.getHeadWorldPositions?.()[0];
     // 吐息从摆动后的真实吻端发射；预判、射速、伤害和三连节奏保持共享规则。
     if (mouth) mouth.getWorldPosition(mesh.position);
+    else if (head) mesh.position.copy(head);
     else
       mesh.position
         .copy(entry.mesh.position)
         .addScaledVector(entry.heading, state.species.length * 0.35)
         .addScaledVector(side, (headIndex - 1) * state.species.length * 0.16)
         .add(new THREE.Vector3(0, state.species.length * 0.06, 0));
-    const glow = fxSprite(fxTextures.dot, COLORS.volley, 0.75);
+    const projectileColor =
+      state.ability === "swords" ? COLORS.swords : COLORS.volley;
+    const glow = fxSprite(fxTextures.dot, projectileColor, 0.75);
     glow.scale.setScalar(9);
     mesh.add(glow);
     scene.add(mesh);
     const trail = [];
     for (let i = 0; i < 8; i += 1) {
-      const sprite = fxSprite(fxTextures.dot, COLORS.volley, 0);
+      const sprite = fxSprite(fxTextures.dot, projectileColor, 0);
       sprite.visible = false;
       scene.add(sprite);
       trail.push({ sprite, age: 1 });
@@ -870,12 +915,18 @@ export function createEncounters(
     const velocity = target
       .sub(mesh.position)
       .normalize()
-      .multiplyScalar(state.species.projectileSpeed);
+      .multiplyScalar(state.species.projectileSpeed ?? 85);
+    if (state.ability === "swords")
+      mesh.quaternion.setFromUnitVectors(
+        FORWARD_AXIS,
+        velocity.clone().normalize(),
+      );
     projectiles.push({
       mesh,
       velocity,
       life: 4,
-      damage: 34,
+      damage: state.species.mythic ? state.species.damage : 34,
+      ability: state.ability,
       trail,
       trailAge: 0,
     });
@@ -896,7 +947,21 @@ export function createEncounters(
         candidate.y += 1.6;
         candidate.normalize();
       }
+      if (entry.state.species.groundbound) {
+        candidate.y = 0;
+        candidate.normalize();
+      }
       lookahead.copy(origin).addScaledVector(candidate, Math.max(7, step + 4));
+      if (
+        entry.state.species.groundbound &&
+        seabedHeight(lookahead.x, lookahead.z) <
+          entry.state.species.minimumGroundHeight
+      )
+        continue;
+      if (entry.state.species.groundbound)
+        lookahead.y =
+          seabedHeight(lookahead.x, lookahead.z) +
+          groundCreatureClearance(entry.mesh, entry.state.species.length, 3);
       if (!blockedBetween(origin, lookahead)) {
         clear = true;
         break;
@@ -905,7 +970,17 @@ export function createEncounters(
     if (!clear) return;
     entry.heading.lerp(candidate, 1 - Math.exp(-dt * 3.6)).normalize();
     next.copy(origin).addScaledVector(entry.heading, step);
-    if (!blockedBetween(origin, next)) origin.copy(next);
+    if (entry.state.species.groundbound)
+      next.y =
+        seabedHeight(next.x, next.z) +
+        groundCreatureClearance(entry.mesh, entry.state.species.length, 3);
+    if (
+      (!entry.state.species.groundbound ||
+        seabedHeight(next.x, next.z) >=
+          entry.state.species.minimumGroundHeight) &&
+      !blockedBetween(origin, next)
+    )
+      origin.copy(next);
   }
   /** 未发现玩家时沿领域内部的缓慢椭圆巡游；所有位置连续积分，返巢后不瞬移。 */
   function patrolBoss(entry, dt, blockedBetween) {
@@ -1001,15 +1076,23 @@ export function createEncounters(
         hideDefeated(entry);
         continue;
       }
+      state.locked = Boolean(
+        entry.requiresGuardians?.some(
+          (id) =>
+            !bosses.some((b) => b.enabled && b.id === id && b.state.defeated),
+        ),
+      );
+      entry.mesh.userData.setLocked?.(state.locked);
       const distance = entry.mesh.position.distanceTo(position),
         homeDistance = entry.home.distanceTo(position),
-        inTerritory = homeDistance < entry.radius;
-      entry.mesh.visible = distance < 230;
+        atHome = homeDistance < entry.radius;
+      const inTerritory = bossEngagement(state, atHome);
+      entry.mesh.visible = distance < (state.species.mythic ? 850 : 230);
       entry.label.visible = homeDistance < 175 && !inTerritory;
       entry.contactCooldown = Math.max(0, entry.contactCooldown - dt);
       const sight = !blockedBetween(entry.mesh.position, position);
       tickBoss(state, dt, {
-        inTerritory,
+        inTerritory: inTerritory && !state.locked,
         distance,
         lineOfSight: sight,
         playerAlive: !player.dead && !player.won && !player.timedOut,
@@ -1052,7 +1135,20 @@ export function createEncounters(
         const next = old
           .clone()
           .addScaledVector(entry.heading, state.species.chargeSpeed * dt);
-        if (!blockedBetween(old, next)) entry.mesh.position.copy(next);
+        if (state.species.groundbound) {
+          next.y =
+            seabedHeight(next.x, next.z) +
+            groundCreatureClearance(entry.mesh, state.species.length, 3) +
+            Math.sin(Math.min(1, state.timer / state.phaseDuration) * Math.PI) *
+              24;
+        }
+        if (
+          (!state.species.groundbound ||
+            seabedHeight(next.x, next.z) >=
+              state.species.minimumGroundHeight) &&
+          !blockedBetween(old, next)
+        )
+          entry.mesh.position.copy(next);
         const sweep = new THREE.Line3(
           old,
           entry.mesh.position,
@@ -1066,10 +1162,12 @@ export function createEncounters(
           entry.phaseHit = damage(
             player,
             state.species.damage,
-            "毁灭冲锋命中 · 锁定后向侧面闪避",
+            state.species.skillLabels?.charge
+              ? "御剑冲阵命中 · 向侧面或上下闪避"
+              : "毁灭冲锋命中 · 锁定后向侧面闪避",
           );
       }
-      if (attack && state.ability === "volley") {
+      if (attack && ["volley", "swords"].includes(state.ability)) {
         while (
           entry.volleyShots < 3 &&
           state.timer >= entry.volleyShots * 0.45
@@ -1091,15 +1189,34 @@ export function createEncounters(
       const fromHome = entry.motion.offset
         .copy(entry.mesh.position)
         .sub(entry.home);
-      if (fromHome.length() > entry.radius + 22)
+      if (!state.pursuitStarted && fromHome.length() > entry.radius + 22)
         entry.mesh.position
           .copy(entry.home)
           .add(fromHome.setLength(entry.radius + 22));
+      if (state.species.groundbound)
+        entry.mesh.position.y =
+          seabedHeight(entry.mesh.position.x, entry.mesh.position.z) +
+          groundCreatureClearance(entry.mesh, state.species.length, 3) +
+          (attack
+            ? Math.sin(
+                Math.min(1, state.timer / state.phaseDuration) * Math.PI,
+              ) * 24
+            : 0);
+      if (state.species.upright || state.species.groundbound) {
+        entry.heading.y = 0;
+        entry.heading.normalize();
+      }
       entry.mesh.quaternion.slerp(
-        entry.motion.orientation.setFromUnitVectors(
-          FORWARD_AXIS,
-          entry.heading,
-        ),
+        state.species.upright || state.species.groundbound
+          ? uprightHeadingQuaternion(
+              entry.motion.orientation,
+              entry.heading,
+              entry.mesh.rotation.y,
+            )
+          : entry.motion.orientation.setFromUnitVectors(
+              FORWARD_AXIS,
+              entry.heading,
+            ),
         Math.min(1, dt * 2),
       );
       if (state.phase !== "disoriented")
@@ -1248,8 +1365,15 @@ export function createEncounters(
       }
       if (
         !state.defeated &&
+        !state.locked &&
         !recover &&
         !windup &&
+        // 由专属扫掠处理接触的短冲不叠加贴身伤害；其他领主保留原有接触规则。
+        !(
+          attack &&
+          state.ability === "charge" &&
+          state.species.chargeHandlesContact
+        ) &&
         state.phase !== "disoriented" &&
         inTerritory &&
         sight &&
@@ -1270,12 +1394,14 @@ export function createEncounters(
             state,
             distance,
             homeDistance,
-            tip:
-              state.phase === "disoriented"
+            tip: state.locked
+              ? "四象护阵未解 · 先击败四神兽"
+              : state.phase === "disoriented"
                 ? "墨汁迷失中 · 趁机离开领地"
                 : recover
                   ? "侧翼破绽 · 绕侧咬击，脱离后再进攻"
-                  : TIPS[state.ability],
+                  : (state.species.skillTips?.[state.ability] ??
+                    TIPS[state.ability]),
           };
     }
     for (let i = projectiles.length - 1; i >= 0; i--) {
@@ -1310,7 +1436,13 @@ export function createEncounters(
           .distanceTo(position) <
           4 + player.length * 0.2
       ) {
-        damage(player, p.damage, "三重吐息命中 · 横向变向躲避");
+        damage(
+          player,
+          p.damage,
+          p.ability === "swords"
+            ? "御剑命中 · 变向或借山石躲避"
+            : "三重吐息命中 · 横向变向躲避",
+        );
         p.life = 0;
       }
       if (p.life <= 0) {
@@ -1329,17 +1461,20 @@ export function createEncounters(
     const materials = new Set([fxMat]);
     const textures = new Set(Object.values(fxTextures));
     for (const entry of bosses) {
-      resetAbilityFx(entry.fx);
+      for (const fx of entry.fxVariants) resetAbilityFx(fx);
       // 生物模型材质和几何由模型缓存共享；这里只释放本模块自己的表现资源。
       scene.remove(entry.mesh, entry.ring, entry.label, entry.fx.group);
       geometries.add(entry.ring.geometry);
       materials.add(entry.ring.material);
       materials.add(entry.label.material);
       if (entry.label.material.map) textures.add(entry.label.material.map);
-      entry.fx.group.traverse((object) => {
-        if (object.isMesh) geometries.add(object.geometry);
-        if (object.material) materials.add(object.material);
-      });
+      for (const fx of entry.fxVariants) {
+        fx.group.removeFromParent();
+        fx.group.traverse((object) => {
+          if (object.isMesh) geometries.add(object.geometry);
+          if (object.material) materials.add(object.material);
+        });
+      }
     }
     for (const geometry of geometries) geometry.dispose();
     for (const material of materials) material.dispose();
@@ -1347,7 +1482,9 @@ export function createEncounters(
     active = null;
   }
   reset(
-    BOSS_SPECIES.filter((s) => !s.alien && !s.freshwater).map((s) => s.kind),
+    BOSS_SPECIES.filter((s) => !s.alien && !s.freshwater && !s.mythic).map(
+      (s) => s.kind,
+    ),
   );
   return {
     bosses,

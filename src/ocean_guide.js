@@ -1,3 +1,4 @@
+import { PENGLAI_LORD_DESCRIPTIONS } from "./penglai_lords.js";
 import { AMAZON_LORD_DESCRIPTIONS } from "./amazon_lords.js";
 import { SURFACE_BIRDS } from "./surface_birds.js";
 import { marianaGuideEntries } from "./mariana_guide.js";
@@ -28,6 +29,7 @@ import "./ocean_guide.css";
 
 // 生物按由小到大的探索顺序展示，角色与人类活动单独归档。
 const GUIDE_CATEGORIES = [
+  { id: "mythic", name: "神话生灵" },
   { id: "alien", name: "外星生命" },
   { id: "shoal", name: "小型鱼与鱼群" },
   { id: "invertebrate", name: "海洋无脊椎" },
@@ -72,6 +74,7 @@ export function groupOceanCatalog(catalog) {
 }
 
 const DESCRIPTIONS = {
+  ...PENGLAI_LORD_DESCRIPTIONS,
   ...AMAZON_LORD_DESCRIPTIONS,
   lumen_stalker: {
     name: "辉渊巡狩者",
@@ -188,19 +191,21 @@ export function buildOceanCatalog(regionId) {
             : undefined,
       length: startingLength(entry),
       size: tr`${startingLength(entry)}—30 m（成长玩法）`,
-      habitat: "本作海洋全域",
+      habitat: regionId === "penglai" ? "蓬莱浅水与云海" : "本作海洋全域",
       ability: tr`主动 · ${entry.active.name} / 被动 · ${entry.passive.name}`,
       text: tr`${entry.active.description} 激活起冷却${entry.active.cooldown}秒。被动：${entry.passive.description}`,
       counter:
-        regionId === "europa"
-          ? "冰壳下的海洋没有大气出口，无法跃出水面。陡角度接触冰顶会短暂回到平游；技能、捕食与岩拱碰撞规则不变。"
-          : entry.kind === "mechanical_shark"
-            ? "先留足生命与体力再开火，利用掩体和射程压制。爆炸不穿墙；击杀的普通生物立即计为主角吞噬，未击杀不发放收益。不比自己小的普通生物需两次有效命中；领主仍需三次，且必须达到25米。"
-            : entry.kind === "zombie_shark"
-              ? "先备好食物和退路再献祭；仆从不能代打领主，也不会提高主角吞食上限。体长正好5米时可以召唤，但尚无符合减5米限制的猎物。"
-              : entry.kind === "orca"
-                ? "用声呐判断前方猎物体长和捕食资格，雷达保留周围回声。高速冲刺可追捕猎物或拉开距离，水下连续蓄势后才能破水。"
-                : "遇到猎手追击时在水下喷墨脱身，提前把头朝向安全出口；喷射会受到礁石和船体阻挡。松开冲刺可发挥灵活转向的被动。",
+        regionId === "penglai"
+          ? "蓬莱可在水中与空中自由行进，不受破水蓄势限制；四种角色的技能与消耗保持不变，山石与屋顶仍会阻挡移动和攻击。"
+          : regionId === "europa"
+            ? "冰壳下的海洋没有大气出口，无法跃出水面。陡角度接触冰顶会短暂回到平游；技能、捕食与岩拱碰撞规则不变。"
+            : entry.kind === "mechanical_shark"
+              ? "先留足生命与体力再开火，利用掩体和射程压制。爆炸不穿墙；击杀的普通生物立即计为主角吞噬，未击杀不发放收益。不比自己小的普通生物需两次有效命中；领主仍需三次，且必须达到25米。"
+              : entry.kind === "zombie_shark"
+                ? "先备好食物和退路再献祭；仆从不能代打领主，也不会提高主角吞食上限。体长正好5米时可以召唤，但尚无符合减5米限制的猎物。"
+                : entry.kind === "orca"
+                  ? "用声呐判断前方猎物体长和捕食资格，雷达保留周围回声。高速冲刺可追捕猎物或拉开距离，水下连续蓄势后才能破水。"
+                  : "遇到猎手追击时在水下喷墨脱身，提前把头朝向安全出口；喷射会受到礁石和船体阻挡。松开冲刺可发挥灵活转向的被动。",
       characterId: entry.id,
       realSize:
         "其他海域3米幼年起步，马里亚纳15米起步；起始尺寸、30米体长上限与技能强度属于游戏设定。",
@@ -216,29 +221,35 @@ export function buildOceanCatalog(regionId) {
         category: config.category,
         color: config.color,
         role:
-          config.category === "alien"
-            ? {
-                hunter: "外星猎手",
-                giant: "外星巨游",
-                grazer: "外星滤食者",
-                resident: "外星底栖",
-              }[config.trophicRole]
-            : config.category === "ancient"
-              ? "远古巨兽"
-              : config.category === "hunter"
-                ? config.freshwater
-                  ? "河道猎手"
-                  : "海洋霸主"
-                : config.freshwater
-                  ? "淡水猎物"
-                  : "海洋猎物",
+          config.category === "mythic"
+            ? config.predator
+              ? "神话猎手"
+              : "神话游灵"
+            : config.category === "alien"
+              ? {
+                  hunter: "外星猎手",
+                  giant: "外星巨游",
+                  grazer: "外星滤食者",
+                  resident: "外星底栖",
+                }[config.trophicRole]
+              : config.category === "ancient"
+                ? "远古巨兽"
+                : config.category === "hunter"
+                  ? config.freshwater
+                    ? "河道猎手"
+                    : "海洋霸主"
+                  : config.freshwater
+                    ? "淡水猎物"
+                    : "海洋猎物",
         length: config.length,
         nutrition: config.nutrition,
         growth: config.growth,
         speed: config.speed,
         schoolSize: config.schoolSize,
         size: tr`${config.length} m`,
-        habitat: tr`${config.depthMin * WORLD.displayDepthScale}—${Math.round(config.depthMax * WORLD.displayDepthScale)} m（本作水层）`,
+        habitat:
+          config.habitatLabel ||
+          tr`${config.depthMin * WORLD.displayDepthScale}—${Math.round(config.depthMax * WORLD.displayDepthScale)} m（本作水层）`,
         hunterAbility: config.hunterAbility,
         ability: config.hunterAbility
           ? config.ability
@@ -273,24 +284,27 @@ export function buildOceanCatalog(regionId) {
         (DESCRIPTIONS[config.kind].appearance
           ? t(DESCRIPTIONS[config.kind].appearance) + " "
           : "") +
-        (config.freshwater
-          ? tr`${DESCRIPTIONS[config.kind].text} ${tr`成长至30米，击败雅库玛玛与根颚君王。`}`
-          : config.alien
-            ? tr`${DESCRIPTIONS[config.kind].text} ${tr`成长至30米，击败任一冰下深渊领主。`}`
-            : regionId === "mariana"
-              ? config.kind === "hydra"
-                ? tr`${DESCRIPTIONS.hydra.text} ${tr`三头巨龙海德拉守卫首层深水岩谷，是第一道压力帘的必经守卫。达到25米后，从侧面完成三次独立咬击，击败它即可开启2600米处的第一道压力帘；本局不再复活。`}`
-                : tr`${DESCRIPTIONS[config.kind].text} ${tr`本海域的守关领主被击败后不再复活，压力帘随之开启。需成长至30米、突破四关并抵达海沟底部。`}`
-              : regionId === "bermuda"
-                ? tr`${DESCRIPTIONS[config.kind].text} ${tr`本海域必须击败全部四位深渊领主；各领主只出现一次。`}`
-                : regionId === "atlantis" && config.kind === "kraken"
-                  ? tr`${DESCRIPTIONS.kraken.text} ${tr`亚特兰蒂斯有三只克拉肯，分别守卫西侧城区、中庭和后城；每只拥有独立领地与生命值。每局随机由其中一只守护波塞冬地宫的圣珠，身份不会预先公开。先在城区公共建筑寻找海螺钥匙。海螺铭文可提供建筑线索；钥匙与真正守宝者的印记齐全，波塞冬地宫宝箱才会开启。达到30米并吞食箱中圣珠才能胜利。所有领主本局不再复活。`}`
-                  : tr`${DESCRIPTIONS[config.kind].text} ${tr`每局击败后不再复活。夏威夷成长至30米并击败任意一位即可胜利。`}`),
+        (config.mythic
+          ? t(DESCRIPTIONS[config.kind].text)
+          : config.freshwater
+            ? tr`${DESCRIPTIONS[config.kind].text} ${tr`成长至30米，击败雅库玛玛与根颚君王。`}`
+            : config.alien
+              ? tr`${DESCRIPTIONS[config.kind].text} ${tr`成长至30米，击败任一冰下深渊领主。`}`
+              : regionId === "mariana"
+                ? config.kind === "hydra"
+                  ? tr`${DESCRIPTIONS.hydra.text} ${tr`三头巨龙海德拉守卫首层深水岩谷，是第一道压力帘的必经守卫。达到25米后，从侧面完成三次独立咬击，击败它即可开启2600米处的第一道压力帘；本局不再复活。`}`
+                  : tr`${DESCRIPTIONS[config.kind].text} ${tr`本海域的守关领主被击败后不再复活，压力帘随之开启。需成长至30米、突破四关并抵达海沟底部。`}`
+                : regionId === "bermuda"
+                  ? tr`${DESCRIPTIONS[config.kind].text} ${tr`本海域必须击败全部四位深渊领主；各领主只出现一次。`}`
+                  : regionId === "atlantis" && config.kind === "kraken"
+                    ? tr`${DESCRIPTIONS.kraken.text} ${tr`亚特兰蒂斯有三只克拉肯，分别守卫西侧城区、中庭和后城；每只拥有独立领地与生命值。每局随机由其中一只守护波塞冬地宫的圣珠，身份不会预先公开。先在城区公共建筑寻找海螺钥匙。海螺铭文可提供建筑线索；钥匙与真正守宝者的印记齐全，波塞冬地宫宝箱才会开启。达到30米并吞食箱中圣珠才能胜利。所有领主本局不再复活。`}`
+                    : tr`${DESCRIPTIONS[config.kind].text} ${tr`每局击败后不再复活。夏威夷成长至30米并击败任意一位即可胜利。`}`),
       length: config.length,
       size: tr`${config.length} m`,
       tier: 3,
-      habitat:
-        regionId === "mariana" && config.kind === "hydra"
+      habitat: config.mythic
+        ? "蓬莱仙山与云海领地"
+        : regionId === "mariana" && config.kind === "hydra"
           ? "首层深水岩谷，第一道压力帘上方"
           : regionId === "mariana" &&
               MARIANA_GATES.some((g) => g.kind === config.kind)
@@ -374,9 +388,14 @@ function catalogRegionIds(entry) {
     }
     if (entry.category === "lord") return region.bossKinds.includes(entry.kind);
     if (
-      ["shoal", "hunter", "ancient", "invertebrate", "alien"].includes(
-        entry.category,
-      )
+      [
+        "shoal",
+        "hunter",
+        "ancient",
+        "invertebrate",
+        "alien",
+        "mythic",
+      ].includes(entry.category)
     )
       return region.speciesKinds.includes(entry.kind);
     if (entry.category === "surface")
@@ -566,6 +585,7 @@ export function createOceanGuide(trigger) {
   const filters = [
     { id: "all", name: "全部" },
     { id: "alien", name: "外星生命" },
+    { id: "mythic", name: "神话生灵" },
     { id: "player", name: "可选角色" },
     { id: "reward", name: "海洋奖励" },
     { id: "shoal", name: "小型鱼与鱼群" },

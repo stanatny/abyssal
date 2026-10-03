@@ -96,7 +96,7 @@ test("第四角色共享区域起点、成长与基本冲刺，菜单和图鉴�
   for (const r of REGIONS.filter((r) => r.available)) {
     assert.equal(
       getExpedition(r.id, c.id).startLength,
-      r.id === "mariana" ? 15 : 3,
+      ["mariana", "penglai"].includes(r.id) ? 15 : 3,
     );
     const entry = buildOceanCatalog(r.id).find((e) => e.characterId === c.id);
     assert.ok(entry);

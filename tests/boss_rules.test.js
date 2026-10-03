@@ -33,10 +33,13 @@ function grownPlayer(length = 30, characterId = "orca") {
 }
 
 test("四位主宰均大于玩家上限，技能不同且栖息区在世界之内", () => {
-  assert.equal(BOSS_SPECIES.filter((s) => !s.alien && !s.freshwater).length, 4);
-  assert.equal(BOSS_SPECIES.length, 8);
-  assert.equal(new Set(BOSS_SPECIES.map((s) => s.ability)).size, 5);
-  for (const species of BOSS_SPECIES) {
+  assert.equal(
+    BOSS_SPECIES.filter((s) => !s.alien && !s.freshwater && !s.mythic).length,
+    4,
+  );
+  assert.equal(BOSS_SPECIES.length, 13);
+  assert.equal(new Set(BOSS_SPECIES.map((s) => s.ability)).size, 6);
+  for (const species of BOSS_SPECIES.filter((s) => !s.mythic)) {
     assert.equal(species.tier, 3);
     assert.ok(species.length > 30);
     assert.ok(species.depthMax <= (species.alien ? 900 : WORLD.maxDepth));
@@ -91,7 +94,7 @@ test("离开领地或死亡会终止攻击，回巢后保留已造成的伤害",
 });
 
 test("四位领主始终要求真实25米，狂食不会降低门槛或允许直接吞噬", () => {
-  for (const species of BOSS_SPECIES) {
+  for (const species of BOSS_SPECIES.filter((s) => !s.mythic)) {
     assert.equal(species.minAttackLength, 25);
     for (const frenzy of [false, true]) {
       const boss = createBossState(species);
@@ -284,7 +287,7 @@ test("死亡、胜利或到时后即使保持接触也不伤害领主或领取�
   }
 });
 
-test("两角色在25至30米及所有阶段，四位领主恰需三次独立有效侧咬", () => {
+test("两角色在25至30米，领主保留阶段护甲与三次独立有效侧咬", () => {
   assert.equal(BOSS_REQUIRED_HITS, 3);
   for (const species of BOSS_SPECIES)
     for (const characterId of ["orca", "squid"])
@@ -303,8 +306,18 @@ test("两角色在25至30米及所有阶段，四位领主恰需三次独立有�
             if (frenzy) collectPickup(player, "frenzy");
             const boss = createBossState(species);
             assert.equal(boss.validatedHits, 0);
-            for (let hits = 1; hits <= BOSS_REQUIRED_HITS; hits += 1) {
+            const guarded = species.guardedPhases?.includes(phase);
+            if (guarded) {
               boss.phase = phase;
+              assert.equal(
+                hitBoss(player, boss, FLANK).reason,
+                "shell_guarded",
+              );
+              assert.equal(boss.validatedHits, 0);
+              assert.equal(boss.health, species.health);
+            }
+            for (let hits = 1; hits <= BOSS_REQUIRED_HITS; hits += 1) {
+              boss.phase = guarded ? "recover" : phase;
               const result = hitBoss(player, boss, FLANK);
               assert.equal(result.hit, true);
               assert.equal(boss.validatedHits, hits);
@@ -376,7 +389,7 @@ test("击败奖励只结算一次，25米先击败主宰后还需继续成长", 
 });
 
 test("从领地较远处即可发招，预警末段留有明确锁定和规避时间", () => {
-  for (const species of BOSS_SPECIES) {
+  for (const species of BOSS_SPECIES.filter((s) => !s.mythic)) {
     const boss = createBossState(species);
     tickBoss(boss, 1, { ...CLOSE, distance: 105 });
     assert.equal(boss.phase, "windup");

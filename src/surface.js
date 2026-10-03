@@ -1,3 +1,4 @@
+import { createAetherSurface } from "./aether_surface.js";
 import { createIceCoveredSurface } from "./ice_surface.js";
 import { regionalBirds, sampleBirdFlight } from "./surface_birds.js";
 import { createMarianaFleet, createMarianaSky } from "./mariana_surface.js";
@@ -36,6 +37,7 @@ export function createSurface(
     onDamage,
   } = {},
 ) {
+  if (surfaceMode === "aether") return createAetherSurface({ worldBounds });
   if (surfaceMode === "ice") return createIceCoveredSurface({ worldBounds });
   const root = new THREE.Group();
   root.name = "surface_environment";

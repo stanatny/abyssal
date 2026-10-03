@@ -40,7 +40,8 @@ export function createMechanicalAim({ entities, bosses, blocked, bossPoint }) {
         angle,
         eligible:
           !boss ||
-          player.length >= (entity.state.species.minAttackLength || 25),
+          (!entity.state.locked &&
+            player.length >= (entity.state.species.minAttackLength || 25)),
       };
     }
     for (const e of entities()) consider(e);

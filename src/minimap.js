@@ -175,9 +175,17 @@ export function createMinimap(container) {
       });
       const nursery = isNursery(position);
       const nurseryLabel =
-        world.surfaceMode === "ice" ? "冰穹育幼湾" : "安全浅滩";
+        world.surfaceMode === "aether"
+          ? "莲池育幼湾"
+          : world.surfaceMode === "ice"
+            ? "冰穹育幼湾"
+            : "安全浅滩";
       container.querySelectorAll(".minimap-zone")[1].textContent = t(
-        world.surfaceMode === "ice" ? "冰穹" : "浅",
+        world.surfaceMode === "aether"
+          ? "莲池"
+          : world.surfaceMode === "ice"
+            ? "冰穹"
+            : "浅",
       );
       snapshot = getMinimapState({
         position,
@@ -186,6 +194,9 @@ export function createMinimap(container) {
         fallbackHeading: snapshot?.heading,
         world,
       });
+      container.querySelectorAll(".minimap-zone")[0].textContent = t(
+        world.surfaceMode === "aether" ? "仙山" : "深",
+      );
       snapshot.attitude = getSwimmingAttitude(forward);
       container.dataset.pitch = String(snapshot.attitude.degrees);
       container.dataset.attitude = snapshot.attitude.direction;
