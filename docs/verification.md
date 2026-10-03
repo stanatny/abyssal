@@ -1,3 +1,17 @@
+# v0.10.0 — Penglai Sanctuary
+
+## Authorized main publication
+
+The user approved publication of the reviewed local checkpoint `c56f776` to `main` on 2026-10-04. This edition adds the independent seventh destination, Penglai Sanctuary, with eighteen mythic ordinary kinds, 441 replenishing animals, four directional guardians and the Sword Sage. All four playable characters start at 15 m here. It includes the accepted creature/landscape redraws, upright ground movement, continuous flight, physical Four-Symbol ward, per-frame Mechanical aiming, distributed supplies and solid terrain-clear monastery steps. The six preceding destinations and shared rules remain intact.
+
+The accepted checkpoint passes 816 unit tests, 29 shared browser checks, targeted native feeding/respawn/guardian/control checks and source-matched compiled desktop/touch previews. Those are preceding development receipts, not new formal-host claims. Publication changes only version metadata and corresponding release documentation/presentation. Fresh formatting/build and compiled release checks use `.local/release_v0_10_0/`. Final acceptance requires the exact pushed SHA's Pages workflow to succeed, the nine served build artifacts to match the local production build, and English desktop / Chinese touch-view native seven-region selection, Guide, skills, starts, pause/home and overflow checks to pass without production development hooks or observed page/console errors. Penglai starts at 15 m, as does Mariana; the other five retain 3 m.
+
+Fresh v0.10.0 preflight passes formatting, production build and seven localization tests on Node 22.17.1. Twenty compiled native cases pass locally: seven destinations with Mechanical Shark and the three other characters in Penglai, each in English desktop (1440×900) and Chinese touch emulation (390×667). All nine served artifacts match; private development paths return 404 and no page/console errors or development API are observed. Native Penglai ascent reaches 2250 displayed meters with the 42 px crosshair. An actual English production home screenshot replaces the README image; the regional overview is collapsed through its normal control to expose the menu actions. The first release harness incorrectly asserted visible text for the hidden mobile version span; its retained failed receipt is superseded by DOM-copy validation, with no gameplay change. Exact workflow and formal-host receipts remain required after pushing.
+
+No complete natural expedition or physical-phone thermal acceptance is implied by these controlled/native smoke checks. Previous rejected first-pass art, failed fixture attempts and historical release records remain distinguishable. The existing large-bundle build warning is retained rather than described as a performance improvement. No tag or separate GitHub Release is needed for the existing Pages publication.
+
+---
+
 # v0.9.0 — Rivers and Alien Oceans
 
 Release preparation: 2026-10-03. The user accepted the Amazon creature/root-vault refinement and explicitly authorized committing, pushing and integrating the reviewed development chain into the default `main` branch. v0.9.0 includes six destinations and four characters: the previously reviewed survival/records and ground-steering changes, Europa, Zombie Shark, deep exploration, Mechanical Shark with its later feeding/combat refinements, and Amazon's twenty ordinary kinds/two lords. It does not create a tag or GitHub Release. Historical local-only states below and in older feedback reports retain their meaning at that time.

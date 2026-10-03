@@ -1,16 +1,16 @@
 # ABYSSAL
 
-A third-person ocean survival game for the browser. Choose an Orca, Giant Squid, Zombie Shark or Mechanical Shark: feed, grow, escape hunters, and challenge the giants below. The six released destinations are Hawaii, Atlantis, Bermuda, Mariana, the Amazon River and Europa's alien ice ocean. This development branch adds a seventh destination, Penglai Sanctuary, after Europa.
+A third-person ocean survival game for the browser. Choose an Orca, Giant Squid, Zombie Shark or Mechanical Shark: feed, grow, escape hunters, and challenge the giants below. The seven destinations are Hawaii, Atlantis, Bermuda, Mariana, the Amazon River, Europa's alien ice ocean and the airborne mythic Penglai Sanctuary.
 
 **[Play the published game](https://stanatny.github.io/abyssal/)** · [GitHub repository](https://github.com/stanatny/abyssal)
 
-Current main edition: **v0.9.0 — Rivers and Alien Oceans**. Six destinations and four playable characters share bilingual controls, regional ecology/music, local character-aware completion records and distinct objectives. This edition includes the accepted Europa and shark characters, stronger deep survival pressure, denser food and faster adult meal progression, and the complete Amazon anatomy/root-vault refinement. GitHub Actions publishes successful main builds to the play link above; see [release verification](docs/verification.md).
+Current main edition: **v0.10.0 — Penglai Sanctuary**. Seven destinations and four playable characters share bilingual controls, regional ecology/music, local character-aware completion records and distinct objectives. This edition adds free air/water exploration in Penglai, eighteen mythic species, four directional guardians and the final Sword Sage. It retains the preceding six destinations, shark characters, survival pressure, food progression and Amazon refinement. GitHub Actions publishes successful main builds to the play link above; see [release verification](docs/verification.md).
 
 The v0.8.3 refinement extends Kraken's curling arms, redraws Hydra's articulated necks and tapered heads, and enriches Leviathan's armored sea-serpent silhouette. The same assets appear in the Ocean Guide and ocean encounters; bilingual notes explain the mythological inspiration. Gameplay thresholds and regional endings remain intact. These changes are included in v0.8.3; see [the model review](docs/lord_anatomy_revision.md).
 
 Pause/results now offer reachable actions, regional guidance and keyboard/touch help across portrait, landscape, tablet and short desktop layouts. Paused scenes stop unnecessary drawing; Atlantis construction yields behind the loading screen. These changes preserve population, collision, near-city art and active-play quality. Measurements establish better warm-switch responsiveness and idle rendering, rather than a general FPS or phone-temperature improvement. GitHub Actions deploys `main` to the play URL above.
 
-![ABYSSAL v0.9.0: actual English home screen with Amazon River and Orca selected](docs/images/abyssal_v0_9_0.png)
+![ABYSSAL v0.10.0: actual English home screen with Penglai Sanctuary and Orca selected](docs/images/abyssal_v0_10_0.png)
 
 Play in a modern desktop or phone browser with WebGL 2 support—no account or download required. Select a character on the home screen and start an expedition. Music activates after the first interaction. Fish feeding uses short water-Foley intake, bite, and bubble tails, with three variants that avoid consecutive repetition. Adult male/female swimmers and divers use corresponding performed human recordings at their original pitch, gradually muffled later in the clip to suggest submersion. Prey-gathering transitions and blood clouds remain. Sound can be disabled at any time. Assets are CC0; see [audio sources](docs/audio_sources.md).
 
@@ -32,7 +32,7 @@ Two exclusive persistent Abyss Lords, **Yacumama** and **Rootjaw Sovereign**, gu
 
 Read [the production brief](docs/amazon_brief.md), [sources and fantasy boundaries](docs/amazon_sources.md), and [current refinement and verification](docs/amazon_refinement.md). The [first-pass record](docs/amazon_verification.md) is historical. The accepted redraw and root-vault routes are included in v0.9.0.
 
-## Penglai Sanctuary — development candidate
+## Penglai Sanctuary
 
 Penglai is an independent Chinese-mythology interpretation: shallow lotus waters connect to misty mountain airspace, extensive peach woodland, green rock shoulders, pine and bamboo, pavilions, a Dragon Gate and a double-roofed Taoist monastery. All four protagonists start at **15 m** and may swim and fly continuously here; the six existing destinations retain their original surface rules. Mountains, pillars and roofs remain solid. Sky altitude and remaining guardian directions appear in the HUD/radar.
 
@@ -44,11 +44,11 @@ Six collidable floating mountain islands with peach trees surround the monastery
 
 Six continuous stone paths wind to summit pavilions. The monastery has a complete walled exterior and closed upper chamber beneath its tiled eaves, with solid entrance steps clear of the terrain. The northern pool retains eighteen medium carps and eighteen Hujiao across multiple recovery homes after a local density reduction; total replenishing stock is 441. Three introductory rewards remain near the start, while eighteen other supplies use separate randomized sampling areas along water and mountain-air routes outside the locked monastery.
 
-Read the [current supply/stair review](docs/penglai_supply_revision.md), [preceding sky/control review](docs/penglai_control_revision.md), [preceding living-scene review](docs/penglai_life_revision.md), [preceding flight and guardian review](docs/penglai_flight_revision.md), [production brief](docs/penglai_brief.md), [classic references and original adaptations](docs/penglai_sources.md), and [verification](docs/penglai_verification.md). This is a local development checkpoint on `feature/penglai`; the published link above remains v0.9.0 with six destinations.
+Read the [current supply/stair review](docs/penglai_supply_revision.md), [preceding sky/control review](docs/penglai_control_revision.md), [preceding living-scene review](docs/penglai_life_revision.md), [preceding flight and guardian review](docs/penglai_flight_revision.md), [production brief](docs/penglai_brief.md), [classic references and original adaptations](docs/penglai_sources.md), and [verification](docs/penglai_verification.md). Penglai is included in v0.10.0. The linked candidate reviews preserve their original measurements and review status; see [release verification](docs/verification.md) for the current deployment contract.
 
 ## Europa
 
-**Europa** is the final released destination, beneath a solid ice ceiling. It is a fictional bonus expedition, directly selectable for now; future unlocking is unspecified. Apart from the protagonist, every creature belongs to its original alien ecosystem. It is included in v0.9.0.
+**Europa**, immediately before Penglai, lies beneath a solid ice ceiling. It is a fictional bonus expedition, directly selectable for now; future unlocking is unspecified. Apart from the protagonist, every creature belongs to its original alien ecosystem. It is included in v0.9.0.
 
 Explore five connected habitats: Ice Cradle, Brine Arches, Suspended Garden, Thermal Basin and Weaver's Hollow. Sixteen original ordinary alien species form a layered food chain; the current density follow-up raises its ordinary inventory from 247 to 369. Only the playable characters come from Earth; this destination has no terrestrial wildlife, active crews, surface fleet or atmospheric breach. An abandoned original research lander is a static exploration artifact. The separate Alien Life Guide filter identifies fictional lifeforms and their actual feeding roles.
 
@@ -62,7 +62,7 @@ Read the [production brief](docs/europa_brief.md), [candidate verification](docs
 
 ## Zombie Shark
 
-The current review adds an original **Zombie Shark** as a third playable character in all six destinations. Distributed tears expose bone across the skull, flanks, spine and tail, with bloodstained fins, a damaged jaw and a fierce narrow-eyed face; it uses the same growth curve, body-contact rules and regional objectives as the existing characters. Starts remain 3 m, except Mariana's 15 m.
+The current review adds an original **Zombie Shark** as a third playable character in all seven destinations. Distributed tears expose bone across the skull, flanks, spine and tail, with bloodstained fins, a damaged jaw and a fierce narrow-eyed face; it uses the same growth curve, body-contact rules and regional objectives as the existing characters. Starts remain 3 m, except Mariana and Penglai's 15 m.
 
 **Undead Fission** summons one smaller hunting companion for 60 seconds, with a 60-second cooldown starting on cast. The character must be at least 5 m and have at least 50 health, stamina and hunger; casting pays 50 of each immediately. Paying exactly 50 health is lethal. The companion circles nearby and pursues ordinary prey no longer than the owner's current length minus 5 m (a 20 m owner permits 15 m prey). It cannot attack lords or vehicles. Food, healing, growth and meal counts credit the owner, while effective meal nutrition also restores stamina. After 60 active-play seconds it disappears in a harmless corpse burst. Pause freezes both timers; home and terminal states clear it.
 
@@ -70,7 +70,7 @@ Selection, English/Chinese Guide, skill countdown and local records recognize th
 
 ## Mechanical Shark
 
-The Guide and character selection use the fixed roster order: **Orca → Giant Squid → Zombie Shark → Mechanical Shark**. Europa remains the final destination; all current characters and maps remain freely selectable.
+The Guide and character selection use the fixed roster order: **Orca → Giant Squid → Zombie Shark → Mechanical Shark**. Europa precedes Penglai in the destination selector; all current characters and maps remain freely selectable.
 
 A fourth playable character adds an original armored machine with navy/cobalt shoulder plates, copper engineering bands, fierce optical sensors, articulated fins and tail, a ventral torpedo bay and twin sprint thrusters. It shares the standard growth curve, regional starts and 32 m/s base sprint; the Orca alone retains its 30% speed bonus.
 

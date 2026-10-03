@@ -1,6 +1,12 @@
 # Current Development Handoff
 
-## Current local Penglai checkpoint
+## Current authorized main publication — v0.10.0
+
+The user requested publication to the main branch on 2026-10-04. Remote `main` matches the reviewed base `da0adbe`, so the accepted local Penglai checkpoint `c56f776` can be integrated by fast-forward. Release metadata, both-language version labels and English README presentation are synchronized as v0.10.0. Preserve the complete reviewed gameplay and art; this publication adds no new balance changes. Use the existing main-triggered Pages workflow. Verify the exact deployed SHA, built artifacts and native seven-region desktop/touch flows before declaring the formal page playable. The previous review and local-only authorization states below are historical. No tag, separate GitHub Release or shared Skill publication is requested. Release evidence belongs in ignored `.local/release_v0_10_0/`; see [release verification](docs/verification.md).
+
+Release preflight passes formatting/build, seven localization tests and twenty native compiled desktop/touch cases across all seven regions and four Penglai characters. All nine preview artifacts match the production build; development paths are denied and no runtime errors are observed. The current English README image is captured from the actual production home. Preserve the release receipts and complete exact-SHA Pages deployment/formal-host verification after pushing; these local checks alone do not establish publication.
+
+## Historical local Penglai checkpoint
 
 The user authorized a local commit of the reviewed Penglai implementation on 2026-10-04. Commit the seventh destination and all preceding accepted refinements together on `feature/penglai`, based on `da0adbe`; push, merge and formal release have not been requested. Read [the supply/stair review](docs/penglai_supply_revision.md). The shared reward path accepts an optional regional habitat; Penglai uses eighteen separate randomized water/air sampling areas outside the nursery and sealed monastery instead of collapsing illegal mountain points onto a water fallback. Keep the three introductory rewards, effects and 45-second respawn. Northern medium/large recovery stock is reduced from 51 to 36; total ordinary stock is 441. All eighteen kinds, five guardians, food values, other regions and prior control improvements remain. Eight stone stair treads clear the actual terrain and platform, with matching solid proxies. Evidence lives in ignored `.local/penglai_supply_revision/`. Previous receipts below describe their historical uncommitted review states.
 
