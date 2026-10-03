@@ -1,3 +1,4 @@
+import { createAmazonOceanAsync } from "./amazon_ocean.js";
 import { createMechanicalTorpedoes } from "./mechanical_torpedoes.js";
 import {
   MECHANICAL_RULES,
@@ -487,32 +488,38 @@ async function selectRegion(region) {
     await regionLoader.paint();
     // 新环境完整建成后才替换旧环境；失败时仍可回到原海域。
     nextOcean =
-      region.id === "europa"
-        ? await createEuropaOceanAsync(container, {
+      region.id === "amazon"
+        ? await createAmazonOceanAsync(container, {
             onStep() {
-              regionLoader.stage("正在雕刻冰壳与盐脉…", 35);
+              regionLoader.stage("正在绘制河道与雨林…", 35);
             },
           })
-        : region.id === "mariana"
-          ? createMarianaOcean(container)
-          : region.id === "atlantis"
-            ? await createAtlantisOceanAsync(container, {
-                onStep(label) {
-                  const progress = atlantisPreparationProgress[label];
-                  if (progress)
-                    regionLoader.stage("正在绘制海底与海岸…", progress);
-                },
-              })
-            : region.id === "bermuda"
-              ? createBermudaOcean(container, {
-                  audio,
-                  notify,
-                  onDamage() {
-                    hitFlash = 0.9;
-                    effects.hurt(position, player.length);
+        : region.id === "europa"
+          ? await createEuropaOceanAsync(container, {
+              onStep() {
+                regionLoader.stage("正在雕刻冰壳与盐脉…", 35);
+              },
+            })
+          : region.id === "mariana"
+            ? createMarianaOcean(container)
+            : region.id === "atlantis"
+              ? await createAtlantisOceanAsync(container, {
+                  onStep(label) {
+                    const progress = atlantisPreparationProgress[label];
+                    if (progress)
+                      regionLoader.stage("正在绘制海底与海岸…", progress);
                   },
                 })
-              : createOcean(container);
+              : region.id === "bermuda"
+                ? createBermudaOcean(container, {
+                    audio,
+                    notify,
+                    onDamage() {
+                      hitFlash = 0.9;
+                      effects.hurt(position, player.length);
+                    },
+                  })
+                : createOcean(container);
     attachDeepVents(nextOcean, region.id, {
       heightAt: nextOcean.heightAt || baseSeabedHeight,
     });
@@ -651,25 +658,30 @@ function updateRegionPresentation() {
   const trench = expedition.region.id === "mariana";
   setMarkup(
     document.querySelector(".intro"),
-    ice
-      ? "潜入冰壳之下，循着盐脉与微光。<br />在陌生生命之间，寻找冰下的深渊领主。"
-      : trench
-        ? "循着生物微光，潜入世界最深的海沟。<br />突破四道守关，寻找万米深处的秘密。"
-        : storm
-          ? "风暴遮蔽航路，幽灵炮声穿透浓雾。<br />探索失落沉船，挑战各水层的深渊领主。"
-          : night
-            ? "循着月光与鱼群，潜入沉没古城。<br />在波塞冬的珠光下，迎战守卫克拉肯。"
-            : "穿过阳光与鱼群，潜向未知。<br />从幼年的生命，长成深渊的主宰。",
+    expedition.region.surfaceMode === "river"
+      ? "沿弯曲河道穿越雨林，两条支流通往巨兽深潭。<br />在沉根与浮叶之间成长，迎战河道的两位主宰。"
+      : ice
+        ? "潜入冰壳之下，循着盐脉与微光。<br />在陌生生命之间，寻找冰下的深渊领主。"
+        : trench
+          ? "循着生物微光，潜入世界最深的海沟。<br />突破四道守关，寻找万米深处的秘密。"
+          : storm
+            ? "风暴遮蔽航路，幽灵炮声穿透浓雾。<br />探索失落沉船，挑战各水层的深渊领主。"
+            : night
+              ? "循着月光与鱼群，潜入沉没古城。<br />在波塞冬的珠光下，迎战守卫克拉肯。"
+              : "穿过阳光与鱼群，潜向未知。<br />从幼年的生命，长成深渊的主宰。",
   );
-  const labels = ice
-    ? ["冰穹育幼", "悬生群落", "星渊深窟"]
-    : trench
-      ? ["珍珠浅棚", "幽蓝阶渊", "挑战者秘境"]
-      : storm
-        ? ["宁静礁湾", "风暴外海", "失落沉船"]
-        : night
-          ? ["月辉浅滩", "沉没外城", "波塞冬古城"]
-          : ["珊瑚浅海", "幽蓝海沟", "火山深渊"];
+  const labels =
+    expedition.region.surfaceMode === "river"
+      ? ["浮叶育幼湾", "淹没雨林", "巨颚沉渊"]
+      : ice
+        ? ["冰穹育幼", "悬生群落", "星渊深窟"]
+        : trench
+          ? ["珍珠浅棚", "幽蓝阶渊", "挑战者秘境"]
+          : storm
+            ? ["宁静礁湾", "风暴外海", "失落沉船"]
+            : night
+              ? ["月辉浅滩", "沉没外城", "波塞冬古城"]
+              : ["珊瑚浅海", "幽蓝海沟", "火山深渊"];
   document.querySelectorAll(".journey b span").forEach((node, index) => {
     node.textContent = t(labels[index]);
   });
@@ -845,6 +857,7 @@ function updateSonar() {
     contacts: scan.contacts,
     sonarActive: visible,
     world: activeWorld(),
+    riverPaths: ocean.radarPaths,
     waypoints: ocean.progress
       ? ocean.progress.opened === MARIANA_GATES.length
         ? [{ ...MARIANA_REFUGE, open: false, final: true }]
@@ -1071,7 +1084,12 @@ function addEntity(species, location, populationIndex = 0) {
     entity.telegraph = new THREE.Mesh(
       new THREE.TorusGeometry(1, 0.035, 5, 40),
       new THREE.MeshBasicMaterial({
-        color: species.kind === "octopus" ? 0xd98665 : 0xffb080,
+        color:
+          species.hunterAbility === "river_shock"
+            ? 0xe8d98a
+            : species.kind === "octopus"
+              ? 0xd98665
+              : 0xffb080,
         transparent: true,
         opacity: 0.7,
         depthWrite: false,
@@ -1186,11 +1204,12 @@ function seedPickups() {
               worldBounds: activeWorld(),
             },
             false,
-            new THREE.Vector3(
-              random(activeWorld().minX + 18, activeWorld().maxX - 18),
-              -random(20, activeWorld().maxDepth - 30),
-              random(activeWorld().minZ + 18, activeWorld().maxZ - 18),
-            ),
+            ocean.rewardAnchor?.(Math.random) ||
+              new THREE.Vector3(
+                random(activeWorld().minX + 18, activeWorld().maxX - 18),
+                -random(20, activeWorld().maxDepth - 30),
+                random(activeWorld().minZ + 18, activeWorld().maxZ - 18),
+              ),
           );
     item.mesh.position.copy(point);
     item.baseY = point.y;
@@ -1366,6 +1385,8 @@ function showOverlay(kind) {
     spawn: expedition.region.spawn,
     contacts: [],
     sonarActive: false,
+    world: activeWorld(),
+    riverPaths: ocean.radarPaths,
   });
   document.body.classList.remove("sonar-active");
   audio.setPaused(kind !== "won");
@@ -2144,17 +2165,33 @@ function updateEntities(dt) {
     if (entity.telegraph && ["windup", "active"].includes(hunter.phase)) {
       entity.telegraph.visible = mesh.visible;
       entity.telegraph.position.copy(mesh.position);
-      entity.telegraph.lookAt(camera.position);
+      if (hunter.type === "shock")
+        entity.telegraph.rotation.set(-Math.PI / 2, 0, 0);
+      else entity.telegraph.lookAt(camera.position);
       const phase = hunter.timer / hunter.phaseDuration;
       entity.telegraph.scale.setScalar(
-        species.length *
-          (hunter.phase === "windup" ? 0.38 + (1 - phase) * 0.2 : 0.38),
+        hunter.type === "shock"
+          ? hunter.effectRadius
+          : species.length *
+              (hunter.phase === "windup" ? 0.38 + (1 - phase) * 0.2 : 0.38),
       );
       entity.telegraph.material.opacity =
         hunter.phase === "windup" ? 0.35 + phase * 0.55 : 0.2;
     }
     if (hunter.justTriggered) {
-      if (hunter.type === "ink") {
+      if (hunter.type === "shock") {
+        effects.electricDischarge(mesh.position, hunter.effectRadius);
+        if (
+          distance <= hunter.effectRadius &&
+          sight &&
+          takeDamage(player, 18)
+        ) {
+          effects.hurt(position, player.length);
+          hitFlash = 0.5;
+          audio.hit();
+          notify("电击命中 · 保持距离", 2.5);
+        }
+      } else if (hunter.type === "ink") {
         effects.spawnInk(
           mesh.position,
           hunter.effectRadius,
@@ -2496,6 +2533,7 @@ function updateCamera(dt) {
   camera.updateProjectionMatrix();
 }
 function atmosphere(dt) {
+  const river = expedition.region.surfaceMode === "river";
   const depth = -position.y;
   const blend = Clamp((depth - 25) / 350, 0, 1);
   const night = expedition.region.id === "atlantis";
@@ -2567,6 +2605,16 @@ function atmosphere(dt) {
     scene.fog.color.copy(scene.background);
     scene.fog.density = 0.0042 + effects.ink * 0.115;
   }
+  if (river) {
+    color
+      .set(aboveWater ? "#b9cdb6" : "#506c48")
+      .lerp(new THREE.Color("#192e27"), aboveWater ? 0 : blend * 0.65);
+    scene.background.lerp(color, Math.min(1, dt * 3));
+    scene.fog.color.copy(scene.background);
+    scene.fog.density =
+      (aboveWater ? 0.0018 : 0.006 + blend * 0.001) +
+      (aboveWater ? 0 : effects.ink * 0.115);
+  }
   if (!aboveWater && effects.ink > 0.01) {
     scene.fog.color.lerp(new THREE.Color("#111120"), effects.ink);
     scene.background.lerp(new THREE.Color("#111120"), effects.ink);
@@ -2615,6 +2663,13 @@ function atmosphere(dt) {
     ambient.intensity = 1.45 - Clamp(depth / 2000, 0, 1) * 0.32;
     sun.color.set(0xb3cbdc);
     sun.intensity = 0.8 - Clamp(depth / 900, 0, 1) * 0.58;
+  }
+  if (river) {
+    ambient.color.set(0xe0dfb9);
+    ambient.groundColor.set(0x596444);
+    ambient.intensity = aboveWater ? 1.75 : 1.65 - blend * 0.3;
+    sun.color.set(0xffe2a0);
+    sun.intensity = aboveWater ? 3.3 : 2.1 - blend * 1.1;
   }
   rim.intensity = night ? 0.55 + city * 0.55 : 0.85 - blend * 0.35;
   if (night) sun.position.copy(position).addScaledVector(MOON_DIRECTION, 140);
@@ -2744,12 +2799,16 @@ function updateHud() {
       nursery
         ? expedition.region.surfaceMode === "ice"
           ? "回到冰穹育幼湾 · 猎手停止追击"
-          : "回到安全浅滩 · 猎手停止追击"
+          : expedition.region.id === "amazon"
+            ? "回到浮叶育幼湾 · 猎手停止追击"
+            : "回到安全浅滩 · 猎手停止追击"
         : expedition.region.surfaceMode === "ice"
           ? "离开冰穹育幼湾 · 沿盐脉寻找大一些的猎物"
-          : expedition.region.startLength
-            ? "离开安全浅滩 · 沿岩壁捕捉大鱼，25米后挑战守关领主"
-            : "离开安全浅滩 · 外礁有少量猎手，建议4米后探索",
+          : expedition.region.id === "amazon"
+            ? "离开浮叶育幼湾 · 沿沉根寻找大一些的猎物"
+            : expedition.region.startLength
+              ? "离开安全浅滩 · 沿岩壁捕捉大鱼，25米后挑战守关领主"
+              : "离开安全浅滩 · 外礁有少量猎手，建议4米后探索",
       4,
     );
   }
@@ -2759,14 +2818,18 @@ function updateHud() {
     nursery
       ? expedition.region.surfaceMode === "ice"
         ? "冰穹育幼湾"
-        : "安全浅滩"
+        : expedition.region.id === "amazon"
+          ? "浮叶育幼湾"
+          : "安全浅滩"
       : zone.name,
   );
   $("zone-code").textContent = t(
     nursery
       ? expedition.region.surfaceMode === "ice"
         ? "ICE CRADLE"
-        : "NURSERY LAGOON"
+        : expedition.region.id === "amazon"
+          ? "RIVER NURSERY"
+          : "NURSERY LAGOON"
       : zone.code ||
           {
             reef: "SUNLIT REEF",
@@ -2786,23 +2849,29 @@ function updateHud() {
   $("depth-dot").style.top =
     Clamp((-position.y / activeWorld().maxDepth) * 100, 0, 100) + "%";
   $("objective").textContent = t(
-    expedition.region.surfaceMode === "ice" && player.length < 25
+    expedition.region.id === "amazon" && player.length < 25
       ? player.length < 6
-        ? "捕食冰下游体 · 成长后沿盐脉探索"
+        ? "沿浮叶捕食 · 成长后探索支流"
         : player.length < 16
-          ? "寻找更大的外星猎物 · 探索悬生花园"
-          : "在热泉附近补给 · 成长至25米挑战外星领主"
-      : nursery && player.length < 4
-        ? "安心吃鱼群 · 成长至 4 米"
-        : nursery && player.length < 6
-          ? "已能探索外礁 · 留意单独猎手"
-          : player.length < 10
-            ? "捕食鱼群，成长至 10 米"
-            : player.length < 16
-              ? "狩猎海洋霸主，探索深水区"
-              : player.length < 25
-                ? "挑战远古巨兽，成长至 25 米"
-                : expeditionObjectiveHint(objectiveState, player),
+          ? "狩猎河道猎手 · 沿两侧支流补给"
+          : "寻找深潭巨兽 · 25米后挑战河道主宰"
+      : expedition.region.surfaceMode === "ice" && player.length < 25
+        ? player.length < 6
+          ? "捕食冰下游体 · 成长后沿盐脉探索"
+          : player.length < 16
+            ? "寻找更大的外星猎物 · 探索悬生花园"
+            : "在热泉附近补给 · 成长至25米挑战外星领主"
+        : nursery && player.length < 4
+          ? "安心吃鱼群 · 成长至 4 米"
+          : nursery && player.length < 6
+            ? "已能探索外礁 · 留意单独猎手"
+            : player.length < 10
+              ? "捕食鱼群，成长至 10 米"
+              : player.length < 16
+                ? "狩猎海洋霸主，探索深水区"
+                : player.length < 25
+                  ? "挑战远古巨兽，成长至 25 米"
+                  : expeditionObjectiveHint(objectiveState, player),
   );
   if (
     objectiveState.regionId === "atlantis" &&
@@ -3229,6 +3298,7 @@ function frame(now) {
       reducedMotionQuery.matches,
     );
     minimap.update({
+      riverPaths: ocean.radarPaths,
       position,
       forward,
       spawn: expedition.region.spawn,

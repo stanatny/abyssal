@@ -32,6 +32,14 @@ Keep the existing model interface, unit-length convention, resource caching, and
 
 Check feeding, collision, and appearance together. Capture regions must follow the visible model transform, swallowing must end at the actual mouth anchor, and animation must not silently move the gameplay root. Ordinary capture tolerance, the mouth convergence point, enemy damage ranges, and lord flank attacks are distinct rules; do not enlarge them all because a model changed. For high-speed contact, also check movement between frames, escaping targets, and terrain occlusion. Visible hulls, reefs, and other solids must not noticeably diverge from their blocking boundaries.
 
+### Attachment and redraw checks
+
+A complete roster redraw must account for every ordinary kind and lord. Use species-specific silhouette and proportion references first: an elongated snake cannot be repaired by adding ornaments to a short thick body, and a lord needs coherent anatomy and threatening head/mouth detail rather than a scaled small creature. Label intentional fantasy exaggerations. Inspect each model from several directions in the actual Guide, then representative repeated populations and encounters under normal world lighting.
+
+Fit attachments to the same body profile and deformation used by the torso. Dorsal/anal fin bases and tail fins must follow the actual skeleton; independent decorative motion can detach them during a bend. Limbs need continuous muscle/palm/webbing connections, and mouth interiors must remain visibly inside the opened jaw. Confirm the conventions of shared helpers so paired eyes or other parts are not duplicated. Inspect full cycles and extremes with changing deep vertex/transform state, rather than only a moving root or bone-count assertion.
+
+Keep structural correction separate from surface polish: embedded eyes, smooth joint transitions, species markings, roughness and armor relief must survive ordinary camera scale without excessive emission or distracting floating detail. Preserve biological/game lengths and collision/feeding contracts during appearance-only work. Shared static caches may reduce waste; they must not couple instance poses or permit one disposal to invalidate another creature.
+
 ## Audio production and listening quality
 
 Voices must sound like real performances. Simple oscillators, formants, or a heavily pitch-shifted copy of one recording are not acceptable finished male and female screams. The current reference uses separately licensed human performances at their original pitch, routed by the actual person's identity. For different character voices, select suitable performances first, then apply scene processing.
@@ -59,6 +67,8 @@ Inspect effects on small phones and in deep-sea fog. Key creature silhouettes, w
 Share geometry, textures, materials, and decoded resources while keeping skeletons and motion state independent per instance. Do not create geometry every frame or start extra animation loops. Resource use must stabilize after repeated Ocean Guide opening and closing, spawning of the same type, restarts, and disposal. Disposing shared resources must not break active instances.
 
 Measure triangles, meshes/draw calls, textures, resource growth, and necessary CPU/GPU frame time according to the change. State the device, browser, resolution, quality setting, scene, warm-up, and sampling conditions. For many fish instances on phones, prioritize eliminating wasted draws, transparent overdraw, and update cost. The smooth preset may reduce shadows, post-processing, and particles, but must preserve species silhouettes and ability readability. Stable resource counts, fewer draw calls, or one headless-browser frame-rate measurement do not prove real-device performance.
+
+Measure populated views as well as a single asset: dense nurseries may dominate cost even when a detailed lord is inexpensive. Compare matched before/candidate/repeated-before scenes when possible. A display-capped 60 FPS result can conceal materially increased geometry, draws or GPU load; report that cost honestly and leave physical-device heat unverified until measured. Do not silently reduce accepted food stock, collisions or near-view quality to conceal an art-cost increase. The [Amazon refinement](amazon_refinement.md) records this distinction and the attachment fixes above.
 
 ## Verification by impact and delivery evidence
 

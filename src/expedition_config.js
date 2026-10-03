@@ -1,3 +1,5 @@
+import { AMAZON_WORLD } from "./amazon_config.js";
+import { AMAZON_BOSS_INSTANCES } from "./amazon_lords.js";
 import { EUROPA_WORLD } from "./europa_config.js";
 import { REGION_OBJECTIVES } from "./expedition_objectives.js";
 import { MARIANA_WORLD, MARIANA_GATES } from "./mariana_config.js";
@@ -17,9 +19,9 @@ export const REGIONS = Object.freeze(
       description:
         "从阳光海滩潜入火山深渊。珊瑚鱼群、远古巨兽与多位深渊领主在此共存。",
       speciesKinds: REGION_SPECIES_KINDS.hawaii,
-      bossKinds: BOSS_SPECIES.filter((species) => !species.alien).map(
-        (species) => species.kind,
-      ),
+      bossKinds: BOSS_SPECIES.filter(
+        (species) => !species.alien && !species.freshwater,
+      ).map((species) => species.kind),
       spawn: [0, -18, 75],
     },
     {
@@ -55,7 +57,9 @@ export const REGIONS = Object.freeze(
       description:
         "风暴遮蔽神秘外海，探索可进入的巨型沉船，避开龙卷水柱与幽灵炮击。安全浅滩之外，危险分布在各个水层。",
       speciesKinds: REGION_SPECIES_KINDS.bermuda,
-      bossKinds: BOSS_SPECIES.filter((s) => !s.alien).map((s) => s.kind),
+      bossKinds: BOSS_SPECIES.filter((s) => !s.alien && !s.freshwater).map(
+        (s) => s.kind,
+      ),
       humanActivity: {
         swimmers: false,
         divers: false,
@@ -124,6 +128,29 @@ export const REGIONS = Object.freeze(
       },
       spawn: [0, -18, 75],
       completion: "trench_descent",
+    },
+    {
+      id: "amazon",
+      name: "亚马逊河",
+      available: true,
+      seabedHeat: false,
+      surfaceMode: "river",
+      world: AMAZON_WORLD,
+      description:
+        "从浮叶育幼湾沿雨林两侧支流深入。电鳗、森蚺与复苏巨兽栖息于沉根和深潭，河母巨蛇与根颚君王守护两处危险水域。",
+      departureHint:
+        "这里是浮叶育幼湾 · 沿根系捕食鱼群\n成长后沿雨林两侧河道探索深潭",
+      speciesKinds: REGION_SPECIES_KINDS.amazon,
+      bossKinds: ["yacumama", "rootjaw"],
+      bossInstances: AMAZON_BOSS_INSTANCES,
+      humanActivity: {
+        swimmers: false,
+        divers: false,
+        releasedDivers: false,
+        submarines: false,
+        mines: false,
+      },
+      spawn: [0, -18, 75],
     },
     {
       id: "europa",

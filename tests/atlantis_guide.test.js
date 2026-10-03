@@ -36,10 +36,10 @@ const placeholders = (value) =>
 
 test("the guide's full and regional catalogs agree with actual species and lord rosters", () => {
   const catalog = buildOceanCatalog();
-  assert.equal(catalog.length, 95);
+  assert.equal(catalog.length, 117);
   assert.equal(
     catalog.filter((e) => e.regionIds.some((id) => id !== "europa")).length,
-    74,
+    96,
   );
   assert.equal(new Set(catalog.map((entry) => entry.id)).size, catalog.length);
   assert.deepEqual(kinds(ordinary(catalog)), kinds(ALL_SPECIES));
@@ -66,6 +66,7 @@ test("the guide's full and regional catalogs agree with actual species and lord 
         !(
           (region.ecologyKind === "alien" &&
             !["orca", "squid"].includes(kind)) ||
+          (region.id === "amazon" && !["orca", "squid"].includes(kind)) ||
           (region.id === "bermuda" &&
             ["swimmer", "diver", "submarine"].includes(kind)) ||
           (region.id === "mariana" &&
@@ -196,7 +197,7 @@ test("region, category, and bilingual searches compose without hiding the full a
         ),
         ["kraken"],
       );
-      assert.equal(filterOceanCatalog(catalog, { category: "lord" }).length, 6);
+      assert.equal(filterOceanCatalog(catalog, { category: "lord" }).length, 8);
     }
   } finally {
     setLanguage("zh-CN");
@@ -290,7 +291,7 @@ test("the complete and regional archives group new species with peers in ascendi
     if (regionId !== "hawaii") {
       assert.equal(
         groups.find((g) => g.id === "shoal").entries[0].length,
-        0.15,
+        regionId ? 0.15 : 0.12,
       );
       assert.ok(
         groups

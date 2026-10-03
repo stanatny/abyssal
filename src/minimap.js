@@ -26,6 +26,7 @@ export function createMinimap(container) {
   let snapshot = null;
   let disposed = false;
   const dots = new Map();
+  let previousRiverPaths = null;
   container.classList.add("minimap");
   container.setAttribute("role", "img");
   container.setAttribute(
@@ -51,6 +52,7 @@ export function createMinimap(container) {
     <text class="minimap-zone" x="15" y="37">深</text>
     <text class="minimap-zone" x="77" y="81">浅</text>
     <path class="minimap-home-route"/><path class="minimap-boundary"/>
+    <g class="minimap-rivers"></g>
     <g class="minimap-waypoints"></g><g class="minimap-contacts"></g>
     <path class="minimap-home" d="M 0 -2.7 L 2.7 0 L 0 2.7 L -2.7 0 Z"/>
     <g class="minimap-player"><circle r="4.8"/><path d="M 0 -4.5 L 3 3.5 L 0 2 L -3 3.5 Z"/></g>
@@ -108,8 +110,32 @@ export function createMinimap(container) {
       sonarActive = false,
       world = WORLD,
       waypoints = [],
+      riverPaths = null,
     }) {
       if (disposed) return null;
+      if (previousRiverPaths !== riverPaths) {
+        previousRiverPaths = riverPaths;
+        const layer = container.querySelector(".minimap-rivers");
+        layer.replaceChildren();
+        for (const points of riverPaths || []) {
+          const line = document.createElementNS(SVG_NAMESPACE, "path");
+          line.setAttribute(
+            "d",
+            points
+              .map(([x, z], i) => {
+                const p = projectMinimapPosition({ x, z }, world);
+                return `${i ? "L" : "M"} ${p.x} ${p.y}`;
+              })
+              .join(" "),
+          );
+          line.setAttribute("fill", "none");
+          line.setAttribute("stroke", "#8bab75");
+          line.setAttribute("stroke-width", "9");
+          line.setAttribute("stroke-linecap", "round");
+          line.setAttribute("opacity", ".35");
+          layer.append(line);
+        }
+      }
       const nw = projectMinimapPosition(
           { x: world.minX, z: world.minZ },
           world,
@@ -124,7 +150,7 @@ export function createMinimap(container) {
       }))
         basin.setAttribute(k, String(v));
       container.querySelector(".minimap-contours").style.opacity =
-        waypoints.length ? "0" : "1";
+        waypoints.length || riverPaths ? "0" : "1";
       const waypointLayer = container.querySelector(".minimap-waypoints");
       while (waypointLayer.children.length < waypoints.length) {
         const dot = document.createElementNS(SVG_NAMESPACE, "circle");

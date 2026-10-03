@@ -1,4 +1,5 @@
 import * as THREE from "three";
+import { createElectricDischarge } from "./electric_discharge.js";
 import { createFluidTexture } from "./effect_textures.js";
 
 /**
@@ -38,6 +39,7 @@ export function createCombatEffects(scene) {
       velocity: new THREE.Vector3(),
     };
   });
+  const discharge = createElectricDischarge(group);
   const clouds = [];
   const rings = Array.from({ length: 8 }, () => {
     const mesh = new THREE.Mesh(
@@ -372,6 +374,7 @@ export function createCombatEffects(scene) {
     return amount;
   }
   function update(dt, cameraPosition, playerPosition) {
+    discharge.update(dt);
     for (const p of pool) {
       if (!p.sprite.visible) continue;
       p.age += dt;
@@ -448,6 +451,7 @@ export function createCombatEffects(scene) {
     ink = THREE.MathUtils.damp(ink, density, 5, dt);
   }
   function reset() {
+    discharge.reset();
     for (const p of pool) p.sprite.visible = false;
     for (const ring of rings) ring.mesh.visible = false;
     for (const cloud of clouds) removeCloud(cloud);
@@ -461,6 +465,7 @@ export function createCombatEffects(scene) {
     hurt,
     undeadBurst,
     flash,
+    electricDischarge: discharge.emit,
     spawnInk,
     inkDensity,
     update,
@@ -473,6 +478,7 @@ export function createCombatEffects(scene) {
         ring.mesh.geometry.dispose();
         ring.mesh.material.dispose();
       }
+      discharge.dispose();
       texture.dispose();
       inkTexture.dispose();
       bubbleTexture.dispose();

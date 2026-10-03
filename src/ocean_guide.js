@@ -1,3 +1,4 @@
+import { AMAZON_LORD_DESCRIPTIONS } from "./amazon_lords.js";
 import { SURFACE_BIRDS } from "./surface_birds.js";
 import { marianaGuideEntries } from "./mariana_guide.js";
 import { MARIANA_GATES } from "./mariana_config.js";
@@ -71,6 +72,7 @@ export function groupOceanCatalog(catalog) {
 }
 
 const DESCRIPTIONS = {
+  ...AMAZON_LORD_DESCRIPTIONS,
   lumen_stalker: {
     name: "辉渊巡狩者",
     latin: "EUROPA LIFEFORM L-02",
@@ -224,8 +226,12 @@ export function buildOceanCatalog(regionId) {
             : config.category === "ancient"
               ? "远古巨兽"
               : config.category === "hunter"
-                ? "海洋霸主"
-                : "海洋猎物",
+                ? config.freshwater
+                  ? "河道猎手"
+                  : "海洋霸主"
+                : config.freshwater
+                  ? "淡水猎物"
+                  : "海洋猎物",
         length: config.length,
         nutrition: config.nutrition,
         growth: config.growth,
@@ -267,17 +273,19 @@ export function buildOceanCatalog(regionId) {
         (DESCRIPTIONS[config.kind].appearance
           ? t(DESCRIPTIONS[config.kind].appearance) + " "
           : "") +
-        (config.alien
-          ? tr`${DESCRIPTIONS[config.kind].text} ${tr`成长至30米，击败任一冰下深渊领主。`}`
-          : regionId === "mariana"
-            ? config.kind === "hydra"
-              ? tr`${DESCRIPTIONS.hydra.text} ${tr`三头巨龙海德拉守卫首层深水岩谷，是第一道压力帘的必经守卫。达到25米后，从侧面完成三次独立咬击，击败它即可开启2600米处的第一道压力帘；本局不再复活。`}`
-              : tr`${DESCRIPTIONS[config.kind].text} ${tr`本海域的守关领主被击败后不再复活，压力帘随之开启。需成长至30米、突破四关并抵达海沟底部。`}`
-            : regionId === "bermuda"
-              ? tr`${DESCRIPTIONS[config.kind].text} ${tr`本海域必须击败全部四位深渊领主；各领主只出现一次。`}`
-              : regionId === "atlantis" && config.kind === "kraken"
-                ? tr`${DESCRIPTIONS.kraken.text} ${tr`亚特兰蒂斯有三只克拉肯，分别守卫西侧城区、中庭和后城；每只拥有独立领地与生命值。每局随机由其中一只守护波塞冬地宫的圣珠，身份不会预先公开。先在城区公共建筑寻找海螺钥匙。海螺铭文可提供建筑线索；钥匙与真正守宝者的印记齐全，波塞冬地宫宝箱才会开启。达到30米并吞食箱中圣珠才能胜利。所有领主本局不再复活。`}`
-                : tr`${DESCRIPTIONS[config.kind].text} ${tr`每局击败后不再复活。夏威夷成长至30米并击败任意一位即可胜利。`}`),
+        (config.freshwater
+          ? tr`${DESCRIPTIONS[config.kind].text} ${tr`成长至30米，击败雅库玛玛与根颚君王。`}`
+          : config.alien
+            ? tr`${DESCRIPTIONS[config.kind].text} ${tr`成长至30米，击败任一冰下深渊领主。`}`
+            : regionId === "mariana"
+              ? config.kind === "hydra"
+                ? tr`${DESCRIPTIONS.hydra.text} ${tr`三头巨龙海德拉守卫首层深水岩谷，是第一道压力帘的必经守卫。达到25米后，从侧面完成三次独立咬击，击败它即可开启2600米处的第一道压力帘；本局不再复活。`}`
+                : tr`${DESCRIPTIONS[config.kind].text} ${tr`本海域的守关领主被击败后不再复活，压力帘随之开启。需成长至30米、突破四关并抵达海沟底部。`}`
+              : regionId === "bermuda"
+                ? tr`${DESCRIPTIONS[config.kind].text} ${tr`本海域必须击败全部四位深渊领主；各领主只出现一次。`}`
+                : regionId === "atlantis" && config.kind === "kraken"
+                  ? tr`${DESCRIPTIONS.kraken.text} ${tr`亚特兰蒂斯有三只克拉肯，分别守卫西侧城区、中庭和后城；每只拥有独立领地与生命值。每局随机由其中一只守护波塞冬地宫的圣珠，身份不会预先公开。先在城区公共建筑寻找海螺钥匙。海螺铭文可提供建筑线索；钥匙与真正守宝者的印记齐全，波塞冬地宫宝箱才会开启。达到30米并吞食箱中圣珠才能胜利。所有领主本局不再复活。`}`
+                  : tr`${DESCRIPTIONS[config.kind].text} ${tr`每局击败后不再复活。夏威夷成长至30米并击败任意一位即可胜利。`}`),
       length: config.length,
       size: tr`${config.length} m`,
       tier: 3,
@@ -674,8 +682,17 @@ export function createOceanGuide(trigger) {
       regionIntro,
       region
         ? tr`<summary>${region.name}<span>${region.objective.difficulty} · ${tr`${region.speciesKinds.length} 种生物`}</span></summary><p>${region.description}</p><p><b>远征目标</b> · ${region.objective.summary}</p><p>${region.objective.food}</p>`
-        : tr`<summary>五大海域<span>探索 · 生存 · 独立结局</span></summary><p>选择一个海域，查看它的独有生物、食物层级与胜利条件。所有深渊领主击败后本局不再刷新。</p>`,
+        : tr`<summary>远征海域<span>探索 · 生存 · 独立结局</span></summary><p>选择一个海域，查看它的独有生物、食物层级与胜利条件。所有深渊领主击败后本局不再刷新。</p>`,
     );
+    for (const filter of filters) {
+      const button = dialog.querySelector(`[data-category="${filter.id}"]`);
+      if (button)
+        button.textContent = t(
+          regionId === "amazon" && filter.id === "hunter"
+            ? "河道猎手"
+            : filter.name,
+        );
+    }
     const search = input.value.trim().toLowerCase();
     // 默认“全部”保留生物总览；输入关键词时，也可直接找到奖励档案。
     const catalog =
@@ -710,7 +727,7 @@ export function createOceanGuide(trigger) {
       heading.id = `guide-group-${group.id}`;
       setMarkup(
         heading,
-        tr`<span>${group.name}</span><small>${group.entries.length}</small>`,
+        tr`<span>${regionId === "amazon" && group.id === "hunter" ? "河道猎手" : group.name}</span><small>${group.entries.length}</small>`,
       );
       const entries = document.createElement("div");
       entries.className = "guide-group-entries";

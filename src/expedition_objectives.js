@@ -15,6 +15,14 @@ export const ATLANTIS_KEY_SITES = Object.freeze([
 ]);
 
 export const REGION_OBJECTIVES = Object.freeze({
+  amazon: Object.freeze({
+    kind: "all_lords",
+    minimumLength: 30,
+    summary: "成长至30米，击败雅库玛玛与根颚君王。",
+    completed: "两位河道领主已被征服，亚马逊远征完成。",
+    difficulty: "河道探索与双主宰",
+    food: "育幼湾鱼群 → 沉根猎手 → 深潭巨兽",
+  }),
   europa: Object.freeze({
     kind: "growth_and_lord",
     minimumLength: 30,
@@ -169,6 +177,8 @@ export function expeditionObjectiveHint(objective, player) {
             ? "圣珠已苏醒 · 成长至30米，再前往波塞冬地宫"
             : "圣珠已苏醒 · 进入波塞冬地宫吞食宝物"
           : message`海螺钥匙已得 · 寻找守宝克拉肯 ${objective.defeated.size}/3`;
+  if (objective.regionId === "amazon")
+    return message`河道主宰 ${objective.defeated.size}/${objective.required} · 成长至30米`;
   if (objective.regionId === "bermuda")
     return message`征服四位深渊领主 · ${objective.defeated.size}/4`;
   return objective.defeated.size

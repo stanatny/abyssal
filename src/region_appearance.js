@@ -1,3 +1,4 @@
+import { AMAZON_BIOMES, amazonIslandBounds } from "./amazon_config.js";
 import { EUROPA_HABITATS } from "./europa_config.js";
 import * as THREE from "three";
 import { getZone } from "./simulation.js";
@@ -30,6 +31,41 @@ const ATLANTIS_ZONES = {
 /** 海域仅改变区域展示，深度阈值与饥饿计算仍由共享规则决定。 */
 export function regionZone(regionId, depth, position = null) {
   const zone = getZone(depth);
+  if (regionId === "amazon") {
+    const bounds = position && amazonIslandBounds(position.z);
+    const underIsland =
+      bounds &&
+      position.x > bounds.left &&
+      position.x < bounds.right &&
+      depth > 38;
+    const id =
+      !position || position.z > -150
+        ? "nursery"
+        : underIsland
+          ? "root_vault"
+          : depth > 170
+            ? position.x < 0
+              ? "serpent_pool"
+              : "rootjaw_pool"
+            : position.x < 0
+              ? "roots"
+              : "floodforest";
+    const biome = AMAZON_BIOMES.find((b) => b.id === id);
+    return {
+      ...zone,
+      name: biome.name,
+      code: {
+        nursery: "WATER-LILY NURSERY",
+        roots: "ROOTBOUND MEANDERS",
+        floodforest: "FLOODED FOREST",
+        root_vault: "UNDER-ISLAND ROOT VAULT",
+        serpent_pool: "SERPENT POOL",
+        rootjaw_pool: "ROOTJAW BASIN",
+      }[id],
+      description:
+        "沿浮叶和根系捕食，再探索两侧支流；潜到林岛底部，可穿行根窟往返两条河道。",
+    };
+  }
   if (regionId === "europa") {
     const index =
       depth < 60 ? 0 : depth < 180 ? 1 : depth < 400 ? 2 : depth < 650 ? 3 : 4;

@@ -1,3 +1,4 @@
+import { AMAZON_SPECIES } from "./amazon_species.js";
 import {
   spreadFeedingSchools,
   densifyFeedingSchools,
@@ -27,6 +28,7 @@ export const ALL_SPECIES = Object.freeze([
   ...MARIANA_SPECIES,
   ...NONFISH_SPECIES,
   ...EUROPA_SPECIES,
+  ...AMAZON_SPECIES,
 ]);
 
 /**
@@ -143,6 +145,7 @@ const ATLANTIS_OVERRIDES = {
 
 const BASE_REGION_SPECIES = Object.freeze({
   europa: EUROPA_SPECIES,
+  amazon: AMAZON_SPECIES,
   hawaii: Object.freeze([
     ...hawaiiEcology(ECOSYSTEM_SPECIES),
     ...nonfishEcology("hawaii", WORLD),

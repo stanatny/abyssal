@@ -1,3 +1,4 @@
+import { AmazonMusic, AMAZON_SCORE } from "./music_amazon.js";
 import { EuropaMusic, EUROPA_SCORE } from "./music_europa.js";
 import { MarianaMusic, MARIANA_SCORE } from "./music_mariana.js";
 import { BermudaMusic, BERMUDA_SCORE } from "./music_bermuda.js";
@@ -46,6 +47,7 @@ export class OceanAudio {
     this.bermudaMusic = null;
     this.marianaMusic = null;
     this.europaMusic = null;
+    this.amazonMusic = null;
     this.retiredMusicRooms = [];
     this.pauseTimer = null;
     this.feedingVoices = new Map();
@@ -87,21 +89,24 @@ export class OceanAudio {
       "bermuda",
       "mariana",
       "europa",
+      "amazon",
     ].includes(regionId)
       ? regionId
       : "hawaii";
     if (next === this.regionId) return next;
     this.regionId = next;
     this.beat =
-      next === "europa"
-        ? EUROPA_SCORE.beat
-        : next === "mariana"
-          ? MARIANA_SCORE.beat
-          : next === "atlantis"
-            ? ATLANTIS_SCORE.beat
-            : next === "bermuda"
-              ? BERMUDA_SCORE.beat
-              : 60 / 80;
+      next === "amazon"
+        ? AMAZON_SCORE.beat
+        : next === "europa"
+          ? EUROPA_SCORE.beat
+          : next === "mariana"
+            ? MARIANA_SCORE.beat
+            : next === "atlantis"
+              ? ATLANTIS_SCORE.beat
+              : next === "bermuda"
+                ? BERMUDA_SCORE.beat
+                : 60 / 80;
     this.step = 0;
     this.musicCombat = false;
     if (!this.ready) return next;
@@ -113,6 +118,7 @@ export class OceanAudio {
     if (next === "bermuda") this.ensureBermudaMusic().reset(now);
     if (next === "mariana") this.ensureMarianaMusic().reset(now);
     if (next === "europa") this.ensureEuropaMusic().reset(now);
+    if (next === "amazon") this.ensureAmazonMusic().reset(now);
     return next;
   }
 
@@ -191,6 +197,7 @@ export class OceanAudio {
       if (this.bermudaMusic) this.bermudaMusic.combatActive = false;
       if (this.marianaMusic) this.marianaMusic.combatActive = false;
       if (this.europaMusic) this.europaMusic.combatActive = false;
+      if (this.amazonMusic) this.amazonMusic.combatActive = false;
     }
     this.master.gain.setTargetAtTime(
       this.enabled ? 0.76 : 0,
@@ -280,6 +287,7 @@ export class OceanAudio {
     this.bermudaMusic?.reset(now);
     this.marianaMusic?.reset(now);
     this.europaMusic?.reset(now);
+    this.amazonMusic?.reset(now);
   }
 
   /**
@@ -312,10 +320,12 @@ export class OceanAudio {
     if (this.regionId === "bermuda") this.ensureBermudaMusic().update(now);
     if (this.regionId === "mariana") this.ensureMarianaMusic().update(now);
     if (this.regionId === "europa") this.ensureEuropaMusic().update(now);
+    if (this.regionId === "amazon") this.ensureAmazonMusic().update(now);
     const intensity = Math.sqrt(this.lastDanger);
     const depthRatio = clamp(this.depth / 740, 0, 1);
     const muffling = 1 - this.ink * 0.67;
     const europa = this.regionId === "europa";
+    const amazon = this.regionId === "amazon";
     const combat = this.pursuing || this.boss;
     this.calm.gain.setTargetAtTime(
       this.boss ? 0.22 : combat ? 0.34 : 0.86,
@@ -359,13 +369,21 @@ export class OceanAudio {
     );
     this.waterGain.gain.setTargetAtTime(
       (this.aboveWater ? 0.035 : 0.058 + depthRatio * 0.023 + this.ink * 0.01) *
-        (europa ? EUROPA_SCORE.ambientWater : 1),
+        (europa
+          ? EUROPA_SCORE.ambientWater
+          : amazon
+            ? AMAZON_SCORE.ambientWater
+            : 1),
       now,
       0.6,
     );
     this.currentGain.gain.setTargetAtTime(
       (this.aboveWater ? 0.012 : 0.021 + intensity * 0.012) *
-        (europa ? EUROPA_SCORE.ambientCurrent : 1),
+        (europa
+          ? EUROPA_SCORE.ambientCurrent
+          : amazon
+            ? AMAZON_SCORE.ambientCurrent
+            : 1),
       now,
       0.7,
     );
@@ -399,6 +417,8 @@ export class OceanAudio {
         this.ensureMarianaMusic().schedule(this.nextStep, this.step);
       else if (this.regionId === "europa")
         this.ensureEuropaMusic().schedule(this.nextStep, this.step);
+      else if (this.regionId === "amazon")
+        this.ensureAmazonMusic().schedule(this.nextStep, this.step);
       else this.scheduleMusicStep(this.nextStep, this.step);
       this.nextStep += subdivision;
       this.step += 1;
@@ -1376,6 +1396,10 @@ export class OceanAudio {
   }
 
   /** 各海域音型复用现有音乐图，不另建音频上下文。 */
+  ensureAmazonMusic() {
+    this.amazonMusic ??= new AmazonMusic(this);
+    return this.amazonMusic;
+  }
   ensureEuropaMusic() {
     if (!this.europaMusic) this.europaMusic = new EuropaMusic(this);
     return this.europaMusic;

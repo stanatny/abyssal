@@ -1,3 +1,4 @@
+import { AMAZON_EN } from "./locales/amazon_en.js";
 import { MECHANICAL_SHARK_EN } from "./locales/mechanical_shark_en.js";
 import { DEEP_EXPLORATION_EN } from "./locales/deep_exploration_en.js";
 import { EUROPA_EN } from "./locales/europa_en.js";
@@ -26,6 +27,7 @@ const english = Object.freeze(
     ZOMBIE_SHARK_EN,
     DEEP_EXPLORATION_EN,
     MECHANICAL_SHARK_EN,
+    AMAZON_EN,
   ),
 );
 const listeners = new Set();

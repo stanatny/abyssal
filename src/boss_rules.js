@@ -1,3 +1,4 @@
+import { AMAZON_LORDS } from "./amazon_lords.js";
 /** 深海主宰的独立战斗规则：领地、蓄力预警、攻击、恢复与三次有效侧咬。 */
 import { applyNutrition } from "./simulation.js";
 
@@ -404,6 +405,7 @@ export const BOSS_SPECIES = Object.freeze(
       windupDuration: 2.2,
       attackDuration: 1.5,
     },
+    ...AMAZON_LORDS,
   ].map((species) => Object.freeze(species)),
 );
 

@@ -135,6 +135,23 @@ export function tickHunter(
 export const HUNTER_ABILITIES = Object.freeze(
   Object.fromEntries(
     Object.entries({
+      river_shock: {
+        type: "shock",
+        label: "近距放电",
+        tell: "电鳗正在蓄电 · 离开放电范围或躲到沉根后",
+        triggerDistance: 18,
+        windupDuration: 1.2,
+        activeDuration: 0.3,
+        recoverDuration: 3,
+        cooldownMin: 18,
+        cooldownMax: 25,
+        windupSpeedMultiplier: 0.3,
+        activeSpeed: 3,
+        recoverySpeedMultiplier: 0.5,
+        damageMultiplier: 1,
+        effectDuration: 0.5,
+        effectRadius: 12,
+      },
       shark: {
         type: "burst",
         label: "破浪突袭",

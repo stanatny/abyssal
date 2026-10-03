@@ -33,8 +33,8 @@ function grownPlayer(length = 30, characterId = "orca") {
 }
 
 test("四位主宰均大于玩家上限，技能不同且栖息区在世界之内", () => {
-  assert.equal(BOSS_SPECIES.filter((s) => !s.alien).length, 4);
-  assert.equal(BOSS_SPECIES.length, 6);
+  assert.equal(BOSS_SPECIES.filter((s) => !s.alien && !s.freshwater).length, 4);
+  assert.equal(BOSS_SPECIES.length, 8);
   assert.equal(new Set(BOSS_SPECIES.map((s) => s.ability)).size, 5);
   for (const species of BOSS_SPECIES) {
     assert.equal(species.tier, 3);
@@ -381,7 +381,7 @@ test("从领地较远处即可发招，预警末段留有明确锁定和规避�
     tickBoss(boss, 1, { ...CLOSE, distance: 105 });
     assert.equal(boss.phase, "windup");
     assert.ok(species.lockWindow >= 0.6);
-    assert.ok(species.engageRange >= 130);
+    assert.ok(species.engageRange >= (species.freshwater ? 105 : 130));
     assert.ok(species.windupDuration > species.lockWindow);
   }
 });

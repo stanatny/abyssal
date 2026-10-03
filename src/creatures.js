@@ -1,3 +1,7 @@
+import {
+  AMAZON_CREATURE_KINDS,
+  buildAmazonCreature,
+} from "./creature_amazon.js";
 import { buildAbyssWeaver } from "./creature_abyss_weaver.js";
 import { buildMechanicalShark } from "./creature_mechanical_shark.js";
 import { buildZombieShark } from "./creature_zombie_shark.js";
@@ -84,6 +88,8 @@ export function createCreature(kind, length = 6, seed = 1) {
   else if (kind === "zombie_shark") buildZombieShark(root, motions);
   else if (kind === "abyss_weaver") buildAbyssWeaver(root, motions);
   else if (kind === "lumen_stalker") buildLumenStalker(root, motions);
+  else if (AMAZON_CREATURE_KINDS.has(kind))
+    buildAmazonCreature(kind, root, motions);
   else if (EUROPA_CREATURE_KINDS.has(kind))
     buildEuropaCreature(kind, root, motions);
   else if (WILDLIFE_KINDS.has(kind)) buildWildlife(kind, root, motions);

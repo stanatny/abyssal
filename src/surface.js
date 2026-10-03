@@ -63,13 +63,23 @@ export function createSurface(
     audio,
     notify,
   };
-  const fleet = storm
-    ? createBermudaFleet(scene, fleetOptions)
-    : night
-      ? createAtlantisFleet(scene, fleetOptions)
-      : trench
-        ? createMarianaFleet(scene, fleetOptions)
-        : createShips(scene, fleetOptions);
+  const river = surfaceMode === "river";
+  const fleet = river
+    ? {
+        ships: [],
+        colliders: [],
+        update() {},
+        reset() {},
+        onMovement() {},
+        dispose() {},
+      }
+    : storm
+      ? createBermudaFleet(scene, fleetOptions)
+      : night
+        ? createAtlantisFleet(scene, fleetOptions)
+        : trench
+          ? createMarianaFleet(scene, fleetOptions)
+          : createShips(scene, fleetOptions);
   const nightSky = night
     ? createAtlantisSky(scene)
     : trench
@@ -113,7 +123,7 @@ export function createSurface(
     [-45, 10, -218],
   ];
   const birdKinds = regionalBirds(regionId);
-  for (let i = 0; i < 28; i += 1) {
+  for (let i = 0; i < (birdKinds.length ? 28 : 0); i += 1) {
     const species = birdKinds[i % 3 === 0 ? 1 : 0];
     const creature = createCreature(species.kind, species.length, i + 17);
     root.add(creature);

@@ -38,7 +38,11 @@ test("技能数据trait复用已有冲撞状态机，物种名与海域不影响
 
 function ready(kind = "shark") {
   const state = createHunterState(
-    SPECIES.find((s) => s.kind === kind),
+    SPECIES.find((s) => s.kind === kind) || {
+      kind: "future_profile_carrier",
+      hunterAbility: kind,
+      speed: 16,
+    },
     17,
   );
   state.cooldown = 0;

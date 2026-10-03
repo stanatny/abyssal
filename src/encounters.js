@@ -1346,7 +1346,9 @@ export function createEncounters(
     for (const texture of textures) texture.dispose();
     active = null;
   }
-  reset(BOSS_SPECIES.filter((s) => !s.alien).map((s) => s.kind));
+  reset(
+    BOSS_SPECIES.filter((s) => !s.alien && !s.freshwater).map((s) => s.kind),
+  );
   return {
     bosses,
     update,
