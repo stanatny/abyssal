@@ -1,3 +1,7 @@
+import {
+  groundCreatureProfile,
+  groundSpawnPose,
+} from "../src/ground_navigation.js";
 import test from "node:test";
 import assert from "node:assert/strict";
 import * as THREE from "three";
@@ -62,7 +66,7 @@ test("Penglai is the seventh isolated mythic destination with real ordinary and 
   assert.equal(roster.length, 18);
   assert.equal(
     roster.reduce((n, s) => n + s.population, 0),
-    441,
+    437,
   );
   assert.ok(
     roster.every(
@@ -103,7 +107,7 @@ test("Penglai assigned habitats are legal against final mountains, roofs and obj
     const s = configured.groundbound
       ? {
           ...configured,
-          groundClearance: groundCreatureClearance(
+          ...groundCreatureProfile(
             createCreature(configured.kind, configured.length),
             configured.length,
           ),
@@ -112,16 +116,29 @@ test("Penglai assigned habitats are legal against final mountains, roofs and obj
     for (let i = 0; i < s.population; i++)
       for (const v of [0.2, 0.5, 0.8]) {
         const p = habitatPosition(s, {
-          heightAt: o.heightAt,
+          heightAt: s.groundbound ? o.groundHeightAt : o.heightAt,
           colliders: o.colliders,
           populationIndex: i,
           random: () => v,
         });
         assert.ok(p, `${s.kind}/${i}`);
-        assert.ok(p.y >= o.heightAt(p.x, p.z), `${s.kind} below ground`);
+        assert.ok(
+          p.y >= (s.groundbound ? o.groundHeightAt : o.heightAt)(p.x, p.z),
+          `${s.kind} below ground`,
+        );
         if (s.groundbound)
           assert.ok(
-            Math.abs(p.y - o.heightAt(p.x, p.z) - s.groundClearance) < 1e-7,
+            Math.abs(
+              p.y -
+                groundSpawnPose(p, s, o.groundHeightAt, (point, heading) =>
+                  isPositionBlocked(point, {
+                    colliders: o.colliders,
+                    radius: Math.max(0.45, s.length * 0.18),
+                    length: s.length,
+                    forward: heading,
+                  }),
+                ).y,
+            ) < 1e-7,
             `${s.kind} must start on land, not in its old air band`,
           );
         assert.equal(
@@ -226,7 +243,18 @@ test("Ground residents avoid roof projection and spawn with head and tail cleara
       colliders,
       radius: 1.8,
       length: 10,
-      forward: { x: 0, y: 0, z: -1 },
+      forward: groundSpawnPose(
+        spawn,
+        species,
+        () => 20,
+        (point, heading) =>
+          isPositionBlocked(point, {
+            colliders,
+            radius: 1.8,
+            length: 10,
+            forward: heading,
+          }),
+      ).direction,
     }),
     false,
   );

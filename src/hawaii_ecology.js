@@ -77,6 +77,24 @@ const OVERRIDES = {
       [150, -193, -540],
     ],
   },
+  basilosaurus: {
+    residentRadius: 70,
+    spawnAnchors: [
+      [140, -340, -590],
+      [-145, -430, -730],
+      [145, -545, -880],
+      [-145, -560, -920],
+    ],
+  },
+  megalodon: {
+    residentRadius: 70,
+    spawnAnchors: [
+      [-150, -380, -640],
+      [145, -450, -735],
+      [-150, -550, -875],
+      [145, -590, -950],
+    ],
+  },
 };
 
 function freezeRecord(value) {

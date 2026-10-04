@@ -1,3 +1,4 @@
+import { terrainMeshHeight } from "./terrain_mesh_height.js";
 import {
   PENGLAI_SUMMIT_ROUTES,
   besideSummitPath,
@@ -40,7 +41,8 @@ export function* createPenglaiOceanSteps(parent) {
     scope = constructionScope(root, resources),
     colliders = [],
     buckets = new Map(),
-    chunks = [];
+    chunks = [],
+    groundStrips = [];
   const mats = {},
     geo = {},
     time = { value: 0 };
@@ -752,6 +754,7 @@ export function* createPenglaiOceanSteps(parent) {
       g.setAttribute("color", new THREE.Float32BufferAttribute(cs, 3));
       g.computeVertexNormals();
       const m = new THREE.Mesh(g, terrain);
+      groundStrips.push(terrainMeshHeight(g));
       m.name = "same_source_mountain_floor";
       root.add(m);
       yield "mountain-strata";
@@ -1203,12 +1206,20 @@ export function* createPenglaiOceanSteps(parent) {
       resources.forEach((r) => r.dispose());
       resources.clear();
       root.clear();
+      groundStrips.length = 0;
     }
     return scope.finish({
       root,
       colliders,
       navigationColliders: colliders,
       heightAt: penglaiHeightAt,
+      groundHeightAt: (x, z) => {
+        const index = Math.max(
+          0,
+          Math.min(groundStrips.length - 1, Math.floor((z - W.minZ) / 80)),
+        );
+        return groundStrips[index]?.(x, z) ?? penglaiHeightAt(x, z);
+      },
       landmarks,
       radarPaths,
       obstacles: [],

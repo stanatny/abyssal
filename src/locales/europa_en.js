@@ -1,4 +1,6 @@
 export const EUROPA_EN = {
+  "冰下幻想生态；大型个体各自巡游，沿盐脉和热泉分散栖息，深层领地外围也能找到它们。":
+    "An imagined ice-ocean ecology. Large individuals patrol separate homes along brine seams and vents; some inhabit the outskirts of deep territories.",
   冰穹: "ICE",
   "这里是冰穹育幼湾 · 捕食小型游体补给成长\n长到约4米，再沿盐脉探索":
     "Ice Cradle · Feed on small lifeforms to grow\nReach about 4m before following the brine seams",

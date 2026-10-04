@@ -1,4 +1,5 @@
 import { PENGLAI_SPECIES } from "./penglai_species.js";
+import { disperseLargePrey } from "./large_prey_distribution.js";
 import { AMAZON_SPECIES } from "./amazon_species.js";
 import {
   spreadFeedingSchools,
@@ -186,12 +187,12 @@ const BASE_REGION_SPECIES = Object.freeze({
   ),
 });
 
-// 五张地图共用横向分群规则；保留各地图的合法水层、建筑居民和独特品种。
+// 各地图共用分布与增密流程；大型水生食物再分散，保留固定补给和独特品种。
 const REGION_SPECIES = Object.freeze(
   Object.fromEntries(
     Object.entries(BASE_REGION_SPECIES).map(([id, species]) => [
       id,
-      densifyFeedingSchools(spreadFeedingSchools(species)),
+      disperseLargePrey(densifyFeedingSchools(spreadFeedingSchools(species))),
     ]),
   ),
 );

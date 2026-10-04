@@ -319,6 +319,7 @@ export function buildPenglaiBeast(kind, b, motions) {
   if (kui) {
     const foot = new THREE.Group();
     foot.name = "kui_support_joint";
+    foot.userData.terrainFlexible = true;
     b.add(foot);
     taper(
       foot,
@@ -367,6 +368,7 @@ export function buildPenglaiBeast(kind, b, motions) {
           j ? 0.22 : -0.205,
         );
         leg.name = "weight_bearing_limb";
+        leg.userData.terrainFlexible = true;
         b.add(leg);
         taper(
           leg,
@@ -456,6 +458,7 @@ export function buildPenglaiBeast(kind, b, motions) {
     const tail = new THREE.Group();
     tail.position.set(0, 0.065, 0.26);
     tail.name = "independent_tail_root";
+    tail.userData.terrainFlexible = true;
     b.add(tail);
     const spread = (j - (tails - 1) / 2) * 0.051;
     taper(

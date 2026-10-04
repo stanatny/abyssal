@@ -119,7 +119,7 @@ test("Northern pool provides real medium food school profiles and large hunters 
     northern.reduce((n, g) => n + g.count, 0),
     18,
   );
-  assert.equal(h.spawnAnchors.filter((p) => p[2] < -995).length, 18);
+  assert.equal(h.spawnAnchors.filter((p) => p[2] < -995).length, 16);
   assert.ok(
     new Set(
       h.spawnAnchors.filter((p) => p[2] < -995).map((p) => `${p[0]},${p[2]}`),

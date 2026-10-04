@@ -1,4 +1,5 @@
 import * as THREE from "three";
+import { bindSerpentineMotion } from "./serpentine_motion.js";
 import { bindAxialMotion, sampleSection } from "./creature_surface.js";
 import {
   amazonGeometry,
@@ -245,10 +246,20 @@ export function buildAmazonFish(kind, parent, motions) {
     "sculpted_scaled_torso",
     true,
   );
-  const swimmingSkin = bindAxialMotion(torso, motions, {
-    amplitude: f.eel ? 0.17 : f.long ? 0.095 : 0.075,
-    frequency: f.small ? 1.7 : 1.13,
-  });
+  const eelMotion = {
+    headZ: -0.35,
+    tailZ: 0.535,
+    segments: 16,
+    amplitude: 0.4,
+    frequency: 1.13,
+    waves: 1.25,
+  };
+  const swimmingSkin = f.eel
+    ? bindSerpentineMotion(torso, motions, eelMotion)
+    : bindAxialMotion(torso, motions, {
+        amplitude: f.long ? 0.095 : 0.075,
+        frequency: f.small ? 1.7 : 1.13,
+      });
   const eyeZ = f.eel ? -0.46 : f.cat ? -0.373 : -0.376,
     [eyeWidth, eyeHeight, eyeOffset] = sampleSection(profile, eyeZ);
   amazonEyes(
@@ -549,7 +560,7 @@ export function buildAmazonFish(kind, parent, motions) {
       ],
       f.fin,
     );
-    bindAxialMotion(fin, motions, { frequency: 1.13, amplitude: 0.17 });
+    bindSerpentineMotion(fin, motions, eelMotion);
   }
 }
 

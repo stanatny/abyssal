@@ -25,13 +25,19 @@ export function buildPenglaiDragon(kind, b, motions) {
   const start = fish ? 0.06 : -0.2,
     extent = fish ? 0.85 : 1.15,
     n = gate ? 14 : 28;
-  const point = (p, t = 0, out = new THREE.Vector3()) =>
-    out.set(
-      Math.sin(p * 7.2) * (gate ? 0.105 : dragon ? 0.18 : 0.04) +
-        Math.sin(t * 0.55 - p * 4) * (dragon ? 0.035 : 0.014) * p,
-      Math.sin(p * 5.1) * (dragon ? 0.058 : 0.025),
+  // 颈根固定，连续侧波从前躯传到尾梢；不是把整条静态S形左右摇摆。
+  const point = (p, t = 0, effort = 1, out = new THREE.Vector3()) => {
+    const envelope = Math.sin((Math.min(1, p * 2.5) * Math.PI) / 2);
+    const power =
+      (gate ? 0.11 : dragon ? 0.15 : fish ? 0.095 : 0.14) *
+      (0.8 + Math.min(3, effort) * 0.2);
+    return out.set(
+      envelope * Math.sin(t * (dragon ? 0.65 : 0.85) - p * 8.4) * power,
+      dragon ? Math.sin(t * 0.4 - p * 5.1) * 0.025 * envelope : 0,
       start + p * extent,
     );
+  };
+  let terminal;
   for (let i = 0; i < n; i++) {
     const p = i / (n - 1),
       r =
@@ -109,13 +115,22 @@ export function buildPenglaiDragon(kind, b, motions) {
     const upper = new THREE.Vector3(),
       lower = new THREE.Vector3(),
       axis = new THREE.Vector3(0, 0, 1);
-    motions.push((t) => {
-      point(p, t, g.position);
-      point(Math.min(1, p + 0.012), t, upper);
-      point(Math.max(0, p - 0.012), t, lower);
+    motions.push((t, effort) => {
+      point(p, t, effort, g.position);
+      point(Math.min(1, p + 0.012), t, effort, upper);
+      point(Math.max(0, p - 0.012), t, effort, lower);
       upper.sub(lower).normalize();
       g.quaternion.setFromUnitVectors(axis, upper);
+      // 保留相邻封闭躯节的重叠，弯曲极限不会露出断缝。
+      point(Math.min(1, p + 1 / (n - 1)), t, effort, upper);
+      point(Math.max(0, p - 1 / (n - 1)), t, effort, lower);
+      const intervals = i === 0 || i === n - 1 ? 1 : 2;
+      g.scale.z = Math.max(
+        1,
+        ((upper.distanceTo(lower) / intervals) * 1.3) / length,
+      );
     });
+    terminal = g;
   }
   if (fish) {
     loft(b, "hujiao_fish_body_v2", skin, [
@@ -290,7 +305,10 @@ export function buildPenglaiDragon(kind, b, motions) {
       0.01,
       "cloud_dragon_carp_tail",
     );
-    tail.position.z = 0.9;
+    terminal.add(tail);
+    tail.userData.articulated = true;
+    tail.userData.keepSeparate = true;
+    tail.position.set(0, 0, 0);
     tail.rotation.y = -Math.PI / 2;
     motions.push((t) => {
       tail.rotation.y = -Math.PI / 2 + Math.sin(t * 0.7) * 0.12;

@@ -1,4 +1,23 @@
-# Current authorized main publication — v0.10.1
+# Local checkpoint — Serpentine motion and large-prey distribution
+
+- Continue in `fix/penglai-ground-navigation`, based on formal v0.10.1 / `171be5f`. The user accepted this candidate and authorized a local commit on 2026-10-04, including the ground-navigation fix below. No push, merge or formal deployment is authorized. The following tentacle/guardian revision is separate work.
+- Long-body motion now propagates along nine existing models: Azure Dragon, Cloud Dragon, Bashe, Hujiao, green anaconda, Titanoboa, Yacumama, electric eel and Rift Reaver. Existing visible art, head contact anchors, lord damage/eligibility and main-loop ownership remain intact; geometry buffers stay shared while skeletons remain instance-local.
+- Read [the candidate rules and evidence](docs/serpentine_density_revision.md). Shared aquatic large-prey dispersion follows existing distribution/densification. It modestly trims ordinary 10–<25 m inventory and makes giant filterers independent residents while keeping small food, fixed supplies, walking/flying stock, giant threats and per-meal mid/late rewards. Regional data retains substantial food on Hawaii/Bermuda guardian outskirts without extra stock or a special-case AI branch.
+- Current ordinary inventories: Hawaii 516, Atlantis 560, Bermuda 467, Mariana 453, Amazon 409, Europa 352 and Penglai 437; rare creatures/lords/surface activity remain separate. Earlier population figures below are historical. Check real model motion, native supply/replenishment, bilingual Guide, pause/reset, warm resources and final served hashes before handing over. Formal v0.10.1 remains unchanged.
+- Verification: 859 units, formatting/build, native seven-region stock and guardian supplies, actual adult feeding/replacement/pause, all-nine-model phase atlases and serial resource/frame-cost checks pass. Compiled local/public each pass fourteen bilingual seven-region flows and updated Guide notes; nine artifacts and 269 runtime fingerprints match. Candidate manifest is ignored `.local/locomotion_density_review/manifest.json`. Natural full-round pacing and physical-phone thermal behavior remain review limits.
+
+---
+
+# Local checkpoint — Penglai ground navigation
+
+- Workspace branch: `fix/penglai-ground-navigation`, based on published v0.10.1 / `171be5f`. The accepted fix is included in the authorized local checkpoint above; no push, merge or formal deployment is authorized.
+- User report: ground beasts entered mountains and became stuck. The candidate uses actual rendered triangle heights, numeric rigid-body footprints, usable spawn/replacement routes, integrated terrain/solid avoidance and bounded side/back recovery; White Tiger's safe attack/patrol heading is covered too.
+- Preserve all 38 ordinary ground residents, their original resident ranges, existing art/gait, food values, damage/cooldowns and guardian objectives. No HUD, radar or catalogue redesign is included.
+- Read [the implementation and verification](docs/penglai_ground_navigation.md). 852 units, native desktop/touch continuous movement, pause/replacement, formatting and build pass. The final ground-only render-heading follow-up passes 26 focused tests and incremental compiled Penglai checks. Serial runtime-cost evidence is recorded there. Compiled local/public checks cover all seven maps in both languages, with nine final artifacts and 267 runtime source fingerprints verified. The restricted candidate is available for user review; formal v0.10.1 remains unchanged.
+
+---
+
+# Historical main publication — v0.10.1
 
 The user accepted the current candidate and explicitly requested committing and pushing to `main` on 2026-10-04. This supersedes the local-only and uncommitted authorization states below, which are historical. The release includes ecosystem checkpoint `4691135` and the reviewed silhouette, transformation and individual creature-ability follow-up. Remote/main base is `78bcfed`; preserve the reviewed chain and fast-forward the clean main worktree without force. Version metadata and both menu footers are v0.10.1. No new balance adjustment, tag, separate GitHub Release or personal Skill update is requested.
 

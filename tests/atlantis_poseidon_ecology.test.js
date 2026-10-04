@@ -45,10 +45,10 @@ const RENDERED_TERRAIN = terrainTriangles();
 
 after(() => OCEAN.dispose());
 
-test("Poseidon preserves its food stock with 568 legal spawns including two deep giants and 206 juvenile nursery meals", () => {
+test("Poseidon preserves its food stock with 560 legal spawns including two deep giants and 206 juvenile nursery meals", () => {
   assert.equal(
     SPECIES.reduce((sum, species) => sum + species.population, 0),
-    568,
+    560,
   );
   const profiles = SPECIES.flatMap((species) => species.schoolProfiles || []);
   assert.equal(
@@ -155,7 +155,7 @@ test("Poseidon preserves its food stock with 568 legal spawns including two deep
       total++;
     }
   }
-  assert.equal(total, 568);
+  assert.equal(total, 560);
   assert.equal(nurseryMeals, 224);
 });
 

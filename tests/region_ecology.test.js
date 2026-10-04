@@ -56,7 +56,7 @@ test("海域名单隔离，夏威夷522个体与亚特兰蒂斯568个体保持�
   );
   assert.equal(
     getRegionSpecies().reduce((sum, s) => sum + s.population, 0),
-    522,
+    516,
   );
   for (const s of hawaii) {
     const original = ECOSYSTEM_SPECIES.find((entry) => entry.kind === s.kind);
@@ -88,7 +88,7 @@ test("海域名单隔离，夏威夷522个体与亚特兰蒂斯568个体保持�
   assert.equal(atlantis.length, 20);
   assert.equal(
     atlantis.reduce((sum, s) => sum + s.population, 0),
-    568,
+    560,
   );
   assert.deepEqual(
     REGION_SPECIES_KINDS.atlantis,
@@ -122,7 +122,7 @@ test("海域名单隔离，夏威夷522个体与亚特兰蒂斯568个体保持�
 
 test("实际坡度与真实城市下，568个出生位置合法且幼年补给就在前方", () => {
   const population = seedPopulation();
-  assert.equal(population.length, 568);
+  assert.equal(population.length, 560);
   const nursery = population.filter(({ point }) => isNursery(point));
   assert.ok(nursery.length >= 206);
   assert.ok(nursery.every(({ species }) => !species.predator));
@@ -462,7 +462,7 @@ test("深城增密增加实际中鱼与大型食物库存，仍保留原有水�
       counts.basilosaurus,
       counts.megalodon,
     ],
-    [9, 9, 11, 9, 11],
+    [8, 8, 9, 8, 9],
   );
   const medium = species.filter((entry) =>
     ["sunfish", "tuna", "ray"].includes(entry.kind),

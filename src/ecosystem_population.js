@@ -1,3 +1,4 @@
+import { groundSpawnPose } from "./ground_navigation.js";
 import * as THREE from "three";
 import { WORLD } from "./world_config.js";
 import { isPositionBlocked } from "./collision.js";
@@ -133,6 +134,8 @@ export function schoolPopulationGroups(species) {
 
 /** 普通猎手按栖息水层沿海床坡度分散，避免所有种类初始随机落在遥远海域。 */
 export function initialSpeciesAnchor(species, index = 0) {
+  if (species.groundbound && species.groundHome)
+    return new THREE.Vector3(...species.groundHome);
   const territory = predatorTerritory(species, index);
   if (territory?.edge) return new THREE.Vector3().copy(territory.center);
   if (species.spawnAnchors?.length) {
@@ -190,7 +193,10 @@ export function steerResidentHabitat(
   const radius = species.residentRadius;
   const anchors = species.spawnAnchors;
   if (!(radius > 0) || !anchors?.length) return direction;
-  const anchor = anchors[populationIndex % anchors.length];
+  const anchor =
+    species.groundbound && species.groundHome
+      ? species.groundHome
+      : anchors[populationIndex % anchors.length];
   const dx = anchor[0] - position.x;
   const dy =
     species.benthic || species.groundbound ? 0 : anchor[1] - position.y;
@@ -329,7 +335,19 @@ export function habitatPosition(
       : Math.max(3 + species.length * 0.35, radius + 1.5);
   const visibleRadius = speciesVisibilityDistance(species, highQuality);
   const ahead = Math.atan2(forward.x, forward.z);
-  for (let attempt = 0; attempt < 48; attempt++) {
+  const groundBlocked = species.groundbound
+    ? (p, heading) =>
+        isPositionBlocked(p, {
+          radius,
+          length: species.length,
+          forward: heading,
+          colliders: queryStaticColliders(colliders, p, p, {
+            radius,
+            padding: species.length * 0.42,
+          }),
+        })
+    : undefined;
+  for (let attempt = 0; attempt < (species.groundbound ? 512 : 48); attempt++) {
     if (near) {
       // 优先在行进方向远处补生态，失败后允许侧后方；永不贴身生成。
       const angle =
@@ -346,7 +364,12 @@ export function habitatPosition(
         const angle = attempt * 2.399;
         const spread =
           species.residentRadius > 0
-            ? Math.min(species.residentRadius, 1 + attempt * 0.6)
+            ? Math.min(
+                species.residentRadius,
+                species.groundbound
+                  ? species.residentRadius * Math.sqrt(attempt / 511)
+                  : 1 + attempt * 0.6,
+              )
             : 3 + attempt * 1.7;
         point.x += Math.cos(angle) * spread;
         point.z += Math.sin(angle) * spread;
@@ -362,6 +385,10 @@ export function habitatPosition(
         (species.minimumGroundHeight ?? world.surfaceY)
     )
       continue;
+    const groundPose = species.groundbound
+      ? groundSpawnPose(point, species, heightAt, groundBlocked)
+      : null;
+    if (species.groundbound && !groundPose) continue;
     const bottom = Math.max(-maximum, heightAt(point.x, point.z) + floorMargin);
     const top = -minimum;
     if (bottom > top) continue;
@@ -369,6 +396,7 @@ export function habitatPosition(
       species.benthic || species.groundbound
         ? heightAt(point.x, point.z) + floorMargin
         : THREE.MathUtils.clamp(point.y, bottom, top);
+    if (groundPose && species.groundFootprint) point.y = groundPose.y;
     if (point.y < -maximum || point.y > top) continue;
     // 新地图的海床或边界校正也不能把居民挤出独立活动区；无合法空间应明确失败。
     if (
@@ -397,7 +425,7 @@ export function habitatPosition(
         radius,
         colliders: candidates,
         ...(species.groundbound
-          ? { forward: { x: 0, y: 0, z: -1 }, length: species.length }
+          ? { forward: groundPose.direction, length: species.length }
           : {}),
       })
     )

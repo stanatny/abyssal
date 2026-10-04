@@ -1,3 +1,8 @@
+import {
+  groundCreatureProfile,
+  groundTerrainPose,
+  groundTerrainTransition,
+} from "./ground_navigation.js";
 import { aquaticHeading } from "./aquatic_reptile_motion.js";
 import {
   groundCreatureClearance,
@@ -582,7 +587,15 @@ function resetAbilityFx(fx) {
 /** 稀有领地战的空间表现：技能前摇、可躲避攻击、撤退边界与多次咬击。 */
 export function createEncounters(
   scene,
-  { seabedHeight, audio, notify, onDamage, onBite, onTorpedoHit },
+  {
+    seabedHeight,
+    groundHeightAt = seabedHeight,
+    audio,
+    notify,
+    onDamage,
+    onBite,
+    onTorpedoHit,
+  },
 ) {
   const bosses = [],
     projectiles = [];
@@ -638,6 +651,9 @@ export function createEncounters(
       persistentDefeat: true,
       maxCenterY: Infinity,
       state: createBossState(species),
+      groundHabitat: species.groundbound
+        ? { ...species, ...groundCreatureProfile(mesh, species.length) }
+        : null,
       mesh,
       home: new THREE.Vector3(),
       enabled: false,
@@ -847,8 +863,20 @@ export function createEncounters(
     if (state.ability === "pulse") entry.attackOrigin.y = entry.lockTarget.y;
     const targetDirection = entry.lockTarget.clone().sub(entry.mesh.position);
     if (state.species.groundbound) targetDirection.y = 0;
-    if (targetDirection.lengthSq() > 0.001)
-      entry.heading.copy(targetDirection.normalize());
+    if (targetDirection.lengthSq() > 0.001) {
+      targetDirection.normalize();
+      // 锁定攻击也不能把虎身转进山里；不可转身时保留最后的完整身体朝向。
+      if (
+        !entry.groundHabitat ||
+        groundTerrainPose(
+          entry.mesh.position,
+          targetDirection,
+          entry.groundHabitat,
+          groundHeightAt,
+        ).walkable
+      )
+        entry.heading.copy(targetDirection);
+    }
   }
   function enterPhase(entry, playerPosition) {
     const state = entry.state;
@@ -959,29 +987,53 @@ export function createEncounters(
           entry.state.species.minimumGroundHeight
       )
         continue;
-      if (entry.state.species.groundbound)
-        lookahead.y =
-          seabedHeight(lookahead.x, lookahead.z) +
-          groundCreatureClearance(entry.mesh, entry.state.species.length, 3);
+      if (entry.groundHabitat) {
+        const pose = groundTerrainPose(
+          lookahead,
+          candidate,
+          entry.groundHabitat,
+          groundHeightAt,
+        );
+        if (
+          !pose.walkable ||
+          !groundTerrainTransition(origin, lookahead, groundHeightAt)
+        )
+          continue;
+        lookahead.y = pose.y;
+      }
       if (!blockedBetween(origin, lookahead)) {
         clear = true;
         break;
       }
     }
     if (!clear) return;
-    entry.heading.lerp(candidate, 1 - Math.exp(-dt * 3.6)).normalize();
-    next.copy(origin).addScaledVector(entry.heading, step);
-    if (entry.state.species.groundbound)
-      next.y =
-        seabedHeight(next.x, next.z) +
-        groundCreatureClearance(entry.mesh, entry.state.species.length, 3);
+    candidate
+      .lerpVectors(entry.heading, candidate, 1 - Math.exp(-dt * 3.6))
+      .normalize();
+    next.copy(origin).addScaledVector(candidate, step);
+    if (entry.groundHabitat) {
+      const pose = groundTerrainPose(
+        next,
+        candidate,
+        entry.groundHabitat,
+        groundHeightAt,
+      );
+      if (
+        !pose.walkable ||
+        !groundTerrainTransition(origin, next, groundHeightAt)
+      )
+        return;
+      next.y = pose.y;
+    }
     if (
       (!entry.state.species.groundbound ||
         seabedHeight(next.x, next.z) >=
           entry.state.species.minimumGroundHeight) &&
       !blockedBetween(origin, next)
-    )
+    ) {
+      entry.heading.copy(candidate);
       origin.copy(next);
+    }
   }
   /** 未发现玩家时沿领域内部的缓慢椭圆巡游；所有位置连续积分，返巢后不瞬移。 */
   function patrolBoss(entry, dt, blockedBetween) {
@@ -1143,7 +1195,18 @@ export function createEncounters(
             Math.sin(Math.min(1, state.timer / state.phaseDuration) * Math.PI) *
               24;
         }
+        const groundPose = entry.groundHabitat
+          ? groundTerrainPose(
+              next,
+              entry.heading,
+              entry.groundHabitat,
+              groundHeightAt,
+            )
+          : null;
         if (
+          (!groundPose ||
+            (groundPose.walkable &&
+              groundTerrainTransition(old, next, groundHeightAt))) &&
           (!state.species.groundbound ||
             seabedHeight(next.x, next.z) >=
               state.species.minimumGroundHeight) &&
@@ -1196,8 +1259,12 @@ export function createEncounters(
           .add(fromHome.setLength(entry.radius + 22));
       if (state.species.groundbound)
         entry.mesh.position.y =
-          seabedHeight(entry.mesh.position.x, entry.mesh.position.z) +
-          groundCreatureClearance(entry.mesh, state.species.length, 3) +
+          groundTerrainPose(
+            entry.mesh.position,
+            entry.heading,
+            entry.groundHabitat,
+            groundHeightAt,
+          ).y +
           (attack
             ? Math.sin(
                 Math.min(1, state.timer / state.phaseDuration) * Math.PI,
@@ -1207,7 +1274,7 @@ export function createEncounters(
         entry.heading.y = 0;
         entry.heading.normalize();
       }
-      entry.mesh.quaternion.slerp(
+      const orientation =
         state.species.upright || state.species.groundbound
           ? uprightHeadingQuaternion(
               entry.motion.orientation,
@@ -1223,9 +1290,10 @@ export function createEncounters(
             : entry.motion.orientation.setFromUnitVectors(
                 FORWARD_AXIS,
                 entry.heading,
-              ),
-        Math.min(1, dt * 2),
-      );
+              );
+      // 地面朝向已在移动提案中平滑；不能再滞后旋转模型，使实际头部偏离已验证的占地。
+      if (state.species.groundbound) entry.mesh.quaternion.copy(orientation);
+      else entry.mesh.quaternion.slerp(orientation, Math.min(1, dt * 2));
       if (state.phase !== "disoriented")
         entry.mesh.userData.animate?.(
           time,

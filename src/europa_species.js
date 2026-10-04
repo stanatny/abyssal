@@ -247,7 +247,8 @@ export const EUROPA_SPECIES = Object.freeze(
       ability: "缓慢滤食",
       description:
         "梨形外套连接八条粗根细尖的长腕，腕上滤食褶与感知晶面形成外星八腕体态。",
-      habitatNote: "冰下幻想生态；沿盐脉、悬生群落与热泉寻找食物。",
+      habitatNote:
+        "冰下幻想生态；大型个体各自巡游，沿盐脉和热泉分散栖息，深层领地外围也能找到它们。",
       counter: "观察体长；成长后才向更深的栖地探索，利用岩拱和冲刺避开猎手。",
       realSize: "幻想物种，非已发现的外星生命；尺寸与行为属于游戏设定。",
       schoolAnchors: [
@@ -319,7 +320,8 @@ export const EUROPA_SPECIES = Object.freeze(
       ability: "缓慢滤食",
       description:
         "宽大波瓣伞罩下垂着分支触带和小型副钟，主体像漂浮的钟罩群落而非游鱼。",
-      habitatNote: "冰下幻想生态；沿盐脉、悬生群落与热泉寻找食物。",
+      habitatNote:
+        "冰下幻想生态；大型个体各自巡游，沿盐脉和热泉分散栖息，深层领地外围也能找到它们。",
       counter: "观察体长；成长后才向更深的栖地探索，利用岩拱和冲刺避开猎手。",
       realSize: "幻想物种，非已发现的外星生命；尺寸与行为属于游戏设定。",
       schoolAnchors: [
@@ -350,7 +352,8 @@ export const EUROPA_SPECIES = Object.freeze(
       ability: "缓慢滤食",
       description:
         "长肋管体向后收细，前端滤口与成对外伸虹吸管吸入水流，腹裙低频摆动。",
-      habitatNote: "冰下幻想生态；沿盐脉、悬生群落与热泉寻找食物。",
+      habitatNote:
+        "冰下幻想生态；大型个体各自巡游，沿盐脉和热泉分散栖息，深层领地外围也能找到它们。",
       counter: "观察体长；成长后才向更深的栖地探索，利用岩拱和冲刺避开猎手。",
       realSize: "幻想物种，非已发现的外星生命；尺寸与行为属于游戏设定。",
       schoolAnchors: [
@@ -381,7 +384,8 @@ export const EUROPA_SPECIES = Object.freeze(
       ability: "缓慢滤食",
       description:
         "实体盘旋甲壳有连续螺纹与壳缝，柔软腹足、侧鳍和前触须支撑缓慢游动。",
-      habitatNote: "冰下幻想生态；沿盐脉、悬生群落与热泉寻找食物。",
+      habitatNote:
+        "冰下幻想生态；大型个体各自巡游，沿盐脉和热泉分散栖息，深层领地外围也能找到它们。",
       counter: "观察体长；成长后才向更深的栖地探索，利用岩拱和冲刺避开猎手。",
       realSize: "幻想物种，非已发现的外星生命；尺寸与行为属于游戏设定。",
       schoolAnchors: [

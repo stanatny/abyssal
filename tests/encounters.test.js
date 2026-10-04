@@ -1,3 +1,4 @@
+import { groundTerrainPose } from "../src/ground_navigation.js";
 import { t } from "../src/i18n.js";
 import assert from "node:assert/strict";
 import test from "node:test";
@@ -243,4 +244,51 @@ test("织母真实前摇和扫网命中一次，垂直脱离与岩石遮挡均�
     }
     f.encounters.dispose();
   }
+});
+
+test("White Tiger patrol and warned charge respect the whole body beside a steep mountain", (t) => {
+  const h = (x) => 20 + Math.max(0, x - 28) * 4;
+  const encounters = createEncounters(new THREE.Scene(), {
+    seabedHeight: h,
+    groundHeightAt: h,
+    audio: { hit: noop, eat: noop, bossAttack: noop },
+    notify: noop,
+    onDamage: noop,
+    onBite: noop,
+  });
+  t.after(() => encounters.dispose());
+  encounters.reset(["white_tiger"], {}, [
+    { kind: "white_tiger", id: "tiger", home: [0, 40, 0], radius: 112 },
+  ]);
+  const e = encounters.bosses.find((e) => e.enabled),
+    player = createPlayer(),
+    position = new THREE.Vector3(42, 42, 0),
+    forward = new THREE.Vector3(-1, 0, 0);
+  const phases = new Set();
+  let traveled = 0;
+  for (let i = 0; i < 1200; i++) {
+    const previous = e.mesh.position.clone();
+    player.invulnerable = 100;
+    encounters.update(1 / 60, i / 60, player, position, forward, {
+      blockedBetween: () => false,
+    });
+    phases.add(e.state.phase);
+    traveled += e.mesh.position.distanceTo(previous);
+    const pose = groundTerrainPose(
+      e.mesh.position,
+      e.heading,
+      e.groundHabitat,
+      h,
+    );
+    assert.ok(pose.walkable);
+    assert.ok(e.mesh.position.y >= pose.y - 1e-7);
+    assert.ok(e.mesh.quaternion.x ** 2 + e.mesh.quaternion.z ** 2 < 1e-8);
+    assert.ok(
+      new THREE.Vector3(0, 0, -1)
+        .applyQuaternion(e.mesh.quaternion)
+        .dot(e.heading) > 0.999999,
+    );
+  }
+  assert.ok(traveled > 20);
+  assert.ok(phases.has("windup") && phases.has("attack"));
 });

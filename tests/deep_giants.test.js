@@ -29,8 +29,8 @@ test("新增巨兽只加两只，不扩大旧物种或幼年食物库存", () =>
     1,
   );
   for (const [region, count, kinds] of [
-    ["hawaii", 491, 24],
-    ["atlantis", 546, 17],
+    ["hawaii", 485, 24],
+    ["atlantis", 538, 17],
   ]) {
     const population = getRegionSpecies(region);
     const old = population.filter(

@@ -1,3 +1,27 @@
+# Uncommitted serpentine-motion and large-prey follow-up
+
+Verified: 2026-10-04, `fix/penglai-ground-navigation`, based on formal v0.10.1 / `171be5f`. This candidate preserves the preceding ground-navigation fix below. No new commit, push, merge or formal publication has occurred.
+
+The final source passes **859/859 units**, all **29 shared native browser checks**, formatting and build. Nine long-body models have inspected before/after phase atlases, traveling-wave/attachment checks and stable head contact anchors. Shared large-aquatic distribution modestly reduces stock while keeping small/fixed/ground/flying food, 25 m+ threats and individual mid/late rewards. Native checks cover all seven actual inventories, substantial adult food on all sampled active guardian outskirts, ordinary contact healing/growth, habitat-aware replacement and pause-frozen poses/time. A real 25 m Europa meal restores 40 health to 100 and grows to approximately 25.49 m. This uses controlled setup and timer expiry, not a natural complete playthrough.
+
+Compiled local and public hosts each pass fourteen seven-region English-desktop/Chinese-touch flows and the updated four Europa Guide notes. Nine artifact hashes and all 269 runtime fingerprints match; production debug hooks are absent, private/development probes return 404 and no runtime errors are observed. The same restricted temporary address serves the candidate; official Pages stays v0.10.1. The source hash check also confirms six preceding ground-navigation modules are unchanged from the accepted candidate snapshot.
+
+Serial Europa baseline → candidate → baseline High measurements remain around 60 FPS with p95 18.8/18.8/18.4 ms. Main-loop CPU varies 3.33/4.16/3.74 ms; do not claim a frame-cost or thermal improvement from lower stock. Nine native three-region switches show repeating warm geometry counts and texture counts near 313–314, with small shader/state variation. See [rules, detailed conditions and rollback](serpentine_density_revision.md). Natural early growth, complete battles, long sessions and physical-device performance remain user-review limits. Raw reports, failed intermediate harness/placement checks and current/preceding preview manifests remain ignored under `.local/locomotion_density_review/`.
+
+---
+
+# Uncommitted Penglai ground-navigation follow-up
+
+Verified: 2026-10-04, branch `fix/penglai-ground-navigation`, based on released v0.10.1 / `171be5f`. No new commit, push, merge or formal deployment is authorized. The candidate addresses ground beasts entering mountains and becoming stuck; all 38 ordinary ground residents, existing art/gait, combat values and food stock are retained.
+
+The full suite passes **852/852 units**. After final ground-only render-heading synchronization, **26/26 focused navigation/encounter tests**, formatting and the rebuilt production bundle pass. Actual Chrome checks observe all 38 ground residents in English 1440×900 and Chinese touch-emulated 390×677 views for 200 samples per view: no rigid-body mountain penetration, static-body overlap or walking stop longer than 0.1 seconds is recorded. Controlled Zheng pursuit travels approximately 133/167 m; native pause and normal replacement checks pass. Screenshots were inspected. White Tiger's actual rendered heading matches its validated ground pose; warned charge and cliff recovery have focused regression coverage.
+
+Initial compiled local/public checks pass fourteen seven-region desktop/touch flows per host. Following the final White Tiger orientation change, two incremental Penglai flows per host pass with zero observed runtime errors. Nine final artifacts and 267 runtime source fingerprints match; production debug hooks are absent, and `.git`, `.local` and source-path probes return 404. The existing restricted temporary address serves the candidate; official Pages remains v0.10.1.
+
+Serial M2 Pro / Chrome headless measurements show measurable additional collision work, with High main-loop CPU approximately 11.73→12.82 ms and Smooth 12.15→14.51 ms per sampled frame. These are end-to-end controlled samples, not a physical-phone or thermal claim. Numeric baked-terrain lookup and early termination of a legal retreat bound the new work. Full natural-round behavior, physical-device performance and articulated-foot IK are not established by these checks. See [implementation, measurement conditions and rollback](penglai_ground_navigation.md); raw receipts and the candidate/preceding-build manifests are ignored under `.local/ground_navigation_review/`.
+
+---
+
 # v0.10.1 — Living Ecosystems and Mythic Forms
 
 ## Authorized main publication

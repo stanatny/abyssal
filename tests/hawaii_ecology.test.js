@@ -71,7 +71,7 @@ test("夏威夷外礁双翼与过渡带均有合法且可维持十米角色的�
         assert.ok(player.hunger >= 8, "是实际有效食物，不是用微小装饰鱼填数量");
       }
     }
-    assert.equal(population.length, 522);
+    assert.equal(population.length, 516);
   } finally {
     ocean.dispose();
   }

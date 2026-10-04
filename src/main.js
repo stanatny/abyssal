@@ -1,4 +1,11 @@
 import {
+  groundCreatureProfile,
+  groundSpawnPose,
+  steerGroundTerrain,
+  resolveGroundTerrain,
+  commitGroundTerrain,
+} from "./ground_navigation.js";
+import {
   prepareMythicTransformations,
   restoreMythicForm,
   stepMythicTransformation,
@@ -20,7 +27,6 @@ import {
 import "./penglai_ui.css";
 import {
   stepGroundCreature,
-  groundCreatureClearance,
   uprightHeadingQuaternion,
   stepGroundHeading,
   groundGaitState,
@@ -133,13 +139,14 @@ import {
   inkStatus,
   getCharacter,
 } from "./character_rules.js";
-import { bodyRadius } from "./collision.js";
+import { bodyRadius, isPositionBlocked } from "./collision.js";
 import { createZombieMinion } from "./zombie_minion.js";
 import { consumeMinionPrey, summonStatus } from "./zombie_shark_rules.js";
 
 import {
   resolveIndexedMotion,
   castIndexedSegment,
+  queryStaticColliders,
 } from "./static_collider_grid.js";
 
 initializeLanguage();
@@ -302,6 +309,7 @@ const surfaceOptions = {
 let surface = createSurface(scene, audio, notify, surfaceOptions);
 const encounters = createEncounters(scene, {
   seabedHeight: activeSeabedHeight,
+  groundHeightAt: activeGroundHeight,
   audio,
   notify,
   onDamage() {
@@ -1111,6 +1119,10 @@ function activeWorld() {
 function activeSeabedHeight(x, z) {
   return (ocean.heightAt || baseSeabedHeight)(x, z);
 }
+// 陆行导航直接使用最终三角网格；水下生物和主角继续保留原有海床规则。
+function activeGroundHeight(x, z) {
+  return (ocean.groundHeightAt || activeSeabedHeight)(x, z);
+}
 function floorAt(x, z, margin = 4) {
   return activeSeabedHeight(x, z) + margin;
 }
@@ -1124,7 +1136,7 @@ function spawnPosition(
   populationIndex = 0,
 ) {
   const context = {
-    heightAt: activeSeabedHeight,
+    heightAt: species.groundbound ? activeGroundHeight : activeSeabedHeight,
     colliders: ocean.colliders,
     playerPosition: position,
     forward,
@@ -1146,16 +1158,35 @@ function spawnPosition(
     throw new Error(tr`No valid habitat position for ${species.kind}`);
   return fallback;
 }
+// 重开和正常复活都恢复可行走的完整身体朝向，不沿用上一轮卡墙航向。
+function resetGroundNavigation(entity) {
+  if (!entity.species.groundbound) return;
+  const pose = groundSpawnPose(
+    entity.mesh.position,
+    entity.species,
+    activeGroundHeight,
+    entity.groundBlocked,
+  );
+  if (!pose) return;
+  entity.mesh.position.y = pose.y;
+  entity.species.groundHome ??= entity.mesh.position.toArray();
+  entity.velocity.set(pose.direction.x, 0, pose.direction.z);
+  entity.heading = Math.atan2(pose.direction.x, -pose.direction.z);
+  entity.groundState = { safeDirection: pose.direction };
+  entity.mesh.quaternion.copy(
+    uprightHeadingQuaternion(entityOrientation, entity.velocity),
+  );
+}
 function addEntity(species, location, populationIndex = 0) {
   const mesh = createCreature(
     species.kind,
     species.length,
     entities.length + 1,
   );
-  if (species.groundbound && Number.isFinite(mesh.userData.groundSupport))
+  if (species.groundbound)
     species = {
       ...species,
-      groundClearance: groundCreatureClearance(mesh, species.length),
+      ...groundCreatureProfile(mesh, species.length),
     };
   mesh.position.copy(
     location || spawnPosition(species, false, null, populationIndex),
@@ -1192,6 +1223,22 @@ function addEntity(species, location, populationIndex = 0) {
     entity.telegraph.visible = false;
     scene.add(entity.telegraph);
   }
+  if (species.groundbound)
+    entity.groundBlocked = (point, direction) => {
+      const colliders =
+        ocean.navigationColliders || ocean.city?.colliders || [];
+      const radius = Math.max(0.45, entity.species.length * 0.18);
+      return isPositionBlocked(point, {
+        radius,
+        length: entity.species.length,
+        forward: direction,
+        colliders: queryStaticColliders(colliders, point, point, {
+          radius,
+          padding: entity.species.length * 0.42,
+        }),
+      });
+    };
+  resetGroundNavigation(entity);
   entities.push(entity);
   return entity;
 }
@@ -1248,6 +1295,7 @@ function seedPopulation() {
     entity.flight = null;
     entity.flightReadyAt = 0;
     entity.groundState = null;
+    resetGroundNavigation(entity);
     entity.mesh.userData.setGliding?.(false);
     if (entity.telegraph) entity.telegraph.visible = false;
   }
@@ -2156,6 +2204,7 @@ function updateEntities(dt) {
         mesh.visible = true;
         entity.hunter = createHunterState(species, entity.seed + elapsed);
         entity.groundState = null;
+        resetGroundNavigation(entity);
       }
       continue;
     }
@@ -2484,11 +2533,22 @@ function updateEntities(dt) {
         hunting: entity.chase > 0,
         distance,
         targetHeight: position.y,
-        groundHeight: activeSeabedHeight(mesh.position.x, mesh.position.z),
+        groundHeight: activeGroundHeight(mesh.position.x, mesh.position.z),
         length: species.length,
       });
       if (entity.groundState.avoidUntil > elapsed)
         direction.copy(entity.groundState.avoidHeading);
+      direction.copy(
+        steerGroundTerrain(
+          mesh.position,
+          direction,
+          habitat,
+          activeGroundHeight,
+          entity.groundState,
+          elapsed,
+          entity.groundBlocked,
+        ),
+      );
       stepGroundHeading(entity.velocity, direction, dt, entity.groundState);
       if (groundMotion.warning && previousPhase !== "windup") {
         effects.flash(mesh.position, 0xd9aa65, Math.min(18, species.length));
@@ -2595,6 +2655,16 @@ function updateEntities(dt) {
         ground +
         (species.groundClearance ?? species.length * 0.28 + 2) +
         groundMotion.height;
+      resolveGroundTerrain(
+        previousHabitatPosition,
+        mesh.position,
+        entity.velocity,
+        habitat,
+        activeGroundHeight,
+        entity.groundState,
+        groundMotion.height,
+        entity.groundBlocked,
+      );
       entity.mesh.userData.groundPhase = entity.groundState.phase;
     }
     const navigationColliders =
@@ -2608,15 +2678,29 @@ function updateEntities(dt) {
         habitat,
         {
           colliders: navigationColliders,
-          heightAt: activeSeabedHeight,
+          heightAt: species.groundbound
+            ? activeGroundHeight
+            : activeSeabedHeight,
           territory,
         },
       );
       if (contact) {
         mesh.position.copy(contact.position);
+        if (species.groundbound)
+          commitGroundTerrain(
+            previousHabitatPosition,
+            mesh.position,
+            entity.velocity,
+            habitat,
+            activeGroundHeight,
+            entity.groundState,
+            groundMotion.height,
+            entity.groundBlocked,
+          );
         if (contact.blocked) {
           if (species.groundbound) {
             // 碰墙后的下一步逐渐绕行，不能覆盖已锁定的跃击朝向使身体瞬间反转。
+            entity.groundState.terrainBlocked = true;
             entity.groundState.avoidHeading ??= new THREE.Vector3();
             entity.groundState.avoidHeading.copy(contact.direction);
             entity.groundState.avoidUntil = elapsed + 0.65;
@@ -2648,6 +2732,9 @@ function updateEntities(dt) {
       }
     }
     if (species.groundbound) {
+      entity.groundState.safeDirection ??= { x: 0, y: 0, z: -1 };
+      entity.groundState.safeDirection.x = entity.velocity.x;
+      entity.groundState.safeDirection.z = entity.velocity.z;
       // 视觉朝向与真实平面位移完全一致，不能在锁向跃击中再滞后旋转身体。
       mesh.quaternion.copy(
         uprightHeadingQuaternion(
@@ -2677,7 +2764,7 @@ function updateEntities(dt) {
       distance,
       reducedMotionQuery.matches,
     );
-    if (distance < 180) {
+    if (mesh.visible) {
       mesh.userData.setHunterPhase?.(hunter.phase);
       mesh.userData.animate?.(
         elapsed + entity.seed,

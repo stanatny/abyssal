@@ -439,7 +439,7 @@ test("The rendered island roof and lowest floor agree with gameplay samplers", (
   }
   assert.equal(
     species.reduce((n, s) => n + s.population, 0),
-    411,
+    409,
   );
   for (const kind of ["silver_arowana", "arapaima", "redtail_catfish"]) {
     const s = species.find((s) => s.kind === kind);

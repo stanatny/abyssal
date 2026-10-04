@@ -4,7 +4,7 @@ Uncommitted follow-up on `feature/mechanical-shark`, local checkpoint `8d55481`.
 
 ## Implementation
 
-This density snapshot precedes the separately authorized [mid/late meal-reward adjustment](meal_progression_revision.md). Its inventory, placement and capacity rules remain current; its unchanged per-meal returns describe the density pass before that follow-up.
+This density snapshot precedes the separately authorized [mid/late meal-reward adjustment](meal_progression_revision.md). Its capacity and protected-habitat rules remain current; its inventory figures are historical and precede the [large-prey dispersion candidate](serpentine_density_revision.md). Its unchanged per-meal returns describe the density pass before that follow-up.
 
 `densifyFeedingSchools()` consumes the already distributed regional configuration. It raises population **inside the existing groups**, preserving centers, depth bands and habitat metadata. Running a population multiplier before splitting would have produced more sparse groups rather than the requested dense schools.
 

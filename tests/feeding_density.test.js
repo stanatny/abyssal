@@ -84,11 +84,11 @@ test("成年补给保留原独立锚点，新个体分开，不能增殖早期�
 
 test("五海域都增加真实库存、完整保留独特种类与固定栖地，巨型天敌数量不变", () => {
   for (const [region, expected, kinds, giantCount] of [
-    ["hawaii", 522, 28, 2],
-    ["atlantis", 568, 20, 2],
-    ["bermuda", 474, 24, 2],
-    ["mariana", 473, 22, 3],
-    ["europa", 369, 16, 5],
+    ["hawaii", 516, 28, 2],
+    ["atlantis", 560, 20, 2],
+    ["bermuda", 467, 24, 2],
+    ["mariana", 453, 22, 3],
+    ["europa", 352, 16, 5],
   ]) {
     const species = getRegionSpecies(region);
     assert.equal(species.length, kinds);

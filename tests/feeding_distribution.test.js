@@ -63,11 +63,11 @@ test("横向分群保持人数、水层和资源，明确的育幼与建筑栖�
 
 test("五海域实际分群库存完整，出生深度与每一群的固定水层一致", () => {
   const counts = {
-    hawaii: 522,
-    atlantis: 568,
-    bermuda: 474,
-    mariana: 473,
-    europa: 369,
+    hawaii: 516,
+    atlantis: 560,
+    bermuda: 467,
+    mariana: 453,
+    europa: 352,
   };
   for (const [region, expected] of Object.entries(counts)) {
     const species = getRegionSpecies(region);
@@ -131,11 +131,14 @@ test("木卫二原库存覆盖全部已声明栖地，不遗失被大群规模�
   ]) {
     const s = getRegionSpecies("europa").find((s) => s.kind === kind);
     const intended = s.schoolAnchors.map((a) => `${a[1]},${a[2]}`);
-    const actual = s.schoolProfiles.map((p) => `${p.anchor[1]},${p.anchor[2]}`);
+    const actual = (
+      s.schoolProfiles?.map((p) => p.anchor) || s.spawnAnchors
+    ).map((a) => `${a[1]},${a[2]}`);
     for (const point of intended)
       assert.ok(actual.includes(point), `${kind}: ${point}`);
     assert.equal(
-      s.schoolProfiles.reduce((n, p) => n + p.count, 0),
+      s.schoolProfiles?.reduce((n, p) => n + p.count, 0) ??
+        s.spawnAnchors.length,
       s.population,
     );
   }

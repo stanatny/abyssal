@@ -137,9 +137,11 @@ export function bermudaEcology(allSpecies) {
     },
     sperm_whale: {
       population: 6,
+      residentRadius: 35,
       spawnAnchors: [
-        [145, -115, -545],
-        [-140, -195, -595],
+        // 海面领主的外围保留成年补给；不增加总量，也不进入浅滩安全区。
+        [75, -100, -390],
+        [225, -100, -390],
         [110, -270, -700],
         [-160, -325, -780],
         [110, -420, -920],

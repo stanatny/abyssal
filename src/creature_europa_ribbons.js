@@ -415,7 +415,6 @@ export function buildEuropaRibbonForm(c) {
       );
     }
     mouth("serpent_maw", 0.067, [0, -0.008, -0.43]);
-    c.motions.push((t) => (tail.rotation.y = Math.sin(t * 0.62) * 0.095));
   } else if (kind === "void_siphon") {
     c.root.userData.anatomyType = "four-jawed-annular-tube";
     c.part(

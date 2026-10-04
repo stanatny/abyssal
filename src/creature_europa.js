@@ -1,4 +1,5 @@
 import { refineEuropaAnatomy } from "./creature_europa_refinement.js";
+import { bindSerpentineMotion } from "./serpentine_motion.js";
 import * as THREE from "three";
 import { EUROPA_SPECIES } from "./europa_species.js";
 import { buildEuropaShellForm } from "./creature_europa_shells.js";
@@ -99,6 +100,20 @@ export function buildEuropaCreature(kind, root, motions) {
     throw new Error(`Missing Europa anatomy: ${kind}`);
   refineEuropaAnatomy(ctx);
   batchEuropaAnatomy(anatomy, kind);
+  if (kind === "rift_reaver") {
+    const tail = anatomy.getObjectByName("articulated_serpent_tail");
+    // 合批后的肉体、甲片和背刺共用同一波形，长尾不再像硬杆绕尾根摇动。
+    for (const mesh of [...tail.children])
+      if (mesh.isMesh)
+        bindSerpentineMotion(mesh, motions, {
+          headZ: 0,
+          tailZ: 0.8,
+          segments: 12,
+          frequency: 0.7,
+          waves: 1.15,
+          amplitude: 0.6,
+        });
+  }
   // 只归一化纵向体长；宽体、长腕、扁平体态保留各自比例，捕食/生态配置不变。
   const bounds = new THREE.Box3().setFromObject(anatomy),
     axis = bounds.max.z - bounds.min.z,

@@ -1,5 +1,6 @@
 import * as THREE from "three";
 import { mergeGeometries } from "three/addons/utils/BufferGeometryUtils.js";
+import { bindSerpentineMotion } from "./serpentine_motion.js";
 import { bindCrocodilianTail } from "./aquatic_reptile_motion.js";
 import { sampleSection } from "./creature_surface.js";
 import {
@@ -483,57 +484,15 @@ export function buildAmazonSerpent(kind, parent, motions) {
     136,
     36,
   );
-  if (!g.getAttribute("skinIndex")) {
-    const ix = [],
-      wt = [],
-      p = g.attributes.position;
-    for (let i = 0; i < p.count; i++) {
-      const t = THREE.MathUtils.clamp((p.getZ(i) + 0.42) / 1.04, 0, 1) * 15,
-        k = Math.min(14, Math.floor(t)),
-        u = t - k;
-      ix.push(k, k + 1, 0, 0);
-      wt.push(1 - u, u, 0, 0);
-    }
-    g.setAttribute("skinIndex", new THREE.Uint16BufferAttribute(ix, 4));
-    g.setAttribute("skinWeight", new THREE.Float32BufferAttribute(wt, 4));
-  }
   const temporary = amazonMesh(
     parent,
     g,
     "#ffffff",
     [0, 0, 0],
-    "snake_material",
+    "long_continuous_serpent",
     true,
   );
-  parent.remove(temporary);
-  const skin = new THREE.SkinnedMesh(g, temporary.material);
-  skin.name = "long_continuous_serpent";
-  skin.userData.keepSeparate = true;
-  parent.add(skin);
-  const bones = Array.from({ length: 16 }, () => new THREE.Bone());
-  bones[0].position.z = -0.42;
-  skin.add(bones[0]);
-  for (let i = 1; i < 16; i++) {
-    bones[i].position.z = 1.04 / 15;
-    bones[i - 1].add(bones[i]);
-  }
-  skin.bind(new THREE.Skeleton(bones));
-  g.computeBoundingSphere();
-  skin.boundingSphere = g.boundingSphere.clone();
-  skin.boundingSphere.radius += 0.15;
-  motions.push((t, e) => {
-    // 水中横向起伏向尾部传播；世界切线差值让长蛇保持两段S形，不累计弯成盘圈。
-    let previous = 0;
-    for (let i = 1; i < 16; i++) {
-      const tangent =
-        Math.sin(t * 0.9 - i * 0.76) *
-        Math.min(1, i / 4) *
-        (0.4 + Math.min(3, e) * 0.1);
-      bones[i].rotation.y = tangent - previous;
-      bones[i].rotation.x = 0;
-      previous = tangent;
-    }
-  });
+  bindSerpentineMotion(temporary, motions, { amplitude: lord ? 0.7 : 0.65 });
   const head = new THREE.Group();
   parent.add(head);
   const hw = w * (lord ? 1.65 : 1.38),
