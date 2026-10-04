@@ -1032,3 +1032,51 @@
   white-space: pre-line;
   line-height: 1.75;
 }
+
+.guide-player-skills,
+.guide-creature-skills {
+  display: grid;
+  gap: 12px;
+  margin: 18px 0;
+}
+.guide-player-skill,
+.guide-creature-skill {
+  min-width: 0;
+  padding: 14px 16px;
+  border: 1px solid var(--archive-line);
+  border-radius: 10px;
+}
+.guide-skill-type {
+  display: block;
+  margin-bottom: 6px;
+  color: var(--archive-accent);
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 1px;
+}
+.guide-player-skill h4,
+.guide-creature-skill h4 {
+  font-size: 14px;
+  font-weight: 600;
+}
+.guide-player-skill p,
+.guide-creature-skill p {
+  margin-bottom: 0;
+}
+.guide-skill-cooldown {
+  display: block;
+  margin-top: 10px;
+  color: var(--archive-body);
+  font-size: 11px;
+}
+
+.guide-creature-skill .guide-skill-response {
+  margin-top: 10px;
+  padding-top: 10px;
+  border-top: 1px solid var(--archive-line);
+  font-size: 12px;
+}
+.guide-skill-response b {
+  color: var(--archive-accent);
+  margin-right: 4px;
+}

@@ -16,8 +16,8 @@ export const MECHANICAL_SHARK_EN = Object.freeze({
     "The desktop crosshair shows the launch line; target feedback updates immediately as you steer. Fire an underwater torpedo at one unobstructed target within 7 degrees of the reticle. It keeps tracking that target without switching; obstruction or target retirement breaks the lock. Range: 140 m; blast radius: 14 m. Each cast costs 10 health and 10 stamina; health must exceed 10. Ordinary prey smaller than you fall in one hit; other ordinary creatures need two. Kills immediately count as feeding, granting healing, hunger and growth. At 25 m, a lord hit equals one bite.",
   "承伤能力提高50%，攻击与环境伤害降至原来的三分之二；饥饿和技能消耗不减免。冲刺速度保持32米/秒，双推进器呈现尾焰。":
     "Effective resistance rises by 50%: attacks and hazards deal two-thirds of normal damage. Hunger and ability payments are unchanged. Sprint stays at 32 m/s, with twin thruster plumes.",
-  "原创机械鲨鱼：深蓝与钴蓝分块装甲、铜色工程带、宽肩护甲、测距传感器、铰接鳍尾和腹部鱼雷舱；双推进器在冲刺时喷出蓝白与橙色尾焰。":
-    "An original mechanical shark with navy and cobalt segmented armor, copper engineering bands, broad shoulder shields, range sensors, articulated fins and tail, and a ventral torpedo bay. Twin thrusters emit blue-white and orange plumes during sprinting.",
+  "机械鲨鱼：深蓝与钴蓝分块装甲、铜色工程带、宽肩护甲、测距传感器、铰接鳍尾和腹部鱼雷舱；双推进器在冲刺时喷出蓝白与橙色尾焰。":
+    "A mechanical shark with navy and cobalt segmented armor, copper engineering bands, broad shoulder shields, range sensors, articulated fins and tail, and a ventral torpedo bay. Twin thrusters emit blue-white and orange plumes during sprinting.",
   "先留足生命与体力再开火，利用掩体和射程压制。爆炸不穿墙；击杀的普通生物立即计为主角吞噬，未击杀不发放收益。不比自己小的普通生物需两次有效命中；领主仍需三次，且必须达到25米。":
     "Keep health and stamina in reserve, and use cover and range. Blasts cannot pass through solids. Defeated ordinary creatures immediately count as feeding; nonlethal hits grant no meal rewards. Ordinary creatures at least your size require two hits; lords still need three and require a 25 m player.",
   "鱼雷需要生命超过10点、体力至少10点":

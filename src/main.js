@@ -1,3 +1,8 @@
+import {
+  prepareMythicTransformations,
+  restoreMythicForm,
+  stepMythicTransformation,
+} from "./mythic_transformations.js";
 import { steerElusiveRare } from "./regional_rare_pursuit.js";
 import { aquaticHeading } from "./aquatic_reptile_motion.js";
 import {
@@ -1191,6 +1196,11 @@ function addEntity(species, location, populationIndex = 0) {
   return entity;
 }
 function seedPopulation() {
+  for (const entity of entities) {
+    restoreMythicForm(entity);
+    if (entity.transformation)
+      entity.species = entity.transformation.sourceSpecies;
+  }
   aerialSpacing.clear();
   // 切图失败可能留下已生成的一部分缓存；重试补齐缺失个体，不复制已有模型。
   const existing = new Map();
@@ -1284,6 +1294,7 @@ function seedPopulation() {
       });
     }
   }
+  prepareMythicTransformations(entities);
 }
 function seedPickups() {
   for (let i = 0; i < 3 + RANDOM_REWARD_COUNT; i++) {
@@ -2095,6 +2106,12 @@ function updateSchools() {
     });
   }
 }
+// 共享查询上下文，避免为无变身能力的整片种群每帧分配回调与对象。
+const mythicMovementContext = {
+  blocked: (a, b, radius) => queryWorldSegment(a, b, radius) !== null,
+  heightAt: activeSeabedHeight,
+  flash: (...args) => effects.flash(...args),
+};
 function updateEntities(dt) {
   updateSchools();
   aerialSpacing.rebuild(entities);
@@ -2103,6 +2120,8 @@ function updateEntities(dt) {
   const mouth = capturePoint(entityMouth);
   for (const entity of entities) {
     previousPreyPosition.copy(entity.mesh.position);
+    if (entity.hiddenFor > 0 && entity.hiddenFor <= dt)
+      restoreMythicForm(entity);
     const { species, mesh } = entity;
     entity.cooldown = Math.max(0, entity.cooldown - dt);
     if (entity.telegraph) entity.telegraph.visible = false;
@@ -2155,6 +2174,17 @@ function updateEntities(dt) {
       continue;
     }
     entity.mesh.userData.disoriented = false;
+    if (
+      entity.transformation &&
+      stepMythicTransformation(entity, dt, position, mythicMovementContext)
+    ) {
+      mesh.visible =
+        mesh.position.distanceTo(position) <
+        speciesVisibilityDistance(species, highQuality);
+      mesh.userData.animate?.(elapsed + entity.seed, 1.4);
+      eatEntity(entity, mouth, previousPreyPosition, dt);
+      continue;
+    }
     const distance = mesh.position.distanceTo(position),
       edible = canEat(player, species.length);
     mesh.visible = distance < speciesVisibilityDistance(species, highQuality);
@@ -2166,7 +2196,11 @@ function updateEntities(dt) {
     );
     const predator =
       species.predator &&
-      canPredatorRetaliate(player.length, species.length) &&
+      canPredatorRetaliate(
+        player.length,
+        species.length,
+        species.threatCeilingLength,
+      ) &&
       allowedHunt;
     if (!predator) entity.chase = 0;
     const nurseryResident =
@@ -3312,7 +3346,11 @@ function updateHud() {
       edible = canEat(player, e.species.length),
       retaliates =
         e.species.predator &&
-        canPredatorRetaliate(player.length, e.species.length);
+        canPredatorRetaliate(
+          player.length,
+          e.species.length,
+          e.species.threatCeilingLength,
+        );
     $("target").style.left = (p.x * 0.5 + 0.5) * innerWidth + "px";
     $("target").style.top = (-p.y * 0.5 + 0.5) * innerHeight - 18 + "px";
     $("target").style.color = edible

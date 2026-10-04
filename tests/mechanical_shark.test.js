@@ -100,7 +100,8 @@ test("第四角色共享区域起点、成长与基本冲刺，菜单和图鉴�
     );
     const entry = buildOceanCatalog(r.id).find((e) => e.characterId === c.id);
     assert.ok(entry);
-    assert.match(t(entry.text, [], "en"), /immediately/);
+    assert.match(t(entry.activeSkill.description, [], "en"), /immediately/);
+    assert.match(t(entry.passiveSkill.description, [], "en"), /two-thirds/);
   }
   assert.equal(characterMovement(c.id, true).sprintSpeed, 32);
   assert.equal(characterMovement("orca", true).sprintSpeed / 32, 1.3);

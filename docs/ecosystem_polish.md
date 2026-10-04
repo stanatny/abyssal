@@ -1,6 +1,6 @@
-# Ecosystem polish candidate
+# Ecosystem polish
 
-Status: uncommitted development candidate on `feature/ecosystem-polish`, based on released v0.10.0 / `78bcfed`. No commit, merge or formal publication is authorized for this work. Runtime evidence is kept in ignored `.local/ecosystem_review/`.
+Status: user-approved for v0.10.1 main publication on 2026-10-04, including local ecosystem checkpoint `4691135` and its reviewed silhouette/Guide follow-up. This supersedes the preceding local-only status. The measurements below preserve their original checkpoint conditions; see [release verification](verification.md) for current publication checks and [the silhouette, transformation and Guide review](silhouette_transformation_revision.md) for the later work. Raw checkpoint evidence is kept in ignored `.local/ecosystem_review/`.
 
 ## Scope and visual review
 

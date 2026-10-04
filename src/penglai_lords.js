@@ -160,7 +160,7 @@ export const PENGLAI_LORD_DESCRIPTIONS = Object.freeze(
         kind,
         {
           name: t(zh, en),
-          latin: en.toUpperCase() + " / ORIGINAL MYTHIC INTERPRETATION",
+          latin: en.toUpperCase() + " / MYTHIC GUARDIAN",
           category: "lord",
           role: t(
             kind === "sword_sage" ? "道观终局守卫" : "四象守卫",
@@ -178,7 +178,7 @@ export const PENGLAI_LORD_DESCRIPTIONS = Object.freeze(
           appearance: t(appearance, enAppearance),
           text: t(
             kind === "sword_sage"
-              ? "四神兽未全部击败时结界阻挡道观入口。解除护阵并进入领地后，真君会持续缓慢追击，冲刺可拉开距离；“万剑归宗”发出三柄飞剑，“踏剑惊鸿”沿亮起的剑路直线突进，均有2.2秒预警；冲阵后有4秒反击窗口。击败真君完成远征。"
+              ? "四神兽未全部击败时结界阻挡道观入口。解除护阵并进入领地后，真君会持续缓慢追击，冲刺可拉开距离。击败真君完成远征。"
               : kind === "azure_dragon"
                 ? "“苍龙破云”蓄势后沿锁定路线突进，速度与力量均衡；侧向绕开攻击路径，待收势时从侧翼反击。镇守东峰，击败后本局不再刷新。"
                 : kind === "white_tiger"
@@ -187,7 +187,7 @@ export const PENGLAI_LORD_DESCRIPTIONS = Object.freeze(
                     ? "“玄甲镇渊”在蓄势与脉冲期间升起护甲，挡住咬击和鱼雷；甲阵退去后的4.5秒才是侧翼反击窗口。镇守北池，击败后本局不再刷新。"
                     : "“朱羽焚天”蓄势后发出三道焰息，攻击力为四神兽之最；横向变向避开连弹，趁收势反击。镇守南方天空，击败后本局不再刷新。",
             kind === "sword_sage"
-              ? "The monastery is sealed until all four guardians fall. After unsealing the ward and entering his territory, the sage keeps pursuing slowly; sprint to gain distance. Myriad Blades Converge sends three flying swords; Skyborne Sword Rush follows a marked straight path. Both have a 2.2-second warning; the dash leaves a four-second recovery window. Defeat him to complete Penglai."
+              ? "The monastery is sealed until all four guardians fall. After unsealing the ward and entering his territory, the sage keeps pursuing slowly; sprint to gain distance. Defeat him to complete Penglai."
               : kind === "azure_dragon"
                 ? "Dragon Through the Clouds follows a locked charge path with balanced speed and power. Evade sideways and counter at the flank during recovery. It guards the eastern peak and never respawns after defeat."
                 : kind === "white_tiger"

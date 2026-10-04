@@ -44,8 +44,8 @@ export const EUROPA_EN = {
     "The ice-ocean expedition is complete. An alien lord has been conquered.",
   "冰壳之下，盐脉与热泉孕育着幻想外星生命。探索五层栖地，挑战辉渊巡狩者与星渊织母。":
     "Beneath the ice, brine and thermal vents nurture fictional alien life. Explore five habitats and challenge the Lumen Stalker and Abyss Weaver.",
-  "幻想物种，非已发现的外星生命；尺寸与行为是原创游戏设定。":
-    "An imaginary lifeform, not a discovered alien species; size and behavior are original game designs.",
+  "幻想物种，非已发现的外星生命；尺寸与行为属于游戏设定。":
+    "An imaginary lifeform, not a discovered alien species; size and behavior are gameplay adaptations.",
   "冰下幻想生态；沿盐脉、悬生群落与热泉寻找食物。":
     "A fictional ice-ocean ecosystem; follow brine seams, suspended colonies and thermal vents to food.",
   "观察体长；成长后才向更深的栖地探索，利用岩拱和冲刺避开猎手。":
@@ -68,8 +68,8 @@ export const EUROPA_EN = {
     "Spreading arms warn of three pressure sectors, followed by a sweeping Tidal Loom; gaps between sectors and above or below provide escape routes.",
   "避开紫色压力带，利用岩拱遮挡；织网后的3秒恢复期，从侧面咬击躯干，再脱离接触。":
     "Avoid the violet pressure ribbons and use arches as cover. During the three-second recovery, bite the mantle from its flank, then disengage.",
-  "仅为原创幻想外星海怪，不代表木卫二存在大型生命的证据。":
-    "An original imaginary alien lord, not evidence for large life on Europa.",
+  "幻想外星海怪，不代表木卫二存在大型生命的证据。":
+    "A fictional alien lord, not evidence for large life on Europa.",
   "潜入冰壳之下，循着盐脉与微光。<br />在陌生生命之间，寻找冰下的深渊领主。":
     "Dive below the ice and follow brine seams and living light.<br />Seek the ice-ocean Abyss Lords among unfamiliar life.",
   冰穹育幼: "Ice Cradle",
@@ -100,7 +100,7 @@ export const EUROPA_EN = {
     "Overlapping thoracic shields and two curved pincers define its silhouette. The pincers open before a burst.",
   冠环滤食者: "Crown Filterer",
   "梨形外套连接八条粗根细尖的长腕，腕上滤食褶与感知晶面形成外星八腕体态。":
-    "A pear-shaped mantle carries eight long tapering arms, with filtering cups and sensory facets: an original alien octopoid.",
+    "A pear-shaped mantle carries eight long tapering arms, with filtering cups and sensory facets: an alien octopoid.",
   棱冠猎手: "Prism Hunter",
   "三面硬刃包住流线核心，三枚尾舵在突进前收拢；整体呈棱形飞镖状。":
     "Three rigid blades enclose a streamlined core. Three steering vanes fold before a burst, giving it a trihedral dart silhouette.",
@@ -135,13 +135,13 @@ export const EUROPA_EN = {
     "Expanding light chambers and gathering arms warn of a locked charge. A 3-second recovery follows. It guards the Thermal Basin and stays near its territory.",
   "看到冲锋流纹后横向闪避，利用岩拱遮挡；恢复时从侧翼咬击实体躯干，脱离至少0.35秒再回来。需要25米和三次有效侧咬。":
     "Dodge sideways after the charge telegraph and use rock arches as cover. Bite the real body from a flank during recovery, then disengage for at least 0.35 s. Requires 25 m and three valid flank bites.",
-  "幻想电影启发的原创外星海怪，不代表木卫二存在大型生命的证据。":
-    "An original alien monster inspired by a fictional film, not evidence of large life on Europa.",
+  "幻想外星海怪，不代表木卫二存在大型生命的证据。":
+    "A fictional alien monster, not evidence of large life on Europa.",
   坠毁科考船: "Crashed Research Lander",
   悬生花园与热泉盆地之间: "Between the Suspended Garden and Thermal Basin",
   "开放舱室 · 残骸探索": "Open gallery \u00b7 wreck exploration",
-  "一艘原创科考登陆舱坠落在冰下斜坡。破损的承压外壳、散热翼与天线留在海床，舱室两端开放，侧面另有破口。仪器与附生薄膜沿舱壁排列。":
-    "An original research lander lies damaged on the icy seafloor slope. A fractured pressure hull, radiator wings and antenna remain. Both gallery ends are open, with an additional side breach; equipment and colonial films line its walls.",
+  "一艘科考登陆舱坠落在冰下斜坡。破损的承压外壳、散热翼与天线留在海床，舱室两端开放，侧面另有破口。仪器与附生薄膜沿舱壁排列。":
+    "A research lander lies damaged on the icy seafloor slope. A fractured pressure hull, radiator wings and antenna remain. Both gallery ends are open, with an additional side breach; equipment and colonial films line its walls.",
   "从两端沿中央通道游入，注意金属框架和落地支撑。废弃科考船没有船员、食物或通关宝物；微光来自舱底的幻想附生群落。":
     "Swim through the central passage from either end, avoiding the metal frame and grounded supports. This abandoned craft contains no crew, food or completion item. Its gentle glow comes from imaginary colonies on the gallery floor.",
   化学能源栖地: "Chemical-Energy Habitat",

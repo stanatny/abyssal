@@ -1,10 +1,10 @@
 import { CREATURE_LORE } from "./creature_lore.js";
-/** 自然百科、化石复原与原创传说分开记录；本作战斗参数不当作真实生物知识。 */
+/** 自然百科、化石复原与传说分开记录；本作战斗参数不当作真实生物知识。 */
 export const BACKGROUND_EN = {
   自然百科: "Natural history",
   化石复原: "Fossil reconstruction",
-  传说与本作改编: "Legend and adaptation",
-  原创背景: "Original lore",
+  神话传说: "Myth and legend",
+  背景故事: "Background story",
 };
 const records = new Map();
 function add(kind, type, zh, en) {
@@ -61,13 +61,13 @@ const natural = [
   ],
   [
     "parrotfish",
-    "鹦嘴鱼因喙状牙齿而得名。不同物种的颜色和食性有所差别，本作档案是礁区类型的概括。",
-    "Parrotfishes are named for their beak-like teeth. Colors and diets differ between species; this entry represents the reef group.",
+    "隆头鹦嘴鱼有粗壮的鱼身，成年个体前额高隆，喙状牙齿构成鲜明特征。它是热带珊瑚礁中的大型鹦嘴鱼。",
+    "Bumphead parrotfish are large tropical reef fishes with robust bodies, a pronounced adult forehead and beak-like teeth.",
   ],
   [
     "wrasse",
-    "隆头鱼包含许多体色鲜艳的礁栖种类，与鹦嘴鱼亲缘接近。不同种类的体形与习性各有差异，构成礁区丰富的生命层次。",
-    "Wrasses include many colorful reef dwellers and are related to parrotfishes. Body shapes and habits vary across the family, contributing to the diversity of reef life.",
+    "苏眉属于隆头鱼科，成年个体有明显的隆起额头、厚唇和粗壮的身体。它与鹦嘴鱼的陡额喙口不同，是热带礁区中辨识度很高的大型鱼。",
+    "Humphead wrasse are large tropical reef fishes with a rounded adult forehead, thick lips and a robust body, distinct from the steep brow and beak of bumphead parrotfish.",
   ],
   [
     "sunfish",
@@ -397,53 +397,53 @@ for (const [kind, zh, en] of fossils) add(kind, "化石复原", zh, en);
 const original = [
   [
     "flood_arapaima",
-    "洪潭巨骨舌鱼是本作想象的深潭巨型近亲。沉根与洪水带来的食物塑造了它的粗壮身躯，并非已发现的新物种。",
-    "Flood Arapaima is an imagined deep-pool giant. Root tangles and flood-borne food shape its heavy body; it is not a discovered species.",
+    "洪潭巨骨舌鱼栖息于隔绝的深潭。沉根与洪水带来的食物塑造了它的粗壮身躯，并非已发现的新物种。",
+    "Flood Arapaima is a deep-pool giant. Root tangles and flood-borne food shape its heavy body.",
   ],
   [
     "rootback_colossus",
-    "根背巨鳄是本作河谷中复苏的巨兽，背甲似被沉木压出的山脊。它把根穴当作隐蔽猎场。",
-    "Rootback Colossus is an original revived river giant with log-like dorsal armor, using root vaults as hidden hunting grounds.",
+    "根背巨鳄是河谷中复苏的巨兽，背甲似被沉木压出的山脊。它把根穴当作隐蔽猎场。",
+    "Rootback Colossus is a revived river giant with log-like dorsal armor, using root vaults as hidden hunting grounds.",
   ],
   [
     "zombie_shark",
-    "亡灵鲨鱼是原创幻想角色，破损皮肤之下仍有运动的骨骼与肌肉。它以献祭换取仆从，力量并非无代价。",
-    "Zombie Shark is an original fantasy character with moving bones and muscles beneath torn skin. Its summoned servant requires a costly sacrifice.",
+    "亡灵鲨鱼从沉船阴影中归来，破损皮肤之下仍有运动的骨骼与肌肉。它以献祭换取仆从，力量并非无代价。",
+    "Zombie Shark is an undead hunter with moving bones and muscles beneath torn skin. Its summoned servant requires a costly sacrifice.",
   ],
   [
     "mechanical_shark",
-    "机械鲨鱼是为危险海域打造的原创装甲潜行体。推进器与鱼雷舱服务于它的猎杀使命，但发射会消耗自身资源。",
-    "Mechanical Shark is an original armored explorer for dangerous waters. Thrusters and torpedoes serve its mission, but firing consumes its own resources.",
+    "机械鲨鱼是为危险海域打造的装甲潜行体。推进器与鱼雷舱服务于它的猎杀使命，但发射会消耗自身资源。",
+    "Mechanical Shark is an armored explorer for dangerous waters. Thrusters and torpedoes serve its mission, but firing consumes its own resources.",
   ],
   [
     "glass_seed",
-    "冰下盐水中，玻种游体将柔软器官包在六枚晶壳之间。它的形态是本作原创外星想象，不是生命发现。",
-    "Glass Seed shelters soft organs between six crystalline valves in icy brine. It is an original alien imagining, not a discovery.",
+    "冰下盐水中，玻种游体将柔软器官包在六枚晶壳之间。晶壳的细小开合帮助它感受盐流中的变化。",
+    "Glass Seed shelters soft organs between six crystalline valves in icy brine. Subtle movements of the valves let it sense changes in the brine.",
   ],
   [
     "ribbon_spore",
-    "绶带孢游用薄膜沿盐流漂游，前端囊体储存养分，长丝感受细微水流。它属于本作设想的带状生命谱系。",
-    "Ribbon Spore rides brine currents with membranes, stores nutrients in its anterior capsule and senses currents with filaments: an imagined ribbon lineage.",
+    "绶带孢游用薄膜沿盐流漂游，前端囊体储存养分，长丝感受细微水流。转向时囊体先动，绶带般的薄膜随水流弯折。",
+    "Ribbon Spore rides brine currents with membranes, stores nutrients in its anterior capsule and senses currents with filaments; the capsule leads each turn as its ribbon-like membranes bend with the current.",
   ],
   [
     "tripod_bloom",
-    "三瓣浮蕾以三重对称的肉瓣包围核心，花一样的轮廓不代表它是植物。它在幻想冰海中缓慢展开滤食面。",
-    "Tripod Bloom encloses a core with three symmetric fleshy lobes. Its flower-like form does not make this imagined filterer a plant.",
+    "三瓣浮蕾以三重对称的肉瓣包围核心，花一样的轮廓不代表它是植物。它在冰海中缓慢展开滤食面。",
+    "Tripod Bloom encloses a core with three symmetric fleshy lobes. Its flower-like form does not make this filterer a plant.",
   ],
   [
     "sail_crawler",
     "帆脊巡游者背上的厚帆协助转向，六肢带有游泳桨。它是硬甲游体，与在底部行走的铰甲步行者不同。",
-    "Sail Crawler steers with a thick dorsal sail and six paddling limbs. This imagined armored swimmer differs from the bottom-walking Hinge Walker.",
+    "Sail Crawler steers with a thick dorsal sail and six paddling limbs. This armored swimmer differs from the bottom-walking Hinge Walker.",
   ],
   [
     "lantern_pod",
-    "灯荚游体用五道肋骨保护发光囊，裙状附肢调整水流。微弱器官光只是这套原创生态的感官想象。",
-    "Lantern Pod protects a luminous sac within five ribs and steers with skirt-like appendages. Its faint organ light belongs to original lore.",
+    "灯荚游体用五道肋骨保护发光囊，裙状附肢调整水流。微弱的器官光在冰影里轻轻明灭。",
+    "Lantern Pod protects a luminous sac within five ribs and steers with skirt-like appendages. Its faint organ light flickers beneath the ice.",
   ],
   [
     "veil_glider",
     "帷翼滑翔者将外套延伸成宽翼，沿冰拱下的流线滑行。前段感官窝与尾丝形成独特的扁翼剪影。",
-    "Veil Glider extends its mantle into broad wings beneath ice arches. Sensory sockets and trailing filaments distinguish this original flattened form.",
+    "Veil Glider extends its mantle into broad wings beneath ice arches. Sensory sockets and trailing filaments distinguish this flattened form.",
   ],
   [
     "forkjaw_stalker",
@@ -462,18 +462,18 @@ const original = [
   ],
   [
     "bell_carrier",
-    "浮钟巨载的钟罩下拖着附属囊体，像一座缓慢移动的冰海温室。它的脉动推进来自本作对群体式生命的想象。",
-    "Bell Carrier trails satellite sacs beneath a bell like a moving ice-ocean greenhouse. Its pulsing propulsion is an imagined colonial-life adaptation.",
+    "浮钟巨载的钟罩下拖着附属囊体，像一座缓慢移动的冰海温室。钟罩的脉动将整群囊体缓缓推向前方。",
+    "Bell Carrier trails satellite sacs beneath a bell like a moving ice-ocean greenhouse. The pulsing bell carries the whole sac colony forward.",
   ],
   [
     "siphon_colossus",
-    "虹吸巨腹的外置管口调节进出水流，环褶包围粗大的腹体。它是本作设想的管状巨型滤食者。",
-    "Siphon Colossus regulates fictional currents with external tubes and a ring-folded abdomen, an original giant tubular filterer.",
+    "虹吸巨腹的外置管口调节进出水流，环褶包围粗大的腹体。水流经过管口时，层褶会轻微舒展。",
+    "Siphon Colossus regulates fictional currents with external tubes and a ring-folded abdomen, a giant tubular filterer.",
   ],
   [
     "spiral_grazer",
-    "螺冠巨游背负盘卷的厚壳，用下方软足与侧膜滑游。它的壳口、感觉须与旋涡式外形属于原创外星设计。",
-    "Spiral Grazer carries a thick coiled shell and swims with a soft foot and lateral membranes: an original alien spiral-bodied design.",
+    "螺冠巨游背负盘卷的厚壳，用下方软足与侧膜滑游。感觉须先探水流，软足再带着沉重的螺壳缓缓转向。",
+    "Spiral Grazer carries a thick coiled shell and swims with a soft foot and lateral membranes. Its feelers test the current before the foot turns the heavy coil.",
   ],
   [
     "rift_reaver",
@@ -487,8 +487,8 @@ const original = [
   ],
   [
     "brine_rosette",
-    "盐泉旋花的六瓣甲盖像伏地莲座，中央软组织感受盐流。它是原创底栖动物，不应因花状轮廓被认作珊瑚。",
-    "Brine Rosette senses imagined currents beneath six low carapace valves. This original benthic animal is not coral despite its flower-like silhouette.",
+    "盐泉旋花的六瓣甲盖像伏地莲座，中央软组织感受盐流。瓣片会随水流开合，姿态虽似花朵，却仍能沿海床缓慢移动。",
+    "Brine Rosette senses imagined currents beneath six low carapace valves. Its valves open with the current; the flower-like body can still move slowly across the bottom.",
   ],
   [
     "hinge_walker",
@@ -497,33 +497,33 @@ const original = [
   ],
   [
     "abyss_weaver",
-    "星渊织母在冰海最深窟结出看不见的潮流网，长腕为后代围护温暖水层。它是原创外星领主，并无科学发现依据。",
-    "Abyss Weaver surrounds warm nursery currents with long arms and invisible tidal webs. This original alien lord is not scientifically established life.",
+    "星渊织母在冰海最深窟结出看不见的潮流网，长腕为后代围护温暖水层。潮流穿过分叉腕尖，将食物送入它守护的暗窟。",
+    "Abyss Weaver surrounds warm nursery currents with long arms and invisible tidal webs. Currents pass between its forked arm tips, carrying food into the hollow it guards.",
   ],
   [
     "lumen_stalker",
-    "辉渊巡狩者巡守坠落科考船与热泉之间，长腕能围拢大型船体，发光腔在黑暗中勾勒其庞大的轮廓。它是本作原创的冰下领主。",
-    "Lumen Stalker patrols between a fallen research vessel and the vents. Long arms can enclose a large hull, while luminous chambers outline its immense body: an original ice-ocean lord.",
+    "辉渊巡狩者巡守坠落科考船与热泉之间，长腕能围拢大型船体，发光腔在黑暗中勾勒其庞大的轮廓。它的巡游让残骸四周的暗水始终不得安宁。",
+    "Lumen Stalker patrols between a fallen research vessel and the vents. Long arms can enclose a large hull, while luminous chambers outline its immense body. Its patrol keeps the water around the wreck restless.",
   ],
   [
     "mayan",
-    "格兰玛雅是本作幻想的灰银色长躯领主，六枚蓝眼在厚重头冠中巡视。它的名称与形象并不是玛雅文明真实神话的考证。",
-    "Gran Maja is an original silver-bodied lord with six blue eyes beneath a heavy crown. It is not an authenticated Maya myth.",
+    "格兰玛雅是灰银色的长躯领主，六枚蓝眼在厚重头冠中巡视。它的名称与形象并不是玛雅文明真实神话的考证。",
+    "Gran Maja is a silver-bodied lord with six blue eyes beneath a heavy crown. It is not an authenticated Maya myth.",
   ],
   [
     "rootjaw",
-    "根颚君王将沉木化作伏击的掩体，厚甲如河床化石，裂颚掀起浑浊水浪。这是亚马逊场景的原创领主。",
-    "Rootjaw turns fallen timber into ambush cover; fossil-like armor and split jaws disturb the river. It is an original Amazon lord.",
+    "根颚君王将沉木化作伏击的掩体，厚甲如河床化石，裂颚掀起浑浊水浪。它潜伏在河道最深的根影之中。",
+    "Rootjaw turns fallen timber into ambush cover; fossil-like armor and split jaws disturb the river. It waits in the deepest river-root shadows.",
   ],
   [
     "jade_minnow",
-    "玉鳞游灵是本作莲池的原创小生灵，鳞片像被晨露洗过的青玉。它并非《山海经》中的确定物种。",
-    "Jade Minnow is an original lotus-pool spirit with dew-like jade scales, not an attested creature from the Classic of Mountains and Seas.",
+    "玉鳞游灵穿行于莲池浅水，细长尖吻与轻巧叉尾划过莲茎，鳞片像被晨露洗过的青玉。",
+    "Jade Minnow slips between lotus stems with a slender pointed snout, a light forked tail and dew-like jade scales.",
   ],
   [
     "lotus_sprite",
-    "莲心贝灵栖息于莲叶阴影，借水纹与花香寻路。它的灯状触须是本作幻想，不是古籍中原有的描写。",
-    "Lotus Sprite follows ripples beneath lotus leaves. Its lantern-like feelers belong to original game lore rather than an ancient textual description.",
+    "莲心贝灵栖息于莲叶阴影，借水纹与花香寻路。灯状触须贴着莲根展开，像一串水下的微光。",
+    "Lotus Sprite follows ripples beneath lotus leaves. Its lantern-like feelers spread against the roots like a chain of underwater glimmers.",
   ],
   [
     "cloud_crane",
@@ -537,162 +537,172 @@ const original = [
   ],
   [
     "spirit_carp",
-    "灵鲤是本作守候莲池水脉的原创生灵，尾鳍在水面留下一线月光。它与龙鲤的传说渊源不同。",
-    "Spirit Carp is an original guardian of lotus-pool currents, tracing moonlight with its tail; its lore differs from Dragon Carp's folktale.",
+    "瑞鲤守候莲池水脉，尾鳍在水面留下一线月光。它与龙鲤的传说渊源不同。",
+    "Auspicious Carp guards the lotus-pool currents, tracing moonlight with its tail; its lore differs from Dragon Carp's folktale.",
   ],
   [
     "sword_sage",
-    "御剑真君修行于四象守护的道观，踏一柄巨剑巡行云海，以剑阵检验闯入者。角色是原创仙侠设定，并非《山海经》人物。",
-    "The Sword Sage rides a great sword around a monastery guarded by the Four Symbols and tests intruders with sword arrays. He is original xianxia lore.",
+    "御剑真君修行于四象守护的道观，踏一柄巨剑巡行云海，以剑阵检验闯入者。承霄剑宗弟子以他为师，四方山脉也由他的守护者巡望。",
+    "The Sword Sage rides a great sword around a monastery guarded by the Four Symbols and tests intruders with sword arrays. Skybearer Sword Sect pupils follow his teachings while his guardians watch the four surrounding peaks.",
   ],
 ];
-for (const [kind, zh, en] of original) add(kind, "原创背景", zh, en);
+for (const [kind, zh, en] of original) add(kind, "背景故事", zh, en);
 const legends = [
   [
     "kraken",
-    "克拉肯来自北欧海怪传说，常被想象成能围拢船只的巨型头足怪。本作以长腕与吸盘改编，不主张存在真实海怪。",
-    "Kraken comes from northern European sea-monster lore, often imagined enclosing ships with enormous arms. This tentacled adaptation makes no claim of real monsters.",
+    "克拉肯是北欧传说中潜伏深海的巨型头足海怪。它的长腕能从船底探出，吸盘逐个贴住船板；海面看似平静时，漩涡下往往已经张开了巨大的腕冠。",
+    "Kraken is the colossal tentacled sea monster of northern European legend. Its long arms reach beneath ships, attaching suckers to their planks; a calm surface can conceal an immense crown of arms beneath a whirlpool.",
   ],
   [
     "hydra",
-    "海德拉借鉴希腊多首水蛇传说；古典故事的头数与本作三头设定不同。三个头独立巡视，表现水蛇的警戒感。",
-    "Hydra adapts the Greek many-headed water serpent; this game's three heads differ from classical versions and survey their surroundings independently.",
+    "海德拉承载希腊多首水蛇的传说。三颗蛇首各自警戒，长颈在水中交错盘绕；即使一颗头盯住来客，另外两颗仍会巡视领地两侧的暗流。",
+    "Hydra carries the legend of the Greek many-headed water serpent. Its three heads watch independently as long necks coil through the water; while one studies an intruder, the others survey the currents on either side.",
   ],
   [
     "leviathan",
-    "利维坦借鉴古代文献中的巨型海怪意象，鳞甲与长躯表现不可轻犯的威严。模型是原创改编，不是古代动物的科学复原。",
-    "Leviathan adapts an ancient sea-monster image with imposing scales and an elongated body. This original model is not a scientific reconstruction.",
+    "利维坦是古老文献中令人敬畏的深海巨兽。重叠鳞甲包裹修长身躯，脊冠划开暗流；它经过时，海床上的细沙会像受到无形潮汐牵引般缓缓升起。",
+    "Leviathan is the fearsome deep-sea giant of ancient writings. Overlapping scales enclose its long body while a ridged crest parts dark currents; sand rises slowly from the seabed wherever it passes.",
   ],
   [
     "yacumama",
-    "河母巨蛇借鉴亚马逊的Yacumama水中巨蛇传说，长躯与沉根连成隐蔽轮廓。本作技能为原创，并非民俗的逐字复现。",
-    "Yacumama adapts Amazonian giant water-serpent folklore, merging its silhouette with submerged roots. Its abilities are original, not a literal folklore reproduction.",
+    "河母巨蛇源于亚马逊的Yacumama水蛇传说。它的长躯与沉根连成隐蔽轮廓；水下传来的缓慢波动，往往是它现身的前兆。",
+    "Yacumama belongs to Amazonian giant water-serpent folklore. Its long silhouette merges with submerged roots, and a slow disturbance in the water often precedes its arrival.",
   ],
   [
     "wenyao",
-    "文鳐鱼借鉴《山海经》中的有翼鱼形象。本作以细长鳐身和双翼展开滑行，古籍意象与现代蝠鲼不是同一物种。",
-    "Wenyao adapts a winged fish from the Classic of Mountains and Seas with a slender ray-like body, not a modern manta species.",
+    "文鳐鱼承载《山海经》中有翼鱼的意象。细长的身躯展开宽翼，在云水之间借风滑行，翼缘的明纹随着转弯逐次显露。",
+    "Wenyao carries the winged-fish image of the Classic of Mountains and Seas. Its slender body spreads broad wings to glide between cloud and water, revealing bright markings along the wing edges through each turn.",
   ],
   [
     "luoyu",
-    "蠃鱼借鉴《山海经》的鱼身鸟翼意象，宽身和成对翼面与细长文鳐不同。颜色、速度与技能均为本作改编。",
-    "Luoyu adapts the Classic's fish-body, bird-wing image with a broad body, unlike slender Wenyao. Colors, speeds and abilities are game adaptations.",
+    "蠃鱼来自《山海经》的鱼身鸟翼意象。宽厚的鱼身与成对翼面托住长尾，滑翔时双翼向后掠开，落回水中后又顺着身侧收拢。",
+    "Luoyu belongs to the Classic of Mountains and Seas and its fish-body, bird-wing imagery. A broad body and paired wings support a long tail; its wings sweep back in flight and fold along its sides on returning to water.",
   ],
   [
     "chiru",
-    "赤鱬借鉴《山海经》中带有人面意象的鱼。本作把传说转化为可辨认的赤色游灵，动作属于艺术想象。",
-    "Chiru adapts the Classic's human-faced fish image into a recognizable red swimming spirit. Its motion is an artistic imagining.",
+    "赤鱬是《山海经》中带有人面意象的鱼。扁深的赤色身躯缓缓穿过莲根，圆尾轻摆，脸部的轮廓偶尔在浅水反光中显露。",
+    "Chiru is the human-faced fish of the Classic of Mountains and Seas. Its deep red body passes through lotus roots with a softly moving round tail, the contours of its face occasionally appearing in reflected light.",
   ],
   [
     "xuangui",
-    "旋龟借鉴《山海经》的异龟形象，鸟首与蛇尾使它不同于普通乌龟。它也不同于四象之一的玄武。",
-    "Xuangui adapts the Classic's unusual turtle with a bird-like head and serpent tail, distinct from the Four Symbols' Black Tortoise.",
+    "旋龟是《山海经》中的异龟，鸟首与蛇尾使它不同于普通乌龟。它沿浅池石缝寻食，缩入甲壳时长尾仍会缓慢摆动，与镇守北方的玄武各有自己的形貌。",
+    "Xuangui is an unusual turtle from the Classic of Mountains and Seas, with a bird-like head and serpent tail. It searches the cracks of shallow pools; even when it retreats into its shell, its long tail keeps moving, distinct from the northern guardian Black Tortoise.",
   ],
   [
     "lushu",
-    "鹿蜀借鉴《山海经》的白首、虎纹与马形意象。作为山地走兽，它在真实地面行进，飞跃只用于短暂动作。",
-    "Lushu adapts the Classic's horse-like beast with a white head and tiger markings. It travels on terrain, leaping only briefly.",
+    "鹿蜀是《山海经》中白首、虎纹而似马的走兽。它低头穿过桃林，粗壮四肢踏稳山地，长尾在转身时扫过枝叶。",
+    "Lushu is the horse-like beast with a white head and tiger markings in the Classic of Mountains and Seas. It moves head-low through peach woods, planting strong limbs on mountain ground as its long tail brushes foliage through turns.",
   ],
   [
     "bifang",
-    "毕方借鉴古籍中的单足鸟意象。本作以鸟翼、长喙与火色羽毛表现神话气息，不把它当作现实鸟种。",
-    "Bifang adapts the ancient one-legged bird image with wings, a long bill and fiery plumage; it is not a real bird species.",
+    "毕方是古籍中以单足形象闻名的神鸟。长喙与火色羽毛勾出锐利轮廓，飞过山林时翼下映出暖色，停落枝头后便收起双翼警戒四周。",
+    "Bifang is the legendary bird known for its single leg. A long bill and fiery plumage define its sharp silhouette; warm colors show beneath its wings over the woodland, before it folds them and surveys its surroundings from a branch.",
   ],
   [
     "nine_tail_fox",
-    "九尾狐借鉴青丘等古代传说意象，九条尾巴形成鲜明轮廓。本作的追逐、跳跃与食性是原创玩法。",
-    "Nine-tailed Fox adapts ancient Qingqiu-associated lore through nine distinct tails. Pursuit, leaps and diet here are original gameplay.",
+    "九尾狐与青丘等古代传说相连，九条长尾形成鲜明轮廓。它在山间低伏潜行，转身时尾巴依次展开，掩去足迹后又没入桃林。",
+    "Nine-tailed Fox belongs to ancient Qingqiu-associated lore. Its nine long tails form a distinctive silhouette as it stalks low through the mountains, spreading them in sequence through turns before disappearing into peach woods.",
   ],
   [
     "hujiao",
-    "虎蛟借鉴《山海经》的鱼身蛇尾意象；它并不是一只在水中游动的老虎。长尾与鳍肢连接水中怪兽的轮廓。",
-    "Hujiao adapts the Classic's fish body and serpent tail, not a swimming tiger. Its fins and long tail form an aquatic monster silhouette.",
+    "虎蛟是《山海经》中鱼身蛇尾的水中异兽。粗壮前身与绵长尾部在暗水中交替显露，鳍肢沿水流收放，转弯时尾端绕出悠长的弧线。",
+    "Hujiao is the fish-bodied, serpent-tailed water beast of the Classic of Mountains and Seas. Its powerful forebody and long tail emerge in turn through dark water, with fins following the current and the tail tracing a broad curve through bends.",
   ],
   [
     "gudiao",
-    "蛊雕借鉴《山海经》的有角异兽意象，鹰状前段与锐爪使它具有压迫感。具体飞行动作属于本作改编。",
-    "Gudiao adapts the Classic's horned beast image with a raptor-like front and sharp claws. Its exact flight behavior is a game adaptation.",
+    "蛊雕是《山海经》中有角的凶兽。鹰状前身与锐爪形成压迫轮廓，它常在高处盘旋，贴近山崖时将双翼收窄，角尖先从薄雾中显露。",
+    "Gudiao is the horned fierce beast of the Classic of Mountains and Seas. A raptor-like forebody and sharp claws form an imposing silhouette; it circles high and narrows its wings near cliffs, its horn emerging first through mist.",
   ],
   [
     "zheng",
-    "狰借鉴《山海经》中豹形、多尾、带角的异兽。回身时多尾随动作分开，头角勾出鲜明轮廓；本作的栖地与行动为艺术改编。",
-    "Zheng adapts the Classic's horned, multi-tailed leopard-like beast. Its tails separate through turns while a horn defines the profile; its habitat and movement here are artistic adaptations.",
+    "狰是《山海经》中豹形、多尾而带角的异兽。粗壮肩背伏在岩影中，回身时多尾依次分开；它的头角与紧贴地面的步态，让远处的旅人也能认出它。",
+    "Zheng is the horned, multi-tailed leopard-like beast of the Classic of Mountains and Seas. Its powerful shoulders crouch in rocky shadows, its tails separating through a turn; its horn and low stance make it recognizable even at a distance.",
   ],
   [
     "bashe",
-    "巴蛇借鉴古籍中能吞食巨兽的长蛇意象。本作保留绵长蛇身与沿身传播的波动，夸张体型属于神话改编。",
-    "Bashe adapts the ancient gigantic serpent image, retaining a long body and traveling waves. Its exaggerated scale belongs to mythic adaptation.",
+    "巴蛇承载古籍中能吞食巨兽的长蛇意象。绵长身躯沿水岸盘绕，侧向波动从颈后一路传向尾尖；它藏身时，远处露出的蛇身常被误认成一段沉根。",
+    "Bashe carries the ancient image of a serpent able to swallow giant beasts. Its long body coils along the water, lateral waves traveling from neck to tail; exposed sections can be mistaken for submerged roots.",
   ],
   [
     "kui",
-    "夔借鉴古代单足兽的意象，粗壮躯干与独特承重姿态区别于四足牛。雷鸣般的气势来自神话想象。",
-    "Kui adapts an ancient one-legged beast with a massive body and distinctive support posture, unlike a four-legged ox. Its thunderous presence is mythic.",
+    "夔是古代传说中的单足巨兽。厚重躯干与独特承重姿态区别于四足牛，落地时扬起薄雾，低沉鸣声像雷鸣般越过仙岛山谷。",
+    "Kui is the one-legged giant of ancient legend. Its massive body and distinctive support posture set it apart from a four-legged ox; mist lifts at its landing while a low, thunder-like call carries across the island valleys.",
   ],
   [
     "kun",
-    "鲲来自《庄子·逍遥游》的北冥巨鱼意象，化而为鹏才成为大鸟。本作让鲲游于云海，是明确的超现实改编。",
-    "Kun comes from Zhuangzi's immense northern fish that transforms into Peng. Cloud-swimming Kun is an explicit surreal adaptation.",
+    "鲲是《庄子·逍遥游》中来自北冥的巨鱼，化而为鸟则名为鹏。宽阔头部、云纹背脊与横向月牙尾承托庞大身躯，游过云海时像一座缓缓移动的山。",
+    "Kun is the immense northern fish of Zhuangzi's Free and Easy Wandering, becoming Peng when it changes into a bird. A broad head, cloud-marked back and horizontal crescent tail support its vast body as it travels through the cloud sea like a moving mountain.",
+  ],
+  [
+    "peng",
+    "鹏是《庄子·逍遥游》中由鲲变化而成的巨鸟。钩喙、厚重胸羽与层叠长翼形成鲜明轮廓，展翼时遮过云光，收翼时在仙山之间划出悠长弧线。",
+    "Peng is the immense bird that Kun becomes in Zhuangzi's Free and Easy Wandering. Its hooked bill, heavy chest feathers and layered wings form a distinctive silhouette, shading cloudlight when spread and tracing long arcs between the peaks when folded.",
+  ],
+  [
+    "gate_dragon",
+    "龙门云龙承接鲤鱼跃龙门的民间传说。它保留鲤鱼扇尾，力量与青龙神兽有明确区别。",
+    "Dragon-Gate Cloud Dragon recalls the carp's Dragon Gate folktale. Its carp-like tail and lesser power distinguish it from the Azure Dragon guardian.",
   ],
   [
     "azure_dragon",
-    "青龙是四象中镇守东方的神兽，蜿蜒长躯与角须表现东方龙的王者意象。本作让它巡守东侧仙山。",
-    "Azure Dragon is the eastern guardian among the Four Symbols. Its winding body, horns and whiskers express eastern dragon majesty over the eastern peaks.",
+    "青龙是四象中镇守东方的神兽。蜿蜒长躯、角须与鬃冠显出王者威仪，它沿东侧仙山巡行，盘绕的身影时隐时现于松云之间。",
+    "Azure Dragon is the eastern guardian among the Four Symbols. Its winding body, antlers, whiskers and mane express regal authority as it patrols the eastern peaks, coiling in and out of clouds above the pines.",
   ],
   [
     "white_tiger",
-    "白虎是四象中镇守西方的神兽。本作借鉴真实虎的粗壮肩胸、虎纹与扑击结构，让它成为速度见长的地面守护者。",
-    "White Tiger guards the west among the Four Symbols. Real tiger shoulders, stripes and pouncing anatomy inspire its fast ground-bound game form.",
+    "白虎是四象中镇守西方的神兽。粗壮肩胸、黑白虎纹与低伏姿态充满力量，奔行时后肢接连蹬地，扑击前的短暂静止更显凌厉。",
+    "White Tiger is the western guardian among the Four Symbols. Powerful shoulders, black-and-white stripes and a low stance convey its strength; hind legs drive its run, and the brief stillness before a pounce sharpens its menace.",
   ],
   [
     "vermilion_bird",
-    "朱雀是四象中镇守南方的神鸟，并不等同于所有凤凰传说。本作以冠羽、长尾和烈火意象塑造强攻的空中守护者。",
-    "Vermilion Bird is the southern Four Symbols guardian, not interchangeable with every phoenix legend. Crest, long tail and fire shape its aerial form.",
+    "朱雀是四象中镇守南方的神鸟。高冠、层叠鬃羽与长尾在天空中展开烈火般的轮廓，振翼时暖光掠过山头，收拢双翼后又像一束疾驰的流火。",
+    "Vermilion Bird is the southern guardian among the Four Symbols. A high crest, layered neck feathers and long tail form a fiery silhouette; warm light crosses the peaks with each wingbeat before folded wings turn it into a racing flame.",
   ],
   [
     "black_tortoise",
-    "玄武是北方的龟蛇合体意象，厚甲与缠绕长蛇表达坚固防御。本作安排它镇守北池，不将其画成普通小乌龟。",
-    "Black Tortoise is the northern turtle-and-serpent symbol. Heavy armor and a coiling snake express defense as it guards the northern pool.",
+    "玄武是北方的龟蛇合体神兽。厚重甲壳与缠绕长蛇构成坚固轮廓，它缓缓巡过北池石岸，蛇首巡视四周，甲纹在水光下若隐若现。",
+    "Black Tortoise is the northern turtle-and-serpent guardian. A heavy shell and coiling snake form its fortified silhouette as it moves along the northern pool; the serpent surveys the surroundings while patterns on the armor appear through reflected light.",
   ],
 ];
-for (const [kind, zh, en] of legends) add(kind, "传说与本作改编", zh, en);
+for (const [kind, zh, en] of legends) add(kind, "神话传说", zh, en);
 const rares = [
   [
     "golden_manta",
-    "金翎蝠鲼以真实蝠鲼的宽翼和头鳍为基础，金色鳍脉像外礁碎光。它是本作独有珍兽，恩赐并非真实生物功能。",
-    "Gilded Manta adapts broad manta wings and cephalic fins with gold reef-light veins. This original rare's blessing is fictional.",
+    "金翎蝠鲼的宽翼和头鳍穿过外礁碎光，金色鳍脉随着转弯逐渐明亮。它绕开繁闹浅滩，只在隐蔽石脊与清澈水层之间留下短暂的金影。",
+    "Gilded Manta passes through the broken light of outer reefs with broad wings and cephalic fins, its golden fin veins brightening through each turn. It avoids the busy shallows, leaving fleeting gold shapes between secluded ridges and clear water.",
   ],
   [
     "pearl_nautilus",
-    "珠纹鹦鹉螺将螺旋壳、壳口头部与纤细腕束化作古城的活印记。它在隐蔽石台巡游，珠纹与高速皆属幻想。",
-    "Pearl Nautilus combines a spiral shell, aperture-bound head and fine arms into a living city emblem. Pearl markings and speed are fictional.",
+    "珠纹鹦鹉螺的螺旋壳、壳口头部与纤细腕束，像古城中游动的活印记。它穿过隐蔽石台，壳面珠纹在转身的一瞬与远处贝光相映。",
+    "Pearl Nautilus resembles a living emblem of the ancient city, with a spiral shell, aperture-bound head and fine arms. It crosses secluded ledges, its pearl markings briefly meeting the light of distant shells through each turn.",
   ],
   [
     "crimson_sail",
-    "绯帆长吻鱼以高背帆与细长吻部穿过风暴残骸。帆上的纹路像旧船的红色航旗，这是一种原创珍兽。",
-    "Crimson Sailfin crosses storm wreckage with a tall sail and slender bill. Its markings resemble an old red ensign: original rare-creature lore.",
+    "绯帆长吻鱼以高背帆与细长吻部穿过风暴残骸。帆上的纹路像旧船的红色航旗，在阴暗海水里短暂闪过。",
+    "Crimson Sailfin crosses storm wreckage with a tall sail and slender bill. Its markings resemble an old red ensign briefly crossing the dark water.",
   ],
   [
     "glass_prawn",
-    "蓝灯玻璃虾的分节腹、长触角和尾扇借鉴甲壳动物，淡蓝壳纹藏在深沟岩影里。它是幻想珍兽，并非新发现虾种。",
-    "Blue-lantern Prawn borrows segmented abdomen, antennae and tail fan from crustaceans. Its pale-blue shell hides in trench shadows; it is fictional.",
+    "蓝灯玻璃虾的分节腹、长触角和尾扇藏在深沟岩影里。它先探出触角，继而用腹部轻轻一弹，从石缝间带出一道淡蓝与金色交织的微光。",
+    "Blue-lantern Prawn hides its segmented abdomen, long antennae and tail fan in trench shadows. Its antennae emerge first, followed by a flick of its abdomen that carries a faint blue-and-gold glimmer out of the stone crack.",
   ],
   [
     "jade_arowana",
-    "翡翠银龙鱼以银龙鱼的长身与上翘口为基础，玉色鳞光沿雨林根影闪过。它的特殊恩赐属于本作幻想。",
-    "Jade Arowana adapts the long body and upturned mouth of arowanas, flashing jade scales through root shadows. Its blessing is fictional.",
+    "翡翠银龙鱼有细长身躯与上翘口，玉色鳞光沿雨林根影闪过。它绕过沉枝时尾鳍轻摆，转眼便将明亮轮廓藏入较暗的水流。",
+    "Jade Arowana has a long body and upturned mouth, flashing jade scales through rainforest root shadows. Its tail moves softly around submerged branches before the bright silhouette slips into a darker current.",
   ],
   [
     "crystal_seraph",
-    "六翼晶冠体以六重翼膜围护纺锤形感官囊，像盐脉中移动的晶花。它是原创外星珍兽，不代表木卫二生命的证据。",
-    "Six-wing Crystal Seraph encloses a spindle-like sensory sac within six membranes, an original alien rare rather than evidence of Europan life.",
+    "六翼晶冠体以六重翼膜围护纺锤形感官囊，像盐脉中移动的晶花。它依次展开翼膜穿过冰下岩拱，晶冠的淡光随身躯旋转而缓缓流动。",
+    "Six-wing Crystal Seraph encloses a spindle-like sensory sac within six membranes, resembling a crystal flower moving through brine veins. Its membranes unfold in sequence beneath icy arches as faint light moves across its turning crown.",
   ],
   [
     "gilded_cloud_carp",
-    "流金云鲤将鲤鱼长须与云翼融为一体，只在桃林上方短暂显露金鳞。它是本作原创，不对应古籍中的特定鱼种。",
-    "Gilded Cloud Carp combines carp barbels and cloud wings, briefly showing gold scales above peach groves. It is original rather than an attested ancient species.",
+    "流金云鲤将长须与云翼融为一体，只在桃林上方短暂显露金鳞。它随风折返，尾后的微光转瞬便消失在云里。",
+    "Gilded Cloud Carp combines carp barbels and cloud wings, briefly showing gold scales above peach groves. It turns with the wind, its tail glow vanishing into the clouds.",
   ],
 ];
-for (const [kind, zh, en] of rares) add(kind, "原创背景", zh, en);
+for (const [kind, zh, en] of rares) add(kind, "背景故事", zh, en);
 for (const [kind, zh, en] of CREATURE_LORE) {
   const previous = records.get(kind);
   add(

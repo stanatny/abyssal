@@ -1,11 +1,16 @@
 import { sweptCaptureFraction } from "./prey_capture.js";
 
 /** 判断普通猎手是否仍可威胁玩家；至少大出5米才属于绝对体型优势。 */
-export function canPredatorRetaliate(playerLength, preyLength) {
+export function canPredatorRetaliate(
+  playerLength,
+  preyLength,
+  threatCeilingLength = Infinity,
+) {
   return (
     Number.isFinite(playerLength) &&
     Number.isFinite(preyLength) &&
     preyLength > 0 &&
+    playerLength < threatCeilingLength &&
     playerLength - preyLength < 5
   );
 }

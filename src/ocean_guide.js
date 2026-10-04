@@ -1,3 +1,5 @@
+import { creatureGuideSkills } from "./creature_guide_skills.js";
+import { PENGLAI_TRANSFORMATION_FORMS } from "./penglai_transformation_species.js";
 import { getCreatureBackground } from "./creature_backgrounds.js";
 import { REGIONAL_RARES } from "./regional_rare.js";
 import { PENGLAI_LORD_DESCRIPTIONS } from "./penglai_lords.js";
@@ -91,7 +93,7 @@ const DESCRIPTIONS = {
     text: "发光腔膨胀、长腕收拢时预告一次锁定冲锋；突袭后有3秒恢复期。守护热泉盆地，始终留在自己的领域附近。",
     counter:
       "看到冲锋流纹后横向闪避，利用岩拱遮挡；恢复时从侧翼咬击实体躯干，脱离至少0.35秒再回来。需要25米和三次有效侧咬。",
-    realSize: "幻想电影启发的原创外星海怪，不代表木卫二存在大型生命的证据。",
+    realSize: "幻想外星海怪，不代表木卫二存在大型生命的证据。",
   },
   abyss_weaver: {
     name: "星渊织母",
@@ -105,7 +107,7 @@ const DESCRIPTIONS = {
     text: "展开长腕预告三段压力扇区，再扫出潮汐织网；扇区之间与上下均有逃生空间。",
     counter:
       "避开紫色压力带，利用岩拱遮挡；织网后的3秒恢复期，从侧面咬击躯干，再脱离接触。",
-    realSize: "仅为原创幻想外星海怪，不代表木卫二存在大型生命的证据。",
+    realSize: "幻想外星海怪，不代表木卫二存在大型生命的证据。",
   },
   kraken: {
     name: "克拉肯",
@@ -115,7 +117,7 @@ const DESCRIPTIONS = {
     color: "#c5a0ff",
     ability: "深渊漩涡",
     appearance:
-      "北欧海怪传说启发的原创形象：八条长触腕舒展盘卷，双列吸盘沿腕内侧排列；臂根与末梢错相摆动。",
+      "北欧海怪传说中的巨兽：八条长触腕舒展盘卷，双列吸盘沿腕内侧排列；臂根与末梢错相摆动。",
     text: "预判你的前进位置布置深渊漩涡，牵引附近目标并抽走体力，漩涡中心还会造成伤害。追击时会拦截路线，而不是只停留在领地中心。",
     counter:
       "看到漩涡预警后改变路线，利用岩柱遮挡；技能后的3秒恢复期，从侧翼朝向躯干接近咬击，再退出接触范围。",
@@ -152,7 +154,7 @@ const DESCRIPTIONS = {
     color: "#efb88c",
     ability: "毁灭冲锋",
     appearance:
-      "《约伯记》的紧密甲鳞与巨颚、《以赛亚书》的曲折海蛇意象启发了这条原创海兽：重甲前躯连接侧向游摆的长尾，并非真实动物复原。",
+      "古代传说中的紧密甲鳞、巨颚与曲折海蛇相连：重甲前躯连接侧向游摆的长尾，并非真实动物复原。",
     text: "深渊中体型最大的领主，会拦截你的逃跑路线，蓄力末段锁定方向后以100米/秒高速冲撞。普通冲刺无法直线甩开。",
     counter:
       "等待最后的路线锁定提示，立即侧向避开冲撞；冲锋后3秒恢复期从躯干侧面向内切入，咬中后拉开再进攻。",
@@ -188,15 +190,17 @@ export function buildOceanCatalog(regionId) {
       color: entry.color || (entry.kind === "orca" ? "#a1e8d5" : "#c2a5e8"),
       appearance:
         entry.kind === "mechanical_shark"
-          ? "原创机械鲨鱼：深蓝与钴蓝分块装甲、铜色工程带、宽肩护甲、测距传感器、铰接鳍尾和腹部鱼雷舱；双推进器在冲刺时喷出蓝白与橙色尾焰。"
+          ? "机械鲨鱼：深蓝与钴蓝分块装甲、铜色工程带、宽肩护甲、测距传感器、铰接鳍尾和腹部鱼雷舱；双推进器在冲刺时喷出蓝白与橙色尾焰。"
           : entry.kind === "zombie_shark"
-            ? "原创亡灵鲨鱼：头颌、侧腹、背脊和尾柄有不规则撕裂与裸露骨架，断鳍和伤口带有血迹，低压眉骨与尖牙呈现凶狠神态；并非真实动物。"
+            ? "亡灵鲨鱼：头颌、侧腹、背脊和尾柄有不规则撕裂与裸露骨架，断鳍和伤口带有血迹，低压眉骨与尖牙呈现凶狠神态；并非真实动物。"
             : undefined,
       length: startingLength(entry),
       size: tr`${startingLength(entry)}—30 m（成长玩法）`,
       habitat: regionId === "penglai" ? "蓬莱浅水与云海" : "本作海洋全域",
-      ability: tr`主动 · ${entry.active.name} / 被动 · ${entry.passive.name}`,
-      text: tr`${entry.active.description} 激活起冷却${entry.active.cooldown}秒。被动：${entry.passive.description}`,
+      ability: entry.active.name,
+      text: entry.description,
+      activeSkill: entry.active,
+      passiveSkill: entry.passive,
       counter:
         regionId === "penglai"
           ? "蓬莱可在水中与空中自由行进，不受破水蓄势限制；四种角色的技能与消耗保持不变，山石与屋顶仍会阻挡移动和攻击。"
@@ -215,10 +219,13 @@ export function buildOceanCatalog(regionId) {
       habitatNote:
         "可选角色共享自动接触捕食；特殊技能使用J或手机技能按钮。陡角度低头撞到海床或地板时，会短暂平滑抬头到平游；仍可向上和左右转向，开阔水域不自动回正。",
     })),
-    ...ALL_SPECIES.map((entry) => regionalSpecies.get(entry.kind) || entry).map(
-      (config) => ({
+    ...[...ALL_SPECIES, ...PENGLAI_TRANSFORMATION_FORMS]
+      .map((entry) => regionalSpecies.get(entry.kind) || entry)
+      .map((config) => ({
         id: config.kind,
         kind: config.kind,
+        formSourceKind: config.formSourceKind,
+        skills: creatureGuideSkills(config, config),
         name: config.label,
         latin: config.latin,
         category: config.category,
@@ -264,8 +271,7 @@ export function buildOceanCatalog(regionId) {
         habitatNote: config.schoolProfiles?.some((group) => group.cityResident)
           ? tr`${config.habitatNote} ${tr`亚特兰蒂斯另有鱼群栖息在古城街巷、上下柱廊、月湾古港地下厅、沉没市集内庭和波塞冬地宫。该深水分布为幻想生态；小鱼主要供较小角色补给，成年角色应寻找城区内的中大型猎物。普通住宅宝箱与陶器是探索陈设；公共建筑隐藏着海螺钥匙；需钥匙与真正守宝者的印记才能打开神庙地宫宝箱，箱中圣珠是本海域的胜利宝物。`}`
           : config.habitatNote,
-      }),
-    ),
+      })),
     ...SURFACE_BIRDS.map((b) => ({
       ...b,
       id: b.kind,
@@ -279,6 +285,7 @@ export function buildOceanCatalog(regionId) {
       id: config.kind,
       kind: config.kind,
       ...DESCRIPTIONS[config.kind],
+      skills: creatureGuideSkills(config, DESCRIPTIONS[config.kind]),
       text:
         tr`未交战时也会在自己的领地内缓慢巡游，靠近时才发动追猎。` +
         " " +
@@ -360,6 +367,7 @@ export function buildOceanCatalog(regionId) {
       id: config.kind,
       name: config.label,
       role: "专属珍兽",
+      skills: creatureGuideSkills(config, config),
       size: `${config.length} m`,
       habitat: config.habitatLabel,
       text: config.description,
@@ -373,10 +381,33 @@ export function buildOceanCatalog(regionId) {
     .map((entry) => ({
       ...localizeRecord({ ...entry, ...getCreatureBackground(entry.kind) }),
       regionIds: catalogRegionIds(entry),
-      searchText: `${entry.name} ${entry.ability} ${t(entry.name, [], "en")} ${t(entry.ability, [], "en")}`,
+      searchText: [
+        entry.name,
+        entry.ability,
+        entry.passiveSkill?.name || "",
+        ...(entry.skills || []).map((skill) => skill.name),
+      ]
+        .flatMap((text) => [text, t(text, [], "en")])
+        .join(" "),
     }))
     .sort(compareCatalogEntries);
 }
+/** 技能卡只使用实际注册的能力；普通习性继续显示在独立正文中。 */
+function renderCreatureSkillCards(entry) {
+  if (!entry.skills?.length) return "";
+  return `<div class="guide-creature-skills">${entry.skills
+    .map((skill) => {
+      const timing = Number.isFinite(skill.windup)
+        ? t("预警{0}秒 · 恢复窗口{1}秒", [skill.windup, skill.recovery])
+        : "";
+      const cooldown = Number.isFinite(skill.cooldownMin)
+        ? t("冷却{0}—{1}秒追击时间", [skill.cooldownMin, skill.cooldownMax])
+        : "";
+      return tr`<section class="guide-creature-skill" data-skill-id="${skill.id}" data-skill-type="${skill.type}"><span class="guide-skill-type">${skill.type === "active" ? "主动技能 · 自动发动" : "被动特性"}</span><h4>${skill.name}</h4><p>${t(skill.description, skill.values || [])}</p><p class="guide-skill-response"><b>应对方式</b> ${skill.counter}</p>${timing || cooldown ? tr`<small class="guide-skill-cooldown">${[timing, cooldown].filter(Boolean).join(" · ")}</small>` : ""}</section>`;
+    })
+    .join("")}</div>`;
+}
+
 export let OCEAN_CATALOG = buildOceanCatalog();
 
 /** 归属直接沿用可玩海域的实际物种与领主名册，不把全量注册等同于生成。 */
@@ -409,7 +440,7 @@ function catalogRegionIds(entry) {
         "mythic",
       ].includes(entry.category)
     )
-      return region.speciesKinds.includes(entry.kind);
+      return region.speciesKinds.includes(entry.formSourceKind || entry.kind);
     if (entry.category === "surface")
       return (
         SURFACE_BIRDS.find((b) => b.kind === entry.kind)?.regions.includes(
@@ -463,7 +494,7 @@ function bermudaGuideEntries() {
       symbol: "⚓",
       effect: "破口、贯通货舱与多层中庭",
       habitat: "沉船海床",
-      text: "396米长的原创四烟囱邮轮沉在深水中。可由右舷大破口、艉部中央开口或敞开的中庭进入，货舱、楼梯与家具沿两翼布置。它是可进入的地貌，不是整船实心碰撞。",
+      text: "396米长的四烟囱邮轮沉在深水中。可由右舷大破口、艉部中央开口或敞开的中庭进入，货舱、楼梯与家具沿两翼布置。它是可进入的地貌，不是整船实心碰撞。",
       counter:
         "先声呐观察外围巨兽，在中央宽阔通道穿行；侧舱更适合小角色。船内贝珠微光帮助辨认入口。",
       color: "#86bcb9",
@@ -526,7 +557,7 @@ function buildRewardDetails() {
       latin: "VITALITY SUPPLY",
       role: "即时恢复",
       keywords: "医疗 恢复 补充 生命 体力 饥饿",
-      text: "触碰后立即恢复50点生命、50点体力和50点饥饿值，各项最多恢复至100，并解除体力耗尽后的疲惫状态。",
+      text: "触碰后立即恢复50点生命、50点体力和50点饥饿值，各项不超过当前上限，并解除体力耗尽后的疲惫状态。",
       counter:
         "受伤、疲惫或饥饿时拾取，能同时补充三项生存状态。生命、体力和饥饿都充足时，可记住位置留待需要时再来。",
     },
@@ -588,7 +619,7 @@ export function createOceanGuide(trigger) {
   dialog.setAttribute("aria-labelledby", "guide-title");
   setMarkup(
     dialog,
-    tr`<div class="guide-heading"><div><div class="guide-eyebrow">THE OCEAN ARCHIVE / 海洋档案</div><h2 id="guide-title">海洋图鉴</h2></div><button class="guide-close" aria-label="关闭海洋图鉴">关闭 <kbd>ESC</kbd></button></div><div class="guide-filters" role="group" aria-label="按档案分类筛选"></div><div class="guide-content"><aside class="guide-sidebar"><label for="guide-search">检索生物与奖励</label><input id="guide-search" type="search" placeholder="生物、奖励或能力" autocomplete="off"><div class="guide-list" aria-label="档案列表"></div></aside><section class="guide-detail" aria-label="当前档案资料"><div class="guide-preview" aria-label="生物三维展示"><span class="guide-specimen-tag">LIVE SPECIMEN / 可拖动旋转</span><div class="guide-variant-controls" role="group" aria-label="预览成年人物" hidden><span>人物外观</span><button type="button" data-human-sex="male" aria-pressed="true">男性</button><button type="button" data-human-sex="female" aria-pressed="false">女性</button></div><div class="guide-reward-display" hidden><div class="guide-eyebrow">OCEAN REWARDS / 海洋奖励</div><div class="guide-reward-orb" aria-hidden="true"><span></span></div><b class="guide-reward-effect"></b><small>在海洋中触碰拾取</small></div></div><div class="guide-info" aria-live="polite"></div></section></div><div class="guide-footer">本作生态、幻想生物与海洋奖励<span>← → 切换档案 · 生物可拖动旋转</span></div>`,
+    tr`<div class="guide-heading"><div><div class="guide-eyebrow">THE OCEAN ARCHIVE / 海洋档案</div><h2 id="guide-title">海洋图鉴</h2></div><button class="guide-close" autofocus aria-label="关闭海洋图鉴">关闭 <kbd>ESC</kbd></button></div><div class="guide-filters" role="group" aria-label="按档案分类筛选"></div><div class="guide-content"><aside class="guide-sidebar"><label for="guide-search">检索生物与奖励</label><input id="guide-search" type="search" placeholder="生物、奖励或能力" autocomplete="off"><div class="guide-list" aria-label="档案列表"></div></aside><section class="guide-detail" aria-label="当前档案资料"><div class="guide-preview" aria-label="生物三维展示"><span class="guide-specimen-tag">LIVE SPECIMEN / 可拖动旋转</span><div class="guide-variant-controls" role="group" aria-label="预览成年人物" hidden><span>人物外观</span><button type="button" data-human-sex="male" aria-pressed="true">男性</button><button type="button" data-human-sex="female" aria-pressed="false">女性</button></div><div class="guide-reward-display" hidden><div class="guide-eyebrow">OCEAN REWARDS / 海洋奖励</div><div class="guide-reward-orb" aria-hidden="true"><span></span></div><b class="guide-reward-effect"></b><small>在海洋中触碰拾取</small></div></div><div class="guide-info" aria-live="polite"></div></section></div><div class="guide-footer">本作生态、幻想生物与海洋奖励<span>← → 切换档案 · 生物可拖动旋转</span></div>`,
   );
   document.body.append(dialog);
   const regionRow = document.createElement("div");
@@ -943,22 +974,26 @@ export function createOceanGuide(trigger) {
       showRegionalFacts(entry);
       return;
     }
-    const hunter = getHunterAbility(entry);
     const combat =
       entry.category === "lord"
-        ? tr`${"25米可交战 · 技能后3秒恢复窗 · 三次侧翼攻击，命中后需脱离再接近"} · ${tr`每次有效咬击恢复${BOSS_BITE_HUNGER}点饱食（最多100），不额外回血或成长；击败奖励另计。`}`
+        ? tr`${"25米可交战 · 三次侧翼攻击，命中后需脱离再接近"} · ${tr`每次有效咬击恢复${BOSS_BITE_HUNGER}点饱食（不超过当前上限），不额外回血或成长；击败奖励另计。`}`
         : entry.category === "player"
           ? tr`巡游 ${characterMovement(entry.characterId).cruiseSpeed} m/s · 冲刺 ${characterMovement(entry.characterId).sprintSpeed} m/s`
-          : hunter
-            ? tr`蓄力 ${hunter.windupDuration} 秒 · 技能冷却 ${hunter.cooldownMin}—${hunter.cooldownMax} 秒追击时间`
-            : entry.role;
+          : entry.role;
     const survival =
       entry.category === "player"
         ? tr`<div class="guide-advice guide-survival"><b>成长与深潜</b><p>幼年先在安全浅滩补给；体型越大，小鱼的营养与成长收益越低，逐步转向外礁中型猎物和深海巨兽。</p><p>${feedingProgressionNote()}</p><p>${tr`显示深度${HUNGER_RULES.shallowDepth * WORLD.displayDepthScale}米内没有深水加成；到${HUNGER_RULES.fullDepth * WORLD.displayDepthScale}米，3米幼年消耗为浅海的${1 + HUNGER_RULES.maxDepthBonus + HUNGER_RULES.juvenileDepthBonus}倍，${HUNGER_RULES.acclimatedLength}米及以上为${1 + HUNGER_RULES.maxDepthBonus}倍，中间平滑变化。深潜前吃饱，空体力不扣生命；饱食耗尽才会失血，回浅海会降低消耗。`}</p></div>`
         : "";
+    const abilities =
+      entry.category === "player"
+        ? tr`<div class="guide-player-skills"><section class="guide-player-skill" data-skill-type="active"><span class="guide-skill-type">主动技能</span><h4>${entry.activeSkill.name}</h4><p>${entry.activeSkill.description}</p><small class="guide-skill-cooldown">${tr`冷却${entry.activeSkill.cooldown}秒`} · ${"J / 手机技能键"}</small></section><section class="guide-player-skill" data-skill-type="passive"><span class="guide-skill-type">被动技能</span><h4>${entry.passiveSkill.name}</h4><p>${entry.passiveSkill.description}</p></section></div>`
+        : renderCreatureSkillCards(entry);
+    const behavior = ["player", "rare"].includes(entry.category)
+      ? ""
+      : tr`<h4>${entry.skills?.length ? "遭遇与习性" : entry.ability}</h4><p>${entry.text}</p>`;
     setMarkup(
       info,
-      tr`<div class="guide-eyebrow">${entry.latin}</div><div class="guide-name-row"><h3>${entry.name}</h3><span>${entry.role}</span></div><div class="guide-facts"><div><small>本作尺度</small><b>${entry.size}</b></div><div><small>活动水层</small><b>${entry.habitat}</b></div></div>${entry.category === "player" && entry.appearance ? tr`<p class="guide-appearance">${entry.appearance}</p>` : ""}${entry.background ? tr`<section class="guide-background"><h4>${entry.backgroundType}</h4><p>${entry.background}</p></section>` : ""}<h4>${entry.ability}</h4><p>${entry.text}</p><div class="guide-advice"><b>生存建议</b><p>${entry.counter}</p></div><small class="guide-combat">${combat}</small>${survival}${entry.realSize ? tr`<div class="guide-advice"><b>生态注记</b><p>${entry.realSize} ${entry.habitatNote || ""}</p></div>` : ""}`,
+      tr`<div class="guide-eyebrow">${entry.latin}</div><div class="guide-name-row"><h3>${entry.name}</h3><span>${entry.role}</span></div><div class="guide-facts"><div><small>本作尺度</small><b>${entry.size}</b></div><div><small>活动水层</small><b>${entry.habitat}</b></div></div>${entry.category === "player" && entry.appearance ? tr`<p class="guide-appearance">${entry.appearance}</p>` : ""}${abilities}${entry.background ? tr`<section class="guide-background"><h4>${entry.backgroundType}</h4><p>${entry.background}</p></section>` : ""}${behavior}<div class="guide-advice"><b>生存建议</b><p>${entry.counter}</p></div><small class="guide-combat">${combat}</small>${survival}${entry.realSize ? tr`<div class="guide-advice"><b>生态注记</b><p>${entry.realSize} ${entry.habitatNote || ""}</p></div>` : ""}`,
     );
     showRegionalFacts(entry);
     if (!renderer) return;
@@ -1039,7 +1074,7 @@ export function createOceanGuide(trigger) {
     renderList();
     lastTime = performance.now();
     loop = requestAnimationFrame(frame);
-    input.focus();
+    dialog.querySelector(".guide-close").focus({ preventScroll: true });
   }
   function close() {
     dialog.close();

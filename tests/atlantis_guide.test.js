@@ -1,10 +1,11 @@
+import { PENGLAI_TRANSFORMATION_FORMS } from "../src/penglai_transformation_species.js";
 import { REGIONAL_RARES } from "../src/regional_rare.js";
 import assert from "node:assert/strict";
 import { registerHooks } from "node:module";
 import test from "node:test";
 import { ATLANTIS_SPECIES } from "../src/atlantis_species.js";
 import { ALL_SPECIES, getRegionSpecies } from "../src/region_ecology.js";
-import { REGIONS } from "../src/expedition_config.js";
+import { CHARACTERS, REGIONS } from "../src/expedition_config.js";
 import { regionZone } from "../src/region_appearance.js";
 import { setLanguage, t } from "../src/i18n.js";
 import { ATLANTIS_EN } from "../src/locales/atlantis_en.js";
@@ -27,6 +28,33 @@ const {
   guideCategoryIds,
 } = await import("../src/ocean_guide.js");
 cssHook.deregister();
+
+test("playable Guide records preserve separate registry abilities and search either name in both languages", () => {
+  try {
+    for (const locale of ["zh-CN", "en"]) {
+      setLanguage(locale);
+      const catalog = buildOceanCatalog("hawaii");
+      for (const character of CHARACTERS) {
+        const entry = catalog.find(
+          (record) => record.characterId === character.id,
+        );
+        assert.deepEqual(entry.activeSkill, character.active);
+        assert.deepEqual(entry.passiveSkill, character.passive);
+        for (const skill of [character.active, character.passive]) {
+          const matches = filterOceanCatalog(catalog, {
+            category: "player",
+            search: t(skill.name, [], locale),
+          });
+          assert.ok(
+            matches.some((match) => match.characterId === character.id),
+          );
+        }
+      }
+    }
+  } finally {
+    setLanguage("zh-CN");
+  }
+});
 
 test("Guide category availability follows the actual region roster, independently of a search", () => {
   const catalog = buildOceanCatalog();
@@ -61,7 +89,10 @@ const placeholders = (value) =>
 
 test("the guide's full and regional catalogs agree with actual species and lord rosters", () => {
   const catalog = buildOceanCatalog();
-  assert.equal(catalog.length, 140 + REGIONAL_RARES.length);
+  assert.equal(
+    catalog.length,
+    140 + REGIONAL_RARES.length + PENGLAI_TRANSFORMATION_FORMS.length,
+  );
   assert.equal(
     catalog.filter((e) =>
       e.regionIds.some((id) => id !== "europa" && id !== "penglai"),
@@ -71,12 +102,18 @@ test("the guide's full and regional catalogs agree with actual species and lord 
         .length,
   );
   assert.equal(new Set(catalog.map((entry) => entry.id)).size, catalog.length);
-  assert.deepEqual(kinds(ordinary(catalog)), kinds(ALL_SPECIES));
+  assert.deepEqual(
+    kinds(ordinary(catalog)),
+    kinds([...ALL_SPECIES, ...PENGLAI_TRANSFORMATION_FORMS]),
+  );
   for (const region of REGIONS.filter((entry) => entry.available)) {
     const visible = filterOceanCatalog(catalog, { regionId: region.id });
     assert.deepEqual(
       kinds(ordinary(visible)),
-      kinds(getRegionSpecies(region.id)),
+      kinds([
+        ...getRegionSpecies(region.id),
+        ...(region.id === "penglai" ? PENGLAI_TRANSFORMATION_FORMS : []),
+      ]),
     );
     assert.deepEqual(
       kinds(visible.filter((entry) => entry.category === "lord")),

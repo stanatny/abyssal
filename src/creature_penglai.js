@@ -1,3 +1,5 @@
+import { PENGLAI_TRANSFORMATION_FORMS } from "./penglai_transformation_species.js";
+import { buildKunPeng } from "./creature_penglai_kun.js";
 import * as THREE from "three";
 import { pgBakeStatic } from "./creature_penglai_art.js";
 import { PENGLAI_SPECIES } from "./penglai_species.js";
@@ -9,7 +11,9 @@ import { buildPenglaiBeast } from "./creature_penglai_beasts.js";
 import { buildPenglaiDragon } from "./creature_penglai_dragons.js";
 import { buildPenglaiSpecial } from "./creature_penglai_special.js";
 export const PENGLAI_CREATURE_KINDS = new Set(
-  [...PENGLAI_SPECIES, ...PENGLAI_LORDS].map((s) => s.kind),
+  [...PENGLAI_SPECIES, ...PENGLAI_TRANSFORMATION_FORMS, ...PENGLAI_LORDS].map(
+    (s) => s.kind,
+  ),
 );
 const normalization = new Map();
 /** 神话模型与图鉴共用工厂；统一全长、头向 -Z、独立关节动作。 */
@@ -17,12 +21,13 @@ export function buildPenglaiCreature(kind, root, motions) {
   const b = new THREE.Group();
   b.name = kind + "_mythic_anatomy";
   root.add(b);
-  if (["cloud_crane", "bifang", "gudiao", "vermilion_bird"].includes(kind))
+  if (["kun", "peng"].includes(kind)) buildKunPeng(kind, b, motions);
+  else if (["cloud_crane", "bifang", "gudiao", "vermilion_bird"].includes(kind))
     buildPenglaiBird(kind, b, motions);
   else if (kind === "white_tiger") buildPenglaiTiger(b, motions, root);
   else if (["lushu", "nine_tail_fox", "zheng", "kui"].includes(kind))
     buildPenglaiBeast(kind, b, motions);
-  else if (["bashe", "hujiao", "azure_dragon"].includes(kind))
+  else if (["bashe", "hujiao", "azure_dragon", "gate_dragon"].includes(kind))
     buildPenglaiDragon(kind, b, motions);
   else if (
     ["xuangui", "black_tortoise", "sword_sage", "lotus_sprite"].includes(kind)

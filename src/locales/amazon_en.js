@@ -50,14 +50,14 @@ export const AMAZON_EN = Object.freeze({
   沉根主宰: "Root Sovereign",
   盘涡追猎: "Coiling Vortex",
   巨颚冲锋: "Jaw Charge",
-  "亚马逊河母蛇传说启发的原创长躯巨兽：橄榄金鳞、黑色斑纹、宽扁蛇头和连续盘游长尾。":
-    "An original river serpent inspired by Yacumama folklore: olive-gold scales, black markings, a broad flat head and a continuously coiling tail.",
+  "亚马逊河母蛇传说中的长躯巨兽：橄榄金鳞、黑色斑纹、宽扁蛇头和连续盘游长尾。":
+    "A river serpent from Yacumama folklore: olive-gold scales, black markings, a broad flat head and a continuously coiling tail.",
   "巡守西支流蛇母深潭。蓄力后制造近身漩涡，吸引靠近的目标；恢复期从侧翼反击。":
     "Patrols the western Serpent Pool. After a warning it creates a close vortex that pulls nearby targets; flank it during recovery.",
   "绕沉根与深潭边缘躲避旋涡，25米后从侧面完成三次独立进攻；每次咬中后离开再切入。":
     "Use roots and pool edges to avoid the vortex. At 25 m, deliver three separate flank attacks, withdrawing between hits.",
-  "原创淡水深渊领主：宽大双颌、交错齿列、层叠骨甲、桨足与根状骨冠，区别于普通凯门鳄。":
-    "An original freshwater Abyss Lord with massive jaws, interlocking teeth, layered armor, paddle limbs and a rootlike bone crown, distinct from ordinary caimans.",
+  "淡水深渊领主：宽大双颌、交错齿列、层叠骨甲、桨足与根状骨冠，区别于普通凯门鳄。":
+    "A freshwater Abyss Lord with massive jaws, interlocking teeth, layered armor, paddle limbs and a rootlike bone crown, distinct from ordinary caimans.",
   "巡守东支流巨颚沉渊。预警后锁定冲锋方向，直线高速撞击；锁定末段侧移躲开。":
     "Patrols the eastern Rootjaw Basin. After telegraphing it commits to a straight high-speed charge; dodge sideways near the final lock.",
   "利用深潭宽处横向闪避，不在狭窄河弯与它正面对冲；25米后从侧面完成三次独立进攻。":

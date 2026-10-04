@@ -1,5 +1,6 @@
 import { PENGLAI_EN as SPECIES_EN } from "../penglai_species.js";
 import "../penglai_lords.js";
+import "../penglai_transformation_species.js";
 export const PENGLAI_EN = Object.freeze({
   ...SPECIES_EN,
   "15米起步，游于莲池，行于云海。穿越桃林与浮空仙山，击败四象神兽，解除道观结界，再挑战御剑真君。":

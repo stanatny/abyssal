@@ -7,8 +7,8 @@ export const penglaiText = (zh, en) => {
 };
 const t = penglaiText;
 const fantasy = t(
-  "中国神话启发的原创形象；尺寸、飞行与食物收益属于游戏改编，并非真实生物。",
-  "An original Chinese-mythology interpretation. Sizes, flight and meal rewards are game adaptations, not real zoology.",
+  "蓬莱神话生灵，穿行于莲池、仙山与云海之间。",
+  "Mythic life of Penglai, moving between lotus pools, sacred mountains and the cloud sea.",
 );
 const counter = t(
   "在莲池与云间寻找适合自己体长的食物；注意黄色反击和红色危险标记，保护侧背。",
@@ -51,8 +51,8 @@ const rows = [
     2.1,
     "#80bfa1",
     "鱼",
-    "纤细玉鳞、金色眼圈与透明长尾，在莲池中成群游动。",
-    "Jade scales, gold eye rims and transparent long tails school among lotus stems.",
+    "针梭般的纤细鱼身、尖吻与短叉尾，在莲茎间成群穿行。",
+    "A slender needle-like body, pointed snout and short forked tail thread among lotus stems.",
     nursery,
     8,
   ],
@@ -129,8 +129,8 @@ const rows = [
     4.2,
     "#e29652",
     "鱼",
-    "赤金鳞甲、长须与流动尾鳍，循龙门的水流向上，也在北方莲池外缘成群游动。",
-    "Red-gold scales, barbels and flowing fins ascend beside the Dragon Gate and school along the northern lotus pool rim.",
+    "修长赤金锦鲤身、口边长须与飘带般的长尾，循龙门水流游动，也在北方莲池外缘成群穿行。",
+    "A long red-gold koi body, mouth barbels and veiled tail follow the Dragon Gate currents and school along the northern lotus pool rim.",
     sky.slice(0, 4),
     4,
   ],
@@ -168,8 +168,8 @@ const rows = [
     5.0,
     "#b78c42",
     "鱼",
-    "金铜鳞、鹿角状冠与飘扬长须，是龙门传说的原创变体。",
-    "Bronze-gold scales, branching crowns and long whiskers interpret the Dragon Gate legend.",
+    "金铜鳞、厚实鱼身与长须；部分金鲤会在龙门前蓄势跃升，化为四足赤金云龙，巡游后收回鲤形。",
+    "Bronze-gold scales, a deep fish body and long barbels. Some carp gather before the Dragon Gate, leap into four-footed red-gold cloud dragons, then return to carp form.",
     sky,
     3,
   ],
@@ -278,8 +278,8 @@ const rows = [
     8.8,
     "#4e929d",
     "鲸",
-    "宽厚流线躯干、山脊般背鳍与扇形翼鳍，缓缓穿行高空。",
-    "A vast streamlined body, ridged dorsal crest and fan-shaped fins drift through high clouds.",
+    "宽阔巨首、云脊、展开的翼鳍与横向月牙尾，缓缓穿行高空；抬升展翼后会化为钩喙、利爪与巨翼的大鹏。",
+    "A broad giant head, cloud ridge, spreading fins and horizontal crescent flukes drift through high clouds. After rising it unfolds into a hooked-beaked, taloned Peng with vast wings.",
     [air(-160, 360, -950), air(220, 420, -1210)],
     2,
     true,
@@ -397,12 +397,24 @@ export const PENGLAI_SPECIES = Object.freeze(
         growth: 0.035 + length * 0.045 + (length / 6) ** 2 * 0.14,
         description: t(desc, edesc),
         ability: t(
-          groundbound ? "山径游走与跃击" : flying ? "云间巡游" : "浅水巡游",
-          groundbound
-            ? "Mountain patrol and leaps"
-            : flying
-              ? "Cloud flight"
-              : "Shallow-water patrol",
+          kind === "kun"
+            ? "扶摇化鹏"
+            : kind === "dragon_carp"
+              ? "跃龙门 · 化龙巡猎"
+              : groundbound
+                ? "山径游走与跃击"
+                : flying
+                  ? "云间巡游"
+                  : "浅水巡游",
+          kind === "kun"
+            ? "Soaring transformation"
+            : kind === "dragon_carp"
+              ? "Dragon Gate ascent · transformed hunt"
+              : groundbound
+                ? "Mountain patrol and leaps"
+                : flying
+                  ? "Cloud flight"
+                  : "Shallow-water patrol",
         ),
         realSize: fantasy,
         counter,

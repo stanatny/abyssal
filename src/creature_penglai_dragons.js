@@ -1,5 +1,6 @@
 import * as THREE from "three";
 import {
+  pgFin as fin,
   pgMaterial as mat,
   pgOval as oval,
   pgTaper as taper,
@@ -10,19 +11,23 @@ import {
 
 /** 长体采用重叠封闭截面与切线关节；鳞片、鬃毛和四足始终跟随所在躯节。 */
 export function buildPenglaiDragon(kind, b, motions) {
-  const dragon = kind === "azure_dragon",
+  const gate = kind === "gate_dragon",
+    dragon = kind === "azure_dragon" || gate,
     fish = kind === "hujiao";
-  const skin = mat(dragon ? "#347868" : fish ? "#527361" : "#506743", 2),
+  const skin = mat(
+      gate ? "#ad653a" : dragon ? "#347868" : fish ? "#527361" : "#506743",
+      2,
+    ),
     belly = mat("#b3b994", 2),
     gold = mat("#ad9154", 4),
     mane = mat("#c7cbb0", 6),
     dark = mat("#293d32");
   const start = fish ? 0.06 : -0.2,
     extent = fish ? 0.85 : 1.15,
-    n = 28;
+    n = gate ? 14 : 28;
   const point = (p, t = 0, out = new THREE.Vector3()) =>
     out.set(
-      Math.sin(p * 7.2) * (dragon ? 0.18 : 0.04) +
+      Math.sin(p * 7.2) * (gate ? 0.105 : dragon ? 0.18 : 0.04) +
         Math.sin(t * 0.55 - p * 4) * (dragon ? 0.035 : 0.014) * p,
       Math.sin(p * 5.1) * (dragon ? 0.058 : 0.025),
       start + p * extent,
@@ -30,7 +35,8 @@ export function buildPenglaiDragon(kind, b, motions) {
   for (let i = 0; i < n; i++) {
     const p = i / (n - 1),
       r =
-        (fish ? 0.043 : dragon ? 0.059 : 0.067) * Math.pow(1 - p, 0.62) +
+        (fish ? 0.043 : gate ? 0.043 : dragon ? 0.059 : 0.067) *
+          Math.pow(1 - p, 0.62) +
         0.0025;
     const g = new THREE.Group();
     g.name = "continuous_scaled_body_joint";
@@ -42,7 +48,7 @@ export function buildPenglaiDragon(kind, b, motions) {
       [0, r, r],
       [length / 2, r * 0.97, r * 0.97],
     ]);
-    for (let row = 0; row < 3; row++)
+    for (let row = 0; row < (gate ? 1 : 3); row++)
       for (const side of [-1, 1]) {
         const scute = oval(
           g,
@@ -54,7 +60,7 @@ export function buildPenglaiDragon(kind, b, motions) {
         scute.rotation.z = side * (row - 1) * 0.45;
       }
     if (dragon)
-      for (let j = 0; j < 3; j++) {
+      for (let j = 0; j < (gate ? 1 : 3); j++) {
         const f = feather(
           g,
           mane,
@@ -67,7 +73,7 @@ export function buildPenglaiDragon(kind, b, motions) {
         f.rotation.x = -0.9;
         f.rotation.y = (j - 1) * 0.13;
       }
-    if (dragon && [4, 15].includes(i))
+    if (dragon && (gate ? [2, 8] : [4, 15]).includes(i))
       for (const side of [-1, 1]) {
         const foot = new THREE.Group();
         foot.position.set(side * r * 0.65, -r * 0.25, 0);
@@ -241,7 +247,7 @@ export function buildPenglaiDragon(kind, b, motions) {
         [0.004, 0.004, 0.003, 0.0005],
         "long_tapered_whisker",
       );
-      for (let j = 0; j < 7; j++)
+      for (let j = 0; j < (gate ? 3 : 7); j++)
         taper(
           head,
           mane,
@@ -267,5 +273,28 @@ export function buildPenglaiDragon(kind, b, motions) {
     }
   }
   motions.push((t) => (jaw.rotation.x = -0.025 + Math.sin(t * 0.6) * 0.017));
+  if (gate) {
+    head.scale.set(0.88, 0.78, 0.86);
+    const tail = fin(
+      b,
+      gold,
+      [
+        [-0.06, 0.02],
+        [0.1, 0.13],
+        [0.19, 0.15],
+        [0.11, 0],
+        [0.19, -0.15],
+        [0.1, -0.13],
+        [-0.06, -0.02],
+      ],
+      0.01,
+      "cloud_dragon_carp_tail",
+    );
+    tail.position.z = 0.9;
+    tail.rotation.y = -Math.PI / 2;
+    motions.push((t) => {
+      tail.rotation.y = -Math.PI / 2 + Math.sin(t * 0.7) * 0.12;
+    });
+  }
   b.userData.headAnchor = new THREE.Vector3(0, 0, fish ? -0.57 : -0.49);
 }

@@ -427,7 +427,7 @@ test("Mythic Guide membership, fields and flight/radar information remain biling
     setLanguage(locale);
     const all = buildOceanCatalog("penglai"),
       selected = filterOceanCatalog(all, { regionId: "penglai" });
-    assert.equal(selected.filter((e) => e.category === "mythic").length, 18);
+    assert.equal(selected.filter((e) => e.category === "mythic").length, 20);
     assert.equal(selected.filter((e) => e.category === "lord").length, 5);
     assert.ok(
       selected.every(

@@ -30,8 +30,8 @@ const prehistoric = text(
   "An extinct South American freshwater giant. Reconstructions are uncertain; revived habitats and some sizes are fantasy adaptations.",
 );
 const fantasy = text(
-  "原创幻想河兽，并非真实亚马逊动物；巨型尺寸与危险行为服务于成长后期。",
-  "An original fantasy river creature, not real Amazon wildlife. Its colossal size and aggression provide late-game challenges.",
+  "幻想河兽，栖息在深潭与沉根之间，巨大的身躯在暗水中若隐若现。",
+  "A mythical river beast dwelling among deep pools and submerged roots, its enormous body appearing and disappearing in the dark water.",
 );
 const profiles = (points, size, nursery = false) =>
   points.map((p) => ({
@@ -516,12 +516,12 @@ shoal(
   "flood_arapaima",
   "洪流巨骨鱼",
   "Flood Arapaima",
-  "ORIGINAL FANTASY",
+  "MYTHIC RIVER CREATURE",
   7.8,
   6.2,
   "#ba8146",
-  "铜红巨大鳞片与长扇尾，沿深潭环游；它是大型食物链中的原创巨骨鱼。",
-  "Copper-red giant scales and a long fan tail circle the pools; an original giant arapaima for the large-prey food chain.",
+  "铜红巨大鳞片与长扇尾，沿深潭环游；暗流掠过它的背部时，厚鳞间会泛起暗红的光。",
+  "Copper-red giant scales and a long fan tail circle the pools; dark currents reveal a red shimmer between its heavy scales.",
   [
     ...along(-640, 132, 4),
     amazonAnchor(-1, -760, 200),
@@ -534,7 +534,7 @@ giant(
   "rootback_colossus",
   "沉根巨颚兽",
   "Rootback Colossus",
-  "ORIGINAL FANTASY",
+  "MYTHIC RIVER CREATURE",
   27,
   31,
   "#5d6a43",

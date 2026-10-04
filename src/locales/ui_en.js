@@ -1,4 +1,7 @@
 export const UI_EN = Object.freeze({
+  "J / 手机技能键": "J / Touch ability button",
+  主动技能: "Active ability",
+  被动技能: "Passive ability",
   "通关角色 · {0}": "Completed with · {0}",
   游览底部彩蛋: "Explore the Bottom Refuge",
   返回结算: "Back to Results",
@@ -318,7 +321,7 @@ export const UI_EN = Object.freeze({
     "Reach 30m and earn an abyssal mark to win.",
   "耳机体验更佳 · 推荐电脑全屏游玩":
     "Best with headphones · Desktop fullscreen recommended",
-  "海洋远征 / v0.10.0": "Ocean Expeditions / v0.10.0",
+  "海洋远征 / v0.10.1": "Ocean Expeditions / v0.10.1",
   生存状态: "Survival status",
   "m / 深度": "m / depth",
   食物链进化: "RISE THROUGH THE FOOD CHAIN",

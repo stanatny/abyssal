@@ -1,3 +1,4 @@
+import { creatureGuideSkills } from "../src/creature_guide_skills.js";
 import test from "node:test";
 import assert from "node:assert/strict";
 import { ALL_SPECIES } from "../src/region_ecology.js";
@@ -46,7 +47,7 @@ test("every living creature has an individual bilingual introduction with qualif
     "sword_sage",
     "glass_seed",
   ])
-    assert.equal(getCreatureBackground(kind).backgroundType, "原创背景");
+    assert.equal(getCreatureBackground(kind).backgroundType, "背景故事");
   for (const kind of ["megalodon", "ichthyotitan", "titanoboa"])
     assert.equal(getCreatureBackground(kind).backgroundType, "化石复原");
   assert.match(
@@ -60,7 +61,7 @@ test("expanded stories retain provenance and every battle skill name appears in 
   const expanded = new Set(CREATURE_LORE.map(([kind]) => kind));
   for (const kind of BACKGROUND_KINDS) {
     const type = getCreatureBackground(kind).backgroundType;
-    if (["原创背景", "传说与本作改编"].includes(type))
+    if (["背景故事", "神话传说"].includes(type))
       assert.ok(expanded.has(kind), kind);
   }
   for (const [kind] of CREATURE_LORE) {
@@ -70,13 +71,23 @@ test("expanded stories retain provenance and every battle skill name appears in 
       t(background.background, [], "en").split("\n\n").length >= 2,
       kind,
     );
+    for (const text of [
+      background.background,
+      t(background.background, [], "en"),
+    ])
+      assert.ok(
+        !/原创|本作改编|本作创作|original (?:game|lore|fiction|design)|game adaptation|this game's/i.test(
+          text,
+        ),
+        kind,
+      );
     assert.ok(!/木卫二报告|Europa Report/i.test(background.background));
     assert.ok(
       !/木卫二报告|Europa Report/i.test(t(background.background, [], "en")),
     );
   }
   const sage = getCreatureBackground("sword_sage");
-  assert.equal(sage.backgroundType, "原创背景");
+  assert.equal(sage.backgroundType, "背景故事");
   assert.match(sage.background, /承霄/);
   assert.match(sage.background, /魔族.*师门/);
   assert.match(sage.background, /承霄剑宗/);
@@ -87,9 +98,14 @@ test("expanded stories retain provenance and every battle skill name appears in 
       const name = species.skillLabels[ability];
       assert.ok(name, `${species.kind}/${ability}`);
       assert.ok(guide.ability.includes(name));
-      assert.ok(guide.text.includes(name));
+      const card = creatureGuideSkills(species, guide).find(
+        (skill) => skill.id === ability,
+      );
+      assert.equal(card.name, name);
+      assert.ok(card.description && card.counter);
       assert.ok(t(guide.ability, [], "en").includes(t(name, [], "en")));
-      assert.ok(t(guide.text, [], "en").includes(t(name, [], "en")));
+      assert.ok(!/[\u3400-\u9fff]/u.test(t(card.description, [], "en")));
+      assert.ok(!/[\u3400-\u9fff]/u.test(t(card.counter, [], "en")));
     }
   }
 });

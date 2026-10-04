@@ -1,3 +1,19 @@
+# v0.10.1 — Living Ecosystems and Mythic Forms
+
+## Authorized main publication
+
+The user accepted the current candidate and explicitly requested committing and pushing to `main` on 2026-10-04. This integrates local checkpoint `4691135` and its reviewed follow-up after v0.10.0 / `78bcfed`: seven elusive once-only regional rares with shared 150-point expedition vital limits; upright Amazon snake/crocodile swimming; refined Europa anatomy and nine distinct marine silhouettes; distinct Penglai fish, giant Kun/Peng and real Dragon-Gate transformations; expanded bilingual backgrounds and region-aware Guide categories; phone-safe opening focus; separate playable active/passive panels and forty-nine individual NPC ability cards. Runtime timings, costs, unrelated ecology and regional objectives retain their reviewed behavior. Version metadata, both menu footers and the actual English README image are synchronized as v0.10.1.
+
+The preceding candidate passes 841 units before four additional creature-card tests, 31 focused Guide/background/character checks, actual transformations/contact/respawn/reset checks, warm resource plateaus and native bilingual Guide/skill views. The final creature-card build passes 132 compiled focused cases per local/public host; all nine artifacts and 265 runtime fingerprints match. These are preceding review receipts, not new formal-host claims. Detailed references and original measurement conditions remain in [the ecosystem review](ecosystem_polish.md) and [the silhouette/Guide review](silhouette_transformation_revision.md).
+
+Fresh release evidence belongs in ignored `.local/release_v0_10_1/`. Preflight must cover the full current unit suite, project formatting, production build, source/artifact correspondence and native compiled seven-region desktop/touch flows with correct edition text, Guide cards, skill costs/cooldowns, 3 m/15 m starts, pause/home and no overflow or observed runtime errors. After pushing, identify the exact successful Pages workflow commit, compare all nine served production artifacts and repeat native bilingual formal-host checks without development hooks. A successful push alone is not a playable-release claim. Integrate by fast-forward into clean main and push normally; no tag or separate GitHub Release is requested.
+
+Fresh v0.10.1 preflight passes **845/845 units**, project formatting and production build on Node 22.17.1. Twenty compiled native cases pass locally: seven destinations with Mechanical Shark and the other three characters in Penglai, each in English desktop (1440×900) and Chinese touch emulation (390×667). Fourteen regional Guide scopes, eight separate playable skill-panel cases, NPC technique copy and current edition text pass. All nine served artifacts match; development paths return 404, the production debug API is absent and no page/console errors are observed. The English README screenshot uses the actual compiled home and normal menu controls. Exact-SHA workflow and formal-host receipts remain required after pushing.
+
+These checks do not establish natural whole-round pacing, physical-phone keyboard behavior or long-session thermal acceptance. The existing large-bundle warning remains; this release does not claim a general FPS or temperature improvement. Older review/authorization states below are historical.
+
+---
+
 # v0.10.0 — Penglai Sanctuary
 
 ## Authorized main publication

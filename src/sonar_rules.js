@@ -93,7 +93,12 @@ export function detectSonarContacts({
       : canEat(player, species.length);
     const dangerous =
       boss ||
-      (species.predator && canPredatorRetaliate(player.length, species.length));
+      (species.predator &&
+        canPredatorRetaliate(
+          player.length,
+          species.length,
+          species.threatCeilingLength,
+        ));
     contacts.push({
       id,
       kind: species.kind,

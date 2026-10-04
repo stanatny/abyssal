@@ -11,8 +11,8 @@ export const CATALOG_EN = Object.freeze({
     "Extinct. The 28 m length, displayed depth of 1200–2720 m, 24 m/s cruising and pursuit of large characters are game adaptations, not established biology or a confirmed body reconstruction.",
   "20—25米时仍应绕开，观察蓄力后侧向闪避，用冲刺或地形脱离；真实体长超过28米才能捕食。":
     "Avoid it at 20–25 m. Watch its windup, dodge sideways, then sprint or use terrain to escape. You can feed on it only after your actual length exceeds 28 m.",
-  "每次有效咬击恢复{0}点饱食（最多100），不额外回血或成长；击败奖励另计。":
-    "Each successful bite restores {0} hunger (capped at 100), without extra healing or growth. Defeat rewards are separate.",
+  "每次有效咬击恢复{0}点饱食（不超过当前上限），不额外回血或成长；击败奖励另计。":
+    "Each successful bite restores {0} hunger (up to the current limit), without extra healing or growth. Defeat rewards are separate.",
   成长与深潜: "Growth and deep diving",
   "幼年先在安全浅滩补给；体型越大，小鱼的营养与成长收益越低，逐步转向外礁中型猎物和深海巨兽。":
     "Feed in the safe nursery while young. As you grow, small prey yield less food and growth. Move on to medium prey around the outer reef, then larger creatures below.",
@@ -339,8 +339,8 @@ export const CATALOG_EN = Object.freeze({
   克拉肯: "Kraken",
   漩涡主宰: "Vortex Lord",
   深渊漩涡: "Abyssal Vortex",
-  "北欧海怪传说启发的原创形象：八条长触腕舒展盘卷，双列吸盘沿腕内侧排列；臂根与末梢错相摆动。":
-    "An original design inspired by Nordic sea-monster legends: eight long arms sweep and curl, with paired sucker rows on their inner surfaces. Arm bases and tips move in delayed phases.",
+  "北欧海怪传说中的巨兽：八条长触腕舒展盘卷，双列吸盘沿腕内侧排列；臂根与末梢错相摆动。":
+    "A giant from Nordic sea-monster legends: eight long arms sweep and curl, with paired sucker rows on their inner surfaces. Arm bases and tips move in delayed phases.",
   "未交战时也会在自己的领地内缓慢巡游，靠近时才发动追猎。":
     "Patrols slowly inside its territory even when undisturbed, and begins hunting only when you approach.",
   "预判你的前进位置布置深渊漩涡，牵引附近目标并抽走体力，漩涡中心还会造成伤害。追击时会拦截路线，而不是只停留在领地中心。":
@@ -366,8 +366,8 @@ export const CATALOG_EN = Object.freeze({
   利维坦: "Leviathan",
   深渊主宰: "Abyss Lord",
   毁灭冲锋: "Devastating Charge",
-  "《约伯记》的紧密甲鳞与巨颚、《以赛亚书》的曲折海蛇意象启发了这条原创海兽：重甲前躯连接侧向游摆的长尾，并非真实动物复原。":
-    "Close armor scales and mighty jaws from Job, and the twisting sea-serpent imagery of Isaiah, inspire this original beast. Its armored forebody leads into a long, laterally undulating tail; it is not a reconstruction of a real animal.",
+  "古代传说中的紧密甲鳞、巨颚与曲折海蛇相连：重甲前躯连接侧向游摆的长尾，并非真实动物复原。":
+    "Ancient tales describe close armor scales, mighty jaws and a twisting sea serpent. Its armored forebody leads into a long, laterally undulating tail; it is not a reconstruction of a real animal.",
   "深渊中体型最大的领主，会拦截你的逃跑路线，蓄力末段锁定方向后以100米/秒高速冲撞。普通冲刺无法直线甩开。":
     "The largest lord in the abyss intercepts your escape route, then locks its direction late in the windup and charges at 100 m/s. A normal sprint cannot outrun it in a straight line.",
   "等待最后的路线锁定提示，立即侧向避开冲撞；冲锋后3秒恢复期从躯干侧面向内切入，咬中后拉开再进攻。":
@@ -395,8 +395,8 @@ export const CATALOG_EN = Object.freeze({
   即时恢复: "Instant Recovery",
   "医疗 恢复 补充 生命 体力 饥饿":
     "medical recover replenish health stamina hunger",
-  "触碰后立即恢复50点生命、50点体力和50点饥饿值，各项最多恢复至100，并解除体力耗尽后的疲惫状态。":
-    "Touch to restore 50 health, 50 stamina, and 50 hunger immediately, each capped at 100, and clear exhaustion.",
+  "触碰后立即恢复50点生命、50点体力和50点饥饿值，各项不超过当前上限，并解除体力耗尽后的疲惫状态。":
+    "Touch to restore 50 health, 50 stamina, and 50 hunger immediately, each up to its current limit, and clear exhaustion.",
   "受伤、疲惫或饥饿时拾取，能同时补充三项生存状态。生命、体力和饥饿都充足时，可记住位置留待需要时再来。":
     "Collect it when hurt, tired, or hungry to replenish all three vitals. If health, stamina, and hunger are full, remember its location for later.",
   超级加速: "Super Sprint",

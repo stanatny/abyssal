@@ -1,3 +1,4 @@
+import { CREATURE_SKILLS_EN } from "./locales/creature_skills_en.js";
 import { BACKGROUND_EN } from "./creature_backgrounds.js";
 import { ECOSYSTEM_EN } from "./regional_rare.js";
 import { PENGLAI_EN } from "./locales/penglai_en.js";
@@ -34,6 +35,7 @@ const english = Object.freeze(
     PENGLAI_EN,
     ECOSYSTEM_EN,
     BACKGROUND_EN,
+    CREATURE_SKILLS_EN,
   ),
 );
 const listeners = new Set();

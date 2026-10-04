@@ -1,4 +1,5 @@
 import * as THREE from "three";
+import { sampleSection } from "./creature_surface.js";
 import { buildLuoSkyfish } from "./creature_penglai_luoyu.js";
 import {
   pgMaterial as mat,
@@ -16,100 +17,116 @@ const tones = {
   dragon_carp: "#9a7839",
   wenyao: "#4c889a",
   luoyu: "#a18c4f",
-  kun: "#355f73",
 };
 
-/** 翼鱼、深体鲤鱼、人面赤鱬和巨鲲保留各自的头型与推进附肢。 */
+/** 翼鱼、细身玉鱼、深体鲤鱼和人面赤鱬保留各自的头型与推进附肢。 */
 export function buildPenglaiFish(kind, b, motions) {
   if (kind === "luoyu") return buildLuoSkyfish(b, motions);
-  const whale = kind === "kun",
-    winged = ["wenyao", "luoyu"].includes(kind),
+  const winged = kind === "wenyao",
     carp = kind.includes("carp"),
     slim = kind === "jade_minnow";
   const skin = mat(tones[kind], 2),
-    light = mat(whale ? "#95b5b3" : "#cfba87", 2),
+    light = mat("#cfba87", 2),
     gold = mat("#b59755", 4),
     dark = mat("#283b3b");
-  const profile = whale
-    ? [
-        [-0.5, 0.013, 0.037],
-        [-0.45, 0.12, 0.087],
-        [-0.29, 0.18, 0.12],
-        [-0.04, 0.19, 0.147],
-        [0.18, 0.13, 0.096],
-        [0.32, 0.045, 0.029],
-        [0.4, 0.009, 0.009],
-      ]
-    : slim
-      ? [
-          [-0.4, 0.005, 0.01],
-          [-0.34, 0.035, 0.043],
-          [-0.15, 0.063, 0.074],
-          [0.08, 0.052, 0.058],
-          [0.29, 0.013, 0.02],
-          [0.36, 0.004, 0.004],
-        ]
-      : [
-          [-0.43, 0.005, 0.014],
-          [-0.365, 0.054, 0.067],
-          [-0.24, winged ? 0.075 : 0.105, winged ? 0.085 : 0.128],
-          [-0.02, winged ? 0.075 : 0.1, winged ? 0.08 : 0.145],
-          [0.2, 0.045, 0.057],
-          [0.33, 0.011, 0.017],
-          [0.36, 0.002, 0.004],
-        ];
+  // 幻想鱼分别拥有细长、侧扁、锦鲤和深体金鲤轮廓，不能只换颜色。
+  const profiles = {
+    jade_minnow: [
+      [-0.48, 0.003, 0.008],
+      [-0.39, 0.018, 0.031],
+      [-0.25, 0.038, 0.048],
+      [-0.05, 0.044, 0.053],
+      [0.19, 0.027, 0.037],
+      [0.32, 0.008, 0.015],
+      [0.36, 0.003, 0.008],
+    ],
+    chiru: [
+      [-0.43, 0.012, 0.044],
+      [-0.36, 0.047, 0.106],
+      [-0.24, 0.076, 0.175],
+      [-0.05, 0.075, 0.187],
+      [0.13, 0.05, 0.13],
+      [0.28, 0.022, 0.051],
+      [0.36, 0.003, 0.017],
+    ],
+    spirit_carp: [
+      [-0.46, 0.014, 0.02],
+      [-0.39, 0.038, 0.045],
+      [-0.25, 0.059, 0.086],
+      [-0.075, 0.064, 0.105],
+      [0.12, 0.05, 0.08],
+      [0.29, 0.019, 0.034],
+      [0.36, 0.004, 0.012],
+    ],
+    dragon_carp: [
+      [-0.43, 0.014, 0.035],
+      [-0.36, 0.062, 0.094],
+      [-0.25, 0.106, 0.151],
+      [-0.07, 0.115, 0.167],
+      [0.12, 0.083, 0.12],
+      [0.28, 0.025, 0.039],
+      [0.36, 0.004, 0.015],
+    ],
+    wenyao: [
+      [-0.43, 0.005, 0.014],
+      [-0.365, 0.054, 0.067],
+      [-0.24, 0.075, 0.085],
+      [-0.02, 0.075, 0.08],
+      [0.2, 0.045, 0.057],
+      [0.33, 0.011, 0.017],
+      [0.36, 0.002, 0.004],
+    ],
+  };
+  const profile = profiles[kind];
+  const surface = (z, latitude = 0) => {
+    const [w, h, y] = sampleSection(profile, z);
+    return [w * Math.sqrt(1 - latitude * latitude), y + h * latitude];
+  };
+
   loft(b, `fish_v2_${kind}`, skin, profile);
   taper(
     b,
     light,
-    [
-      [0, -0.035, -0.33],
-      [0, whale ? -0.11 : -0.09, -0.15],
-      [0, -0.07, 0.08],
-      [0, -0.021, 0.27],
-    ],
-    [0.025, whale ? 0.13 : 0.055, whale ? 0.1 : 0.038, 0.007],
+    [-0.33, -0.15, 0.08, 0.27].map((z) => {
+      const [w, h, y] = sampleSection(profile, z);
+      return [0, y - h * 0.96, z];
+    }),
+    [0.003, 0.004, 0.003, 0.001],
     "continuous_countershaded_belly",
   );
-  if (kind !== "chiru")
-    eyes(
-      b,
-      whale ? 0.115 : slim ? 0.037 : 0.064,
-      0.02,
-      -0.326,
-      whale ? 0.009 : 0.008,
-      whale,
-    );
+  if (kind !== "chiru") {
+    const z =
+      kind === "jade_minnow" ? -0.367 : kind === "spirit_carp" ? -0.35 : -0.326;
+    const [x, y] = surface(z, 0.24);
+    eyes(b, x, y, z, slim ? 0.006 : 0.008, false);
+  }
+  const nose = profile[0][0];
   taper(
     b,
     dark,
     [
-      [-(whale ? 0.11 : 0.037), -0.015, -0.38],
-      [0, -0.034, whale ? -0.48 : -0.424],
-      [whale ? 0.11 : 0.037, -0.015, -0.38],
+      [0, -0.003, nose - 0.003],
+      [0.024, -0.018, nose + 0.045],
+      [0.031, -0.025, nose + 0.065],
     ],
-    [0.0025, 0.003, 0.0025],
+    [0.0018, 0.002, 0.0004],
     "natural_mouth_fold",
   );
   for (const side of [-1, 1]) {
-    const gill = taper(
+    taper(
       b,
       light,
-      [
-        [side * (slim ? 0.044 : 0.083), 0.048, -0.28],
-        [side * (slim ? 0.054 : 0.092), -0.006, -0.255],
-        [side * (slim ? 0.042 : 0.072), -0.056, -0.239],
-      ],
-      [0.002, 0.003, 0.001],
+      [0.64, 0, -0.68].map((latitude, i) => {
+        const z = -0.28 + i * 0.017,
+          [x, y] = surface(z, latitude);
+        return [side * (x + 0.001), y, z];
+      }),
+      [0.0018, 0.002, 0.0008],
       "fitted_operculum",
     );
-    if (whale) gill.visible = false;
     const wing = new THREE.Group();
-    wing.position.set(
-      side * (whale ? 0.15 : slim ? 0.047 : 0.083),
-      -0.028,
-      -0.115,
-    );
+    const [wingX, wingY] = surface(-0.16, -0.3);
+    wing.position.set(side * wingX, wingY, -0.16);
     wing.name = "articulated_pectoral";
     b.add(wing);
     if (winged) {
@@ -142,14 +159,14 @@ export function buildPenglaiFish(kind, b, motions) {
         light,
         [
           [0, 0],
-          [side * (whale ? 0.32 : 0.16), -0.03],
-          [side * (whale ? 0.3 : 0.12), -0.17],
+          [side * (slim ? 0.095 : 0.16), -0.03],
+          [side * (slim ? 0.08 : 0.12), -0.17],
           [side * 0.025, -0.05],
         ],
         0.009,
         "curved_pectoral_membrane",
       );
-      f.rotation.x = Math.PI / 2;
+      f.rotation.x = -Math.PI / 2;
       for (let j = 0; j < 6; j++)
         taper(
           wing,
@@ -167,12 +184,14 @@ export function buildPenglaiFish(kind, b, motions) {
         (wing.rotation.z =
           side * Math.sin(t * (winged ? 1.08 : 0.65)) * (winged ? 0.21 : 0.1)),
     );
-    if (carp)
+    if (carp) {
+      const barbelZ = nose + 0.046;
+      const [barbelX, barbelY] = surface(barbelZ, -0.28);
       taper(
         b,
         gold,
         [
-          [side * 0.039, -0.016, -0.406],
+          [side * barbelX, barbelY, barbelZ],
           [side * 0.075, -0.06, -0.43],
           [side * 0.11, -0.076, -0.34],
           [side * 0.17, -0.05, -0.22],
@@ -180,6 +199,7 @@ export function buildPenglaiFish(kind, b, motions) {
         [0.0035, 0.003, 0.002, 0.0004],
         "long_carp_barbel",
       );
+    }
   }
   if (kind === "wenyao") {
     loft(b, "white_wenyao_cranium", light, [
@@ -254,11 +274,48 @@ export function buildPenglaiFish(kind, b, motions) {
   tail.position.z = 0.325;
   tail.name = "articulated_forked_caudal";
   b.add(tail);
-  const caudal = fin(
-    tail,
-    light,
-    [
-      [-0.018, 0],
+  const outlines = {
+    jade_minnow: [
+      [0, 0],
+      [0.095, 0.085],
+      [0.15, 0.12],
+      [0.09, 0.026],
+      [0.045, 0],
+      [0.09, -0.026],
+      [0.15, -0.12],
+      [0.095, -0.085],
+    ],
+    chiru: [
+      [0, -0.01],
+      [0.07, 0.15],
+      [0.14, 0.21],
+      [0.18, 0.13],
+      [0.175, -0.13],
+      [0.13, -0.2],
+      [0.04, -0.085],
+    ],
+    spirit_carp: [
+      [0, 0],
+      [0.14, 0.09],
+      [0.31, 0.21],
+      [0.24, 0.075],
+      [0.11, 0.015],
+      [0.23, -0.075],
+      [0.29, -0.17],
+      [0.12, -0.05],
+    ],
+    dragon_carp: [
+      [0, 0],
+      [0.12, 0.115],
+      [0.205, 0.155],
+      [0.17, 0.042],
+      [0.07, 0],
+      [0.17, -0.042],
+      [0.205, -0.155],
+      [0.12, -0.115],
+    ],
+    wenyao: [
+      [0, 0],
       [0.13, 0.15],
       [0.235, 0.195],
       [0.17, 0.054],
@@ -267,74 +324,93 @@ export function buildPenglaiFish(kind, b, motions) {
       [0.235, -0.195],
       [0.13, -0.15],
     ],
+  };
+  const caudal = fin(
+    tail,
+    light,
+    outlines[kind],
     0.009,
     "flowing_bilobed_caudal",
   );
   caudal.rotation.y = -Math.PI / 2;
+  const [endZ, endY] =
+    kind === "jade_minnow"
+      ? [0.12, 0.084]
+      : kind === "spirit_carp"
+        ? [0.26, 0.12]
+        : kind === "chiru"
+          ? [0.15, 0.145]
+          : [0.18, 0.13];
   for (let j = -5; j <= 5; j++)
     taper(
       tail,
       gold,
       [
         [0, 0, 0],
-        [0, j * 0.019, 0.095],
-        [0, j * 0.031, 0.175],
+        [0, (j / 5) * endY * 0.6, endZ * 0.6],
+        [0, (j / 5) * endY, endZ],
       ],
-      [0.0015, 0.001, 0.0002],
+      [0.0012, 0.0008, 0.0002],
       "caudal_fin_ray",
     );
-  if (whale) {
-    tail.rotation.z = Math.PI / 2;
-    tail.scale.set(1, 1.5, 1);
-  }
   motions.push((t, e) => {
-    if (whale) tail.rotation.x = Math.sin(t * 0.6) * (0.12 + e * 0.025);
-    else tail.rotation.y = Math.sin(t * 0.92) * (0.17 + e * 0.04);
+    tail.rotation.y =
+      Math.sin(t * (slim ? 1.35 : 0.92)) * (0.17 + Math.min(e, 3) * 0.04);
   });
   if (!winged) {
-    const f = fin(
-      b,
-      skin,
-      [
-        [-0.19, 0.08],
-        [-0.04, whale ? 0.18 : 0.23],
-        [0.11, 0.15],
-        [0.22, 0.047],
-      ],
-      0.011,
-      "swept_dorsal_fin",
-    );
-    f.rotation.y = Math.PI / 2;
-    if (whale)
-      for (let j = 0; j < 10; j++)
-        taper(
-          b,
-          light,
-          [
-            [0, -0.089, -0.32 + j * 0.025],
-            [0.035, -0.105, -0.16 + j * 0.025],
-            [0.07, -0.075, 0.045 + j * 0.01],
-          ],
-          [0.0018, 0.0016, 0.0005],
-          "giant_kun_throat_pleat",
-        );
-  }
-  if (kind === "dragon_carp")
-    for (const side of [-1, 1])
-      taper(
+    const top = (z) => {
+      const [, h, y] = sampleSection(profile, z);
+      return y + h * 0.97;
+    };
+    const outline =
+      kind === "spirit_carp"
+        ? [
+            [-0.26, top(-0.26)],
+            [-0.2, top(-0.2) + 0.09],
+            [-0.04, top(-0.04) + 0.04],
+            [0.18, top(0.18)],
+          ]
+        : kind === "chiru"
+          ? [
+              [-0.22, top(-0.22)],
+              [-0.11, top(-0.11) + 0.12],
+              [0.12, top(0.12) + 0.085],
+              [0.23, top(0.23)],
+            ]
+          : kind === "jade_minnow"
+            ? [
+                [-0.1, top(-0.1)],
+                [-0.025, top(-0.025) + 0.1],
+                [0.1, top(0.1)],
+              ]
+            : [
+                [-0.28, top(-0.28)],
+                [-0.2, top(-0.2) + 0.05],
+                [0.075, top(0.075) + 0.025],
+                [0.21, top(0.21)],
+              ];
+    const dorsal = fin(b, skin, outline, 0.009, "swept_dorsal_fin");
+    dorsal.rotation.y = -Math.PI / 2;
+    if (kind === "spirit_carp") {
+      const ribbon = fin(
         b,
-        gold,
+        light,
         [
-          [side * 0.038, 0.103, -0.25],
-          [side * 0.066, 0.21, -0.23],
-          [side * 0.082, 0.25, -0.29],
+          [-0.06, -0.1],
+          [0.09, -0.11],
+          [0.23, -0.22],
+          [0.36, -0.28],
+          [0.24, -0.1],
         ],
-        [0.009, 0.006, 0.0004],
-        "carp_antler_crown",
+        0.005,
+        "flowing_bilobed_caudal",
       );
+      ribbon.rotation.y = -Math.PI / 2;
+    }
+  }
   b.userData.headAnchor = new THREE.Vector3(
     0,
     -0.01,
-    kind === "wenyao" ? -0.53 : whale ? -0.5 : -0.43,
+    kind === "wenyao" ? -0.53 : profile[0][0],
   );
 }

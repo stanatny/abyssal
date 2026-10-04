@@ -120,8 +120,8 @@ export const MARIANA_EN = Object.freeze({
   探索彩蛋: "Hidden discovery",
   深处的一抹暖光: "A warm light below",
   海沟最底部: "The trench floor",
-  "穿过最后一道关卡后，沿暖色微光进入底部石拱。这里隐藏着原创程序化海绵宝宝与菠萝屋彩蛋，是明确的幻想场景，不代表真实超深渊生态。":
-    "Beyond the final gate, follow the warm glow beneath the stone arches. An original procedural SpongeBob and pineapple-house Easter egg awaits: a fantasy scene, not real hadal ecology.",
+  "穿过最后一道关卡后，沿暖色微光进入底部石拱。这里隐藏着海绵宝宝与菠萝屋彩蛋，是明确的幻想场景，不代表真实超深渊生态。":
+    "Beyond the final gate, follow the warm glow beneath the stone arches. A SpongeBob and pineapple-house Easter egg awaits: a fantasy scene, not real hadal ecology.",
   "探索时可绕着菠萝屋游动；彩蛋是陈设，不提供食物或额外奖励。":
     "Swim around the pineapple house. This decorative Easter egg provides no food or bonus rewards.",
   "本海域的守关领主被击败后不再复活，压力帘随之开启。需成长至30米、突破四关并抵达海沟底部。":
