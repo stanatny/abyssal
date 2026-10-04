@@ -1,5 +1,5 @@
 import { getCharacter } from "./character_rules.js";
-import { consumePrey, preyMealReward } from "./simulation.js";
+import { consumePrey, preyMealReward, vitalLimit } from "./simulation.js";
 
 /** 尸鲨仆从只使用当前远征时钟；状态不持有场景、对象或墙钟。 */
 export function createSummonState() {
@@ -85,7 +85,10 @@ export function consumeMinionPrey(state, player, prey) {
   const reward = preyMealReward(player.length, prey);
   if (!consumePrey(player, prey)) return false;
   // 用捕食前体长计算的有效营养恢复体力，不受饱食封顶影响，也不重复成年加成。
-  player.stamina = Math.min(100, player.stamina + reward.nutrition);
+  player.stamina = Math.min(
+    vitalLimit(player),
+    player.stamina + reward.nutrition,
+  );
   if (player.exhausted && player.stamina >= 25) player.exhausted = false;
   state.meals++;
   return true;

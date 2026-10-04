@@ -1,3 +1,4 @@
+import { aquaticHeading } from "./aquatic_reptile_motion.js";
 import {
   groundCreatureClearance,
   uprightHeadingQuaternion,
@@ -1213,10 +1214,16 @@ export function createEncounters(
               entry.heading,
               entry.mesh.rotation.y,
             )
-          : entry.motion.orientation.setFromUnitVectors(
-              FORWARD_AXIS,
-              entry.heading,
-            ),
+          : entry.mesh.userData.aquaticUpright
+            ? aquaticHeading(
+                entry.motion.orientation,
+                entry.heading,
+                entry.mesh.rotation.y,
+              )
+            : entry.motion.orientation.setFromUnitVectors(
+                FORWARD_AXIS,
+                entry.heading,
+              ),
         Math.min(1, dt * 2),
       );
       if (state.phase !== "disoriented")

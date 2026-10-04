@@ -1,3 +1,4 @@
+import { isRegionalRare, preyRespawnDelay } from "./regional_rare.js";
 import { consumeDefeatedPrey } from "./simulation.js";
 import * as THREE from "three";
 import { createAttackTorpedoModel } from "./submarine_defense.js";
@@ -150,7 +151,8 @@ export function createMechanicalTorpedoes(
     audio?.mechanicalExplosion?.();
     let killed = 0,
       hits = 0,
-      bossHits = 0;
+      bossHits = 0,
+      rare = false;
     for (const e of entities()) {
       if (e.hiddenFor > 0) continue;
       const radius = Math.max(0.15, e.species.length * 0.13);
@@ -163,7 +165,8 @@ export function createMechanicalTorpedoes(
       if (hitOrdinaryWithTorpedo(e, player)) {
         if (consumeDefeatedPrey(player, e.species)) {
           killed++;
-          e.hiddenFor = e.species.schoolSize > 1 ? 18 : 28;
+          e.hiddenFor = preyRespawnDelay(e.species);
+          rare ||= isRegionalRare(e.species);
           e.mesh.visible = false;
           resetTorpedoTarget(e);
         }
@@ -200,7 +203,7 @@ export function createMechanicalTorpedoes(
         bossHits++;
       }
     }
-    onBlast?.({ point: at, killed, hits, bossHits });
+    onBlast?.({ point: at, killed, hits, bossHits, rare });
   }
   function update(dt, player) {
     if (disposed || !(dt > 0) || player.dead || player.won || player.timedOut)

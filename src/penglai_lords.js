@@ -1,4 +1,23 @@
-import { penglaiText as t } from "./penglai_species.js";
+import { penglaiText as t, PENGLAI_EN } from "./penglai_species.js";
+// 技能判定仍用稳定的ability ID；图鉴和战斗预警共用这份显示名称。
+export const PENGLAI_SKILL_NAMES = Object.freeze({
+  azure_dragon: Object.freeze({
+    charge: t("苍龙破云", "Dragon Through the Clouds"),
+  }),
+  white_tiger: Object.freeze({
+    charge: t("白虎掠风", "White Tiger Windstep"),
+  }),
+  vermilion_bird: Object.freeze({
+    volley: t("朱羽焚天", "Vermilion Skyfire"),
+  }),
+  black_tortoise: Object.freeze({
+    pulse: t("玄甲镇渊", "Abyss-Sealing Shell Ward"),
+  }),
+  sword_sage: Object.freeze({
+    swords: t("万剑归宗", "Myriad Blades Converge"),
+    charge: t("踏剑惊鸿", "Skyborne Sword Rush"),
+  }),
+});
 const rows = [
   [
     "azure_dragon",
@@ -90,10 +109,11 @@ export const PENGLAI_LORDS = Object.freeze(
             chargeSpeed: 65,
             chargeHandlesContact: true,
             persistentPursuit: true,
-            skillLabels: Object.freeze({
-              charge: t("御剑冲阵", "Sword-riding dash"),
-            }),
             skillTips: Object.freeze({
+              swords: t(
+                "飞剑将至 · 横向闪避或绕山石遮挡",
+                "Blades incoming · Dodge sideways or use mountains for cover",
+              ),
               charge: t(
                 "剑路已亮 · 侧闪或升降，冲阵后趁硬直反击",
                 "The sword path is marked · Dodge sideways or vertically, then punish the recovery",
@@ -102,6 +122,7 @@ export const PENGLAI_LORDS = Object.freeze(
           }
         : {}),
       ability,
+      skillLabels: PENGLAI_SKILL_NAMES[kind],
       depthMin: -600,
       depthMax: 140,
       nutrition: 100,
@@ -149,29 +170,31 @@ export const PENGLAI_LORD_DESCRIPTIONS = Object.freeze(
           ),
           color,
           ability: t(
-            ability === "swords"
-              ? "隔空御剑与御剑冲阵"
-              : ability === "charge"
-                ? "蓄势突进"
-                : ability === "pulse"
-                  ? "坚甲护阵与脉冲"
-                  : "三重焰息",
-            ability === "swords"
-              ? "Remote swords and sword-riding dash"
-              : ability === "charge"
-                ? "Warned charge"
-                : ability === "pulse"
-                  ? "Armored ward and pulse"
-                  : "Triple flame breath",
+            Object.values(PENGLAI_SKILL_NAMES[kind]).join(" · "),
+            Object.values(PENGLAI_SKILL_NAMES[kind])
+              .map((name) => PENGLAI_EN[name])
+              .join(" · "),
           ),
           appearance: t(appearance, enAppearance),
           text: t(
             kind === "sword_sage"
-              ? "四神兽未全部击败时结界阻挡道观入口。解除护阵并进入领地后，真君会持续缓慢追击，冲刺可拉开距离；真君交替释放三剑远攻与短程直线冲阵，均有2.2秒预警；冲阵后有4秒反击窗口。击败真君完成远征。"
-              : "独属于蓬莱的神话守卫，持续巡守自己的领地；击败后不再刷新。",
+              ? "四神兽未全部击败时结界阻挡道观入口。解除护阵并进入领地后，真君会持续缓慢追击，冲刺可拉开距离；“万剑归宗”发出三柄飞剑，“踏剑惊鸿”沿亮起的剑路直线突进，均有2.2秒预警；冲阵后有4秒反击窗口。击败真君完成远征。"
+              : kind === "azure_dragon"
+                ? "“苍龙破云”蓄势后沿锁定路线突进，速度与力量均衡；侧向绕开攻击路径，待收势时从侧翼反击。镇守东峰，击败后本局不再刷新。"
+                : kind === "white_tiger"
+                  ? "“白虎掠风”低身蓄势后迅速跃扑，速度为四神兽之最；及时上升或侧闪，落地后再反击。镇守西山，击败后本局不再刷新。"
+                  : kind === "black_tortoise"
+                    ? "“玄甲镇渊”在蓄势与脉冲期间升起护甲，挡住咬击和鱼雷；甲阵退去后的4.5秒才是侧翼反击窗口。镇守北池，击败后本局不再刷新。"
+                    : "“朱羽焚天”蓄势后发出三道焰息，攻击力为四神兽之最；横向变向避开连弹，趁收势反击。镇守南方天空，击败后本局不再刷新。",
             kind === "sword_sage"
-              ? "The monastery is sealed until all four guardians fall. After unsealing the ward and entering his territory, the sage keeps pursuing slowly; sprint to gain distance. He alternates three remote swords and a short straight dash, each with a 2.2-second warning; the dash leaves a four-second recovery window. Defeat him to complete Penglai."
-              : "A Penglai-only mythic guardian continuously patrols its territory and never respawns after defeat.",
+              ? "The monastery is sealed until all four guardians fall. After unsealing the ward and entering his territory, the sage keeps pursuing slowly; sprint to gain distance. Myriad Blades Converge sends three flying swords; Skyborne Sword Rush follows a marked straight path. Both have a 2.2-second warning; the dash leaves a four-second recovery window. Defeat him to complete Penglai."
+              : kind === "azure_dragon"
+                ? "Dragon Through the Clouds follows a locked charge path with balanced speed and power. Evade sideways and counter at the flank during recovery. It guards the eastern peak and never respawns after defeat."
+                : kind === "white_tiger"
+                  ? "White Tiger Windstep prepares a swift leap; this is the fastest Four-Symbol guardian. Rise or dodge sideways, then counter after it lands. It guards the western mountain and never respawns after defeat."
+                  : kind === "black_tortoise"
+                    ? "Abyss-Sealing Shell Ward blocks bites and torpedoes during windup and pulse. Its flank opens for 4.5 seconds after the ward subsides. It guards the northern pool and never respawns after defeat."
+                    : "Vermilion Skyfire prepares three flame volleys; this is the hardest-hitting Four-Symbol guardian. Change course sideways and counter during recovery. It guards the southern sky and never respawns after defeat.",
           ),
           counter: t(
             kind === "black_tortoise"

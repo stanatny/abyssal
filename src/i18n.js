@@ -1,3 +1,5 @@
+import { BACKGROUND_EN } from "./creature_backgrounds.js";
+import { ECOSYSTEM_EN } from "./regional_rare.js";
 import { PENGLAI_EN } from "./locales/penglai_en.js";
 import { AMAZON_EN } from "./locales/amazon_en.js";
 import { MECHANICAL_SHARK_EN } from "./locales/mechanical_shark_en.js";
@@ -30,6 +32,8 @@ const english = Object.freeze(
     MECHANICAL_SHARK_EN,
     AMAZON_EN,
     PENGLAI_EN,
+    ECOSYSTEM_EN,
+    BACKGROUND_EN,
   ),
 );
 const listeners = new Set();

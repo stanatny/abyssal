@@ -1,6 +1,7 @@
 import * as THREE from "three";
 import { mergeGeometries } from "three/addons/utils/BufferGeometryUtils.js";
-import { bindAxialMotion, sampleSection } from "./creature_surface.js";
+import { bindCrocodilianTail } from "./aquatic_reptile_motion.js";
+import { sampleSection } from "./creature_surface.js";
 import {
   amazonGeometry,
   amazonLoft,
@@ -145,10 +146,7 @@ export function buildAmazonReptile(kind, parent, motions) {
     true,
   );
   parts.forEach((g) => g.dispose());
-  bindAxialMotion(body, motions, {
-    frequency: 0.91,
-    amplitude: giant ? 0.15 : 0.18,
-  });
+  bindCrocodilianTail(body, motions);
   const head = new THREE.Group();
   parent.add(head);
   const snoutW = w * (broad ? 0.89 : 0.63),
@@ -416,10 +414,16 @@ export function buildAmazonReptile(kind, parent, motions) {
             "#bbab82",
           );
       }
-      motions.push((t) => {
+      limb.userData.keepSeparate = true;
+      limb.name = `swimming_limb_${side}_${pair}`;
+      motions.push((t, e) => {
+        // 快游时收拢四肢，由尾推进；缓游只保留微弱的后足划动。
+        const fold = THREE.MathUtils.smoothstep(e, 0.3, 0.9);
+        const scull = (1 - fold) * (pair ? 0.13 : 0.035);
         limb.rotation.y =
-          side * (-0.23 + Math.sin(t * 0.72 + pair * Math.PI) * 0.13);
-        limb.rotation.z = side * Math.sin(t * 0.72 + pair) * 0.07;
+          side *
+          (-0.3 - fold * 1.0 + Math.sin(t * 0.72 + pair * Math.PI) * scull);
+        limb.rotation.z = side * Math.sin(t * 0.72 + pair) * (1 - fold) * 0.025;
       });
     }
   }
@@ -518,10 +522,16 @@ export function buildAmazonSerpent(kind, parent, motions) {
   skin.boundingSphere = g.boundingSphere.clone();
   skin.boundingSphere.radius += 0.15;
   motions.push((t, e) => {
+    // 水中横向起伏向尾部传播；世界切线差值让长蛇保持两段S形，不累计弯成盘圈。
+    let previous = 0;
     for (let i = 1; i < 16; i++) {
-      bones[i].rotation.y =
-        Math.sin(t * 0.85 - i * 0.49) * (0.035 + i * 0.002) * (1 + e * 0.11);
-      bones[i].rotation.x = Math.sin(t * 0.31 - i * 0.45) * 0.006;
+      const tangent =
+        Math.sin(t * 0.9 - i * 0.76) *
+        Math.min(1, i / 4) *
+        (0.4 + Math.min(3, e) * 0.1);
+      bones[i].rotation.y = tangent - previous;
+      bones[i].rotation.x = 0;
+      previous = tangent;
     }
   });
   const head = new THREE.Group();

@@ -129,8 +129,8 @@ export const EUROPA_EN = {
   辉渊主宰: "Luminous Abyss Lord",
   "辉渊主宰 · 辉渊巡狩者": "Luminous Abyss Lord · Lumen Stalker",
   辉光突袭: "Luminous Ambush",
-  "《木卫二报告》中的发光长足生物启发的原创形象：八条无分叉长腕向外舒展后回卷，形成围拢大型船体的轮廓；集中发光腔与腕上光点勾勒暗色肌体。":
-    "An original design inspired by the luminous long-limbed creature in Europa Report: eight unbranched arms extend outward and curl back to suggest wrapping around a large vessel; concentrated light chambers and arm nodes outline a dark muscular body.",
+  "八条无分叉长腕向外舒展后回卷，足以围拢大型船体；集中发光腔与腕上光点勾勒暗色肌体，腹面腕根层叠，形成冰下巨兽的庞大剪影。":
+    "Eight unbranched arms extend and curl inward far enough to enclose a large hull. Light chambers and luminous arm nodes outline dark muscle, while layered ventral arm roots give this ice-ocean giant an immense silhouette.",
   "发光腔膨胀、长腕收拢时预告一次锁定冲锋；突袭后有3秒恢复期。守护热泉盆地，始终留在自己的领域附近。":
     "Expanding light chambers and gathering arms warn of a locked charge. A 3-second recovery follows. It guards the Thermal Basin and stays near its territory.",
   "看到冲锋流纹后横向闪避，利用岩拱遮挡；恢复时从侧翼咬击实体躯干，脱离至少0.35秒再回来。需要25米和三次有效侧咬。":

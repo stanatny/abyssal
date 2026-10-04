@@ -3,6 +3,7 @@
  * 模块不依赖渲染器，所有时间均以秒计，所有长度均为游戏内米数。
  */
 
+import { isRegionalRare } from "./regional_rare.js";
 import { ECOSYSTEM_SPECIES } from "./ecosystem_config.js";
 import { REWARDS } from "./reward_config.js";
 import { getCharacter } from "./character_rules.js";
@@ -23,6 +24,8 @@ export function createPlayer(
   const character = getCharacter(characterId);
   return {
     characterId: character.id,
+    vitalCap: 100,
+    rareRewardClaimed: false,
     health: 100,
     stamina: 100,
     hunger: 100,
@@ -110,7 +113,7 @@ export function tickVitals(
   } else if (!boosting || flowTime < elapsed) {
     const recoveryTime = boosting ? paidTime : elapsed;
     player.stamina = Math.min(
-      100,
+      vitalLimit(player),
       player.stamina + recoveryTime * PLAYER_MOVEMENT.staminaRecovery,
     );
   }
@@ -166,6 +169,7 @@ export function canEat(player, preyLength) {
  */
 export function consumePrey(player, prey) {
   if (!prey || prey.tier === 3 || !canEat(player, prey.length)) return false;
+  if (isRegionalRare(prey)) return consumeRare(player, prey);
   applyNutrition(player, preyMealReward(player.length, prey));
   player.eaten += 1;
   return true;
@@ -187,6 +191,7 @@ export function consumeDefeatedPrey(player, prey) {
     !isPositive(prey.length)
   )
     return false;
+  if (isRegionalRare(prey)) return consumeRare(player, prey);
   applyNutrition(player, preyMealReward(player.length, prey));
   player.eaten += 1;
   return true;
@@ -262,14 +267,17 @@ export function applyNutrition(player, reward, efficiency = 1) {
     safeEfficiency *
     juvenileGrowth;
   const healingCapacity = nutrition * 0.8;
-  const healed = Math.min(Math.max(0, 100 - player.health), healingCapacity);
+  const healed = Math.min(
+    Math.max(0, vitalLimit(player) - player.health),
+    healingCapacity,
+  );
   // 受伤时最多将70%成长投入恢复；轻伤只扣除实际使用的治疗份额。
   const healingShare =
     healingCapacity > 0 ? (healed / healingCapacity) * 0.7 : 0;
   const previousMass = player.mass;
   const previousHunger = player.hunger;
-  player.health = Math.min(100, player.health + healed);
-  player.hunger = Math.min(100, player.hunger + nutrition);
+  player.health = Math.min(vitalLimit(player), player.health + healed);
+  player.hunger = Math.min(vitalLimit(player), player.hunger + nutrition);
   player.mass = Math.min(125, player.mass + growth * (1 - healingShare));
   player.length = Math.min(30, 6 * Math.cbrt(player.mass));
   player.lastMeal = {
@@ -320,12 +328,12 @@ export function takeDamage(player, amount) {
 export function collectPickup(player, kind) {
   if (player.dead || player.won || player.timedOut) return false;
   if (kind === "stamina") {
-    player.health = Math.min(100, player.health + 50);
-    player.stamina = Math.min(100, player.stamina + 50);
-    player.hunger = Math.min(100, player.hunger + 50);
+    player.health = Math.min(vitalLimit(player), player.health + 50);
+    player.stamina = Math.min(vitalLimit(player), player.stamina + 50);
+    player.hunger = Math.min(vitalLimit(player), player.hunger + 50);
     player.exhausted = false;
   } else if (kind === "flow") {
-    player.stamina = 100;
+    player.stamina = vitalLimit(player);
     player.exhausted = false;
     player.buffs.flow = Math.max(REWARDS.flow.duration, player.buffs.flow);
   } else if (kind === "frenzy") {
@@ -435,4 +443,23 @@ function isPositive(value) {
 
 function nonNegative(value, fallback) {
   return Number.isFinite(value) && value >= 0 ? value : fallback;
+}
+
+/** 返回本局共享属性上限；旧状态默认100，不接受外部任意上限。 */
+export function vitalLimit(player) {
+  return player.vitalCap === 150 ? 150 : 100;
+}
+
+// 所有确认捕获入口共用一次性恩赐，既不增加体长也不重复普通营养结算。
+function consumeRare(player, prey) {
+  if (player.rareRewardClaimed) return false;
+  const healed = 150 - player.health,
+    nutrition = 150 - player.hunger;
+  player.vitalCap = 150;
+  player.rareRewardClaimed = prey.kind;
+  player.health = player.stamina = player.hunger = 150;
+  player.exhausted = false;
+  player.eaten += 1;
+  player.lastMeal = { healed, nutrition, growth: 0, rare: prey.kind };
+  return true;
 }

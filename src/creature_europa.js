@@ -1,3 +1,4 @@
+import { refineEuropaAnatomy } from "./creature_europa_refinement.js";
 import * as THREE from "three";
 import { EUROPA_SPECIES } from "./europa_species.js";
 import { buildEuropaShellForm } from "./creature_europa_shells.js";
@@ -96,6 +97,7 @@ export function buildEuropaCreature(kind, root, motions) {
     !buildEuropaRibbonForm(ctx)
   )
     throw new Error(`Missing Europa anatomy: ${kind}`);
+  refineEuropaAnatomy(ctx);
   batchEuropaAnatomy(anatomy, kind);
   // 只归一化纵向体长；宽体、长腕、扁平体态保留各自比例，捕食/生态配置不变。
   const bounds = new THREE.Box3().setFromObject(anatomy),

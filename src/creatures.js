@@ -1,4 +1,8 @@
 import {
+  RARE_CREATURE_KINDS,
+  buildRegionalRare,
+} from "./creature_regional_rare.js";
+import {
   PENGLAI_CREATURE_KINDS,
   buildPenglaiCreature,
 } from "./creature_penglai.js";
@@ -88,7 +92,8 @@ export function createCreature(kind, length = 6, seed = 1) {
   let previousTime;
   let swimTime = phase;
 
-  if (kind === "mechanical_shark") buildMechanicalShark(root, motions);
+  if (RARE_CREATURE_KINDS.has(kind)) buildRegionalRare(kind, root, motions);
+  else if (kind === "mechanical_shark") buildMechanicalShark(root, motions);
   else if (kind === "zombie_shark") buildZombieShark(root, motions);
   else if (kind === "abyss_weaver") buildAbyssWeaver(root, motions);
   else if (kind === "lumen_stalker") buildLumenStalker(root, motions);

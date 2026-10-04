@@ -33,9 +33,18 @@ export function batchEuropaAnatomy(group, kind, path = "root") {
       copy.applyMatrix4(mesh.matrix);
       const color = mesh.material.color,
         count = copy.attributes.position.count;
+      copy.computeBoundingBox();
+      const bounds = copy.boundingBox,
+        span = Math.max(0.01, bounds.max.y - bounds.min.y);
       const values = new Float32Array(count * 3);
-      for (let i = 0; i < count; i++)
-        values.set([color.r, color.g, color.b], i * 3);
+      for (let i = 0; i < count; i++) {
+        const position = copy.attributes.position;
+        const top = (position.getY(i) - bounds.min.y) / span;
+        // 受光面与腹面有连贯色阶，组织纹理不以高强度发光代替结构。
+        const shade =
+          1.08 - top * 0.26 + Math.sin(position.getZ(i) * 52) * 0.018;
+        values.set([color.r * shade, color.g * shade, color.b * shade], i * 3);
+      }
       copy.setAttribute("color", new THREE.BufferAttribute(values, 3));
       return copy;
     });

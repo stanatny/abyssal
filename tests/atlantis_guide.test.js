@@ -1,3 +1,4 @@
+import { REGIONAL_RARES } from "../src/regional_rare.js";
 import assert from "node:assert/strict";
 import { registerHooks } from "node:module";
 import test from "node:test";
@@ -19,9 +20,33 @@ const cssHook = registerHooks({
     return nextLoad(url, context);
   },
 });
-const { buildOceanCatalog, filterOceanCatalog, groupOceanCatalog } =
-  await import("../src/ocean_guide.js");
+const {
+  buildOceanCatalog,
+  filterOceanCatalog,
+  groupOceanCatalog,
+  guideCategoryIds,
+} = await import("../src/ocean_guide.js");
 cssHook.deregister();
+
+test("Guide category availability follows the actual region roster, independently of a search", () => {
+  const catalog = buildOceanCatalog();
+  for (const region of REGIONS.filter((entry) => entry.available)) {
+    const available = guideCategoryIds(catalog, region.id);
+    assert.ok(available.has("all"));
+    for (const category of available) {
+      if (category === "all") continue;
+      assert.ok(
+        filterOceanCatalog(catalog, { regionId: region.id, category }).length,
+      );
+    }
+    assert.equal(available.has("alien"), region.id === "europa");
+    assert.equal(available.has("mythic"), region.id === "penglai");
+    assert.ok(available.has("rare"));
+    assert.ok(available.has("player"));
+  }
+  const all = guideCategoryIds(catalog);
+  assert.ok(all.has("alien") && all.has("mythic"));
+});
 
 const chinese = /[\u3400-\u9fff]/u;
 const ordinary = (entries) =>
@@ -36,12 +61,14 @@ const placeholders = (value) =>
 
 test("the guide's full and regional catalogs agree with actual species and lord rosters", () => {
   const catalog = buildOceanCatalog();
-  assert.equal(catalog.length, 140);
+  assert.equal(catalog.length, 140 + REGIONAL_RARES.length);
   assert.equal(
     catalog.filter((e) =>
       e.regionIds.some((id) => id !== "europa" && id !== "penglai"),
     ).length,
-    96,
+    96 +
+      REGIONAL_RARES.filter((s) => !["europa", "penglai"].includes(s.regionId))
+        .length,
   );
   assert.equal(new Set(catalog.map((entry) => entry.id)).size, catalog.length);
   assert.deepEqual(kinds(ordinary(catalog)), kinds(ALL_SPECIES));
@@ -279,6 +306,7 @@ test("the complete and regional archives group new species with peers in ascendi
         "player",
         "human",
         ...(catalog.some((e) => e.category === "hazard") ? ["hazard"] : []),
+        "rare",
       ],
     );
     assert.deepEqual(

@@ -61,5 +61,18 @@ export function buildAmazonCreature(kind, root, motions) {
     .multiplyScalar(-scale);
   root.userData.normalizedLength = 1;
   root.userData.amazonAnatomy = kind;
+  if (
+    [
+      "green_anaconda",
+      "titanoboa",
+      "yacumama",
+      "black_caiman",
+      "saltwater_crocodile",
+      "purussaurus",
+      "rootback_colossus",
+      "rootjaw",
+    ].includes(kind)
+  )
+    root.userData.aquaticUpright = true;
   root.userData.artRevision = "amazon_redraw_v2";
 }

@@ -14,10 +14,10 @@ export function buildEuropaShellForm(c) {
     c.part(
       name,
       c.geometry(name, () =>
-        sculptedFin(outline, 0.035, "horizontal", {
-          smooth: false,
-          camber: 0.04,
-          detail: 1,
+        sculptedFin(outline, 0.052, "horizontal", {
+          smooth: ["glass_seed", "prism_hunter"].includes(kind) ? false : true,
+          camber: 0.065,
+          detail: 2,
         }),
       ),
       material,

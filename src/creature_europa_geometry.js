@@ -40,8 +40,8 @@ export function alienTrunk(key, profile, folds = 0, lobes = 0) {
   return cachedAlienGeometry(key, () => {
     const p = [],
       idx = [],
-      rings = key.startsWith("weaver") || key.startsWith("lumen") ? 72 : 32,
-      sides = key.startsWith("weaver") || key.startsWith("lumen") ? 32 : 16;
+      rings = key.startsWith("weaver") || key.startsWith("lumen") ? 72 : 40,
+      sides = key.startsWith("weaver") || key.startsWith("lumen") ? 32 : 24;
     for (let r = 0; r <= rings; r++) {
       const z = THREE.MathUtils.lerp(
         profile[0][0],

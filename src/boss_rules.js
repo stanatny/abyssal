@@ -1,7 +1,7 @@
 import { PENGLAI_LORDS } from "./penglai_lords.js";
 import { AMAZON_LORDS } from "./amazon_lords.js";
 /** 深海主宰的独立战斗规则：领地、蓄力预警、攻击、恢复与三次有效侧咬。 */
-import { applyNutrition } from "./simulation.js";
+import { applyNutrition, vitalLimit } from "./simulation.js";
 
 /*********************************************
  * Public API
@@ -250,7 +250,10 @@ function settleBossHit(player, boss) {
   // 只对真正造成伤害的一口补饱食，不提前发放击败后的治疗或成长奖励。
   const hungerRestored =
     damage > 0
-      ? Math.min(BOSS_BITE_HUNGER, Math.max(0, 100 - player.hunger))
+      ? Math.min(
+          BOSS_BITE_HUNGER,
+          Math.max(0, vitalLimit(player) - player.hunger),
+        )
       : 0;
   player.hunger += hungerRestored;
   player.biteCooldown = 1.2;

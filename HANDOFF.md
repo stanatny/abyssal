@@ -1,3 +1,21 @@
+# Authorized local checkpoint — Ecosystem polish
+
+The user accepted the current ecosystem/Guide candidate and requested a local commit on 2026-10-04. Commit the reviewed refinement, rare creatures, shared 150-point blessing, introductions, restrained gold identifiers and bilingual Guide/skill follow-up together on `feature/ecosystem-polish`. No push, main integration or formal publication is authorized. Prior uncommitted wording below is historical for this checkpoint. Subsequent species-silhouette, Penglai transformation and touch-keyboard work is a separate uncommitted task after this checkpoint.
+
+---
+
+# Current work — Ecosystem polish (uncommitted)
+
+Base: released v0.10.0 / `78bcfed`; worktree `abyssal-ecosystem-polish`, branch `feature/ecosystem-polish`. The user authorized creature quality review, Amazon swimming corrections, one exclusive rare per destination and living-creature introductions. No new commit, push or publication is authorized.
+
+Latest follow-up: restrained animated gold identifiers for rares; region-aware hiding of empty Guide categories with fallback to All; shared survival explanations moved out of individual prey records; 58 expanded original/legendary biographies, including the user-directed Skybearer Sword Sect story; one bilingual Penglai skill-name registry shared by Guide and warnings. Player-facing film references are removed. New runtime changes preserve gameplay values. Current follow-up evidence: `.local/ecosystem_review/guide_shimmer_report.json` (28 category/viewport/language cases, 116 extended-background details, three native world-effect cases, pause and resource-ownership checks) and `unit_shimmer_guide_final.log` (830 passing tests). The refreshed restricted candidate passes twenty native compiled desktop/touch flows, fourteen regional Guide checks and nine exact artifact hashes on each local/public host, with no runtime errors. All 260 runtime fingerprints match the served build. Native follow-up checks also cover real vertical touch scrolling and all six skill warnings; receipts and the current source manifest are under the same ignored review directory. No commit or publication has been made.
+
+Preserve ordinary population, nutrition, growth, collision and battle thresholds. Rare creatures form a separate registry and spawn exactly once per active expedition, randomly choose secluded regional habitats each expedition, flee and dodge faster than cruise, and do not respawn after capture. Their confirmed meal fills all three vitals and changes their shared cap from 100 to 150 for that expedition; restarting resets it. All meal paths, pickups, recovery and lord bites must retain the raised cap. A future collection unlock is deliberately not implemented.
+
+Read [the current review](docs/ecosystem_polish.md). Audit/verification evidence: `.local/ecosystem_review/`. Shared world/Guide factories, full animation cycles, populated native views, bilingual narrow layouts and resource ownership must be reviewed before candidate delivery. The 827-unit suite, 29 shared-browser checks, 264 bilingual background details, actual pursuit/contact and ranged/companion awards, 28-switch warmed resource plateau and six bilingual touch-cap layouts pass. Amazon lord orientation received a final shared-trait fix; its 49 focused tests and two native lord checks pass. The final restricted build passes twenty compiled desktop/touch cases per local/public host and nine exact artifact hashes per host, with development probes denied. Runtime manifest and rollback build are retained in `.local/ecosystem_review/manifest.json`. Published Pages remains v0.10.0.
+
+---
+
 # Current Development Handoff
 
 ## Current authorized main publication — v0.10.0

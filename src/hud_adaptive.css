@@ -312,3 +312,51 @@
     display: none;
   }
 }
+
+/* 珍兽提高上限后数值仍在同一列，窄屏不能挤压标签或进度条。 */
+.vital-head b {
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+@media (max-width: 700px) {
+  .vital-head b {
+    font-size: 12px;
+    letter-spacing: -0.25px;
+  }
+}
+@media (max-width: 380px) {
+  #hud .vital-head {
+    flex-direction: column;
+    justify-content: flex-start;
+    align-items: flex-start;
+    gap: 0;
+  }
+  #hud .vital-head span {
+    white-space: nowrap;
+  }
+  #hud .vital-head b {
+    font-size: 11px;
+    line-height: 14px;
+  }
+  #hud .vital-head small {
+    display: none;
+  }
+}
+
+@media (max-width: 700px) {
+  #hud[data-vital-cap="150"] .vital-head {
+    flex-direction: column;
+    align-items: flex-start;
+    justify-content: flex-start;
+    gap: 0;
+  }
+  #hud[data-vital-cap="150"] .vital-head span {
+    white-space: nowrap;
+  }
+  #hud[data-vital-cap="150"] .vital-head b {
+    line-height: 14px;
+  }
+  #hud[data-vital-cap="150"] .vital-head small {
+    display: none;
+  }
+}

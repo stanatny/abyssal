@@ -1,3 +1,5 @@
+import { getCreatureBackground } from "./creature_backgrounds.js";
+import { REGIONAL_RARES } from "./regional_rare.js";
 import { PENGLAI_LORD_DESCRIPTIONS } from "./penglai_lords.js";
 import { AMAZON_LORD_DESCRIPTIONS } from "./amazon_lords.js";
 import { SURFACE_BIRDS } from "./surface_birds.js";
@@ -40,6 +42,7 @@ const GUIDE_CATEGORIES = [
   { id: "player", name: "可选角色" },
   { id: "human", name: "人类活动" },
   { id: "hazard", name: "海域奇观与危险" },
+  { id: "rare", name: "专属珍兽" },
   { id: "reward", name: "海洋奖励" },
 ];
 const CATEGORY_ORDER = new Map(
@@ -84,7 +87,7 @@ const DESCRIPTIONS = {
     color: "#94d8e9",
     ability: "辉光突袭",
     appearance:
-      "《木卫二报告》中的发光长足生物启发的原创形象：八条无分叉长腕向外舒展后回卷，形成围拢大型船体的轮廓；集中发光腔与腕上光点勾勒暗色肌体。",
+      "八条无分叉长腕向外舒展后回卷，足以围拢大型船体；集中发光腔与腕上光点勾勒暗色肌体，腹面腕根层叠，形成冰下巨兽的庞大剪影。",
     text: "发光腔膨胀、长腕收拢时预告一次锁定冲锋；突袭后有3秒恢复期。守护热泉盆地，始终留在自己的领域附近。",
     counter:
       "看到冲锋流纹后横向闪避，利用岩拱遮挡；恢复时从侧翼咬击实体躯干，脱离至少0.35秒再回来。需要25米和三次有效侧咬。",
@@ -255,9 +258,7 @@ export function buildOceanCatalog(regionId) {
           ? config.ability
           : getHunterAbility(config)?.label || config.ability,
         text: config.description,
-        counter: config.predator
-          ? tr`${config.counter} ${tr`可被捕食不代表安全：黄色标记表示可捕食但会反击，红色标记表示危险猎手。体长优势不足5米时，猎手仍会追击，并能从侧后方咬伤你。正面用嘴捕获优先结算；至少大出5米后它才不再反击。`}`
-          : config.counter,
+        counter: config.counter,
         tier: config.tier,
         realSize: config.realSize,
         habitatNote: config.schoolProfiles?.some((group) => group.cityResident)
@@ -354,13 +355,23 @@ export function buildOceanCatalog(regionId) {
       counter:
         "喷流仅覆盖喷口上方约42米、半径10米的水体；横向绕行即可避开。它们不封锁守关入口、古城宝藏或育幼区，也不会提供食物。",
     },
+    ...REGIONAL_RARES.map((config) => ({
+      ...config,
+      id: config.kind,
+      name: config.label,
+      role: "专属珍兽",
+      size: `${config.length} m`,
+      habitat: config.habitatLabel,
+      text: config.description,
+      regionIds: [config.regionId],
+    })),
     ...HUMAN_CATALOG,
     ...bermudaGuideEntries(),
     ...marianaGuideEntries(),
     ...europaGuideEntries(),
   ]
     .map((entry) => ({
-      ...localizeRecord(entry),
+      ...localizeRecord({ ...entry, ...getCreatureBackground(entry.kind) }),
       regionIds: catalogRegionIds(entry),
       searchText: `${entry.name} ${entry.ability} ${t(entry.name, [], "en")} ${t(entry.ability, [], "en")}`,
     }))
@@ -372,6 +383,7 @@ export let OCEAN_CATALOG = buildOceanCatalog();
 function catalogRegionIds(entry) {
   return REGIONS.filter((region) => {
     if (!region.available) return false;
+    if (entry.category === "rare") return entry.regionIds.includes(region.id);
     if (entry.category === "hazard")
       return entry.regionIds
         ? entry.regionIds.includes(region.id)
@@ -429,6 +441,14 @@ export function filterOceanCatalog(
           .includes(query),
     )
     .sort(compareCatalogEntries);
+}
+
+/** 根据海域的完整名册决定分类，不跟随搜索结果隐藏入口。 */
+export function guideCategoryIds(catalog, regionId) {
+  return new Set([
+    "all",
+    ...filterOceanCatalog(catalog, { regionId }).map((entry) => entry.category),
+  ]);
 }
 
 /** 地图危险采用资料卡，不为非生物生成错误的鱼形标本。 */
@@ -584,6 +604,7 @@ export function createOceanGuide(trigger) {
   const regionSelect = regionRow.querySelector("select");
   const filters = [
     { id: "all", name: "全部" },
+    { id: "rare", name: "专属珍兽" },
     { id: "alien", name: "外星生命" },
     { id: "mythic", name: "神话生灵" },
     { id: "player", name: "可选角色" },
@@ -697,21 +718,33 @@ export function createOceanGuide(trigger) {
   }
   function renderList() {
     const regionId = regionScope === "current" ? selectedRegion : regionScope;
+    const categories = guideCategoryIds(
+      [...regionalCatalog, ...REWARD_CATALOG],
+      regionId === "all" ? undefined : regionId,
+    );
+    // 切换海域后，原分类若已不存在，回到总览，避免留下空列表和隐藏选中态。
+    if (!categories.has(category)) category = "all";
     const region = REGIONS.find((r) => r.id === regionId);
+    const commonRules = tr`<h4>通用生存规则</h4><p>可被捕食不代表安全：黄色标记表示可捕食但会反击，红色标记表示危险猎手。体长优势不足5米时，猎手仍会追击，并能从侧后方咬伤你。正面用嘴捕获优先结算；至少大出5米后它才不再反击。</p><p>基础营养为游戏数值，实际收益随相对体型和鱼群规则调整；进食同时恢复生命并用于成长。</p><p>${feedingProgressionNote()}</p>`;
     setMarkup(
       regionIntro,
       region
-        ? tr`<summary>${region.name}<span>${region.objective.difficulty} · ${tr`${region.speciesKinds.length} 种生物`}</span></summary><p>${region.description}</p><p><b>远征目标</b> · ${region.objective.summary}</p><p>${region.objective.food}</p>`
-        : tr`<summary>远征海域<span>探索 · 生存 · 独立结局</span></summary><p>选择一个海域，查看它的独有生物、食物层级与胜利条件。所有深渊领主击败后本局不再刷新。</p>`,
+        ? tr`<summary>${region.name}<span>${region.objective.difficulty} · ${tr`${region.speciesKinds.length} 种生物`}</span></summary><p>${region.description}</p><p><b>远征目标</b> · ${region.objective.summary}</p><p>${region.objective.food}</p>${commonRules}`
+        : tr`<summary>远征海域<span>探索 · 生存 · 独立结局</span></summary><p>选择一个海域，查看它的独有生物、食物层级与胜利条件。所有深渊领主击败后本局不再刷新。</p>${commonRules}`,
     );
     for (const filter of filters) {
       const button = dialog.querySelector(`[data-category="${filter.id}"]`);
-      if (button)
+      if (button) {
+        const hadFocus = document.activeElement === button;
+        button.hidden = !categories.has(filter.id);
+        if (button.hidden && hadFocus)
+          dialog.querySelector('[data-category="all"]').focus();
         button.textContent = t(
           regionId === "amazon" && filter.id === "hunter"
             ? "河道猎手"
             : filter.name,
         );
+      }
     }
     const search = input.value.trim().toLowerCase();
     // 默认“全部”保留生物总览；输入关键词时，也可直接找到奖励档案。
@@ -807,7 +840,7 @@ export function createOceanGuide(trigger) {
   function showRegionalFacts(entry) {
     // 重选同一档案时setMarkup会复用内容，先清理本轮补充行以免重复。
     for (const detail of info.querySelectorAll(
-      ".guide-availability, .guide-extra-fact, .guide-feeding-note",
+      ".guide-availability, .guide-extra-fact",
     ))
       detail.remove();
     const availability = document.createElement("div");
@@ -834,15 +867,6 @@ export function createOceanGuide(trigger) {
     setMarkup(speed, tr`<small>基础游速</small><b>${entry.speed} m/s</b>`);
     const facts = info.querySelector(".guide-facts");
     facts.append(nutrition, speed);
-    const note = document.createElement("p");
-    note.className = "guide-feeding-note";
-    note.textContent =
-      t(
-        "基础营养为游戏数值，实际收益随相对体型和鱼群规则调整；进食同时恢复生命并用于成长。",
-      ) +
-      " " +
-      feedingProgressionNote();
-    facts.after(note);
   }
   function select(entry) {
     selected = entry;
@@ -934,7 +958,7 @@ export function createOceanGuide(trigger) {
         : "";
     setMarkup(
       info,
-      tr`<div class="guide-eyebrow">${entry.latin}</div><div class="guide-name-row"><h3>${entry.name}</h3><span>${entry.role}</span></div><div class="guide-facts"><div><small>本作尺度</small><b>${entry.size}</b></div><div><small>活动水层</small><b>${entry.habitat}</b></div></div>${entry.category === "player" && entry.appearance ? tr`<p class="guide-appearance">${entry.appearance}</p>` : ""}<h4>${entry.ability}</h4><p>${entry.text}</p><div class="guide-advice"><b>生存建议</b><p>${entry.counter}</p></div><small class="guide-combat">${combat}</small>${survival}${entry.realSize ? tr`<div class="guide-advice"><b>生态注记</b><p>${entry.realSize} ${entry.habitatNote || ""}</p></div>` : ""}`,
+      tr`<div class="guide-eyebrow">${entry.latin}</div><div class="guide-name-row"><h3>${entry.name}</h3><span>${entry.role}</span></div><div class="guide-facts"><div><small>本作尺度</small><b>${entry.size}</b></div><div><small>活动水层</small><b>${entry.habitat}</b></div></div>${entry.category === "player" && entry.appearance ? tr`<p class="guide-appearance">${entry.appearance}</p>` : ""}${entry.background ? tr`<section class="guide-background"><h4>${entry.backgroundType}</h4><p>${entry.background}</p></section>` : ""}<h4>${entry.ability}</h4><p>${entry.text}</p><div class="guide-advice"><b>生存建议</b><p>${entry.counter}</p></div><small class="guide-combat">${combat}</small>${survival}${entry.realSize ? tr`<div class="guide-advice"><b>生态注记</b><p>${entry.realSize} ${entry.habitatNote || ""}</p></div>` : ""}`,
     );
     showRegionalFacts(entry);
     if (!renderer) return;

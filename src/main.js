@@ -1,3 +1,12 @@
+import { steerElusiveRare } from "./regional_rare_pursuit.js";
+import { aquaticHeading } from "./aquatic_reptile_motion.js";
+import {
+  getRegionalRare,
+  chooseRareHabitat,
+  isRegionalRare,
+  preyRespawnDelay,
+} from "./regional_rare.js";
+import { attachRareMarker } from "./regional_rare_marker.js";
 import {
   aerialFormationPose,
   createAerialSpacing,
@@ -54,6 +63,7 @@ import { MOON_DIRECTION } from "./atlantis_art_sky.js";
 import { getRegionSpecies } from "./region_ecology.js";
 import { regionZone, cityLightBlend } from "./region_appearance.js";
 import {
+  vitalLimit,
   createPlayer,
   tickVitals,
   canEat,
@@ -337,7 +347,7 @@ minion = createZombieMinion(scene, {
     if (!consumeMinionPrey(state, owner, entity.species)) return false;
     if (entity.alive !== undefined) humans.retireMeal(entity, owner.elapsed);
     else {
-      entity.hiddenFor = entity.species.schoolSize > 1 ? 18 : 28;
+      entity.hiddenFor = preyRespawnDelay(entity.species);
       entity.chase = 0;
       entity.groundState = null;
       entity.flight = null;
@@ -348,7 +358,12 @@ minion = createZombieMinion(scene, {
   onMeal(entity) {
     if (entity.sex) audio.eatHuman(entity.species.length, entity.sex);
     else audio.eatFish(entity.species.length);
-    notify(message`仆从捕食 ${entity.species.label} · 收益归主角`, 1.4);
+    notify(
+      isRegionalRare(entity.species)
+        ? "珍兽恩赐 · 三项补满，上限150（本局）"
+        : message`仆从捕食 ${entity.species.label} · 收益归主角`,
+      2.4,
+    );
   },
 });
 const entities = [],
@@ -372,7 +387,11 @@ torpedoes = createMechanicalTorpedoes(scene, {
   onLaunch() {
     avatar.userData.triggerLaunch?.();
   },
-  onBlast({ killed, hits, bossHits }) {
+  onBlast({ killed, hits, bossHits, rare }) {
+    if (rare) {
+      notify("珍兽恩赐 · 三项补满，上限150（本局）", 4);
+      return;
+    }
     if (killed) notify(message`鱼雷爆炸 · 吞噬${killed}，另命中${hits}`, 2);
     else if (hits > bossHits)
       notify(message`鱼雷爆炸 · 命中${hits}，尚未击杀`, 2);
@@ -1136,6 +1155,7 @@ function addEntity(species, location, populationIndex = 0) {
   mesh.position.copy(
     location || spawnPosition(species, false, null, populationIndex),
   );
+  if (isRegionalRare(species)) attachRareMarker(mesh);
   scene.add(mesh);
   const entity = {
     species,
@@ -1179,7 +1199,10 @@ function seedPopulation() {
       entity.species.kind,
       (existing.get(entity.species.kind) || 0) + 1,
     );
-  for (const species of speciesList()) {
+  for (const species of [
+    ...speciesList(),
+    getRegionalRare(expedition.region.id),
+  ].filter(Boolean)) {
     const count =
       species.population ??
       (species.schoolSize ? 18 : species.category === "ancient" ? 2 : 4);
@@ -1192,6 +1215,10 @@ function seedPopulation() {
     const index = speciesIndices.get(entity.species.kind) || 0;
     speciesIndices.set(entity.species.kind, index + 1);
     entity.populationIndex = index;
+    if (isRegionalRare(entity.species)) {
+      entity.species = chooseRareHabitat(getRegionalRare(expedition.region.id));
+      entity.elusiveState = {};
+    }
     entity.mesh.position.copy(
       spawnPosition(
         entity.species,
@@ -2006,15 +2033,17 @@ function eatEntity(entity, mouth, previousPrey = entity.mesh.position, dt = 0) {
   audio.eatFish(species.length);
   avatar.userData.triggerFeed?.();
   effects.bite(captureContact, forward, player.length);
-  entity.hiddenFor = species.schoolSize > 1 ? 18 : 28;
+  entity.hiddenFor = preyRespawnDelay(species);
   feeding.start(mesh, species.length);
   resetTorpedoTarget(entity);
   entity.chase = 0;
   entity.flight = null;
   mesh.userData.setGliding?.(false);
   notify(
-    message`捕食 ${species.label} · ${player.lastMeal.healed > 0 ? message`生命 +${Math.round(player.lastMeal.healed)} · ` : ""}体长 ${player.length.toFixed(1)} m`,
-    1.7,
+    isRegionalRare(species)
+      ? "珍兽恩赐 · 三项补满，上限150（本局）"
+      : message`捕食 ${species.label} · ${player.lastMeal.healed > 0 ? message`生命 +${Math.round(player.lastMeal.healed)} · ` : ""}体长 ${player.length.toFixed(1)} m`,
+    isRegionalRare(species) ? 4 : 1.7,
   );
   return true;
 }
@@ -2265,6 +2294,18 @@ function updateEntities(dt) {
         -Math.cos(entity.heading),
       );
     }
+    if (species.elusive) {
+      entity.elusiveState ??= {};
+      moveSpeed = steerElusiveRare(
+        entity.elusiveState,
+        dt,
+        mesh.position,
+        position,
+        direction,
+        entity.seed,
+        species,
+      );
+    }
     if (learning) moveSpeed = Math.min(moveSpeed, 2.6);
     // 接近领地边缘时提前转回，最终钳制仅防止高速技能跨进安全区。
     if (territory) {
@@ -2419,7 +2460,13 @@ function updateEntities(dt) {
         effects.flash(mesh.position, 0xd9aa65, Math.min(18, species.length));
         if (distance < 100) notify("走兽蓄势跃击 · 上升或侧向避开", 2);
       }
-    } else entity.velocity.lerp(direction, Math.min(1, dt * 2));
+    } else {
+      entity.velocity.lerp(
+        direction,
+        Math.min(1, dt * (species.elusive ? 4 : 2)),
+      );
+      if (species.elusive) entity.velocity.normalize();
+    }
     if (species.benthic) entity.velocity.y = 0;
     mesh.position.addScaledVector(
       entity.velocity,
@@ -2579,12 +2626,23 @@ function updateEntities(dt) {
       mesh.quaternion.slerp(
         species.flying
           ? aerialHeadingQuaternion(entityOrientation, entity.velocity)
-          : entityOrientation.setFromUnitVectors(
-              modelForward,
-              entityUnitVelocity.copy(entity.velocity).normalize(),
-            ),
+          : mesh.userData.aquaticUpright
+            ? aquaticHeading(
+                entityOrientation,
+                entity.velocity,
+                mesh.rotation.y,
+              )
+            : entityOrientation.setFromUnitVectors(
+                modelForward,
+                entityUnitVelocity.copy(entity.velocity).normalize(),
+              ),
         Math.min(1, dt * 3),
       );
+    mesh.userData.updateRareShimmer?.(
+      elapsed,
+      distance,
+      reducedMotionQuery.matches,
+    );
     if (distance < 180) {
       mesh.userData.setHunterPhase?.(hunter.phase);
       mesh.userData.animate?.(
@@ -3020,9 +3078,17 @@ function updateTorpedoAim() {
 }
 
 function updateHud() {
+  const cap = vitalLimit(player) === 150 ? "150" : "100";
+  if ($("hud").dataset.vitalCap !== cap) $("hud").dataset.vitalCap = cap;
   for (const key of ["health", "stamina", "hunger"]) {
-    $(key + "-value").textContent = t(Math.ceil(player[key]));
-    $(key + "-bar").style.width = player[key] + "%";
+    $(key + "-value").textContent =
+      vitalLimit(player) === 150
+        ? `${Math.ceil(player[key])}/150`
+        : t(Math.ceil(player[key]));
+    $(key + "-value").title =
+      `${t("生命、体力与饥饿上限")} ${vitalLimit(player)}`;
+    $(key + "-bar").style.width =
+      (player[key] / vitalLimit(player)) * 100 + "%";
     $(key + "-bar").parentElement.classList.toggle(
       "low-vital",
       player[key] < 20,
@@ -3257,7 +3323,7 @@ function updateHud() {
         ? "#ffad8a"
         : "#c1d8dd";
     $("target").textContent = t(
-      tr`${{ shoal: "Ⅰ 浅海鱼群", hunter: "Ⅱ 海洋霸主", ancient: "Ⅲ 远古巨兽", alien: "外星生命", mythic: "神话生灵" }[e.species.category] || "海洋生物"} · ${e.species.label} · ${e.species.length}m${e.torpedoHits ? tr` · 鱼雷伤害${e.torpedoHits}/${MECHANICAL_RULES.giantHits}` : ""} · ${edible ? (retaliates ? "可捕食 · 会反击" : "可捕食") : e.species.predator ? "危险" : "暂不可吞食"} / ${Math.round(d)}m`,
+      tr`${{ shoal: "Ⅰ 浅海鱼群", hunter: "Ⅱ 海洋霸主", ancient: "Ⅲ 远古巨兽", alien: "外星生命", mythic: "神话生灵", rare: "专属珍兽" }[e.species.category] || "海洋生物"} · ${e.species.label} · ${e.species.length}m${e.torpedoHits ? tr` · 鱼雷伤害${e.torpedoHits}/${MECHANICAL_RULES.giantHits}` : ""} · ${edible ? (retaliates ? "可捕食 · 会反击" : "可捕食") : e.species.predator ? "危险" : "暂不可吞食"} / ${Math.round(d)}m`,
     );
   }
   $("boss-panel").hidden = !activeBoss;
@@ -3289,7 +3355,7 @@ function updateHud() {
     );
   }
   $("feeding-mode").textContent = t(
-    player.health < 100 ? "进食优先回血" : "健康成长",
+    player.health < vitalLimit(player) ? "进食优先回血" : "健康成长",
   );
   $("breach-hint").hidden =
     ["ice", "aether"].includes(surface.mode) ||
