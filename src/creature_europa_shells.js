@@ -1,3 +1,4 @@
+import { bindTentacleMotion } from "./tentacle_motion.js";
 import * as THREE from "three";
 import { sculptedFin } from "./creature_surface.js";
 
@@ -464,20 +465,25 @@ export function buildEuropaShellForm(c) {
         skin,
       );
       c.moving(fin, (m, t) => (m.rotation.x = Math.sin(t * 0.7 + s) * 0.08));
+      const arm = c.group(`spiral_feeler_${s}`, [s * 0.045, -0.21, -0.34]);
+      const points = [
+        [0, 0, 0],
+        [s * 0.075, 0.06, -0.09],
+        [s * 0.045, 0.09, -0.19],
+      ];
       c.part(
         "probing_feeler",
-        c.tapered(
-          `spiral_feeler${s}`,
-          [
-            [s * 0.045, -0.21, -0.34],
-            [s * 0.12, -0.15, -0.43],
-            [s * 0.09, -0.12, -0.53],
-          ],
-          0.012,
-          0.001,
-          12,
-        ),
+        c.tapered(`spiral_feeler${s}`, points, 0.012, 0.001, 12),
         edge,
+        [0, 0, 0],
+        arm,
+      );
+      bindTentacleMotion(
+        arm,
+        `spiral_grazer_soft_feeler_${s}`,
+        new THREE.CatmullRomCurve3(points.map((p) => new THREE.Vector3(...p))),
+        c.motions,
+        { count: 6, phase: s, amplitude: 0.2 },
       );
     }
     c.motions.push((t) => (shell.rotation.z = Math.sin(t * 0.35) * 0.025));

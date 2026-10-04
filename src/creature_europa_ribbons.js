@@ -1,3 +1,5 @@
+import * as THREE from "three";
+import { bindTentacleMotion } from "./tentacle_motion.js";
 /** 长带、扁翼、钟罩和管状巨兽各有独立的结构与推进动作。 */
 export function buildEuropaRibbonForm(c) {
   const { kind, skin, edge, dark, organ } = c;
@@ -224,6 +226,21 @@ export function buildEuropaRibbonForm(c) {
         );
         bud.rotation.x = Math.PI / 2;
       }
+      const curve = new THREE.CatmullRomCurve3(
+        [
+          [0, 0, 0],
+          [x * 0.06, -0.13, 0.13],
+          [x * 0.1, -0.19, 0.32],
+          [x * 0.06, -0.24, 0.48],
+        ].map((p) => new THREE.Vector3(...p)),
+      );
+      bindTentacleMotion(
+        arm,
+        `bell_carrier_soft_colony_${i}`,
+        curve,
+        c.motions,
+        { count: 8, phase: a, amplitude: 0.18 },
+      );
       c.motions.push((t) => (arm.rotation.x = Math.sin(t * 0.65 + i) * 0.05));
     }
     c.motions.push((t) =>

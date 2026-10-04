@@ -38,6 +38,8 @@ A complete roster redraw must account for every ordinary kind and lord. Use spec
 
 Fit attachments to the same body profile and deformation used by the torso. Dorsal/anal fin bases and tail fins must follow the actual skeleton; independent decorative motion can detach them during a bend. Limbs need continuous muscle/palm/webbing connections, and mouth interiors must remain visibly inside the opened jaw. Confirm the conventions of shared helpers so paired eyes or other parts are not duplicated. Inspect full cycles and extremes with changing deep vertex/transform state, rather than only a moving root or bone-count assertion.
 
+For articulated swimming, inspect the deformed distal feet/arm surfaces in their own support frame, not just joint angles. Counter-folding should keep tucked limbs outside the flanks; pelvic attachments must follow posterior-body flex rather than slide off a rigid trunk. Geometry skin weights and the rig must consume the same axial support positions. Compare side and overhead cycles, speed transitions, turns and the native follow view; keep world heading separate from local propulsion. These are the accepted crocodilian/tentacle lessons in [v0.10.2](release_v0_10_2.md), not a universal gait for every animal.
+
 Keep structural correction separate from surface polish: embedded eyes, smooth joint transitions, species markings, roughness and armor relief must survive ordinary camera scale without excessive emission or distracting floating detail. Preserve biological/game lengths and collision/feeding contracts during appearance-only work. Shared static caches may reduce waste; they must not couple instance poses or permit one disposal to invalidate another creature.
 
 ## Audio production and listening quality

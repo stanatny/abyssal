@@ -16,6 +16,10 @@ const kinds = [
   "crown_filterer",
   "abyss_weaver",
   "lumen_stalker",
+  "cameroceras",
+  "pearl_nautilus",
+  "spiral_grazer",
+  "bell_carrier",
 ];
 function arms(root) {
   const result = [];
@@ -43,7 +47,13 @@ for (const kind of kinds)
       b = arms(second);
     assert.equal(
       a.length,
-      kind === "abyss_weaver" ? 6 : kind === "cuttlefish" ? 10 : 8,
+      {
+        abyss_weaver: 6,
+        cuttlefish: 10,
+        pearl_nautilus: 12,
+        spiral_grazer: 2,
+        bell_carrier: 6,
+      }[kind] ?? 8,
     );
     pose(first, 0);
     pose(second, 0);
@@ -181,5 +191,66 @@ test("Tentacle chunk filtering preserves brute-force surface and interior contac
       if (full) assert.ok(filtered.distanceTo(full) < 1e-7);
     }
   }
+  disposeTentacleMotion(root);
+});
+
+test("Lumen lance poses reach the real locked point, retain shared surfaces and reset to swimming", () => {
+  const root = createCreature("lumen_stalker", 62, 71);
+  pose(root, 0);
+  const arms = root.userData.lashArms;
+  const target = new THREE.Vector3(0, 0, -70),
+    targets = [
+      target,
+      target.clone().add(new THREE.Vector3(5, 0, 0)),
+      target.clone().add(new THREE.Vector3(-5, 0, 0)),
+    ];
+  const surface = arms[0].userData.tentacle.meshes[0],
+    immutable = Float32Array.from(surface.geometry.attributes.position.array);
+  const before = arms[0].userData.tentacle.bones
+    .at(-1)
+    .getWorldPosition(new THREE.Vector3());
+  for (let i = 0; i <= 60; i++) {
+    pose(root, i / 60);
+    root.userData.poseLumenLash(
+      targets,
+      Array.from({ length: 3 }, () => ({ amount: i / 60 })),
+    );
+    root.updateMatrixWorld(true);
+    for (const arm of arms)
+      for (const mesh of arm.userData.tentacle.meshes) {
+        for (let v = 0; v < mesh.geometry.attributes.position.count; v += 47) {
+          const point = mesh
+            .getVertexPosition(v, new THREE.Vector3())
+            .applyMatrix4(mesh.matrixWorld);
+          assert.ok(
+            tentacleChunkBounds(
+              mesh,
+              mesh.userData.tentacleChunks[Math.floor(v / 192)],
+              new THREE.Box3(),
+            ).containsPoint(point),
+          );
+        }
+      }
+  }
+  const tip = arms[0].userData.tentacle.bones
+    .at(-1)
+    .getWorldPosition(new THREE.Vector3());
+  assert.ok(
+    tip.distanceTo(target) < 0.01,
+    "Damage point is a real rendered arm joint",
+  );
+  assert.ok(
+    findBossContact(root, tip, 1),
+    "Visible skin is at the attack point",
+  );
+  assert.deepEqual(surface.geometry.attributes.position.array, immutable);
+  pose(root, 1.05);
+  const reset = arms[0].userData.tentacle.bones
+    .at(-1)
+    .getWorldPosition(new THREE.Vector3());
+  assert.ok(
+    reset.distanceTo(before) < 12,
+    "Next normal pose restores rest translations",
+  );
   disposeTentacleMotion(root);
 });

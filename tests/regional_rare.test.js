@@ -184,7 +184,7 @@ test("a dodging rare outruns ordinary swimming but can be intercepted with basel
   }
 });
 
-test("crocodilian rear-limb roots remain with a rigid trunk while only the tail deforms", () => {
+test("crocodilian shoulders remain stable while the posterior body and tail deform", () => {
   for (const kind of [
     "black_caiman",
     "saltwater_crocodile",
@@ -195,7 +195,7 @@ test("crocodilian rear-limb roots remain with a rigid trunk while only the tail 
     const model = createCreature(kind, 1),
       skin = [];
     model.traverse((o) => {
-      if (o.isSkinnedMesh && o.skeleton.bones.length === 7) skin.push(o);
+      if (o.isSkinnedMesh && o.userData.crocodilianRig) skin.push(o);
     });
     assert.ok(skin.length, kind);
     const body = skin[0],
@@ -203,7 +203,8 @@ test("crocodilian rear-limb roots remain with a rigid trunk while only the tail 
       rigid = [],
       tail = [];
     for (let i = 0; i < p.count; i += 7) {
-      if (p.getZ(i) < 0.25) rigid.push(i);
+      if (p.getZ(i) < 0.1 && body.geometry.attributes.skinIndex.getX(i) < 7)
+        rigid.push(i);
       if (p.getZ(i) > 0.7) tail.push(i);
     }
     model.userData.animate(0, 1);

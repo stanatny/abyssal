@@ -244,7 +244,7 @@ test("织母真实前摇和扫网命中一次，垂直脱离与岩石遮挡均�
   for (const strategy of ["standing", "up", "cover"]) {
     const f = fixture("abyss_weaver");
     f.position.set(0, -400, -70);
-    while (f.time < 6) {
+    while (f.time < 6.2) {
       if (
         strategy === "up" &&
         f.entry.state.phase === "windup" &&
@@ -357,6 +357,39 @@ test("克拉肯真实漩涡靠近、缠腕、延迟绞咬；普通角色冲刺�
   }
 });
 
+test("Kraken's native encounter applies stronger inner pull and stamina loss", () => {
+  function sample(distance) {
+    const f = fixture("kraken");
+    const state = f.entry.state;
+    state.phase = "attack";
+    state.ability = "vortex";
+    state.phaseDuration = 6;
+    f.entry.previousPhase = "attack";
+    f.entry.attackOrigin.copy(f.entry.mesh.position);
+    f.entry.grapple.held = true;
+    f.entry.mesh.updateMatrixWorld(true);
+    const mouth = f.entry.mesh.userData.mouthAnchors[0].getWorldPosition(
+      new THREE.Vector3(),
+    );
+    f.position.copy(mouth).add(new THREE.Vector3(distance, 0, 0));
+    f.player.stamina = 50;
+    const start = f.position.clone();
+    f.step();
+    const result = {
+      movement: start.distanceTo(f.position),
+      stamina: f.player.stamina,
+      forces: { ...f.entry.grappleForces },
+    };
+    f.encounters.dispose();
+    return result;
+  }
+  const near = sample(6);
+  const far = sample(20);
+  assert.ok(near.movement > far.movement);
+  assert.ok(near.stamina < far.stamina);
+  assert.ok(near.forces.gripPullSpeed > far.forces.gripPullSpeed);
+});
+
 test("青龙水息从实际吻端释放且方向锁定，一次命中、侧躲和地形遮挡均按真实战斗生效", () => {
   for (const strategy of ["standing", "side", "cover"]) {
     const f = fixture("azure_dragon");
@@ -389,4 +422,88 @@ test("青龙水息从实际吻端释放且方向锁定，一次命中、侧躲�
     assert.equal(f.entry.state.phaseDuration, 3.8);
     f.encounters.dispose();
   }
+});
+
+test("Lumen Stalker uses real sequential arm tips; sideways escape and solid cover stop damage", () => {
+  for (const strategy of ["standing", "side", "cover"]) {
+    const f = fixture("lumen_stalker");
+    f.player.length = 20;
+    const initial = f.entry.mesh.position.clone();
+    while (f.time < 5.5) {
+      if (
+        strategy === "side" &&
+        f.entry.state.phase === "windup" &&
+        f.entry.state.timer >= 1.7
+      )
+        f.position.x += 32 / 60;
+      f.step(1 / 60, strategy === "cover" ? () => true : () => false);
+    }
+    assert.equal(f.entry.state.ability, "lash");
+    assert.equal(f.events.hits, strategy === "standing" ? 1 : 0, strategy);
+    assert.ok(
+      Math.abs(f.player.health - (strategy === "standing" ? 62 : 100)) < 0.001,
+    );
+    assert.ok(
+      f.entry.mesh.position.distanceTo(initial) < 45,
+      "No old whole-body charge",
+    );
+    assert.equal(f.entry.fx.targets.length, 3);
+    f.encounters.dispose();
+  }
+});
+
+test("Lumen patrol leaves attack paths inactive while its ordinary arms keep swimming", () => {
+  const f = fixture("lumen_stalker");
+  f.position.x = 500;
+  for (let i = 0; i < 60; i++) f.step();
+  assert.equal(f.entry.state.phase, "dormant");
+  assert.equal(f.entry.lashReady, false);
+  assert.ok(f.entry.lashSafeTargets.every((p) => p.lengthSq() === 0));
+  const bone = f.entry.mesh.userData.lashArms[0].userData.tentacle.bones[6];
+  assert.ok(bone.rotation.x !== 0 || bone.rotation.y !== 0);
+  assert.equal(f.events.hits, 0);
+  f.encounters.dispose();
+});
+
+test("Lumen lances cannot pass a newly entered rock plane and ink/reset removes an extended pose", () => {
+  const f = fixture("lumen_stalker");
+  f.player.length = 20;
+  while (f.entry.state.phase !== "attack") f.step();
+  const wall = (f.entry.mesh.position.z + f.position.z) / 2;
+  const blocked = (a, b) =>
+    (a.z >= wall && b.z < wall) || (a.z < wall && b.z >= wall);
+  for (let i = 0; i < 108; i++) f.step(1 / 60, blocked);
+  assert.equal(f.events.hits, 0);
+  assert.ok(f.entry.lashSafeTargets.every((p) => p.z >= wall));
+  f.entry.mesh.userData.poseLumenLash(f.entry.lashTargets, [
+    { amount: 1 },
+    { amount: 1 },
+    { amount: 1 },
+  ]);
+  f.encounters.reset(["hydra"]);
+  for (const arm of f.entry.mesh.userData.lashArms) {
+    const { bones, points } = arm.userData.tentacle;
+    assert.deepEqual(bones[1].position, points[1].clone().sub(points[0]));
+  }
+  f.encounters.dispose();
+
+  const ink = fixture("lumen_stalker");
+  ink.player.length = 20;
+  while (ink.entry.state.phase !== "attack") ink.step();
+  ink.entry.mesh.userData.poseLumenLash(ink.entry.lashTargets, [
+    { amount: 1 },
+    { amount: 1 },
+    { amount: 1 },
+  ]);
+  assert.equal(ink.encounters.disorient(ink.position, 150, ink.time), 1);
+  assert.equal(ink.entry.state.phase, "disoriented");
+  assert.equal(ink.entry.fx.group.visible, false);
+  for (const arm of ink.entry.mesh.userData.lashArms) {
+    const { bones, points } = arm.userData.tentacle;
+    assert.deepEqual(bones[1].position, points[1].clone().sub(points[0]));
+  }
+  for (let i = 0; i < 120; i++) ink.step();
+  assert.equal(ink.events.hits, 0);
+  assert.equal(ink.entry.state.phase, "disoriented");
+  ink.encounters.dispose();
 });

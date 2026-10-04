@@ -74,7 +74,8 @@ export function buildAbyssWeaver(root, motions) {
       "feeding_rib",
     );
   }
-  let phase = "dormant";
+  let phase = "dormant",
+    sweep = 0;
   const arms = [];
   for (let i = 0; i < 6; i++) {
     const a = (i / 6) * Math.PI * 2 + 0.17,
@@ -172,10 +173,12 @@ export function buildAbyssWeaver(root, motions) {
     arms.push({ arm });
   }
   root.userData.setBossPhase = (p) => (phase = p);
+  root.userData.setWeaverSweep = (progress) => (sweep = progress);
   motions.push((t, e) => {
     const warning = phase === "windup" ? 1 : phase === "attack" ? 1.2 : 0;
     mantle.scale.y = normalizedScale * (1 + Math.sin(t * 0.7) * 0.035);
     arms.forEach(({ arm }, i) => {
+      arm.rotation.y = -((i / 6) * Math.PI * 2 + 0.17) + sweep;
       arm.rotation.z = Math.sin(t * 0.55 + i * 0.9) * 0.1 - warning * 0.12;
       arm.rotation.x = Math.sin(t * 0.43 + i * 0.7) * 0.1;
     });

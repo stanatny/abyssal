@@ -1,3 +1,5 @@
+import { LUMEN_LASH } from "./europa_lord_attacks.js";
+import { TIDAL_LOOM } from "./europa_loom.js";
 import { KRAKEN_GRAPPLE } from "./lord_special_rules.js";
 import { getHunterAbility } from "./hunter_rules.js";
 
@@ -21,15 +23,19 @@ export function creatureGuideSkills(species, entry = {}) {
         ...copy,
         counter: species.skillTips?.[id] || copy.counter,
         values:
-          id === "water"
-            ? [species.breathRange, species.damage, timing?.recover ?? 3]
-            : id === "vortex"
-              ? [
-                  species.damage * KRAKEN_GRAPPLE.damageMultiplier,
-                  timing?.recover ?? 3,
-                  KRAKEN_GRAPPLE.biteDelay,
-                ]
-              : undefined,
+          id === "lash"
+            ? [LUMEN_LASH.range, species.damage, timing?.recover ?? 3]
+            : id === "loom"
+              ? [TIDAL_LOOM.outerRadius, species.damage, timing?.recover ?? 3]
+              : id === "water"
+                ? [species.breathRange, species.damage, timing?.recover ?? 3]
+                : id === "vortex"
+                  ? [
+                      species.damage * KRAKEN_GRAPPLE.damageMultiplier,
+                      timing?.recover ?? 3,
+                      KRAKEN_GRAPPLE.biteDelay,
+                    ]
+                  : undefined,
         windup: timing?.windup ?? species.windupDuration,
         recovery: timing?.recover ?? 3,
       };
@@ -85,6 +91,12 @@ export function creatureGuideSkills(species, entry = {}) {
 }
 
 const LORD_SKILLS = {
+  lash: {
+    description:
+      "锁定约{0}米内的落点，三条发光长腕依次刺出。释放后不再跟踪；实体腕尖每轮最多造成一次{1}点基础伤害，收腕时不追加伤害。",
+    counter:
+      "光圈锁定后向侧面或上下冲刺，让开三次刺击；岩拱可以阻断触腕。回收长腕后的{2}秒是侧翼反击窗口。",
+  },
   water: {
     description:
       "凝聚云水，从龙吻喷出最长{0}米的水息。释放前锁定方向，水流不追踪；同次吐息只造成一次{1}点基础伤害，山石可挡住水路。",
@@ -93,9 +105,9 @@ const LORD_SKILLS = {
   },
   vortex: {
     description:
-      "预判路线凝聚漩涡，随后游向涡心。停留在中心且被长腕够到后，触腕会收拢，留下{2}秒挣脱窗口；未及时挣脱便受到一次{0}点基础绞咬伤害。",
+      "预判路线凝聚漩涡，随后游向涡心。越靠近口器，牵引、触腕拉力和体力流失越强；向外拉开距离后逐渐减弱。被长腕缠住后有{2}秒挣脱窗口，未脱身便受到一次{0}点基础绞咬伤害。",
     counter:
-      "看到预警就变向冲出涡心；被缠住后仍可向外冲刺或用岩柱遮挡，打断延迟绞咬。结束后有{1}秒侧翼反击窗口。",
+      "看到预警就变向冲出涡心，不要等贴近巨口才加速；被缠住后持续向外冲刺，距离越远越容易脱身，也可借岩柱打断触腕。结束后有{1}秒侧翼反击窗口。",
   },
   pulse: {
     description: "蓄力时锁定目标所在的水层，再释放高速扩散的脉冲环。",
@@ -107,8 +119,10 @@ const LORD_SKILLS = {
     counter: "连续横向变向，或用岩石挡住弹丸；不要躲过第一发后就停下。",
   },
   loom: {
-    description: "长腕展开后扫出三段压力扇区，压迫前方的移动空间。",
-    counter: "避开紫色压力带，从扇区之间或上下穿过；岩拱也能提供遮挡。",
+    description:
+      "分叉腕展开，在锁定水层上下织出三条错层压力带，扫过最远{0}米的扇区。每轮最多造成一次{1}点基础伤害；压力带之间与上方、下方留有空隙。",
+    counter:
+      "观察带有上下边框的紫色压力带，穿过扇区间隙或升降离开，岩石可提供遮挡。织网后有{2}秒侧翼反击窗口。",
   },
   charge: {
     description: "蓄力末段锁定冲撞方向，随后沿该方向高速突进。",

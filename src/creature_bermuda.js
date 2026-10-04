@@ -1,3 +1,4 @@
+import { bindTentacleMotion } from "./tentacle_motion.js";
 import * as THREE from "three";
 import {
   skinMaterial,
@@ -936,6 +937,11 @@ function buildCameroceras(body, motions) {
       armMaterial,
       `cameroceras_arm_${i}`,
     );
+    bindTentacleMotion(pivot, `cameroceras_soft_arm_${i}`, curve, motions, {
+      count: 7,
+      phase: angle,
+      amplitude: 0.22,
+    });
     motions.push((t, e) => {
       pivot.rotation.x = Math.sin(t * 0.75 + i) * 0.09 * (0.8 + e * 0.2);
       pivot.rotation.y = Math.cos(t * 0.67 + i) * 0.07;

@@ -1,5 +1,7 @@
 # Continuous tentacles and guardian combat review
 
+The constant-force combat values below record the accepted checkpoint. The subsequent uncommitted [distance-pressure follow-up](kraken_distance_revision.md) supersedes those force values while retaining the warning, grip duration, damage and escape boundaries.
+
 ## Scope and publication state
 
 Work continues independently on `fix/penglai-ground-navigation`. The accepted ground-navigation, nine-body-wave and large-prey-distribution candidate was locally committed as `4372534` at the user's request. This subsequent tentacle/combat revision remains uncommitted. No push, merge or formal publication is authorized; published Pages stays v0.10.1.

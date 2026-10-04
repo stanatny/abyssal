@@ -157,7 +157,14 @@ export function bindTentacleMotion(arm, key, curve, motions, options = {}) {
       return mesh;
     },
   );
-  arm.userData.tentacle = { bones, meshes, restLength: curve.getLength() };
+  arm.userData.tentacle = {
+    bones,
+    meshes,
+    points,
+    restLength: curve.getLength(),
+    posePoints: points.map(() => new THREE.Vector3()),
+    poseRotations: points.map(() => new THREE.Quaternion()),
+  };
   const phase = options.phase ?? 0;
   motions.push((time, effort) => {
     const curl = options.curl?.() ?? 0;
@@ -167,6 +174,7 @@ export function bindTentacleMotion(arm, key, curve, motions, options = {}) {
       lastY = 0;
     // 相邻全局弯角的差形成连续波，避免每节同向旋转累计成僵硬折棍。
     bones.forEach((bone, i) => {
+      bone.position.copy(points[i]).sub(i ? points[i - 1] : ZERO);
       const t = i / count,
         taper = t * t * (3 - 2 * t);
       const x =
@@ -184,6 +192,64 @@ export function bindTentacleMotion(arm, key, curve, motions, options = {}) {
   });
   return arm.userData.tentacle;
 }
+
+/**
+ * 在普通游曳之后把一条实体触腕连续展开到局部目标；不移动腕根或改共享表面。
+ * @param {THREE.Group} arm 已绑定的独立腕组。
+ * @param {THREE.Vector3} target 腕组坐标中的锁定落点。
+ * @param {number} amount 展开比例，0保留当前游曳，1到达有限长度内的落点。
+ * @param {number} bow 侧向弯曲方向，避免触腕变成直棍。
+ */
+export function reachTentacle(arm, target, amount, bow = 1) {
+  if (!(amount > 0)) return;
+  const { bones, points, posePoints, poseRotations, restLength } =
+    arm.userData.tentacle;
+  const blend = THREE.MathUtils.clamp(amount, 0, 1);
+  REACH_END.copy(target)
+    .sub(points[0])
+    .clampLength(0, restLength * 0.85)
+    .add(points[0]);
+  REACH_DIRECTION.copy(REACH_END).sub(points[0]);
+  const length = REACH_DIRECTION.length();
+  REACH_SIDE.crossVectors(REACH_DIRECTION, UP).normalize();
+  if (REACH_SIDE.lengthSq() < 0.001) REACH_SIDE.set(1, 0, 0);
+  arm.updateWorldMatrix(true, true);
+  REACH_INVERSE.copy(arm.matrixWorld).invert();
+  for (let i = 0; i < bones.length; i++) {
+    const t = i / (bones.length - 1);
+    posePoints[i]
+      .setFromMatrixPosition(bones[i].matrixWorld)
+      .applyMatrix4(REACH_INVERSE);
+    REACH_POINT.copy(points[0])
+      .addScaledVector(REACH_DIRECTION, t)
+      .addScaledVector(REACH_SIDE, Math.sin(t * Math.PI) * length * 0.2 * bow);
+    posePoints[i].lerp(REACH_POINT, blend);
+  }
+  for (let i = 0; i < bones.length; i++) {
+    const next = Math.min(i + 1, bones.length - 1),
+      prev = i === next ? i - 1 : i;
+    REACH_REST.copy(points[next]).sub(points[prev]).normalize();
+    REACH_TANGENT.copy(posePoints[next]).sub(posePoints[prev]).normalize();
+    poseRotations[i].setFromUnitVectors(REACH_REST, REACH_TANGENT);
+    bones[i].position.copy(posePoints[i]);
+    if (i) {
+      REACH_QUAT.copy(poseRotations[i - 1]).invert();
+      bones[i].position.sub(posePoints[i - 1]).applyQuaternion(REACH_QUAT);
+      bones[i].quaternion.copy(REACH_QUAT).multiply(poseRotations[i]);
+    } else bones[i].quaternion.copy(poseRotations[i]);
+  }
+  arm.updateWorldMatrix(true, true);
+}
+
+const UP = new THREE.Vector3(0, 1, 0),
+  REACH_END = new THREE.Vector3(),
+  REACH_DIRECTION = new THREE.Vector3(),
+  REACH_SIDE = new THREE.Vector3(),
+  REACH_POINT = new THREE.Vector3(),
+  REACH_REST = new THREE.Vector3(),
+  REACH_TANGENT = new THREE.Vector3(),
+  REACH_QUAT = new THREE.Quaternion(),
+  REACH_INVERSE = new THREE.Matrix4();
 
 const CACHE = new Map();
 const ZERO = new THREE.Vector3();

@@ -74,5 +74,9 @@ export function buildAmazonCreature(kind, root, motions) {
     ].includes(kind)
   )
     root.userData.aquaticUpright = true;
-  root.userData.artRevision = "amazon_redraw_v2";
+  if (body.userData.setCrocodilianPhase) {
+    root.userData.setHunterPhase = body.userData.setCrocodilianPhase;
+    root.userData.setBossPhase = body.userData.setCrocodilianPhase;
+    root.userData.artRevision = "amazon_crocodilian_v4_swim";
+  } else root.userData.artRevision = "amazon_redraw_v2";
 }

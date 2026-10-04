@@ -66,10 +66,6 @@ export const EUROPA_EN = {
   冰下主宰: "Ice-Ocean Lord",
   "三叶外套包围脉动器官，六条分叉长腕沿压力纹路舒展，腹面放射口器缓慢开合。":
     "A three-lobed mantle surrounds a pulsing organ; six bifurcating arms follow pressure ripples around an underside radial mouth.",
-  "展开长腕预告三段压力扇区，再扫出潮汐织网；扇区之间与上下均有逃生空间。":
-    "Spreading arms warn of three pressure sectors, followed by a sweeping Tidal Loom; gaps between sectors and above or below provide escape routes.",
-  "避开紫色压力带，利用岩拱遮挡；织网后的3秒恢复期，从侧面咬击躯干，再脱离接触。":
-    "Avoid the violet pressure ribbons and use arches as cover. During the three-second recovery, bite the mantle from its flank, then disengage.",
   "幻想外星海怪，不代表木卫二存在大型生命的证据。":
     "A fictional alien lord, not evidence for large life on Europa.",
   "潜入冰壳之下，循着盐脉与微光。<br />在陌生生命之间，寻找冰下的深渊领主。":
@@ -130,13 +126,8 @@ export const EUROPA_EN = {
   辉渊巡狩者: "Lumen Stalker",
   辉渊主宰: "Luminous Abyss Lord",
   "辉渊主宰 · 辉渊巡狩者": "Luminous Abyss Lord · Lumen Stalker",
-  辉光突袭: "Luminous Ambush",
   "八条无分叉长腕向外舒展后回卷，足以围拢大型船体；集中发光腔与腕上光点勾勒暗色肌体，腹面腕根层叠，形成冰下巨兽的庞大剪影。":
     "Eight unbranched arms extend and curl inward far enough to enclose a large hull. Light chambers and luminous arm nodes outline dark muscle, while layered ventral arm roots give this ice-ocean giant an immense silhouette.",
-  "发光腔膨胀、长腕收拢时预告一次锁定冲锋；突袭后有3秒恢复期。守护热泉盆地，始终留在自己的领域附近。":
-    "Expanding light chambers and gathering arms warn of a locked charge. A 3-second recovery follows. It guards the Thermal Basin and stays near its territory.",
-  "看到冲锋流纹后横向闪避，利用岩拱遮挡；恢复时从侧翼咬击实体躯干，脱离至少0.35秒再回来。需要25米和三次有效侧咬。":
-    "Dodge sideways after the charge telegraph and use rock arches as cover. Bite the real body from a flank during recovery, then disengage for at least 0.35 s. Requires 25 m and three valid flank bites.",
   "幻想外星海怪，不代表木卫二存在大型生命的证据。":
     "A fictional alien monster, not evidence of large life on Europa.",
   坠毁科考船: "Crashed Research Lander",

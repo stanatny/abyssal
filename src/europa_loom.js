@@ -5,6 +5,7 @@ export const TIDAL_LOOM = Object.freeze({
   halfAngle: 0.23,
   halfHeight: 10,
   sweep: 1.05,
+  layerOffset: 14,
 });
 export function loomAngle(heading, timer, duration, attacking, index) {
   const base = Math.atan2(heading.z, heading.x);
@@ -24,13 +25,17 @@ export function inTidalLoom(
     r = Math.hypot(dx, dz);
   if (
     r < TIDAL_LOOM.innerRadius - padding ||
-    r > TIDAL_LOOM.outerRadius + padding ||
-    Math.abs(position.y - origin.y) > TIDAL_LOOM.halfHeight + padding
+    r > TIDAL_LOOM.outerRadius + padding
   )
     return false;
   const angle = Math.atan2(dz, dx),
     margin = Math.asin(Math.min(1, padding / Math.max(1, r)));
   for (let i = 0; i < 3; i++) {
+    if (
+      Math.abs(position.y - origin.y - loomHeight(i)) >
+      TIDAL_LOOM.halfHeight + padding
+    )
+      continue;
     const delta = angle - loomAngle(heading, timer, duration, true, i);
     if (
       Math.abs(Math.atan2(Math.sin(delta), Math.cos(delta))) <=
@@ -39,4 +44,13 @@ export function inTidalLoom(
       return true;
   }
   return false;
+}
+
+/** 三腕在不同高度织出错层压力带；判定与显示共用这一层高。 */
+export function loomHeight(index) {
+  return index === 0
+    ? 0
+    : index === 1
+      ? -TIDAL_LOOM.layerOffset
+      : TIDAL_LOOM.layerOffset;
 }

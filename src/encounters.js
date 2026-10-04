@@ -3,13 +3,22 @@ import {
   groundTerrainPose,
   groundTerrainTransition,
 } from "./ground_navigation.js";
-import { aquaticHeading } from "./aquatic_reptile_motion.js";
+import {
+  aquaticHeading,
+  disposeCrocodilianMotion,
+} from "./aquatic_reptile_motion.js";
 import {
   groundCreatureClearance,
   uprightHeadingQuaternion,
 } from "./ground_creatures.js";
 import { pgSword } from "./creature_penglai_art.js";
-import { TIDAL_LOOM, loomAngle, inTidalLoom } from "./europa_loom.js";
+import {
+  TIDAL_LOOM,
+  loomAngle,
+  loomHeight,
+  inTidalLoom,
+} from "./europa_loom.js";
+import { LUMEN_LASH, lumenLashPose } from "./europa_lord_attacks.js";
 import { t, tr, message } from "./i18n.js";
 import * as THREE from "three";
 import {
@@ -35,6 +44,7 @@ import { createFluidTexture } from "./effect_textures.js";
 
 import {
   KRAKEN_GRAPPLE,
+  krakenGrappleForces,
   createKrakenGrapple,
   tickKrakenGrapple,
   inWaterBreath,
@@ -42,6 +52,44 @@ import {
 
 const FORWARD_AXIS = new THREE.Vector3(0, 0, -1);
 const UP_AXIS = new THREE.Vector3(0, 1, 0);
+const LASH_SEGMENT = new THREE.Line3();
+
+/** 三维边框明确压力带的上下界；不以不透明扇面遮住生物轮廓。 */
+function loomEdgesGeometry() {
+  const points = [],
+    inner = TIDAL_LOOM.innerRadius,
+    outer = TIDAL_LOOM.outerRadius;
+  for (const y of [-TIDAL_LOOM.halfHeight, TIDAL_LOOM.halfHeight]) {
+    for (let j = 0; j < 24; j++) {
+      for (const r of [inner, outer]) {
+        for (const a of [
+          -TIDAL_LOOM.halfAngle + (j / 24) * TIDAL_LOOM.halfAngle * 2,
+          -TIDAL_LOOM.halfAngle + ((j + 1) / 24) * TIDAL_LOOM.halfAngle * 2,
+        ])
+          points.push(new THREE.Vector3(Math.cos(a) * r, y, -Math.sin(a) * r));
+      }
+    }
+    for (const a of [-TIDAL_LOOM.halfAngle, TIDAL_LOOM.halfAngle])
+      for (const r of [inner, outer])
+        points.push(new THREE.Vector3(Math.cos(a) * r, y, -Math.sin(a) * r));
+  }
+  // 高低弧线之间用轻微弯曲的潮丝连接，不显示像调试盒的直角立柱。
+  for (const r of [inner, outer])
+    for (const a of [-TIDAL_LOOM.halfAngle, TIDAL_LOOM.halfAngle]) {
+      for (let j = 0; j < 10; j++)
+        for (const t of [j / 10, (j + 1) / 10]) {
+          const angle = a + Math.sin(t * Math.PI * 2) * 0.009;
+          points.push(
+            new THREE.Vector3(
+              Math.cos(angle) * r,
+              (t * 2 - 1) * TIDAL_LOOM.halfHeight,
+              -Math.sin(angle) * r,
+            ),
+          );
+        }
+    }
+  return new THREE.BufferGeometry().setFromPoints(points);
+}
 
 /**
  * 检查嘴部小球是否触及领主实际网格或已进入闭合躯干；触腕间空隙不计接触。
@@ -168,6 +216,7 @@ function hasOddCrossings(distances) {
 }
 
 const TIPS = {
+  lash: "辉腕锁定 · 横向或升降闪避三次刺击，借岩拱遮挡",
   water: "水息锁定 · 横向或升降离开蓝色水路，借山石遮挡",
   swords: "御剑将至 · 横向闪避或绕山石遮挡",
   loom: "避开紫色压力带，从上下或扇区间隙撤离",
@@ -177,6 +226,7 @@ const TIPS = {
   charge: "冲锋锁定后侧向闪避，等待撞击后的硬直",
 };
 const SKILLS = {
+  lash: "辉腕穿刺",
   water: "沧溟龙息",
   swords: "隔空御剑",
   loom: "潮汐织网",
@@ -186,6 +236,7 @@ const SKILLS = {
   charge: "毁灭冲锋",
 };
 const COLORS = {
+  lash: 0x94d8e9,
   water: 0x72cdda,
   swords: 0xd8d6a1,
   loom: 0xb799d7,
@@ -326,8 +377,32 @@ function createAbilityFx(scene, ability, color, textures) {
       side: THREE.DoubleSide,
       ...extra,
     });
-  if (ability === "loom") {
+  if (ability === "lash") {
+    const g = new THREE.BufferGeometry();
+    g.setAttribute(
+      "position",
+      new THREE.Float32BufferAttribute(new Float32Array(18), 3),
+    );
+    fx.paths = new THREE.LineSegments(
+      g,
+      new THREE.LineBasicMaterial({
+        color,
+        transparent: true,
+        opacity: 0.55,
+        depthWrite: false,
+      }),
+    );
+    fx.paths.frustumCulled = false;
+    group.add(fx.paths);
+    const targetGeometry = new THREE.TorusGeometry(3.2, 0.08, 5, 32);
+    fx.targets = Array.from({ length: 3 }, () => {
+      const mesh = new THREE.Mesh(targetGeometry, additive({ opacity: 0.2 }));
+      group.add(mesh);
+      return mesh;
+    });
+  } else if (ability === "loom") {
     fx.sectors = [];
+    fx.loomEdges = [];
     const g = new THREE.RingGeometry(
       TIDAL_LOOM.innerRadius,
       TIDAL_LOOM.outerRadius,
@@ -341,6 +416,17 @@ function createAbilityFx(scene, ability, color, textures) {
       const m = new THREE.Mesh(g, additive({ opacity: 0.16 }));
       group.add(m);
       fx.sectors.push(m);
+      const edge = new THREE.LineSegments(
+        loomEdgesGeometry(),
+        new THREE.LineBasicMaterial({
+          color,
+          transparent: true,
+          opacity: 0.3,
+          depthWrite: false,
+        }),
+      );
+      group.add(edge);
+      fx.loomEdges.push(edge);
     }
   } else if (ability === "water") {
     fx.stream = new THREE.Mesh(
@@ -533,7 +619,29 @@ function updateAbilityFx(fx, entry, dt, time, windup, attack, ringSize) {
     1,
     state.timer / Math.max(0.001, state.phaseDuration),
   );
-  if (fx.ability === "water") {
+  if (fx.ability === "lash") {
+    fx.group.position.set(0, 0, 0);
+    const attribute = fx.paths.geometry.attributes.position;
+    entry.mesh.userData.lashArms.forEach((arm, i) => {
+      arm.getWorldPosition(entry.motion.target);
+      attribute.setXYZ(
+        i * 2,
+        entry.motion.target.x,
+        entry.motion.target.y,
+        entry.motion.target.z,
+      );
+      const target = entry.lashSafeTargets[i];
+      attribute.setXYZ(i * 2 + 1, target.x, target.y, target.z);
+      fx.targets[i].position.copy(target);
+      fx.targets[i].quaternion.setFromUnitVectors(
+        new THREE.Vector3(0, 0, 1),
+        entry.heading,
+      );
+      fx.targets[i].material.opacity = windup ? 0.12 + phaseT * 0.18 : 0.16;
+    });
+    attribute.needsUpdate = true;
+    fx.paths.material.opacity = windup ? 0.25 + phaseT * 0.2 : 0.12;
+  } else if (fx.ability === "water") {
     fx.group.position.copy(entry.waterOrigin);
     fx.group.quaternion.setFromUnitVectors(UP_AXIS, entry.heading);
     const range = entry.waterRange;
@@ -578,7 +686,12 @@ function updateAbilityFx(fx, entry, dt, time, windup, attack, ringSize) {
         attack,
         i,
       );
-      m.material.opacity = attack ? 0.3 : 0.1 + phaseT * 0.12;
+      m.position.y = loomHeight(i);
+      m.material.opacity = attack ? 0.13 : 0.05 + phaseT * 0.08;
+      const edge = fx.loomEdges[i];
+      edge.position.y = m.position.y;
+      edge.rotation.y = m.rotation.y;
+      edge.material.opacity = attack ? 0.4 : 0.18 + phaseT * 0.18;
     });
   } else if (fx.ability === "vortex") {
     fx.group.position.copy(entry.attackOrigin);
@@ -826,8 +939,13 @@ export function createEncounters(
         orientation: new THREE.Quaternion(),
       },
       attackOrigin: new THREE.Vector3(),
+      lashTargets: Array.from({ length: 3 }, () => new THREE.Vector3()),
+      lashTips: Array.from({ length: 3 }, () => new THREE.Vector3()),
+      lashSafeTargets: Array.from({ length: 3 }, () => new THREE.Vector3()),
+      lashReady: false,
       lockTarget: new THREE.Vector3(),
       grapple: createKrakenGrapple(),
+      grappleForces: krakenGrappleForces(Infinity),
       waterOrigin: new THREE.Vector3(),
       waterRange: species.breathRange ?? 0,
       contactCooldown: 0,
@@ -900,6 +1018,7 @@ export function createEncounters(
     entry.lastBiteResult = null;
     entry.lastAttackSide = false;
     entry.phaseHit = false;
+    entry.lashReady = false;
     entry.grapple = createKrakenGrapple();
     entry.mesh.userData.setKrakenGrip?.(0);
     entry.patrolAngle = entry.patrolStart;
@@ -963,8 +1082,10 @@ export function createEncounters(
       entry.mesh.visible = false;
       entry.label.visible = false;
       entry.ring.visible = false;
+      entry.lashReady = false;
       entry.grapple = createKrakenGrapple();
       entry.mesh.userData.resetKrakenGrip?.();
+      entry.mesh.userData.resetLumenLash?.();
       for (const fx of entry.fxVariants) resetAbilityFx(fx);
     });
     selected.forEach(({ entry, instance }, index) => {
@@ -1010,6 +1131,12 @@ export function createEncounters(
       seabedHeight(entry.lockTarget.x, entry.lockTarget.z) + 5,
     );
     entry.attackOrigin.copy(entry.mesh.position);
+    if (state.ability === "loom")
+      entry.attackOrigin.y += THREE.MathUtils.clamp(
+        entry.lockTarget.y - entry.attackOrigin.y,
+        -20,
+        20,
+      );
     // 漩涡在预计逃跑路径上封路；脉冲切入玩家当前水层，不只扫过领主自身高度。
     if (state.ability === "vortex") entry.attackOrigin.copy(entry.lockTarget);
     if (state.ability === "pulse") entry.attackOrigin.y = entry.lockTarget.y;
@@ -1029,14 +1156,32 @@ export function createEncounters(
       )
         entry.heading.copy(targetDirection);
     }
+    if (state.ability === "lash") {
+      entry.motion.side.crossVectors(entry.heading, UP_AXIS).normalize();
+      entry.motion.target
+        .copy(entry.lockTarget)
+        .sub(entry.mesh.position)
+        .clampLength(0, LUMEN_LASH.range)
+        .add(entry.mesh.position);
+      entry.lashTargets.forEach((target, i) =>
+        target
+          .copy(entry.motion.target)
+          .addScaledVector(
+            entry.motion.side,
+            (i - 1) * LUMEN_LASH.targetSpread,
+          ),
+      );
+    }
   }
   function enterPhase(entry, playerPosition) {
     const state = entry.state;
+    if (state.phase === "disoriented") entry.mesh.userData.resetLumenLash?.();
     if (state.phase === "windup") {
       for (const fx of entry.fxVariants) resetAbilityFx(fx);
       entry.fx = entry.fxVariants.find((fx) => fx.ability === state.ability);
       lockAttack(entry, playerPosition);
       entry.phaseHit = false;
+      entry.lashReady = false;
       entry.grapple = createKrakenGrapple();
       entry.volleyShots = 0;
       notify(
@@ -1045,6 +1190,61 @@ export function createEncounters(
       );
       audio.bossAttack?.(state.species.kind);
     }
+  }
+  /** 三条实体腕尖依次扫过锁定点；只在刺出/短暂停留时结算一次命中。 */
+  function updateLumenLash(entry, player, position, attack, blockedBetween) {
+    const arms = entry.mesh.userData.lashArms;
+    entry.mesh.updateMatrixWorld(true);
+    if (!entry.lashReady) {
+      arms.forEach((arm, i) =>
+        arm.userData.tentacle.bones.at(-1).getWorldPosition(entry.lashTips[i]),
+      );
+      entry.lashReady = true;
+    }
+    // 每条腕的锁定落点不追踪玩家；岩石在路径上时把实际展开限制在遮挡前。
+    arms.forEach((arm, i) => {
+      arm.getWorldPosition(entry.motion.side);
+      const target = entry.lashSafeTargets[i].copy(entry.motion.side);
+      entry.motion.offset.copy(entry.lashTargets[i]).sub(entry.motion.side);
+      const steps = Math.max(1, Math.ceil(entry.motion.offset.length() / 5));
+      for (let j = 1; j <= steps; j++) {
+        entry.motion.next
+          .copy(entry.motion.side)
+          .addScaledVector(entry.motion.offset, j / steps);
+        if (blockedBetween(target, entry.motion.next)) break;
+        target.copy(entry.motion.next);
+      }
+    });
+    const poses = arms.map((_, i) =>
+      lumenLashPose(entry.state.timer, i, attack),
+    );
+    entry.mesh.userData.poseLumenLash(entry.lashSafeTargets, poses);
+    arms.forEach((arm, i) => {
+      const tip = arm.userData.tentacle.bones
+        .at(-1)
+        .getWorldPosition(entry.motion.target);
+      arm.getWorldPosition(entry.motion.side);
+      const nearest = LASH_SEGMENT.set(
+        entry.lashTips[i],
+        tip,
+      ).closestPointToPoint(position, true, entry.motion.candidate);
+      if (
+        attack &&
+        poses[i].striking &&
+        !entry.phaseHit &&
+        nearest.distanceTo(position) <
+          LUMEN_LASH.tipRadius + player.length * 0.16 &&
+        !blockedBetween(entry.motion.side, tip) &&
+        !blockedBetween(entry.lashTips[i], tip) &&
+        !blockedBetween(nearest, position)
+      )
+        entry.phaseHit = damage(
+          player,
+          entry.state.species.damage,
+          "辉腕穿刺命中 · 横向或升降躲开后续刺击",
+        );
+      entry.lashTips[i].copy(tip);
+    });
   }
   /** 水息从实际龙吻发射；预警与攻击只伸到第一个实体遮挡之前。 */
   function waterPath(entry, blockedBetween) {
@@ -1258,6 +1458,7 @@ export function createEncounters(
       entry.phaseHit = true;
       entry.grapple = createKrakenGrapple();
       entry.mesh.userData.setKrakenGrip?.(0);
+      entry.mesh.userData.resetLumenLash?.();
       entry.volleyShots = 3;
       affected += 1;
     }
@@ -1481,6 +1682,16 @@ export function createEncounters(
       // 地面朝向已在移动提案中平滑；不能再滞后旋转模型，使实际头部偏离已验证的占地。
       if (state.species.groundbound) entry.mesh.quaternion.copy(orientation);
       else entry.mesh.quaternion.slerp(orientation, Math.min(1, dt * 2));
+      entry.mesh.userData.setBossPhase?.(state.phase);
+      entry.mesh.userData.setWeaverSweep?.(
+        (attack
+          ? state.timer / state.phaseDuration - 0.5
+          : windup
+            ? -0.5 * Math.min(1, state.timer / 0.6)
+            : recover
+              ? 0.5 * Math.max(0, 1 - state.timer / 0.6)
+              : 0) * TIDAL_LOOM.sweep,
+      );
       entry.mesh.userData.setKrakenGrip?.(
         attack && entry.grapple.held ? 1 : windup ? 0.2 : 0,
       );
@@ -1489,8 +1700,12 @@ export function createEncounters(
           time,
           attack ? 2.5 : recover ? 0.35 : state.phase === "dormant" ? 0.7 : 1.2,
         );
+      if (state.ability === "lash" && (windup || attack))
+        updateLumenLash(entry, player, position, attack, blockedBetween);
+      else entry.lashReady = false;
       entry.ring.visible =
-        !["loom", "water"].includes(state.ability) && (windup || attack);
+        !["loom", "water", "lash"].includes(state.ability) &&
+        (windup || attack);
       entry.ring.position.copy(
         ["pulse", "vortex"].includes(state.ability)
           ? entry.attackOrigin
@@ -1513,7 +1728,6 @@ export function createEncounters(
       if ((attack || windup) && state.ability === "water")
         waterPath(entry, blockedBetween);
       updateAbilityFx(entry.fx, entry, dt, time, windup, attack, ringSize);
-      entry.mesh.userData.setBossPhase?.(state.phase);
       if (!attack || !sight) {
         if (entry.grapple.held) entry.grapple.spent = true;
         entry.grapple.held = false;
@@ -1535,7 +1749,7 @@ export function createEncounters(
           entry.phaseHit = damage(
             player,
             state.species.damage,
-            "潮汐织网命中 · 从上下或间隙撤离",
+            "潮汐织网命中 · 避开错层压力带与扇区",
           );
           if (entry.phaseHit)
             position.addScaledVector(
@@ -1567,47 +1781,55 @@ export function createEncounters(
           );
         }
         if (state.ability === "vortex") {
+          const mouth = entry.mesh.userData.mouthAnchors?.[0];
+          if (mouth) mouth.getWorldPosition(entry.motion.target);
+          else entry.motion.target.copy(entry.mesh.position);
+          const mouthDistance = entry.motion.target.distanceTo(position);
+          const forces = krakenGrappleForces(
+            mouthDistance,
+            entry.grappleForces,
+          );
           const toCenter = entry.motion.offset
             .copy(entry.attackOrigin)
             .sub(position);
           const coreDistance = toCenter.length();
           const clear = !blockedBetween(entry.attackOrigin, position);
-          if (
+          const vortexPulling =
             coreDistance < state.species.abilityRadius &&
             clear &&
             !entry.grapple.held &&
-            !entry.grapple.spent
-          ) {
+            !entry.grapple.spent;
+          if (vortexPulling) {
             const proposed = entry.motion.next
               .copy(position)
               .addScaledVector(
                 toCenter.normalize(),
-                Math.min(KRAKEN_GRAPPLE.pullSpeed * dt, coreDistance),
+                Math.min(forces.pullSpeed * dt, coreDistance),
               );
             if (!blockedBetween(position, proposed)) position.copy(proposed);
-            player.stamina = Math.max(
-              0,
-              player.stamina - KRAKEN_GRAPPLE.staminaDrain * dt,
-            );
           }
-          const mouth = entry.mesh.userData.mouthAnchors?.[0];
-          if (mouth) mouth.getWorldPosition(entry.motion.target);
-          else entry.motion.target.copy(entry.mesh.position);
-          const mouthDistance = entry.motion.target.distanceTo(position);
+          // 涡流提案可能已移动玩家，缠腕判定与力度必须使用更新后的口器距离。
+          const gripDistance = entry.motion.target.distanceTo(position);
+          krakenGrappleForces(gripDistance, forces);
           const gripClear =
             clear && !blockedBetween(entry.motion.target, position);
           const event = tickKrakenGrapple(entry.grapple, dt, {
             coreDistance,
-            mouthDistance,
+            mouthDistance: gripDistance,
             clear: gripClear,
           });
           if (event === "grabbed")
             notify(
-              "触腕缠绕 · 立即向外冲刺，或借岩柱脱身！",
+              "触腕缠绕 · 越近越难脱身，向外冲刺或借岩柱！",
               KRAKEN_GRAPPLE.biteDelay + 0.2,
             );
           if (event === "escaped") notify("挣脱触腕 · 绞咬已被打断", 1.5);
-          if (entry.grapple.held && mouthDistance > 0.01) {
+          if (vortexPulling || entry.grapple.held)
+            player.stamina = Math.max(
+              0,
+              player.stamina - forces.staminaDrain * dt,
+            );
+          if (entry.grapple.held && gripDistance > 0.01) {
             const next = entry.motion.next
               .copy(position)
               .addScaledVector(
@@ -1615,7 +1837,7 @@ export function createEncounters(
                   .copy(entry.motion.target)
                   .sub(position)
                   .normalize(),
-                Math.min(KRAKEN_GRAPPLE.gripPullSpeed * dt, mouthDistance),
+                Math.min(forces.gripPullSpeed * dt, gripDistance),
               );
             if (!blockedBetween(position, next)) position.copy(next);
           }
@@ -1708,7 +1930,9 @@ export function createEncounters(
           attack &&
           ((state.ability === "charge" && state.species.chargeHandlesContact) ||
             state.ability === "vortex" ||
-            state.ability === "water")
+            state.ability === "water" ||
+            state.ability === "lash" ||
+            state.ability === "loom")
         ) &&
         state.phase !== "disoriented" &&
         inTerritory &&
@@ -1799,6 +2023,7 @@ export function createEncounters(
     for (const entry of bosses) {
       for (const fx of entry.fxVariants) resetAbilityFx(fx);
       disposeTentacleMotion(entry.mesh);
+      disposeCrocodilianMotion(entry.mesh);
       // 生物模型材质和几何由模型缓存共享；这里只释放本模块自己的表现资源。
       scene.remove(entry.mesh, entry.ring, entry.label, entry.fx.group);
       geometries.add(entry.ring.geometry);

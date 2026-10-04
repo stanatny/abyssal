@@ -1163,6 +1163,13 @@ h1 em {
     position: absolute;
     inset: 0;
     pointer-events: none;
+    /* 右手区共享尺寸：慢游居上，特殊技能和冲刺分居下方。 */
+    --touch-edge: max(28px, env(safe-area-inset-right));
+    --touch-base: calc(190px + env(safe-area-inset-bottom));
+    --touch-boost-size: 82px;
+    --touch-skill-size: 66px;
+    --touch-slow-size: 56px;
+    --touch-gap: 14px;
   }
   #joystick {
     position: absolute;
@@ -1202,10 +1209,10 @@ h1 em {
   }
   #touch-boost {
     position: absolute;
-    right: max(28px, env(safe-area-inset-right));
-    bottom: calc(190px + env(safe-area-inset-bottom));
-    width: 82px;
-    height: 82px;
+    right: var(--touch-edge);
+    bottom: var(--touch-base);
+    width: var(--touch-boost-size);
+    height: var(--touch-boost-size);
     border: 1px solid rgba(148, 217, 212, 0.6);
     background: rgba(15, 48, 60, 0.7);
     color: #e7fff6;
@@ -1218,10 +1225,17 @@ h1 em {
   }
   #touch-slow {
     position: absolute;
-    right: calc(max(28px, env(safe-area-inset-right)) + 174px);
-    bottom: calc(190px + env(safe-area-inset-bottom));
-    width: 56px;
-    height: 56px;
+    right: calc(
+      var(--touch-edge) +
+        (
+          3 * var(--touch-boost-size) + 2 * var(--touch-gap) +
+            var(--touch-skill-size)
+        ) /
+        4 - var(--touch-slow-size) / 2
+    );
+    bottom: calc(var(--touch-base) + var(--touch-boost-size) + 12px);
+    width: var(--touch-slow-size);
+    height: var(--touch-slow-size);
     border: 1px solid #bdd8cd61;
     background: #123844b8;
     color: #dfebdf;
@@ -1237,8 +1251,8 @@ h1 em {
   }
   #touch-skills {
     position: absolute;
-    right: calc(max(28px, env(safe-area-inset-right)) + 96px);
-    bottom: calc(190px + env(safe-area-inset-bottom));
+    right: calc(var(--touch-edge) + var(--touch-boost-size) + var(--touch-gap));
+    bottom: var(--touch-base);
     display: flex;
     flex-direction: column;
     gap: 10px;
@@ -1249,8 +1263,11 @@ h1 em {
     justify-content: center;
     align-items: center;
     gap: 4px;
-    width: 66px;
-    height: 66px;
+    width: var(--touch-skill-size);
+    height: var(--touch-skill-size);
+  }
+  body:has(#touch-skills button:nth-child(2)) #touch-slow {
+    bottom: calc(var(--touch-base) + 2 * var(--touch-skill-size) + 22px);
   }
   #touch-skills small {
     font-size: 11px;
@@ -1569,9 +1586,11 @@ h1 em {
   }
   #breach-hint {
     top: auto;
-    left: 50%;
+    left: 12px;
+    transform: none;
     bottom: calc(209px + env(safe-area-inset-bottom));
-    max-width: calc(100vw - 24px);
+    max-width: calc(100vw - 150px);
+    white-space: normal;
     font-size: 10px;
     letter-spacing: 0;
     padding: 4px 9px;
@@ -1688,33 +1707,25 @@ h1 em {
   }
 }
 @media (pointer: coarse) and (max-width: 700px) {
+  #touch-controls {
+    --touch-edge: max(18px, env(safe-area-inset-right));
+    --touch-base: calc(112px + env(safe-area-inset-bottom));
+    --touch-boost-size: 76px;
+    --touch-skill-size: 62px;
+    --touch-slow-size: 52px;
+    --touch-gap: 12px;
+  }
   #joystick {
     left: 18px;
     bottom: calc(110px + env(safe-area-inset-bottom));
     width: 98px;
     height: 98px;
   }
-  #touch-boost {
-    right: 18px;
-    bottom: calc(112px + env(safe-area-inset-bottom));
-    width: 76px;
-    height: 76px;
-  }
   #touch-skills {
-    right: 106px;
-    bottom: calc(112px + env(safe-area-inset-bottom));
     gap: 8px;
   }
   #touch-skills .skill-button {
-    width: 62px;
-    height: 62px;
     font-size: 12px;
-  }
-  #touch-slow {
-    right: 180px;
-    bottom: calc(112px + env(safe-area-inset-bottom));
-    width: 52px;
-    height: 52px;
   }
   body:has(#touch-skills button:nth-child(2)) #breach-hint {
     bottom: calc(256px + env(safe-area-inset-bottom));
@@ -1722,25 +1733,15 @@ h1 em {
 }
 /* 极窄屏保留可读字号，压缩次级留白。 */
 @media (pointer: coarse) and (max-width: 360px) {
+  #touch-controls {
+    --touch-boost-size: 72px;
+    --touch-skill-size: 58px;
+    --touch-slow-size: 48px;
+    --touch-gap: 10px;
+  }
   #joystick {
     width: 78px;
     height: 78px;
-  }
-  #touch-boost {
-    width: 72px;
-    height: 72px;
-  }
-  #touch-skills {
-    right: 100px;
-  }
-  #touch-skills .skill-button {
-    width: 58px;
-    height: 58px;
-  }
-  #touch-slow {
-    right: 168px;
-    width: 48px;
-    height: 48px;
   }
 }
 @media (max-width: 360px) {
@@ -1804,32 +1805,15 @@ h1 em {
     height: 78px;
     bottom: calc(108px + env(safe-area-inset-bottom));
   }
-  #touch-boost {
-    width: 72px;
-    height: 72px;
-  }
-  #touch-skills {
-    right: 100px;
-  }
-  #touch-skills .skill-button {
-    width: 58px;
-    height: 58px;
-  }
-  #touch-slow {
-    right: 168px;
-    width: 48px;
-    height: 48px;
-  }
-  #touch-skills:has(button:nth-child(2)) {
-    flex-direction: row;
-    right: 18px;
-  }
-  body:has(#touch-skills button:nth-child(2)) #touch-boost {
-    bottom: calc(180px + env(safe-area-inset-bottom));
+  #touch-controls {
+    --touch-boost-size: 72px;
+    --touch-skill-size: 58px;
+    --touch-slow-size: 48px;
+    --touch-gap: 10px;
   }
   body:has(#touch-skills button:nth-child(2)) #breach-hint {
     left: 12px;
-    max-width: calc(100vw - 122px);
+    max-width: calc(100vw - 150px);
     transform: none;
     bottom: calc(220px + env(safe-area-inset-bottom));
   }
@@ -2034,27 +2018,19 @@ h1 em {
     width: 102px;
     height: 102px;
   }
-  #touch-boost {
-    right: max(20px, env(safe-area-inset-right));
-    bottom: calc(32px + env(safe-area-inset-bottom));
-    width: 76px;
-    height: 76px;
+  #touch-controls {
+    --touch-edge: max(20px, env(safe-area-inset-right));
+    --touch-base: calc(32px + env(safe-area-inset-bottom));
+    --touch-boost-size: 76px;
+    --touch-skill-size: 60px;
+    --touch-slow-size: 52px;
+    --touch-gap: 12px;
   }
   #touch-skills {
-    right: calc(max(20px, env(safe-area-inset-right)) + 88px);
-    bottom: calc(32px + env(safe-area-inset-bottom));
     gap: 8px;
   }
   #touch-skills .skill-button {
-    width: 60px;
-    height: 60px;
     font-size: 12px;
-  }
-  #touch-slow {
-    right: max(20px, env(safe-area-inset-right));
-    bottom: calc(118px + env(safe-area-inset-bottom));
-    width: 52px;
-    height: 52px;
   }
   #sonar-control {
     right: 16px;

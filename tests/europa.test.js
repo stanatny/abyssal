@@ -24,7 +24,12 @@ import {
   isPositionBlocked,
 } from "../src/collision.js";
 import { MAX_SWIM_PITCH, stepSteering } from "../src/steering_rules.js";
-import { TIDAL_LOOM, loomAngle, inTidalLoom } from "../src/europa_loom.js";
+import {
+  TIDAL_LOOM,
+  loomAngle,
+  loomHeight,
+  inTidalLoom,
+} from "../src/europa_loom.js";
 import { createHunterState, tickHunter } from "../src/hunter_rules.js";
 import { t } from "../src/i18n.js";
 import { createPlayer, consumePrey } from "../src/simulation.js";
@@ -292,7 +297,11 @@ test("Tidal Loom sectors match rotating warning geometry and leave radial/vertic
   for (const timer of [0, 0.6, 1.8])
     for (let i = 0; i < 3; i++) {
       const angle = loomAngle(heading, timer, 1.8, true, i),
-        point = (a) => ({ x: Math.cos(a) * 55, y: -700, z: Math.sin(a) * 55 });
+        point = (a) => ({
+          x: Math.cos(a) * 55,
+          y: -700 + loomHeight(i),
+          z: Math.sin(a) * 55,
+        });
       assert.equal(
         inTidalLoom(point(angle), origin, heading, timer, 1.8),
         true,
@@ -302,7 +311,13 @@ test("Tidal Loom sectors match rotating warning geometry and leave radial/vertic
         false,
       );
       assert.equal(
-        inTidalLoom({ ...point(angle), y: -720 }, origin, heading, timer, 1.8),
+        inTidalLoom(
+          { ...point(angle), y: -700 + loomHeight(i) - 20 },
+          origin,
+          heading,
+          timer,
+          1.8,
+        ),
         false,
       );
       assert.equal(

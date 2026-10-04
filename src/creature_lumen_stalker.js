@@ -1,5 +1,5 @@
 import * as THREE from "three";
-import { bindTentacleMotion } from "./tentacle_motion.js";
+import { bindTentacleMotion, reachTentacle } from "./tentacle_motion.js";
 import {
   alienPart as part,
   alienMaterial as mat,
@@ -199,6 +199,29 @@ export function buildLumenStalker(root, motions) {
   root.userData.guideRadius =
     (bounds.getSize(new THREE.Vector3()).length() / axis) * 0.54;
   root.userData.setBossPhase = (p) => (phase = p);
+  const attackingArms = [arms[6].arm, arms[0].arm, arms[2].arm];
+  const target = new THREE.Vector3();
+  root.userData.lashArms = attackingArms;
+  root.userData.resetLumenLash = () => {
+    attackingArms.forEach((arm) => {
+      const { bones, points } = arm.userData.tentacle;
+      bones.forEach((bone, i) => {
+        bone.position.copy(points[i]);
+        if (i) bone.position.sub(points[i - 1]);
+        bone.quaternion.identity();
+      });
+    });
+    root.updateMatrixWorld(true);
+  };
+  root.userData.poseLumenLash = (targets, poses) => {
+    attackingArms.forEach((arm, i) => {
+      if (!(poses[i].amount > 0)) return;
+      target.copy(targets[i]);
+      arm.worldToLocal(target);
+      reachTentacle(arm, target, poses[i].amount, i === 1 ? -1 : 1);
+    });
+    root.updateMatrixWorld(true);
+  };
   motions.push((t, e) => {
     const gather = phase === "windup" ? 1 : phase === "attack" ? 1.25 : 0;
     anatomy.scale.y = scale * (1 + Math.sin(t * 0.55) * 0.024);

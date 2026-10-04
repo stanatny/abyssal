@@ -1,6 +1,70 @@
+# v0.10.2 release — Creature Motion and Guardian Combat
+
+The user accepted the accumulated candidate on 2026-10-05 and explicitly authorized a commit and push to the primary branch. Prepare the release from `fix/penglai-ground-navigation`, including its two accepted local checkpoints and the reviewed Europa, rare-eye, touch, Kraken-distance and Amazon crocodilian follow-ups. Fast-forward `main` without discarding other worktrees. No new tag or GitHub Release is required.
+
+Read [the release scope and reusable methods](docs/release_v0_10_2.md), [quality standard](docs/asset_quality_standard.md) and [verification](docs/verification.md). Package metadata, bilingual menu footer and actual English README image identify v0.10.2. Existing regional ecology, survival, objectives and near-view quality remain except for the explicitly reviewed large-prey redistribution and guardian techniques. Hosted Pages must be verified against the exact successful deployment and its served artifacts. Publication receipts belong in ignored `.local/release_v0_10_2/`.
+
+All sections below preserve their historical review state. Their former no-commit/no-push restrictions and candidate-only delivery labels are superseded by this authorization; their measurements are not newly rerun checks. Keep the established development, restricted-preview and tunnel services intact. The reusable lesson update is restricted to the existing personal `ui-visual-polish` and `game-development` Skills through their controller-owned worktrees, without exporting project source or private paths.
+
+---
+
+# Uncommitted crocodilian swimming-posture follow-up
+
+Continue independently in `fix/penglai-ground-navigation`, HEAD `55f999f`; preserve the preceding uncommitted candidates below. The latest user feedback concerns crocodilian swimming. The current shared rig keeps feet trailing outside their own flanks, instead of rotating into the torso, and propagates a lateral wave through the rear body into the tail. Hindlimb roots follow the pelvis; the head and shoulders stay steady. Existing fifteen bones are reused, and the upright world heading remains authoritative. Models, populations, speed, damage, food and objectives do not change.
+
+Read [the current motion correction and references](docs/amazon_crocodilian_revision.md#current-swimming-posture-correction). Immediate-before snapshots, matched poses, native river/Guide evidence and restricted preview manifests belong in ignored `.local/croc_swim_review/`. Focused tests verify actual trailing foot positions, conservative bounds, stable shoulders, frozen clocks, resource isolation and posed contacts. Native checks cover all four ordinary crocodilians, pause, three valid Rootjaw contacts and ten bilingual Guide views. Formal v0.10.1 remains unchanged; no new commit/push/merge/release is authorized.
+
+Verified delivery: 18 focused units, native motion/pause/Rootjaw contacts, ten bilingual Guide views, formatting/build and compiled local/public checks pass. Nine artifacts per host and all 274 source fingerprints match. Candidate manifest is ignored `.local/croc_swim_review/manifest.json`; the previous served build remains available. Baseline-only 5278 is stopped; established services stay intact. Current candidate: https://satisfactory-keyword-recently-cakes.trycloudflare.com/.
+
+---
+
+# Uncommitted Amazon crocodilian redraw
+
+Continue independently on `fix/penglai-ground-navigation`, local HEAD `55f999f`. Preserve all prior uncommitted Europa, rare-eye, touch-triangle and Kraken distance-pressure changes. The user asked for natural Amazon crocodile swimming and a stronger anatomical appearance; no commit, push, merge or formal publication is authorized. Formal v0.10.1 stays unchanged.
+
+Read [the focused anatomy/motion review](docs/amazon_crocodilian_revision.md). Five shared factories now distinguish Black Caiman, introduced Saltwater Crocodile, Purussaurus and the two fictional giants. A stable muscular trunk anchors articulated limbs, fast-swim folding and a continuous tail wave; jaws ease with the existing attack phases. Keep all ecology, dimensions, collision eligibility, nutrition and combat rules unchanged. Shared buffers remain immutable, skeletons instance-owned; encounter retirement releases the private crocodilian bone texture.
+
+892 units, real river movement/turning/pause, native three-hit Rootjaw contact, five bilingual Guide specimens and matching-camera atlases pass. Serial before/candidate/repeated-before desktop samples remain about 60 FPS with candidate CPU inside baseline variation; model triangles approximately halve without a whole-game performance promise. Evidence and pre-change snapshots live in ignored `.local/amazon_croc_review/`. Formatting/build and compiled local/public delivery pass: each host has ten bilingual crocodilian Guide views, four Amazon/Atlantis play-menu flows and nine exact artifacts; all 274 runtime fingerprints match. The previous runtime is retained for rollback. Current ignored manifest: `.local/amazon_croc_review/manifest.json`. Phone thermal behavior and natural full-round play remain unverified.
+
+---
+
+# Uncommitted Kraken distance-pressure follow-up
+
+Continue independently on `fix/penglai-ground-navigation`, local HEAD `55f999f`. Preserve the delivered uncommitted Europa attacks, rare-eye and touch-triangle changes below. The latest task makes Kraken harder to escape nearer its real animated maw. Shared smooth distance rules now set vortex pull 24→10, held-arm pull 18→6 and extra stamina drain 9→3 between the mouth and its 27-unit escape range. Pulls do not stack, pressure eases outward, and each entry reuses its scratch output. The 2.3-second warning, 1.5-second grip window, once-only 60 base bite, solid-cover escape, four-second recovery, 25 m gate and three-hit defeat remain.
+
+Read [the current distance contract](docs/kraken_distance_revision.md). Bilingual Guide cards, response and grip warning match the implemented rule. Evidence is ignored under `.local/kraken_distance_review/`; current rollback snapshots preserve all preceding uncommitted work. Verify actual native near/far input, held pause/reset, narrow warning and compiled bytes before delivery. New work remains uncommitted; no push, merge or formal release is authorized. Formal v0.10.1 stays unchanged.
+
+Verified candidate: 52 focused tests, native four-character outer-grip escape, matched near/far Space input, held-state pause/reset, English desktop and Chinese 320/390 Guide/warnings, formatting/build pass. Compiled local/public each pass eight affected-map bilingual flows and eight Kraken cards; nine exact artifacts and all 273 source fingerprints match. Current restricted manifest is ignored `.local/kraken_distance_review/manifest.json`. The final comment-only rebuild retains identical artifacts. No new commit/push has occurred.
+
+---
+
+# Uncommitted rare-eye and touch-layout follow-up
+
+Continue independently on `fix/penglai-ground-navigation`, HEAD `55f999f`. Preserve the uncommitted Europa arm-combat work below. This visual follow-up fits Crimson Sailfin and Gilded Cloud Carp eyes to their actual head profiles and gives Six-wing Crystal Seraph a paired dark-rimmed, cyan-iris eye structure. The shared fish helper also keeps Jade Arowana's eyes on its narrower surface. Guide and world use the same factory; body length, pursuit, capture rewards and ecology do not change.
+
+Touch controls now form a right-hand triangle: slow swim above the skill and sprint pair, across phone portrait/landscape and tablets. Shared CSS dimensions keep the apex centered between the lower button centers and preserve safe-area offsets. The water-surface hint stays to the left of the upper control; a future second skill retains its separate column and raises the slow button. Hold/release, cooldown, pause and desktop controls retain their existing behavior.
+
+Read [the focused review](docs/rare_eye_touch_revision.md). Evidence is ignored under `.local/rare_eye_review/`; before-model/CSS snapshots are retained independently from the prior Europa candidate. New work remains uncommitted; no push, merge or formal release is authorized. Formal v0.10.1 remains unchanged. Rebuild and byte-match the restricted candidate before delivery.
+
+Verified delivery: 38 focused units, 56 eye-surface rays, 48 bilingual/four-character/six-viewport control cases, six sonar/surface-hint cases, four native lord warnings, formatting and build pass. Restricted compiled local/public each pass six affected-map flows, six rare Guide views and nine exact artifacts; 273 runtime fingerprints match. Current candidate manifest is ignored `.local/rare_eye_review/manifest.json`. New work remains uncommitted.
+
+---
+
+# Uncommitted Europa arm-combat follow-up
+
+Continue independently on `fix/penglai-ground-navigation`, based on local checkpoint **`55f999f`**, which contains the accepted preceding tentacle/Kraken/Azure revision and was not pushed. The user's latest task reworks Europa lord attacks and remaining octopus-like appendages across regions. This new work remains uncommitted; no push, merge or formal publication is authorized. Formal Pages remains v0.10.1.
+
+Read [the current implementation and references](docs/europa_lord_revision.md). Lumen Stalker uses three sequential real-arm lances instead of a whole-body charge; Abyss Weaver sweeps three staggered pressure bands. Both warn for 2.4 seconds, allow solid cover and lateral/vertical escape, and recover for four seconds. The 25 m gate, three valid attacks, once-only objectives, ecology and food remain unchanged. Cameroceras, Pearl Nautilus, Spiral Grazer and Bell Carrier receive continuously bending appendages without new populations or body-size changes. Guide skill cards and English/Chinese warnings match shared rules.
+
+Fresh verification and before/candidate/repeated-before costs belong in ignored `.local/europa_lord_review/` and [verification](docs/verification.md). Preserve exact posed contacts, root attachments, shared immutable geometry and instance-owned skeletons. Do not perform lance path queries during ordinary patrol. Ink and new-round resets clear reached poses; pause freezes the single main clock. Rebuild and byte-match the existing restricted candidate before delivery, preserving the old runtime build for rollback. Desktop samples and browser touch emulation do not establish physical-phone heat or natural full-round difficulty.
+
+Verified delivery candidate: 881 units, 29 shared-browser checks, formatting/build, controlled native hit/evasion, four touch warning cases, eleven-model atlas, actual four-model Guide views and serial populated costs pass. Restricted compiled local/public each pass 14 seven-region bilingual flows, eight independent card cases and nine byte-matched artifacts; all 273 runtime fingerprints match. Current manifest is ignored `.local/europa_lord_review/manifest.json`. Fifteen switch checks observe no errors but do not establish zero-growth plateau or physical-phone heat. New work remains uncommitted after `55f999f`.
+
+---
+
 # Authorized local checkpoint — Tentacles and guardian techniques
 
-Continue independently on `fix/penglai-ground-navigation`, HEAD `4372534`: the accepted ground-navigation / nine serpent waves / dispersed large-prey candidate has been locally committed. The user accepted the tentacle and guardian revision and authorized its local commit on 2026-10-04. No push, merge or formal release is authorized. Subsequent Europa attack refinements are separate work. Formal Pages remains v0.10.1.
+At that review, the branch was `fix/penglai-ground-navigation`, HEAD `4372534`: the accepted ground-navigation / nine serpent waves / dispersed large-prey candidate has been locally committed. The user accepted the tentacle and guardian revision and authorized its local commit on 2026-10-04. No push, merge or formal release is authorized. Subsequent Europa attack refinements are separate work. Formal Pages remains v0.10.1.
 
 Read [the current implementation and evidence](docs/tentacle_combat_revision.md). Six shared factories replace rigid arms with continuous instance-owned skinning; accepted playable Squid direction remains unchanged. Kraken gains long returning arms and a recessed toothed central mouth, followed by warned vortex → approach → bounded grip → delayed bite. Azure Dragon's charge becomes a finite, locked, cover-blocked water breath from its real snout. Preserve all populations, nutrition, regional objectives, the 25 m lord gate and three independent attacks. Current bilingual warnings, independent skill cards and biographies must match the rule helpers.
 

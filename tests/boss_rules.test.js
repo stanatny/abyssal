@@ -38,7 +38,7 @@ test("四位主宰均大于玩家上限，技能不同且栖息区在世界之�
     4,
   );
   assert.equal(BOSS_SPECIES.length, 13);
-  assert.equal(new Set(BOSS_SPECIES.map((s) => s.ability)).size, 7);
+  assert.equal(new Set(BOSS_SPECIES.map((s) => s.ability)).size, 8);
   for (const species of BOSS_SPECIES.filter((s) => !s.mythic)) {
     assert.equal(species.tier, 3);
     assert.ok(species.length > 30);
@@ -394,10 +394,15 @@ test("击败奖励只结算一次，25米先击败主宰后还需继续成长", 
 test("从领地较远处即可发招，预警末段留有明确锁定和规避时间", () => {
   for (const species of BOSS_SPECIES.filter((s) => !s.mythic)) {
     const boss = createBossState(species);
-    tickBoss(boss, 1, { ...CLOSE, distance: 105 });
+    // 实体触腕先靠近自身射程，再蓄势；远程法术继续沿用原距离。
+    const distance = species.ability === "lash" ? 78 : 105;
+    tickBoss(boss, 1, { ...CLOSE, distance });
     assert.equal(boss.phase, "windup");
     assert.ok(species.lockWindow >= 0.6);
-    assert.ok(species.engageRange >= (species.freshwater ? 105 : 130));
+    assert.ok(
+      species.engageRange >=
+        (species.ability === "lash" ? 88 : species.freshwater ? 105 : 130),
+    );
     assert.ok(species.windupDuration > species.lockWindow);
   }
 });

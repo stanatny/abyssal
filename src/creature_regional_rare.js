@@ -1,3 +1,4 @@
+import { bindTentacleMotion } from "./tentacle_motion.js";
 import * as THREE from "three";
 import { REGIONAL_RARES } from "./regional_rare.js";
 import {
@@ -12,6 +13,7 @@ import {
   bindAxialMotion,
   sculptedFin,
   skinMaterial,
+  sampleSection,
 } from "./creature_surface.js";
 const material = skinMaterial({
   color: "#c9a868",
@@ -61,18 +63,25 @@ export function buildRegionalRare(kind, root, motions) {
     orientation = "horizontal",
     color = spec.color,
   ) => amazonFin(parent, `${kind}_${name}`, outline, color, orientation, p);
+  // 眼眶沿头部真实截面嵌入；较厚的珍兽不能沿用细身鱼的固定横坐标。
+  const profileEyes = (profile, y, z, size, color) => {
+    const [rx, ry, cy] = sampleSection(profile, z);
+    const surface = rx * Math.sqrt(Math.max(0, 1 - ((y - cy) / ry) ** 2));
+    amazonEyes(body, surface + size * 0.12, y, z, size, color);
+  };
   const fish = (deep = false) => {
     const h = deep ? 0.18 : 0.1;
-    const mesh = skin([
+    const profile = [
       [-0.46, 0.004, 0.014],
       [-0.36, 0.055, h * 0.57],
       [-0.17, 0.087, h],
       [0.06, 0.079, h * 0.83],
       [0.31, 0.025, 0.03],
       [0.38, 0.014, 0.021],
-    ]);
+    ];
+    const mesh = skin(profile);
     bindAxialMotion(mesh, motions, { frequency: 1.1, amplitude: 0.11 });
-    amazonEyes(body, 0.05, 0.029, -0.325, 0.012);
+    profileEyes(profile, 0.029, -0.325, 0.014, "#c7a154");
     for (const s of [-1, 1]) {
       const wing = new THREE.Group();
       wing.position.set(s * 0.07, -0.012, -0.2);
@@ -255,6 +264,17 @@ export function buildRegionalRare(kind, root, motions) {
         0.006,
         "#d4e8d3",
       );
+      const curve = new THREE.CatmullRomCurve3([
+        new THREE.Vector3(),
+        new THREE.Vector3(Math.cos(a) * 0.037, Math.sin(a) * 0.035, -0.12),
+        new THREE.Vector3(Math.cos(a) * 0.046, Math.sin(a) * 0.03, -0.22),
+        new THREE.Vector3(Math.cos(a) * 0.033, Math.sin(a) * 0.03, -0.26),
+      ]);
+      bindTentacleMotion(g, `pearl_nautilus_soft_arm_${i}`, curve, motions, {
+        count: 6,
+        phase: a,
+        amplitude: 0.2,
+      });
       motions.push((t) => (g.rotation.y = Math.sin(t * 0.65 + i) * 0.06));
     }
     motions.push((t) => (body.rotation.x = Math.sin(t * 0.4) * 0.012));
@@ -383,17 +403,15 @@ export function buildRegionalRare(kind, root, motions) {
       "#a2cee0",
     );
   } else if (kind === "crystal_seraph") {
-    skin(
-      [
-        [-0.38, 0.006, 0.007],
-        [-0.23, 0.1, 0.1],
-        [0.1, 0.095, 0.08],
-        [0.35, 0.025, 0.03],
-        [0.48, 0.001, 0.004],
-      ],
-      "#7c709f",
-      "#c1b7bf",
-    );
+    const profile = [
+      [-0.38, 0.006, 0.007],
+      [-0.23, 0.1, 0.1],
+      [0.1, 0.095, 0.08],
+      [0.35, 0.025, 0.03],
+      [0.48, 0.001, 0.004],
+    ];
+    skin(profile, "#7c709f", "#c1b7bf");
+    profileEyes(profile, 0.023, -0.3, 0.016, "#85c8cb");
     for (let i = 0; i < 6; i++) {
       const a = (i * Math.PI) / 3,
         g = new THREE.Group();
