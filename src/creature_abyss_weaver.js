@@ -1,4 +1,5 @@
 import * as THREE from "three";
+import { bindTentacleMotion } from "./tentacle_motion.js";
 import {
   alienPart as part,
   alienMaterial as mat,
@@ -73,6 +74,7 @@ export function buildAbyssWeaver(root, motions) {
       "feeding_rib",
     );
   }
+  let phase = "dormant";
   const arms = [];
   for (let i = 0; i < 6; i++) {
     const a = (i / 6) * Math.PI * 2 + 0.17,
@@ -150,18 +152,32 @@ export function buildAbyssWeaver(root, motions) {
       rib,
       "pressure_ridge",
     );
-    arms.push({ arm, distal, base: a });
+    const curve = new THREE.CatmullRomCurve3(
+      [
+        [0, 0, 0],
+        [0.12, -0.02, 0.02],
+        [0.26, -0.04, 0.03],
+        [0.4, -0.06, 0.04],
+        [0.52, -0.05, 0.04],
+        [0.65, -0.01, 0.04],
+        [0.73, 0.02, 0.04],
+      ].map((p) => new THREE.Vector3(...p)),
+    );
+    bindTentacleMotion(arm, `weaver_soft_arm_${i}`, curve, motions, {
+      count: 10,
+      phase: a,
+      amplitude: 0.28,
+      curl: () => (phase === "windup" ? 0.2 : phase === "attack" ? 0.35 : 0),
+    });
+    arms.push({ arm });
   }
-  let phase = "dormant";
   root.userData.setBossPhase = (p) => (phase = p);
   motions.push((t, e) => {
     const warning = phase === "windup" ? 1 : phase === "attack" ? 1.2 : 0;
     mantle.scale.y = normalizedScale * (1 + Math.sin(t * 0.7) * 0.035);
-    arms.forEach(({ arm, distal }, i) => {
+    arms.forEach(({ arm }, i) => {
       arm.rotation.z = Math.sin(t * 0.55 + i * 0.9) * 0.1 - warning * 0.12;
       arm.rotation.x = Math.sin(t * 0.43 + i * 0.7) * 0.1;
-      distal.rotation.y = Math.sin(t * 0.7 + i) * (0.15 + e * 0.03);
-      distal.rotation.z = Math.sin(t * 0.51 + i) * 0.12 - warning * 0.12;
     });
   });
   const bounds = new THREE.Box3().setFromObject(root),

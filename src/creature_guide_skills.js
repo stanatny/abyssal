@@ -1,3 +1,4 @@
+import { KRAKEN_GRAPPLE } from "./lord_special_rules.js";
 import { getHunterAbility } from "./hunter_rules.js";
 
 /**
@@ -19,6 +20,16 @@ export function creatureGuideSkills(species, entry = {}) {
         name: species.skillLabels?.[id] || entry.ability,
         ...copy,
         counter: species.skillTips?.[id] || copy.counter,
+        values:
+          id === "water"
+            ? [species.breathRange, species.damage, timing?.recover ?? 3]
+            : id === "vortex"
+              ? [
+                  species.damage * KRAKEN_GRAPPLE.damageMultiplier,
+                  timing?.recover ?? 3,
+                  KRAKEN_GRAPPLE.biteDelay,
+                ]
+              : undefined,
         windup: timing?.windup ?? species.windupDuration,
         recovery: timing?.recover ?? 3,
       };
@@ -74,10 +85,17 @@ export function creatureGuideSkills(species, entry = {}) {
 }
 
 const LORD_SKILLS = {
+  water: {
+    description:
+      "凝聚云水，从龙吻喷出最长{0}米的水息。释放前锁定方向，水流不追踪；同次吐息只造成一次{1}点基础伤害，山石可挡住水路。",
+    counter:
+      "蓝色水路锁定后，向侧面或上下离开；不要沿水流方向直退。水息散去后的{2}秒可从侧翼反击。",
+  },
   vortex: {
     description:
-      "预判目标的行进路线，在前方聚起漩涡。牵引范围内的目标并抽走体力，涡心会造成伤害。",
-    counter: "预警出现后改变路线，绕到岩柱后或远离涡心；漩涡结束后从侧翼反击。",
+      "预判路线凝聚漩涡，随后游向涡心。停留在中心且被长腕够到后，触腕会收拢，留下{2}秒挣脱窗口；未及时挣脱便受到一次{0}点基础绞咬伤害。",
+    counter:
+      "看到预警就变向冲出涡心；被缠住后仍可向外冲刺或用岩柱遮挡，打断延迟绞咬。结束后有{1}秒侧翼反击窗口。",
   },
   pulse: {
     description: "蓄力时锁定目标所在的水层，再释放高速扩散的脉冲环。",

@@ -115,12 +115,12 @@ const DESCRIPTIONS = {
     category: "lord",
     role: "漩涡主宰",
     color: "#c5a0ff",
-    ability: "深渊漩涡",
+    ability: "深渊漩涡 · 缠腕绞咬",
     appearance:
-      "北欧海怪传说中的巨兽：八条长触腕舒展盘卷，双列吸盘沿腕内侧排列；臂根与末梢错相摆动。",
-    text: "预判你的前进位置布置深渊漩涡，牵引附近目标并抽走体力，漩涡中心还会造成伤害。追击时会拦截路线，而不是只停留在领地中心。",
+      "北欧海怪传说中的巨兽：八条细长肌肉腕连贯舒展、末梢盘卷，双列吸盘随腕变形；中央深陷的环形口器密布内向利齿。",
+    text: "先在预计路线上聚起漩涡，再靠近被困目标。长腕收拢后，中央巨口会延迟绞咬；向外冲刺或借地形遮挡可以挣脱，不会无止境地束缚主角。",
     counter:
-      "看到漩涡预警后改变路线，利用岩柱遮挡；技能后的3秒恢复期，从侧翼朝向躯干接近咬击，再退出接触范围。",
+      "预警后冲出涡心，或绕岩柱遮挡；被缠住仍应立即向外冲刺。绞咬结束后有4秒恢复期，从侧翼咬击，再脱离接触范围。",
   },
   mayan: {
     name: "格兰玛雅",
@@ -403,7 +403,7 @@ function renderCreatureSkillCards(entry) {
       const cooldown = Number.isFinite(skill.cooldownMin)
         ? t("冷却{0}—{1}秒追击时间", [skill.cooldownMin, skill.cooldownMax])
         : "";
-      return tr`<section class="guide-creature-skill" data-skill-id="${skill.id}" data-skill-type="${skill.type}"><span class="guide-skill-type">${skill.type === "active" ? "主动技能 · 自动发动" : "被动特性"}</span><h4>${skill.name}</h4><p>${t(skill.description, skill.values || [])}</p><p class="guide-skill-response"><b>应对方式</b> ${skill.counter}</p>${timing || cooldown ? tr`<small class="guide-skill-cooldown">${[timing, cooldown].filter(Boolean).join(" · ")}</small>` : ""}</section>`;
+      return tr`<section class="guide-creature-skill" data-skill-id="${skill.id}" data-skill-type="${skill.type}"><span class="guide-skill-type">${skill.type === "active" ? "主动技能 · 自动发动" : "被动特性"}</span><h4>${skill.name}</h4><p>${t(skill.description, skill.values || [])}</p><p class="guide-skill-response"><b>应对方式</b> ${t(skill.counter, skill.values || [])}</p>${timing || cooldown ? tr`<small class="guide-skill-cooldown">${[timing, cooldown].filter(Boolean).join(" · ")}</small>` : ""}</section>`;
     })
     .join("")}</div>`;
 }

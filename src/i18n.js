@@ -1,3 +1,4 @@
+import { LORD_REVISION_EN } from "./locales/lord_revision_en.js";
 import { CREATURE_SKILLS_EN } from "./locales/creature_skills_en.js";
 import { BACKGROUND_EN } from "./creature_backgrounds.js";
 import { ECOSYSTEM_EN } from "./regional_rare.js";
@@ -36,6 +37,7 @@ const english = Object.freeze(
     ECOSYSTEM_EN,
     BACKGROUND_EN,
     CREATURE_SKILLS_EN,
+    LORD_REVISION_EN,
   ),
 );
 const listeners = new Set();

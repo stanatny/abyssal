@@ -56,6 +56,8 @@ export function buildPenglaiCreature(kind, root, motions) {
     const p = head.clone().multiplyScalar(factor).add(b.position);
     root.userData.getHeadWorldPositions = () => [root.localToWorld(p.clone())];
   }
+  if (b.userData.mouthAnchors)
+    root.userData.mouthAnchors = b.userData.mouthAnchors;
   root.userData.groundSupport = normalization.get(kind).groundSupport;
   root.userData.normalizedLength = 1;
   root.userData.artRevision = "penglai_v2";

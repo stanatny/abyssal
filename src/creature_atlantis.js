@@ -1,4 +1,5 @@
 import * as THREE from "three";
+import { bindTentacleMotion } from "./tentacle_motion.js";
 import { mergeGeometries } from "three/addons/utils/BufferGeometryUtils.js";
 import {
   bindAxialMotion,
@@ -1260,6 +1261,27 @@ function buildCuttlefish(body, motions) {
       },
       SURFACE,
     );
+    const curve = new THREE.CatmullRomCurve3(
+      [
+        [0, 0, 0],
+        [
+          Math.cos(a) * 0.018,
+          Math.sin(a) * 0.011 + lift * 0.3 - 0.006,
+          -reach * 0.36,
+        ],
+        [
+          Math.cos(a) * 0.042,
+          Math.sin(a) * 0.02 - 0.018 + lift * 0.7,
+          -reach * 0.7,
+        ],
+        [Math.cos(a) * 0.037, Math.sin(a) * 0.017 - 0.024 + lift, -reach],
+      ].map((p) => new THREE.Vector3(...p)),
+    );
+    bindTentacleMotion(group, `${kind}_soft_arm_${i}`, curve, motions, {
+      count: 6,
+      phase: a,
+      amplitude: tentacle ? 0.12 : 0.18,
+    });
     arms.push({ group, a, tentacle });
   }
   motions.push((time, effort) => {

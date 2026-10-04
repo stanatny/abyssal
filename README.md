@@ -20,6 +20,8 @@ An accepted local-checkpoint [serpentine-motion and large-prey follow-up](docs/s
 
 The same local-checkpoint [Penglai ground-navigation follow-up](docs/penglai_ground_navigation.md) fixes mountain penetration and trapped walkers using body-aware terrain and solid checks. It preserves the released population, combat rules and art; it is not yet part of the formal build.
 
+An accepted local-checkpoint [tentacle and guardian follow-up](docs/tentacle_combat_revision.md) gives octopus-like arms continuous movement, adds Kraken's long arms and central toothed maw, and replaces Azure Dragon's charge with a warned water breath. Kraken now approaches its vortex, closes its arms and delivers a delayed heavy bite if the player does not escape; outward sprint or solid cover interrupts the grip. Shared lord eligibility, three attacks and regional objectives remain. This review candidate is separate from the published edition.
+
 ## Living ecosystems and mythic forms
 
 The accepted ecosystem/rare/Guide checkpoint `4691135` and its reviewed follow-up are included in v0.10.1. The follow-up gives nine shallow marine kinds and four mythic fish distinct anatomical silhouettes, rebuilds the giant Kun and integrates actual Kun/Peng and Dragon-Gate carp/Cloud Dragon transformations without adding individuals. Cloud Dragon is an ordinary threat below 25 m, separate from the monastery guardians. The Guide adds both alternate forms, opens without automatic search focus on phones, presents playable active/passive skills separately and tells backgrounds directly. Read [the silhouette, transformation and Guide review](docs/silhouette_transformation_revision.md) for references, verification and limits.

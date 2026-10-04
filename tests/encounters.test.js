@@ -67,6 +67,26 @@ function fixture(kind) {
   };
 }
 
+test("Restart clears an old Kraken grip even when that pooled lord is not selected", () => {
+  const f = fixture("kraken");
+  f.entry.grapple.held = true;
+  f.entry.grapple.timer = 1;
+  f.entry.mesh.userData.setKrakenGrip(1);
+  f.entry.mesh.userData.animate(0, 1);
+  f.entry.mesh.userData.animate(1, 1);
+  f.encounters.reset(["hydra"]);
+  assert.equal(f.entry.enabled, false);
+  assert.deepEqual(f.entry.grapple, {
+    exposure: 0,
+    held: false,
+    timer: 0,
+    spent: false,
+  });
+  assert.equal(f.entry.mesh.getObjectByName("kraken_toothed_maw").scale.x, 1);
+  assert.ok(f.entry.fxVariants.every((fx) => !fx.group.visible));
+  f.encounters.dispose();
+});
+
 test("默认夏威夷首页初始名单不包含独立地图的领主，首次出发沿用名单仍安全", (t) => {
   // 反向抽签优先取物种池末尾，确保新增的独立地图领主不会只因随机运气漏检。
   const random = Math.random;
@@ -130,7 +150,8 @@ test("海德拉吐息从当前摆动吻端发射，三次射击保留原间隔",
 for (const kind of ["kraken", "mayan", "hydra", "leviathan"]) {
   test(`${kind} 进入领地后的首轮技能可以命中停留玩家，锁定后变向能够躲开`, () => {
     const standing = fixture(kind);
-    while (standing.time < 6 && !standing.events.hits) standing.step();
+    while (standing.time < (kind === "kraken" ? 9 : 6) && !standing.events.hits)
+      standing.step();
     assert.ok(standing.entry.state.attackCount > 0);
     assert.ok(
       standing.events.hits > 0,
@@ -143,7 +164,7 @@ for (const kind of ["kraken", "mayan", "hydra", "leviathan"]) {
 
     const dodging = fixture(kind);
     let evading = false;
-    while (dodging.time < 6) {
+    while (dodging.time < (kind === "kraken" ? 9 : 6)) {
       const state = dodging.entry.state;
       if (
         state.phase === "windup" &&
@@ -291,4 +312,81 @@ test("White Tiger patrol and warned charge respect the whole body beside a steep
   }
   assert.ok(traveled > 20);
   assert.ok(phases.has("windup") && phases.has("attack"));
+});
+
+test("克拉肯真实漩涡靠近、缠腕、延迟绞咬；普通角色冲刺与遮挡均能脱身", () => {
+  for (const strategy of ["trapped", "sprint", "cover"]) {
+    const f = fixture("kraken");
+    while (!f.entry.grapple.held && f.time < 9) f.step();
+    assert.equal(
+      f.entry.grapple.held,
+      true,
+      `${strategy}: never reached grapple`,
+    );
+    const before = f.player.health;
+    const captured = f.time;
+    while (!f.entry.grapple.spent && f.time < captured + 2) {
+      if (strategy === "sprint") {
+        const mouth = f.entry.mesh.userData.mouthAnchors[0].getWorldPosition(
+          new THREE.Vector3(),
+        );
+        const direction = f.position.clone().sub(mouth).normalize();
+        f.position.addScaledVector(direction, 32 / 60);
+      }
+      f.step(1 / 60, () => strategy === "cover");
+    }
+    assert.equal(f.entry.grapple.held, false);
+    assert.equal(f.entry.grapple.spent, true);
+    if (strategy === "trapped") {
+      assert.ok(f.time - captured >= 1.49);
+      assert.equal(before - f.player.health, 60);
+      const damage = f.events.hits;
+      while (f.entry.state.phase === "attack") f.step();
+      assert.equal(
+        f.events.hits,
+        damage,
+        "Same vortex must not bite repeatedly",
+      );
+      assert.equal(f.entry.state.phase, "recover");
+      assert.equal(f.entry.state.phaseDuration, 4);
+    } else
+      assert.equal(f.player.health, before, `${strategy} failed to escape`);
+    f.encounters.disorient(f.position, 500, f.time);
+    assert.equal(f.entry.grapple.held, false);
+    f.encounters.dispose();
+  }
+});
+
+test("青龙水息从实际吻端释放且方向锁定，一次命中、侧躲和地形遮挡均按真实战斗生效", () => {
+  for (const strategy of ["standing", "side", "cover"]) {
+    const f = fixture("azure_dragon");
+    while (f.entry.state.phase !== "windup" && f.time < 5) f.step();
+    assert.equal(f.entry.state.ability, "water");
+    let locked;
+    while (f.time < 8) {
+      const s = f.entry.state;
+      if (
+        s.phase === "windup" &&
+        s.timer >= s.phaseDuration - s.species.lockWindow
+      ) {
+        locked ||= f.entry.heading.clone();
+        if (strategy === "side") f.position.x += 32 / 60;
+      }
+      if (s.phase === "attack" && strategy === "side") f.position.x += 32 / 60;
+      f.step(1 / 60, (a, b) => strategy === "cover" && b.z < -60);
+      if (f.entry.state.phase === "attack") {
+        assert.ok(f.entry.heading.distanceTo(locked || f.entry.heading) < 1e-8);
+        const mouth = f.entry.mesh.userData.mouthAnchors[0].getWorldPosition(
+          new THREE.Vector3(),
+        );
+        assert.ok(f.entry.waterOrigin.distanceTo(mouth) < 1e-6);
+        if (strategy === "cover") assert.ok(f.entry.waterRange < 145);
+      }
+      if (f.entry.state.phase === "recover") break;
+    }
+    assert.equal(f.events.hits, strategy === "standing" ? 1 : 0, strategy);
+    assert.equal(f.entry.state.phase, "recover");
+    assert.equal(f.entry.state.phaseDuration, 3.8);
+    f.encounters.dispose();
+  }
 });

@@ -1,4 +1,5 @@
 import * as THREE from "three";
+import { bindTentacleMotion } from "./tentacle_motion.js";
 
 /** 放射状生命用不同的承重结构与运动关节，软冠与硬壳不共用剪影。 */
 export function buildEuropaRadialForm(c) {
@@ -199,9 +200,19 @@ export function buildEuropaRadialForm(c) {
         );
         cup.rotation.x = Math.PI / 2;
       }
-      c.motions.push((t) => {
-        arm.rotation.y = Math.sin(t * 0.7 + i * 0.72) * 0.065;
-        arm.rotation.x = Math.cos(t * 0.63 + i * 0.68) * 0.05;
+      const curve = new THREE.CatmullRomCurve3(
+        [
+          [0, 0, 0],
+          [x * 0.22, y * 0.2, -0.15],
+          [x * 0.46, y * 0.34, -0.32],
+          [x * 0.52, y * 0.3, -0.49],
+          [x * 0.42, y * 0.21, -0.58],
+        ].map((p) => new THREE.Vector3(...p)),
+      );
+      bindTentacleMotion(arm, `filter_soft_arm_${i}`, curve, c.motions, {
+        count: 8,
+        phase: a,
+        amplitude: 0.22,
       });
     }
     for (const s of [-1, 1]) {

@@ -1,3 +1,15 @@
+# Authorized local checkpoint — Tentacles and guardian techniques
+
+Continue independently on `fix/penglai-ground-navigation`, HEAD `4372534`: the accepted ground-navigation / nine serpent waves / dispersed large-prey candidate has been locally committed. The user accepted the tentacle and guardian revision and authorized its local commit on 2026-10-04. No push, merge or formal release is authorized. Subsequent Europa attack refinements are separate work. Formal Pages remains v0.10.1.
+
+Read [the current implementation and evidence](docs/tentacle_combat_revision.md). Six shared factories replace rigid arms with continuous instance-owned skinning; accepted playable Squid direction remains unchanged. Kraken gains long returning arms and a recessed toothed central mouth, followed by warned vortex → approach → bounded grip → delayed bite. Azure Dragon's charge becomes a finite, locked, cover-blocked water breath from its real snout. Preserve all populations, nutrition, regional objectives, the 25 m lord gate and three independent attacks. Current bilingual warnings, independent skill cards and biographies must match the rule helpers.
+
+Evidence and rollback snapshots are ignored under `.local/tentacle_combat_review/`. Rebuild and verify source/artifact hashes before handing over the restricted candidate. Inspect actual battle/evasion, pause/reset, touch warnings, full animation cycles and shared resource ownership. The first performance sample exposed expensive skin contact; cached conservative local triangle blocks retain exact surface/interior checks with much lower CPU cost. Final checks and honest device/natural-round limits belong in the current review and verification log; do not turn this into a formal release or a shared-Skill update.
+
+Verified candidate: 872 units, 29 shared-browser checks, formatting/build, twelve-second arm cycles and exact-contact equivalence pass. Native Kraken trapped/Space-escape and Azure water-hit cases pass; 320/390 touch warnings are visible without sampled overlap and pause/restart clears all pooled grip state. Compiled local/public each pass fourteen seven-region bilingual flows, four new Guide-card checks and nine exact artifact hashes, with zero observed errors. All 272 runtime fingerprints match. Current restricted manifest: ignored `.local/tentacle_combat_review/manifest.json`; see [verification and cost limits](docs/verification.md).
+
+---
+
 # Local checkpoint — Serpentine motion and large-prey distribution
 
 - Continue in `fix/penglai-ground-navigation`, based on formal v0.10.1 / `171be5f`. The user accepted this candidate and authorized a local commit on 2026-10-04, including the ground-navigation fix below. No push, merge or formal deployment is authorized. The following tentacle/guardian revision is separate work.

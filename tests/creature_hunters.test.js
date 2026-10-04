@@ -106,17 +106,24 @@ test("现代猎手共享几何与材质，独立关节真正变形且不会写�
       const position = torso.geometry.attributes.position;
       let vertex = 0;
       for (let i = 1; i < position.count; i++)
-        if (position.getZ(i) > position.getZ(vertex)) vertex = i;
+        if (
+          kind === "octopus"
+            ? torso.geometry.attributes.skinIndex.getX(i) >
+              torso.geometry.attributes.skinIndex.getX(vertex)
+            : position.getZ(i) > position.getZ(vertex)
+        )
+          vertex = i;
       assert.ok(
         torso
           .getVertexPosition(vertex, new THREE.Vector3())
           .distanceTo(other.getVertexPosition(vertex, new THREE.Vector3())) >
           0.0001,
       );
-      assert.equal(
-        a.root.getObjectByName(`${kind}_tail`).parent,
-        torso.skeleton.bones[2],
-      );
+      if (kind !== "octopus")
+        assert.equal(
+          a.root.getObjectByName(`${kind}_tail`).parent,
+          torso.skeleton.bones[2],
+        );
     }
   }
 });

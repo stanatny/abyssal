@@ -318,8 +318,11 @@ export const BOSS_SPECIES = Object.freeze(
       nutrition: 100,
       growth: 30,
       tier: 3,
-      windupDuration: 2.1,
-      attackDuration: 2.5,
+      windupDuration: 2.3,
+      attackDuration: 6,
+      abilityTimings: Object.freeze({
+        vortex: Object.freeze({ windup: 2.3, attack: 6, recover: 4 }),
+      }),
     },
     {
       kind: "mayan",

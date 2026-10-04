@@ -1,4 +1,5 @@
 import * as THREE from "three";
+import { bindTentacleMotion } from "./tentacle_motion.js";
 import { mergeGeometries } from "three/addons/utils/BufferGeometryUtils.js";
 import {
   bindAxialMotion,
@@ -993,11 +994,10 @@ function buildOctopus(body, motions) {
       },
       SURFACE,
     );
-    motions.push((t, e) => {
-      const power = 0.08 + Math.min(e, 3) * 0.012;
-      arm.rotation.x = Math.sin(t * 0.55 + a) * power;
-      arm.rotation.y = Math.cos(t * 0.48 + a) * power;
-      arm.rotation.z = Math.sin(t * 0.39 + a) * 0.055;
+    bindTentacleMotion(arm, `hunter_octopus_arm_${index}`, curve, motions, {
+      count: 10,
+      phase: a,
+      amplitude: 0.27,
     });
   }
 }

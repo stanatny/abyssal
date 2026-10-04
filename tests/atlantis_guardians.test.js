@@ -252,18 +252,22 @@ for (const character of ["orca", "squid"]) {
       target.state.phase = target.previousPhase = "recover";
       target.state.phaseDuration = 99;
       // 在真实网格侧翼找第一接触点；没有人为放大攻击判定。
+      target.mesh.updateMatrixWorld(true);
+      const sideCenter = new THREE.Vector3(0, 0, 0.14).applyMatrix4(
+        target.mesh.getObjectByName("kraken_lord_anatomy").matrixWorld,
+      );
       let contactX = null;
       for (let x = 40; x > 0; x -= 0.1) {
-        const mouth = target.home.clone().add(new THREE.Vector3(x, 0, 6.3));
+        const mouth = sideCenter.clone().add(new THREE.Vector3(x, 0, 0));
         if (findBossContact(target.mesh, mouth, 1.5)) {
           contactX = x;
           break;
         }
       }
       assert.notEqual(contactX, null);
-      const attackPosition = target.home
+      const attackPosition = sideCenter
         .clone()
-        .add(new THREE.Vector3(contactX + 25 * 0.38, 0, 6.3));
+        .add(new THREE.Vector3(contactX + 25 * 0.38, 0, 0));
       f.position.copy(attackPosition);
       f.step(1 / 60, inward);
       assert.equal(target.state.health, target.state.maxHealth);

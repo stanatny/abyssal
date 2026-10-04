@@ -314,5 +314,12 @@ export function buildPenglaiDragon(kind, b, motions) {
       tail.rotation.y = -Math.PI / 2 + Math.sin(t * 0.7) * 0.12;
     });
   }
+  if (dragon) {
+    const mouth = new THREE.Object3D();
+    mouth.name = `${kind}_mouth_anchor`;
+    mouth.position.set(0, -0.026, -0.246);
+    head.add(mouth);
+    b.userData.mouthAnchors = [mouth];
+  }
   b.userData.headAnchor = new THREE.Vector3(0, 0, fish ? -0.57 : -0.49);
 }

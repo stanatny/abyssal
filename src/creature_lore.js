@@ -7,8 +7,8 @@ export const CREATURE_LORE = [
   ],
   [
     "azure_dragon",
-    "在蓬莱，东峰的古松被长年流云磨成了弯曲的轮廓，青龙便沿这些山脊盘旋。它的角须掠过松梢，长躯一节节隐入云雾；山路上偶尔落下的青色鳞光，被旅人称为春雷的余痕。\n\n青龙执掌四象护阵的东方，讲求进退平衡。“苍龙破云”既有威势，也有明确的起势与收势。它不会为一时追逐离开守山之责，莽撞的来者会受惩戒，懂得观察剑隙般破绽的来者则能通过试炼。",
-    "In Penglai, the Azure Dragon coils along eastern ridges where old pines bend beneath passing clouds. Horns and whiskers brush the treetops as its long body disappears into mist. Travelers call the green glints left above the path the afterimage of spring thunder.\n\nIt holds the eastern part of the Four-Symbol ward and values balance between advance and retreat. Dragon Through the Clouds has a deliberate preparation and recovery. The dragon will not abandon its mountain duty for a chase; reckless visitors are punished, while those who read its openings may pass the trial.",
+    "在蓬莱，东峰的古松被长年流云磨成了弯曲的轮廓，青龙便沿这些山脊盘旋。它的角须掠过松梢，长躯一节节隐入云雾；山路上偶尔落下的青色鳞光，被旅人称为春雷的余痕。\n\n青龙执掌四象护阵的东方，讲求进退平衡。“沧溟龙息”汇聚云水，既有威势，也有明确的起势与收势。它不会为一时追逐离开守山之责，莽撞的来者会受惩戒，懂得观察剑隙般破绽的来者则能通过试炼。",
+    "In Penglai, the Azure Dragon coils along eastern ridges where old pines bend beneath passing clouds. Horns and whiskers brush the treetops as its long body disappears into mist. Travelers call the green glints left above the path the afterimage of spring thunder.\n\nIt holds the eastern part of the Four-Symbol ward and values balance between advance and retreat. Dragon Breath of the Azure Sea gathers cloud-water with a deliberate preparation and recovery. The dragon will not abandon its mountain duty for a chase; reckless visitors are punished, while those who read its openings may pass the trial.",
   ],
   [
     "white_tiger",

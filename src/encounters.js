@@ -12,6 +12,11 @@ import { pgSword } from "./creature_penglai_art.js";
 import { TIDAL_LOOM, loomAngle, inTidalLoom } from "./europa_loom.js";
 import { t, tr, message } from "./i18n.js";
 import * as THREE from "three";
+import {
+  disposeTentacleMotion,
+  tentacleWorldBounds,
+  tentacleChunkBounds,
+} from "./tentacle_motion.js";
 import { createCreature } from "./creatures.js";
 import {
   BOSS_SPECIES,
@@ -28,7 +33,15 @@ import { takeDamage } from "./simulation.js";
 import { makeLabel } from "./rewards.js";
 import { createFluidTexture } from "./effect_textures.js";
 
+import {
+  KRAKEN_GRAPPLE,
+  createKrakenGrapple,
+  tickKrakenGrapple,
+  inWaterBreath,
+} from "./lord_special_rules.js";
+
 const FORWARD_AXIS = new THREE.Vector3(0, 0, -1);
+const UP_AXIS = new THREE.Vector3(0, 1, 0);
 
 /**
  * 检查嘴部小球是否触及领主实际网格或已进入闭合躯干；触腕间空隙不计接触。
@@ -59,10 +72,20 @@ export function findBossContact(mesh, mouth, radius) {
     const vertices = geometry.attributes.position;
     if (!vertices) return;
     geometry.boundingSphere || geometry.computeBoundingSphere();
-    sphere.copy(geometry.boundingSphere).applyMatrix4(part.matrixWorld);
+    if (part.isSkinnedMesh && !part.boundingSphere)
+      part.computeBoundingSphere();
+    sphere
+      .copy(part.isSkinnedMesh ? part.boundingSphere : geometry.boundingSphere)
+      .applyMatrix4(part.matrixWorld);
     if (sphere.distanceToPoint(mouth) > radius) return;
-    geometry.boundingBox || geometry.computeBoundingBox();
-    bounds.copy(geometry.boundingBox).applyMatrix4(part.matrixWorld);
+    if (part.userData.tentacleBounds) tentacleWorldBounds(part, bounds);
+    else {
+      if (part.isSkinnedMesh) part.computeBoundingBox();
+      else geometry.boundingBox || geometry.computeBoundingBox();
+      bounds
+        .copy(part.isSkinnedMesh ? part.boundingBox : geometry.boundingBox)
+        .applyMatrix4(part.matrixWorld);
+    }
     if (bounds.distanceToPoint(mouth) > radius) return;
     const couldBeInside = bounds.containsPoint(mouth);
     const forwardCrossings = [];
@@ -71,50 +94,59 @@ export function findBossContact(mesh, mouth, radius) {
     // 仅近身且冷却结束时运行窄相检查，避免把宽大的包围盒当作咬击范围。
     const indices = geometry.index;
     const count = indices ? indices.count : vertices.count;
-    for (let index = 0; index < count; index += 3) {
-      triangle.a
-        .fromBufferAttribute(vertices, indices ? indices.getX(index) : index)
-        .applyMatrix4(part.matrixWorld);
-      triangle.b
-        .fromBufferAttribute(
-          vertices,
-          indices ? indices.getX(index + 1) : index + 1,
-        )
-        .applyMatrix4(part.matrixWorld);
-      triangle.c
-        .fromBufferAttribute(
-          vertices,
-          indices ? indices.getX(index + 2) : index + 2,
-        )
-        .applyMatrix4(part.matrixWorld);
-      triangle.closestPointToPoint(mouth, closest);
-      if (closest.distanceToSquared(mouth) <= radiusSquared) {
-        contact = closest.clone();
-        break;
-      }
-      if (couldBeInside) {
+    const chunks = part.userData.tentacleChunks || [{ start: 0, end: count }];
+    for (const chunk of chunks) {
+      if (part.userData.tentacleChunks) {
+        tentacleChunkBounds(part, chunk, bounds);
+        // 近身表面与内外穿越射线都需保留，不能把块间空隙变成实体。
         if (
-          outwardRay.intersectTriangle(
-            triangle.a,
-            triangle.b,
-            triangle.c,
-            false,
-            intersection,
-          )
+          bounds.distanceToPoint(mouth) > radius &&
+          (!couldBeInside ||
+            (!outwardRay.intersectsBox(bounds) &&
+              !inwardRay.intersectsBox(bounds)))
         )
-          forwardCrossings.push(intersection.distanceToSquared(mouth));
-        if (
-          inwardRay.intersectTriangle(
-            triangle.a,
-            triangle.b,
-            triangle.c,
-            false,
-            intersection,
-          )
-        )
-          backwardCrossings.push(intersection.distanceToSquared(mouth));
+          continue;
       }
+      for (let index = chunk.start; index < chunk.end; index += 3) {
+        for (let offset = 0; offset < 3; offset++) {
+          const point =
+            offset === 0 ? triangle.a : offset === 1 ? triangle.b : triangle.c;
+          const n = indices ? indices.getX(index + offset) : index + offset;
+          if (part.isSkinnedMesh) part.getVertexPosition(n, point);
+          else point.fromBufferAttribute(vertices, n);
+          point.applyMatrix4(part.matrixWorld);
+        }
+        triangle.closestPointToPoint(mouth, closest);
+        if (closest.distanceToSquared(mouth) <= radiusSquared) {
+          contact = closest.clone();
+          break;
+        }
+        if (couldBeInside) {
+          if (
+            outwardRay.intersectTriangle(
+              triangle.a,
+              triangle.b,
+              triangle.c,
+              false,
+              intersection,
+            )
+          )
+            forwardCrossings.push(intersection.distanceToSquared(mouth));
+          if (
+            inwardRay.intersectTriangle(
+              triangle.a,
+              triangle.b,
+              triangle.c,
+              false,
+              intersection,
+            )
+          )
+            backwardCrossings.push(intersection.distanceToSquared(mouth));
+        }
+      }
+      if (contact) break;
     }
+
     if (
       !contact &&
       hasOddCrossings(forwardCrossings) &&
@@ -136,22 +168,25 @@ function hasOddCrossings(distances) {
 }
 
 const TIPS = {
+  water: "水息锁定 · 横向或升降离开蓝色水路，借山石遮挡",
   swords: "御剑将至 · 横向闪避或绕山石遮挡",
   loom: "避开紫色压力带，从上下或扇区间隙撤离",
-  vortex: "漩涡锁定游动路径 · 变向离开光圈，借岩柱阻断牵引",
+  vortex: "漩涡将起 · 冲刺离开涡心，借岩柱阻断触腕",
   pulse: "快速上浮或下潜，避开脉冲所在水层",
   volley: "横向变向躲开三连弹，不要直线后退",
   charge: "冲锋锁定后侧向闪避，等待撞击后的硬直",
 };
 const SKILLS = {
+  water: "沧溟龙息",
   swords: "隔空御剑",
   loom: "潮汐织网",
-  vortex: "深渊漩涡",
+  vortex: "深渊漩涡 · 缠腕绞咬",
   pulse: "遗迹脉冲",
   volley: "三重吐息",
   charge: "毁灭冲锋",
 };
 const COLORS = {
+  water: 0x72cdda,
   swords: 0xd8d6a1,
   loom: 0xb799d7,
   vortex: 0xbc8dff,
@@ -307,6 +342,60 @@ function createAbilityFx(scene, ability, color, textures) {
       group.add(m);
       fx.sectors.push(m);
     }
+  } else if (ability === "water") {
+    fx.stream = new THREE.Mesh(
+      new THREE.CylinderGeometry(0.72, 1, 1, 20, 1, true),
+      additive({ opacity: 0.02, side: THREE.FrontSide }),
+    );
+    fx.stream.name = "azure_dragon_water_stream";
+    const ribbonVertices = [],
+      ribbonIndices = [];
+    // 宽度只沿径向展开，纵向缩放射程时不会把圆管截面拉成遮屏的大片。
+    for (let i = 0; i <= 64; i++) {
+      const t = i / 64,
+        angle = t * Math.PI * 6;
+      for (const side of [-1, 1])
+        ribbonVertices.push(
+          Math.cos(angle + side * 0.012) * 0.75,
+          t,
+          Math.sin(angle + side * 0.012) * 0.75,
+        );
+      if (i < 64)
+        ribbonIndices.push(
+          i * 2,
+          i * 2 + 1,
+          i * 2 + 2,
+          i * 2 + 1,
+          i * 2 + 3,
+          i * 2 + 2,
+        );
+    }
+    const ribbonGeometry = new THREE.BufferGeometry();
+    ribbonGeometry.setAttribute(
+      "position",
+      new THREE.Float32BufferAttribute(ribbonVertices, 3),
+    );
+    ribbonGeometry.setIndex(ribbonIndices);
+    fx.flowRibbons = Array.from({ length: 3 }, () => {
+      const m = new THREE.Mesh(ribbonGeometry, additive({ opacity: 0.14 }));
+      group.add(m);
+      return m;
+    });
+    fx.group.add(fx.stream);
+    fx.ripples = [];
+    const g = new THREE.TorusGeometry(1, 0.018, 5, 32);
+    for (let i = 0; i < 7; i++) {
+      const m = new THREE.Mesh(g, additive({ opacity: 0.35 }));
+      m.rotation.x = Math.PI / 2;
+      fx.group.add(m);
+      fx.ripples.push(m);
+    }
+    fx.drops = [];
+    for (let i = 0; i < 12; i++) {
+      const m = fxSprite(textures.dot, color, 0.24);
+      fx.group.add(m);
+      fx.drops.push(m);
+    }
   } else if (ability === "vortex") {
     fx.rings = [];
     for (let i = 0; i < 3; i += 1) {
@@ -406,6 +495,27 @@ function createAbilityFx(scene, ability, color, textures) {
     fx.trailCursor = 0;
     fx.trailEmit = 0;
   }
+  if (ability === "water") {
+    // 近相机水纹淡出，避免身处吐息时大面积透明表面遮住龙首和撤退路线。
+    group.traverse((part) => {
+      if (!part.isMesh) return;
+      part.material.onBeforeCompile = (shader) => {
+        shader.vertexShader =
+          "varying vec3 waterViewPosition;\n" +
+          shader.vertexShader.replace(
+            "#include <project_vertex>",
+            "#include <project_vertex>\nwaterViewPosition = mvPosition.xyz;",
+          );
+        shader.fragmentShader =
+          "varying vec3 waterViewPosition;\n" +
+          shader.fragmentShader.replace(
+            "#include <color_fragment>",
+            "#include <color_fragment>\ndiffuseColor.a *= smoothstep(6.0, 22.0, length(waterViewPosition));",
+          );
+      };
+      part.material.customProgramCacheKey = () => "water-breath-near-fade-v1";
+    });
+  }
   return fx;
 }
 
@@ -423,7 +533,42 @@ function updateAbilityFx(fx, entry, dt, time, windup, attack, ringSize) {
     1,
     state.timer / Math.max(0.001, state.phaseDuration),
   );
-  if (fx.ability === "loom") {
+  if (fx.ability === "water") {
+    fx.group.position.copy(entry.waterOrigin);
+    fx.group.quaternion.setFromUnitVectors(UP_AXIS, entry.heading);
+    const range = entry.waterRange;
+    const radius = state.species.breathRadius;
+    fx.stream.position.y = range / 2;
+    fx.stream.scale.set(radius, range, radius);
+    fx.stream.material.opacity = windup
+      ? 0.015 + phaseT * 0.02
+      : 0.02 * Math.sin(phaseT * Math.PI);
+    fx.flowRibbons.forEach((m, i) => {
+      m.scale.set(radius, range, radius);
+      m.rotation.y = time * (attack ? 1.4 : 0.1) + (i * Math.PI * 2) / 3;
+      m.material.opacity = attack ? 0.17 * Math.sin(phaseT * Math.PI) : 0;
+    });
+    for (let i = 0; i < fx.ripples.length; i++) {
+      const m = fx.ripples[i],
+        progress = (time * (attack ? 1.8 : 0.2) + i / fx.ripples.length) % 1;
+      m.position.y = progress * range;
+      m.scale.setScalar(radius * (0.76 + progress * 0.24));
+      m.material.opacity = attack
+        ? 0.22 * (1 - progress)
+        : 0.06 + phaseT * 0.07;
+    }
+    fx.drops.forEach((m, i) => {
+      const progress = (time * 1.7 + i / 12) % 1,
+        a = i * 2.399;
+      m.position.set(
+        Math.cos(a) * radius * 0.65,
+        progress * range,
+        Math.sin(a) * radius * 0.65,
+      );
+      m.scale.setScalar(1.2 + progress * 1.3);
+      m.material.opacity = attack ? 0.2 * (1 - progress) : 0;
+    });
+  } else if (fx.ability === "loom") {
     fx.group.position.copy(entry.attackOrigin);
     fx.sectors.forEach((m, i) => {
       m.rotation.y = -loomAngle(
@@ -682,6 +827,9 @@ export function createEncounters(
       },
       attackOrigin: new THREE.Vector3(),
       lockTarget: new THREE.Vector3(),
+      grapple: createKrakenGrapple(),
+      waterOrigin: new THREE.Vector3(),
+      waterRange: species.breathRange ?? 0,
       contactCooldown: 0,
       phaseHit: false,
       disorientedUntil: 0,
@@ -752,6 +900,8 @@ export function createEncounters(
     entry.lastBiteResult = null;
     entry.lastAttackSide = false;
     entry.phaseHit = false;
+    entry.grapple = createKrakenGrapple();
+    entry.mesh.userData.setKrakenGrip?.(0);
     entry.patrolAngle = entry.patrolStart;
     entry.heading.set(0, 0, -1);
     entry.mesh.quaternion.identity();
@@ -813,7 +963,9 @@ export function createEncounters(
       entry.mesh.visible = false;
       entry.label.visible = false;
       entry.ring.visible = false;
-      resetAbilityFx(entry.fx);
+      entry.grapple = createKrakenGrapple();
+      entry.mesh.userData.resetKrakenGrip?.();
+      for (const fx of entry.fxVariants) resetAbilityFx(fx);
     });
     selected.forEach(({ entry, instance }, index) => {
       if (instance) {
@@ -885,12 +1037,37 @@ export function createEncounters(
       entry.fx = entry.fxVariants.find((fx) => fx.ability === state.ability);
       lockAttack(entry, playerPosition);
       entry.phaseHit = false;
+      entry.grapple = createKrakenGrapple();
       entry.volleyShots = 0;
       notify(
         message`${state.species.label} · ${state.species.skillLabels?.[state.ability] ?? SKILLS[state.ability]}\n${state.species.skillTips?.[state.ability] ?? TIPS[state.ability]}`,
         state.phaseDuration + 0.4,
       );
       audio.bossAttack?.(state.species.kind);
+    }
+  }
+  /** 水息从实际龙吻发射；预警与攻击只伸到第一个实体遮挡之前。 */
+  function waterPath(entry, blockedBetween) {
+    const mouth = entry.mesh.userData.mouthAnchors?.[0]?.getWorldPosition(
+      entry.motion.target,
+    );
+    if (mouth) entry.waterOrigin.copy(mouth);
+    else
+      entry.waterOrigin
+        .copy(entry.mesh.position)
+        .addScaledVector(entry.heading, entry.state.species.length * 0.35);
+    const end = entry.motion.lookahead;
+    entry.waterRange = entry.state.species.breathRange;
+    for (
+      let distance = 5;
+      distance <= entry.state.species.breathRange;
+      distance += 5
+    ) {
+      end.copy(entry.waterOrigin).addScaledVector(entry.heading, distance);
+      if (blockedBetween(entry.waterOrigin, end)) {
+        entry.waterRange = Math.max(0, distance - 5);
+        break;
+      }
     }
   }
   function fireVolley(entry, headIndex) {
@@ -1079,6 +1256,8 @@ export function createEncounters(
       entry.ring.visible = false;
       entry.fx.group.visible = false;
       entry.phaseHit = true;
+      entry.grapple = createKrakenGrapple();
+      entry.mesh.userData.setKrakenGrip?.(0);
       entry.volleyShots = 3;
       affected += 1;
     }
@@ -1103,6 +1282,8 @@ export function createEncounters(
   function hideDefeated(entry) {
     entry.mesh.visible = entry.label.visible = entry.ring.visible = false;
     entry.fx.group.visible = false;
+    entry.grapple = createKrakenGrapple();
+    entry.mesh.userData.setKrakenGrip?.(0);
     if (entry.fx.ability === "charge")
       for (const puff of entry.fx.trail) puff.sprite.visible = false;
   }
@@ -1183,6 +1364,12 @@ export function createEncounters(
         }
       } else if (state.phase === "dormant") {
         patrolBoss(entry, dt, blockedBetween);
+      } else if (attack && state.ability === "vortex") {
+        const toVortex = entry.motion.target
+          .copy(entry.attackOrigin)
+          .sub(entry.mesh.position);
+        if (toVortex.length() > 9)
+          moveBoss(entry, toVortex.normalize(), 30, dt, blockedBetween);
       } else if (attack && state.ability === "charge") {
         const old = entry.mesh.position.clone();
         const next = old
@@ -1294,12 +1481,16 @@ export function createEncounters(
       // 地面朝向已在移动提案中平滑；不能再滞后旋转模型，使实际头部偏离已验证的占地。
       if (state.species.groundbound) entry.mesh.quaternion.copy(orientation);
       else entry.mesh.quaternion.slerp(orientation, Math.min(1, dt * 2));
+      entry.mesh.userData.setKrakenGrip?.(
+        attack && entry.grapple.held ? 1 : windup ? 0.2 : 0,
+      );
       if (state.phase !== "disoriented")
         entry.mesh.userData.animate?.(
           time,
           attack ? 2.5 : recover ? 0.35 : state.phase === "dormant" ? 0.7 : 1.2,
         );
-      entry.ring.visible = state.ability !== "loom" && (windup || attack);
+      entry.ring.visible =
+        !["loom", "water"].includes(state.ability) && (windup || attack);
       entry.ring.position.copy(
         ["pulse", "vortex"].includes(state.ability)
           ? entry.attackOrigin
@@ -1319,8 +1510,14 @@ export function createEncounters(
       entry.ring.material.opacity = windup
         ? 0.35 + Math.sin(time * 12) * 0.2
         : 0.8;
+      if ((attack || windup) && state.ability === "water")
+        waterPath(entry, blockedBetween);
       updateAbilityFx(entry.fx, entry, dt, time, windup, attack, ringSize);
       entry.mesh.userData.setBossPhase?.(state.phase);
+      if (!attack || !sight) {
+        if (entry.grapple.held) entry.grapple.spent = true;
+        entry.grapple.held = false;
+      }
       if (attack && sight) {
         if (
           state.ability === "loom" &&
@@ -1349,25 +1546,85 @@ export function createEncounters(
               3,
             );
         }
+        if (
+          state.ability === "water" &&
+          !entry.phaseHit &&
+          entry.waterRange > 0 &&
+          inWaterBreath(
+            position,
+            entry.waterOrigin,
+            entry.heading,
+            entry.waterRange,
+            state.species.breathRadius,
+            player.length * 0.12,
+          ) &&
+          !blockedBetween(entry.waterOrigin, position)
+        ) {
+          entry.phaseHit = damage(
+            player,
+            state.species.damage,
+            "沧溟龙息命中 · 横向或升降避开水流",
+          );
+        }
         if (state.ability === "vortex") {
-          const toCenter = entry.attackOrigin.clone().sub(position);
-          const pullDistance = toCenter.length();
+          const toCenter = entry.motion.offset
+            .copy(entry.attackOrigin)
+            .sub(position);
+          const coreDistance = toCenter.length();
+          const clear = !blockedBetween(entry.attackOrigin, position);
           if (
-            pullDistance < state.species.abilityRadius &&
-            !blockedBetween(entry.attackOrigin, position)
+            coreDistance < state.species.abilityRadius &&
+            clear &&
+            !entry.grapple.held &&
+            !entry.grapple.spent
           ) {
-            position.addScaledVector(
-              toCenter.normalize(),
-              Math.min(19 * dt, pullDistance),
-            );
-            player.stamina = Math.max(0, player.stamina - 11 * dt);
-            if (pullDistance < 13 && !entry.phaseHit)
-              entry.phaseHit = damage(
-                player,
-                state.species.damage,
-                "触腕绞击 · 变向游出漩涡！",
+            const proposed = entry.motion.next
+              .copy(position)
+              .addScaledVector(
+                toCenter.normalize(),
+                Math.min(KRAKEN_GRAPPLE.pullSpeed * dt, coreDistance),
               );
+            if (!blockedBetween(position, proposed)) position.copy(proposed);
+            player.stamina = Math.max(
+              0,
+              player.stamina - KRAKEN_GRAPPLE.staminaDrain * dt,
+            );
           }
+          const mouth = entry.mesh.userData.mouthAnchors?.[0];
+          if (mouth) mouth.getWorldPosition(entry.motion.target);
+          else entry.motion.target.copy(entry.mesh.position);
+          const mouthDistance = entry.motion.target.distanceTo(position);
+          const gripClear =
+            clear && !blockedBetween(entry.motion.target, position);
+          const event = tickKrakenGrapple(entry.grapple, dt, {
+            coreDistance,
+            mouthDistance,
+            clear: gripClear,
+          });
+          if (event === "grabbed")
+            notify(
+              "触腕缠绕 · 立即向外冲刺，或借岩柱脱身！",
+              KRAKEN_GRAPPLE.biteDelay + 0.2,
+            );
+          if (event === "escaped") notify("挣脱触腕 · 绞咬已被打断", 1.5);
+          if (entry.grapple.held && mouthDistance > 0.01) {
+            const next = entry.motion.next
+              .copy(position)
+              .addScaledVector(
+                entry.motion.offset
+                  .copy(entry.motion.target)
+                  .sub(position)
+                  .normalize(),
+                Math.min(KRAKEN_GRAPPLE.gripPullSpeed * dt, mouthDistance),
+              );
+            if (!blockedBetween(position, next)) position.copy(next);
+          }
+          if (event === "bite" && !entry.phaseHit)
+            entry.phaseHit = damage(
+              player,
+              state.species.damage * KRAKEN_GRAPPLE.damageMultiplier,
+              "深渊绞咬 · 未脱离涡心，被触腕拖入口器！",
+            );
         }
         if (state.ability === "pulse") {
           const radial = Math.hypot(
@@ -1404,7 +1661,10 @@ export function createEncounters(
           entry.mesh.quaternion,
         );
         entry.lastAttackSide = isBossFlankContact({
-          bossPosition: entry.mesh.position,
+          bossPosition:
+            entry.mesh.userData.combatAnchor?.getWorldPosition(
+              entry.motion.candidate,
+            ) || entry.mesh.position,
           bossForward,
           bossRight: new THREE.Vector3(1, 0, 0).applyQuaternion(
             entry.mesh.quaternion,
@@ -1446,8 +1706,9 @@ export function createEncounters(
         // 由专属扫掠处理接触的短冲不叠加贴身伤害；其他领主保留原有接触规则。
         !(
           attack &&
-          state.ability === "charge" &&
-          state.species.chargeHandlesContact
+          ((state.ability === "charge" && state.species.chargeHandlesContact) ||
+            state.ability === "vortex" ||
+            state.ability === "water")
         ) &&
         state.phase !== "disoriented" &&
         inTerritory &&
@@ -1537,6 +1798,7 @@ export function createEncounters(
     const textures = new Set(Object.values(fxTextures));
     for (const entry of bosses) {
       for (const fx of entry.fxVariants) resetAbilityFx(fx);
+      disposeTentacleMotion(entry.mesh);
       // 生物模型材质和几何由模型缓存共享；这里只释放本模块自己的表现资源。
       scene.remove(entry.mesh, entry.ring, entry.label, entry.fx.group);
       geometries.add(entry.ring.geometry);

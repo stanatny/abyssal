@@ -1,4 +1,5 @@
 import * as THREE from "three";
+import { bindTentacleMotion } from "./tentacle_motion.js";
 import {
   alienPart as part,
   alienMaterial as mat,
@@ -88,6 +89,7 @@ export function buildLumenStalker(root, motions) {
       "chamber_brow",
     );
   }
+  let phase = "dormant";
   const arms = [];
   for (let i = 0; i < 8; i++) {
     const a = (i * Math.PI) / 4 + 0.16,
@@ -169,7 +171,25 @@ export function buildLumenStalker(root, motions) {
     }
     arm.userData.centerlineLength =
       sensorCurve.getLength() + new THREE.Vector3(...joint).length();
-    arms.push({ arm, distal });
+    const fullCurve = new THREE.CatmullRomCurve3(
+      [
+        [0, 0, 0],
+        [x * 0.1, y * 0.06, -0.065],
+        [x * 0.21, y * 0.14, -0.13],
+        ...distalPoints.map((p) => [
+          p[0] + joint[0],
+          p[1] + joint[1],
+          p[2] + joint[2],
+        ]),
+      ].map((p) => new THREE.Vector3(...p)),
+    );
+    bindTentacleMotion(arm, `lumen_soft_arm_${i}`, fullCurve, motions, {
+      count: 14,
+      phase: a,
+      amplitude: 0.22,
+      curl: () => (phase === "windup" ? 0.25 : phase === "attack" ? 0.4 : 0),
+    });
+    arms.push({ arm });
   }
   const bounds = new THREE.Box3().setFromObject(anatomy),
     axis = bounds.max.z - bounds.min.z,
@@ -178,7 +198,6 @@ export function buildLumenStalker(root, motions) {
   anatomy.position.z = -(bounds.max.z + bounds.min.z) / 2 / axis;
   root.userData.guideRadius =
     (bounds.getSize(new THREE.Vector3()).length() / axis) * 0.54;
-  let phase = "dormant";
   root.userData.setBossPhase = (p) => (phase = p);
   motions.push((t, e) => {
     const gather = phase === "windup" ? 1 : phase === "attack" ? 1.25 : 0;
@@ -186,13 +205,11 @@ export function buildLumenStalker(root, motions) {
     organs.forEach((o, i) => {
       o.scale.y = 1 + Math.sin(t * 0.9 + i) * 0.08 + gather * 0.16;
     });
-    arms.forEach(({ arm, distal }, i) => {
+    arms.forEach(({ arm }, i) => {
       arm.rotation.y =
         Math.sin(t * 0.43 + i * 0.8) * 0.05 +
         gather * Math.cos((i * Math.PI) / 4) * 0.12;
       arm.rotation.x = Math.sin(t * 0.38 + i * 0.72) * 0.05;
-      distal.rotation.y = Math.sin(t * 0.66 + i * 0.9) * (0.1 + e * 0.008);
-      distal.rotation.x = Math.sin(t * 0.51 + i * 0.74) * 0.075;
     });
   });
 }

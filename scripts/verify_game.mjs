@@ -323,7 +323,7 @@ try {
     {},
     { timeout: 12000 },
   );
-  checks.push("主宰技能结束产生3秒弱点窗口");
+  checks.push("Lord attacks expose their configured recovery window");
   const untouchedHealth = await page.evaluate(async () => {
     const { findBossContact } = await import("/src/encounters.js");
     const g = window.__ABYSSAL__,

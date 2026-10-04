@@ -107,7 +107,18 @@ test("领主侧腹在多种朝向可命中，触腕与三颈之间保持真实�
     root.position.set(12, -400, 6);
     root.rotation.set(0.2, 0.65, -0.15);
     root.updateMatrixWorld(true);
-    const origin = new THREE.Vector3(1, 0, 0.1).applyMatrix4(root.matrixWorld);
+    const center =
+      kind === "kraken"
+        ? new THREE.Vector3(0, 0, 0.14).applyMatrix4(
+            root.getObjectByName("kraken_ribbed_mantle").matrixWorld,
+          )
+        : new THREE.Vector3(0, 0, 0.15).applyMatrix4(root.matrixWorld);
+    const origin = center
+      .clone()
+      .addScaledVector(
+        new THREE.Vector3(1, 0, 0).transformDirection(root.matrixWorld),
+        42,
+      );
     const direction = new THREE.Vector3(-1, 0, 0).transformDirection(
       root.matrixWorld,
     );
@@ -126,9 +137,7 @@ test("领主侧腹在多种朝向可命中，触腕与三颈之间保持真实�
       null,
       `${kind}: open water`,
     );
-    const interior = new THREE.Vector3(0, 0, 0.15).applyMatrix4(
-      root.matrixWorld,
-    );
+    const interior = center;
     assert.ok(findBossContact(root, interior, 0.4), `${kind}: body interior`);
   }
   const kraken = fixture("kraken", 42).root;
@@ -145,7 +154,7 @@ test("领主侧腹在多种朝向可命中，触腕与三颈之间保持真实�
 
 test("新增分段触腕、长颈和蛇尾在完整摆动中保持真实网格接触", () => {
   for (const [kind, distalName] of [
-    ["kraken", "kraken_arm_0_distal"],
+    ["kraken", "kraken_curled_arm_1"],
     ["hydra", "hydra_neck_surface_0_distal"],
     ["leviathan", "leviathan_serpent_tail_distal"],
   ]) {
@@ -163,7 +172,11 @@ test("新增分段触腕、长颈和蛇尾在完整摆动中保持真实网格�
     for (let phase = 0; phase <= (Math.PI * 2) / 0.21; phase += 1) {
       for (const motion of motions) motion(phase, phase < 12 ? 0.7 : 2.5);
       root.updateMatrixWorld(true);
-      const point = vertex.clone().applyMatrix4(surface.matrixWorld);
+      const point = (
+        surface.isSkinnedMesh
+          ? surface.getVertexPosition(index, new THREE.Vector3())
+          : vertex.clone()
+      ).applyMatrix4(surface.matrixWorld);
       assert.ok(
         findBossContact(root, point, 0.08),
         `${kind}: moving surface at ${phase}`,

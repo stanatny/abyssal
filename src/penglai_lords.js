@@ -2,7 +2,7 @@ import { penglaiText as t, PENGLAI_EN } from "./penglai_species.js";
 // 技能判定仍用稳定的ability ID；图鉴和战斗预警共用这份显示名称。
 export const PENGLAI_SKILL_NAMES = Object.freeze({
   azure_dragon: Object.freeze({
-    charge: t("苍龙破云", "Dragon Through the Clouds"),
+    water: t("沧溟龙息", "Dragon Breath of the Azure Sea"),
   }),
   white_tiger: Object.freeze({
     charge: t("白虎掠风", "White Tiger Windstep"),
@@ -24,7 +24,7 @@ const rows = [
     "青龙",
     "Azure Dragon",
     56,
-    "charge",
+    "water",
     "#51a897",
     "长躯弯曲起伏，威严龙首、鹿角、须髯与鬃脊，均衡的速度和力量镇守东峰。",
     "A sweeping four-legged dragon with a commanding face, antlers, whiskers and mane guards the eastern peak with balanced speed and power.",
@@ -99,6 +99,21 @@ export const PENGLAI_LORDS = Object.freeze(
             : kind === "sword_sage"
               ? 28
               : 35,
+      ...(kind === "azure_dragon"
+        ? {
+            breathRange: 145,
+            breathRadius: 7,
+            abilityTimings: Object.freeze({
+              water: Object.freeze({ windup: 2.2, attack: 1.6, recover: 3.8 }),
+            }),
+            skillTips: Object.freeze({
+              water: t(
+                "水息锁定 · 横向或升降离开蓝色水路，借山石遮挡",
+                "Water path locked · Dodge sideways or vertically, or use mountains for cover",
+              ),
+            }),
+          }
+        : {}),
       ...(kind === "sword_sage"
         ? {
             abilityCycle: Object.freeze(["swords", "charge"]),
@@ -180,7 +195,7 @@ export const PENGLAI_LORD_DESCRIPTIONS = Object.freeze(
             kind === "sword_sage"
               ? "四神兽未全部击败时结界阻挡道观入口。解除护阵并进入领地后，真君会持续缓慢追击，冲刺可拉开距离。击败真君完成远征。"
               : kind === "azure_dragon"
-                ? "“苍龙破云”蓄势后沿锁定路线突进，速度与力量均衡；侧向绕开攻击路径，待收势时从侧翼反击。镇守东峰，击败后本局不再刷新。"
+                ? "“沧溟龙息”凝聚云水，沿预警锁定方向喷出有限射程的水流；横向或上下避开，待收势时从侧翼反击。镇守东峰，击败后本局不再刷新。"
                 : kind === "white_tiger"
                   ? "“白虎掠风”低身蓄势后迅速跃扑，速度为四神兽之最；及时上升或侧闪，落地后再反击。镇守西山，击败后本局不再刷新。"
                   : kind === "black_tortoise"
@@ -189,7 +204,7 @@ export const PENGLAI_LORD_DESCRIPTIONS = Object.freeze(
             kind === "sword_sage"
               ? "The monastery is sealed until all four guardians fall. After unsealing the ward and entering his territory, the sage keeps pursuing slowly; sprint to gain distance. Defeat him to complete Penglai."
               : kind === "azure_dragon"
-                ? "Dragon Through the Clouds follows a locked charge path with balanced speed and power. Evade sideways and counter at the flank during recovery. It guards the eastern peak and never respawns after defeat."
+                ? "Dragon Breath of the Azure Sea gathers cloud-water and releases a finite stream along the warned direction. Dodge sideways or vertically and counter at the flank during recovery. It guards the eastern peak and never respawns after defeat."
                 : kind === "white_tiger"
                   ? "White Tiger Windstep prepares a swift leap; this is the fastest Four-Symbol guardian. Rise or dodge sideways, then counter after it lands. It guards the western mountain and never respawns after defeat."
                   : kind === "black_tortoise"

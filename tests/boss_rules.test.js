@@ -38,7 +38,7 @@ test("四位主宰均大于玩家上限，技能不同且栖息区在世界之�
     4,
   );
   assert.equal(BOSS_SPECIES.length, 13);
-  assert.equal(new Set(BOSS_SPECIES.map((s) => s.ability)).size, 6);
+  assert.equal(new Set(BOSS_SPECIES.map((s) => s.ability)).size, 7);
   for (const species of BOSS_SPECIES.filter((s) => !s.mythic)) {
     assert.equal(species.tier, 3);
     assert.ok(species.length > 30);
@@ -60,19 +60,19 @@ test("只有领地内发现玩家才苏醒，接近前保持追猎", () => {
   assert.equal(boss.timer, 0);
 });
 
-test("主宰完整经历蓄力预警、攻击和3秒恢复，再开始下一轮", () => {
+test("克拉肯完整经历2.3秒预警、漩涡绞咬和4秒恢复，再开始下一轮", () => {
   const boss = createBossState(BOSS_SPECIES[0]);
   tickBoss(boss, 1, CLOSE);
   assert.equal(boss.phase, "windup");
   tickBoss(boss, 2, CLOSE);
   assert.equal(boss.phase, "windup");
-  tickBoss(boss, 0.1, CLOSE);
+  tickBoss(boss, 0.3, CLOSE);
   assert.equal(boss.phase, "attack");
   assert.equal(boss.attackCount, 1);
   tickBoss(boss, boss.species.attackDuration, CLOSE);
   assert.equal(boss.phase, "recover");
-  assert.equal(boss.phaseDuration, 3);
-  tickBoss(boss, 2.9, CLOSE);
+  assert.equal(boss.phaseDuration, 4);
+  tickBoss(boss, 3.9, CLOSE);
   assert.equal(boss.phase, "recover");
   tickBoss(boss, 0.1, CLOSE);
   assert.equal(boss.phase, "hunt");
@@ -81,7 +81,7 @@ test("主宰完整经历蓄力预警、攻击和3秒恢复，再开始下一轮"
 test("离开领地或死亡会终止攻击，回巢后保留已造成的伤害", () => {
   const boss = createBossState(BOSS_SPECIES[0]);
   boss.health = 100;
-  tickBoss(boss, 3.2, CLOSE);
+  tickBoss(boss, 3.4, CLOSE);
   assert.equal(boss.phase, "attack");
   tickBoss(boss, 1, { ...CLOSE, inTerritory: false });
   assert.equal(boss.phase, "return");
@@ -252,7 +252,10 @@ test("嘴部接触按实际旋转缩放的表面判定，鳍片两面均可触�
 
 test("进入闭合躯干后仍算接触，但克拉肯触腕和海德拉三颈之间不误判", () => {
   const kraken = createCreature("kraken", 42);
-  assert.ok(findBossContact(kraken, new THREE.Vector3(0, 0, 6.3), 0.4));
+  kraken.updateMatrixWorld(true);
+  const mantle = kraken.getObjectByName("kraken_lord_anatomy");
+  const inside = new THREE.Vector3(0, 0, 0.14).applyMatrix4(mantle.matrixWorld);
+  assert.ok(findBossContact(kraken, inside, 0.4));
   assert.equal(
     findBossContact(kraken, new THREE.Vector3(0, 0, -12.6), 0.4),
     null,

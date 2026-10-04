@@ -1,4 +1,5 @@
 import * as THREE from "three";
+import { bindTentacleMotion } from "./tentacle_motion.js";
 import { buildGranMaja } from "./creature_gran_maja.js";
 import {
   sampleSection,
@@ -25,13 +26,18 @@ export function buildLordCreature(kind, root, motions) {
   const body = new THREE.Group();
   body.name = `${kind}_lord_anatomy`;
   root.add(body);
-  if (kind === "kraken") buildKraken(body, motions);
-  else if (kind === "mayan") buildGranMaja(body, motions);
+  if (kind === "kraken") {
+    buildKraken(body, motions);
+    root.userData.setKrakenGrip = body.userData.setKrakenGrip;
+    root.userData.resetKrakenGrip = body.userData.resetKrakenGrip;
+  } else if (kind === "mayan") buildGranMaja(body, motions);
   else if (kind === "hydra") buildHydra(body, motions);
   else if (kind === "leviathan") buildLeviathan(body, motions);
   else throw new Error(`Unknown abyssal lord: ${kind}`);
   if (body.userData.mouthAnchors)
     root.userData.mouthAnchors = body.userData.mouthAnchors;
+  if (body.userData.combatAnchor)
+    root.userData.combatAnchor = body.userData.combatAnchor;
   body.updateMatrixWorld(true);
   const bounds = new THREE.Box3().setFromObject(body);
   const length = bounds.max.z - bounds.min.z;
@@ -79,6 +85,11 @@ const DARK = new THREE.MeshStandardMaterial({
   color: "#080e1c",
   roughness: 0.38,
 });
+const THROAT = new THREE.MeshStandardMaterial({
+  color: "#100711",
+  roughness: 0.65,
+  side: THREE.DoubleSide,
+});
 const VIOLET = new THREE.MeshStandardMaterial({
   color: "#b69ce0",
   emissive: "#683ca0",
@@ -115,6 +126,7 @@ function buildKraken(body, motions) {
       rings: 64,
       sides: 40,
       wrinkles: true,
+      openFront: true,
     }),
     SURFACE,
     "kraken_ribbed_mantle",
@@ -157,7 +169,77 @@ function buildKraken(body, motions) {
       5,
     );
   }
-  // 八腕的厚根部埋在头胸，前方中央保留可穿过的真实水域。
+  // 中央口器是神话战斗造型；牙齿内收，腕间保留真实空水域。
+  const maw = group(body, "kraken_toothed_maw", [0, -0.018, -0.126]);
+  const rim = add(
+    maw,
+    colored(
+      "kraken_maw_rim",
+      () => new THREE.TorusGeometry(0.101, 0.023, 12, 40),
+      "#93606d",
+    ),
+    SURFACE,
+  );
+  rim.scale.y = 0.92;
+  const throat = add(
+    maw,
+    cached("kraken_deep_throat", () => {
+      const g = new THREE.ConeGeometry(0.091, 0.13, 32, 4, true);
+      g.rotateX(Math.PI / 2);
+      g.translate(0, 0, 0.066);
+      return g;
+    }),
+    THROAT,
+  );
+  throat.name = "kraken_recessed_throat";
+  ellipsoid(maw, DARK, [0, 0, 0.126], [0.045, 0.045, 0.008]);
+  for (let row = 0; row < 2; row++)
+    for (let i = 0; i < 22; i++) {
+      const a = (i / 22) * Math.PI * 2 + row * 0.1;
+      const r = row ? 0.065 : 0.096,
+        inner = row ? 0.043 : 0.065;
+      fang(
+        maw,
+        `kraken_maw_tooth_${row}_${i}`,
+        [Math.cos(a) * r, Math.sin(a) * r * 0.92, row * 0.043],
+        [Math.cos(a) * inner, Math.sin(a) * inner * 0.92, -0.026 + row * 0.043],
+        row ? 0.004 : 0.0065,
+      );
+    }
+  const mouth = new THREE.Object3D();
+  mouth.name = "kraken_mouth_anchor";
+  maw.add(mouth);
+  body.userData.mouthAnchors = [mouth];
+  const combatAnchor = new THREE.Object3D();
+  combatAnchor.name = "kraken_mantle_combat_anchor";
+  combatAnchor.position.set(0, 0, 0.14);
+  body.add(combatAnchor);
+  body.userData.combatAnchor = combatAnchor;
+  let grip = 0,
+    gripTarget = 0,
+    lastGripPose;
+  body.userData.setKrakenGrip = (value) => {
+    gripTarget = THREE.MathUtils.clamp(value, 0, 1);
+  };
+  body.userData.resetKrakenGrip = () => {
+    grip = gripTarget = 0;
+    lastGripPose = undefined;
+    maw.scale.set(1, 1, 1);
+  };
+  motions.push((time) => {
+    const step =
+      lastGripPose === undefined
+        ? 0
+        : THREE.MathUtils.clamp(time - lastGripPose, 0, 0.4);
+    lastGripPose = time;
+    grip += (gripTarget - grip) * (1 - Math.exp(-step * 2));
+    maw.scale.set(
+      1 + grip * 0.16 + Math.sin(time * 0.55) * 0.02,
+      1 + grip * 0.12,
+      1,
+    );
+  });
+  // 八条长腕的厚根部埋在头胸，卷回的末梢与吸盘保持连续变形。
   for (let index = 0; index < 8; index++) {
     const angle = (index / 8) * Math.PI * 2 + Math.PI / 8;
     const x = Math.cos(angle),
@@ -168,30 +250,30 @@ function buildKraken(body, motions) {
       y * 0.1 - 0.015,
       -0.06,
     ]);
-    const reach = 1 + (index % 3) * 0.045;
+    const reach = 1.2 + (index % 3) * 0.055;
     const points = [
       [0, 0, 0],
-      [x * 0.1, y * 0.09, -0.15],
-      [x * 0.22, y * 0.17, -0.36],
-      [x * 0.37 * reach, y * 0.29, -0.61 * reach],
-      [x * 0.46 * reach + curl * 0.025, y * 0.34, -0.6],
-      [x * 0.49 * reach + curl * 0.02, y * 0.36, -0.47],
-      [x * 0.42 * reach, y * 0.3, -0.405],
-      [x * 0.36 * reach, y * 0.26, -0.475],
+      [x * 0.12, y * 0.1, -0.19],
+      [x * 0.25, y * 0.2, -0.45],
+      [x * 0.46 * reach, y * 0.35, -0.86 * reach],
+      [x * 0.58 * reach + curl * 0.055, y * 0.43, -1.01 * reach],
+      [x * 0.64 * reach + curl * 0.05, y * 0.46, -0.86 * reach],
+      [x * 0.54 * reach, y * 0.37, -0.74 * reach],
+      [x * 0.45 * reach, y * 0.31, -0.84 * reach],
     ];
-    const limb = articulatedTube(
+    const curve = curveFrom(points);
+    tube(
       arm,
-      `kraken_arm_${index}`,
+      `kraken_flexible_arm_${index}`,
       points,
       0.06,
-      0.002,
+      0.005,
       "#725477",
       SURFACE,
-      52,
+      64,
       12,
-      0.76,
+      1.2,
     );
-    const curve = limb.curve;
     for (let row = 0; row < 2; row++)
       for (let cup = 0; cup < 8; cup++) {
         const t = 0.09 + cup * 0.102;
@@ -203,9 +285,9 @@ function buildKraken(body, motions) {
         const sideways = new THREE.Vector3()
           .crossVectors(tangent, facing)
           .normalize();
-        const radius = THREE.MathUtils.lerp(0.06, 0.002, t ** 0.76);
+        const radius = THREE.MathUtils.lerp(0.06, 0.005, t ** 1.2);
         const sucker = add(
-          limb.parentAt(t),
+          arm,
           colored(
             "kraken_sucker",
             () => new THREE.TorusGeometry(0.71, 0.29, 4, 8),
@@ -216,26 +298,20 @@ function buildKraken(body, motions) {
         sucker.position
           .copy(point)
           .addScaledVector(facing, radius * 0.91)
-          .addScaledVector(sideways, (row ? 1 : -1) * radius * 0.35)
-          .sub(limb.originAt(t));
+          .addScaledVector(sideways, (row ? 1 : -1) * radius * 0.35);
         sucker.quaternion.setFromUnitVectors(
           new THREE.Vector3(0, 0, 1),
           facing,
         );
         sucker.scale.setScalar(0.017 * (1 - t * 0.83));
       }
-    motions.push((time, effort) => {
-      const power = 0.9 - Math.min(effort, 3) * 0.12;
-      arm.rotation.x = Math.sin(time * 0.3 + angle) * 0.085 * power;
-      arm.rotation.y = Math.cos(time * 0.27 + angle) * 0.095 * power;
-      arm.rotation.z = Math.sin(time * 0.24 + angle) * 0.09 * power;
-      // 末梢与臂根错相卷曲，冲刺时稍收拢；不拉动游戏根节点。
-      limb.distal.rotation.set(
-        Math.sin(time * 0.37 + angle - 0.8) * 0.06 * power,
-        Math.cos(time * 0.34 + angle - 0.7) * 0.07 * power,
-        Math.sin(time * 0.31 + angle) * 0.035,
-      );
+    bindTentacleMotion(arm, `kraken_soft_arm_${index}`, curve, motions, {
+      count: 16,
+      phase: angle,
+      amplitude: 0.34,
+      curl: () => grip,
     });
+    arm.userData.centerlineLength = curve.getLength();
   }
 }
 
@@ -1424,6 +1500,7 @@ function shape(key, profile, color, belly, options = {}) {
         [0, -1],
         [rings, 1],
       ]) {
+        if (ring === 0 && options.openFront) continue;
         const center = positions.length / 3;
         positions.push(
           0,
