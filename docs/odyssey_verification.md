@@ -1,5 +1,7 @@
 # Odyssean Sea candidate verification
 
+Release status: the reviewed changes in this document are included in v0.11.0. Earlier candidate restrictions and preview labels below describe their original review state; measurements are not newly repeated publication checks. See [the release summary](release_v0_11_0.md) and [current verification](verification.md).
+
 ## Current anatomy, motion and 21-kind follow-up — 2026-10-05
 
 See [the current review](odyssey_roster_revision.md) for actual anatomy, AI, stock, evidence and the serial before/candidate/repeated-before table. Source is uncommitted on `feature/odyssey`; the published seven-region v0.10.2 is unchanged. This section supersedes the preceding 14-kind refinement below.

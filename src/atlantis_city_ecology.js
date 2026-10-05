@@ -123,6 +123,9 @@ export function atlantisLargePreyAnchors(species) {
     const t = 0.12 + (index / Math.max(1, species.population - 1)) * 0.84;
     const depth = species.depthMin + (species.depthMax - species.depthMin) * t;
     const z = -200 - (depth + 60 - 140) / 0.72;
-    return [(index % 2 ? 1 : -1) * (index % 3 === 0 ? 85 : 18), -depth, z];
+    // 大型定居猎物沿外侧街区巡游，避免增密副本的中心落入神庙实体墙。
+    const lateral =
+      species.residentRadius > 0 ? 125 : index % 3 === 0 ? 85 : 18;
+    return [(index % 2 ? 1 : -1) * lateral, -depth, z];
   });
 }

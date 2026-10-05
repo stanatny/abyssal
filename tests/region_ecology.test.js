@@ -244,15 +244,23 @@ test("仅一只大青鲨提供外礁挑战，所有猎手都无法进入或追�
     ({ species }) => species.predator,
   )) {
     assert.equal(canPredatorHunt(species, index, point, SPAWN), false);
-    assert.equal(
-      habitatPosition(species, {
-        heightAt: seabedHeight,
-        near: true,
-        playerPosition: SPAWN,
-        populationIndex: index,
-      }),
-      null,
-    );
+    const replacement = habitatPosition(species, {
+      heightAt: seabedHeight,
+      colliders: CITY_COLLIDERS,
+      near: true,
+      playerPosition: SPAWN,
+      populationIndex: index,
+    });
+    if (species.residentRadius > 0) {
+      // 定居居民复活回原深海家园；绝不能把浅滩玩家当作补位中心。
+      assert.ok(replacement);
+      assert.equal(isNursery(replacement), false);
+      assert.ok(
+        replacement.distanceTo(initialSpeciesAnchor(species, index)) <=
+          species.residentRadius,
+      );
+      assert.equal(canPredatorHunt(species, index, replacement, SPAWN), false);
+    } else assert.equal(replacement, null);
   }
   const shark = outerReef[0];
   assert.equal(predatorTerritory(shark.species, 0).edge, true);

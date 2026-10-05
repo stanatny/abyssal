@@ -177,7 +177,7 @@ try {
   );
   checks.push("初级鱼按群体编组");
   const rewardInfo = await page.evaluate(() =>
-    window.__ABYSSAL__.pickups.slice(0, 3).map((p) => ({
+    window.__ABYSSAL__.pickups.map((p) => ({
       kind: p.kind,
       label: !!p.mesh.userData.label,
       parts: p.mesh.userData.core.children.length,
@@ -292,6 +292,8 @@ try {
     2,
   );
   checks.push("四种主宰随机启用两片领地");
+  // 以真实慢游输入保持在领地内，避免随机领主的长技能尚未结束就游出范围。
+  await page.keyboard.down("KeyK");
   await page.evaluate(() => {
     const g = window.__ABYSSAL__;
     g.entities.forEach((e) => (e.hiddenFor = 999));
@@ -299,6 +301,7 @@ try {
     g.setLength(6);
     g.player.invulnerable = 999;
     g.setPosition(b.home.x, b.home.y, b.home.z + 50);
+    g.setFacing(0, 0);
   });
   await page.waitForFunction(() => !!window.__ABYSSAL__.activeBoss);
   await page.waitForFunction(
@@ -324,6 +327,7 @@ try {
     { timeout: 12000 },
   );
   checks.push("Lord attacks expose their configured recovery window");
+  await page.keyboard.up("KeyK");
   const untouchedHealth = await page.evaluate(async () => {
     const { findBossContact } = await import("/src/encounters.js");
     const g = window.__ABYSSAL__,
@@ -534,6 +538,25 @@ try {
   console.log(JSON.stringify({ checks, errors, hits, measurements }, null, 2));
 } catch (error) {
   measurements.failure = { message: error.message, stack: error.stack };
+  measurements.failure.runtime = await page
+    .evaluate(() => {
+      const g = window.__ABYSSAL__;
+      return {
+        mode: g.mode,
+        position: g.position.toArray(),
+        player: g.player,
+        bosses: g.encounters.bosses
+          .filter((b) => b.enabled)
+          .map((b) => ({
+            kind: b.state.species.kind,
+            phase: b.state.phase,
+            timer: b.state.timer,
+            position: b.mesh.position.toArray(),
+            home: b.home.toArray(),
+          })),
+      };
+    })
+    .catch(() => null);
   await page.screenshot({ path: ".local/v3_game_failure.png" }).catch(() => {});
   throw error;
 } finally {

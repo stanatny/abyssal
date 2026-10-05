@@ -5,6 +5,7 @@ import { AMAZON_SPECIES } from "./amazon_species.js";
 import {
   spreadFeedingSchools,
   densifyFeedingSchools,
+  separateNurserySchools,
 } from "./feeding_distribution.js";
 import { hawaiiEcology } from "./hawaii_ecology.js";
 import { EUROPA_SPECIES } from "./europa_species.js";
@@ -143,8 +144,8 @@ const ATLANTIS_OVERRIDES = {
   plesiosaur: { population: 6 },
   pliosaur: { population: 6 },
   mosasaur: { population: 7 },
-  basilosaurus: { population: 6 },
-  megalodon: { population: 7 },
+  basilosaurus: { population: 6, residentRadius: 65 },
+  megalodon: { population: 7, residentRadius: 65 },
   ichthyotitan: { spawnAnchors: DEEP_GIANT_ANCHORS.atlantis },
 };
 
@@ -195,7 +196,9 @@ const REGION_SPECIES = Object.freeze(
   Object.fromEntries(
     Object.entries(BASE_REGION_SPECIES).map(([id, species]) => [
       id,
-      disperseLargePrey(densifyFeedingSchools(spreadFeedingSchools(species))),
+      separateNurserySchools(
+        disperseLargePrey(densifyFeedingSchools(spreadFeedingSchools(species))),
+      ),
     ]),
   ),
 );

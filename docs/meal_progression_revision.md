@@ -1,5 +1,7 @@
 # Medium and late-game meal progression
 
+Only Mechanical Shark torpedo kills of oversized ordinary prey use the growth-only assimilation described in [the all-region pacing candidate](progression_pacing_revision.md). Other characters and normal contact/companion feeding remain unaffected. The original adult curve below remains intact; its original test and publication status are historical.
+
 Uncommitted follow-up on `feature/mechanical-shark`, local checkpoint `8d55481`. The player accepted greater five-region food density but still found progression after 10 m too slow. This task explicitly changes effective meal returns; it preserves the preceding density, distribution, control, marker and torpedo work. No commit, push, main integration or formal release is authorized. Published Pages remains v0.8.3.
 
 ## Cause and shared rule

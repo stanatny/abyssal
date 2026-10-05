@@ -1,6 +1,6 @@
 export const MARIANA_EN = Object.freeze({
-  "其他海域3米幼年起步，马里亚纳15米起步；起始尺寸、30米体长上限与技能强度属于游戏设定。":
-    "Start at 3m in other regions and 15m in Mariana. Starting sizes, the 30m length cap and abilities are gameplay settings.",
+  "其他海域3米幼年起步，马里亚纳与蓬莱15米起步；起始尺寸、30米体长上限与技能强度属于游戏设定。":
+    "Start at 3m in other regions and 15m in Mariana and Penglai. Starting sizes, the 30m length cap and abilities are gameplay settings.",
   "三头巨龙海德拉守卫首层深水岩谷，是第一道压力帘的必经守卫。达到25米后，从侧面完成三次独立咬击，击败它即可开启2600米处的第一道压力帘；本局不再复活。":
     "Hydra guards the first deep canyon above its pressure seal, away from the nursery. It is the mandatory first guardian: from 25m, land three separate flank bites to open the first pressure seal at 2,600m. It stays defeated for this expedition.",
   "首层深水岩谷，第一道压力帘上方":

@@ -1,8 +1,10 @@
 # Depth and food-chain balance
 
-## Current candidate
+The current [all-region progression candidate](progression_pacing_revision.md) preserves the shared hunger curve and changes reward placement, selected habitat homes and Mechanical Shark oversized-torpedo growth only. Historical budgets below are not new runtime measurements.
 
-The uncommitted gameplay follow-up supersedes the hunger curve and route budgets below. See [the current formula, evidence and limits](gameplay_balance_revision.md). Published v0.8.3 still uses the older curve until a release is explicitly authorized. The following v0.6.13 numbers remain historical evidence, not the current working candidate’s survival budgets.
+## Current shared survival rule
+
+The shared depth/body-size curve is documented in [the gameplay balance revision](gameplay_balance_revision.md) and AGENTS.md. It is included in published v0.10.2. The current progression candidate leaves hunger rates intact. The original v0.6.13 calculations below are historical evidence, not current survival budgets.
 
 ## Historical v0.6.13 record
 

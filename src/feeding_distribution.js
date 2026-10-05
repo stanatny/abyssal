@@ -1,9 +1,11 @@
+import { NURSERY } from "./nursery_rules.js";
 import { WORLD } from "./world_config.js";
 import {
   initialSchoolAnchor,
   initialSpeciesAnchor,
   schoolHabitat,
   schoolPopulationGroups,
+  schoolSlot,
 } from "./ecosystem_population.js";
 
 export const FEEDING_DENSITY_RULES = Object.freeze({
@@ -95,6 +97,87 @@ export function densifyFeedingSchools(species) {
         ]);
       }
       return freezeRecord({ ...entry, population, spawnAnchors: anchors });
+    }),
+  );
+}
+
+/**
+ * 分开同种幼年鱼群重复的中心；保留库存、水层及固定建筑内的队形。
+ * @param {readonly object[]} species 已完成增密和大型猎物分散的配置。
+ * @returns {readonly object[]} 重复育幼中心在安全区内平移，其余配置原样返回。
+ */
+export function separateNurserySchools(species) {
+  return Object.freeze(
+    species.map((entry) => {
+      if (
+        !entry.schoolProfiles ||
+        entry.predator ||
+        entry.groundbound ||
+        entry.flying
+      )
+        return entry;
+      const world = entry.worldBounds || WORLD,
+        used = [],
+        originals = new Set();
+      let changed = false;
+      const profiles = entry.schoolProfiles.map((profile) => {
+        const key = profile.anchor.join(",");
+        if (
+          !profile.nurseryResident ||
+          profile.cityResident ||
+          profile.fixedHabitat ||
+          !originals.has(key)
+        ) {
+          originals.add(key);
+          used.push(profile.anchor);
+          return profile;
+        }
+        const extent = Math.max(
+          ...Array.from({ length: profile.count }, (_, i) => {
+            const slot = schoolSlot(entry, i);
+            return Math.hypot(slot.x, slot.z);
+          }),
+        );
+        const spacing = Math.max(18, extent * 2 + entry.length + 3);
+        const [x, y, z] = profile.anchor;
+        for (let i = 0; i < 32; i++) {
+          const ring = 1 + Math.floor(i / 8),
+            angle = ((i % 8) * Math.PI) / 4;
+          const anchor = [
+            Math.max(
+              world.minX + spacing,
+              Math.min(
+                world.maxX - spacing,
+                x + Math.cos(angle) * spacing * ring,
+              ),
+            ),
+            y,
+            Math.max(
+              NURSERY.minZ + spacing,
+              Math.min(
+                world.maxZ - spacing,
+                z + Math.sin(angle) * spacing * ring,
+              ),
+            ),
+          ];
+          if (
+            used.some(
+              (a) =>
+                Math.hypot(a[0] - anchor[0], a[2] - anchor[2]) < spacing - 1e-8,
+            )
+          )
+            continue;
+          changed = true;
+          used.push(anchor);
+          return { ...profile, anchor };
+        }
+        // 空间不足时不改容量或挤出安全区；实际地貌仍由生成器做合法性检查。
+        used.push(profile.anchor);
+        return profile;
+      });
+      return changed
+        ? freezeRecord({ ...entry, schoolProfiles: profiles })
+        : entry;
     }),
   );
 }

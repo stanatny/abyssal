@@ -1,5 +1,7 @@
 # Odyssean anatomy, motion and roster review
 
+Release status: the reviewed changes in this document are included in v0.11.0. Earlier candidate restrictions and preview labels below describe their original review state; measurements are not newly repeated publication checks. See [the release summary](release_v0_11_0.md) and [current verification](verification.md).
+
 ## Candidate scope
 
 This follow-up preserves the uncommitted eighth region on `feature/odyssey`, based on published v0.10.2 / `25d463e`. The user reported buried Karkinos legs, a floating mouth, weak close-range response, rigid serpents and too few kinds, then asked to audit Gran Maja and mermaid-like long bodies. No commit, push, main merge or formal publication is authorized.

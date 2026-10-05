@@ -2,6 +2,11 @@ import { selectCharacter } from "./menu_picker_helpers.mjs";
 import { chromium } from "@playwright/test";
 import assert from "node:assert/strict";
 import { mkdir, writeFile } from "node:fs/promises";
+import {
+  RANDOM_REWARD_COUNT,
+  REWARD_KINDS,
+  STARTER_REWARDS,
+} from "../src/reward_config.js";
 
 // 受控玩家状态与奖励位置隔离拾取结算；实际主循环仍负责触碰、提示、暂停和刷新。
 const directory = ".local/rewards_verification";
@@ -38,6 +43,7 @@ try {
           xyz: [p.mesh.position.x, p.baseY, p.mesh.position.z],
           uuid: p.mesh.uuid,
           cooldown: p.cooldown,
+          disabled: p.disabled,
         }));
       const before = snapshot();
       g.startGame();
@@ -46,28 +52,31 @@ try {
       return { before, after, restart: snapshot() };
     });
     for (const items of Object.values(pool)) {
-      assert.equal(items.length, 21);
+      assert.equal(items.length, STARTER_REWARDS.length + RANDOM_REWARD_COUNT);
       assert.equal(
         items.some((p) => p.id === "nursery_frenzy"),
         false,
       );
       assert.deepEqual(
-        items.slice(0, 3).map((p) => [p.kind, p.xyz]),
-        [
-          ["stamina", [-13, -19, 40]],
-          ["flow", [0, -24, 12]],
-          ["frenzy", [13, -29, -16]],
-        ],
+        items.slice(0, STARTER_REWARDS.length).map((p) => [p.kind, p.xyz]),
+        STARTER_REWARDS.map((p) => [p.kind, p.position]),
       );
       assert.deepEqual(
         items.map((p) => p.uuid),
         pool.before.map((p) => p.uuid),
       );
       assert.ok(items.every((p) => p.cooldown === 0));
+      assert.ok(items.every((p) => !p.disabled));
+      const randomItems = items.slice(STARTER_REWARDS.length);
+      for (const kind of REWARD_KINDS)
+        assert.equal(
+          randomItems.filter((p) => p.kind === kind).length,
+          RANDOM_REWARD_COUNT / REWARD_KINDS.length,
+        );
     }
     assert.notDeepEqual(
-      pool.after.slice(3).map((p) => p.xyz),
-      pool.restart.slice(3).map((p) => p.xyz),
+      pool.after.slice(STARTER_REWARDS.length).map((p) => p.xyz),
+      pool.restart.slice(STARTER_REWARDS.length).map((p) => p.xyz),
     );
     const pickups = [];
     for (const kind of ["stamina", "flow", "frenzy"]) {
@@ -163,13 +172,21 @@ try {
     assert.match(guide.frenzy, /18/);
     assert.match(
       guide.frenzy,
-      locale === "en" ? /one.*each|one of each/i : /各.*一枚|各.*1枚/,
+      locale === "en"
+        ? /Only one Vitality Supply and one Ocean Current/
+        : /只固定放置生命补给与洋流之息各一枚/,
+    );
+    assert.match(
+      guide.frenzy,
+      locale === "en"
+        ? /may occasionally be found in the shallows/
+        : /浅滩也可能偶然遇到/,
     );
     report.checks.push({
       width,
       locale,
       character,
-      pool: "21; three starters; 18 random; remaining positions randomized; meshes reused",
+      pool: "20; two starters; 18 balanced random; no guaranteed starter Frenzy; meshes reused",
       pickups,
       guide,
     });

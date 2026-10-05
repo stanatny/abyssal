@@ -176,7 +176,7 @@ export function consumePrey(player, prey) {
 }
 
 /**
- * 确认被投射物击杀的普通生物直接计为吞噬；身体接触仍使用consumePrey。
+ * 确认被投射物击杀的普通生物直接计为吞噬；机械鲨鱼越级鱼雷仅降低成长，身体接触仍使用consumePrey。
  * @param {object} player 活跃角色状态。
  * @param {object} prey 已通过真实爆炸、耐久与遮挡验证的普通猎物。
  * @returns {boolean} 是否发放共享营养与一次捕食计数；不负责重复命中防护。
@@ -192,7 +192,15 @@ export function consumeDefeatedPrey(player, prey) {
   )
     return false;
   if (isRegionalRare(prey)) return consumeRare(player, prey);
-  applyNutrition(player, preyMealReward(player.length, prey));
+  const reward = preyMealReward(player.length, prey);
+  // 只有机械鲨鱼的鱼雷越级击杀限制成长；普通捕食与其他角色沿用共享收益。
+  if (player.characterId === "mechanical_shark") {
+    const rules = PREY_REWARD_RULES;
+    reward.growth *=
+      Math.min(1, (player.length * rules.oversizeGraceRatio) / prey.length) **
+      rules.oversizeGrowthExponent;
+  }
+  applyNutrition(player, reward);
   player.eaten += 1;
   return true;
 }
@@ -388,6 +396,8 @@ export const PREY_REWARD_RULES = Object.freeze({
   largePreyLength: 6,
   maxGrowthMultiplier: 4,
   maxNutritionMultiplier: 1.5,
+  oversizeGraceRatio: 1.25,
+  oversizeGrowthExponent: 2,
 });
 
 /** 玩家移动共享配置；速度以世界单位/秒计，体力以每秒变化量计。 */

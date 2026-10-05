@@ -1,5 +1,12 @@
-// 浅滩三枚入门奖励之外的随机补给数量，场景与图鉴共用。
+// 浅滩只固定保留恢复与洋流；狂食仅随其余补给随机分布，场景与图鉴共用。
+export const STARTER_REWARDS = Object.freeze([
+  Object.freeze({ kind: "stamina", position: Object.freeze([-13, -19, 40]) }),
+  Object.freeze({ kind: "flow", position: Object.freeze([0, -24, 12]) }),
+]);
 export const RANDOM_REWARD_COUNT = 18;
+export const REWARD_PLACEMENT = Object.freeze({
+  attempts: 24,
+});
 
 // 奖励时长和展示文案共用配置，避免图鉴与实际效果不一致。
 export const REWARDS = Object.freeze({
@@ -25,3 +32,5 @@ export const REWARDS = Object.freeze({
     effect: "20 秒近距吸食，捕食范围扩大",
   },
 });
+
+export const REWARD_KINDS = Object.freeze(Object.keys(REWARDS));

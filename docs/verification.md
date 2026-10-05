@@ -1,3 +1,33 @@
+# v0.11.0 release verification
+
+The user authorized committing and publishing the reviewed eighth-region/progression candidate to the primary branch on 2026-10-05. Accepted checkpoint `01da839` and subsequent progression/scope corrections are included. The sections below preserve earlier raw checks and candidate labels; their former delivery restrictions are superseded by this release authorization. Read [the release summary](release_v0_11_0.md). Fresh preflight and formal deployment receipts belong in ignored `.local/release_v0_11_0/` and are distinct from the preceding candidate evidence.
+
+Fresh release preflight passes **961 unit tests**, **29 shared native-browser checks**, seven localization units after the starting-size copy correction, formatting and production build. The README screenshot is captured from the actual English Odyssey/Orca home screen. The build retains the existing large-bundle warning. Deploy the exact release commit, then check native formal player flows, bilingual Guide, assets and source identity; an HTTP response or successful push alone is not the publication receipt.
+
+---
+
+# Mechanical-only oversized-growth correction — uncommitted
+
+The user's latest feedback restricts oversized ordinary-prey growth reduction to Mechanical Shark torpedo kills. `preyMealReward()` now returns the unchanged shared reward; only this character's confirmed projectile settlement applies assimilation. Generic feeding notes and other-character Guide cards carry no such limitation. The active ability explains reduced, still positive growth, with unchanged nutrition/healing, in both languages. Normal contact, valid companion meals, rare rewards and lord loot remain separate.
+
+Fresh checks: **961 units**, including **28 focused** rule tests, and the real Atlantis mouth/healing/resident-respawn and Europa J-key two-hit kill cases pass. Native Guide checks pass **15 cases** at English 1440/320 px and Chinese 390 px, plus **four character play/pause/home flows**. Restricted compiled local/public each repeat these 15 Guide cases and four flows with no observed errors. English contains no untranslated Chinese; other-character and ordinary-prey copy excludes the special limitation, and the Mechanical generic survival note also excludes it. Phone Guide opening does not focus search; narrow pages do not overflow.
+
+Formatting/build pass with the existing bundle warning. **Nine active artifacts per host** and **300 runtime/build fingerprints** match. Production debug hooks are absent and private paths denied; established services are unchanged. Evidence and immediate-before snapshots are ignored under `.local/progression_review/mechanical_scope/`. No new commit, push, merge or formal release occurred. The following broader progression checks remain prior receipts for preserved ecology/reward changes; they were not all repeated for this scope correction. Controlled checks do not establish natural full-round pacing or physical-phone behavior.
+
+---
+
+# Uncommitted all-region progression candidate
+
+Local checkpoint `01da839` contains the accepted Odyssean Sea/art/motion work. The subsequent gameplay delta remains uncommitted on `feature/odyssey`; no push, main merge or formal release is authorized. Formal seven-region v0.10.2 remains unchanged.
+
+The **958-unit** suite passes. Native fixed-seed samples retain all eight ordinary pool inventories, legal reward slots and distinct changed nursery homes, with edible food at each representative growth stage and substantial recovery meals around every sampled guardian. Actual Atlantis contact/healing/resident replenishment and native J-key two-hit Europa oversized settlement pass. Reward pickup/reset/pause and bilingual Guide checks pass at 1440/390/320 px. Read [the current rules, measurements and limitations](progression_pacing_revision.md). Evidence is ignored under `.local/progression_review/`.
+
+The review changes neither the hunger curve nor global stock, normal mouth-capture growth, lord thresholds, rare rewards or objectives. It does not establish natural whole-round pacing, physical-phone temperature or an FPS gain. Preserved diagnostic failures include an invalid earlier 30 m construction fixture, a wrong quality annotation and the initial wall-blocked resident home; these were corrected without weakening actual collision checks.
+
+The shared native browser suite passes **29 checks** after aligning its reward check with the new pool and keeping its warning/recovery fixture inside the territory through actual slow-swim input. Formatting and build pass with the existing bundle warning. Restricted compiled local/public each pass **32 bilingual affected Guide cases**, **eight regional character play/pause/home flows** and **320/390 px** reward views. Nine active artifacts per host and **300 runtime/build source fingerprints** match; debug hooks are absent and private files denied. The previous build remains available, source is frozen and no observed browser errors occur. The baseline-only 5282 process is stopped; established preview/tunnel services are unchanged.
+
+---
+
 # Uncommitted Odyssean anatomy and flowing-motion follow-up — 2026-10-05
 
 Current branch `feature/odyssey`, based on published v0.10.2 / `25d463e`. This review supersedes the preceding 14-kind refinement below. Twenty-one ordinary kinds instantiate 269 individuals; one rare and three once-only guardians remain separate. Terrain-fitted Karkinos feet, joined mouthparts, slope-following pursuit and a warned inner frontal sweep address the crab report. Seven Odyssey long bodies use continuous, body-plan-specific waves with attached trim; Gran Maja retains its accepted head/size/skill/contact root while improving whole-body lateral flow and private skeleton retirement. New seven-kind anatomy/stories/actual homes and both locales are wired through the same Guide/world factories.

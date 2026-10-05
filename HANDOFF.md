@@ -1,4 +1,26 @@
-# Authorized local checkpoint — Odyssean Sea and flowing creatures
+# v0.11.0 release — Odyssean Sea and Steady Progression
+
+On 2026-10-05 the user accepted the current candidate and explicitly authorized publishing to the primary branch. Release `feature/odyssey` from accepted local checkpoint `01da839`, including the all-region progression changes and the Mechanical-only growth-scope correction. Fast-forward clean `main` without discarding other worktrees. No new tag or GitHub Release is requested.
+
+Read [the release summary](docs/release_v0_11_0.md), [progression review](docs/progression_pacing_revision.md), [Odyssey roster review](docs/odyssey_roster_revision.md) and [verification](docs/verification.md). Version metadata, bilingual footer and the actual English README screenshot identify v0.11.0. Preserve ecology, shared survival, regional completion, torpedo hit counts and accepted near-view art except for the reviewed changes. Publication receipts belong in ignored `.local/release_v0_11_0/`; verify the exact deployment commit and served artifacts with native player flows.
+
+All sections below preserve their historical review state and measurements. Their former no-commit/no-push/candidate-only restrictions are superseded by this publication authorization. Keep established development, restricted-preview and tunnel services intact. Personal shared Skill maintenance is not part of this release.
+
+---
+
+# Uncommitted all-region progression review
+
+The user requested a local checkpoint of the reviewed Odyssean Sea and creature-motion candidate, completed as `01da839` on `feature/odyssey`, then authorized a separate gameplay pacing revision. No push, main merge or formal publication is authorized. Preserve that checkpoint and keep subsequent changes uncommitted.
+
+The latest clarification cancels only guaranteed introductory Frenzy. Random Frenzy remains legal in the shallows; do not reintroduce a nursery or length gate. Current candidate retains two fixed supplies and eighteen random reward slots. The latest character clarification restricts oversized growth assimilation to Mechanical Shark torpedo kills; normal feeding and other characters remain unchanged. Keep its explanation in that active-ability card only. Review all eight maps, keep early/mid/late food and legal guardian recovery meals, and distinguish local accessibility from total stock. Read [the progression revision](docs/progression_pacing_revision.md).
+
+Pre-correction progression evidence: 958 units, 29 shared native-browser checks, eight-region moving-ecology/stock/recovery sampling, actual mouth healing/resident replenishment and J-key two-hit oversized kill pass. Reward reset/pause and bilingual 1440/390/320 views pass. The compiled local/public each pass 32 affected Guide cases, eight regional play/pause/home flows and narrow reward views; nine active artifacts per host and 300 runtime/build fingerprints match. Formatting/build pass with the existing bundle warning. Ignored evidence and current delivery manifest: `.local/progression_review/`. Baseline-only 5282 is stopped; established services stay intact. Candidate: https://satisfactory-keyword-recently-cakes.trycloudflare.com/?preview=steady-progression-20261005. New balance changes remain uncommitted. Physical-device behavior and natural full-round pacing remain review limits.
+
+The Mechanical-only scope correction now passes **961 units** (including 28 focused rule tests), two fresh actual mouth/projectile cases and 15 bilingual native Guide cases plus four play/pause/home flows. Restricted compiled local/public each pass 15 Guide cases and four character flows at English 1440/320 and Chinese 390 px, without observed errors. Nine artifacts per host and all 300 source fingerprints match. Ordinary contact and other-character rewards stay unchanged; Mechanical Shark torpedo growth remains positive, with normal nutrition/healing. Current verified candidate: https://satisfactory-keyword-recently-cakes.trycloudflare.com/?preview=mechanical-growth-scope-20261005. Correction evidence and immediate-before rollback snapshot: `.local/progression_review/mechanical_scope/`. No new commit/push/merge/release occurred.
+
+---
+
+# Previous authorized local checkpoint — Odyssean Sea and flowing creatures
 
 On 2026-10-05 the user accepted the current candidate and requested a local commit before a separate all-region progression review. This checkpoint includes the eighth destination, its reviewed 21-kind ordinary roster, terrain-fitted Karkinos and continuous Gran Maja/mermaid/serpent motion documented below. Existing verification receipts remain valid; fresh unit and formatting preflight is recorded under ignored `.local/progression_review/`. No push, main merge or formal publication is authorized. Subsequent progression tuning must remain a separate uncommitted candidate.
 

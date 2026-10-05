@@ -436,7 +436,17 @@ export const PENGLAI_SPECIES = Object.freeze(
         ),
         ...(groundbound || predator
           ? {
-              spawnAnchors: points,
+              // 大型空中猎手各自巡游；不能把多只个体的家重复落在同一个中心。
+              spawnAnchors:
+                flying && predator
+                  ? points.flatMap((point) =>
+                      Array.from({ length: count }, (_, i) => [
+                        point[0] + (i - (count - 1) / 2) * length * 2.4,
+                        point[1],
+                        point[2],
+                      ]),
+                    )
+                  : points,
               residentRadius: groundbound
                 ? Math.max(38, length * 2.1)
                 : flying

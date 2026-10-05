@@ -99,7 +99,12 @@ import {
 import { createFrenzyEffect } from "./frenzy_effect.js";
 import { WORLD } from "./world_config.js";
 import { createReward, REWARDS } from "./rewards.js";
-import { RANDOM_REWARD_COUNT } from "./reward_config.js";
+import {
+  RANDOM_REWARD_COUNT,
+  REWARD_KINDS,
+  STARTER_REWARDS,
+} from "./reward_config.js";
+import { randomRewardPosition } from "./reward_placement.js";
 import { createSurface } from "./surface.js";
 import { createEncounters } from "./encounters.js";
 import { createCombatEffects } from "./combat_effects.js";
@@ -1356,38 +1361,35 @@ function seedPopulation() {
   prepareMythicTransformations(entities);
 }
 function seedPickups() {
-  for (let i = 0; i < 3 + RANDOM_REWARD_COUNT; i++) {
+  const starterCount = STARTER_REWARDS.length;
+  for (let i = 0; i < starterCount + RANDOM_REWARD_COUNT; i++) {
     let item = pickups[i];
     if (!item) {
-      const kind = ["stamina", "flow", "frenzy"][i % 3];
+      const kind =
+        i < starterCount
+          ? STARTER_REWARDS[i].kind
+          : REWARD_KINDS[(i - starterCount) % REWARD_KINDS.length];
       item = { kind, mesh: createReward(kind), baseY: 0, cooldown: 0 };
       scene.add(item.mesh);
       pickups.push(item);
     }
-    // 浅滩各保留一枚入门奖励，其余每局随机；重开复用原有模型。
+    // 只固定生命补给与洋流；狂食也可随机落在浅滩，重开仍复用原有模型。
     const point =
-      i < 3
-        ? new THREE.Vector3((i - 1) * 13, -19 - i * 5, 40 - i * 28)
-        : spawnPosition(
-            {
-              depthMin: 20,
-              depthMax: activeWorld().maxDepth - 30,
-              ...ocean.rewardHabitat,
-              length: 2,
-              worldBounds: activeWorld(),
-            },
-            false,
-            ocean.rewardAnchor?.(Math.random, i - 3) ||
-              new THREE.Vector3(
-                random(activeWorld().minX + 18, activeWorld().maxX - 18),
-                -random(20, activeWorld().maxDepth - 30),
-                random(activeWorld().minZ + 18, activeWorld().maxZ - 18),
-              ),
-          );
+      i < starterCount
+        ? new THREE.Vector3(...STARTER_REWARDS[i].position)
+        : randomRewardPosition(i - starterCount, {
+            world: activeWorld(),
+            heightAt: activeSeabedHeight,
+            colliders: ocean.colliders,
+            rewardHabitat: ocean.rewardHabitat,
+            rewardAnchor: ocean.rewardAnchor,
+          });
+    item.disabled = !point;
+    item.cooldown = 0;
+    item.mesh.visible = !!point;
+    if (!point) continue;
     item.mesh.position.copy(point);
     item.baseY = point.y;
-    item.cooldown = 0;
-    item.mesh.visible = true;
   }
 }
 let objectiveState;
@@ -2854,6 +2856,10 @@ function updateEntities(dt) {
 }
 function updatePickups(dt) {
   for (const pickup of pickups) {
+    if (pickup.disabled) {
+      pickup.mesh.visible = false;
+      continue;
+    }
     if (pickup.cooldown > 0) {
       pickup.cooldown -= dt;
       pickup.mesh.visible = false;
