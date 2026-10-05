@@ -64,7 +64,8 @@ export function densifyFeedingSchools(species) {
         entry.length < FEEDING_DENSITY_RULES.largePreyMax;
       if (!foodResident && !adultPrey) return entry;
       const population = Math.ceil(
-        entry.population * FEEDING_DENSITY_RULES.independentPrey,
+        entry.population *
+          (entry.densityMultiplier ?? FEEDING_DENSITY_RULES.independentPrey),
       );
       const anchors = Array.from({ length: entry.population }, (_, index) =>
         initialSpeciesAnchor(entry, index).toArray(),

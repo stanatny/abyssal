@@ -16,6 +16,14 @@ export const ATLANTIS_KEY_SITES = Object.freeze([
 ]);
 
 export const REGION_OBJECTIVES = Object.freeze({
+  odyssey: Object.freeze({
+    kind: "all_lords",
+    minimumLength: 30,
+    summary: "成长至30米，击败卡尔基诺斯、斯库拉与卡律布狄斯，打开归航之路。",
+    completed: "三位守卫已败，奥德赛归航之路重现。",
+    difficulty: "神话海路征服",
+    food: "浅湾贝园 → 海妖与海兽 → 三守卫外围补给",
+  }),
   penglai: Object.freeze({
     kind: "all_lords",
     minimumLength: 25,
@@ -199,6 +207,8 @@ export function expeditionObjectiveHint(objective, player) {
             ? "圣珠已苏醒 · 成长至30米，再前往波塞冬地宫"
             : "圣珠已苏醒 · 进入波塞冬地宫吞食宝物"
           : message`海螺钥匙已得 · 寻找守宝克拉肯 ${objective.defeated.size}/3`;
+  if (objective.regionId === "odyssey")
+    return message`神话海路守卫 ${objective.defeated.size}/${objective.required} · 成长至30米`;
   if (objective.regionId === "amazon")
     return message`河道主宰 ${objective.defeated.size}/${objective.required} · 成长至30米`;
   if (objective.regionId === "bermuda")

@@ -26,9 +26,9 @@ import { steerElusiveRare } from "../src/regional_rare_pursuit.js";
 import { BOSS_SPECIES, createBossState, hitBoss } from "../src/boss_rules.js";
 import { aquaticHeading } from "../src/aquatic_reptile_motion.js";
 
-test("seven exclusive rares leave the ordinary roster separate and require sprint-speed pursuit", () => {
-  assert.equal(REGIONAL_RARES.length, 7);
-  assert.equal(new Set(REGIONAL_RARES.map((s) => s.regionId)).size, 7);
+test("eight exclusive rares leave the ordinary roster separate and require sprint-speed pursuit", () => {
+  assert.equal(REGIONAL_RARES.length, 8);
+  assert.equal(new Set(REGIONAL_RARES.map((s) => s.regionId)).size, 8);
   for (const s of REGIONAL_RARES) {
     assert.equal(getRegionalRare(s.regionId), s);
     assert.equal(s.population, 1);
@@ -107,12 +107,15 @@ test("rare models have finite fully posed geometry, distinct silhouettes and ind
       poses.push(bounds.getSize(new THREE.Vector3()).toArray());
     }
     shapes.push(poses[0]);
-    assert.equal(b.userData.artRevision, "regional_rare_v1");
+    assert.equal(
+      b.userData.artRevision ?? b.userData.odysseyAnatomy,
+      s.regionId === "odyssey" ? "golden_argonaut" : "regional_rare_v1",
+    );
     assert.ok(poses[0][2] > 0.8 && poses[0][2] < 1.2, s.kind);
   }
   assert.equal(
     new Set(shapes.map((s) => s.map((v) => v.toFixed(2)).join(","))).size,
-    7,
+    REGIONAL_RARES.length,
   );
 });
 test("aquatic heading preserves dorsal-up turns without upside-down flips", () => {

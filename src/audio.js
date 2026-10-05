@@ -1,3 +1,4 @@
+import { OdysseyMusic, ODYSSEY_SCORE } from "./music_odyssey.js";
 import { PenglaiMusic, PENGLAI_SCORE } from "./music_penglai.js";
 import { AmazonMusic, AMAZON_SCORE } from "./music_amazon.js";
 import { EuropaMusic, EUROPA_SCORE } from "./music_europa.js";
@@ -50,6 +51,7 @@ export class OceanAudio {
     this.europaMusic = null;
     this.amazonMusic = null;
     this.penglaiMusic = null;
+    this.odysseyMusic = null;
     this.retiredMusicRooms = [];
     this.pauseTimer = null;
     this.feedingVoices = new Map();
@@ -93,25 +95,28 @@ export class OceanAudio {
       "europa",
       "amazon",
       "penglai",
+      "odyssey",
     ].includes(regionId)
       ? regionId
       : "hawaii";
     if (next === this.regionId) return next;
     this.regionId = next;
     this.beat =
-      next === "penglai"
-        ? PENGLAI_SCORE.beat
-        : next === "amazon"
-          ? AMAZON_SCORE.beat
-          : next === "europa"
-            ? EUROPA_SCORE.beat
-            : next === "mariana"
-              ? MARIANA_SCORE.beat
-              : next === "atlantis"
-                ? ATLANTIS_SCORE.beat
-                : next === "bermuda"
-                  ? BERMUDA_SCORE.beat
-                  : 60 / 80;
+      next === "odyssey"
+        ? ODYSSEY_SCORE.beat
+        : next === "penglai"
+          ? PENGLAI_SCORE.beat
+          : next === "amazon"
+            ? AMAZON_SCORE.beat
+            : next === "europa"
+              ? EUROPA_SCORE.beat
+              : next === "mariana"
+                ? MARIANA_SCORE.beat
+                : next === "atlantis"
+                  ? ATLANTIS_SCORE.beat
+                  : next === "bermuda"
+                    ? BERMUDA_SCORE.beat
+                    : 60 / 80;
     this.step = 0;
     this.musicCombat = false;
     if (!this.ready) return next;
@@ -125,6 +130,7 @@ export class OceanAudio {
     if (next === "europa") this.ensureEuropaMusic().reset(now);
     if (next === "penglai") this.ensurePenglaiMusic().reset(now);
     if (next === "amazon") this.ensureAmazonMusic().reset(now);
+    if (next === "odyssey") this.ensureOdysseyMusic().reset(now);
     return next;
   }
 
@@ -204,6 +210,7 @@ export class OceanAudio {
       if (this.marianaMusic) this.marianaMusic.combatActive = false;
       if (this.europaMusic) this.europaMusic.combatActive = false;
       if (this.amazonMusic) this.amazonMusic.combatActive = false;
+      if (this.odysseyMusic) this.odysseyMusic.combatActive = false;
       if (this.penglaiMusic) this.penglaiMusic.combatActive = false;
     }
     this.master.gain.setTargetAtTime(
@@ -295,6 +302,7 @@ export class OceanAudio {
     this.marianaMusic?.reset(now);
     this.europaMusic?.reset(now);
     this.amazonMusic?.reset(now);
+    this.odysseyMusic?.reset(now);
     this.penglaiMusic?.reset(now);
   }
 
@@ -329,6 +337,7 @@ export class OceanAudio {
     if (this.regionId === "mariana") this.ensureMarianaMusic().update(now);
     if (this.regionId === "europa") this.ensureEuropaMusic().update(now);
     if (this.regionId === "amazon") this.ensureAmazonMusic().update(now);
+    if (this.regionId === "odyssey") this.ensureOdysseyMusic().update(now);
     if (this.regionId === "penglai") this.ensurePenglaiMusic().update(now);
     const intensity = Math.sqrt(this.lastDanger);
     const depthRatio = clamp(this.depth / 740, 0, 1);
@@ -336,6 +345,7 @@ export class OceanAudio {
     const penglai = this.regionId === "penglai";
     const europa = this.regionId === "europa";
     const amazon = this.regionId === "amazon";
+    const odyssey = this.regionId === "odyssey";
     const combat = this.pursuing || this.boss;
     this.calm.gain.setTargetAtTime(
       this.boss ? 0.22 : combat ? 0.34 : 0.86,
@@ -379,25 +389,29 @@ export class OceanAudio {
     );
     this.waterGain.gain.setTargetAtTime(
       (this.aboveWater ? 0.035 : 0.058 + depthRatio * 0.023 + this.ink * 0.01) *
-        (penglai
-          ? PENGLAI_SCORE.ambientWater
-          : europa
-            ? EUROPA_SCORE.ambientWater
-            : amazon
-              ? AMAZON_SCORE.ambientWater
-              : 1),
+        (odyssey
+          ? ODYSSEY_SCORE.ambientWater
+          : penglai
+            ? PENGLAI_SCORE.ambientWater
+            : europa
+              ? EUROPA_SCORE.ambientWater
+              : amazon
+                ? AMAZON_SCORE.ambientWater
+                : 1),
       now,
       0.6,
     );
     this.currentGain.gain.setTargetAtTime(
       (this.aboveWater ? 0.012 : 0.021 + intensity * 0.012) *
-        (penglai
-          ? PENGLAI_SCORE.ambientCurrent
-          : europa
-            ? EUROPA_SCORE.ambientCurrent
-            : amazon
-              ? AMAZON_SCORE.ambientCurrent
-              : 1),
+        (odyssey
+          ? ODYSSEY_SCORE.ambientCurrent
+          : penglai
+            ? PENGLAI_SCORE.ambientCurrent
+            : europa
+              ? EUROPA_SCORE.ambientCurrent
+              : amazon
+                ? AMAZON_SCORE.ambientCurrent
+                : 1),
       now,
       0.7,
     );
@@ -437,6 +451,8 @@ export class OceanAudio {
         this.ensureEuropaMusic().schedule(this.nextStep, this.step);
       else if (this.regionId === "penglai")
         this.ensurePenglaiMusic().schedule(this.nextStep, this.step);
+      else if (this.regionId === "odyssey")
+        this.ensureOdysseyMusic().schedule(this.nextStep, this.step);
       else if (this.regionId === "amazon")
         this.ensureAmazonMusic().schedule(this.nextStep, this.step);
       else this.scheduleMusicStep(this.nextStep, this.step);
@@ -736,9 +752,53 @@ export class OceanAudio {
   }
 
   /** bossAttack 播放领主攻击前兆，kind 决定共鸣基音；无返回值。 */
-  bossAttack(kind) {
+  bossAttack(kind, ability) {
     if (!this.effectReady("boss_attack", 0.7)) return;
     const at = this.context.currentTime + 0.006;
+    // 西方海路守卫用短促水息、深水吞潮与甲壳合钳音色，避免复用克拉肯咆哮。
+    if (["scylla", "charybdis", "karkinos"].includes(kind)) {
+      if (kind === "scylla") {
+        for (let i = 0; i < 6; i++)
+          this.note(
+            146.8 * (1 + (i % 3) * 0.25),
+            at + i * 0.13,
+            0.6,
+            0.065,
+            this.effects,
+            {
+              type: "reed",
+              end: 98,
+              attack: 0.055,
+              cutoff: 1050,
+              pan: (i / 5 - 0.5) * 0.65,
+            },
+          );
+      } else if (kind === "charybdis") {
+        this.note(55, at, 1.6, 0.115, this.effects, {
+          type: "warm",
+          end: ability === "surge" ? 82.4 : 36.7,
+          attack: 0.2,
+          cutoff: 340,
+        });
+        this.noise(at + 0.12, 1.35, 0.065, this.effects, 420, "bandpass", 0.1, {
+          end: 180,
+          q: 0.6,
+        });
+      } else {
+        for (let i = 0; i < (ability === "fault" ? 3 : 2); i++) {
+          this.note(196, at + i * 0.18, 0.5, 0.075, this.effects, {
+            type: "glass",
+            end: 130.8,
+            attack: 0.025,
+            cutoff: 1400,
+            pan: i % 2 ? 0.25 : -0.25,
+          });
+          this.drum(at + i * 0.18, 0.11, this.effects, 0.35);
+        }
+      }
+      this.duckMusic(0.68, 0.75);
+      return;
+    }
     if (kind === "lumen_stalker") {
       for (let i = 0; i < 3; i++)
         this.note(98 * (1 + i * 0.5), at + i * 0.11, 1.1, 0.09, this.effects, {
@@ -1419,6 +1479,10 @@ export class OceanAudio {
   ensurePenglaiMusic() {
     this.penglaiMusic ??= new PenglaiMusic(this);
     return this.penglaiMusic;
+  }
+  ensureOdysseyMusic() {
+    this.odysseyMusic ??= new OdysseyMusic(this);
+    return this.odysseyMusic;
   }
   ensureAmazonMusic() {
     this.amazonMusic ??= new AmazonMusic(this);

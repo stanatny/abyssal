@@ -1,3 +1,11 @@
+import { isOdysseyAttack, createOdysseyAttackFx } from "./odyssey_combat_fx.js";
+import {
+  ODYSSEY_ATTACKS,
+  undertowPressure,
+  inCrabClaws,
+  inTidalWall,
+  inReefFault,
+} from "./odyssey_attack_rules.js";
 import {
   groundCreatureProfile,
   groundTerrainPose,
@@ -362,7 +370,9 @@ function fxSprite(texture, color, opacity = 0.5) {
 }
 
 /** 为每种主宰技能预建有限的装饰网格与粒子，全部在一次战斗中反复复用。 */
-function createAbilityFx(scene, ability, color, textures) {
+function createAbilityFx(scene, ability, color, textures, species = {}) {
+  if (isOdysseyAttack(species, ability))
+    return createOdysseyAttackFx(scene, ability, color, species);
   const group = new THREE.Group();
   group.name = tr`boss_fx_${ability}`;
   group.visible = false;
@@ -549,7 +559,7 @@ function createAbilityFx(scene, ability, color, textures) {
     }
   } else if (["volley", "swords"].includes(ability)) {
     fx.warnOrbs = [];
-    for (let i = 0; i < 3; i += 1) {
+    for (let i = 0; i < (species.volleyCount ?? 3); i += 1) {
       const sprite = fxSprite(textures.dot, color, 0);
       group.add(sprite);
       fx.warnOrbs.push(sprite);
@@ -606,7 +616,20 @@ function createAbilityFx(scene, ability, color, textures) {
 }
 
 /** 每帧按相位驱动技能装饰；仅读取 entry.state，不回写任何战斗数据。 */
-function updateAbilityFx(fx, entry, dt, time, windup, attack, ringSize) {
+function updateAbilityFx(
+  fx,
+  entry,
+  dt,
+  time,
+  windup,
+  attack,
+  ringSize,
+  heightAt,
+) {
+  if (fx.odyssey) {
+    fx.update(entry, dt, time, windup, attack, heightAt);
+    return;
+  }
   const state = entry.state;
   const active = windup || attack;
   fx.group.visible = active;
@@ -759,7 +782,7 @@ function updateAbilityFx(fx, entry, dt, time, windup, attack, ringSize) {
     fx.group.position.copy(entry.mesh.position);
     const forward = entry.heading,
       side = new THREE.Vector3(-forward.z, 0, forward.x).normalize();
-    for (let i = 0; i < 3; i += 1) {
+    for (let i = 0; i < fx.warnOrbs.length; i += 1) {
       const sprite = fx.warnOrbs[i];
       const offset = (i - 1) * state.species.length * 0.16;
       sprite.position
@@ -767,6 +790,11 @@ function updateAbilityFx(fx, entry, dt, time, windup, attack, ringSize) {
         .multiplyScalar(state.species.length * 0.4)
         .addScaledVector(side, offset)
         .add(new THREE.Vector3(0, state.species.length * 0.06, 0));
+      const mouth = entry.mesh.userData.mouthAnchors?.[i];
+      if (mouth) {
+        mouth.getWorldPosition(sprite.position);
+        fx.group.worldToLocal(sprite.position);
+      }
       const grow = windup
         ? 1.6 + phaseT * 3.4 + Math.sin(time * 11 + i * 2) * 0.5
         : 0;
@@ -871,11 +899,14 @@ export function createEncounters(
     rune: makeRuneTexture(),
   };
   const ballGeo = new THREE.SphereGeometry(1, 10, 8),
+    scyllaLanceGeo = new THREE.CylinderGeometry(0.35, 1, 7, 12),
     fxMat = new THREE.MeshBasicMaterial({
       color: 0xffcf9e,
       transparent: true,
       opacity: 0.95,
     });
+  const waterBallMat = fxMat.clone();
+  waterBallMat.color.setHex(0x78c7d8);
   function createEntry(species) {
     const poolIndex = bosses.filter(
       (entry) => entry.state.species.kind === species.kind,
@@ -889,7 +920,8 @@ export function createEncounters(
     const ring = new THREE.Mesh(
       new THREE.CircleGeometry(1.03, 72),
       new THREE.MeshBasicMaterial({
-        color: COLORS[species.ability],
+        color:
+          species.abilityColors?.[species.ability] ?? COLORS[species.ability],
         map: fxTextures.boundary,
         side: THREE.DoubleSide,
         blending: THREE.AdditiveBlending,
@@ -921,8 +953,9 @@ export function createEncounters(
       fx: createAbilityFx(
         scene,
         species.ability,
-        COLORS[species.ability],
+        species.abilityColors?.[species.ability] ?? COLORS[species.ability],
         fxTextures,
+        species,
       ),
       previousPhase: "dormant",
       heading: new THREE.Vector3(0, 0, -1),
@@ -960,7 +993,15 @@ export function createEncounters(
       entry.fx,
       ...(species.abilityCycle || [])
         .filter((a) => a !== species.ability)
-        .map((a) => createAbilityFx(scene, a, COLORS[a], fxTextures)),
+        .map((a) =>
+          createAbilityFx(
+            scene,
+            a,
+            species.abilityColors?.[a] ?? COLORS[a],
+            fxTextures,
+            species,
+          ),
+        ),
     ];
     bosses.push(entry);
     return entry;
@@ -1140,8 +1181,17 @@ export function createEncounters(
     // 漩涡在预计逃跑路径上封路；脉冲切入玩家当前水层，不只扫过领主自身高度。
     if (state.ability === "vortex") entry.attackOrigin.copy(entry.lockTarget);
     if (state.ability === "pulse") entry.attackOrigin.y = entry.lockTarget.y;
+    if (state.ability === "undertow")
+      entry.mesh.userData.mouthAnchors?.[0]?.getWorldPosition(
+        entry.attackOrigin,
+      );
     const targetDirection = entry.lockTarget.clone().sub(entry.mesh.position);
-    if (state.species.groundbound) targetDirection.y = 0;
+    if (
+      state.species.groundbound ||
+      state.species.upright ||
+      state.ability === "surge"
+    )
+      targetDirection.y = 0;
     if (targetDirection.lengthSq() > 0.001) {
       targetDirection.normalize();
       // 锁定攻击也不能把虎身转进山里；不可转身时保留最后的完整身体朝向。
@@ -1188,7 +1238,7 @@ export function createEncounters(
         message`${state.species.label} · ${state.species.skillLabels?.[state.ability] ?? SKILLS[state.ability]}\n${state.species.skillTips?.[state.ability] ?? TIPS[state.ability]}`,
         state.phaseDuration + 0.4,
       );
-      audio.bossAttack?.(state.species.kind);
+      audio.bossAttack?.(state.species.kind, state.ability);
     }
   }
   /** 三条实体腕尖依次扫过锁定点；只在刺出/短暂停留时结算一次命中。 */
@@ -1280,7 +1330,10 @@ export function createEncounters(
     const mesh =
       state.ability === "swords"
         ? new THREE.Group()
-        : new THREE.Mesh(ballGeo, fxMat);
+        : new THREE.Mesh(
+            state.species.kind === "scylla" ? scyllaLanceGeo : ballGeo,
+            state.species.kind === "scylla" ? waterBallMat : fxMat,
+          );
     if (state.ability === "swords") {
       const blade = pgSword(mesh, [0, 0, 0], 6);
       blade.rotation.x = -Math.PI / 2;
@@ -1288,11 +1341,13 @@ export function createEncounters(
     mesh.name =
       state.ability === "swords"
         ? "sage_sword_projectile"
-        : "hydra_breath_projectile";
+        : state.species.kind === "scylla"
+          ? "scylla_water_projectile"
+          : "hydra_breath_projectile";
     mesh.scale.setScalar(2.6);
     const mouth = entry.mesh.userData.mouthAnchors?.[headIndex];
     const head = entry.mesh.userData.getHeadWorldPositions?.()[0];
-    // 吐息从摆动后的真实吻端发射；预判、射速、伤害和三连节奏保持共享规则。
+    // 吐息从摆动后的真实吻端发射；预判、射速、伤害和头数由物种规则确定。
     if (mouth) mouth.getWorldPosition(mesh.position);
     else if (head) mesh.position.copy(head);
     else
@@ -1302,7 +1357,8 @@ export function createEncounters(
         .addScaledVector(side, (headIndex - 1) * state.species.length * 0.16)
         .add(new THREE.Vector3(0, state.species.length * 0.06, 0));
     const projectileColor =
-      state.ability === "swords" ? COLORS.swords : COLORS.volley;
+      state.species.abilityColors?.[state.ability] ??
+      (state.ability === "swords" ? COLORS.swords : COLORS.volley);
     const glow = fxSprite(fxTextures.dot, projectileColor, 0.75);
     glow.scale.setScalar(9);
     mesh.add(glow);
@@ -1314,14 +1370,19 @@ export function createEncounters(
       scene.add(sprite);
       trail.push({ sprite, age: 1 });
     }
-    // 三个头分拍射向各自预判点，发射后不追踪，横向变向仍有稳定的规避空间。
+    // 多颗头分拍射向各自预判点，发射后不追踪，横向变向仍有规避空间。
     const target = entry.lockTarget
       .clone()
-      .addScaledVector(entry.lockedVelocity, headIndex * 0.45);
+      .addScaledVector(
+        entry.lockedVelocity,
+        headIndex * (state.species.volleyInterval ?? 0.45),
+      );
     const velocity = target
       .sub(mesh.position)
       .normalize()
       .multiplyScalar(state.species.projectileSpeed ?? 85);
+    if (state.species.kind === "scylla")
+      mesh.quaternion.setFromUnitVectors(UP_AXIS, velocity.clone().normalize());
     if (state.ability === "swords")
       mesh.quaternion.setFromUnitVectors(
         FORWARD_AXIS,
@@ -1333,6 +1394,7 @@ export function createEncounters(
       life: 4,
       damage: state.species.mythic ? state.species.damage : 34,
       ability: state.ability,
+      hitMessage: state.species.projectileHitMessage,
       trail,
       trailAge: 0,
     });
@@ -1353,11 +1415,18 @@ export function createEncounters(
         candidate.y += 1.6;
         candidate.normalize();
       }
-      if (entry.state.species.groundbound) {
+      if (
+        entry.state.species.groundbound ||
+        entry.state.species.seabedCrawler
+      ) {
         candidate.y = 0;
         candidate.normalize();
       }
       lookahead.copy(origin).addScaledVector(candidate, Math.max(7, step + 4));
+      if (entry.state.species.seabedCrawler)
+        lookahead.y =
+          seabedHeight(lookahead.x, lookahead.z) +
+          entry.state.species.floorClearance;
       if (
         entry.state.species.groundbound &&
         seabedHeight(lookahead.x, lookahead.z) <
@@ -1388,6 +1457,9 @@ export function createEncounters(
       .lerpVectors(entry.heading, candidate, 1 - Math.exp(-dt * 3.6))
       .normalize();
     next.copy(origin).addScaledVector(candidate, step);
+    if (entry.state.species.seabedCrawler)
+      next.y =
+        seabedHeight(next.x, next.z) + entry.state.species.floorClearance;
     if (entry.groundHabitat) {
       const pose = groundTerrainPose(
         next,
@@ -1459,7 +1531,7 @@ export function createEncounters(
       entry.grapple = createKrakenGrapple();
       entry.mesh.userData.setKrakenGrip?.(0);
       entry.mesh.userData.resetLumenLash?.();
-      entry.volleyShots = 3;
+      entry.volleyShots = entry.state.species.volleyCount ?? 3;
       affected += 1;
     }
     return affected;
@@ -1621,8 +1693,9 @@ export function createEncounters(
       }
       if (attack && ["volley", "swords"].includes(state.ability)) {
         while (
-          entry.volleyShots < 3 &&
-          state.timer >= entry.volleyShots * 0.45
+          entry.volleyShots < (state.species.volleyCount ?? 3) &&
+          state.timer >=
+            entry.volleyShots * (state.species.volleyInterval ?? 0.45)
         ) {
           fireVolley(entry, entry.volleyShots);
           entry.volleyShots += 1;
@@ -1633,10 +1706,13 @@ export function createEncounters(
         Math.max(
           entry.mesh.position.y,
           seabedHeight(entry.mesh.position.x, entry.mesh.position.z) +
-            state.species.length * 0.2 +
-            3,
+            (state.species.floorClearance ?? state.species.length * 0.2 + 3),
         ),
       );
+      if (state.species.seabedCrawler)
+        entry.mesh.position.y =
+          seabedHeight(entry.mesh.position.x, entry.mesh.position.z) +
+          state.species.floorClearance;
       // 领主被限制在自己的领域附近，不会穿越整张地图追杀初生玩家。
       const fromHome = entry.motion.offset
         .copy(entry.mesh.position)
@@ -1683,6 +1759,11 @@ export function createEncounters(
       if (state.species.groundbound) entry.mesh.quaternion.copy(orientation);
       else entry.mesh.quaternion.slerp(orientation, Math.min(1, dt * 2));
       entry.mesh.userData.setBossPhase?.(state.phase);
+      entry.mesh.userData.setKarkinosCombat?.({
+        phase: state.phase,
+        ability: state.ability === "fault" ? "fissure" : state.ability,
+        progress: state.timer / Math.max(0.001, state.phaseDuration),
+      });
       entry.mesh.userData.setWeaverSweep?.(
         (attack
           ? state.timer / state.phaseDuration - 0.5
@@ -1700,10 +1781,21 @@ export function createEncounters(
           time,
           attack ? 2.5 : recover ? 0.35 : state.phase === "dormant" ? 0.7 : 1.2,
         );
+      if (
+        state.species.seabedCrawler &&
+        entry.mesh.userData.fitKarkinosTerrain
+      ) {
+        const lift = entry.mesh.userData.fitKarkinosTerrain(seabedHeight);
+        if (lift > 0) {
+          entry.mesh.position.y += lift;
+          entry.mesh.userData.fitKarkinosTerrain(seabedHeight);
+        }
+      }
       if (state.ability === "lash" && (windup || attack))
         updateLumenLash(entry, player, position, attack, blockedBetween);
       else entry.lashReady = false;
       entry.ring.visible =
+        !state.species.western &&
         !["loom", "water", "lash"].includes(state.ability) &&
         (windup || attack);
       entry.ring.position.copy(
@@ -1727,12 +1819,109 @@ export function createEncounters(
         : 0.8;
       if ((attack || windup) && state.ability === "water")
         waterPath(entry, blockedBetween);
-      updateAbilityFx(entry.fx, entry, dt, time, windup, attack, ringSize);
+      if (state.ability === "undertow" && (windup || attack))
+        entry.mesh.userData.mouthAnchors?.[0]?.getWorldPosition(
+          entry.attackOrigin,
+        );
+      updateAbilityFx(
+        entry.fx,
+        entry,
+        dt,
+        time,
+        windup,
+        attack,
+        ringSize,
+        seabedHeight,
+      );
       if (!attack || !sight) {
         if (entry.grapple.held) entry.grapple.spent = true;
         entry.grapple.held = false;
       }
       if (attack && sight) {
+        if (state.ability === "undertow") {
+          const pull = undertowPressure(
+            position,
+            entry.attackOrigin,
+            entry.heading,
+          );
+          if (pull > 0 && !blockedBetween(entry.attackOrigin, position)) {
+            const toward = entry.motion.offset
+              .copy(entry.attackOrigin)
+              .sub(position);
+            const distance = toward.length();
+            const next = entry.motion.next
+              .copy(position)
+              .addScaledVector(
+                toward.normalize(),
+                Math.min(pull * dt, distance),
+              );
+            if (!blockedBetween(position, next)) position.copy(next);
+            if (
+              distance < ODYSSEY_ATTACKS.undertow.core &&
+              state.timer > 1.5 &&
+              !entry.phaseHit
+            )
+              entry.phaseHit = damage(
+                player,
+                state.species.damage,
+                "巨口吞潮命中 · 横向离开吸流锥，借岩礁阻断水路",
+              );
+          }
+        }
+        if (
+          state.ability === "surge" &&
+          !entry.phaseHit &&
+          inTidalWall(
+            position,
+            entry.attackOrigin,
+            entry.heading,
+            state.timer,
+            dt,
+            player.length * 0.12,
+          ) &&
+          !blockedBetween(entry.attackOrigin, position)
+        )
+          entry.phaseHit = damage(
+            player,
+            state.species.damage,
+            "逆潮巨墙命中 · 向两侧或上下让开锁定航道",
+          );
+        if (
+          state.ability === "claw" &&
+          state.timer > 0.8 &&
+          !entry.phaseHit &&
+          inCrabClaws(
+            position,
+            entry.attackOrigin,
+            entry.heading,
+            player.length * 0.12,
+          ) &&
+          !blockedBetween(entry.attackOrigin, position)
+        )
+          entry.phaseHit = damage(
+            player,
+            state.species.damage,
+            "破礁双钳命中 · 近身也会扫钳，退到背侧或上方",
+          );
+        if (
+          state.ability === "fault" &&
+          !entry.phaseHit &&
+          inReefFault(
+            position,
+            entry.attackOrigin,
+            entry.heading,
+            state.timer,
+            dt,
+            seabedHeight,
+            player.length * 0.12,
+          ) &&
+          !blockedBetween(entry.attackOrigin, position)
+        )
+          entry.phaseHit = damage(
+            player,
+            state.species.damage,
+            "礁脊三裂命中 · 上浮离开海床，或穿过三路间隙",
+          );
         if (
           state.ability === "loom" &&
           !entry.phaseHit &&
@@ -1861,7 +2050,9 @@ export function createEncounters(
             entry.phaseHit = damage(
               player,
               state.species.damage,
-              "遗迹脉冲命中 · 上下换层可躲避",
+              state.species.western
+                ? "退潮震环命中 · 上浮或下潜避开锁定水层"
+                : "遗迹脉冲命中 · 上下换层可躲避",
             );
         }
       }
@@ -1932,7 +2123,8 @@ export function createEncounters(
             state.ability === "vortex" ||
             state.ability === "water" ||
             state.ability === "lash" ||
-            state.ability === "loom")
+            state.ability === "loom" ||
+            ["undertow", "surge", "claw", "fault"].includes(state.ability))
         ) &&
         state.phase !== "disoriented" &&
         inTerritory &&
@@ -1999,9 +2191,10 @@ export function createEncounters(
         damage(
           player,
           p.damage,
-          p.ability === "swords"
-            ? "御剑命中 · 变向或借山石躲避"
-            : "三重吐息命中 · 横向变向躲避",
+          p.hitMessage ??
+            (p.ability === "swords"
+              ? "御剑命中 · 变向或借山石躲避"
+              : "三重吐息命中 · 横向变向躲避"),
         );
         p.life = 0;
       }
@@ -2017,8 +2210,8 @@ export function createEncounters(
     disposed = true;
     for (const projectile of projectiles) removeProjectile(projectile);
     projectiles.length = 0;
-    const geometries = new Set([ballGeo]);
-    const materials = new Set([fxMat]);
+    const geometries = new Set([ballGeo, scyllaLanceGeo]);
+    const materials = new Set([fxMat, waterBallMat]);
     const textures = new Set(Object.values(fxTextures));
     for (const entry of bosses) {
       for (const fx of entry.fxVariants) resetAbilityFx(fx);

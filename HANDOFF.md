@@ -1,3 +1,33 @@
+# Authorized local checkpoint — Odyssean Sea and flowing creatures
+
+On 2026-10-05 the user accepted the current candidate and requested a local commit before a separate all-region progression review. This checkpoint includes the eighth destination, its reviewed 21-kind ordinary roster, terrain-fitted Karkinos and continuous Gran Maja/mermaid/serpent motion documented below. Existing verification receipts remain valid; fresh unit and formatting preflight is recorded under ignored `.local/progression_review/`. No push, main merge or formal publication is authorized. Subsequent progression tuning must remain a separate uncommitted candidate.
+
+---
+
+# Uncommitted Odyssean anatomy, motion and roster follow-up
+
+Continue on `feature/odyssey` in the eighth-region worktree, based on formal v0.10.2 / `25d463e`. Preserve all preceding uncommitted Odyssey content. The user reported buried crab feet, a detached mouth, weak close response, rigid long bodies and only fourteen ordinary kinds, then included Gran Maja and mermaids in the motion audit. No commit, push, main merge or formal publication is authorized.
+
+Read [the current review](docs/odyssey_roster_revision.md). Twenty-one ordinary kinds now form the actual regional ecology (269 ordinary individuals, plus three once-only lords and one rare). New morphology occupies distributed homes rather than increasing giant clusters; original 18–24 m guardian recovery meals remain. Karkinos gains terrain-fitted rigid leg articulation, a joined oral field, slope-aware horizontal pursuit and a warned inner front sweep, with rear/upper escapes. Continuous serpent motion carries its attached detail; mermaids retain vertical tail propulsion. Gran Maja follows the separate shared-model audit. Shared feeding, survival, 25 m lord eligibility and three-hit completion remain intact.
+
+Fresh before snapshots, native and art checks, resource/cost samples and delivery hashes belong in ignored `.local/odyssey_roster_review/`. Freeze all source before final browser/performance checks; HMR-interrupted attempts are diagnostic failures, not final receipts. Retain the previous served runtime, rebuild the restricted candidate and check exact artifact bytes and source fingerprints. Formal seven-region Pages remains unchanged. Verified candidate: 937 full units, final Gran Maja/copy checks, 29 shared browser checks, fifty native Odyssey Guide cases, ten paired attack cases, actual crawler pursuit/foot-fit/pause and Gran Maja world/Guide checks pass. Six serial before/candidate/repeated-before runs retain near-60 FPS at two populated positions, with mixed CPU/draw increases and reductions; do not claim lower phone heat. Final compiled local/public each pass 52 bilingual Guide cases, four character flows and a 390 px Guide view. Nine artifacts per host and all 299 runtime fingerprints match; production hooks/private paths are unavailable. Formatting/build pass with the existing bundle warning. Previous runtime is retained. Current manifest: `.local/odyssey_roster_review/manifest.json`. Candidate: https://satisfactory-keyword-recently-cakes.trycloudflare.com/?preview=odyssey-flowing-20261005. No new commit/push/merge/formal release occurred; physical-phone temperature and natural full rounds remain review limits.
+
+---
+
+# Preceding Odyssean Sea refinement — historical
+
+Continue on `feature/odyssey`, based on accepted main `25d463e` / v0.10.2. The eighth underwater western-mythology destination and the user's surface, humanoid, density and guardian follow-up are authorized. No commit, push, merge or formal release is authorized. Formal Pages remains the published seven-region v0.10.2.
+
+Read [the production contract](docs/odyssey_brief.md), [current refinement](docs/odyssey_refinement.md), [candidate verification](docs/odyssey_verification.md) and the asset quality standard. Current native stock is fourteen ordinary kinds / 266 individuals, one Golden Argonaut and three once-only guardians: Karkinos, Scylla and Charybdis. Four characters start at 3 m; completion requires 30 m and all three guardians. Other regional stocks, survival, meal returns and character rules remain intact.
+
+Surface visibility, atmospheric state and opaque above-water rendering use the actual swell height. Four humanoid factories share a continuous adult face; mermaids use whole-tail vertical propulsion and fitted ventral clothing. Karkinos patrols a separate earlier reef shelf with eight articulated legs and twin claws. Its sampler clearance is not full foot-placement physics. Scylla fires six staggered water lances; Charybdis uses a frontal intake and locked travelling tidewall; Karkinos uses twin claw sectors and three bottom-hugging shock lanes. Shared rule helpers, distinct bounded effects/audio and separate bilingual skill cards must stay synchronized. Do not restore Kraken's floor vortex or grip for these guardians.
+
+Ignored review evidence lives in `.local/odyssey_revision/`, with initial-map evidence retained in `.local/odyssey_review/`. Native eighteen-specimen/bilingual Guide, actual food replenishment, all-three settlement, sixteen eight-region switches, ten exact-width touch warnings and eight hit/evasion cases pass without observed errors. Two warm Odyssey switch samples repeat 1213 geometries / 1350 textures; this is a sampled plateau, not proof of no long-session growth. Initial-map counts and measurements below are historical. The final 929-unit suite, 29 shared native browser checks and formatting pass. Serial populated High samples remain about 60 FPS with p95 18.6/18.8 ms at the matched middle/deep fixtures. Build passes. Restricted compiled local/public each pass 36 bilingual Guide cases and four character flows; nine artifacts and all 293 runtime fingerprints match. Current ignored manifest: `.local/odyssey_revision/manifest.json`. Current candidate: https://satisfactory-keyword-recently-cakes.trycloudflare.com/?preview=odyssey-refined-20261005. Preserve existing preview services and the previous runtime; never hand over an older build as this revision.
+
+Subjective audio, natural full-round pacing and physical-phone temperature remain review limits. No personal shared Skill update is part of this task.
+
+---
+
 # v0.10.2 release — Creature Motion and Guardian Combat
 
 The user accepted the accumulated candidate on 2026-10-05 and explicitly authorized a commit and push to the primary branch. Prepare the release from `fix/penglai-ground-navigation`, including its two accepted local checkpoints and the reviewed Europa, rare-eye, touch, Kraken-distance and Amazon crocodilian follow-ups. Fast-forward `main` without discarding other worktrees. No new tag or GitHub Release is required.

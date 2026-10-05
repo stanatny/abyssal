@@ -1,3 +1,4 @@
+import { createOdysseyOceanAsync } from "./odyssey_ocean.js";
 import {
   groundCreatureProfile,
   groundSpawnPose,
@@ -538,45 +539,55 @@ async function selectRegion(region) {
     regionLoader.stage("正在绘制海底与海岸…", 18);
     await regionLoader.paint();
     // 新环境完整建成后才替换旧环境；失败时仍可回到原海域。
+    let odysseyStep = 0;
     nextOcean =
-      region.id === "penglai"
-        ? await createPenglaiOceanAsync(container, {
-            onStep() {
-              regionLoader.stage("正在绘制云海与仙山…", 35);
+      region.id === "odyssey"
+        ? await createOdysseyOceanAsync(container, {
+            onStep(label) {
+              regionLoader.stage(
+                "正在绘制神话海路…",
+                Math.min(48, 10 + ++odysseyStep),
+              );
             },
           })
-        : region.id === "amazon"
-          ? await createAmazonOceanAsync(container, {
+        : region.id === "penglai"
+          ? await createPenglaiOceanAsync(container, {
               onStep() {
-                regionLoader.stage("正在绘制河道与雨林…", 35);
+                regionLoader.stage("正在绘制云海与仙山…", 35);
               },
             })
-          : region.id === "europa"
-            ? await createEuropaOceanAsync(container, {
+          : region.id === "amazon"
+            ? await createAmazonOceanAsync(container, {
                 onStep() {
-                  regionLoader.stage("正在雕刻冰壳与盐脉…", 35);
+                  regionLoader.stage("正在绘制河道与雨林…", 35);
                 },
               })
-            : region.id === "mariana"
-              ? createMarianaOcean(container)
-              : region.id === "atlantis"
-                ? await createAtlantisOceanAsync(container, {
-                    onStep(label) {
-                      const progress = atlantisPreparationProgress[label];
-                      if (progress)
-                        regionLoader.stage("正在绘制海底与海岸…", progress);
-                    },
-                  })
-                : region.id === "bermuda"
-                  ? createBermudaOcean(container, {
-                      audio,
-                      notify,
-                      onDamage() {
-                        hitFlash = 0.9;
-                        effects.hurt(position, player.length);
+            : region.id === "europa"
+              ? await createEuropaOceanAsync(container, {
+                  onStep() {
+                    regionLoader.stage("正在雕刻冰壳与盐脉…", 35);
+                  },
+                })
+              : region.id === "mariana"
+                ? createMarianaOcean(container)
+                : region.id === "atlantis"
+                  ? await createAtlantisOceanAsync(container, {
+                      onStep(label) {
+                        const progress = atlantisPreparationProgress[label];
+                        if (progress)
+                          regionLoader.stage("正在绘制海底与海岸…", progress);
                       },
                     })
-                  : createOcean(container);
+                  : region.id === "bermuda"
+                    ? createBermudaOcean(container, {
+                        audio,
+                        notify,
+                        onDamage() {
+                          hitFlash = 0.9;
+                          effects.hurt(position, player.length);
+                        },
+                      })
+                    : createOcean(container);
     attachDeepVents(nextOcean, region.id, {
       heightAt: nextOcean.heightAt || baseSeabedHeight,
     });
@@ -2916,8 +2927,20 @@ function updateCamera(dt) {
   // HUD在渲染前投影；旋转后的视图逆矩阵不能等到渲染器下一帧才更新。
   camera.updateMatrixWorld();
 }
+/** 奥德赛水面渲染、雾与后处理共用真实波高，避免出水前后状态不一致。 */
+function cameraAboveWater() {
+  return (
+    expedition.region.surfaceMode !== "ice" &&
+    camera.position.y >
+      (expedition.region.id === "odyssey"
+        ? ocean.waterHeightAt(camera.position.x, camera.position.z, elapsed)
+        : WORLD.surfaceY)
+  );
+}
+
 function atmosphere(dt) {
   const aether = expedition.region.surfaceMode === "aether";
+  const odyssey = expedition.region.id === "odyssey";
   const river = expedition.region.surfaceMode === "river";
   const depth = -position.y;
   const blend = Clamp((depth - 25) / 350, 0, 1);
@@ -2931,7 +2954,7 @@ function atmosphere(dt) {
   );
   if (night) color.lerp(new THREE.Color("#174652"), city * 0.72);
   const ice = expedition.region.surfaceMode === "ice";
-  const aboveWater = !ice && camera.position.y > WORLD.surfaceY;
+  const aboveWater = cameraAboveWater();
   if (aboveWater) color.set(night ? "#060d20" : "#a0c7d1");
   if (storm)
     color
@@ -3000,6 +3023,16 @@ function atmosphere(dt) {
       (aboveWater ? 0.0018 : 0.006 + blend * 0.001) +
       (aboveWater ? 0 : effects.ink * 0.115);
   }
+  if (odyssey) {
+    color
+      .set(aboveWater ? "#abc4ce" : "#296875")
+      .lerp(new THREE.Color("#101f34"), aboveWater ? 0 : blend * 0.8);
+    scene.background.lerp(color, Math.min(1, dt * 3));
+    scene.fog.color.copy(scene.background);
+    scene.fog.density =
+      (aboveWater ? 0.0014 : 0.0045 + blend * 0.0012) +
+      (aboveWater ? 0 : effects.ink * 0.115);
+  }
   if (aether) {
     color.set(aboveWater ? "#b7cac0" : "#477d78");
     scene.background.lerp(color, Math.min(1, dt * 4));
@@ -3055,6 +3088,13 @@ function atmosphere(dt) {
     ambient.intensity = 1.45 - Clamp(depth / 2000, 0, 1) * 0.32;
     sun.color.set(0xb3cbdc);
     sun.intensity = 0.8 - Clamp(depth / 900, 0, 1) * 0.58;
+  }
+  if (odyssey) {
+    ambient.color.set("#b7dce1");
+    ambient.groundColor.set("#485f63");
+    ambient.intensity = aboveWater ? 1.6 : 1.5 - blend * 0.25;
+    sun.color.set("#ffe5bf");
+    sun.intensity = aboveWater ? 2.3 : 1.9 - blend * 1.1;
   }
   if (river) {
     ambient.color.set(0xe0dfb9);
@@ -3731,9 +3771,7 @@ function frame(now) {
         pursuing: !!threat || !!surface.danger || !!humans.defense.threat,
         ink: effects.ink,
         depth: -position.y,
-        aboveWater:
-          expedition.region.surfaceMode !== "ice" &&
-          camera.position.y > WORLD.surfaceY,
+        aboveWater: cameraAboveWater(),
       },
     );
     uiClock += dt;
@@ -3800,9 +3838,7 @@ function frame(now) {
     time: elapsed,
     depth: -position.y,
     position,
-    aboveWater:
-      expedition.region.surfaceMode !== "ice" &&
-      camera.position.y > WORLD.surfaceY,
+    aboveWater: cameraAboveWater(),
     ink: effects.ink,
     night: expedition.region.id === "atlantis",
     ice: expedition.region.surfaceMode === "ice",

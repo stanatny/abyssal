@@ -11,6 +11,17 @@ function copy(zh, en) {
 }
 const definitions = [
   [
+    "odyssey",
+    "golden_argonaut",
+    copy("金帆船蛸", "Golden Argonaut"),
+    "#ddb56d",
+    [-150, -190, -400],
+    copy(
+      "古航路外侧的贝园、断桅与沉锚",
+      "Secluded shell gardens, broken masts and anchors beside the old sea road",
+    ),
+  ],
+  [
     "hawaii",
     "golden_manta",
     copy("金翎蝠鲼", "Gilded Manta"),
@@ -86,6 +97,11 @@ const definitions = [
   ],
 ];
 const searchAreas = {
+  odyssey: [
+    [-150, -190, -400],
+    [160, -250, -495],
+    [-130, -300, -560],
+  ],
   hawaii: [
     [145, -74, -285],
     [-190, -125, -430],

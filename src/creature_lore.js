@@ -1,3 +1,4 @@
+import { ODYSSEY_LORE } from "./odyssey_lore.js";
 /** 图鉴背景故事；出处与美术改编记录保留在内部来源文档。 */
 export const CREATURE_LORE = [
   [
@@ -301,3 +302,26 @@ export const CREATURE_LORE = [
     "After the research vessel falls into the ice ocean, cool glints begin moving around its hull. Instruments first identify scattered equipment, until eight long arms pass around the wreck and all the glints turn with one body. The stalker knows nothing of human vessels; it has merely included this new shadow in its territorial watch.",
   ],
 ];
+CREATURE_LORE.push(
+  ...ODYSSEY_LORE,
+  [
+    "scylla",
+    "每到暗潮转向，她都会伸出长颈掠过礁顶。六颗头互相窥探，似乎记得每一艘从此经过的船；只在吐息后的短暂静默中，躯干侧面才让旅人看清。",
+    "When the dark tide turns, she stretches her necks above the reefs. Six heads watch one another as though remembering every passing ship; only the silence after their breaths reveals the body's flank.",
+  ],
+  [
+    "charybdis",
+    "深潭边的断链记录着曾经挣扎的船。如今归航路标已沉进水底，巨口缓缓收拢裙鳍，守着那条没有歌声的海路。",
+    "Broken chains beside the basin recall ships that struggled there. Homeward markers have sunk to the floor, and the maw gathers its skirt fins over a sea road without song.",
+  ],
+  [
+    "karkinos",
+    "礁棚的铜红甲壳并非沉船。卡尔基诺斯记住了每一条被巨浪打断的航线，步足在砂地留下八道交错的印记。长年失落的锚链成了它钳缘的刻痕；它举起双钳时，归航者会看见礁道仍有可以穿过的空隙。",
+    "The bronze-red shell on the shelf is no wreck. Karkinos remembers every sea road broken by storm waves, leaving eight interwoven tracks in the sand. Lost anchor chains have scored its claw edges; when it raises both pincers, voyagers can still find gaps through the reef road.",
+  ],
+  [
+    "golden_argonaut",
+    "渔歌把它的金帆比作迷路者最后的星光。真正遇见它时，珍兽却从不等待旅人：一个轻巧转折，薄壳与金腕便融进下一片蓝色礁影。",
+    "Fishing songs liken its golden sail to a lost traveler's final star. Yet it never waits: with one agile turn, its thin shell and gold arms vanish into the next blue reef shadow.",
+  ],
+);

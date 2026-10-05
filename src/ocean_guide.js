@@ -1,3 +1,4 @@
+import { ODYSSEY_LORD_DESCRIPTIONS } from "./odyssey_lords.js";
 import { creatureGuideSkills } from "./creature_guide_skills.js";
 import { PENGLAI_TRANSFORMATION_FORMS } from "./penglai_transformation_species.js";
 import { getCreatureBackground } from "./creature_backgrounds.js";
@@ -79,6 +80,7 @@ export function groupOceanCatalog(catalog) {
 }
 
 const DESCRIPTIONS = {
+  ...ODYSSEY_LORD_DESCRIPTIONS,
   ...PENGLAI_LORD_DESCRIPTIONS,
   ...AMAZON_LORD_DESCRIPTIONS,
   lumen_stalker: {
@@ -259,7 +261,7 @@ export function buildOceanCatalog(regionId) {
         size: tr`${config.length} m`,
         habitat:
           config.habitatLabel ||
-          tr`${config.depthMin * WORLD.displayDepthScale}—${Math.round(config.depthMax * WORLD.displayDepthScale)} m（本作水层）`,
+          tr`${Math.round(config.depthMin * WORLD.displayDepthScale)}—${Math.round(config.depthMax * WORLD.displayDepthScale)} m（本作水层）`,
         hunterAbility: config.hunterAbility,
         ability: config.hunterAbility
           ? config.ability
@@ -292,39 +294,43 @@ export function buildOceanCatalog(regionId) {
         (DESCRIPTIONS[config.kind].appearance
           ? t(DESCRIPTIONS[config.kind].appearance) + " "
           : "") +
-        (config.mythic
-          ? t(DESCRIPTIONS[config.kind].text)
-          : config.freshwater
-            ? tr`${DESCRIPTIONS[config.kind].text} ${tr`成长至30米，击败雅库玛玛与根颚君王。`}`
-            : config.alien
-              ? tr`${DESCRIPTIONS[config.kind].text} ${tr`成长至30米，击败任一冰下深渊领主。`}`
-              : regionId === "mariana"
-                ? config.kind === "hydra"
-                  ? tr`${DESCRIPTIONS.hydra.text} ${tr`三头巨龙海德拉守卫首层深水岩谷，是第一道压力帘的必经守卫。达到25米后，从侧面完成三次独立咬击，击败它即可开启2600米处的第一道压力帘；本局不再复活。`}`
-                  : tr`${DESCRIPTIONS[config.kind].text} ${tr`本海域的守关领主被击败后不再复活，压力帘随之开启。需成长至30米、突破四关并抵达海沟底部。`}`
-                : regionId === "bermuda"
-                  ? tr`${DESCRIPTIONS[config.kind].text} ${tr`本海域必须击败全部四位深渊领主；各领主只出现一次。`}`
-                  : regionId === "atlantis" && config.kind === "kraken"
-                    ? tr`${DESCRIPTIONS.kraken.text} ${tr`亚特兰蒂斯有三只克拉肯，分别守卫西侧城区、中庭和后城；每只拥有独立领地与生命值。每局随机由其中一只守护波塞冬地宫的圣珠，身份不会预先公开。先在城区公共建筑寻找海螺钥匙。海螺铭文可提供建筑线索；钥匙与真正守宝者的印记齐全，波塞冬地宫宝箱才会开启。达到30米并吞食箱中圣珠才能胜利。所有领主本局不再复活。`}`
-                    : tr`${DESCRIPTIONS[config.kind].text} ${tr`每局击败后不再复活。夏威夷成长至30米并击败任意一位即可胜利。`}`),
+        (config.western
+          ? ""
+          : config.mythic
+            ? t(DESCRIPTIONS[config.kind].text)
+            : config.freshwater
+              ? tr`${DESCRIPTIONS[config.kind].text} ${tr`成长至30米，击败雅库玛玛与根颚君王。`}`
+              : config.alien
+                ? tr`${DESCRIPTIONS[config.kind].text} ${tr`成长至30米，击败任一冰下深渊领主。`}`
+                : regionId === "mariana"
+                  ? config.kind === "hydra"
+                    ? tr`${DESCRIPTIONS.hydra.text} ${tr`三头巨龙海德拉守卫首层深水岩谷，是第一道压力帘的必经守卫。达到25米后，从侧面完成三次独立咬击，击败它即可开启2600米处的第一道压力帘；本局不再复活。`}`
+                    : tr`${DESCRIPTIONS[config.kind].text} ${tr`本海域的守关领主被击败后不再复活，压力帘随之开启。需成长至30米、突破四关并抵达海沟底部。`}`
+                  : regionId === "bermuda"
+                    ? tr`${DESCRIPTIONS[config.kind].text} ${tr`本海域必须击败全部四位深渊领主；各领主只出现一次。`}`
+                    : regionId === "atlantis" && config.kind === "kraken"
+                      ? tr`${DESCRIPTIONS.kraken.text} ${tr`亚特兰蒂斯有三只克拉肯，分别守卫西侧城区、中庭和后城；每只拥有独立领地与生命值。每局随机由其中一只守护波塞冬地宫的圣珠，身份不会预先公开。先在城区公共建筑寻找海螺钥匙。海螺铭文可提供建筑线索；钥匙与真正守宝者的印记齐全，波塞冬地宫宝箱才会开启。达到30米并吞食箱中圣珠才能胜利。所有领主本局不再复活。`}`
+                      : tr`${DESCRIPTIONS[config.kind].text} ${tr`每局击败后不再复活。夏威夷成长至30米并击败任意一位即可胜利。`}`),
       length: config.length,
       size: tr`${config.length} m`,
       tier: 3,
-      habitat: config.mythic
-        ? "蓬莱仙山与云海领地"
-        : regionId === "mariana" && config.kind === "hydra"
-          ? "首层深水岩谷，第一道压力帘上方"
-          : regionId === "mariana" &&
-              MARIANA_GATES.some((g) => g.kind === config.kind)
-            ? tr`${MARIANA_GATES.find((g) => g.kind === config.kind).depth * 4} m（幻想领地）`
-            : regionId === "bermuda"
-              ? {
-                  hydra: "风暴外海表层",
-                  kraken: "沉船西侧深水",
-                  mayan: "东南深沟",
-                  leviathan: "最深海沟",
-                }[config.kind]
-              : tr`${config.depthMin * WORLD.displayDepthScale}—${Math.round(config.depthMax * WORLD.displayDepthScale)} m（幻想领地）`,
+      habitat: config.western
+        ? "神话海路与三位守卫的水下领地"
+        : config.mythic
+          ? "蓬莱仙山与云海领地"
+          : regionId === "mariana" && config.kind === "hydra"
+            ? "首层深水岩谷，第一道压力帘上方"
+            : regionId === "mariana" &&
+                MARIANA_GATES.some((g) => g.kind === config.kind)
+              ? tr`${MARIANA_GATES.find((g) => g.kind === config.kind).depth * 4} m（幻想领地）`
+              : regionId === "bermuda"
+                ? {
+                    hydra: "风暴外海表层",
+                    kraken: "沉船西侧深水",
+                    mayan: "东南深沟",
+                    leviathan: "最深海沟",
+                  }[config.kind]
+                : tr`${Math.round(config.depthMin * WORLD.displayDepthScale)}—${Math.round(config.depthMax * WORLD.displayDepthScale)} m（幻想领地）`,
     })),
     {
       id: "atlantis_key_chest",

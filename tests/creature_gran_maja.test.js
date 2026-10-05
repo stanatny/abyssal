@@ -193,7 +193,7 @@ test("完整游泳周期实际弯曲尾部顶点，缓存网格和另一个实�
   const tailPositions = [];
   for (let step = 0; step <= 48; step++) {
     left.motions.forEach((motion) =>
-      motion(((step / 48) * Math.PI * 2) / 0.32, step < 24 ? 0.4 : 3),
+      motion(((step / 48) * Math.PI * 2) / 0.62, step < 24 ? 0.4 : 3),
     );
     left.root.updateMatrixWorld(true);
     leftBody.skeleton.update();

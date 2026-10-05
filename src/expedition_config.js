@@ -1,3 +1,5 @@
+import { ODYSSEY_WORLD } from "./odyssey_config.js";
+import { ODYSSEY_BOSS_INSTANCES } from "./odyssey_lords.js";
 import { PENGLAI_WORLD, PENGLAI_BOSS_INSTANCES } from "./penglai_config.js";
 import { penglaiText as pt } from "./penglai_species.js";
 import { AMAZON_WORLD } from "./amazon_config.js";
@@ -215,6 +217,29 @@ export const REGIONS = Object.freeze(
       speciesKinds: REGION_SPECIES_KINDS.penglai,
       bossKinds: PENGLAI_BOSS_INSTANCES.map((b) => b.kind),
       bossInstances: PENGLAI_BOSS_INSTANCES,
+      humanActivity: {
+        swimmers: false,
+        divers: false,
+        releasedDivers: false,
+        submarines: false,
+        mines: false,
+      },
+      spawn: [0, -18, 75],
+    },
+    {
+      id: "odyssey",
+      name: "奥德赛迷航海域",
+      available: true,
+      seabedHeat: false,
+      world: ODYSSEY_WORLD,
+      ecologyKind: "mythic",
+      description:
+        "从琥珀色浅湾潜入海妖花园、断桅礁棚与深水峡口。美人鱼、海神马与潮冠娜迦巡游水下，巨蟹卡尔基诺斯、六首斯库拉与吞潮卡律布狄斯分层守住归航之路。",
+      departureHint:
+        "这里是伊萨卡育幼湾 · 沿海草与贝园觅食\n成长后探索断桅遗迹；25米后挑战海路上的三位守卫",
+      speciesKinds: REGION_SPECIES_KINDS.odyssey,
+      bossKinds: ["karkinos", "scylla", "charybdis"],
+      bossInstances: ODYSSEY_BOSS_INSTANCES,
       humanActivity: {
         swimmers: false,
         divers: false,

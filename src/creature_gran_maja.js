@@ -132,16 +132,31 @@ function addBody(body, motions) {
   }
   mesh.add(bones[0]);
   mesh.bind(new THREE.Skeleton(bones));
+  // 复用领主退役路径，只释放此实例的骨骼贴图，保留共享表面缓存。
+  mesh.userData.tentacleSkeleton = mesh.skeleton;
   mesh.boundingSphere = geometry.boundingSphere.clone();
-  mesh.boundingSphere.radius += 0.17;
+  mesh.boundingSphere.radius += 0.3;
   body.add(mesh);
+  let previousPhase,
+    swimmingEffort = 1;
   motions.push((time, effort) => {
-    const beat = time * 0.32,
-      power = 0.14 + effort * 0.024;
+    const targetEffort = THREE.MathUtils.clamp(effort, 0.15, 3);
+    // 使用工厂累计相位平滑摆幅；重复相位保持静止，不引入独立时钟。
+    if (previousPhase === undefined || time < previousPhase)
+      swimmingEffort = targetEffort;
+    else {
+      const phaseStep = Math.min(time - previousPhase, 0.6);
+      swimmingEffort +=
+        (targetEffort - swimmingEffort) * (1 - Math.exp(-phaseStep * 2.3));
+    }
+    previousPhase = time;
+    const beat = time * 0.62,
+      power = 0.24 + swimmingEffort * 0.045;
+    // 颈部根骨固定，侧向曲率向尾部传播并逐步增强，避免只甩末端。
     for (let i = 1; i < bones.length; i++) {
       bones[i].rotation.y =
-        Math.sin(beat - i * 1.06) * power * (0.58 + i * 0.1);
-      bones[i].rotation.x = Math.sin(beat * 0.62 - i * 0.66) * 0.025;
+        Math.sin(beat - i * 0.96) * power * (0.58 + i * 0.13);
+      bones[i].rotation.x = Math.sin(beat - i * 0.96 - 0.8) * 0.01;
     }
   });
 }

@@ -66,22 +66,23 @@ export function createSurface(
     notify,
   };
   const river = surfaceMode === "river";
-  const fleet = river
-    ? {
-        ships: [],
-        colliders: [],
-        update() {},
-        reset() {},
-        onMovement() {},
-        dispose() {},
-      }
-    : storm
-      ? createBermudaFleet(scene, fleetOptions)
-      : night
-        ? createAtlantisFleet(scene, fleetOptions)
-        : trench
-          ? createMarianaFleet(scene, fleetOptions)
-          : createShips(scene, fleetOptions);
+  const fleet =
+    river || regionId === "odyssey"
+      ? {
+          ships: [],
+          colliders: [],
+          update() {},
+          reset() {},
+          onMovement() {},
+          dispose() {},
+        }
+      : storm
+        ? createBermudaFleet(scene, fleetOptions)
+        : night
+          ? createAtlantisFleet(scene, fleetOptions)
+          : trench
+            ? createMarianaFleet(scene, fleetOptions)
+            : createShips(scene, fleetOptions);
   const nightSky = night
     ? createAtlantisSky(scene)
     : trench

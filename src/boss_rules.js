@@ -1,3 +1,4 @@
+import { ODYSSEY_LORDS } from "./odyssey_lords.js";
 import { PENGLAI_LORDS } from "./penglai_lords.js";
 import { AMAZON_LORDS } from "./amazon_lords.js";
 /** 深海主宰的独立战斗规则：领地、蓄力预警、攻击、恢复与三次有效侧咬。 */
@@ -429,6 +430,7 @@ export const BOSS_SPECIES = Object.freeze(
     },
     ...AMAZON_LORDS,
     ...PENGLAI_LORDS,
+    ...ODYSSEY_LORDS,
   ].map((species) => Object.freeze(species)),
 );
 

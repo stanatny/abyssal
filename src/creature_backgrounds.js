@@ -1,3 +1,5 @@
+import { ODYSSEY_SPECIES, ODYSSEY_EN } from "./odyssey_species.js";
+import { ODYSSEY_LORD_DESCRIPTIONS } from "./odyssey_lords.js";
 import { CREATURE_LORE } from "./creature_lore.js";
 /** 自然百科、化石复原与传说分开记录；本作战斗参数不当作真实生物知识。 */
 export const BACKGROUND_EN = {
@@ -703,6 +705,21 @@ const rares = [
   ],
 ];
 for (const [kind, zh, en] of rares) add(kind, "背景故事", zh, en);
+for (const species of ODYSSEY_SPECIES)
+  add(
+    species.kind,
+    "神话传说",
+    species.description,
+    ODYSSEY_EN[species.description],
+  );
+for (const [kind, description] of Object.entries(ODYSSEY_LORD_DESCRIPTIONS))
+  add(kind, "神话传说", description.text, ODYSSEY_EN[description.text]);
+add(
+  "golden_argonaut",
+  "背景故事",
+  "金帆船蛸以薄如纸的螺壳托着身躯，扩大的背腕像一张金帆。它沿古航路独行，转身时先收起帆缘，再把两束灵动的触腕送进水流。",
+  "Golden Argonaut carries a paper-thin coiled shell below enlarged dorsal arms like a golden sail. It follows old sea roads alone, furling its sail edges before sending two lively arm bundles into the current.",
+);
 for (const [kind, zh, en] of CREATURE_LORE) {
   const previous = records.get(kind);
   add(

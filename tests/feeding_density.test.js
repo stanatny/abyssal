@@ -156,3 +156,32 @@ test("狭窄地下栖地按验收容量增密，不得把额外中鱼挤出既�
   assert.equal(result.population, 9);
   assert.equal(result.schoolProfiles[0].densityLimit, 3);
 });
+
+test("regional resident density override changes stock without altering meals or habitat ownership", () => {
+  const source = {
+    kind: "region_resident",
+    length: 4,
+    population: 10,
+    schoolSize: 1,
+    residentRadius: 30,
+    worldBounds: WORLD,
+    depthMin: 10,
+    depthMax: 100,
+    nutrition: 30,
+    growth: 0.5,
+    spawnAnchors: [[0, -40, -300]],
+  };
+  const ordinary = densifyFeedingSchools([source])[0];
+  const tuned = densifyFeedingSchools([
+    { ...source, densityMultiplier: 1.1 },
+  ])[0];
+  assert.equal(ordinary.population, 15);
+  assert.equal(tuned.population, 11);
+  assert.equal(source.population, 10);
+  assert.equal(tuned.nutrition, source.nutrition);
+  assert.equal(tuned.growth, source.growth);
+  assert.deepEqual(
+    tuned.spawnAnchors.slice(0, 10),
+    ordinary.spawnAnchors.slice(0, 10),
+  );
+});

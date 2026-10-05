@@ -1,3 +1,4 @@
+import { ODYSSEY_SPECIES } from "./odyssey_species.js";
 import { PENGLAI_SPECIES } from "./penglai_species.js";
 import { disperseLargePrey } from "./large_prey_distribution.js";
 import { AMAZON_SPECIES } from "./amazon_species.js";
@@ -32,6 +33,7 @@ export const ALL_SPECIES = Object.freeze([
   ...EUROPA_SPECIES,
   ...AMAZON_SPECIES,
   ...PENGLAI_SPECIES,
+  ...ODYSSEY_SPECIES,
 ]);
 
 /**
@@ -147,6 +149,7 @@ const ATLANTIS_OVERRIDES = {
 };
 
 const BASE_REGION_SPECIES = Object.freeze({
+  odyssey: ODYSSEY_SPECIES,
   penglai: PENGLAI_SPECIES,
   europa: EUROPA_SPECIES,
   amazon: AMAZON_SPECIES,

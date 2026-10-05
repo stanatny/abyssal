@@ -1,4 +1,26 @@
+# Uncommitted Odyssean anatomy and flowing-motion follow-up — 2026-10-05
+
+Current branch `feature/odyssey`, based on published v0.10.2 / `25d463e`. This review supersedes the preceding 14-kind refinement below. Twenty-one ordinary kinds instantiate 269 individuals; one rare and three once-only guardians remain separate. Terrain-fitted Karkinos feet, joined mouthparts, slope-following pursuit and a warned inner frontal sweep address the crab report. Seven Odyssey long bodies use continuous, body-plan-specific waves with attached trim; Gran Maja retains its accepted head/size/skill/contact root while improving whole-body lateral flow and private skeleton retirement. New seven-kind anatomy/stories/actual homes and both locales are wired through the same Guide/world factories.
+
+The full 937-unit suite, final-copy targeted units, 29 shared browser checks, fifty native Odyssey bilingual Guide cases, sixteen eight-region switches, four characters, feeding/replenishment, pause, three-hit/all-three settlement, ten paired real-AI attack cases, actual slope pursuit and separate Gran Maja native checks pass. Two warmed Odyssey visits repeat 1331 geometries / 1346 textures. Serial before/candidate/repeated-before populated samples remain near 60 FPS with p95 18.5–18.8 ms, but CPU/draw changes are mixed; this is not a claimed power or performance improvement. Read [the complete current measurements and limits](odyssey_roster_revision.md) and [regional verification](odyssey_verification.md).
+
+The restricted preview was rebuilt; nine artifacts per local/public host and all 299 runtime source fingerprints match. Compiled local/public each pass 52 bilingual Guide cases, four character play/pause/home flows and a 390 px Guide view with no observed errors. Production hooks are absent and private paths are denied. Source remains uncommitted, with no push/merge/formal publication authorized. The previous served runtime is retained and the published seven-region Pages remains unchanged. Current ignored evidence: `.local/odyssey_roster_review/`.
+
+---
+
+# Preceding Odyssean Sea refinement — historical, superseded
+
+Current branch `feature/odyssey`, base main `25d463e` / published v0.10.2. The waterline now uses actual waves and above-water opacity; four humanoid faces/tail rigs are refined, ordinary regional stock is 266 across fourteen kinds, and Karkinos adds the third evenly separated guardian. Distinct directional attacks replace Charybdis's previous circular suction and retain Scylla's actual-mouth volley. Shared Kraken behavior and the seven accepted regional stocks remain intact. Completion requires 30 m and all three once-only guardians.
+
+The actual eighteen-specimen bilingual Guide, four characters, food/replenishment, pause, controlled all-three settlement and sixteen region switches pass. Eight paired hit/evasion cases and ten exact-width 320/390 touch warnings pass without observed errors. Five native-game offline audio clips remain finite and muted tails are silent. Read [current verification and explicit limits](odyssey_verification.md) and [scope/rollback](odyssey_refinement.md). The final 929-unit suite, 29 shared native browser checks and formatting pass. Serial populated High samples remain about 60 FPS with p95 18.6/18.8 ms at matched middle/deep fixtures. Build and compiled local/public delivery pass: each host has 36 bilingual Guide cases, four character flows and nine exact artifacts; all 293 runtime fingerprints match. Production hooks are absent and restricted paths remain unavailable. The previous runtime is retained. Current ignored receipts: `.local/odyssey_revision/`. Historical initial-map values below are not current results. No commit/push/merge/formal publication is authorized.
+
+---
+
 # v0.10.2 release preflight — 2026-10-05
+
+## Initial Odyssean Sea candidate — historical, superseded by the refinement
+
+Based on main `25d463e` / v0.10.2; no commit, push, merge or formal publication. The eighth region includes fourteen exclusive ordinary kinds, two new once-only lords, one rare, native galley exploration, independent music and bilingual lore/skill cards. 923 units, 29 shared native checks, the dedicated Odyssey browser entry point, formatting/build, controlled six-shot/suction/escape/meal/respawn/pause, 16 region switches and narrow touch warning checks pass. Compiled local/public each pass 34 bilingual Guide cases and four character flows; nine artifacts and 289 source fingerprints match. See [the full candidate record](odyssey_verification.md) for source references, populated frame costs, loading rollback, retained build and limits. Formal Pages remains the seven-region release below.
 
 The user accepted and authorized the accumulated branch for commit/push to `main`. This release includes ground navigation, long-body motion/large-prey dispersion, continuous tentacles, Kraken/Azure Dragon techniques, Europa arm combat, fitted rare eyes/mobile triangle controls and the final five-crocodilian anatomy/swim correction. [Release scope and reusable methods](release_v0_10_2.md) supersede the historical candidate-only delivery labels below, without changing their recorded outcomes.
 

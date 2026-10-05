@@ -1,4 +1,8 @@
 import {
+  ODYSSEY_CREATURE_KINDS,
+  buildOdysseyCreature,
+} from "./creature_odyssey.js";
+import {
   RARE_CREATURE_KINDS,
   buildRegionalRare,
 } from "./creature_regional_rare.js";
@@ -92,7 +96,10 @@ export function createCreature(kind, length = 6, seed = 1) {
   let previousTime;
   let swimTime = phase;
 
-  if (RARE_CREATURE_KINDS.has(kind)) buildRegionalRare(kind, root, motions);
+  if (ODYSSEY_CREATURE_KINDS.has(kind))
+    buildOdysseyCreature(kind, root, motions);
+  else if (RARE_CREATURE_KINDS.has(kind))
+    buildRegionalRare(kind, root, motions);
   else if (kind === "mechanical_shark") buildMechanicalShark(root, motions);
   else if (kind === "zombie_shark") buildZombieShark(root, motions);
   else if (kind === "abyss_weaver") buildAbyssWeaver(root, motions);

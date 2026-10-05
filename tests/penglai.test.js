@@ -61,8 +61,8 @@ hook.deregister();
 const roster = getRegionSpecies("penglai");
 
 test("Penglai is the seventh isolated mythic destination with real ordinary and guardian registries", () => {
-  assert.equal(REGIONS.at(-1).id, "penglai");
-  assert.equal(REGIONS.at(-2).id, "europa");
+  assert.equal(REGIONS[6].id, "penglai");
+  assert.equal(REGIONS[5].id, "europa");
   assert.equal(roster.length, 18);
   assert.equal(
     roster.reduce((n, s) => n + s.population, 0),
@@ -74,7 +74,11 @@ test("Penglai is the seventh isolated mythic destination with real ordinary and 
     ),
   );
   for (const r of REGIONS.filter((r) => r.id !== "penglai")) {
-    assert.ok(getRegionSpecies(r.id).every((s) => !s.mythic));
+    assert.ok(
+      getRegionSpecies(r.id).every(
+        (s) => Boolean(s.mythic) === (r.id === "odyssey"),
+      ),
+    );
     assert.ok(
       r.bossKinds.every((k) => !PENGLAI_LORDS.some((s) => s.kind === k)),
     );

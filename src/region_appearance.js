@@ -31,6 +31,25 @@ const ATLANTIS_ZONES = {
 /** 海域仅改变区域展示，深度阈值与饥饿计算仍由共享规则决定。 */
 export function regionZone(regionId, depth, position = null) {
   const zone = getZone(depth);
+  if (regionId === "odyssey") {
+    const row =
+      depth < 60
+        ? ["伊萨卡浅湾", "ITHACAN SHALLOWS"]
+        : depth < 200
+          ? ["海妖花园", "NEREID GARDENS"]
+          : depth < 330
+            ? ["断桅遗迹", "BROKEN-MAST RUINS"]
+            : depth < 490
+              ? ["六首峡口", "SIX-HEADED STRAIT"]
+              : ["吞潮深潭", "TIDE-SWALLOWING BASIN"];
+    return {
+      ...zone,
+      name: row[0],
+      code: row[1],
+      description:
+        "沿贝园与古代航路成长，寻找三位守卫领域外的丰厚食物，再探索深水峡口。",
+    };
+  }
   if (regionId === "penglai")
     return {
       ...zone,

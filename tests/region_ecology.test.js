@@ -82,8 +82,8 @@ test("海域名单隔离，夏威夷522个体与亚特兰蒂斯568个体保持�
     69,
   );
   assert.equal(ALL_SPECIES.filter((s) => s.category === "alien").length, 16);
-  assert.equal(ALL_SPECIES.length, 103);
-  assert.equal(new Set(ALL_SPECIES.map((s) => s.kind)).size, 103);
+  assert.equal(ALL_SPECIES.length, 124);
+  assert.equal(new Set(ALL_SPECIES.map((s) => s.kind)).size, 124);
   const atlantis = getRegionSpecies("atlantis");
   assert.equal(atlantis.length, 20);
   assert.equal(

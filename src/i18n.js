@@ -1,3 +1,5 @@
+import { ODYSSEY_EN } from "./odyssey_species.js";
+import { ODYSSEY_UI_EN } from "./locales/odyssey_en.js";
 import { LORD_REVISION_EN } from "./locales/lord_revision_en.js";
 import { CREATURE_SKILLS_EN } from "./locales/creature_skills_en.js";
 import { BACKGROUND_EN } from "./creature_backgrounds.js";
@@ -21,6 +23,8 @@ export const SUPPORTED_LANGUAGES = Object.freeze(["zh-CN", "en"]);
 const english = Object.freeze(
   Object.assign(
     Object.create(null),
+    ODYSSEY_EN,
+    ODYSSEY_UI_EN,
     CATALOG_EN,
     UI_EN,
     ATLANTIS_EN,

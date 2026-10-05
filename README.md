@@ -1,6 +1,6 @@
 # ABYSSAL
 
-A third-person ocean survival game for the browser. Choose an Orca, Giant Squid, Zombie Shark or Mechanical Shark: feed, grow, escape hunters, and challenge the giants below. The seven destinations are Hawaii, Atlantis, Bermuda, Mariana, the Amazon River, Europa's alien ice ocean and the airborne mythic Penglai Sanctuary.
+A third-person ocean survival game for the browser. Choose an Orca, Giant Squid, Zombie Shark or Mechanical Shark: feed, grow, escape hunters, and challenge the giants below. The published destinations are Hawaii, Atlantis, Bermuda, Mariana, the Amazon River, Europa's alien ice ocean and the airborne mythic Penglai Sanctuary. An eighth underwater destination, the Odyssean Sea, is in candidate review.
 
 **[Play the published game](https://stanatny.github.io/abyssal/)** · [GitHub repository](https://github.com/stanatny/abyssal)
 
@@ -23,6 +23,14 @@ The [tentacle and guardian review](docs/tentacle_combat_revision.md) gives octop
 The [Europa combat review](docs/europa_lord_revision.md) gives Lumen Stalker three sequential locked arm lances and Abyss Weaver staggered vertical Tidal Loom bands. Both retain readable warnings, cover and recovery windows. Cameroceras, Pearl Nautilus, Spiral Grazer and Bell Carrier appendages also bend continuously. The [rare-eye and touch review](docs/rare_eye_touch_revision.md) restores visible eyes and places phone slow swim above skill and sprint.
 
 The [Amazon crocodilian review](docs/amazon_crocodilian_revision.md) differentiates skulls, fitted eyes/teeth, muscular bodies, keeled armor and articulated feet across all five shared models. The final swimming correction keeps fast-swimming feet trailing outside the flanks and joins a gentle rear-body wave to the tail. Ecology, body lengths, food and combat values are unchanged. Linked review records retain the status and measurements at their original review; this release supersedes their candidate-only delivery status.
+
+## Odyssean Sea candidate
+
+The western-mythology sea road adds twenty-one exclusive ordinary kinds, including Coral Mermaids, Hippocampi, Tide-crowned Naga and Ketos, with distinct anatomy and continuous swimming. Rose coral, Mediterranean seagrass, broken fluted gateways, amphora fields and an enterable 90 m ancient galley lead from safe Ithacan shallows through three spaced guardian territories. Independent 18–24 m meals support late recovery without turning the largest predators into dense schools.
+
+**Karkinos** guards the broken-mast shelf with eight terrain-fitted jointed legs, unequal giant claws, an inner frontal sweep and two longer pinch sectors and three bottom-hugging pressure lanes. **Scylla** guards the middle strait with six independently moving necks, toothed heads, twelve fin-feet and six staggered mouth-launched water lances. **Charybdis** guards the deeper basin with a bounded frontal intake and a locked travelling tidewall, without Kraken arms or grip. Each has marked escape space, solid-cover checks and a 4–4.5 second recovery window. At 25 m, three separate valid hits can defeat each; complete the sea road at 30 m after defeating all three once-only guardians.
+
+All four playable characters start at 3 m, and the exclusive Golden Argonaut follows the existing evasive rare/150-cap rules. The Guide includes independent bilingual stories and separate skill cards. The preceding refinement reduced ordinary stock from 319 to 266. The current follow-up expands to 21 distinct ordinary kinds with 269 individuals, retains late recovery meals, seats Karkinos on sloping terrain and adds flowing serpent/mermaid motion. Gran Maja’s shared model also gains a stronger travelling body wave, with its accepted head, size, skills and contact geometry preserved. See [the current anatomy and roster review](docs/odyssey_roster_revision.md) and [the preceding refinement](docs/odyssey_refinement.md). Lyre-like exploration music transitions to a faster pursuit pulse and a deeper guardian layer. The candidate remains uncommitted and is not part of the published link above; see [the brief](docs/odyssey_brief.md) and [verification and limits](docs/odyssey_verification.md).
 
 ## Living ecosystems and mythic forms
 
@@ -138,15 +146,16 @@ Mariana's surface has a cool Pacific survey identity: an original research ship,
 
 The regional roster audit covers actual food and threat populations alongside the Ocean Guide. Hawaii adds a slow, independently modeled **Archelon**; Mariana adds a barrel-bodied **Shonisaurus** across its feeding layers. Bermuda gains 11–12 m pliosaurs and plesiosaurs between medium prey and its larger giants. Every destination has at least three ordinary kinds in each shoal, modern-hunter and ancient category, with regional exclusives in each. Shared creatures remain intentional.
 
-| Destination       | Ordinary kinds / animals | Completion                                                                           |
-| ----------------- | ------------------------ | ------------------------------------------------------------------------------------ |
-| Hawaiian Waters   | 28 / 516                 | Reach 30 m and defeat any one selected local lord                                    |
-| Atlantis Ruins    | 20 / 560                 | Find the conch key and secret guardian's mark, then consume the temple pearl at 30 m |
-| Bermuda Triangle  | 24 / 467                 | Defeat all four local lords                                                          |
-| Mariana Trench    | 22 / 453                 | Reach 30 m, defeat all four ordered gatekeepers and reach the bottom refuge          |
-| Amazon River      | 20 / 409                 | Reach 30 m and defeat Yacumama and Rootjaw                                           |
-| Europa            | 16 / 352                 | Reach 30 m and defeat either local alien lord                                        |
-| Penglai Fairyland | 18 / 437                 | Defeat the Four Symbols and the Sword Sage; shared 25 m eligibility                  |
+| Destination              | Ordinary kinds / animals | Completion                                                                           |
+| ------------------------ | ------------------------ | ------------------------------------------------------------------------------------ |
+| Hawaiian Waters          | 28 / 516                 | Reach 30 m and defeat any one selected local lord                                    |
+| Atlantis Ruins           | 20 / 560                 | Find the conch key and secret guardian's mark, then consume the temple pearl at 30 m |
+| Bermuda Triangle         | 24 / 467                 | Defeat all four local lords                                                          |
+| Mariana Trench           | 22 / 453                 | Reach 30 m, defeat all four ordered gatekeepers and reach the bottom refuge          |
+| Amazon River             | 20 / 409                 | Reach 30 m and defeat Yacumama and Rootjaw                                           |
+| Europa                   | 16 / 352                 | Reach 30 m and defeat either local alien lord                                        |
+| Penglai Fairyland        | 18 / 437                 | Defeat the Four Symbols and the Sword Sage; shared 25 m eligibility                  |
+| Odyssean Sea (candidate) | 14 / 266                 | Reach 30 m and defeat Karkinos, Scylla and Charybdis                                 |
 
 All selected lords stay defeated for the round; ordinary prey still respawn in their habitats. Lord attacks retain the shared 25 m eligibility and three separate flank bites. Atlantis's normal food and decorative house chests cannot complete its quest. Optional conch inscriptions reveal the key building on radar. Key and guardian can be found in either order; returning home resets both selections. Each destination now shows its identity, difficulty, food progression and objective in selection and Guide; phones can expand the longer overview. See [the implementation and verification record](docs/four_regions_revision.md). These regional objectives are included in v0.8.0.
 
@@ -309,7 +318,7 @@ npm run build     # Build the static site into dist/
 npm run preview   # Preview the built artifacts locally
 ```
 
-Keep the development server running and execute `npm run test:browser` in another terminal for key browser flows. Browser scripts use locally installed Google Chrome; `ABYSSAL_DEV_URL` overrides the development URL. Run `node scripts/verify_i18n.mjs` for bilingual browser coverage; consult the [verification record](docs/verification.md) for execution results and limits. Targeted entry points, results, and limits are documented there. Screenshots, logs, and listening files go to Git-ignored `.local/`.
+Keep the development server running and execute `npm run test:browser` in another terminal for key browser flows. Browser scripts use locally installed Google Chrome; `ABYSSAL_DEV_URL` overrides the development URL. Run `node scripts/verify_i18n.mjs` for bilingual browser coverage; consult the [verification record](docs/verification.md) for execution results and limits. Run `ABYSSAL_DEV_URL=http://127.0.0.1:5280 node scripts/verify_odyssey.mjs` for the candidate-specific native ecology, combat, bilingual Guide and touch checks. Its controlled cases do not replace natural full-round play. Targeted entry points, results, and limits are documented there. Screenshots, logs, and listening files go to Git-ignored `.local/`.
 
 Project documentation is maintained in English. Existing Chinese source comments remain; new player-facing copy is maintained through `src/i18n.js` and `src/locales/` so both supported languages stay covered.
 

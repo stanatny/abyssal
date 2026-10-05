@@ -68,7 +68,10 @@ test("Guide category availability follows the actual region roster, independentl
       );
     }
     assert.equal(available.has("alien"), region.id === "europa");
-    assert.equal(available.has("mythic"), region.id === "penglai");
+    assert.equal(
+      available.has("mythic"),
+      ["penglai", "odyssey"].includes(region.id),
+    );
     assert.ok(available.has("rare"));
     assert.ok(available.has("player"));
   }
@@ -91,15 +94,18 @@ test("the guide's full and regional catalogs agree with actual species and lord 
   const catalog = buildOceanCatalog();
   assert.equal(
     catalog.length,
-    140 + REGIONAL_RARES.length + PENGLAI_TRANSFORMATION_FORMS.length,
+    164 + REGIONAL_RARES.length + PENGLAI_TRANSFORMATION_FORMS.length,
   );
   assert.equal(
     catalog.filter((e) =>
-      e.regionIds.some((id) => id !== "europa" && id !== "penglai"),
+      e.regionIds.some(
+        (id) => id !== "europa" && id !== "penglai" && id !== "odyssey",
+      ),
     ).length,
     96 +
-      REGIONAL_RARES.filter((s) => !["europa", "penglai"].includes(s.regionId))
-        .length,
+      REGIONAL_RARES.filter(
+        (s) => !["europa", "penglai", "odyssey"].includes(s.regionId),
+      ).length,
   );
   assert.equal(new Set(catalog.map((entry) => entry.id)).size, catalog.length);
   assert.deepEqual(
@@ -265,7 +271,7 @@ test("region, category, and bilingual searches compose without hiding the full a
       );
       assert.equal(
         filterOceanCatalog(catalog, { category: "lord" }).length,
-        13,
+        BOSS_SPECIES.length,
       );
     }
   } finally {
