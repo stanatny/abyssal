@@ -89,6 +89,11 @@ import {
 } from "./simulation.js";
 import { OceanAudio } from "./audio.js";
 import { steerWithinHabitat, resolveCreatureMotion } from "./navigation.js";
+import {
+  overlapsStaticSpheres,
+  pushFromStaticSpheres,
+  steerFromStaticSpheres,
+} from "./static_sphere_navigation.js";
 import { stepSurfaceSteering } from "./surface_steering.js";
 import { needsGroundRecovery, stepGroundSteering } from "./ground_steering.js";
 import {
@@ -270,6 +275,8 @@ const entityOffset = new THREE.Vector3();
 const previousHabitatPosition = new THREE.Vector3();
 const entityOrientation = new THREE.Quaternion();
 const entityUnitVelocity = new THREE.Vector3();
+const entityScreenPoint = new THREE.Vector3();
+const targetScreenPoint = new THREE.Vector3();
 const modelForward = new THREE.Vector3(0, 0, -1);
 const captureContact = new THREE.Vector3();
 const preyContact = new THREE.Vector3();
@@ -921,7 +928,7 @@ function updateSonar() {
     contacts: scan.contacts,
     camera,
     viewport: { width: innerWidth, height: innerHeight },
-    occlusions: getMarkerOcclusions(),
+    occlusions: visible ? getMarkerOcclusions() : [],
   });
   sonar.setPresentation(echoPresentation);
   sonarWave.update({
@@ -1801,13 +1808,8 @@ function resolveMinionMotion(previous, desired, heading, length) {
   });
 }
 function pushFromRocks(point, radius) {
-  for (const rock of ocean.obstacles) {
-    temp.set(point.x - rock.x, point.y - rock.y, point.z - rock.z);
-    const distance = temp.length(),
-      limit = rock.radius + radius;
-    if (distance < limit && distance > 0.01)
-      point.addScaledVector(temp, (limit - distance) / distance);
-  }
+  if (ocean.obstacles.length)
+    pushFromStaticSpheres(point, radius, ocean.obstacles);
 }
 // 判定遵循可见角色的转向，避免乌贼快速转向时逻辑朝向领先模型。
 function capturePoint(out) {
@@ -2175,6 +2177,7 @@ const mythicMovementContext = {
 };
 function updateEntities(dt) {
   updateSchools();
+  const hasRocks = ocean.obstacles.length > 0;
   aerialSpacing.rebuild(entities);
   threat = null;
   let bestThreat = Infinity;
@@ -2523,17 +2526,13 @@ function updateEntities(dt) {
     direction.set(steered.x, steered.y, steered.z);
     if (entity.chase <= 0) entity.heading = Math.atan2(steered.x, -steered.z);
     // 捕食者会绕行岩柱；视线中断后追击记忆逐渐消失。
-    for (const rock of ocean.obstacles) {
-      temp.set(
-        mesh.position.x - rock.x,
-        mesh.position.y - rock.y,
-        mesh.position.z - rock.z,
+    if (hasRocks)
+      steerFromStaticSpheres(
+        direction,
+        mesh.position,
+        species.length * 0.25 + 4,
+        ocean.obstacles,
       );
-      const d = temp.length(),
-        safe = rock.radius + species.length * 0.25 + 4;
-      if (d < safe && d > 0.01)
-        direction.addScaledVector(temp.normalize(), ((safe - d) / safe) * 3);
-    }
     direction.normalize();
     if (species.flying) aerialSpacing.steer(entity, direction);
     previousHabitatPosition.copy(mesh.position);
@@ -2643,13 +2642,14 @@ function updateEntities(dt) {
     }
     if (layeredSchool) {
       // 水层钳制可能将刚推出岩石的鱼再次压入岩面；回退一次，避免反复投影抖动。
-      const overlapsRock = ocean.obstacles.some(
-        (rock) =>
-          (mesh.position.x - rock.x) ** 2 +
-            (mesh.position.y - rock.y) ** 2 +
-            (mesh.position.z - rock.z) ** 2 <
-          (rock.radius + species.length * 0.12) ** 2 - 1e-8,
-      );
+      const overlapsRock =
+        hasRocks &&
+        overlapsStaticSpheres(
+          mesh.position,
+          species.length * 0.12,
+          ocean.obstacles,
+          1e-8,
+        );
       if (overlapsRock) {
         mesh.position.copy(previousHabitatPosition);
         entity.heading += Math.PI * 0.6;
@@ -3461,16 +3461,21 @@ function updateHud() {
   }
   let target = null,
     targetScore = Infinity;
-  for (const e of markersEnabled && !aimPreview ? entities : []) {
+  const showTarget =
+    markersEnabled &&
+    !aimPreview &&
+    effects.ink <= 0.35 &&
+    !sonar.snapshot.active;
+  for (const e of showTarget ? entities : []) {
     if (!e.mesh.visible) continue;
     const d = e.mesh.position.distanceTo(position);
-    if (d > 100 || blockedBetween(position, e.mesh.position)) continue;
-    const p = e.mesh.position.clone().project(camera);
+    if (d > 100) continue;
+    const p = entityScreenPoint.copy(e.mesh.position).project(camera);
     if (p.z > 1 || Math.abs(p.x) > 0.82 || Math.abs(p.y) > 0.7) continue;
     const score = p.x * p.x + p.y * p.y + d * 0.001;
-    if (score < targetScore) {
+    if (score < targetScore && !blockedBetween(position, e.mesh.position)) {
       targetScore = score;
-      target = { e, p, d };
+      target = { e, p: targetScreenPoint.copy(p), d };
     }
   }
   $("target").hidden = !target;

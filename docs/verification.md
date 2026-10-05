@@ -1,3 +1,25 @@
+# v0.11.1 release preflight — Runtime CPU Refinement
+
+On 2026-10-05 the user accepted the runtime CPU candidate and authorized pushing it to `main`. Read [the release scope](release_v0_11_1.md). Version metadata and both-language footer identify v0.11.1. Fresh preflight and exact Actions/Pages receipts belong in ignored `.local/release_v0_11_1/`; candidate receipts below remain historical and are not presented as new performance measurements. Their former no-commit/no-push restrictions are superseded for this accepted release.
+
+Fresh release preflight passes **967 unit tests**, seven localization checks, formatting and the production build. The actual compiled English home screen is captured for README; English/Chinese footer checks pass with no observed errors. The initial screenshot oracle incorrectly flagged the intentionally native “中文” language option as untranslated text; the corrected check covers the actual menu and preserves bilingual language selection. The build retains its existing large-chunk warning. Prior accepted eight-region and 29-browser runtime receipts below remain valid; this release changes only version/publication presentation beyond that reviewed delta.
+
+Verify the exact pushed commit, successful Actions deployment, downloaded CI artifacts and formal native/bilingual flows before marking publication complete. No shared Skill publication is requested; near-view art, ecology and gameplay are preserved.
+
+---
+
+# Uncommitted runtime CPU performance follow-up — 2026-10-05
+
+Based on published v0.11.0 / `9122033`, in `fix/runtime-performance-v0-11`. The new delta is not committed or published. Read [the runtime review](runtime_performance_revision.md). Retained changes remove full static-rock scans and unnecessary target/sonar work; populations, AI cadence, food, survival, collision contracts and model/shader data remain unchanged. Query visitation stamps and static-matrix caching were measured and removed.
+
+Fresh checks pass **967 units** and **29 shared native-browser checks**. Dedicated native eight-region play/pause/home checks retain ordinary stocks **516/560/467/453/409/352/437/269**, no observed errors, and **36** available target frames match the original brute selection. Pause freezes position, survival and drawing after its required entry paint. Selected Atlantis canvas/world matrices remain unchanged. The initial native oracle counted pending pause paint as idle work; its corrected receipt is distinct and neither changes game code nor relaxes frozen simulation assertions.
+
+Serial headed M2 Pro/macOS 26.6.2/Chrome154 profiles use local Vite, High, 1440×900/DPR1, seed71523, 25 m Orca and real ecology. Matched 240-frame Atlantis main-loop CPU is **11.54→7.34 ms/frame**, with **275 draws / 914,244 triangles** unchanged; frame p95 **19.2→18.5 ms** and about60 FPS. Hawaii's supporting 120→240-frame sample records **8.24→5.51 ms CPU**; moving/culling content differs across sample lengths. Penglai candidate repeats **7.05–7.41 ms** around baseline **7.17 ms**, with no demonstrated gain. Original scripts/raw frames/repeats and removed trials remain in ignored `.local/runtime_performance_review/`. These short desktop samples do not prove lower phone heat, GPU/power savings, natural long-round behavior or faster loading.
+
+Formatting and production build pass with the existing large-bundle warning. Rebuilt restricted **local/public** hosts each pass **38 bilingual Guide cases**, **eight regional character play/pause/home flows** and **320/390 px** views, with no observed page/console errors. All **nine active artifacts per host** and **301 runtime/build fingerprints** match. Production debug hooks are absent, private/development paths are denied, and a temporary safe asset proves same-address refresh before removal. The previous runtime/manifest is retained. Sampling-only ports5284/5286 are stopped after identity checks; established preview services remain. Current ignored manifest: `.local/runtime_performance_review/manifest.json`. Candidate: https://satisfactory-keyword-recently-cakes.trycloudflare.com/?preview=runtime-cpu-20261005. Formal Pages remains v0.11.0; no new commit/push/merge/release or shared Skill publication occurred.
+
+---
+
 # v0.11.0 release verification
 
 The user authorized committing and publishing the reviewed eighth-region/progression candidate to the primary branch on 2026-10-05. Accepted checkpoint `01da839` and subsequent progression/scope corrections are included. The sections below preserve earlier raw checks and candidate labels; their former delivery restrictions are superseded by this release authorization. Read [the release summary](release_v0_11_0.md). Fresh preflight and formal deployment receipts belong in ignored `.local/release_v0_11_0/` and are distinct from the preceding candidate evidence.

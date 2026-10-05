@@ -1,3 +1,23 @@
+# v0.11.1 release — Runtime CPU Refinement
+
+On 2026-10-05 the user accepted the performance candidate and explicitly authorized pushing it to `main`. Release from `fix/runtime-performance-v0-11`, based on v0.11.0 / `9122033`, then fast-forward clean `main` without discarding other worktrees. No tag, GitHub Release or personal shared Skill update is requested.
+
+Read [the release summary](docs/release_v0_11_1.md), [runtime review](docs/runtime_performance_revision.md) and [verification](docs/verification.md). Only the reviewed static-rock navigation and target/sonar computation changes are retained. Preserve food, AI timing, collision equivalence, art, quality, objectives and all eight inventories. Typed query stamps and static-matrix caching remain excluded. Version metadata and both-language footer identify v0.11.1. Fresh release checks and exact Pages deployment/source/artifact/native-player receipts belong in ignored `.local/release_v0_11_1/`.
+
+The sections below preserve historical candidate states and raw measurements. Their former no-commit/no-push restrictions are superseded for this accepted delta by the current publication authorization. Keep established development, restricted-preview and tunnel services intact. Verify the exact deployed commit and actual formal player flows; successful push or HTTP200 alone is insufficient.
+
+---
+
+# Uncommitted runtime CPU performance follow-up
+
+Continue on `fix/runtime-performance-v0-11`, based on released v0.11.0 / `91220331b3623e59e5e3d930b5955d73de500840`. The user requested another performance improvement. No new commit, push, primary-branch merge or formal publication is authorized. Formal Pages stays v0.11.0.
+
+Read [the current runtime review](docs/runtime_performance_revision.md) and [verification](docs/verification.md). The retained candidate reuses the existing immutable static-collider grid for ordinary-animal rock steering/overlap and conservatively gates the original ordered projection. Generic target selection filters screen/score before obstruction queries, reuses projection vectors and skips hidden work; inactive sonar avoids unused panel reads. Preserve all populations, food, AI cadence, survival, collisions, art, shaders and objectives. Static spheres are immutable; dynamic colliders stay on their existing path.
+
+Typed query visitation stamps and Atlantis static-matrix caching were tried and removed because additional benefit was not repeatable. Do not restore them based on a single profile. Strongest matched desktop evidence: Atlantis High, 25 m Orca, 1440×900/DPR1, 240 frames, CPU 11.54→7.34 ms with 275 draws / 914,244 triangles unchanged; FPS is already about 60. Penglai has no demonstrated gain. Physical-phone temperature, power and natural long sessions remain unmeasured. Frozen baseline, raw trials and fresh checks belong in ignored `.local/runtime_performance_review/`. Rebuild and hash-match the restricted preview, retain its previous runtime and established services; sampling-only servers can be stopped after verification. Verified candidate: **967 units**, **29 shared native-browser checks**, eight-region stock/play/pause and **36** target-equivalence frames pass. Formatting/build and restricted compiled local/public each pass **38 bilingual Guide cases**, **eight regional play/pause/home flows**, 320/390px views and **nine artifacts**; **301 runtime/build fingerprints** match. Production hooks/private paths are unavailable, no observed errors, and the previous runtime is retained. Sampling-only5284/5286 are stopped; established services remain. Current manifest: ignored `.local/runtime_performance_review/manifest.json`. Candidate: https://satisfactory-keyword-recently-cakes.trycloudflare.com/?preview=runtime-cpu-20261005. Existing release/candidate sections below are historical and do not authorize publication of this new delta.
+
+---
+
 # v0.11.0 release — Odyssean Sea and Steady Progression
 
 On 2026-10-05 the user accepted the current candidate and explicitly authorized publishing to the primary branch. Release `feature/odyssey` from accepted local checkpoint `01da839`, including the all-region progression changes and the Mechanical-only growth-scope correction. Fast-forward clean `main` without discarding other worktrees. No new tag or GitHub Release is requested.

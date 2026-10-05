@@ -4,13 +4,13 @@ A third-person ocean survival game for the browser. Choose an Orca, Giant Squid,
 
 **[Play the published game](https://stanatny.github.io/abyssal/)** · [GitHub repository](https://github.com/stanatny/abyssal)
 
-Current main edition: **v0.11.0 — Odyssean Sea and Steady Progression**. Eight destinations and four playable characters retain bilingual controls, regional ecology/music, character-aware local records and distinct objectives. The new sea road features twenty-one ordinary mythical kinds and three once-only guardians. Flowing bodies, terrain-fitted crab legs, distributed nursery schools and reachable adult recovery food enrich the expedition. Frenzy is a random find rather than a guaranteed starter; only Mechanical Shark oversized torpedo kills receive reduced, still positive growth, with nutrition and healing unchanged. GitHub Actions publishes successful main builds to the play link above; see [the release summary](docs/release_v0_11_0.md) and [verification](docs/verification.md).
+Current main edition: **v0.11.1 — Runtime CPU Refinement**. This patch retains the eight destinations, four characters and accepted v0.11.0 art and progression. Ordinary-animal rock navigation reuses the existing static collision grid; target and sonar presentation avoid redundant work. A matched desktop Atlantis fixture records lower main-loop CPU with unchanged draws and triangles, without claiming a general FPS or phone-temperature improvement. GitHub Actions publishes successful main builds to the play link above; see [the release summary](docs/release_v0_11_1.md), [runtime measurements and limits](docs/runtime_performance_revision.md) and [verification](docs/verification.md).
 
 The v0.8.3 refinement extends Kraken's curling arms, redraws Hydra's articulated necks and tapered heads, and enriches Leviathan's armored sea-serpent silhouette. The same assets appear in the Ocean Guide and ocean encounters; bilingual notes explain the mythological inspiration. Gameplay thresholds and regional endings remain intact. These changes are included in v0.8.3; see [the model review](docs/lord_anatomy_revision.md).
 
 Pause/results now offer reachable actions, regional guidance and keyboard/touch help across portrait, landscape, tablet and short desktop layouts. Paused scenes stop unnecessary drawing; Atlantis construction yields behind the loading screen. These changes preserve population, collision, near-city art and active-play quality. Measurements establish better warm-switch responsiveness and idle rendering, rather than a general FPS or phone-temperature improvement. GitHub Actions deploys `main` to the play URL above.
 
-![ABYSSAL v0.11.0: actual English home screen with Odyssean Sea and Orca selected](docs/images/abyssal_v0_11_0.png)
+![ABYSSAL v0.11.1: actual English home screen with Odyssean Sea and Orca selected](docs/images/abyssal_v0_11_1.png)
 
 Play in a modern desktop or phone browser with WebGL 2 support—no account or download required. Select a character on the home screen and start an expedition. Music activates after the first interaction. Fish feeding uses short water-Foley intake, bite, and bubble tails, with three variants that avoid consecutive repetition. Adult male/female swimmers and divers use corresponding performed human recordings at their original pitch, gradually muffled later in the clip to suggest submersion. Prey-gathering transitions and blood clouds remain. Sound can be disabled at any time. Assets are CC0; see [audio sources](docs/audio_sources.md).
 
@@ -123,6 +123,10 @@ A local **Fastest Expeditions** board keeps the ten quickest successful runs per
 ## cross-device interface review
 
 Pause and results now have structured expedition statistics, the current regional task, device-appropriate help and reachable Continue/Dive Again and Return to Home buttons. Active-play headers hide the locked language selector, while tablet, short laptop and small landscape layouts separate radar, mission, alerts and touch controls. Destination and Guide selection keep the current row visible; the landscape Guide preserves independent browsing and detail areas. Both languages and characters retain the same gameplay. See [the review and verification limits](docs/ui_review_revision.md). This review is included in v0.8.0.
+
+## Runtime CPU refinement
+
+A follow-up to v0.11.0 reuses the existing static collision grid for ordinary-animal rock navigation and removes unnecessary HUD obstruction/layout work. Food, collision behavior, models and active frame rate remain unchanged. A matched desktop Atlantis fixture records lower main-loop CPU (11.54→7.34 ms/frame), with the same draws/triangles; this does not establish an FPS or phone-temperature gain. Penglai has no demonstrated gain. This runtime refinement is included in v0.11.1. See [measurements, rejected experiments and rollback](docs/runtime_performance_revision.md).
 
 ## responsive Atlantis loading and idle rendering
 

@@ -34,6 +34,26 @@ test("negative cells and exact grid boundaries retain contact candidates", () =>
   assert.deepEqual(grid.query(point(-180, -180), point(180, 180)), colliders);
 });
 
+test("repeated queries retain independent results and original duplicate entry order", () => {
+  const shared = box(0, 0, { x: 35, y: 12, z: 35 });
+  const colliders = [shared, box(-10, -10), shared, box(150, 150)];
+  const grid = createStaticColliderGrid(colliders, { cellSize: 10 });
+  const first = grid.query(point(0, 0), point(20, 20), { padding: 10 });
+  assert.deepEqual(first, colliders.slice(0, 3));
+  for (let i = 0; i < 2000; i++) {
+    assert.deepEqual(grid.query(point(150, 150)), [colliders[3]]);
+    assert.deepEqual(grid.query(point(500, 500)), []);
+    assert.deepEqual(
+      grid.query(point(0, 0), point(20, 20), { padding: 10 }),
+      first,
+    );
+  }
+  const second = grid.query(point(0, 0), point(20, 20), { padding: 10 });
+  assert.notEqual(second, first);
+  second.length = 0;
+  assert.deepEqual(first, colliders.slice(0, 3));
+});
+
 test("all corners of a box rotated on three axes remain indexed", () => {
   const rotation = new THREE.Quaternion().setFromEuler(
     new THREE.Euler(0.7, 0.83, 0.4),
