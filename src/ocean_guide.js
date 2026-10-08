@@ -1,4 +1,5 @@
 import { ODYSSEY_LORD_DESCRIPTIONS } from "./odyssey_lords.js";
+import { disposePenglaiTigerMotion } from "./creature_penglai_tiger.js";
 import { creatureGuideSkills } from "./creature_guide_skills.js";
 import { PENGLAI_TRANSFORMATION_FORMS } from "./penglai_transformation_species.js";
 import { getCreatureBackground } from "./creature_backgrounds.js";
@@ -1159,6 +1160,8 @@ export function createOceanGuide(trigger) {
     if (!event.persisted) {
       themeQuery.removeEventListener("change", syncTheme);
       environment?.dispose();
+      for (const cachedModel of modelCache.values())
+        disposePenglaiTigerMotion(cachedModel);
     }
   });
   return {

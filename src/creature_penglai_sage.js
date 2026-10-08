@@ -1,4 +1,5 @@
 import * as THREE from "three";
+import { mergeVertices } from "three/addons/utils/BufferGeometryUtils.js";
 import {
   pgMaterial as mat,
   pgOval as oval,
@@ -49,25 +50,85 @@ export function buildPenglaiSage(b, motions, root) {
   front.position.z = -0.031;
   // 长袍内也保留完整骨盆、双腿和脚踝，从下方和侧方观察不会成为空壳。
   oval(b, robe, [0, -0.02, 0.012], [0.095, 0.085, 0.066], "clothed_pelvis");
+  const boot = pgGeometry("sage_supported_cloth_boot_v2", () => {
+    const profiles = [
+        [-0.093, 0.002, 0.009],
+        [-0.085, 0.012, 0.018],
+        [-0.07, 0.022, 0.023],
+        [-0.031, 0.027, 0.033],
+        [0.006, 0.025, 0.065],
+        [0.034, 0.023, 0.04],
+        [0.052, 0.008, 0.018],
+      ],
+      positions = [],
+      indices = [],
+      sides = 20,
+      rings = 28;
+    for (let i = 0; i <= rings; i++) {
+      const u = (i / rings) * (profiles.length - 1),
+        k = Math.min(profiles.length - 2, Math.floor(u)),
+        f = u - k,
+        [za, xa, ya] = profiles[k],
+        [zb, xb, yb] = profiles[k + 1],
+        z = THREE.MathUtils.lerp(za, zb, f),
+        width = THREE.MathUtils.lerp(xa, xb, f),
+        height = THREE.MathUtils.lerp(ya, yb, f);
+      for (let j = 0; j < sides; j++) {
+        const a = (j / sides) * Math.PI * 2;
+        positions.push(
+          Math.cos(a) * width,
+          height * THREE.MathUtils.smoothstep(Math.sin(a), -0.6, 1),
+          z,
+        );
+        if (i < rings) {
+          const v = i * sides + j,
+            w = i * sides + ((j + 1) % sides);
+          indices.push(v, w, v + sides, w, w + sides, v + sides);
+        }
+      }
+    }
+    for (const end of [0, rings]) {
+      const center = positions.length / 3,
+        profile = profiles[end ? profiles.length - 1 : 0],
+        base = end * sides;
+      positions.push(0, profile[2] * 0.5, profile[0]);
+      for (let j = 0; j < sides; j++)
+        end
+          ? indices.push(center, base + j, base + ((j + 1) % sides))
+          : indices.push(center, base + ((j + 1) % sides), base + j);
+    }
+    const geometry = new THREE.BufferGeometry();
+    geometry.setAttribute(
+      "position",
+      new THREE.Float32BufferAttribute(positions, 3),
+    );
+    geometry.setIndex(indices);
+    geometry.computeVertexNormals();
+    return geometry;
+  });
   for (const side of [-1, 1]) {
+    const stanceZ = side * 0.038;
     taper(
       b,
       robe,
       [
         [side * 0.047, -0.055, 0.016],
-        [side * 0.05, -0.19, 0.016],
-        [side * 0.057, -0.32, -0.006],
-        [side * 0.057, -0.398, -0.012],
+        [side * 0.046, -0.19, stanceZ - 0.02],
+        [side * 0.048, -0.31, stanceZ + 0.012],
+        [side * 0.047, -0.393, stanceZ + 0.006],
       ],
-      [0.045, 0.04, 0.031, 0.024],
+      [0.044, 0.033, 0.03, 0.022],
       "continuous_robed_leg",
     );
-    oval(
+    // 鞋底保持水平支撑面；一前一后的脚位和微屈膝形成稳定御剑站姿。
+    part(
       b,
+      boot,
       dark,
-      [side * 0.057, -0.371, -0.011],
-      [0.027, 0.034, 0.04],
-      "cloth_boot_ankle",
+      [side * 0.047, -0.4302, stanceZ],
+      [1, 1, 1],
+      [0, -side * 0.07, 0],
+      "raised_toe_cloth_boot",
     );
   }
   for (const side of [-1, 1]) {
@@ -205,13 +266,6 @@ export function buildPenglaiSage(b, motions, root) {
     motions.push(
       (t) => (tail.rotation.x = -0.28 + Math.sin(t * 0.6 + side) * 0.065),
     );
-    oval(
-      b,
-      dark,
-      [side * 0.057, -0.4, -0.012],
-      [0.033, 0.032, 0.082],
-      "raised_toe_cloth_boot",
-    );
   }
   for (const side of [-1, 1])
     for (let j = 0; j < 4; j++) {
@@ -254,22 +308,43 @@ export function buildPenglaiSage(b, motions, root) {
     "visible_neck",
   );
   // 颅骨、颧骨、眼窝、鼻梁与下颌分别定形，双眼朝前而非贴在耳侧。
-  const skull = pgGeometry("sage_sculpted_skull", () => {
+  const skull = pgGeometry("sage_sculpted_skull_v3", () => {
     const g = new THREE.SphereGeometry(1, 32, 24),
       p = g.attributes.position;
     for (let i = 0; i < p.count; i++) {
       const x = p.getX(i),
         y = p.getY(i),
-        z = p.getZ(i);
+        z = p.getZ(i),
+        jaw = 0.76 + 0.24 * THREE.MathUtils.smoothstep(y, -0.7, -0.18),
+        face = Math.max(0, -z),
+        lowerFace = 1 - THREE.MathUtils.smoothstep(y, -0.05, 0.35),
+        faceX = x * 0.049 * jaw,
+        faceY = y * 0.076 + 0.323,
+        orbit = [-1, 1].reduce(
+          (sum, side) =>
+            sum +
+            Math.exp(
+              -(
+                ((faceX - side * 0.024) / 0.014) ** 2 +
+                ((faceY - 0.333) / 0.009) ** 2
+              ),
+            ),
+          0,
+        );
       p.setXYZ(
         i,
-        x * 0.049 * (y < -0.25 ? 0.76 : 1),
+        faceX,
         y * 0.076,
-        z * 0.045 + (z < 0 && y < 0.25 ? -0.005 * (1 - y) : 0),
+        z * 0.045 - 0.005 * (1 - y) * face * lowerFace + 0.0035 * orbit * face,
       );
     }
-    g.computeVertexNormals();
-    return g;
+    // 连续形变后焊合球面的经线与极点，避免浮点正负号把闭合头部撕开。
+    g.deleteAttribute("uv");
+    g.deleteAttribute("normal");
+    const closed = mergeVertices(g, 1e-7);
+    g.dispose();
+    closed.computeVertexNormals();
+    return closed;
   });
   part(
     b,
@@ -280,37 +355,58 @@ export function buildPenglaiSage(b, motions, root) {
     [],
     "sculpted_human_head",
   );
+  // 在同一张闭合脸面上采样眼窝和眉弓，薄眼睑随曲面法线嵌合，不悬在脸外。
+  const faceProbe = new THREE.Mesh(skull, skin),
+    faceRay = new THREE.Raycaster(),
+    faceDirection = new THREE.Vector3(0, 0, 1);
+  const faceAt = (x, y) => {
+    faceRay.set(new THREE.Vector3(x, y - 0.323, -0.2), faceDirection);
+    const hit = faceRay.intersectObject(faceProbe, false)[0];
+    if (!hit) throw new Error("Sage facial attachment misses the skull");
+    return {
+      point: hit.point.clone().add(new THREE.Vector3(0, 0.323, -0.009)),
+      normal: hit.normal.clone().normalize(),
+    };
+  };
   for (const side of [-1, 1]) {
-    oval(
+    const orbit = faceAt(side * 0.024, 0.333),
+      eyeFrame = new THREE.Quaternion().setFromUnitVectors(
+        new THREE.Vector3(0, 0, -1),
+        orbit.normal,
+      );
+    const socket = oval(
       b,
       shadow,
-      [side * 0.025, 0.334, -0.05],
-      [0.017, 0.008, 0.005],
+      orbit.point.clone().addScaledVector(orbit.normal, -0.0006).toArray(),
+      [0.013, 0.006, 0.002],
       "deep_eye_socket",
     );
-    oval(
+    socket.quaternion.copy(eyeFrame);
+    const eye = oval(
       b,
       ivory,
-      [side * 0.024, 0.331, -0.057],
-      [0.011, 0.003, 0.0025],
+      orbit.point.clone().addScaledVector(orbit.normal, 0.0008).toArray(),
+      [0.009, 0.0026, 0.0015],
       "narrow_forward_eye",
     );
-    oval(
+    eye.quaternion.copy(eyeFrame);
+    const iris = oval(
       b,
       dark,
-      [side * 0.024, 0.332, -0.06],
-      [0.0025, 0.003, 0.0015],
+      orbit.point.clone().addScaledVector(orbit.normal, 0.0021).toArray(),
+      [0.0018, 0.002, 0.00065],
       "focused_human_iris",
     );
+    iris.quaternion.copy(eyeFrame);
     taper(
       b,
       hair,
       [
-        [side * 0.009, 0.342, -0.057],
-        [side * 0.026, 0.349, -0.056],
-        [side * 0.043, 0.348, -0.044],
-      ],
-      [0.003, 0.004, 0.001],
+        [side * 0.009, 0.342],
+        [side * 0.026, 0.349],
+        [side * 0.043, 0.348],
+      ].map(([x, y]) => [x, y, faceAt(x, y).point.z - 0.001]),
+      [0.0025, 0.003, 0.001],
       "stern_sloping_brow",
     );
 

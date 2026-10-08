@@ -413,7 +413,7 @@ export function pgFeather(
 export function pgDrape(parent, material, key, profiles, folds = 12) {
   return pgPart(
     parent,
-    pgGeometry(`drape_${key}`, () => {
+    pgGeometry(`drape_${key}_outward_v2`, () => {
       const p = [],
         ix = [],
         rings = 32,
@@ -439,11 +439,11 @@ export function pgDrape(parent, material, key, profiles, folds = 12) {
             const v = i * (sides + 1) + j;
             ix.push(
               v,
-              v + sides + 1,
-              v + 1,
               v + 1,
               v + sides + 1,
+              v + 1,
               v + sides + 2,
+              v + sides + 1,
             );
           }
         }

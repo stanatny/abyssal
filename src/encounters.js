@@ -29,6 +29,7 @@ import {
 import { LUMEN_LASH, lumenLashPose } from "./europa_lord_attacks.js";
 import { t, tr, message } from "./i18n.js";
 import * as THREE from "three";
+import { disposePenglaiTigerMotion } from "./creature_penglai_tiger.js";
 import {
   disposeTentacleMotion,
   tentacleWorldBounds,
@@ -969,6 +970,7 @@ export function createEncounters(
         lookahead: new THREE.Vector3(),
         next: new THREE.Vector3(),
         offset: new THREE.Vector3(),
+        groundStart: new THREE.Vector3(),
         orientation: new THREE.Quaternion(),
       },
       attackOrigin: new THREE.Vector3(),
@@ -1127,6 +1129,7 @@ export function createEncounters(
       entry.grapple = createKrakenGrapple();
       entry.mesh.userData.resetKrakenGrip?.();
       entry.mesh.userData.resetLumenLash?.();
+      entry.mesh.userData.resetGroundTravel?.();
       for (const fx of entry.fxVariants) resetAbilityFx(fx);
     });
     selected.forEach(({ entry, instance }, index) => {
@@ -1590,6 +1593,7 @@ export function createEncounters(
         ),
       );
       entry.mesh.userData.setLocked?.(state.locked);
+      entry.motion.groundStart.copy(entry.mesh.position);
       const distance = entry.mesh.position.distanceTo(position),
         homeDistance = entry.home.distanceTo(position),
         atHome = homeDistance < entry.radius;
@@ -1758,6 +1762,14 @@ export function createEncounters(
       // 地面朝向已在移动提案中平滑；不能再滞后旋转模型，使实际头部偏离已验证的占地。
       if (state.species.groundbound) entry.mesh.quaternion.copy(orientation);
       else entry.mesh.quaternion.slerp(orientation, Math.min(1, dt * 2));
+      // 用实际通过地形和碰撞检查后的位移驱动步态；被阻挡时不能原地迈腿。
+      entry.mesh.userData.setGroundTravel?.(
+        Math.hypot(
+          entry.mesh.position.x - entry.motion.groundStart.x,
+          entry.mesh.position.z - entry.motion.groundStart.z,
+        ),
+        dt,
+      );
       entry.mesh.userData.setBossPhase?.(state.phase);
       entry.mesh.userData.setKarkinosCombat?.({
         phase: state.phase,
@@ -2217,6 +2229,7 @@ export function createEncounters(
       for (const fx of entry.fxVariants) resetAbilityFx(fx);
       disposeTentacleMotion(entry.mesh);
       disposeCrocodilianMotion(entry.mesh);
+      disposePenglaiTigerMotion(entry.mesh);
       // 生物模型材质和几何由模型缓存共享；这里只释放本模块自己的表现资源。
       scene.remove(entry.mesh, entry.ring, entry.label, entry.fx.group);
       geometries.add(entry.ring.geometry);

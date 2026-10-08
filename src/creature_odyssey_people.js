@@ -1,6 +1,7 @@
 import * as THREE from "three";
 import { bindTentacleMotion } from "./tentacle_motion.js";
 import { createOdysseyFace } from "./creature_odyssey_face.js";
+import { sampleSection } from "./creature_surface.js";
 import {
   bindOdysseySerpentine,
   odysseySerpentineSupport,
@@ -38,25 +39,30 @@ function face(parent, key, p, scale, skin, hair, motions) {
 function humanoid(kind, body, motions) {
   const naga = kind === "naga_huntress",
     guard = kind === "triton_guard",
+    mermaid = kind === "nereid",
     k = kind;
   const skin = naga ? "#829e88" : guard ? "#789d9c" : "#d7b1a1",
     tailColor = naga ? "#3e7964" : guard ? "#4b7e83" : "#98728b",
     hair = naga ? "#183e39" : guard ? "#395154" : "#614450";
-  const torso = part(body, `${k}_thorax_v2`, () =>
-    loft(
-      smoothThorax([
-        [-0.275, 0.034, 0.038, 0.026],
-        [-0.235, 0.11, 0.067, 0.01],
-        [-0.17, guard ? 0.14 : 0.1, 0.071, 0],
-        [-0.075, 0.07, 0.054, -0.01],
-        [0.025, 0.06, 0.046, -0.003],
-        [0.09, 0.075, 0.048, 0],
-      ]),
-      skin,
-      "#c6b79b",
-      { rings: 32, sides: 24 },
-    ),
-  );
+  const torso = mermaid
+    ? null
+    : part(body, `${k}_thorax_v2`, () =>
+        loft(
+          smoothThorax([
+            [-0.275, 0.034, 0.038, 0.026],
+            [-0.235, 0.11, 0.067, 0.01],
+            [-0.17, guard ? 0.14 : 0.1, 0.071, 0],
+            [-0.075, 0.07, 0.054, -0.01],
+            [0.025, 0.06, 0.046, -0.003],
+            [0.09, 0.075, 0.048, 0],
+          ]),
+          skin,
+          "#c6b79b",
+          { rings: 32, sides: 24 },
+        ),
+      );
+  const swim = mermaid ? createMermaidMotion(body, motions) : null,
+    headMotionStart = motions.length;
   const head = face(
     body,
     k,
@@ -69,10 +75,16 @@ function humanoid(kind, body, motions) {
   tube(
     body,
     `${k}_neck`,
-    [
-      [0, 0.025, -0.235],
-      [0, 0.075, -0.265],
-    ],
+    mermaid
+      ? [
+          [0, 0.035, -0.227],
+          [0, 0.056, -0.257],
+          [0, 0.072, -0.271],
+        ]
+      : [
+          [0, 0.025, -0.235],
+          [0, 0.075, -0.265],
+        ],
     0.034,
     skin,
     12,
@@ -80,7 +92,10 @@ function humanoid(kind, body, motions) {
   );
   const tail = naga
     ? createNagaTail(body, k, tailColor, motions)
-    : createMermaidTail(body, k, tailColor, motions);
+    : mermaid
+      ? createNereidTail(body, k, skin, tailColor, motions, swim)
+      : createMermaidTail(body, k, tailColor, motions);
+  if (mermaid) bindMermaidHair(head.head, motions, headMotionStart, swim);
   if (!naga)
     body.userData.propulsion = {
       axis: "vertical",
@@ -189,7 +204,7 @@ function humanoid(kind, body, motions) {
         ),
       );
   } else {
-    for (const s of [-1, 1])
+    for (const s of mermaid ? [] : [-1, 1])
       part(
         body,
         `${k}_ventral_shell_bodice_v2${s}`,
@@ -231,7 +246,210 @@ function humanoid(kind, body, motions) {
       );
   }
   body.userData.mouthAnchors = [head.mouth];
-  torso.userData.anatomicalSupport = true;
+  if (torso) torso.userData.anatomicalSupport = true;
+}
+
+/** 原有累积相位同时驱动腰尾、手臂和发束；相位停住时努力程度也冻结。 */
+function createMermaidMotion(body, motions) {
+  const swim = { effort: 1, phase: undefined };
+  motions.push((phase, effort) => {
+    const target = THREE.MathUtils.clamp(effort, 0.15, 3);
+    if (swim.phase === undefined || phase < swim.phase) swim.effort = target;
+    else {
+      const delta = THREE.MathUtils.clamp(phase - swim.phase, 0, 0.6);
+      swim.effort += (target - swim.effort) * (1 - Math.exp(-delta * 2.5));
+    }
+    swim.phase = phase;
+  });
+  body.userData.mermaidMotion = swim;
+  return swim;
+}
+
+/** 单一椭圆截面从胸肩经过腰臀收向尾柄，消除圆管尾根的截断台阶。 */
+function createNereidTail(body, key, skin, color, motions, swim) {
+  const arm = new THREE.Group(),
+    profile = smoothThorax([
+      [-0.275, 0.034, 0.038, 0.032],
+      [-0.235, 0.11, 0.067, 0.016],
+      [-0.17, 0.1, 0.071, 0],
+      [-0.075, 0.07, 0.054, -0.01],
+      [0.025, 0.06, 0.046, -0.003],
+      [0.09, 0.071, 0.05, 0],
+      [0.21, 0.065, 0.054, -0.015],
+      [0.45, 0.038, 0.034, -0.018],
+      [0.65, 0.021, 0.02, 0.026],
+      [0.83, 0.008, 0.008, 0.035],
+    ]),
+    points = [
+      [0, -0.01, -0.075],
+      [0, -0.003, 0.025],
+      [0, 0, 0.09],
+      [0, -0.015, 0.21],
+      [0, -0.018, 0.45],
+      [0, 0.026, 0.65],
+      [0, 0.035, 0.83],
+    ];
+  arm.name = `${key}_continuous_swimming_trunk_v4`;
+  body.add(arm);
+  part(arm, `${key}_continuous_waist_tail_skin_v4`, () => {
+    const geometry = loft(profile, skin, "#c6b79b", {
+        rings: 94,
+        sides: 24,
+      }),
+      positions = geometry.attributes.position,
+      colors = geometry.attributes.color,
+      top = new THREE.Color(color),
+      belly = new THREE.Color("#b8a9ba"),
+      tailShade = new THREE.Color(),
+      shade = new THREE.Color();
+    for (let i = 0; i < positions.count; i++) {
+      const blend = THREE.MathUtils.smoothstep(positions.getZ(i), -0.005, 0.13);
+      tailShade
+        .copy(top)
+        .lerp(
+          belly,
+          THREE.MathUtils.smoothstep(-positions.getY(i), -0.03, 0.12),
+        );
+      shade.fromBufferAttribute(colors, i).lerp(tailShade, blend);
+      colors.setXYZ(i, shade.r, shade.g, shade.b);
+    }
+    return geometry;
+  });
+  createNereidBodice(arm, key, profile);
+  for (let i = 0; i < 6; i++)
+    for (const side of [-1, 1]) {
+      const z = 0.112 + i * 0.083,
+        angles = [0.47, 0.18, -0.12].map((a) => (side === 1 ? a : Math.PI - a));
+      tube(
+        arm,
+        `${key}_fitted_tail_scale_v4_${side}_${i}`,
+        angles.map((angle, j) => {
+          const axial = z + (j - 1) * 0.004,
+            [rx, ry, cy] = sampleSection(profile, axial);
+          return [Math.cos(angle) * rx, cy + Math.sin(angle) * ry, axial];
+        }),
+        0.0014,
+        "#ceb3c8",
+        8,
+        4,
+      );
+    }
+  fin(
+    arm,
+    `${key}_bound_fluke_v3`,
+    [
+      [-0.03, 0],
+      [0.01, -0.12],
+      [0.13, -0.19],
+      [0.08, -0.03],
+      [0.025, 0],
+      [0.08, 0.03],
+      [0.13, 0.19],
+      [0.01, 0.12],
+    ],
+    "#b791b0",
+    "horizontal",
+    0.016,
+  ).position.set(...points.at(-1));
+  const curve = new THREE.CatmullRomCurve3(
+      points.map((point) => new THREE.Vector3(...point)),
+    ),
+    rig = bindTentacleMotion(
+      arm,
+      `${key}_continuous_vertical_v5`,
+      curve,
+      motions,
+      {
+        count: 16,
+        amplitude: 0,
+      },
+    );
+  motions[motions.length - 1] = (phase) => {
+    const power = 0.36 * (0.76 + swim.effort * 0.1);
+    let previous = 0;
+    for (let i = 0; i < rig.bones.length; i++) {
+      const u = i / (rig.bones.length - 1),
+        envelope = THREE.MathUtils.smoothstep(u, 0, 0.77),
+        tangent = Math.sin(phase * 1.1 - u * 4.6) * power * envelope;
+      rig.bones[i].position.copy(rig.points[i]);
+      if (i) rig.bones[i].position.sub(rig.points[i - 1]);
+      rig.bones[i].rotation.set(tangent - previous, 0, 0);
+      previous = tangent;
+    }
+  };
+  rig.motion = {
+    axis: "vertical",
+    frequency: 1.1,
+    amplitude: 0.36,
+    headStable: true,
+    continuousWaist: true,
+    swim,
+  };
+  for (const mesh of rig.meshes) {
+    mesh.userData.odysseyVerticalRig = rig;
+    mesh.userData.anatomicalSupport = true;
+    if (mesh.material === BRONZE) mesh.userData.mermaidBodice = true;
+  }
+  rig.motion.profile = profile;
+  arm.userData.odysseyVerticalRig = rig;
+  return { arm, rig, tip: rig.bones.at(-1) };
+}
+
+/** 贝壳背面贴合实际胸部截面；最外缘高度和全长保持原有身体归一化。 */
+function createNereidBodice(parent, key, profile) {
+  for (const side of [-1, 1])
+    part(
+      parent,
+      `${key}_fitted_shell_bodice_v3_${side}`,
+      () => {
+        const geometry = new THREE.SphereGeometry(1, 28, 18),
+          positions = geometry.attributes.position;
+        for (let i = 0; i < positions.count; i++) {
+          const x = positions.getX(i),
+            y = positions.getY(i),
+            z = positions.getZ(i),
+            rib = 1 + 0.055 * Math.cos(Math.atan2(x, z) * 12),
+            axial = z * 0.064 * rib - 0.145,
+            lateral = side * 0.037 + x * 0.04,
+            [rx, ry, cy] = sampleSection(profile, axial),
+            support = cy - ry * Math.sqrt(Math.max(0, 1 - (lateral / rx) ** 2)),
+            fitted = support + 0.0018;
+          positions.setXYZ(
+            i,
+            lateral,
+            y < 0 ? fitted * (1 + y) + 0.086 * y : fitted + y * 0.003,
+            axial,
+          );
+        }
+        geometry.computeVertexNormals();
+        return geometry;
+      },
+      BRONZE,
+    );
+}
+
+/** 发束沿稳定后脑向下游传递低幅波，不让肩颈跟着尾摆点头。 */
+function bindMermaidHair(head, motions, start, swim) {
+  const locks = head.children.filter((child) => child.userData.tentacle);
+  for (let lock = 0; lock < locks.length; lock++) {
+    const rig = locks[lock].userData.tentacle;
+    motions[start + lock] = (phase) => {
+      let previousX = 0,
+        previousY = 0;
+      for (let i = 0; i < rig.bones.length; i++) {
+        const u = i / (rig.bones.length - 1),
+          envelope = u * u * (3 - 2 * u),
+          power = 0.034 / (1 + swim.effort * 0.1),
+          x = Math.sin(phase * 1.1 - u * 4.2 + lock * 0.19) * power * envelope,
+          y = Math.sin(phase * 0.68 - u * 3.1 + lock * 0.23) * 0.012 * envelope;
+        rig.bones[i].position.copy(rig.points[i]);
+        if (i) rig.bones[i].position.sub(rig.points[i - 1]);
+        rig.bones[i].rotation.set(x - previousX, y - previousY, 0);
+        previousX = x;
+        previousY = y;
+      }
+    };
+  }
 }
 /** 人鱼尾的垂向波由腰根向尾柄传播，鳍和鳞饰都使用同一活动表面。 */
 function createMermaidTail(body, key, color, motions) {
@@ -428,6 +646,26 @@ function createDragArm(body, key, side, skin, motions) {
     amplitude: 0,
   });
   motions[motions.length - 1] = (phase, effort) => {
+    if (key === "nereid") {
+      const swim = body.userData.mermaidMotion,
+        elbow = 0.065 + Math.sin(phase * 1.1 - 0.4 + side * 0.18) * 0.017,
+        power = 1 / (1 + swim.effort * 0.12);
+      for (let i = 0; i < rig.bones.length; i++) {
+        rig.bones[i].position.copy(rig.points[i]);
+        if (i) rig.bones[i].position.sub(rig.points[i - 1]);
+        rig.bones[i].rotation.set(
+          i === 4 ? elbow : i === 5 ? elbow * 0.2 : i === 7 ? -elbow * 0.62 : 0,
+          0,
+          0,
+        );
+      }
+      shoulder.rotation.set(
+        -0.03 + Math.sin(phase * 1.1 - 0.7 + side * 0.18) * 0.008 * power,
+        side * (0.065 + Math.sin(phase * 0.55) * 0.009 * power),
+        side * 0.018,
+      );
+      return;
+    }
     const elbow = 0.1 + Math.sin(phase * 0.72 + side * 0.6) * 0.022;
     for (let i = 0; i < rig.bones.length; i++) {
       rig.bones[i].position.copy(rig.points[i]);

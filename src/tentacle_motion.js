@@ -46,8 +46,19 @@ export function bindTentacleMotion(arm, key, curve, motions, options = {}) {
           new THREE.Float32BufferAttribute(new Float32Array(p.count * 2), 2),
         );
       if (!g.attributes.normal) g.computeVertexNormals();
+      if (options.parametricWeights && !g.attributes.tentacleStation)
+        g.setAttribute(
+          "tentacleStation",
+          new THREE.Float32BufferAttribute(
+            new Float32Array(p.count).fill(part.userData.tentacleStation ?? -1),
+            1,
+          ),
+        );
       for (const name of Object.keys(g.attributes))
-        if (!["position", "normal", "color", "uv"].includes(name))
+        if (
+          !["position", "normal", "color", "uv"].includes(name) &&
+          !(options.parametricWeights && name === "tentacleStation")
+        )
           g.deleteAttribute(name);
       if (!batches.has(part.material)) batches.set(part.material, []);
       batches.get(part.material).push(g);
@@ -70,24 +81,35 @@ export function bindTentacleMotion(arm, key, curve, motions, options = {}) {
         let closest = Infinity,
           joint = 0,
           blend = 0;
-        for (let j = 0; j < count; j++) {
-          segment.copy(points[j + 1]).sub(points[j]);
-          const fraction = THREE.MathUtils.clamp(
-            offset.copy(vertex).sub(points[j]).dot(segment) /
-              Math.max(1e-9, segment.lengthSq()),
-            0,
-            1,
-          );
-          const distance = offset
-            .copy(points[j])
-            .addScaledVector(segment, fraction)
+        const station = geometry.attributes.tentacleStation?.getX(i);
+        if (options.parametricWeights && station >= 0 && station <= 1) {
+          // 同一卷腕可能自我贴近；沿生成时的弧长蒙皮，不能跳到回卷段。
+          const u = station * count;
+          joint = Math.min(count - 1, Math.floor(u));
+          blend = u - joint;
+          closest = offset
+            .copy(points[joint])
+            .lerp(points[joint + 1], blend)
             .distanceToSquared(vertex);
-          if (distance < closest) {
-            closest = distance;
-            joint = j;
-            blend = fraction;
+        } else
+          for (let j = 0; j < count; j++) {
+            segment.copy(points[j + 1]).sub(points[j]);
+            const fraction = THREE.MathUtils.clamp(
+              offset.copy(vertex).sub(points[j]).dot(segment) /
+                Math.max(1e-9, segment.lengthSq()),
+              0,
+              1,
+            );
+            const distance = offset
+              .copy(points[j])
+              .addScaledVector(segment, fraction)
+              .distanceToSquared(vertex);
+            if (distance < closest) {
+              closest = distance;
+              joint = j;
+              blend = fraction;
+            }
           }
-        }
         maxOffset = Math.max(maxOffset, Math.sqrt(closest));
         indices.push(joint, joint + 1, 0, 0);
         weights.push(1 - blend, blend, 0, 0);
@@ -100,6 +122,8 @@ export function bindTentacleMotion(arm, key, curve, motions, options = {}) {
         "skinWeight",
         new THREE.Float32BufferAttribute(weights, 4),
       );
+      // 弧长仅用于初始蒙皮，不向每个活动模型保留额外的运行时属性。
+      geometry.deleteAttribute("tentacleStation");
       geometry.computeBoundingSphere();
       const chunks = [];
       // 连续三角形块保留原始表面；各权重骨节的局部盒在运行时合成保守世界盒。

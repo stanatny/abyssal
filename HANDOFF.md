@@ -1,10 +1,20 @@
-# Uncommitted Ocean Guide control-spacing fix — 2026-10-08
+# Uncommitted four-model anatomy and motion revision — 2026-10-08
+
+Codex@mini remains the development owner. The user authorized the preceding desktop Guide correction as local commit `60a48ee`; that commit is complete and has not been pushed. Current branch `fix/mythic-model-motion` adds the requested Sword Sage, White Tiger, Coral Mermaid and screenshot-reported Kraken model repairs. Released main/Pages remains v0.11.1 / `f7dead5`.
+
+Read [the model review](docs/mythic_model_revision.md) and [current verification](docs/verification.md). Preserve actual dimensions, mouths, riding sword, eligibility, damage, navigation, grip rules, ecology and objectives. Kraken's optional parametric skin weights must not replace the nearest-segment fallback for other creatures. Tiger gait consumes actual accepted horizontal travel through an optional shared callback; its private bone textures retire with encounters or non-persisted Guide pages. Guide/world factories remain shared.
+
+New model changes remain uncommitted; no push, primary-branch merge, formal release or personal Skill publication is authorized. Evidence and the frozen `60a48ee` baseline are ignored under `.local/model_polish_20261008/`. Established dev/restricted-preview/tunnel processes and the preceding runtime are preserved. Final acceptance passes 985 units, formatting/build, multi-angle Guide/world motion and bounded lifecycle fixtures. Restricted local/public each pass 34 native checks with 16 bilingual/theme/narrow Guide cases, three regional play/pause/resume/home flows and reload; all nine active artifact hashes match. Private paths and production hooks are unavailable. Full measurements, preserved diagnostics and limits are in the linked review and verification. The frozen baseline-only5189 process is stopped; established services remain.
+
+---
+
+# Ocean Guide control-spacing checkpoint — historical, committed 60a48ee
 
 Codex@mini owns ongoing development after the completed environment handoff. The user requested a desktop Ocean Guide UI fix: the region selector's native arrow touched its right border. Work is based on published v0.11.1 / `f7dead5`, on `fix/guide-region-control-spacing`.
 
 The CSS-only candidate uses a theme-matched arrow inset by 14 px, reserves text space and keeps the actual native select, its labels, keyboard interaction, focus outline and 44 px target. Forced-color mode restores the system arrow. Gameplay, content and translations are unchanged. Fresh affected-layout evidence is ignored under `.local/guide_ui_20261008/`; see [verification](docs/verification.md) for the checks actually completed.
 
-Verified delivery: nine affected cases pass on development, restricted compiled local and public runtimes; formatting/build and all nine artifact hashes pass. Theme, narrow landscape, native filtering, focus and forced-color evidence are retained with the earlier diagnostic oracle failures. The existing restricted preview is rebuilt at the same address, with its preceding runtime and established processes retained. Leave this candidate uncommitted; no new push or formal publication is authorized. The release authorization and candidate sections below are historical and do not authorize publishing this fix.
+Verified delivery: nine affected cases pass on development, restricted compiled local and public runtimes; formatting/build and all nine artifact hashes pass. Theme, narrow landscape, native filtering, focus and forced-color evidence are retained with the earlier diagnostic oracle failures. The existing restricted preview is rebuilt at the same address, with its preceding runtime and established processes retained. The user subsequently authorized its local commit as `60a48ee`; no push or formal publication is authorized. The release authorization and candidate sections below are historical and do not authorize publishing this fix.
 
 ---
 

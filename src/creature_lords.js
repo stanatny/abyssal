@@ -264,7 +264,7 @@ function buildKraken(body, motions) {
     const curve = curveFrom(points);
     tube(
       arm,
-      `kraken_flexible_arm_${index}`,
+      `kraken_flexible_arm_v2_${index}`,
       points,
       0.06,
       0.005,
@@ -273,6 +273,7 @@ function buildKraken(body, motions) {
       64,
       12,
       1.2,
+      true,
     );
     for (let row = 0; row < 2; row++)
       for (let cup = 0; cup < 8; cup++) {
@@ -304,12 +305,15 @@ function buildKraken(body, motions) {
           facing,
         );
         sucker.scale.setScalar(0.017 * (1 - t * 0.83));
+        // 卷腕邻近段在空间上很近，吸盘必须绑定自己的弧长位置。
+        sucker.userData.tentacleStation = t;
       }
-    bindTentacleMotion(arm, `kraken_soft_arm_${index}`, curve, motions, {
+    bindTentacleMotion(arm, `kraken_soft_arm_v2_${index}`, curve, motions, {
       count: 16,
       phase: angle,
       amplitude: 0.34,
       curl: () => grip,
+      parametricWeights: true,
     });
     arm.userData.centerlineLength = curve.getLength();
   }
@@ -1647,11 +1651,13 @@ function tube(
   segments = 24,
   sides = 8,
   power = 1,
+  parametricWeights = false,
 ) {
   const geometry = cached(key, () => {
     const curve = curveFrom(points),
       frames = curve.computeFrenetFrames(segments, false),
       positions = [],
+      stations = [],
       indices = [];
     for (let i = 0; i <= segments; i++) {
       const t = i / segments,
@@ -1664,6 +1670,7 @@ function tube(
           .addScaledVector(frames.normals[i], Math.cos(angle) * radius)
           .addScaledVector(frames.binormals[i], Math.sin(angle) * radius);
         positions.push(point.x, point.y, point.z);
+        if (parametricWeights) stations.push(t);
       }
     }
     for (let i = 0; i < segments; i++)
@@ -1679,6 +1686,7 @@ function tube(
       const center = positions.length / 3,
         point = curve.getPointAt(ring / segments);
       positions.push(point.x, point.y, point.z);
+      if (parametricWeights) stations.push(ring / segments);
       for (let j = 0; j < sides; j++) {
         const a = ring * (sides + 1) + j;
         indices.push(center, reverse ? a + 1 : a, reverse ? a : a + 1);
@@ -1690,6 +1698,11 @@ function tube(
       new THREE.Float32BufferAttribute(positions, 3),
     );
     geometry.setIndex(indices);
+    if (parametricWeights)
+      geometry.setAttribute(
+        "tentacleStation",
+        new THREE.Float32BufferAttribute(stations, 1),
+      );
     geometry.computeVertexNormals();
     return color ? colorize(geometry, color) : geometry;
   });
