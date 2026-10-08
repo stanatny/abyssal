@@ -1,5 +1,7 @@
 # Mariana Trench production brief
 
+Current October8 refinement: [layered production brief](mariana_layer_brief.md) and [review](mariana_layer_revision.md) supersede the historical branch/population/scenery descriptions below. Current AI-agent ownership, the single combined branch and final user acceptance control this task.
+
 Status: independent development on `feature/mariana`, based on the reviewed Bermuda candidate `2104223`. The October 1 user authorization now permits a checkpoint commit and push to `origin/feature/mariana`. Main integration and formal Pages publication are separate from this branch checkpoint. Codex owns art, gameplay, sound and integrated review.
 
 ## Current October 2 refinement

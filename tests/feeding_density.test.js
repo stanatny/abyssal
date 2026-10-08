@@ -82,12 +82,12 @@ test("成年补给保留原独立锚点，新个体分开，不能增殖早期�
   assert.equal(vehicle.population, 4);
 });
 
-test("五海域都增加真实库存、完整保留独特种类与固定栖地，巨型天敌数量不变", () => {
+test("五海域保留独特种类与固定栖地，马里亚纳每层有两只巨型天敌", () => {
   for (const [region, expected, kinds, giantCount] of [
     ["hawaii", 516, 28, 2],
     ["atlantis", 560, 20, 2],
     ["bermuda", 467, 24, 2],
-    ["mariana", 453, 22, 3],
+    ["mariana", 458, 22, 8],
     ["europa", 352, 16, 5],
   ]) {
     const species = getRegionSpecies(region);

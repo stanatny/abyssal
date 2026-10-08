@@ -9,6 +9,18 @@ export const MARIANA_WORLD = Object.freeze({
   maxZ: 140,
   maxDepth: 2780,
 });
+
+/** 守关后的饥饿压力连续递增；其他海域不传此配置，沿用原有曲线。 */
+export const MARIANA_HUNGER_PROFILE = Object.freeze({
+  rampDepth: 50,
+  steps: Object.freeze(
+    [
+      { depth: 650, multiplier: 1.08 },
+      { depth: 1000, multiplier: 1.16 },
+      { depth: 1375, multiplier: 1.24 },
+    ].map(Object.freeze),
+  ),
+});
 export const MARIANA_GATES = Object.freeze(
   [
     {

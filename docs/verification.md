@@ -1,3 +1,19 @@
+# v0.11.3 publication — October 9, 2026
+
+The user accepted the combined Mariana/Bermuda candidate and authorized commit/push to main. The reviewed candidate and its 1030-unit, 29-browser, 37-per-host native, source/artifact and lifecycle receipts remain retained below. Release preparation changes version/display metadata and current project records, with no additional gameplay change. [The release summary](release_v0_11_3.md) records scope and limits; fresh local checks, the exact Node 22 Pages workflow/downloaded payload and formal-page native/resource receipts are stored in ignored `.local/release_v0_11_3/`. Publication status is established by those receipts, not by the older candidate labels. Fresh v0.11.3 formatting/policy checks, all **1030 units**, production build and actual English Mariana/Orca home capture pass before publication.
+
+---
+
+# Mariana combined review candidate — October 8, 2026
+
+The single delivery branch `fix/mariana-layered-expedition` contains checkpoint `96907d9` (Bermuda Leviathan habitat and Frenzy placement), uncommitted Mariana terrain/refuge/hunger/ecology and the generic current-AI-agent development rule. No Kimi source is integrated; the canceled isolated worktree remains preserved. Main/Pages remains `ae9c7a7` / v0.11.2. Read [the new review](mariana_layer_revision.md) and [brief](mariana_layer_brief.md).
+
+Formatting, build and **1030 units** pass. Four real hunter chases damage 30 m players by 48 and permit native escape; ten 32 m side-gallery entry/exit runs pass. Four characters feed on an actual recovery resident; one native prey consumes/reuses its mesh after 28.55 active seconds. A separately staged victory contract verifies native epilogue movement with frozen survival and full reset. Matched headed High/Smooth populated desktop views retain approximately 16.6 ms frames, with measured added draw/triangle costs and explicit staging/device limits. Restricted compiled local/public each pass **37 native checks**, including 20 bilingual Mariana Guide cases at 1440/320/390 px, actual Mariana/Bermuda flow, settled assets and same-address reload. No production hook or observed browser/resource error is present.
+
+Raw corrected selector/catalog/nutrition-oracle failures, source/build/native/performance receipts and the preserved preceding runtime belong in ignored `.local/mariana_revision_20261008/`. Shared **29** browser checks and seven headed lifecycle groups pass, including 12 serial region returns with stable warmed resources/population, failed-construction rollback/retry and real WebGL restoration. Final Kraken ceiling/32m-loop checks pass after the screenshot-exposed overlap was corrected. Root-owned per-layer and refuge screenshots are retained; audio graph transitions are captured, with human listening explicitly pending. Final hash/private-path/refresh checks are recorded with the candidate manifest. This candidate awaits the user's acceptance before commit/push/main publication; earlier release records below remain historical evidence.
+
+---
+
 # Uncommitted Bermuda starter reward follow-up — 2026-10-08
 
 Read [the placement/lifecycle revision](bermuda_reward_revision.md). Fresh formatting, production build and **1007 unit tests** pass, including **22 focused reward placement cases**. Exactly one regional extra slot, final adjusted/bobbing nursery exclusion, stable shared kinds, bounded fallback and unchanged other-map placements are covered. The preceding Leviathan repair remains included.

@@ -6,7 +6,11 @@ import { AMAZON_WORLD } from "./amazon_config.js";
 import { AMAZON_BOSS_INSTANCES } from "./amazon_lords.js";
 import { EUROPA_WORLD } from "./europa_config.js";
 import { REGION_OBJECTIVES } from "./expedition_objectives.js";
-import { MARIANA_WORLD, MARIANA_GATES } from "./mariana_config.js";
+import {
+  MARIANA_WORLD,
+  MARIANA_GATES,
+  MARIANA_HUNGER_PROFILE,
+} from "./mariana_config.js";
 import { REGION_SPECIES_KINDS } from "./region_ecology.js";
 import { BOSS_SPECIES } from "./boss_rules.js";
 
@@ -119,8 +123,9 @@ export const REGIONS = Object.freeze(
       available: true,
       seabedHeat: false,
       description:
-        "沿海沟岩壁逐层下潜，突破四位深渊守卫，抵达万米深处的秘密。15米起步，沿上层岩壁捕捉大鱼；25米后挑战守关领主。",
+        "沿四层岩谷、壁画与奇景逐层下潜，突破四位守卫。15米起步，25米后挑战领主；越深饥饿越快，30米也要提防巨型猎食者。",
       world: MARIANA_WORLD,
+      hungerProfile: MARIANA_HUNGER_PROFILE,
       startLength: 15,
       departureHint:
         "15米起步 · 沿上层岩壁寻找大鱼\n25米后在首层深水挑战海德拉，开启第一道压力帘",

@@ -133,23 +133,33 @@ export function regionZone(regionId, depth, position = null) {
           ]
         : depth < 650
           ? [
-              "回声裂谷",
-              "ECHO CANYON",
-              "沿发光生物辨认下降路线，先寻找更大的食物。",
+              "三首浮雕岩谷",
+              "THREE-HEAD CANYON",
+              "沿三首浮雕与岩廊寻找大鱼，25米后挑战海德拉。",
             ]
-          : depth < 1375
-            ? ["幽蓝阶渊", "BLUE DESCENT", "穿过开阔岩廊，寻找下一位守关领主。"]
-            : depth < 2150
+          : depth < 1000
+            ? [
+                "回声穹窟",
+                "ECHO VAULT",
+                "穿过回声穹窟，留意巨型鱼龙；下潜前补足饥饿。",
+              ]
+            : depth < 1375
               ? [
-                  "超深渊回廊",
-                  "HADAL GALLERIES",
-                  "观察微小狮子鱼，寻找巨兽补给与最后的守卫。",
+                  "紫晶化石花园",
+                  "VIOLET FOSSIL GARDEN",
+                  "紫晶与化石标记第三层，沿已开启的通道退回补给。",
                 ]
-              : [
-                  "挑战者秘境",
-                  "CHALLENGER REFUGE",
-                  "最深处藏着一抹暖光，沿光亮寻找秘密。",
-                ];
+              : depth < 2150
+                ? [
+                    "巨柱裂渊",
+                    "GIANT-COLUMN CHASM",
+                    "巨柱之间有绕行岩廊，先补给再挑战最后的守卫。",
+                  ]
+                : [
+                    "挑战者秘境",
+                    "CHALLENGER REFUGE",
+                    "沿暖光抵达底部街区，突破四关并成长至30米即可获胜。",
+                  ];
     return { ...zone, name: row[0], code: row[1], description: row[2] };
   }
   if (regionId === "bermuda")

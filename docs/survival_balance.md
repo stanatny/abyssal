@@ -1,6 +1,14 @@
 # Depth and food-chain balance
 
-The current [all-region progression candidate](progression_pacing_revision.md) preserves the shared hunger curve and changes reward placement, selected habitat homes and Mechanical Shark oversized-torpedo growth only. Historical budgets below are not new runtime measurements.
+The current [Mariana layered refinement](mariana_layer_brief.md) adds an explicitly authorized optional regional hunger profile through the shared survival helper. Other seven regions retain their existing curve. The preceding [all-region progression candidate](progression_pacing_revision.md) preserved the shared hunger curve; its historical budgets below are not new runtime measurements.
+
+## Mariana layer pressure — current candidate
+
+The original depth pressure caps at world depth500. Mariana now ramps over50 world-depth units after gates650,1000 and1375 to multipliers1.08,1.16 and1.24. The final layer remains capped at1.24, including the bottom approach. At25m the four settled deep-stage drains are2.550/2.754/2.958/3.162 hunger per active second; at30m they are3.00/3.24/3.48/3.72. A full100-hunger adult bar therefore lasts33.33 to26.88 seconds without food. Actual elapsed survival time, starvation remainder, pause/result freezing, shallow-return relief and the30-minute limit remain shared.
+
+Eight unchanged28m Ichthyotitans start two per pre-gate layer. They can pursue30m players under the shared less-than5m size-advantage rule, and remain edible above28m. Regional habitat435–2070 excludes the nursery and final-refuge approach; residentRadius50 is soft steering, not hard layer confinement. Existing Basilosaurus12/Megalodon15 totals remain; three anchor moves distribute at least two of each in every stage. Ordinary stock rises453→458.
+
+The focused first-stock calculation still needs17 captures from15m to25m for all four characters at initial health100/70/50; it excludes travel, elapsed hunger, missed captures and later injuries. It establishes available growth quantity only. Native movement, feeding, combat and runtime evidence belong in the final revision receipt. Normal solitary replenishment is28 movement seconds, longer than the deepest no-food adult budget; alternate food sites rather than camping one depleted resident.
 
 ## Current shared survival rule
 

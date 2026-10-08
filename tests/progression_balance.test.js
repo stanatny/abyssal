@@ -21,7 +21,7 @@ test("八海域保持数量、各水层食物和领主阶段的大型猎物", ()
     hawaii: 516,
     atlantis: 560,
     bermuda: 467,
-    mariana: 453,
+    mariana: 458,
     amazon: 409,
     europa: 352,
     penglai: 437,

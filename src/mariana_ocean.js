@@ -7,6 +7,7 @@ import { createBermudaBuilder } from "./bermuda_geometry.js";
 import { addSurfaceDetail, seaFanGeometry } from "./ocean_visuals.js";
 import { bermudaCoralColonyGeometry } from "./bermuda_reef.js";
 import { createMarianaRefuge } from "./mariana_refuge.js";
+import { addMarianaLandmarks } from "./mariana_landmarks.js";
 import {
   MARIANA_WORLD as W,
   MARIANA_GATES,
@@ -299,6 +300,14 @@ export function createMarianaOcean(parent) {
       distance: 180,
     });
   }
+  const sites = addMarianaLandmarks({
+    root,
+    keep,
+    group,
+    materials: { basalt, pale, dark, glow },
+  });
+  colliders.push(...sites.colliders);
+  lightSources.push(...sites.lightSources);
   const refuge = createMarianaRefuge(root, {
     keep,
     heightAt: marianaSeabedHeight,
@@ -366,6 +375,7 @@ export function createMarianaOcean(parent) {
         position: new THREE.Vector3(g.x, -g.depth, g.z),
       })),
       ...refuge.landmarks,
+      ...sites.landmarks,
     ],
     obstacles: [],
     get progress() {

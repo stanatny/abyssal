@@ -138,4 +138,41 @@ export const MARIANA_EN = Object.freeze({
     "Under cool stratus clouds, a research vessel, survey tender and instrument buoys mark the trench, with distant volcanic islands on the horizon. Cup sponges, anemones, brittle stars and layered encrusting life cling to the descent slope and rock walls. Subtle living glimmers reveal the terrain. Their density, scale and glow are artistic adaptations for exploration, not a reconstruction of real hadal ecology.",
   "开阔海域边缘的洋流带和雷达上的转向提示代表无法越过的边界；岩壁也不可穿越。远处海岛仅为背景。科考船沿用18米冲撞门槛，大船三次、小艇一次有效冲撞；浮标是障碍，生态装饰不提供食物或奖励。":
     "Current bands at open-water edges and the radar turn-back warning mark impassable boundaries; rock walls also block passage. Distant islands are scenery. Ships keep the 18m ramming threshold: three separate hits for the research vessel, one for the tender. Buoys are obstacles. Marine decorations provide no food or rewards.",
+  "四层岩谷、壁画与奇景": "Four canyons, murals & strange landscapes",
+  守卫的领域: "Realms of the guardians",
+  "沿支路探索，再回到下降主道":
+    "Explore the side loops, then return to the descent",
+  海德拉岩谷至利维坦裂渊: "From Hydra canyon to Leviathan chasm",
+  "三首浮雕岩谷、回声穹窟、紫晶化石花园与巨柱裂渊分别属于四位守卫。壁画、矿脉与天然岩廊帮助辨认每层；支路有可绕行的转弯空间，压力帘仍是必须突破的主关卡。":
+    "Three-headed reliefs, an echo vault, a violet fossil garden and a giant-column chasm mark the four guardians’ realms. Murals, mineral seams and natural galleries distinguish each layer. Side loops offer room to turn; pressure seals remain the mandatory gates.",
+  "沿微光寻找壁侧支路，保持食物储备后再探索。岩石、平台和顶棚不能穿过；遇到守卫可沿已开启的主道退回补给层。":
+    "Follow wall-side glimmers to the side loops, with food in reserve. Rock, terraces and roofs are solid. Retreat through an opened gate to a feeding layer when a guardian pressures you.",
+  分层饥饿与大型猎食者: "Layered hunger & giant hunters",
+  生存提示: "Survival advice",
+  越深越需补给: "Feed before diving deeper",
+  每道压力帘之后: "Beyond each pressure seal",
+  "原有深水压力之外，穿过前三道压力帘后，饥饿消耗分别平滑增加至原深水值的1.08、1.16和1.24倍，最深处不再继续加速。每个守关水层安排两只28米巨型鱼龙；30米时它们仍能主动追逐并造成伤害。它们在体长超过28米后也可被吞食。":
+    "Beyond the existing deep-water pressure, hunger drain rises smoothly to 1.08, 1.16 and 1.24 times the original deep-water rate after the first three seals, then stops increasing. Each guardian layer starts with two 28m Ichthyotitans. They still pursue and damage a 30m player, but become edible once you exceed 28m.",
+  "25至30米时，寻找18米龙王鲸与20米巨齿鲨恢复饥饿和生命。普通猎物吃掉后约28秒补充，不要只守着一只等待；先寻找下一处食物，必要时回到较浅的已开启水层。":
+    "At 25–30m, seek 18m Basilosaurus and 20m Megalodon to restore hunger and health. Ordinary prey replenish after about 28 active movement seconds; move to another feeding spot rather than camping one meal. Retreat to a shallower opened layer when needed.",
+  "穿过最后一道关卡后，沿暖光进入明亮的底部街区。菠萝屋、石像屋、岩屋与餐馆围绕广场，海绵宝宝、派大星和蜗牛居民点缀其中。这是幻想彩蛋，不代表真实超深渊生态。":
+    "Beyond the final gate, follow warm lights into a bright village on the trench floor. A pineapple house, stone-face house, rock house and restaurant surround a plaza, with SpongeBob, Patrick and a snail resident. This is a fantasy Easter egg, not real hadal ecology.",
+  "可沿街道绕屋探索；建筑与居民是陈设，不提供食物或奖励。获胜后可选择继续游览，生存计时会停止。":
+    "Swim along the streets and around the houses. Buildings and residents are decorative, with no food or rewards. After winning, choose to keep exploring; survival timers stop.",
+  三首浮雕岩谷: "Three-head Canyon",
+  回声穹窟: "Echo Vault",
+  紫晶化石花园: "Violet Fossil Garden",
+  巨柱裂渊: "Giant-column Chasm",
+  "沿三首浮雕与岩廊寻找大鱼，25米后挑战海德拉。":
+    "Seek larger prey by the three-headed reliefs and galleries; face Hydra at 25m.",
+  "穿过回声穹窟，留意巨型鱼龙；下潜前补足饥饿。":
+    "Cross the echo vault, watch for giant hunters and feed before diving.",
+  "紫晶与化石标记第三层，沿已开启的通道退回补给。":
+    "Violet crystals and fossils mark the third layer. Retreat through opened passages to feed.",
+  "巨柱之间有绕行岩廊，先补给再挑战最后的守卫。":
+    "Side galleries wind between giant columns. Feed before facing the last guardian.",
+  "沿暖光抵达底部街区，突破四关并成长至30米即可获胜。":
+    "Follow warm lights to the village. Clear all four gates and reach 30m to win.",
+  "沿四层岩谷、壁画与奇景逐层下潜，突破四位守卫。15米起步，25米后挑战领主；越深饥饿越快，30米也要提防巨型猎食者。":
+    "Descend through four canyons, murals and strange sights to overcome four guardians. Start at 15m; challenge lords at 25m. Deeper layers drain hunger faster, and giant hunters remain dangerous at 30m.",
 });

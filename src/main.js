@@ -1852,6 +1852,7 @@ function updatePlayer(dt, roundDt) {
     boosting: !wasAirborne && !jet && (keys.has("Space") || touchBoost),
     roundDt,
     depth: -position.y,
+    hungerProfile: expedition.region.hungerProfile,
   }).boosting;
   const movement = characterMovement(player.characterId, boosting || jet);
   if (wasAirborne || jet) groundRecovering = iceRecovering = false;
@@ -2958,6 +2959,19 @@ function atmosphere(dt) {
   const night = expedition.region.id === "atlantis";
   const storm = expedition.region.id === "bermuda";
   const trench = expedition.region.id === "mariana";
+  const refugeGlow =
+    trench && depth > 2500
+      ? 1 -
+        Clamp(
+          Math.hypot(
+            position.x - MARIANA_REFUGE.x,
+            position.y - MARIANA_REFUGE.y,
+            position.z - MARIANA_REFUGE.z,
+          ) / 250,
+          0,
+          1,
+        )
+      : 0;
   const city = night ? cityLightBlend(position) : 0;
   const color = new THREE.Color(night ? "#103847" : "#155568").lerp(
     new THREE.Color(night ? "#040f1b" : "#030e1c"),
@@ -2993,27 +3007,14 @@ function atmosphere(dt) {
       (aboveWater ? 0 : effects.ink * 0.115);
   if (trench) {
     const deep = Clamp(depth / 2200, 0, 1);
-    const refuge =
-      depth > 2550
-        ? 1 -
-          Clamp(
-            Math.hypot(
-              position.x - MARIANA_REFUGE.x,
-              position.y - MARIANA_REFUGE.y,
-              position.z - MARIANA_REFUGE.z,
-            ) / 190,
-            0,
-            1,
-          )
-        : 0;
     color
       .set(aboveWater ? "#aac4cb" : "#103845")
       .lerp(new THREE.Color("#0b142c"), aboveWater ? 0 : deep);
-    color.lerp(new THREE.Color("#354453"), refuge * 0.5);
+    color.lerp(new THREE.Color("#488b94"), refugeGlow * 0.85);
     scene.background.lerp(color, Math.min(1, dt * 3));
     scene.fog.color.copy(scene.background);
     scene.fog.density =
-      (aboveWater ? 0.0013 : 0.0027 + deep * 0.0005) +
+      (aboveWater ? 0.0013 : 0.0027 + deep * 0.0005 - refugeGlow * 0.0014) +
       (aboveWater ? 0 : effects.ink * 0.115);
   }
   if (ice) {
@@ -3097,8 +3098,13 @@ function atmosphere(dt) {
     ambient.color.set(0x9cbbd9);
     ambient.groundColor.set(0x394761);
     ambient.intensity = 1.45 - Clamp(depth / 2000, 0, 1) * 0.32;
+    ambient.color.lerp(new THREE.Color("#fff2d0"), refugeGlow);
+    ambient.groundColor.lerp(new THREE.Color("#829c8c"), refugeGlow);
+    ambient.intensity += refugeGlow * 0.97;
     sun.color.set(0xb3cbdc);
     sun.intensity = 0.8 - Clamp(depth / 900, 0, 1) * 0.58;
+    sun.color.lerp(new THREE.Color("#ffe6ad"), refugeGlow);
+    sun.intensity += refugeGlow * 0.4;
   }
   if (odyssey) {
     ambient.color.set("#b7dce1");
@@ -3268,8 +3274,11 @@ function updateHud() {
   }
   const remaining = Math.max(0, Math.ceil(ROUND_DURATION - player.elapsed));
   const pressure =
-    hungerDrainRate(player.length, -position.y) /
-    hungerDrainRate(player.length, 0);
+    hungerDrainRate(
+      player.length,
+      -position.y,
+      expedition.region.hungerProfile,
+    ) / hungerDrainRate(player.length, 0, expedition.region.hungerProfile);
   $("hunger-pressure").textContent =
     pressure > 1.05 ? tr`深潜 ×${pressure.toFixed(1)}` : "";
   $("round-clock").textContent = t(

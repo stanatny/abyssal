@@ -1,3 +1,25 @@
+# v0.11.3 — accepted main publication, 2026-10-09
+
+The user accepted the combined candidate and explicitly requested its commit and push to main. This supersedes the pending-acceptance restriction in the archived sections below. Publish the accepted Bermuda Leviathan/Frenzy checkpoint `96907d9` and Mariana layered expedition/current-agent rules together, by fast-forwarding clean main and pushing normally. Read [the release summary](docs/release_v0_11_3.md), [Mariana evidence](docs/mariana_layer_revision.md) and [verification](docs/verification.md). No tag or GitHub Release is requested.
+
+The current AI agent remains development owner by default; assign another model only when the user explicitly specifies it. Kimi's canceled isolated worktree remains excluded and preserved. All reviewed gameplay files match the accepted candidate; only release version/display metadata and current documentation change during publication. Track the exact Pages Actions run, downloaded artifact and formal native UI/resource verification in ignored `.local/release_v0_11_3/`. Do not mistake a successful push for a completed deployment.
+
+Preserve dev 5188, restricted preview 7188, tunnel 20248 and their existing process/log records. Rebuild with `python3 .local/mini_preview_20261007/manage.py rebuild`; its status/stop actions check recorded identities. Prior candidate/runtime receipts remain preserved. Future commits/pushes still require their own current authorization.
+
+---
+
+# Mariana combined review candidate — ready for user review, 2026-10-08
+
+The single delivery branch `fix/mariana-layered-expedition`, HEAD `96907d9`, contains the accepted local Bermuda Leviathan/Frenzy checkpoint plus uncommitted Mariana layered terrain, guardian-domain scenery, brighter bottom neighborhood, bounded hunger progression, eight adult-threatening hunters and generic current-AI-agent development rules. Main/Pages remains `ae9c7a7` / v0.11.2. Wait for the user's final acceptance before candidate commit/push/main publication; no new-candidate commit is yet authorized.
+
+Read [the candidate review](docs/mariana_layer_revision.md) and [production brief](docs/mariana_layer_brief.md), the repository Map Production Skill and asset quality standard. Development defaults to the current AI agent, not a named model. Kimi confirmed complete stop and task closure; its isolated worktree is preserved and excluded from the candidate. The integration owner authored and reviewed the refuge, and remains sole build/browser/service owner. Existing four ordered guardians, 15 m start, 25 m eligibility, 30 m/all-four/arrival victory and the 30-minute limit remain.
+
+Formatting/build and **1030** units pass; shared **29** browser checks, seven headed lifecycle groups, real hunter/feeding/traversal cases, staged safe epilogue/reset, bilingual local/public **37** native checks each and matched populated High/Smooth desktop workloads are recorded in the linked review. Final screenshots exposed Kraken crowns inside the preceding terrace: they now fit below actual ceiling triangles and preserve the 32 m loop. Initial failures and incorrect selector/catalog/nutrition oracles remain retained. Natural full-expedition pacing and physical-phone thermal smoothness are not established; reused audio graph transitions are captured, but agent audio input does not support listening review.
+
+Preview: https://saver-recorded-digit-could.trycloudflare.com/?preview=mariana-layered-20261008. Preserve dev 5188/restricted HTML-assets preview 7188/tunnel 20248, their identity/log records, previous runtimes `runtime_before_20261009_003218`, `runtime_before_20261008_235739` and `runtime_before_20261008_223430` and `.local/mariana_revision_20261008/` evidence. Rebuild/status/identity-checked stop use `python3 .local/mini_preview_20261007/manage.py rebuild|status|stop`. Source/build/artifact hashes, private-path denials and same-address refresh are frozen in the candidate manifest and delivery receipt. The owner-created temporary 5298 baseline listener was identity/cwd-checked and stopped after the comparison; its worktree/logs remain.
+
+---
+
 # Bermuda repair checkpoint authorized — 2026-10-08
 
 The user accepted the completed Leviathan habitat and starter-reward candidate and explicitly requested a local commit before the Mariana refinement. All current reviewed source changes, tests and documents form that checkpoint; the detailed candidate receipts below retain their original verification status. This authorization does not request a push, main integration, version bump or formal Pages update. The next task is an uncommitted Mariana vertical-expedition refinement covering layered terrain/identity, a richer bright final refuge, measured hunger progression and adult-threatening predators. Preserve existing preview services.

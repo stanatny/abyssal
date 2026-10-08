@@ -50,9 +50,10 @@ export function createPlayer(
  * 返回每秒饥饿消耗；浅滩消耗翻倍，深水对未成长个体增加连续的生存压力。
  * @param {number} length 玩家实际体长；无效输入按3米幼年体型处理。
  * @param {number} depth 世界坐标海深，界面显示深度为其四倍；无效输入按浅滩处理。
+ * @param {object} profile 可选分层压力配置，不提供时保留所有既有海域数值。
  * @returns {number} 每秒消耗的饥饿值。
  */
-export function hungerDrainRate(length, depth = 18) {
+export function hungerDrainRate(length, depth = 18, profile = null) {
   const safeLength = Number.isFinite(length) ? Math.max(3, length) : 3;
   const safeDepth = Number.isFinite(depth) ? Math.max(0, depth) : 0;
   const baseRate =
@@ -74,11 +75,27 @@ export function hungerDrainRate(length, depth = 18) {
   return (
     baseRate *
     HUNGER_RULES.baseMultiplier *
+    depthHungerMultiplier(safeDepth, profile) *
     (1 +
       depthPressure *
         (HUNGER_RULES.maxDepthBonus +
           juvenile * HUNGER_RULES.juvenileDepthBonus))
   );
+}
+
+/** 按世界深度连续跨过配置阈值，避免刚穿压力帘就突然扣除额外资源。 */
+export function depthHungerMultiplier(depth, profile = null) {
+  if (!profile?.steps?.length) return 1;
+  const safeDepth = Number.isFinite(depth) ? Math.max(0, depth) : 0;
+  const ramp = Math.max(1, profile.rampDepth || 1);
+  let previous = 1;
+  let multiplier = 1;
+  for (const step of profile.steps) {
+    const blend = Math.max(0, Math.min(1, (safeDepth - step.depth) / ramp));
+    multiplier += (step.multiplier - previous) * blend;
+    previous = step.multiplier;
+  }
+  return multiplier;
 }
 
 /**
@@ -91,7 +108,7 @@ export function hungerDrainRate(length, depth = 18) {
 export function tickVitals(
   player,
   dt,
-  { boosting = false, depth = 18, roundDt = dt } = {},
+  { boosting = false, depth = 18, roundDt = dt, hungerProfile = null } = {},
 ) {
   if (player.dead || player.won || player.timedOut) return { boosting: false };
   const remaining = Math.max(0, ROUND_DURATION - player.elapsed);
@@ -121,7 +138,7 @@ export function tickVitals(
 
   // 25米在深海约39秒耗尽饱食；有效领主咬击和途中大型猎物提供补给。
   // 深度不额外扣体力或生命；小鱼营养仍按既有体型差距衰减。
-  const hungerRate = hungerDrainRate(player.length, depth);
+  const hungerRate = hungerDrainRate(player.length, depth, hungerProfile);
   const fedTime = Math.min(elapsed, player.hunger / hungerRate);
   player.hunger = Math.max(0, player.hunger - hungerRate * elapsed);
   const starvingTime = elapsed - fedTime;

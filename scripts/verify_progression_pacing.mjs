@@ -245,7 +245,7 @@ try {
       hawaii: 516,
       atlantis: 560,
       bermuda: 467,
-      mariana: 453,
+      mariana: 458,
       amazon: 409,
       europa: 352,
       penglai: 437,

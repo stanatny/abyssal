@@ -94,7 +94,7 @@ test("the guide's full and regional catalogs agree with actual species and lord 
   const catalog = buildOceanCatalog();
   assert.equal(
     catalog.length,
-    164 + REGIONAL_RARES.length + PENGLAI_TRANSFORMATION_FORMS.length,
+    166 + REGIONAL_RARES.length + PENGLAI_TRANSFORMATION_FORMS.length,
   );
   assert.equal(
     catalog.filter((e) =>
@@ -102,7 +102,7 @@ test("the guide's full and regional catalogs agree with actual species and lord 
         (id) => id !== "europa" && id !== "penglai" && id !== "odyssey",
       ),
     ).length,
-    96 +
+    98 +
       REGIONAL_RARES.filter(
         (s) => !["europa", "penglai", "odyssey"].includes(s.regionId),
       ).length,

@@ -1,17 +1,17 @@
 # Map production brief and return receipt
 
-Copy the relevant sections into the map's project brief, fill concrete values, and remove unused rows. This is a working contract between Codex and Kimi, not a new user approval form. Use repository-relative paths for modules and evidence; execution worktrees may be identified by the paths actually assigned for the task. Do not copy Atlantis's numbers by default.
+Copy the relevant sections into the map's project brief, fill concrete values, and remove unused rows. This is a production contract for the current AI agent, not a new user approval form. Another model may be included only when explicitly specified by the user. Use repository-relative paths for modules and evidence; execution worktrees may be identified by the paths actually assigned for the task. Do not copy Atlantis's numbers by default.
 
 ## Assignment
 
-| Field                              | Fill for this task                                                                                              |
-| ---------------------------------- | --------------------------------------------------------------------------------------------------------------- |
-| Map and intended player experience | Region ID, defining promise, surface-to-depth progression, scope and exclusions.                                |
-| Source of truth                    | Current request, base revision, relevant current documents and accepted comparison assets.                      |
-| Integration owner                  | Codex worktree/branch; shared files, preview/build/browser services owned here.                                 |
-| Art delegate                       | Kimi worktree/branch; exact allowed files and forbidden shared files.                                           |
-| Return method                      | Unstaged diff, exact changed files, evidence location; no independent commit/stage/push or service replacement. |
-| Existing authorization             | Record only what the current task permits; distinguish local work, preview, commit, merge, push and release.    |
+| Field                              | Fill for this task                                                                                                              |
+| ---------------------------------- | ------------------------------------------------------------------------------------------------------------------------------- |
+| Map and intended player experience | Region ID, defining promise, surface-to-depth progression, scope and exclusions.                                                |
+| Source of truth                    | Current request, base revision, relevant current documents and accepted comparison assets.                                      |
+| Integration owner                  | the current AI agent worktree/branch; shared files, preview/build/browser services owned here.                                  |
+| Art delegate                       | the current AI agent by default; another model only when explicitly specified by the user, with exact worktree/file boundaries. |
+| Return method                      | Unstaged diff, exact changed files, evidence location; no independent commit/stage/push or service replacement.                 |
+| Existing authorization             | Record only what the current task permits; distinguish local work, preview, commit, merge, push and release.                    |
 
 ## Regional design
 
@@ -50,8 +50,8 @@ Record food budgets at the representative body lengths required by AGENTS, using
 | ------------------------- | ------------------------------------------------------------------------ | ------------------------------------------------------------------------------------------ | -------------------------------------------------------------------------------- |
 | Fill exact path and owner | Include signatures, argument/return shapes and caller example if needed. | Include normalized length, terrain/collider transforms and contact anchors where relevant. | Existing loop inputs, quality inputs, caches versus owned resources and cleanup. |
 
-- **Playable slice:** name the representative finished assets, route, population and actual scene view that establish direction before kit replication; identify what Codex will integrate/check.
-- **Expansion batches:** name the next bounded group of files/assets, its evidence, and shared edits reserved for Codex. Record changes to the brief when discoveries alter the plan.
+- **Playable slice:** name the representative finished assets, route, population and actual scene view that establish direction before kit replication; identify what the current AI agent will integrate/check.
+- **Expansion batches:** name the next bounded group of files/assets, its evidence, and shared edits reserved for the current AI agent. Record changes to the brief when discoveries alter the plan.
 - **Integrated completion:** name the actual scene, ecology/contact, music, lifecycle, bilingual and headed-performance checks. Preserve labels for staged positions, controlled encounters, headless runs and untested physical devices.
 
 ## Delegate return / owner receipt

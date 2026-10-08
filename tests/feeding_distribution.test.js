@@ -66,7 +66,7 @@ test("五海域实际分群库存完整，出生深度与每一群的固定水�
     hawaii: 516,
     atlantis: 560,
     bermuda: 467,
-    mariana: 453,
+    mariana: 458,
     europa: 352,
   };
   for (const [region, expected] of Object.entries(counts)) {
