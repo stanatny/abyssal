@@ -59,7 +59,17 @@ export const REGIONS = Object.freeze(
       available: true,
       seabedHeat: false,
       description:
-        "风暴遮蔽神秘外海，探索可进入的巨型沉船，避开龙卷水柱与幽灵炮击。安全浅滩之外，危险分布在各个水层。",
+        "风暴遮蔽神秘外海，探索可进入的巨型沉船，避开龙卷水柱与幽灵炮击。出生点固定有一枚深渊狂食，随机狂食不会出现在安全浅滩。",
+      extraStarterRewards: Object.freeze([
+        Object.freeze({
+          id: "bermuda_spawn_frenzy",
+          kind: "frenzy",
+          atSpawn: true,
+        }),
+      ]),
+      randomRewardPlacement: Object.freeze({
+        frenzy: Object.freeze({ excludeNursery: true }),
+      }),
       speciesKinds: REGION_SPECIES_KINDS.bermuda,
       bossKinds: BOSS_SPECIES.filter(
         (s) => !s.alien && !s.freshwater && !s.mythic,
@@ -95,7 +105,8 @@ export const REGIONS = Object.freeze(
           {
             id: "bermuda_leviathan",
             kind: "leviathan",
-            home: [-70, -590, -995],
+            // 扩建沉船的支撑床占据旧领地；东侧深水通道留出完整巡游与返巢空间。
+            home: [185, -590, -995],
             radius: 86,
           },
         ].map((s) => Object.freeze({ ...s, home: Object.freeze(s.home) })),

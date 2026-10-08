@@ -1,6 +1,7 @@
 import * as THREE from "three";
 import { habitatPosition } from "./ecosystem_population.js";
-import { REWARD_PLACEMENT } from "./reward_config.js";
+import { REWARD_BOB_AMPLITUDE, REWARD_PLACEMENT } from "./reward_config.js";
+import { isNursery } from "./nursery_rules.js";
 
 /**
  * 选择随机补给的真实合法位置，不回退到靠近出生点的通用物种锚点。
@@ -16,6 +17,7 @@ export function randomRewardPosition(
     colliders = [],
     rewardHabitat = {},
     rewardAnchor,
+    excludeNursery = false,
     random = Math.random,
   },
 ) {
@@ -42,6 +44,12 @@ export function randomRewardPosition(
       random,
     });
     if (!point) continue;
+    // 地形与边界校正后再排除浅滩；浮动到最高点时也不能重新进入保护区。
+    if (
+      excludeNursery &&
+      isNursery({ x: point.x, y: point.y + REWARD_BOB_AMPLITUDE, z: point.z })
+    )
+      continue;
     return point;
   }
   return null;

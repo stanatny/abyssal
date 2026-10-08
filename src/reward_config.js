@@ -1,9 +1,10 @@
-// 浅滩只固定保留恢复与洋流；狂食仅随其余补给随机分布，场景与图鉴共用。
+// 通用浅滩保留恢复与洋流；额外入门奖励由区域数据配置。
 export const STARTER_REWARDS = Object.freeze([
   Object.freeze({ kind: "stamina", position: Object.freeze([-13, -19, 40]) }),
   Object.freeze({ kind: "flow", position: Object.freeze([0, -24, 12]) }),
 ]);
 export const RANDOM_REWARD_COUNT = 18;
+export const REWARD_BOB_AMPLITUDE = 0.6;
 export const REWARD_PLACEMENT = Object.freeze({
   attempts: 24,
 });
@@ -34,3 +35,23 @@ export const REWARDS = Object.freeze({
 });
 
 export const REWARD_KINDS = Object.freeze(Object.keys(REWARDS));
+
+/** 默认槽位保持稳定；区域额外奖励追加在随机槽后，不改变复用模型的种类。 */
+export function rewardSlots(region = {}) {
+  return [
+    ...STARTER_REWARDS.map((reward) => ({
+      ...reward,
+      id: `starter_${reward.kind}`,
+    })),
+    ...Array.from({ length: RANDOM_REWARD_COUNT }, (_, randomIndex) => ({
+      id: `random_${randomIndex}`,
+      kind: REWARD_KINDS[randomIndex % REWARD_KINDS.length],
+      randomIndex,
+    })),
+    ...(region.extraStarterRewards ?? []).map((reward) => ({
+      id: reward.id,
+      kind: reward.kind,
+      position: reward.atSpawn ? region.spawn : reward.position,
+    })),
+  ];
+}

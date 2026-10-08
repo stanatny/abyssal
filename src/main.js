@@ -104,11 +104,7 @@ import {
 import { createFrenzyEffect } from "./frenzy_effect.js";
 import { WORLD } from "./world_config.js";
 import { createReward, REWARDS } from "./rewards.js";
-import {
-  RANDOM_REWARD_COUNT,
-  REWARD_KINDS,
-  STARTER_REWARDS,
-} from "./reward_config.js";
+import { REWARD_BOB_AMPLITUDE, rewardSlots } from "./reward_config.js";
 import { randomRewardPosition } from "./reward_placement.js";
 import { createSurface } from "./surface.js";
 import { createEncounters } from "./encounters.js";
@@ -1368,29 +1364,37 @@ function seedPopulation() {
   prepareMythicTransformations(entities);
 }
 function seedPickups() {
-  const starterCount = STARTER_REWARDS.length;
-  for (let i = 0; i < starterCount + RANDOM_REWARD_COUNT; i++) {
-    let item = pickups[i];
+  const region = expedition.region;
+  const byId = new Map(pickups.map((item) => [item.id, item]));
+  // 区域切换时隐藏额外槽，重开仍复用同一模型，避免累积或串入其他地图。
+  for (const item of pickups) {
+    item.disabled = true;
+    item.mesh.visible = false;
+    item.cooldown = 0;
+  }
+  for (const slot of rewardSlots(region)) {
+    let item = byId.get(slot.id);
     if (!item) {
-      const kind =
-        i < starterCount
-          ? STARTER_REWARDS[i].kind
-          : REWARD_KINDS[(i - starterCount) % REWARD_KINDS.length];
-      item = { kind, mesh: createReward(kind), baseY: 0, cooldown: 0 };
+      item = {
+        id: slot.id,
+        kind: slot.kind,
+        mesh: createReward(slot.kind),
+        baseY: 0,
+        cooldown: 0,
+      };
       scene.add(item.mesh);
       pickups.push(item);
     }
-    // 只固定生命补给与洋流；狂食也可随机落在浅滩，重开仍复用原有模型。
-    const point =
-      i < starterCount
-        ? new THREE.Vector3(...STARTER_REWARDS[i].position)
-        : randomRewardPosition(i - starterCount, {
-            world: activeWorld(),
-            heightAt: activeSeabedHeight,
-            colliders: ocean.colliders,
-            rewardHabitat: ocean.rewardHabitat,
-            rewardAnchor: ocean.rewardAnchor,
-          });
+    const point = slot.position
+      ? new THREE.Vector3(...slot.position)
+      : randomRewardPosition(slot.randomIndex, {
+          world: activeWorld(),
+          heightAt: activeSeabedHeight,
+          colliders: ocean.colliders,
+          rewardHabitat: ocean.rewardHabitat,
+          rewardAnchor: ocean.rewardAnchor,
+          ...region.randomRewardPlacement?.[slot.kind],
+        });
     item.disabled = !point;
     item.cooldown = 0;
     item.mesh.visible = !!point;
@@ -2870,7 +2874,8 @@ function updatePickups(dt) {
     const pickupDistance = pickup.mesh.position.distanceTo(position);
     pickup.mesh.visible = pickupDistance < 150;
     pickup.mesh.userData.label.visible = pickupDistance < 75;
-    pickup.mesh.position.y = pickup.baseY + Math.sin(elapsed * 1.5) * 0.6;
+    pickup.mesh.position.y =
+      pickup.baseY + Math.sin(elapsed * 1.5) * REWARD_BOB_AMPLITUDE;
     if (
       pickup.mesh.position.distanceTo(position) <
       player.length * 0.28 + 1.8

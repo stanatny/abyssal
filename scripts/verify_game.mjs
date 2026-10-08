@@ -2,7 +2,10 @@ import { chromium } from "@playwright/test";
 import assert from "node:assert/strict";
 import { mkdir, writeFile } from "node:fs/promises";
 await mkdir(".local", { recursive: true });
-const browser = await chromium.launch({ channel: "chrome", headless: true });
+const browser = await chromium.launch({
+  channel: "chrome",
+  headless: process.env.ABYSSAL_BROWSER_HEADED !== "1",
+});
 const page = await browser.newPage({
   viewport: { width: 1440, height: 900 },
   locale: "zh-CN",

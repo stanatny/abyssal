@@ -31,8 +31,8 @@ export const BERMUDA_EN = Object.freeze({
     "Enter through the breach or atrium and watch for giants outside.",
   "远古猎手与深渊领主分守幽暗海沟。":
     "Ancient predators and Abyss Lords guard the dark trenches.",
-  "风暴遮蔽神秘外海，探索可进入的巨型沉船，避开龙卷水柱与幽灵炮击。安全浅滩之外，危险分布在各个水层。":
-    "An advanced expedition through stormbound seas. Explore a vast enterable wreck and evade waterspouts and spectral cannon fire. Beyond the sheltered nursery, danger occupies every depth.",
+  "风暴遮蔽神秘外海，探索可进入的巨型沉船，避开龙卷水柱与幽灵炮击。出生点固定有一枚深渊狂食，随机狂食不会出现在安全浅滩。":
+    "Storms conceal a mysterious sea. Explore the enterable giant wreck and avoid waterspouts and ghost cannon fire. One fixed Frenzy pickup waits at spawn; random Frenzy pickups stay outside the safe nursery.",
   "风暴遮蔽航路，幽灵炮声穿透浓雾。":
     "Storms hide the sea lanes; ghostly cannon fire cuts through the mist.",
   "探索失落沉船，挑战各水层的深渊领主。":

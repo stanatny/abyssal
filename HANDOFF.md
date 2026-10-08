@@ -1,3 +1,31 @@
+# Bermuda repair checkpoint authorized — 2026-10-08
+
+The user accepted the completed Leviathan habitat and starter-reward candidate and explicitly requested a local commit before the Mariana refinement. All current reviewed source changes, tests and documents form that checkpoint; the detailed candidate receipts below retain their original verification status. This authorization does not request a push, main integration, version bump or formal Pages update. The next task is an uncommitted Mariana vertical-expedition refinement covering layered terrain/identity, a richer bright final refuge, measured hunger progression and adult-threatening predators. Preserve existing preview services.
+
+---
+
+# Uncommitted Bermuda starter reward follow-up — 2026-10-08
+
+Based on published v0.11.2 / `ae9c7a7`, on `fix/bermuda-leviathan-habitat`. The user authorized one fixed Frenzy at Bermuda spawn and exclusion of that map's random Frenzy from the safe nursery. Read [the reward revision](docs/bermuda_reward_revision.md). Keep the preceding uncommitted Leviathan home repair. The default two starters and eighteen random slots, other seven regions, effects, combat and replenishment remain; shared IDs reuse at most twenty-one pooled meshes, disabling the extra outside Bermuda. Final adjusted positions are checked at peak bob against the existing inclusive nursery boundary.
+
+Fresh formatting, production build and all **1007 units**, including **22 focused reward placement tests**, pass. Actual unstaged/read-only native runtime passes **20 cases** across all four characters and ten departures spanning all eight regions, including effect expiry, same-mesh replenishment, pause/home and 21/20 enabled-slot isolation. The shared 29 browser checks pass in optional headed Chrome; preserved headless landing-deadline failures and all corrected test-only selector/visibility oracles are distinguished in the linked review. Restricted compiled local/public each pass **20 native checks**, with four bilingual desktop/narrow Guide/menu cases, Bermuda flow, reload and settled requests. Both hosts match 9 active artifacts; 641 candidate files / 302 build inputs are recorded, 12 private paths per host are denied and same-address refresh/removal passes. Production hooks and observed browser/resource errors are absent. Current complete manifest and final process/source receipt are in ignored `.local/bermuda_reward_review_20261008/candidate/`; existing processes and previous runtime_before_20261008_210526 remain. Preserve earlier failures and the preceding candidate manifest.
+
+No commit, push, main merge, version bump, Pages release or personal Skill update is authorized. Rebuild the existing HTML/assets-only preview at its same address, preserve process identities and the preceding runtime, and check source/build/artifact fingerprints, actual local/public UI and same-address refresh. The formal edition remains unchanged.
+
+---
+
+# Uncommitted Bermuda Leviathan habitat repair — 2026-10-08
+
+The user reported and authorized repairing the buried Bermuda Leviathan after v0.11.2. Continue on `fix/bermuda-leviathan-habitat`, based on published `ae9c7a7`. Only its regional fixed home moves to the eastern deep-water channel; preserve the accepted liner, all models, shared movement/combat/survival rules, ecology and objectives.
+
+Read [the habitat review](docs/bermuda_leviathan_revision.md) and [current verification](docs/verification.md). The old home lies 98.442 m below the enlarged wreck bed, causing floor projection and the 108 m home leash to conflict. Real-terrain regressions cover initial placement, full patrol, legal approaches, return and reset; actual posed surfaces and rendered triangles must remain clear. Preserve the diagnosis, rejected coordinates and invalid player-proxy test receipt in ignored `.local/leviathan_review_20261008/`.
+
+Fresh acceptance passes 1001 units, formatting/build, native live patrol/charge-start/return/pause/home and restricted compiled local/public each 12 checks (two bilingual desktop/narrow Guide cases, Bermuda flow and reload). Original failures and their corrected test/probe oracles remain retained. Each host matches all nine active artifacts, with complete candidate/build fingerprints, denied private routes and same-address refresh verified. The same preview address is rebuilt; current candidate and delivery receipts are ignored under `.local/leviathan_review_20261008/`.
+
+New work remains uncommitted. No push, main merge, version bump or release is authorized. Rebuild only the existing restricted preview, retain its previous runtime and process identities, and verify source/build fingerprints plus actual local/public native flows. Formal Pages remains v0.11.2 / `ae9c7a7`; the preceding release authorization applies only to its accepted delta.
+
+---
+
 # v0.11.2 release — Wreck Exploration and Model Refinement
 
 On 2026-10-08 the user accepted the current ship candidate and explicitly authorized committing and pushing it to `main`. Publish the accepted Guide correction `60a48ee`, four-model checkpoint `b132a6f` and subsequent ship revision from `fix/wreck-scale-interiors`, based on v0.11.1 / `f7dead5`. Fast-forward only clean local `main`; preserve existing worktrees and preview services. No tag, GitHub Release or personal Skill update is requested.

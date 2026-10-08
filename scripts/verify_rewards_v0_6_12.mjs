@@ -173,14 +173,14 @@ try {
     assert.match(
       guide.frenzy,
       locale === "en"
-        ? /Only one Vitality Supply and one Ocean Current/
-        : /只固定放置生命补给与洋流之息各一枚/,
+        ? /One Vitality Supply and one Ocean Current/
+        : /固定放置生命补给与洋流之息各一枚/,
     );
     assert.match(
       guide.frenzy,
       locale === "en"
-        ? /may occasionally be found in the shallows/
-        : /浅滩也可能偶然遇到/,
+        ? /Bermuda also has one fixed Frenzy pickup at spawn/
+        : /百慕大出生点另有一枚固定狂食/,
     );
     report.checks.push({
       width,
