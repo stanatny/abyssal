@@ -1,3 +1,13 @@
+# Uncommitted Ocean Guide control-spacing fix — 2026-10-08
+
+Codex@mini owns ongoing development after the completed environment handoff. The user requested a desktop Ocean Guide UI fix: the region selector's native arrow touched its right border. Work is based on published v0.11.1 / `f7dead5`, on `fix/guide-region-control-spacing`.
+
+The CSS-only candidate uses a theme-matched arrow inset by 14 px, reserves text space and keeps the actual native select, its labels, keyboard interaction, focus outline and 44 px target. Forced-color mode restores the system arrow. Gameplay, content and translations are unchanged. Fresh affected-layout evidence is ignored under `.local/guide_ui_20261008/`; see [verification](docs/verification.md) for the checks actually completed.
+
+Verified delivery: nine affected cases pass on development, restricted compiled local and public runtimes; formatting/build and all nine artifact hashes pass. Theme, narrow landscape, native filtering, focus and forced-color evidence are retained with the earlier diagnostic oracle failures. The existing restricted preview is rebuilt at the same address, with its preceding runtime and established processes retained. Leave this candidate uncommitted; no new push or formal publication is authorized. The release authorization and candidate sections below are historical and do not authorize publishing this fix.
+
+---
+
 # v0.11.1 release — Runtime CPU Refinement
 
 On 2026-10-05 the user accepted the performance candidate and explicitly authorized pushing it to `main`. Release from `fix/runtime-performance-v0-11`, based on v0.11.0 / `9122033`, then fast-forward clean `main` without discarding other worktrees. No tag, GitHub Release or personal shared Skill update is requested.

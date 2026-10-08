@@ -1,3 +1,13 @@
+# Uncommitted Ocean Guide selector spacing — 2026-10-08
+
+Based on published v0.11.1 / `f7dead5`, the desktop region selector now uses an inset theme-matched chevron instead of browser decoration against the border. Native select markup, labels, keyboard focus, the 44 px target and region-filter behavior remain; forced-color mode restores the system indicator. The change is presentation-only and remains separate from the published release.
+
+Nine affected development-browser cases pass: English/Chinese desktop at DPR 2 in light/dark themes, 320/390 px touch portrait, 667×375 and 568×320 narrow landscape, and forced colors. Before/after screenshots confirm the 14 px inset. Native English keyboard typeahead changes the actual regional list; Tab focus works in both languages. No page, console or resource errors were observed. The initial direction-key oracle also failed in a standalone native select under Mac headless Chrome; its preserved diagnostic receipt is separate from the corrected native-typeahead checks. Chinese system-popup/IME selection and physical-phone behavior remain unverified.
+
+Formatting and the production build pass. The rebuilt restricted local and public hosts each pass the same nine affected cases, without observed page, console or resource errors. All nine active artifact hashes match the build and source/worktree fingerprints; production hooks are absent, private paths are denied, and a temporary safe asset proves same-address refresh before removal. The previous runtime and established processes are retained. Evidence is ignored under `.local/guide_ui_20261008/`. The candidate remains uncommitted and published Pages remains v0.11.1; no unrelated gameplay suite or performance claim is needed for this CSS-only fix.
+
+---
+
 # v0.11.1 release preflight — Runtime CPU Refinement
 
 On 2026-10-05 the user accepted the runtime CPU candidate and authorized pushing it to `main`. Read [the release scope](release_v0_11_1.md). Version metadata and both-language footer identify v0.11.1. Fresh preflight and exact Actions/Pages receipts belong in ignored `.local/release_v0_11_1/`; candidate receipts below remain historical and are not presented as new performance measurements. Their former no-commit/no-push restrictions are superseded for this accepted release.

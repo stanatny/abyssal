@@ -28,6 +28,7 @@
   --archive-reward-shadow: #6d94704d;
   --archive-reward-inner: #bbd7ac40;
   --archive-search-icon: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%23566f65' stroke-width='1.6'%3E%3Ccircle cx='10' cy='10' r='7'/%3E%3Cpath d='m15 15 6 6'/%3E%3C/svg%3E");
+  --archive-select-icon: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12' fill='none'%3E%3Cpath d='m2 4 4 4 4-4' stroke='%23193d40' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
   color-scheme: light;
   width: min(1360px, calc(100vw - 64px));
   max-width: none;
@@ -172,16 +173,32 @@
   color: var(--archive-muted);
 }
 .guide-region-row select {
+  -webkit-appearance: none;
+  appearance: none;
   min-width: 0;
   min-height: 44px;
   width: min(340px, 100%);
-  padding: 8px 10px;
+  padding: 8px 38px 8px 10px;
   border: 1px solid var(--archive-control-line);
   border-radius: 2px;
   font: inherit;
   font-size: 12px;
   color: var(--archive-ink);
-  background: var(--archive-bg);
+  background-color: var(--archive-bg);
+  background-image: var(--archive-select-icon);
+  background-position: right 14px center;
+  background-size: 12px;
+  background-repeat: no-repeat;
+  cursor: pointer;
+}
+/* 高对比度模式使用系统箭头，避免背景图被隐藏后丢失下拉提示。 */
+@media (forced-colors: active) {
+  .guide-region-row select {
+    -webkit-appearance: auto;
+    appearance: auto;
+    padding-right: 10px;
+    background-image: none;
+  }
 }
 .guide-availability {
   display: flex;
@@ -923,6 +940,7 @@
     --archive-reward-shadow: #00182066;
     --archive-reward-inner: #bddfc154;
     --archive-search-icon: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%23acc5bd' stroke-width='1.6'%3E%3Ccircle cx='10' cy='10' r='7'/%3E%3Cpath d='m15 15 6 6'/%3E%3C/svg%3E");
+    --archive-select-icon: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12' fill='none'%3E%3Cpath d='m2 4 4 4 4-4' stroke='%23e6efe8' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
     color-scheme: dark;
   }
 }

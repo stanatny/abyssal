@@ -181,6 +181,8 @@ The game supports Simplified Chinese (`zh-CN`) and English (`en`) across menus, 
 
 Implementation and copy-authoring guidance are in [localization](docs/localization.md). The [verification record](docs/verification.md) documents current release checks and historical bilingual coverage.
 
+The current uncommitted interface follow-up insets the Ocean Guide's region-selector arrow from its border in both themes. It preserves native selection, keyboard access and the existing layout; forced-color mode retains the system arrow. This local preview adjustment is separate from published v0.11.1.
+
 ## Survive first, then rule the depths
 
 Start as a **3-meter juvenile** in every destination except **Mariana and Penglai, which start at 15 meters**. Eat smaller creatures, and avoid larger hunters. Follow the selected destination's objective above: Hawaii uses growth and a lord defeat, Atlantis uses a hidden treasure, Bermuda uses conquest of all four lords, and Mariana uses its gated descent. A round lasts at most 30 minutes of active play; paused time does not count.
