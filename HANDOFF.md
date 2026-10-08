@@ -1,3 +1,25 @@
+# v0.11.2 release — Wreck Exploration and Model Refinement
+
+On 2026-10-08 the user accepted the current ship candidate and explicitly authorized committing and pushing it to `main`. Publish the accepted Guide correction `60a48ee`, four-model checkpoint `b132a6f` and subsequent ship revision from `fix/wreck-scale-interiors`, based on v0.11.1 / `f7dead5`. Fast-forward only clean local `main`; preserve existing worktrees and preview services. No tag, GitHub Release or personal Skill update is requested.
+
+Read [the release summary](docs/release_v0_11_2.md), [wreck review](docs/wreck_interior_revision.md), [model review](docs/mythic_model_revision.md) and [verification](docs/verification.md). Preserve the reviewed architecture and corresponding colliders, matching terrain/food anchors, actual anatomy/motion and both-language copy. No shared survival, feeding, combat or objective rule change is included. Version metadata, both-language footer and the actual English README screenshot identify v0.11.2.
+
+The candidate evidence below retains its historical status and measurements. Its no-commit/no-push restrictions are superseded only for this accepted delta by the current publication authorization. Fresh release preflight and the exact Actions run, CI artifact, served-byte hashes and formal native-player receipts belong in ignored `.local/release_v0_11_2/`. Verify deployed commit and actual formal player flows; push success alone does not establish a working deployment.
+
+---
+
+# Wreck exploration and interiors candidate — 2026-10-08
+
+Codex@mini remains the development owner. The user authorized the preceding four-model repair checkpoint as local commit `b132a6f`, following Guide fix `60a48ee`; both are complete without a push. Current branch `fix/wreck-scale-interiors` contains subsequent uncommitted ship changes. Released main/Pages remains v0.11.1 / `f7dead5`.
+
+Read [the wreck review](docs/wreck_interior_revision.md) and [current verification](docs/verification.md). Screenshot feedback superseded the first 132 m open-gallery draft: the retained Europa craft has a184.8 m hull, four actual compartments and a10/16 m service loop. Adult central doorways remain wide; the moved x145 site preserves the original descent. Bermuda has a600×135 m hull,11 furnished room records and matching solids/routes/support bed/interior school anchors. Preserve shared body/floor/collision rules, stock, individual nutrition, natural school respawn, weather/fleet/audio, objectives, light count and resource ownership.
+
+Final development acceptance passes997 units, formatting,29 shared native-browser checks and82 real-input wreck checks (64 routes plus64 turns, physical wall blocking, pause/home and warm switches). Both populations/audio remain isolated and repeated resource counts stabilize. Primary travel initially stages 32 m bodies, then retains natural meals, including normal growth clamping to 30 m; fixed 32 m sweeps are separate geometry evidence. Three scaled Bermuda fixed schools pass actual mouth capture and normal18 s replenishment with untouched clocks/vitals. The native low-entry recovery defect was corrected by raising the deck/partition/hatches/supports together and leading ingress into a laboratory turning bay. Old contact-bearing/controller-cut diagnostics are preserved. Restricted compiled local/public each pass 24 native checks, including eight bilingual/theme/narrow landmark Guide cases, both regional start/pause/resume/home flows and same-address reload. Both hosts match all nine active artifacts; all 636 candidate-file hashes are bound to the retained build inputs. Production hooks are absent, 12 private/development paths are denied and safe same-address asset replacement/removal passes, with no observed browser/resource errors. All raw evidence belongs in ignored `.local/wreck_review_20261008/`.
+
+New ship changes remain uncommitted. No push, main merge, formal release or personal Skill publication is authorized. Comparison-only5189 is stopped; the established development/restricted-preview/tunnel processes remain; rebuild only the whitelist runtime at the same address and retain the preceding build. The older model candidate status below is historical and superseded by local commit `b132a6f`.
+
+---
+
 # Uncommitted four-model anatomy and motion revision — 2026-10-08
 
 Codex@mini remains the development owner. The user authorized the preceding desktop Guide correction as local commit `60a48ee`; that commit is complete and has not been pushed. Current branch `fix/mythic-model-motion` adds the requested Sword Sage, White Tiger, Coral Mermaid and screenshot-reported Kraken model repairs. Released main/Pages remains v0.11.1 / `f7dead5`.

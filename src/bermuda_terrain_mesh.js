@@ -43,7 +43,7 @@ export function createBermudaTerrainMesh() {
       ];
       const floorEdge =
         Math.min(...corners) <= -716 && Math.max(...corners) > -715.99;
-      const n = (nearBed && !flat) || floorEdge ? 5 : 1,
+      const n = floorEdge ? 5 : nearBed && !flat ? 4 : 1,
         step = 5 / n;
       for (let j = 0; j < n; j++)
         for (let i = 0; i < n; i++) {

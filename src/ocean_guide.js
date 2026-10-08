@@ -26,6 +26,7 @@ import { characterMovement } from "./character_rules.js";
 import { HUMAN_CATALOG, createHumanModel } from "./vehicle_models.js";
 import { BOSS_SPECIES, BOSS_BITE_HUNGER } from "./boss_rules.js";
 import { BERMUDA_HAZARDS } from "./bermuda_hazard_rules.js";
+import { BERMUDA_WRECK } from "./bermuda_sites.js";
 import { WORLD } from "./world_config.js";
 import { CHARACTERS, REGIONS, getExpedition } from "./expedition_config.js";
 import { getHunterAbility } from "./hunter_rules.js";
@@ -499,9 +500,9 @@ function bermudaGuideEntries() {
       latin: "THE LOST OCEAN LINER",
       role: "可探索沉船",
       symbol: "⚓",
-      effect: "破口、贯通货舱与多层中庭",
+      effect: "餐厅、客舱、机舱与多层中庭",
       habitat: "沉船海床",
-      text: "396米长的四烟囱邮轮沉在深水中。可由右舷大破口、艉部中央开口或敞开的中庭进入，货舱、楼梯与家具沿两翼布置。它是可进入的地貌，不是整船实心碰撞。",
+      text: tr`${BERMUDA_WRECK.length}米长的四烟囱邮轮沉在深水中。可由右舷大破口、艉部中央开口或敞开的中庭进入，餐厅、沙龙、客舱、行李货舱和锅炉机舱沿两翼布置。中央通道与多层中庭贯通。`,
       counter:
         "先声呐观察外围巨兽，在中央宽阔通道穿行；侧舱更适合小角色。船内贝珠微光帮助辨认入口。",
       color: "#86bcb9",

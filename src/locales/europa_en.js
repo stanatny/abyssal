@@ -132,11 +132,11 @@ export const EUROPA_EN = {
     "A fictional alien monster, not evidence of large life on Europa.",
   坠毁科考船: "Crashed Research Lander",
   悬生花园与热泉盆地之间: "Between the Suspended Garden and Thermal Basin",
-  "开放舱室 · 残骸探索": "Open gallery \u00b7 wreck exploration",
-  "一艘科考登陆舱坠落在冰下斜坡。破损的承压外壳、散热翼与天线留在海床，舱室两端开放，侧面另有破口。仪器与附生薄膜沿舱壁排列。":
-    "A research lander lies damaged on the icy seafloor slope. A fractured pressure hull, radiator wings and antenna remain. Both gallery ends are open, with an additional side breach; equipment and colonial films line its walls.",
-  "从两端沿中央通道游入，注意金属框架和落地支撑。废弃科考船没有船员、食物或通关宝物；微光来自舱底的幻想附生群落。":
-    "Swim through the central passage from either end, avoiding the metal frame and grounded supports. This abandoned craft contains no crew, food or completion item. Its gentle glow comes from imaginary colonies on the gallery floor.",
+  四个独立舱室与检修回路: "Four compartments and a service loop",
+  "{0}米长的科考船主舱坠落在冰下斜坡。指挥舱、采样实验舱、生活舱与工程舱由隔舱墙和宽门洞分开。中央通道贯通四舱，小体型可沿高位检修支路绕行。两端与侧面破口提供出入口。破损的承压外壳、散热翼与天线留在海床。":
+    "The {0} m main hull rests on an icy undersea slope. Bulkheads and wide doorways separate command, sampling laboratory, living quarters and engineering. A central passage joins all four compartments; smaller bodies can take an elevated service loop. Both ends and a side breach provide entrances. Damaged pressure panels, radiators and antenna hardware remain on the seabed.",
+  "从两端或侧面破口进入，可逐舱查看失效控制台、采样设备、床铺与压力罐。大体型走中央宽门，小体型可转入检修支路；废弃科考船没有船员、食物或通关宝物。微光来自舱底的幻想附生群落。":
+    "Enter at either end or the side breach and explore dead consoles, sampling equipment, berths and pressure tanks room by room. Large bodies use the central doorways; smaller bodies can take the service branch. The abandoned craft has no crew, food or completion treasure. Faint floor glow comes from fictional attached colonies.",
   化学能源栖地: "Chemical-Energy Habitat",
   热泉盆地及冰下侧坡: "Thermal Basin and under-ice slopes",
   "矿物沉积 · 温和羽流": "Mineral deposits \u00b7 gentle plumes",

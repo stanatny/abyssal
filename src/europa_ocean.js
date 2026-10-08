@@ -6,7 +6,10 @@ import {
   addEuropaColonySurface,
   addPressureIceSurface,
 } from "./europa_environment_geometry.js";
-import { createEuropaResearchWreckSteps } from "./europa_research_wreck.js";
+import {
+  createEuropaResearchWreckSteps,
+  EUROPA_WRECK_SITE,
+} from "./europa_research_wreck.js";
 import { createEuropaGeochemistrySteps } from "./europa_geochemistry.js";
 import { addSurfaceDetail } from "./ocean_visuals.js";
 import {
@@ -269,8 +272,21 @@ export function* createEuropaOceanSteps(parent) {
       for (let i = 0; i < count; i++) {
         const a = i * 2.399,
           r = 35 + (i % 9) * 11,
-          x = habitat.anchor[0] + Math.cos(a) * r,
-          z = habitat.anchor[2] + Math.sin(a) * r;
+          candidateX = habitat.anchor[0] + Math.cos(a) * r,
+          candidateZ = habitat.anchor[2] + Math.sin(a) * r;
+        let x = candidateX,
+          z = candidateZ;
+        // 放大的船体与散热翼留出完整植株足迹；只迁移装饰，不减少生态数量。
+        const site = EUROPA_WRECK_SITE,
+          halfX = site.gallery.length / 2 + 18,
+          halfZ = site.gallery.width / 2 + 35,
+          dx = x - site.x,
+          dz = z - site.z;
+        if (Math.abs(dx) < halfX && Math.abs(dz) < halfZ) {
+          if (halfX - Math.abs(dx) < halfZ - Math.abs(dz))
+            x = site.x + (dx < 0 ? -halfX : halfX);
+          else z = site.z + (dz < 0 ? -halfZ : halfZ);
+        }
         const scale = 0.6 + (i % 7) * 0.15,
           y = europaSeabedHeight(x, z);
         dummy.position.set(x, y - 0.25, z);

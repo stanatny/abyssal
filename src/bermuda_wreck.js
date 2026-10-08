@@ -6,6 +6,7 @@ import {
 } from "./bermuda_geometry.js";
 
 import { BERMUDA_WRECK, wreckWorldPoint } from "./bermuda_sites.js";
+import { addBermudaWreckInteriors } from "./bermuda_wreck_interiors.js";
 export { BERMUDA_WRECK } from "./bermuda_sites.js";
 export const WRECK_ROUTES = Object.freeze(
   [
@@ -59,7 +60,13 @@ export function createBermudaWreck(parent, { heightAt } = {}) {
   doubleSteel.name = "double_hull";
   doubleSteel.side = THREE.DoubleSide;
   for (const side of [-1, 1]) {
-    b.add(hullStripGeometry(240, 54, 38, { side, broken: true }), doubleSteel);
+    b.add(
+      hullStripGeometry(BERMUDA_WRECK.rawLength, BERMUDA_WRECK.rawWidth, 38, {
+        side,
+        broken: true,
+      }),
+      doubleSteel,
+    );
     // 船侧薄壁按纵向分段，与可见艏艉的收窄轮廓对应；右舷中段留下大破口。
     for (let z = -108; z < 111; z += 12) {
       const width = 27 * Math.min(1, (120 - Math.abs(z)) / 28);
@@ -162,37 +169,8 @@ export function createBermudaWreck(parent, { heightAt } = {}) {
           0.12,
         );
     }
-    // 有家具的侧舱：桌、抽屉柜、行李箱、黄铜床架与坍塌隔板。
-    for (let i = 0; i < 9; i++) {
-      const z = -76 + i * 18,
-        base = i % 2 ? 44 : 23,
-        x = side * 20;
-      b.box(m.wood, [x, base + 2.6, z], [5, 0.6, 3.6], true);
-      for (const dx of [-1.8, 1.8])
-        for (const dz of [-1.2, 1.2])
-          b.box(m.brass, [x + dx, base + 1.1, z + dz], [0.2, 2.5, 0.2]);
-      b.box(m.rust, [x, base + 0.8, z + 5], [3.7, 1.5, 2.1], true);
-      for (const offset of [-1.1, 1.1])
-        b.box(m.brass, [x + offset, base + 0.9, z + 5], [0.17, 1.6, 2.25]);
-      b.box(m.brass, [x, base + 1, z - 5], [4.5, 0.3, 6]);
-      for (const dx of [-2, 2])
-        b.beam(
-          m.brass,
-          [x + dx, base, z - 8],
-          [x + dx, base + 2.8, z - 8],
-          0.18,
-        );
-      b.box(m.wood, [x, base + 2.2, z - 8], [4.5, 1.5, 0.3]);
-    }
   }
-  // 下层货舱的煤舱和木箱沿两翼摆放，中轴贯通。
-  for (let i = 0; i < 18; i++) {
-    const x = (i % 2 ? 1 : -1) * 11.5,
-      z = -87 + Math.floor(i / 2) * 20;
-    b.box(i % 3 ? m.wood : m.dark, [x, 5, z], [7, 7, 8], true);
-    for (const y of [2.5, 6.5]) b.box(m.brass, [x, y, z], [7.2, 0.18, 8.2]);
-    b.beam(m.brass, [x - 3.5, 2, z - 4], [x + 3.5, 8, z - 4], 0.12);
-  }
+  const interiors = addBermudaWreckInteriors(b, m, root.position);
   // 艉舵与螺旋桨，破裂龙骨和掉落锚链。
   b.box(m.rust, [0, 3, 119], [0.9, 9, 8], true);
   for (const x of [-13, 13]) {
@@ -258,10 +236,26 @@ export function createBermudaWreck(parent, { heightAt } = {}) {
   const landmarks = [
     {
       name: "失落远洋邮轮",
-      position: new THREE.Vector3(-65, -389, -650),
-      radius: 225,
+      position: new THREE.Vector3(0, 59, 0)
+        .multiplyScalar(scale)
+        .add(root.position),
+      radius: BERMUDA_WRECK.length * 0.57,
     },
   ];
+  const worldPoint = (point) =>
+    new THREE.Vector3(...point)
+      .multiplyScalar(scale)
+      .add(root.position)
+      .toArray();
+  const rooms = interiors.rooms.map((room) => ({
+    ...room,
+    bounds: room.bounds.map(worldPoint),
+    eye: worldPoint(room.eye),
+    target: worldPoint(room.target),
+  }));
+  const supportSamples = [-27, 0, 27].flatMap((x) =>
+    [-120, -60, 0, 60, 128].map((z) => worldPoint([x, 0, z])),
+  );
   return {
     root,
     colliders,
@@ -269,12 +263,18 @@ export function createBermudaWreck(parent, { heightAt } = {}) {
     landmarks,
     lightSources,
     routes: WRECK_ROUTES,
+    rooms,
+    fixtures: interiors.fixtures,
     stats: {
       triangles,
       meshes: root.children.length,
       colliders: colliders.length,
       bounds: bounds.getSize(new THREE.Vector3()).toArray(),
-      supported: !heightAt || heightAt(-65, -650) <= root.position.y,
+      rooms: rooms.length,
+      fixtures: interiors.fixtures.length,
+      supported:
+        !heightAt ||
+        supportSamples.every(([x, y, z]) => heightAt(x, z) <= y + 0.01),
     },
     update() {},
     dispose() {

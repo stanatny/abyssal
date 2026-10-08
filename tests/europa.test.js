@@ -419,8 +419,23 @@ test("crashed research gallery admits full bodies through both open ends and its
         }
       }
     }
-  for (const [x, y, z] of ocean.researchWreck.feet)
-    assert.ok(Math.abs(y - ocean.heightAt(x, z) - 0.35) < 0.0001);
+  const pads = ocean.root.children.filter(
+    (child) => child.name === "research_wreck_terrain_foot",
+  );
+  assert.equal(pads.length, 4);
+  for (const pad of pads) {
+    const gaps = pad.userData.supportOffsets.map(
+      ([x, y, z]) =>
+        pad.position.y +
+        y -
+        ocean.heightAt(pad.position.x + x, pad.position.z + z),
+    );
+    assert.ok(
+      Math.min(...gaps) >= 0,
+      "support pad must not penetrate the slope",
+    );
+    assert.ok(Math.min(...gaps) < 0.1, "support pad must contact the slope");
+  }
   const panel = ocean.colliders.find((c) =>
     c.id?.startsWith("europa_wreck_panel"),
   );

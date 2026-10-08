@@ -1,3 +1,6 @@
+import { tr } from "./i18n.js";
+import { EUROPA_WRECK_SITE } from "./europa_research_wreck.js";
+
 /** 木卫二地标资料卡；不是可食生物，也不参与普通生态刷新。 */
 export function europaGuideEntries() {
   return [
@@ -9,10 +12,10 @@ export function europaGuideEntries() {
       symbol: "⌖",
       color: "#9faeae",
       habitat: "悬生花园与热泉盆地之间",
-      effect: "开放舱室 · 残骸探索",
-      text: "一艘科考登陆舱坠落在冰下斜坡。破损的承压外壳、散热翼与天线留在海床，舱室两端开放，侧面另有破口。仪器与附生薄膜沿舱壁排列。",
+      effect: "四个独立舱室与检修回路",
+      text: tr`${EUROPA_WRECK_SITE.gallery.length}米长的科考船主舱坠落在冰下斜坡。指挥舱、采样实验舱、生活舱与工程舱由隔舱墙和宽门洞分开。中央通道贯通四舱，小体型可沿高位检修支路绕行。两端与侧面破口提供出入口。破损的承压外壳、散热翼与天线留在海床。`,
       counter:
-        "从两端沿中央通道游入，注意金属框架和落地支撑。废弃科考船没有船员、食物或通关宝物；微光来自舱底的幻想附生群落。",
+        "从两端或侧面破口进入，可逐舱查看失效控制台、采样设备、床铺与压力罐。大体型走中央宽门，小体型可转入检修支路；废弃科考船没有船员、食物或通关宝物。微光来自舱底的幻想附生群落。",
     },
     {
       id: "europa_chemical_habitat",

@@ -1,15 +1,25 @@
 /** 地貌和生态共同使用沉船尺度，禁止放大模型却保留旧食物/碰撞坐标。 */
+const scale = 2.5,
+  rawLength = 240,
+  rawWidth = 54;
 export const BERMUDA_WRECK = Object.freeze({
   center: Object.freeze([-65, -486, -650]),
-  scale: 1.65,
-  length: 396,
-  width: 89.1,
+  scale,
+  rawLength,
+  rawWidth,
+  length: rawLength * scale,
+  width: rawWidth * scale,
 });
+// 支撑床包含艉轴、舷缘及右舷破口外的成人入场区，并对齐海床网格。
+const halfWidth = BERMUDA_WRECK.width / 2 + 8 * scale,
+  halfLength = BERMUDA_WRECK.length / 2 + 16 * scale,
+  snapDown = (value) => Math.floor(value / 5) * 5,
+  snapUp = (value) => Math.ceil(value / 5) * 5;
 export const WRECK_BED = Object.freeze({
-  minX: -130,
-  maxX: 10,
-  minZ: -890,
-  maxZ: -410,
+  minX: snapDown(BERMUDA_WRECK.center[0] - halfWidth),
+  maxX: snapUp(BERMUDA_WRECK.center[0] + Math.max(halfWidth, 58 * scale)),
+  minZ: snapDown(BERMUDA_WRECK.center[2] - halfLength),
+  maxZ: snapUp(BERMUDA_WRECK.center[2] + halfLength),
   blend: 45,
 });
 export function wreckWorldPoint(point) {

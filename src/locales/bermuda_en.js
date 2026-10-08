@@ -119,10 +119,11 @@ export const BERMUDA_EN = Object.freeze({
   钢岬号货轮: "Steel Cape freighter",
   海域奇观与危险: "Landmarks & hazards",
   可探索沉船: "Enterable wreck",
-  "破口、贯通货舱与多层中庭": "Hull breach, through-hold and open atrium",
+  "餐厅、客舱、机舱与多层中庭":
+    "Dining rooms, cabins, engine rooms and open atrium",
   沉船海床: "The wreck seabed",
-  "396米长的四烟囱邮轮沉在深水中。可由右舷大破口、艉部中央开口或敞开的中庭进入，货舱、楼梯与家具沿两翼布置。它是可进入的地貌，不是整船实心碰撞。":
-    "A 396 m four-funnel liner rests in deep water. Enter through its starboard breach, central stern opening or open atrium. Holds, stairs and furniture line the wings; the wreck has real interior passages.",
+  "{0}米长的四烟囱邮轮沉在深水中。可由右舷大破口、艉部中央开口或敞开的中庭进入，餐厅、沙龙、客舱、行李货舱和锅炉机舱沿两翼布置。中央通道与多层中庭贯通。":
+    "A {0} m four-funnel liner rests in deep water. Enter through the starboard breach, central stern opening or open atrium. Dining rooms, salons, passenger cabins, luggage holds and boiler rooms line the wings, connected by central passages and the multilevel atrium.",
   "先声呐观察外围巨兽，在中央宽阔通道穿行；侧舱更适合小角色。船内贝珠微光帮助辨认入口。":
     "Scout the surrounding giants with sonar and use the wide central passages. Side cabins suit smaller characters. Faint pearl light marks the interior.",
   飞翔的荷兰人号: "The Flying Dutchman",

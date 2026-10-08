@@ -1,3 +1,21 @@
+# v0.11.2 release preflight — 2026-10-08
+
+The user authorized main publication of the accepted Guide, four-model and wreck revisions. Read [the release scope](release_v0_11_2.md). The retained candidate receipts below are prior evidence, not a fresh deployment claim. Fresh release formatting, all **997 unit tests**, localized v0.11.2 footers, the production build and actual English home capture pass. The restricted compiled release passes **45 native checks**, including **24 affected Guide cases** in both languages across desktop/light/dark/320/390 px profiles, **five regional start/pause/resume/home flows**, actual Kraken pointer rotation and same-address reload, with no observed browser/resource errors. Runtime art source is unchanged from the accepted candidate; only release metadata and current documentation are updated. Record the exact main commit, successful Pages Actions run, downloaded CI artifact and formal resource/native-player verification in ignored `.local/release_v0_11_2/`.
+
+The new version keeps eight maps and four characters. Shared gameplay rules remain; the ships' visible architecture, corresponding solids, bounded support terrain and existing interior school homes change together. Preserve candidate limits: initial 32 m native travel may naturally clamp to 30 m after meals; physical-phone heat and natural complete expeditions are not inferred. Candidate-only status below is historical and superseded for this accepted scope by current authorization.
+
+---
+
+# Wreck exploration and interiors candidate — 2026-10-08
+
+The previous four-model repairs are now local commit `b132a6f`, without a push. The subsequent candidate is on `fix/wreck-scale-interiors`; formal main/Pages remains v0.11.1 / `f7dead5`. Read [the wreck review](wreck_interior_revision.md) for the screenshot-driven four-room scope, construction costs, integration and limits.
+
+The **997-unit** suite, formatting,29 shared browser checks and **82 actual-input wreck checks** pass. All four characters, initially staged at 32 m, complete both directions of both maps' primary entrances; all four also complete Europa's 10/16 m service loop, with 64 real turnaround probes. Normal meals can clamp staged bodies to the game cap of 30 m, so native travel is not a constant-32 m fixture; fixed 32 m geometry sweeps are separately verified. Physical walls, native pause/home, four warm two-map cycles, unchanged inventories/audio and stable resource counts pass. Three Bermuda fixed schools pass actual mouth feeding and normal18 s replenishment. Full terrain interpolation/budget, transformed hull/feet/furniture/doorway and final flora/locale/ecology receipts pass. Original low-breach contacts and bend-guidance failures are preserved; actual headroom and route-to-bay corrections resolve them without changing generic controls/collision. Restricted compiled local/public each pass **24 native checks**, with eight bilingual/theme/narrow landmark Guide cases, both regional start/pause/resume/home flows and same-address reload. No page, console, HTTP or request failures occur. All nine active artifact hashes match per host, 636 candidate-file hashes and unchanged build inputs are recorded, production hooks are absent, 12 private/development routes are denied and safe same-address asset replacement/removal passes. The retained preceding runtime is `runtime_before_20261008_182507`; the same preview URL remains https://saver-recorded-digit-could.trycloudflare.com/. Evidence is ignored under `.local/wreck_review_20261008/`; read the linked review for explicit controlled-fixture, physical-phone and full-round limits.
+
+The older model candidate status below is historical and superseded by local commit `b132a6f`; its measurements remain the original model-review evidence.
+
+---
+
 # Four-model anatomy and motion candidate — 2026-10-08
 
 The preceding desktop Guide fix is local commit `60a48ee`, without a push. Current branch `fix/mythic-model-motion` contains the requested Sage, Tiger, Mermaid and screenshot-reported Kraken fixes and remains uncommitted. Published main/Pages stays v0.11.1 / `f7dead5`. Read [the model review](mythic_model_revision.md) for defects, provenance, rig/contact boundaries, resource counts and explicit limitations.
