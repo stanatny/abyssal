@@ -143,8 +143,8 @@ export const MARIANA_EN = Object.freeze({
   "沿支路探索，再回到下降主道":
     "Explore the side loops, then return to the descent",
   海德拉岩谷至利维坦裂渊: "From Hydra canyon to Leviathan chasm",
-  "三首浮雕岩谷、回声穹窟、紫晶化石花园与巨柱裂渊分别属于四位守卫。壁画、矿脉与天然岩廊帮助辨认每层；支路有可绕行的转弯空间，压力帘仍是必须突破的主关卡。":
-    "Three-headed reliefs, an echo vault, a violet fossil garden and a giant-column chasm mark the four guardians’ realms. Murals, mineral seams and natural galleries distinguish each layer. Side loops offer room to turn; pressure seals remain the mandatory gates.",
+  "海沟是一个不规则的立体深坑，浅滩边缘形成凹凸的坑口，弯曲坑壁随深度收放与偏移。三首浮雕岩谷、回声穹窟、紫晶化石花园与巨柱裂渊分别属于四位守卫。巨大的错层岩棚遮住远处视线，沿左右交错的缺口转弯下潜，在岩棚间寻找食物与侧廊。壁画、矿脉和天然岩廊帮助辨认每层；守卫战场保留活动空间，压力帘仍是必须突破的主关卡。":
+    "The trench is an irregular three-dimensional pit. A broken lip opens from the shallow shelf, and curved walls widen, narrow and shift with depth. Three-headed reliefs, an echo vault, a violet fossil garden and a giant-column chasm mark the four guardians’ realms. Giant staggered rock shelves block distant views: descend through alternating left and right openings, finding food and side galleries between the shelves. Murals, mineral seams and natural galleries distinguish each layer. Guardian arenas retain maneuvering room; pressure seals remain the mandatory gates.",
   "沿微光寻找壁侧支路，保持食物储备后再探索。岩石、平台和顶棚不能穿过；遇到守卫可沿已开启的主道退回补给层。":
     "Follow wall-side glimmers to the side loops, with food in reserve. Rock, terraces and roofs are solid. Retreat through an opened gate to a feeding layer when a guardian pressures you.",
   分层饥饿与大型猎食者: "Layered hunger & giant hunters",

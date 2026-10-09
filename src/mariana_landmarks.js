@@ -4,7 +4,7 @@ import { addSurfaceDetail } from "./ocean_visuals.js";
 import { MARIANA_GATES } from "./mariana_config.js";
 import { marianaCliffFace } from "./mariana_cliffs.js";
 
-const freezePoints = (points) => Object.freeze(points.map(Object.freeze));
+import { MARIANA_MAZE_ROUTE } from "./mariana_outcrops.js";
 
 /** 岩台只是侧游的支撑实体，绝不替代最低海床或四道关卡。 */
 export const MARIANA_LANDMARK_SITES = Object.freeze(
@@ -64,25 +64,7 @@ export const MARIANA_LANDMARK_SITES = Object.freeze(
   ),
 );
 
-export const MARIANA_LANDMARK_SPINE = freezePoints([
-  [0, -18, 75],
-  [0, -75, -140],
-  [0, -180, -260],
-  [-30, -350, -330],
-  [-65, -585, -350],
-  [-65, -715, -350],
-  [20, -780, -390],
-  [65, -935, -420],
-  [65, -1065, -420],
-  [0, -1120, -420],
-  [-65, -1310, -420],
-  [-65, -1440, -420],
-  [0, -1630, -400],
-  [65, -2085, -350],
-  [65, -2215, -350],
-  [0, -2400, -380],
-  [0, -2700, -400],
-]);
+export const MARIANA_LANDMARK_SPINE = MARIANA_MAZE_ROUTE;
 
 /** 整个新实体须避开守卫、成年猎手和恢复食物的局部活动空间。 */
 export const MARIANA_LANDMARK_RESERVATIONS = Object.freeze([
@@ -499,7 +481,17 @@ export function addMarianaLandmarks({ root, keep, group, materials }) {
       turnRadius: 32,
       floor: cy - FLOOR_DROP,
       points: loop,
-      entrance: [0, cy + 30, -390],
+      // 裂渊入口放在巨岩底缘之后，成人从岩棚间的横向水道进入。
+      entrance: [
+        0,
+        cy +
+          (site.id === "kraken_echo_gallery"
+            ? 0
+            : site.id === "leviathan_pressure_cathedral"
+              ? 10
+              : 30),
+        site.id === "hadal_warm_approach" ? -470 : -390,
+      ],
       center: [...site.center],
     });
     stats.meshes += meshes;

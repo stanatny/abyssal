@@ -1,13 +1,15 @@
 import { WORLD } from "./world_config.js";
+import { marianaPitContour } from "./mariana_pit_profile.js";
 
 /** 海沟地图的边界与四个独立关卡；其他海域不继承深度扩展。 */
 export const MARIANA_WORLD = Object.freeze({
   ...WORLD,
-  minX: -210,
-  maxX: 210,
-  minZ: -620,
+  minX: -300,
+  maxX: 300,
+  minZ: -780,
   maxZ: 140,
   maxDepth: 2780,
+  terrainContour: marianaPitContour,
 });
 
 /** 守关后的饥饿压力连续递增；其他海域不传此配置，沿用原有曲线。 */
@@ -86,8 +88,19 @@ export function marianaSeabedHeight(x, z) {
     Math.max(0, 75 - z) * 0.11 +
     1.3 * Math.sin(x * 0.08) * Math.cos(z * 0.055);
   const floor = -2770 + 2 * Math.sin(x * 0.035) * Math.cos(z * 0.025);
-  const t = Math.max(0, Math.min(1, (-z - 100) / 150));
-  return shelf + (floor - shelf) * (t * t * (3 - 2 * t));
+  // 入口沿横向切出湾口、岩肩与沟槽；浅滩居民仍保留原来的浅水海床。
+  const lip =
+      -94 -
+      Math.pow(Math.sin(x * 0.018 + 0.4), 2) * 22 -
+      Math.sin(x * 0.041) * 9,
+    entry = Math.max(0, Math.min(1, (lip - z) / 38)),
+    angle = Math.atan2((z + 412) / 450, x / 335),
+    footprint =
+      Math.hypot(x / 335, (z + 412) / 450) /
+      (1 + Math.sin(angle * 3) * 0.04 + Math.cos(angle * 5) * 0.03),
+    edge = Math.max(0, Math.min(1, (1.1 - footprint) / 0.18)),
+    t = entry * entry * (3 - 2 * entry) * edge * edge * (3 - 2 * edge);
+  return shelf + (floor - shelf) * t;
 }
 
 /** 下潜目标始终来自关卡状态，击败不同守卫才能依次打开通道。 */

@@ -1,4 +1,5 @@
 import * as THREE from "three";
+import { marianaPitReach } from "./mariana_pit_profile.js";
 
 /** 连续环形沉积台地：椭圆喉道、起伏岩顶及同一网格导出的保守实体。 */
 export function createMarianaLayer(parent, keep, { gate, material, bounds }) {
@@ -24,16 +25,7 @@ export function createMarianaLayer(parent, keep, { gate, material, bounds }) {
           1 + Math.sin(a * 3 + gate.depth) * 0.12 + Math.cos(a * 7) * 0.07;
         const innerX = rx * c * inner,
           innerZ = rz * s * inner;
-        const reach = Math.min(
-          Math.abs(c) < 1e-8
-            ? Infinity
-            : (c > 0 ? bounds.maxX - gate.x : gate.x - bounds.minX) /
-                Math.abs(c),
-          Math.abs(s) < 1e-8
-            ? Infinity
-            : (s > 0 ? bounds.maxZ - gate.z : gate.z - bounds.minZ) /
-                Math.abs(s),
-        );
+        const reach = marianaPitReach(gate.x, gate.z, a, -gate.depth) + 24;
         const t = ring / rings;
         const x = gate.x + THREE.MathUtils.lerp(innerX, c * (reach + 10), t);
         const z = gate.z + THREE.MathUtils.lerp(innerZ, s * (reach + 10), t);

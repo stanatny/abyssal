@@ -27,6 +27,8 @@ export function createMinimap(container) {
   let disposed = false;
   const dots = new Map();
   let previousRiverPaths = null;
+  let previousContourWorld = null;
+  let previousContourDepth = null;
   container.classList.add("minimap");
   container.setAttribute("role", "img");
   container.setAttribute(
@@ -39,6 +41,7 @@ export function createMinimap(container) {
     <defs><linearGradient id="${mapId}" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#0e172c"/><stop offset="0.66" stop-color="#123e50"/><stop offset="1" stop-color="#246861"/></linearGradient></defs>
     <circle class="minimap-frame" cx="50" cy="50" r="48"/>
     <rect class="minimap-basin" x="${northWest.x}" y="${northWest.y}" width="${width}" height="${height}" rx="5" fill="url(#${mapId})"/>
+    <path class="minimap-terrain" fill="#071c2f" fill-opacity=".65" stroke="#a8d0ca" stroke-opacity=".6" stroke-width=".75"/>
     <g class="minimap-contours">
       ${[-850, -500, -200, 0]
         .map((z) => {
@@ -75,6 +78,9 @@ export function createMinimap(container) {
 
   function reset() {
     snapshot = null;
+    previousContourWorld = null;
+    previousContourDepth = null;
+    container.querySelector(".minimap-terrain").setAttribute("d", "");
     boundary.setAttribute("d", "");
     delete container.dataset.boundary;
     dots.clear();
@@ -142,6 +148,26 @@ export function createMinimap(container) {
         ),
         se = projectMinimapPosition({ x: world.maxX, z: world.maxZ }, world);
       const basin = container.querySelector(".minimap-basin");
+      const contourDepth = Math.round(position.y / 15) * 15;
+      if (
+        previousContourWorld !== world ||
+        previousContourDepth !== contourDepth
+      ) {
+        previousContourWorld = world;
+        previousContourDepth = contourDepth;
+        const points = world.terrainContour?.(contourDepth);
+        container.querySelector(".minimap-terrain").setAttribute(
+          "d",
+          points
+            ? points
+                .map(([x, z], i) => {
+                  const p = projectMinimapPosition({ x, z }, world);
+                  return `${i ? "L" : "M"} ${p.x} ${p.y}`;
+                })
+                .join(" ") + " Z"
+            : "",
+        );
+      }
       for (const [k, v] of Object.entries({
         x: nw.x,
         y: nw.y,

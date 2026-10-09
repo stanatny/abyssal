@@ -1,4 +1,5 @@
 import * as THREE from "three";
+import { marianaPitPoint, marianaPitFrame } from "./mariana_pit_profile.js";
 import { mergeGeometries } from "three/addons/utils/BufferGeometryUtils.js";
 import { addSurfaceDetail } from "./ocean_visuals.js";
 
@@ -60,7 +61,7 @@ export function addMarianaMarine({ root, keep, group, floor, time }) {
   };
   const walls = [];
   root.traverse((n) => {
-    if (n.isMesh && /^trench_(side|back)_/.test(n.name)) walls.push(n);
+    if (n.isMesh && /^trench_(side|back|front)_/.test(n.name)) walls.push(n);
   });
   const buckets = new Map();
   function attach(host, origin, direction, type, scale, section) {
@@ -89,21 +90,22 @@ export function addMarianaMarine({ root, keep, group, floor, time }) {
   }
   for (const host of walls) {
     const section = Number(host.name.split("_").at(-1)),
-      back = host.name.startsWith("trench_back"),
-      side = host.name.includes("_-1_") ? -1 : 1;
+      [start, end] = host.userData.pitSector.angles;
     const amount = section > 12 ? 5 : 10;
     for (let patch = 0; patch < amount; patch++) {
-      const along = back ? -170 + random() * 340 : -600 + random() * 440,
+      const angle = start + (0.06 + random() * 0.88) * (end - start),
         y = -section * 180 - 20 - random() * 135;
       for (let item = 0; item < 6; item++) {
-        const a = along + (random() - 0.5) * 12,
-          yy = y + (random() - 0.5) * 10;
-        const origin = back
-          ? new THREE.Vector3(a, yy, -530)
-          : new THREE.Vector3(0, yy, a);
-        const direction = back
-          ? new THREE.Vector3(0, 0, -1)
-          : new THREE.Vector3(side, 0, 0);
+        const a = angle + (random() - 0.5) * 0.025,
+          yy = y + (random() - 0.5) * 10,
+          point = marianaPitPoint(a, yy),
+          frame = marianaPitFrame(yy),
+          origin = new THREE.Vector3(frame.x, yy, frame.z),
+          direction = new THREE.Vector3(
+            point[0] - frame.x,
+            0,
+            point[1] - frame.z,
+          ).normalize();
         const type =
           item === 0 ? 0 : item === 1 ? 1 : item === 2 ? 2 : patch % 2 ? 3 : 4;
         attach(

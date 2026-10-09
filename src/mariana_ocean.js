@@ -8,6 +8,8 @@ import { addSurfaceDetail, seaFanGeometry } from "./ocean_visuals.js";
 import { bermudaCoralColonyGeometry } from "./bermuda_reef.js";
 import { createMarianaRefuge } from "./mariana_refuge.js";
 import { addMarianaLandmarks } from "./mariana_landmarks.js";
+import { terrainMeshHeight } from "./terrain_mesh_height.js";
+import { addMarianaOutcrops } from "./mariana_outcrops.js";
 import {
   MARIANA_WORLD as W,
   MARIANA_GATES,
@@ -83,20 +85,21 @@ export function createMarianaOcean(parent) {
       rotation: q,
     });
   }
-  const floorGeo = keep(new THREE.PlaneGeometry(500, 900, 80, 180));
+  const floorGeo = keep(new THREE.PlaneGeometry(700, 1080, 112, 216));
   floorGeo.rotateX(-Math.PI / 2);
-  floorGeo.translate(0, 0, -260);
+  floorGeo.translate(0, 0, -300);
   const fp = floorGeo.attributes.position;
   for (let i = 0; i < fp.count; i++)
     fp.setY(i, marianaSeabedHeight(fp.getX(i), fp.getZ(i)));
   floorGeo.computeVertexNormals();
   const floor = new THREE.Mesh(floorGeo, pale);
   floor.name = "mariana_lowest_ground";
+  const lowestGround = terrainMeshHeight(floorGeo);
   root.add(floor);
   const cliffMaterial = keep(
     new THREE.MeshStandardMaterial({
       vertexColors: true,
-      side: THREE.DoubleSide,
+      side: THREE.FrontSide,
       roughness: 0.93,
     }),
   );
@@ -122,6 +125,15 @@ export function createMarianaOcean(parent) {
         back: true,
         material: cliffMaterial,
         id: `trench_back_${section}`,
+      }),
+    );
+    colliders.push(
+      ...createMarianaCliff(g, keep, {
+        top,
+        bottom,
+        front: true,
+        material: cliffMaterial,
+        id: `trench_front_${section}`,
       }),
     );
   }
@@ -179,6 +191,7 @@ export function createMarianaOcean(parent) {
     });
   }
   addMarianaMarine({ root, keep, group, floor, time });
+  colliders.push(...addMarianaOutcrops({ root, keep, group }));
   const rockGeo = keep(new THREE.IcosahedronGeometry(1, 2));
   const rp = rockGeo.attributes.position;
   for (let i = 0; i < rp.count; i++) {
@@ -310,7 +323,7 @@ export function createMarianaOcean(parent) {
   lightSources.push(...sites.lightSources);
   const refuge = createMarianaRefuge(root, {
     keep,
-    heightAt: marianaSeabedHeight,
+    heightAt: (x, z) => lowestGround(x, z) ?? marianaSeabedHeight(x, z),
   });
   colliders.push(...refuge.colliders);
   lightSources.push(...refuge.lightSources);
@@ -368,7 +381,7 @@ export function createMarianaOcean(parent) {
     colliders,
     navigationColliders: colliders,
     barriers,
-    heightAt: marianaSeabedHeight,
+    heightAt: (x, z) => lowestGround(x, z) ?? marianaSeabedHeight(x, z),
     landmarks: [
       ...MARIANA_GATES.map((g) => ({
         id: g.id,
