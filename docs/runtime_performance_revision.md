@@ -1,3 +1,9 @@
+# Current follow-up — 2026-10-10
+
+Read [the active runtime review](runtime_performance_followup.md) for height-aware collision queries and touch-device graphics defaults after accepted recovery commit `db8dad1`. The earlier CPU/target-selection review below remains historical evidence; it does not establish the current phone or M4 thermal result.
+
+---
+
 # Runtime CPU review after v0.11.0
 
 The user authorized another performance pass after the v0.11.0 main release. Work is based on `9122033` in `fix/runtime-performance-v0-11`. On 2026-10-05 the user accepted the candidate and authorized publishing it to `main` as v0.11.1; [the release summary](release_v0_11_1.md) supersedes the historical candidate-only status below without changing its measurements. The goal is less redundant active-frame work, without changing food, survival, AI cadence, collisions, draw distance or accepted near-view art.

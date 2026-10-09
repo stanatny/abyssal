@@ -167,6 +167,13 @@ const Clamp = THREE.MathUtils.clamp;
 const canvas = $("ocean");
 const reducedMotionQuery = matchMedia("(prefers-reduced-motion: reduce)");
 const touchPointer = matchMedia("(pointer: coarse)");
+// 手机首次使用现有流畅档；用户明确选择优先，存储受限时仍可正常切换。
+let initialHighQuality = !touchPointer.matches;
+try {
+  const savedQuality = localStorage.getItem("abyssal_quality");
+  if (["high", "smooth"].includes(savedQuality))
+    initialHighQuality = savedQuality === "high";
+} catch {}
 const targetPanels = document.querySelectorAll(
   "header, .location, .mission, #threat, #boss-panel, #notification, #ink-status, #breach-hint, #round-clock, #buffs, .vitals, .speed, #joystick, #sonar-panel, #sonar-control, #touch-skills, #touch-boost, #touch-slow, #minimap",
 );
@@ -189,11 +196,13 @@ try {
   );
   throw error;
 }
-renderer.setPixelRatio(Math.min(devicePixelRatio, 1.5));
+renderer.setPixelRatio(
+  initialHighQuality ? Math.min(devicePixelRatio, 1.5) : 0.8,
+);
 renderer.setSize(innerWidth, innerHeight);
 renderer.toneMapping = THREE.ACESFilmicToneMapping;
 renderer.toneMappingExposure = 1.03;
-renderer.shadowMap.enabled = true;
+renderer.shadowMap.enabled = initialHighQuality;
 renderer.shadowMap.type = THREE.PCFSoftShadowMap;
 const scene = new THREE.Scene();
 const worldBoundary = createWorldBoundary(scene);
@@ -228,6 +237,8 @@ scene.add(ambient, sun, rim);
 const playerLight = new THREE.PointLight(0x94ebdf, 12, 45, 1.2);
 scene.add(playerLight);
 const visuals = createVisualPipeline(renderer, scene, camera);
+visuals.setQuality(initialHighQuality);
+$("quality").textContent = t(initialHighQuality ? "画质 · 高" : "画质 · 流畅");
 let ocean = attachDeepVents(createOcean(scene), "hawaii", {
   heightAt: baseSeabedHeight,
 });
@@ -451,7 +462,7 @@ let lastTime = performance.now(),
 let threat = null,
   touchBoost = false,
   touchSlow = false,
-  highQuality = true,
+  highQuality = initialHighQuality,
   hitFlash = 0,
   uiClock = 0,
   activeBoss = null;
@@ -3948,6 +3959,9 @@ $("sound").addEventListener("click", () => {
 $("quality").addEventListener("click", () => {
   worldRenderDirty = true;
   highQuality = !highQuality;
+  try {
+    localStorage.setItem("abyssal_quality", highQuality ? "high" : "smooth");
+  } catch {}
   renderer.setPixelRatio(highQuality ? Math.min(devicePixelRatio, 1.5) : 0.8);
   renderer.shadowMap.enabled = highQuality;
   visuals.setQuality(highQuality);

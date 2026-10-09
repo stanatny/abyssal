@@ -169,10 +169,25 @@ try {
   });
   await page.waitForFunction(() => window.__ABYSSAL__.player.eaten > 0);
   const meal = (await state()).player;
-  assert.ok(meal.health > 50);
-  assert.ok(meal.lastMeal.healed > 0);
+  assert.ok(meal.health >= 50);
+  assert.ok(meal.health <= 50 + 2 * meal.elapsed + 0.02);
+  assert.equal(meal.lastMeal.healed, 0);
+  assert.ok(meal.lastMeal.recoveryAdded);
+  assert.equal(meal.recoveryMeals.length, 1);
+  await page.waitForFunction(
+    (elapsed) => window.__ABYSSAL__.player.elapsed >= elapsed + 0.6,
+    meal.elapsed,
+  );
+  const recovering = (await state()).player;
+  assert.ok(recovering.health > meal.health);
+  assert.ok(
+    recovering.health - meal.health <=
+      2 * (recovering.elapsed - meal.elapsed) + 0.02,
+  );
   assert.ok(meal.length > 3 && meal.length < 3.2);
-  checks.push("吃鱼优先回血，同时保留部分成长");
+  checks.push(
+    "Ordinary food adds one timed 2/s recovery layer, no instant healing, and retains partial growth",
+  );
   assert.ok(
     await page.evaluate(
       () => window.__ABYSSAL__.entities.filter((e) => e.school).length >= 90,
@@ -396,6 +411,7 @@ try {
     g.player.hunger = 40;
     g.player.health = 70;
     g.player.invulnerable = 999;
+    window.__bossRecoveryAt = g.player.elapsed;
     window.__placeTestBossContact();
   });
   await page.waitForFunction(
@@ -410,13 +426,23 @@ try {
     defeated: window.__testBoss.state.defeated,
     hunger: window.__ABYSSAL__.player.hunger,
     playerHealth: window.__ABYSSAL__.player.health,
+    elapsed: window.__ABYSSAL__.player.elapsed,
+    recoveryAt: window.__bossRecoveryAt,
+    recoveryLayers: window.__ABYSSAL__.player.recoveryMeals.length,
     mass: window.__ABYSSAL__.player.mass,
   }));
   assert.ok(Math.abs(firstBite.health - (firstBite.maximum * 2) / 3) < 1e-9);
   assert.ok(firstBite.cooldown > 0.5);
   assert.equal(firstBite.defeated, false);
   assert.ok(firstBite.hunger > 46.5 && firstBite.hunger <= 48);
-  assert.equal(firstBite.playerHealth, 70);
+  assert.equal(firstBite.recoveryLayers, 0);
+  assert.ok(
+    Math.abs(
+      firstBite.playerHealth -
+        70 -
+        0.5 * (firstBite.elapsed - firstBite.recoveryAt),
+    ) < 1e-8,
+  );
   assert.equal(firstBite.mass, 125);
   assert.match(await page.locator("#notification").innerText(), /饱食 \+8/);
   // 冷却期持续重新接触表面，确认不是因游离目标而暂时停止掉血。

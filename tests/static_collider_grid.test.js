@@ -220,3 +220,70 @@ test("stacked streets exclude other floors but retain vertical sweeps and 2D cal
     full,
   );
 });
+
+test("deep stacked habitats match a full 3D bounds oracle for varied sweeps", () => {
+  const colliders = [];
+  for (let level = 0; level < 100; level++)
+    for (const x of [-80, 0, 80])
+      colliders.push({
+        type: "sphere",
+        x,
+        y: -level * 30,
+        z: -400,
+        radius: 8,
+      });
+  const grid = createStaticColliderGrid(colliders, { cellSize: 40 });
+  let seed = 41237;
+  const random = () =>
+    (seed = (1664525 * seed + 1013904223) >>> 0) / 4294967296;
+  for (let i = 0; i < 2400; i++) {
+    const start = { x: random() * 220 - 110, y: -random() * 3000, z: -400 };
+    const end = {
+      x: start.x + random() * 50 - 25,
+      y: start.y + random() * (i % 2 ? 2000 : 80) - 40,
+      z: -400 + random() * 40 - 20,
+    };
+    const padding = random() * 15;
+    const radius = random() * 7;
+    const vertical = i % 7 !== 0;
+    const margin = padding + radius + 1e-7;
+    const expected = colliders.filter(
+      (c) =>
+        c.x + c.radius >= Math.min(start.x, end.x) - margin &&
+        c.x - c.radius <= Math.max(start.x, end.x) + margin &&
+        c.z + c.radius >= Math.min(start.z, end.z) - margin &&
+        c.z - c.radius <= Math.max(start.z, end.z) + margin &&
+        (!vertical ||
+          (c.y + c.radius >= Math.min(start.y, end.y) - margin &&
+            c.y - c.radius <= Math.max(start.y, end.y) + margin)),
+    );
+    assert.deepEqual(
+      grid.query(start, end, { padding, radius, vertical }),
+      expected,
+    );
+  }
+});
+
+test("tall oversized solids and exact height-cell boundaries retain narrow-phase hits", () => {
+  const wall = { ...box(0, 0, { x: 2, y: 2000, z: 2 }), y: -1500 };
+  const floors = [-80, -160, -240].map((y) => ({
+    ...box(0, 0, { x: 20, y: 0, z: 20 }),
+    y,
+  }));
+  const colliders = [floors[0], wall, floors[1], wall, floors[2]];
+  const grid = createStaticColliderGrid(colliders, {
+    cellSize: 80,
+    maxCellsPerCollider: 4,
+  });
+  for (const y of [-80, -160, -240, -1600]) {
+    const start = point(-40, 0, y),
+      end = point(40, 0, y);
+    const candidates = grid.query(start, end);
+    assert.deepEqual(
+      castSegment(start, end, candidates),
+      castSegment(start, end, colliders),
+    );
+    assert.equal(candidates.filter((c) => c === wall).length, 2);
+  }
+  assert.deepEqual(grid.query({ x: 0, z: 0 }), colliders);
+});

@@ -1,5 +1,5 @@
 /**
- * 静态建筑碰撞体的 XZ 网格与高度粗筛；仅缩小候选集合，精确接触仍由 collision.js 处理。
+ * 静态建筑碰撞体的空间网格与高度粗筛；仅缩小候选集合，精确接触仍由 collision.js 处理。
  * 索引创建后不得移动碰撞体，城市场景销毁时随其数组弱引用一起释放。
  */
 
@@ -21,6 +21,9 @@ export function createStaticColliderGrid(
     throw new Error("Static collider grid requires a positive cell limit");
   const cells = new Map();
   const oversized = [];
+  const volumeCells = new Map();
+  const volumeOversized = [];
+  const tallCells = new Map();
   const entries = colliders.map((collider) => ({
     collider,
     bounds: colliderBounds(collider),
@@ -30,6 +33,26 @@ export function createStaticColliderGrid(
   const expansionCache = new Map();
   entries.forEach((entry, index) => {
     const range = cellRange(entry.bounds, cellSize);
+    if (volumeCount(range) > maxCellsPerCollider) {
+      // 宽底板按高度分层，只有高度也超限的长墙才每次直接检查。
+      if (range.maxY - range.minY + 1 > maxCellsPerCollider)
+        volumeOversized.push(index);
+      else
+        for (let y = range.minY; y <= range.maxY; y++) {
+          if (!tallCells.has(y)) tallCells.set(y, []);
+          tallCells.get(y).push(index);
+        }
+    } else {
+      for (let x = range.minX; x <= range.maxX; x++) {
+        for (let y = range.minY; y <= range.maxY; y++) {
+          for (let z = range.minZ; z <= range.maxZ; z++) {
+            const key = `${x},${y},${z}`;
+            if (!volumeCells.has(key)) volumeCells.set(key, []);
+            volumeCells.get(key).push(index);
+          }
+        }
+      }
+    }
     if (cellCount(range) > maxCellsPerCollider) {
       // 长城、地基等超大结构只存一次，不沿几百个格重复占用内存。
       oversized.push(index);
@@ -43,6 +66,9 @@ export function createStaticColliderGrid(
       }
     }
   });
+
+  const visited = new Uint32Array(entries.length);
+  let generation = 0;
 
   /**
    * 查询一段路径周围的碰撞候选，边界采用闭区间，不会漏掉恰好落在格线上的接触。
@@ -78,13 +104,35 @@ export function createStaticColliderGrid(
       maxZ: Math.max(start.z, end.z) + margin,
     };
     const range = cellRange(bounds, cellSize);
-    const found = new Set();
+    // 每次查询独立返回数组；内部代次仅避免同一物体跨格时重复执行包围盒测试。
+    if (++generation > 0xffffffff) {
+      visited.fill(0);
+      generation = 1;
+    }
+    const found = [];
     const include = (index) => {
-      if (intersects(bounds, entries[index].bounds)) found.add(index);
+      if (visited[index] === generation) return;
+      visited[index] = generation;
+      if (intersects(bounds, entries[index].bounds)) found.push(index);
     };
     // 超长扫掠直接遍历索引包围盒，避免空格数量随查询面积无界增长。
-    if (cellCount(range) > Math.max(64, cells.size * 2)) {
+    // 立体海沟的上下层共享 XZ，有限高度查询只查所在层，投影查询仍走完整高度索引。
+    const queryCells = useHeight ? volumeCells : cells;
+    const queryCount = useHeight ? volumeCount(range) : cellCount(range);
+    if (queryCount > Math.max(64, queryCells.size * 2)) {
       entries.forEach((_, index) => include(index));
+    } else if (useHeight) {
+      volumeOversized.forEach(include);
+      for (let y = range.minY; y <= range.maxY; y++)
+        for (const index of tallCells.get(y) || []) include(index);
+      for (let x = range.minX; x <= range.maxX; x++) {
+        for (let y = range.minY; y <= range.maxY; y++) {
+          for (let z = range.minZ; z <= range.maxZ; z++) {
+            for (const index of volumeCells.get(`${x},${y},${z}`) || [])
+              include(index);
+          }
+        }
+      }
     } else {
       oversized.forEach(include);
       for (let x = range.minX; x <= range.maxX; x++) {
@@ -93,7 +141,7 @@ export function createStaticColliderGrid(
         }
       }
     }
-    return [...found].sort((a, b) => a - b).map((index) => colliders[index]);
+    return found.sort((a, b) => a - b).map((index) => colliders[index]);
   }
 
   function radiusExpansion(radius) {
@@ -277,6 +325,10 @@ function cellRange(bounds, cellSize) {
 
 function cellCount(range) {
   return (range.maxX - range.minX + 1) * (range.maxZ - range.minZ + 1);
+}
+
+function volumeCount(range) {
+  return cellCount(range) * (range.maxY - range.minY + 1);
 }
 
 function intersects(a, b) {
