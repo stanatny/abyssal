@@ -98,11 +98,12 @@ export function createSonarMarkers(container) {
         let text = labels.get(label.id);
         if (!text) {
           text = document.createElement("span");
+          text.append(document.createElement("span"));
           labelLayer.append(text);
           labels.set(label.id, text);
         }
         text.className = tr`sonar-world-label ${contactClass(label)}`;
-        text.textContent = t(label.text);
+        text.firstElementChild.textContent = t(label.text);
         text.style.left = tr`${label.x}px`;
         text.style.top = tr`${label.y}px`;
         text.style.maxWidth = tr`${label.width}px`;
@@ -151,11 +152,13 @@ function emptySnapshot() {
 function contactClass(contact) {
   return contact.boss
     ? "echo-boss"
-    : contact.dangerous
-      ? contact.eligible
-        ? "echo-warning"
-        : "echo-danger"
-      : contact.eligible
-        ? "echo-prey"
-        : "echo-neutral";
+    : contact.rare
+      ? "echo-rare"
+      : contact.dangerous
+        ? contact.eligible
+          ? "echo-warning"
+          : "echo-danger"
+        : contact.eligible
+          ? "echo-prey"
+          : "echo-neutral";
 }

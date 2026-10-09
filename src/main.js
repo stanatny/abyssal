@@ -19,6 +19,7 @@ import {
   isRegionalRare,
   preyRespawnDelay,
 } from "./regional_rare.js";
+import { createRareDiscovery } from "./regional_rare_discovery.js";
 import { attachRareMarker } from "./regional_rare_marker.js";
 import {
   aerialFormationPose,
@@ -287,6 +288,7 @@ const sonar = createSonar($("sonar-panel"));
 const sonarMarkers = createSonarMarkers($("sonar-markers"));
 const sonarWave = createSonarWave(scene);
 const minimap = createMinimap($("minimap"));
+const rareDiscovery = createRareDiscovery();
 const surfaceOptions = {
   worldColliders: terrainColliders,
   castWorld: (from, to, radius = 0) =>
@@ -941,6 +943,13 @@ function updateSonar() {
     sonarActive: visible,
     world: activeWorld(),
     riverPaths: ocean.radarPaths,
+    rareArea: rareDiscovery.update({
+      active: mode === "playing",
+      now: player.elapsed,
+      position,
+      entity: entities.find((entry) => isRegionalRare(entry.species)),
+      regionId: expedition.region.id,
+    }),
     waypoints: ocean.guardianWaypoints
       ? ocean.guardianWaypoints
           .filter(
@@ -1262,6 +1271,7 @@ function addEntity(species, location, populationIndex = 0) {
   return entity;
 }
 function seedPopulation() {
+  rareDiscovery.reset();
   for (const entity of entities) {
     restoreMythicForm(entity);
     if (entity.transformation)
@@ -1411,6 +1421,7 @@ function notify(source, duration = 3) {
   notificationUntil = elapsed + duration;
 }
 function resetExpedition(preserveWorld = false) {
+  rareDiscovery.reset();
   delete document.body.dataset.epilogue;
   runRecords.resetRound();
   launchTransition = null;
@@ -1561,6 +1572,7 @@ function showOverlay(kind) {
   const returningFromRefuge = mode === "epilogue";
   delete document.body.dataset.epilogue;
   mode = kind;
+  if (kind !== "paused") rareDiscovery.reset();
   worldRenderDirty = true;
   $("sonar-panel").hidden = true;
   sonarMarkers.reset();
@@ -2075,7 +2087,7 @@ function eatEntity(entity, mouth, previousPrey = entity.mesh.position, dt = 0) {
     activeFrenzy,
   );
   if (entity.hiddenFor > 0 || !canEat(player, species.length)) return false;
-  // 狂食吸引仅作用于可食普通生物；神话空域同样需要距离与遮挡检查。
+  // 狂食吸引包括可食珍兽；神话空域同样需要有限距离与遮挡检查。
   if (activeFrenzy) {
     const distance = mouth.distanceTo(mesh.position);
     const pull = frenzyPullDistance(
@@ -3493,6 +3505,10 @@ function updateHud() {
     }
   }
   $("target").hidden = !target;
+  $("target").classList.toggle(
+    "is-rare",
+    !!target && isRegionalRare(target.e.species),
+  );
   if (target) {
     const { e, p, d } = target,
       edible = canEat(player, e.species.length),
@@ -3505,14 +3521,18 @@ function updateHud() {
         );
     $("target").style.left = (p.x * 0.5 + 0.5) * innerWidth + "px";
     $("target").style.top = (-p.y * 0.5 + 0.5) * innerHeight - 18 + "px";
-    $("target").style.color = edible
-      ? retaliates
-        ? "#f3d36d"
-        : "#9ef5d3"
-      : e.species.predator
-        ? "#ffad8a"
-        : "#c1d8dd";
-    $("target").textContent = t(
+    $("target").style.color = isRegionalRare(e.species)
+      ? "var(--rare-marker-color)"
+      : edible
+        ? retaliates
+          ? "#f3d36d"
+          : "#9ef5d3"
+        : e.species.predator
+          ? "#ffad8a"
+          : "#c1d8dd";
+    if (!$("target").firstElementChild)
+      $("target").append(document.createElement("span"));
+    $("target").firstElementChild.textContent = t(
       tr`${{ shoal: "Ⅰ 浅海鱼群", hunter: "Ⅱ 海洋霸主", ancient: "Ⅲ 远古巨兽", alien: "外星生命", mythic: "神话生灵", rare: "专属珍兽" }[e.species.category] || "海洋生物"} · ${e.species.label} · ${e.species.length}m${e.torpedoHits ? tr` · 鱼雷伤害${e.torpedoHits}/${MECHANICAL_RULES.giantHits}` : ""} · ${edible ? (retaliates ? "可捕食 · 会反击" : "可捕食") : e.species.predator ? "危险" : "暂不可吞食"} / ${Math.round(d)}m`,
     );
   }

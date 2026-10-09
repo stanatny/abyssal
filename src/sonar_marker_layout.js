@@ -134,6 +134,7 @@ export function buildSonarMarkerLayout({
         ),
         height: compact ? 20 : 22,
         boss: first.boss,
+        rare: first.rare,
         dangerous: first.dangerous,
         eligible: first.eligible,
         onscreen: true,

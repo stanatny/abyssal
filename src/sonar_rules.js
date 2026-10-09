@@ -2,6 +2,7 @@ import { canPredatorRetaliate } from "./predator_combat.js";
 /** 虎鲸主动声呐规则：以实际游玩秒数计时，不依赖相机、可见性或渲染器。 */
 import { canEat } from "./simulation.js";
 import { getCharacter } from "./character_rules.js";
+import { isRegionalRare } from "./regional_rare.js";
 
 const ORCA_SONAR = getCharacter("orca").active;
 
@@ -113,6 +114,7 @@ export function detectSonarContacts({
       radarX: right / SONAR_ABILITY.range,
       radarY: -ahead / SONAR_ABILITY.range,
       boss,
+      rare: !boss && isRegionalRare(species),
       eligible,
       dangerous,
       status: boss

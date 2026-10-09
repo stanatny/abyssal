@@ -3,6 +3,7 @@ import { AMAZON_WORLD } from "./amazon_config.js";
 import { EUROPA_WORLD } from "./europa_config.js";
 import { MARIANA_WORLD } from "./mariana_config.js";
 import { PENGLAI_WORLD } from "./penglai_config.js";
+import { RARE_PURSUIT_RULES } from "./regional_rare_pursuit.js";
 
 export const ECOSYSTEM_EN = { 通用生存规则: "Shared survival rules" };
 function copy(zh, en) {
@@ -163,8 +164,8 @@ export const REGIONAL_RARES = Object.freeze(
       predator: false,
       nutrition: 0,
       growth: 0,
-      speed: 22,
-      escapeSpeed: 27,
+      speed: RARE_PURSUIT_RULES.cruiseSpeed,
+      escapeSpeed: RARE_PURSUIT_RULES.escapeSpeed,
       elusive: true,
       cityHabitat: true,
       residentRadius: 90,
@@ -180,12 +181,12 @@ export const REGIONAL_RARES = Object.freeze(
         "Rare blessing · 150 vital caps this round",
       ),
       description: copy(
-        "每次远征仅有一只，随机栖息于隐蔽区域，捕获后不再刷新。吞食立即补满生命、体力与饥饿，并将三项上限提升至150；新远征恢复100。它会巡游、逃跑和变向躲闪；普通游速追不上，需要预留体力冲刺追捕。",
-        "One per expedition, in a randomly chosen secluded area, with no respawn after capture. Eating it fills health, stamina and hunger and raises all three caps to 150 for this round; a new expedition resets them to 100. It patrols, flees and dodges; ordinary swimming cannot keep up, so reserve stamina and sprint to catch it.",
+        "每次远征仅有一只，随机栖息于隐蔽区域，捕获后不再刷新。吞食立即补满生命、体力与饥饿，并将三项上限提升至150；新远征恢复100。它会巡游、逃跑和变向躲闪；普通游速难以追上，预判路线并短冲刺可以拉近距离。狂食的近距吸食对它生效；尸鲨仆从也能加速追捕珍兽，恩赐归主角。",
+        "One per expedition, in a randomly chosen secluded area, with no respawn after capture. Eating it fills health, stamina and hunger and raises all three caps to 150 for this round; a new expedition resets them to 100. It patrols, flees and dodges; cruise swimming cannot close the gap, but anticipation and a short sprint can. Frenzy suction also works on it. A Zombie Shark companion can speed up to hunt it and awards its blessing to you.",
       ),
       counter: copy(
-        "线索只指向可能的栖息区域，不代表固定位置。发现其金色菱形后，预判转向并冲刺追捕。",
-        "Clues indicate possible habitats, not a fixed location. Once you spot its golden diamond, anticipate its turns and sprint after it.",
+        "线索只指向可能的栖息区域，不代表固定位置。开局即可寻找和捕获，无需长到30米。首次游经活动圈以内的海域时，无论深度，都会提示“发现珍兽海域”，并在小地图揭示柔光虹彩活动圈；开局不会提前标记。发现后，箭头按当前朝向指向这片栖地，“更深／更高”提示水层；靠近个体时提示附近有珍兽。已发现的范围保留到捕获或新局。范围不追踪它的实时位置。发现其发亮的虹彩菱形后，预判转向并冲刺追捕。",
+        "Clues indicate possible habitats, not a fixed location. You can find and catch it from the start; no 30 m requirement. First swimming through the habitat circle, at any depth, reveals its glowing rainbow minimap ring and a Rare area found notice. It is not marked at the start. After discovery, the arrow points toward that area relative to your heading; deeper/higher indicates its layer. A nearby notice appears closer to the creature. Known areas remain until capture or a new round. The ring does not track its live position. Once you spot its glowing rainbow diamond, anticipate its turns and sprint after it.",
       ),
       realSize: copy(
         "各地独有的神秘珍兽，藏于偏僻水域或山间，鳞光与翼纹承载着当地的传说。",
@@ -206,6 +207,12 @@ export function preyRespawnDelay(prey) {
   return isRegionalRare(prey) ? Infinity : prey.schoolSize > 1 ? 18 : 28;
 }
 copy("专属珍兽", "Regional rares");
+copy("附近有珍兽", "Rare nearby");
+copy("珍兽线索", "Rare clue");
+copy("发现珍兽海域", "Rare area found");
+copy("更深", "deeper");
+copy("更高", "higher");
+copy("同一层", "level");
 copy(
   "珍兽恩赐 · 三项补满，上限150（本局）",
   "Rare blessing · All vitals filled, caps 150 this round",

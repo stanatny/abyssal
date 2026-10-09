@@ -1,3 +1,65 @@
+# Accepted regional rare local checkpoint — 2026-10-09
+
+The user authorizes committing the verified combined rare candidate locally on the existing branch before the next gradual-health-recovery iteration. The evidence below is retained unchanged: 1,053 units, ten controlled capture cases, two normal-spawn telemetry-guided routes, native compiled local/public lifecycle checks and source/artifact/privacy/refresh receipts. Acceptance documentation changes no runtime/build inputs. Historical no-commit candidate labels below are superseded by this local checkpoint authorization; no push, main merge, version bump or Pages release.
+
+---
+
+# Regional rare pursuit and assisted capture — 2026-10-09
+
+An additional balance follow-up passes two normal-spawn Hawaii native-input routes, Mechanical Shark and Squid at 3 m. Read-only telemetry guides navigation and live 3D aiming; no state writes or active skills. Eight seconds of cruise following does not capture either rare, then steering/short sprint captures in 12.82/5.62 seconds without exhausting stamina. Both selected homes are in the deeper eastern habitat. See [evidence and limits](regional_rare_capture.md#normal-spawn-balance-follow-up--2026-10-09), ignored `.local/rare_balance_20261009/`. This adds route feasibility evidence, not blind human search/general difficulty acceptance; prior unit/compiled receipts below apply to unchanged gameplay and assets.
+
+The candidate passes **1,053 units** and **ten populated native-input capture cases**: four short-sprint roles, four actual Frenzy pickup/intake roles, and companion captures in Mariana/Penglai with their natural 15 m starts. At the 28 m pursuit fixture, four short-burst captures take 1.55–2.50 active seconds; companion cases use the normal owner search radius and actual posed-mouth sweeps. Registered rares are eligible for a legal 5 m summon, verified across eight kinds. Blessing/caps 150, no rare growth, once-only settlement, infinite retirement, wall exclusion, pause and new-round reset are checked. The accepted rainbow presentation and discovery timing remain.
+
+Local/public compiled hosts each pass two native ordinary-spawn Guide/discovery/radar/pause/Home/reload cases, English1440/Chinese390, with updated rare/Frenzy/companion rules and no browser errors or production hooks. All 307 build inputs match the rebuilt restricted origin. Read [candidate values, measured fixtures and limits](regional_rare_capture.md). Raw source/artifact/native compiled receipts and operations are ignored under `.local/rare_capture_20261009/`; failed driver/terrain/predator attempts are retained separately from passed captures. The capture cases stage only legal player viewing positions/facing and acquire real pickups/skills; no NPC, stock, vitals, body-size, habitat, camera or lighting writes. These are not full natural expeditions or physical-device/performance acceptance. Same uncommitted branch and managed services remain; main/Pages stays v0.11.3.
+
+---
+
+# Glowing rainbow rare identifiers — 2026-10-09
+
+Fresh validation passes **38 focused existing tests**, formatting/build, one populated actual English desktop target/sonar/world-texture view and **two native ordinary-spawn Guide/discovery/radar/pause/Home/reload cases per restricted local/public compiled host**, English1440 and Chinese390. Five-color text/SVG gradients and bounded glow are checked against actual rendering; world diamond texture samples are multicolor, its six sprites and depth/material flags remain, and reduced-motion freezes glints while active play advances. Ordinary food remains cyan. Browser errors and production hooks are absent. The desktop and Chinese narrow screenshots are visually inspected.
+
+See [current presentation, evidence and limits](regional_rare_iridescent.md), ignored `.local/rare_iridescent_20261009/`. Source/build-input and all nine active artifact fingerprints, denied private paths and same-address replacement/removal are captured in delivery receipts. Four existing serving identities and the prior runtime are preserved. Player-view fixture and browser-emulation limits are explicit; no physical-phone, new full-suite or performance claim. Same branch stays uncommitted/unpushed for unified user review; main/Pages remains v0.11.3. Earlier blue/gold palette evidence is historical.
+
+---
+
+# Blue rare identifiers, separate from warnings — 2026-10-09
+
+The color refinement passes **38 focused existing tests**, formatting/build, one actual populated desktop target/sonar/world-color view, and **two no-hook normal-spawn native routes per restricted local/public compiled host**, English1440 and Chinese390. Rare identifiers use `#4da3ff` across target text, sonar/minimap, discovery range/caption and existing world diamond/halo/glints. Blue world texture pixels and material/occlusion flags are checked; ordinary cyan and existing yellow/red/purple/pink threat colors remain unchanged. Bilingual Guide blue-range/diamond copy, first horizontal discovery, pause/retention, sonar eligibility, Home/reload and production-hook absence pass. Browser errors are absent.
+
+Nine artifact/source/build-input hashes, sixteen private-path denials and same-address replacement/removal bind the candidate. See [current palette, evidence and limits](regional_rare_blue.md), ignored `.local/rare_blue_20261009/`. The world-label view stages only a legal player view; native compiled routes use no hooks/state writes. Narrow viewports are emulation and no full-suite/pursuit/expedition or physical-device/performance claim is made. Existing branch, processes and prior runtime remain preserved; the combined candidate is uncommitted/unpushed, with main/Pages v0.11.3 unchanged. Earlier gold palette evidence below is historical and superseded by the user's request.
+
+---
+
+# Distinct gold rare contacts — 2026-10-09
+
+The presentation follow-up passes **38 focused existing tests**, formatting/build, one populated English desktop target/sonar/minimap color case, and **two no-hook normal-spawn native routes per restricted local/public compiled host**, English1440 and Chinese390. Rare text/sonar anchors/labels/minimap contacts use bright gold `#ffd166`; native compiled radar confirms one rare dot in gold with ordinary edible dots still cyan. Existing first-crossing discovery, pause/resume, Home/reload, ecology, eligibility and rewards are preserved. Production hooks and browser errors are absent. Nine artifacts/source fingerprints, sixteen private-path denials and same-address refresh bind the build. No fresh full-suite, physical-phone or full-expedition claim is made; failed narrow world-label viewing fixtures are retained separately from accepted desktop/compiled-minimap evidence. See [scope and actual limits](regional_rare_marker_color.md), ignored `.local/rare_marker_color_20261009/`. The combined candidate stays uncommitted/unpushed on `art/mariana-irregular-terrain`; Main/Pages remains v0.11.3. Earlier 1,048-test evidence below belongs to the preceding first-crossing candidate.
+
+---
+
+# First-crossing rare habitat discovery — 2026-10-09
+
+The same-branch refinement passes formatting/build and **1,048 units**, **12 populated development crossing/layout cases**, **two actual capture/reset cases**, **two no-hook ordinary-spawn native routes per restricted local/public compiled host**, and **33 compiled native Guide/lifecycle/reload cases per host**. Circle and route clues remain hidden until the first horizontal entry into the selected existing habitat circle, at any depth. A six-second active-play discovery notice appears once; pause freezes it and known ranges persist after departure/nursery return. Creature proximity cannot reveal unknown circles. Existing rare habitat, pursuit, one-resident population and 150-cap/no-growth reward settlement are preserved.
+
+All nine active artifacts match the compiled build; complete candidate/build-input hashes, sixteen private-path denials, production-hook absence and same-address replacement/removal bind the source and preview. Public native routes use task-only direct Chrome with system settings unchanged. Screenshot/layout checks cover English desktop, Chinese 390 px, English 320 px and 780×360. Actual capture is a controlled player-mouth intercept, and the viewport checks are emulation; no natural full-chase/expedition, physical-device or performance claim is made. See [the current contract, evidence and limits](regional_rare_habitat_crossing.md); ignored evidence is `.local/rare_habitat_crossing_20261009/`. Source remains uncommitted/unpushed on `art/mariana-irregular-terrain` at local accepted terrain HEAD `bd6850b`. Main/Pages stays v0.11.3. The older 500/3D candidate below is historical and superseded.
+
+---
+
+# Earlier rare-search candidate — 2026-10-09
+
+The shared follow-up passes formatting/build, **1,046 units**, **19 populated development cases**, **three encounter cases**, and **33 native compiled UI cases per local/public host**. Two native routes per compiled host obtain a search clue from the normal Hawaii nursery in roughly 5.1–5.2 seconds of movement while still **3 m**, with no state writes or sonar activation. Earlier search, heading/layer guidance, retained activity range, all eight ordinary starting sizes and existing capture/reset settlement are checked. Nine artifacts/source fingerprints, sixteen private-path denials, production-hook absence and same-address refresh bind the candidate; no naturally completed pursuit/expedition or physical-phone claim is made.
+
+The original system-proxy public attempt failed; task-only direct Chrome/HTTPS succeeds on the unchanged tunnel, without changing system settings or services. See [current scope, measurements and limits](regional_rare_search_revision.md); evidence is ignored under `.local/rare_search_20261009/`. This follow-up remains uncommitted/unpushed on `art/mariana-irregular-terrain` at local accepted terrain HEAD `bd6850b`. Main/Pages stays v0.11.3. The following initial 140/200-only candidate is historical and superseded.
+
+---
+
+# Regional rare discovery candidate — 2026-10-09
+
+The current same-branch refinement passes formatting, build and **1,041 units**, **11 populated development cases**, **three approach/capture/reset cases** and **33 native compiled UI cases per local/public host**. All eight regions retain one legally placed, non-nursery rare; all four characters receive the quiet nearby notice and fixed habitat ring. English/Chinese Guide and 1440/390/320 px UI, 780×360 feedback, pause/capture/home/map/new-round cleanup and existing 150-cap/no-growth settlement are checked. The actual approach/departure uses native input; capture uses a controlled paused player-mouth intercept with an unmodified resident. No natural full-chase, full-expedition or physical-phone result is claimed.
+
+Nine final artifacts are byte-matched to source/build fingerprints and restricted/public responses; sixteen private paths are denied, production hooks are absent and same-address refresh works. The accepted Mariana commit is local `bd6850b`; the rare refinement remains uncommitted on `art/mariana-irregular-terrain`, awaiting user review before unified main integration. Main/Pages stays v0.11.3. See [the scope, evidence and limits](regional_rare_discovery.md); raw final records are ignored under `.local/rare_discovery_20261009/`. Earlier release/candidate measurements below remain historical.
+
+---
+
 # Accepted Mariana local checkpoint — October 9, 2026
 
 The user accepts the irregular deep pit and requests its local commit. The 1,036-unit / 42-Mariana, 16-native-route, geometry/visual/lifecycle/workload and local/public 37-case evidence below belongs to this accepted checkpoint. Complete-source and preview-byte fingerprints match; current document-only acceptance updates preserve all 305 build inputs and nine reviewed artifacts. Continue the new rare-discovery optimization on the same branch, without pushing or merging to main during this checkpoint. Earlier no-commit candidate labels below are historical and superseded by this specific local-commit authorization. Formal Pages stays v0.11.3.

@@ -2,6 +2,7 @@ import * as THREE from "three";
 import { createCreature } from "./creatures.js";
 import { createFeedingTransition } from "./feeding_transition.js";
 import { preyCaptureRadius, sweptCaptureFraction } from "./prey_capture.js";
+import { isRegionalRare } from "./regional_rare.js";
 import {
   activateSummon,
   canMinionEat,
@@ -46,7 +47,8 @@ export function createZombieMinion(
     mouth = new THREE.Vector3(),
     contact = new THREE.Vector3(),
     preyContact = new THREE.Vector3(),
-    preyPrevious = new THREE.Vector3();
+    preyPrevious = new THREE.Vector3(),
+    intakeOffset = new THREE.Vector3();
   const rotation = new THREE.Quaternion(),
     axis = new THREE.Vector3(0, 0, -1),
     side = new THREE.Vector3();
@@ -174,9 +176,31 @@ export function createZombieMinion(
     orbitPhase += dt * 0.7;
     if (target) {
       phase = "hunt";
-      desired
-        .copy(target.mesh.position)
-        .addScaledVector(direction, -visibleLength * 0.42);
+      if (isRegionalRare(target.species)) {
+        // 小型珍兽按实际嘴部偏移对准，有限预判避免高速追近后绕圈错过。
+        desired.copy(target.mesh.position);
+        if (target.velocity)
+          desired.addScaledVector(
+            target.velocity,
+            target.species.escapeSpeed *
+              Math.min(
+                MINION_RULES.rareLeadSeconds,
+                mesh.position.distanceTo(desired) /
+                  MINION_RULES.rarePursuitSpeed,
+              ),
+          );
+        delta.copy(desired).sub(mesh.position).normalize();
+        intakeOffset
+          .copy(mesh.userData.getFeedingMouth(mouth))
+          .sub(mesh.position)
+          .applyQuaternion(rotation.copy(mesh.quaternion).invert());
+        intakeOffset.applyQuaternion(rotation.setFromUnitVectors(axis, delta));
+        desired.sub(intakeOffset);
+      } else {
+        desired
+          .copy(target.mesh.position)
+          .addScaledVector(direction, -visibleLength * 0.42);
+      }
     } else {
       phase = returning ? "return" : "orbit";
       side.set(-forward.z, 0, forward.x).normalize();
@@ -194,7 +218,9 @@ export function createZombieMinion(
     const swimSpeed =
       returning || !target
         ? MINION_RULES.returnSpeed
-        : MINION_RULES.cruiseSpeed;
+        : isRegionalRare(target.species)
+          ? MINION_RULES.rarePursuitSpeed
+          : MINION_RULES.cruiseSpeed;
     if (distance > 0.01) {
       direction
         .lerp(delta.multiplyScalar(1 / distance), Math.min(1, dt * 5))

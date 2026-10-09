@@ -1,4 +1,18 @@
 :root {
+  --rare-marker-color: #b5adff;
+  --rare-marker-sky: #83e9ff;
+  --rare-marker-violet: #b5adff;
+  --rare-marker-rose: #ff9add;
+  --rare-marker-pearl: #ffe9ae;
+  --rare-marker-mint: #8ff4d8;
+  --rare-marker-spectrum: linear-gradient(
+    110deg,
+    var(--rare-marker-sky),
+    var(--rare-marker-violet) 25%,
+    var(--rare-marker-rose) 50%,
+    var(--rare-marker-pearl) 75%,
+    var(--rare-marker-mint)
+  );
   font-family:
     Inter, "SF Pro Display", "PingFang SC", "Microsoft YaHei", sans-serif;
   color: #e8f6f2;

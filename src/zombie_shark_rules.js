@@ -1,5 +1,6 @@
 import { getCharacter } from "./character_rules.js";
 import { consumePrey, preyMealReward, vitalLimit } from "./simulation.js";
+import { isRegionalRare } from "./regional_rare.js";
 
 /** 尸鲨仆从只使用当前远征时钟；状态不持有场景、对象或墙钟。 */
 export function createSummonState() {
@@ -60,7 +61,7 @@ export function activateSummon(state, player, now = player.elapsed) {
   return true;
 }
 
-/** 仆从资格始终按主角实时体长计算，不借用狂食或仆从的可见尺寸，绝不攻击领主。 */
+/** 普通猎物保留减5米限制；已注册珍兽只需小于主角，不借用狂食或仆从可见尺寸。 */
 export function canMinionEat(player, prey) {
   return (
     !!prey &&
@@ -70,7 +71,9 @@ export function canMinionEat(player, prey) {
     Number.isFinite(player.length) &&
     Number.isFinite(prey.length) &&
     prey.length > 0 &&
-    prey.length <= player.length - MINION_RULES.preyGap &&
+    (isRegionalRare(prey)
+      ? prey.length < player.length
+      : prey.length <= player.length - MINION_RULES.preyGap) &&
     prey.tier !== 3 &&
     prey.category !== "lord" &&
     !prey.boss &&
@@ -101,6 +104,8 @@ export const MINION_RULES = Object.freeze({
   searchRadius: 32,
   leashRadius: 64,
   cruiseSpeed: 20,
+  rarePursuitSpeed: 26,
+  rareLeadSeconds: 0.22,
   returnSpeed: 48,
   searchInterval: 0.25,
 });

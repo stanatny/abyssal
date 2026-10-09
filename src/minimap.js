@@ -5,8 +5,14 @@ import {
 import { t, tr, setMarkup } from "./i18n.js";
 import { WORLD } from "./world_config.js";
 import { isNursery } from "./nursery_rules.js";
-import { getMinimapState, projectMinimapPosition } from "./minimap_rules.js";
+import {
+  getMinimapState,
+  projectMinimapPosition,
+  projectMinimapRadius,
+} from "./minimap_rules.js";
+import { getRareClueDirection } from "./regional_rare_discovery.js";
 import { getSwimmingAttitude } from "./steering_rules.js";
+import { rareMarkerPalette } from "./regional_rare_palette.js";
 import "./minimap.css";
 
 let nextMapId = 0;
@@ -19,6 +25,7 @@ const SVG_NAMESPACE = "http://www.w3.org/2000/svg";
  */
 export function createMinimap(container) {
   const mapId = tr`minimap-depth-${nextMapId++}`;
+  const rareGradientId = `${mapId}-rare`;
   const northWest = projectMinimapPosition({ x: WORLD.minX, z: WORLD.minZ });
   const southEast = projectMinimapPosition({ x: WORLD.maxX, z: WORLD.maxZ });
   const width = southEast.x - northWest.x;
@@ -26,6 +33,8 @@ export function createMinimap(container) {
   let snapshot = null;
   let disposed = false;
   const dots = new Map();
+  let previousRareArea = null;
+  let previousRareWorld = null;
   let previousRiverPaths = null;
   let previousContourWorld = null;
   let previousContourDepth = null;
@@ -38,7 +47,10 @@ export function createMinimap(container) {
   setMarkup(
     container,
     tr`<svg class="minimap-chart" viewBox="0 0 100 100" aria-hidden="true">
-    <defs><linearGradient id="${mapId}" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#0e172c"/><stop offset="0.66" stop-color="#123e50"/><stop offset="1" stop-color="#246861"/></linearGradient></defs>
+    <defs><linearGradient id="${mapId}" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#0e172c"/><stop offset="0.66" stop-color="#123e50"/><stop offset="1" stop-color="#246861"/></linearGradient>
+    <linearGradient id="${rareGradientId}" x1="0" y1="0" x2="1" y2="1">${rareMarkerPalette()
+      .map((color, i) => `<stop offset="${i / 4}" stop-color="${color}"/>`)
+      .join("")}</linearGradient></defs>
     <circle class="minimap-frame" cx="50" cy="50" r="48"/>
     <rect class="minimap-basin" x="${northWest.x}" y="${northWest.y}" width="${width}" height="${height}" rx="5" fill="url(#${mapId})"/>
     <path class="minimap-terrain" fill="#071c2f" fill-opacity=".65" stroke="#a8d0ca" stroke-opacity=".6" stroke-width=".75"/>
@@ -56,6 +68,7 @@ export function createMinimap(container) {
     <text class="minimap-zone" x="77" y="81">浅</text>
     <path class="minimap-home-route"/><path class="minimap-boundary"/>
     <g class="minimap-rivers"></g>
+    <circle class="minimap-rare-area" visibility="hidden"/>
     <g class="minimap-waypoints"></g><g class="minimap-contacts"></g>
     <path class="minimap-home" d="M 0 -2.7 L 2.7 0 L 0 2.7 L -2.7 0 Z"/>
     <g class="minimap-player"><circle r="4.8"/><path d="M 0 -4.5 L 3 3.5 L 0 2 L -3 3.5 Z"/></g>
@@ -64,8 +77,11 @@ export function createMinimap(container) {
       <text class="minimap-pitch-axis" x="86" y="29">仰</text>
       <path class="minimap-pitch-marker" d="M -6 -2.1 L -1 0 L -6 2.1 Z"/>
     </g>
-  </svg><span class="minimap-pitch-label" aria-hidden="true"></span><div class="minimap-caption"><span class="minimap-home-label"></span><span class="minimap-depth-label"></span></div>`,
+  </svg><span class="minimap-rare-hint" hidden></span><span class="minimap-pitch-label" aria-hidden="true"></span><div class="minimap-caption"><span class="minimap-home-label"></span><span class="minimap-depth-label"></span></div>`,
   );
+  const rareRange = container.querySelector(".minimap-rare-area");
+  container.style.setProperty("--rare-map-spectrum", `url(#${rareGradientId})`);
+  const rareHint = container.querySelector(".minimap-rare-hint");
   const boundary = container.querySelector(".minimap-boundary");
   const route = container.querySelector(".minimap-home-route");
   const playerMarker = container.querySelector(".minimap-player");
@@ -78,6 +94,12 @@ export function createMinimap(container) {
 
   function reset() {
     snapshot = null;
+    previousRareArea = previousRareWorld = null;
+    rareRange.setAttribute("visibility", "hidden");
+    rareHint.hidden = true;
+    rareHint.textContent = "";
+    delete container.dataset.rareNearby;
+    delete container.dataset.rarePhase;
     previousContourWorld = null;
     previousContourDepth = null;
     container.querySelector(".minimap-terrain").setAttribute("d", "");
@@ -117,8 +139,25 @@ export function createMinimap(container) {
       world = WORLD,
       waypoints = [],
       riverPaths = null,
+      rareArea = null,
     }) {
       if (disposed) return null;
+      if (previousRareArea !== rareArea || previousRareWorld !== world) {
+        previousRareArea = rareArea;
+        previousRareWorld = world;
+        rareRange.setAttribute("visibility", rareArea ? "visible" : "hidden");
+        rareHint.hidden = !rareArea;
+        container.dataset.rareNearby = String(rareArea?.phase === "nearby");
+        if (rareArea) {
+          const center = projectMinimapPosition(rareArea, world);
+          rareRange.setAttribute("cx", String(center.x));
+          rareRange.setAttribute("cy", String(center.y));
+          rareRange.setAttribute(
+            "r",
+            String(projectMinimapRadius(rareArea.radius, world)),
+          );
+        }
+      }
       if (previousRiverPaths !== riverPaths) {
         previousRiverPaths = riverPaths;
         const layer = container.querySelector(".minimap-rivers");
@@ -224,6 +263,20 @@ export function createMinimap(container) {
         world.surfaceMode === "aether" ? "仙山" : "深",
       );
       snapshot.attitude = getSwimmingAttitude(forward);
+      if (rareArea) {
+        const clue = getRareClueDirection(rareArea, position, snapshot.heading);
+        rareHint.textContent =
+          rareArea.phase === "discovered"
+            ? t("发现珍兽海域")
+            : [
+                t(rareArea.phase === "nearby" ? "附近有珍兽" : "珍兽线索"),
+                clue.arrow,
+                t(clue.elevation),
+              ]
+                .filter(Boolean)
+                .join(" ");
+      } else rareHint.textContent = "";
+      container.dataset.rarePhase = rareArea?.phase || "";
       container.dataset.pitch = String(snapshot.attitude.degrees);
       container.dataset.attitude = snapshot.attitude.direction;
       pitchMarker.setAttribute(
@@ -300,6 +353,11 @@ export function createMinimap(container) {
         depthLabel.textContent = t("边界 · 请转向");
         container.setAttribute("aria-label", t("海域边界无法通行，请转向"));
       }
+      if (rareArea)
+        container.setAttribute(
+          "aria-label",
+          `${container.getAttribute("aria-label")}，${rareHint.textContent}`,
+        );
       const activeIds = new Set();
       if (sonarActive) {
         for (const [index, contact] of contacts.entries()) {
@@ -322,7 +380,7 @@ export function createMinimap(container) {
           dot.setAttribute("r", contact.boss ? "2.2" : "1.5");
           dot.setAttribute(
             "class",
-            tr`minimap-contact ${contact.boss ? "is-boss" : contact.dangerous ? (contact.eligible ? "is-warning" : "is-danger") : contact.eligible ? "is-prey" : "is-neutral"}`,
+            tr`minimap-contact ${contact.boss ? "is-boss" : contact.rare ? "is-rare" : contact.dangerous ? (contact.eligible ? "is-warning" : "is-danger") : contact.eligible ? "is-prey" : "is-neutral"}`,
           );
         }
       }

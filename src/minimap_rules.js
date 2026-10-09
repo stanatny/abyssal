@@ -5,6 +5,15 @@ const TAU = Math.PI * 2;
 const MAP_PADDING = 9;
 const MAP_SIZE = 100;
 
+/** 范围圈与水平坐标共用米制，避免海域长宽不同时缩放失配。 */
+export function projectMinimapRadius(radius, world = WORLD) {
+  return (
+    Math.max(0, finite(radius)) *
+    ((MAP_SIZE - MAP_PADDING * 2) /
+      Math.max(world.maxX - world.minX, world.maxZ - world.minZ))
+  );
+}
+
 /**
  * 将世界水平坐标等比例投影到固定北向的100×100地图，越界位置贴在实际边界。
  * @param {{x:number,z:number}} position 世界位置；-Z为北，+X为东。

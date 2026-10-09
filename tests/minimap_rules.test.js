@@ -4,6 +4,7 @@ import { WORLD } from "../src/world_config.js";
 import {
   getMinimapState,
   projectMinimapPosition,
+  projectMinimapRadius,
 } from "../src/minimap_rules.js";
 
 const SPAWN = { x: 0, y: -18, z: 75 };
@@ -110,4 +111,19 @@ test("离出生点很近时提示浅滩附近，无效坐标也不会产生NaN",
     Number.isFinite(invalid.player.x) && Number.isFinite(invalid.player.y),
   );
   assert.equal(invalid.ascent, 0);
+});
+
+test("habitat radii use the exact coordinate scale for wide and tall worlds", () => {
+  for (const world of [
+    WORLD,
+    { minX: -500, maxX: 500, minZ: -100, maxZ: 100 },
+  ]) {
+    const center = projectMinimapPosition({ x: 0, z: -100 }, world);
+    const east = projectMinimapPosition({ x: 90, z: -100 }, world);
+    assert.ok(
+      Math.abs(projectMinimapRadius(90, world) - (east.x - center.x)) < 1e-10,
+    );
+    assert.equal(projectMinimapRadius(NaN, world), 0);
+    assert.equal(projectMinimapRadius(-10, world), 0);
+  }
 });

@@ -78,6 +78,14 @@
   fill: #83efd2;
 }
 
+.minimap-contact.is-rare {
+  fill: var(--rare-map-spectrum);
+  stroke: #e6d9ff;
+  stroke-width: 0.5;
+  opacity: 1;
+  filter: drop-shadow(0 0 1.2px #a9bfff);
+}
+
 .minimap-contact.is-danger {
   fill: #f6a879;
 }
@@ -204,4 +212,37 @@
   color: #ffd28b;
   font-size: 10.5px;
   font-weight: 700;
+}
+
+/* 虹彩只标识已发现的珍兽栖地；静态渐变与有限柔光不添加动画循环。 */
+.minimap-rare-area {
+  fill: var(--rare-map-spectrum);
+  fill-opacity: 0.11;
+  stroke: var(--rare-map-spectrum);
+  stroke-width: 0.9;
+  stroke-dasharray: 2 1.7;
+  filter: drop-shadow(0 0 1px #b5adff99);
+}
+.minimap-rare-hint {
+  position: absolute;
+  bottom: calc(100% + 3px);
+  left: -12px;
+  right: -12px;
+  color: var(--rare-marker-color);
+  font-size: 10px;
+  line-height: 14px;
+  text-align: center;
+  white-space: nowrap;
+  background: var(--rare-marker-spectrum);
+  background-clip: text;
+  -webkit-background-clip: text;
+  color: transparent;
+  filter: drop-shadow(0 1px 2px #00191f) drop-shadow(0 0 2px #b5adff80);
+  text-shadow: none;
+}
+
+@media (max-height: 500px) and (min-width: 701px) {
+  .minimap-rare-hint {
+    bottom: calc(100% - 7px);
+  }
 }

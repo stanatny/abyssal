@@ -1,4 +1,5 @@
 import * as THREE from "three";
+import { rareMarkerPalette } from "./regional_rare_palette.js";
 let markerMaterial;
 let glowMaterial;
 let glintMaterial;
@@ -7,15 +8,24 @@ export function rareShimmerVisibility(distance) {
   const u = THREE.MathUtils.clamp((distance - 65) / 115, 0, 1);
   return 1 - u * u * (3 - 2 * u);
 }
-/** 金色空心菱形是珍兽专属的世界标识；接受深度遮挡，不隔墙提示位置。 */
+/** 柔光虹彩菱形是珍兽专属标识；接受深度遮挡，不隔墙提示位置。 */
 export function attachRareMarker(root) {
   if (root.userData.updateRareShimmer)
     return root.getObjectByName("regional_rare_marker");
   if (!markerMaterial) {
+    const palette = rareMarkerPalette();
+    const spectrum = (ctx, size) => {
+      const g = ctx.createConicGradient(-Math.PI / 2, size / 2, size / 2);
+      palette.forEach((color, i) => g.addColorStop(i / palette.length, color));
+      g.addColorStop(1, palette[0]);
+      return g;
+    };
     const canvas = document.createElement("canvas");
     canvas.width = canvas.height = 128;
     const c = canvas.getContext("2d");
-    c.strokeStyle = "#ffe0a0";
+    c.strokeStyle = spectrum(c, 128);
+    c.shadowColor = palette[1];
+    c.shadowBlur = 7;
     c.lineWidth = 7;
     c.beginPath();
     c.moveTo(64, 18);
@@ -24,7 +34,7 @@ export function attachRareMarker(root) {
     c.lineTo(28, 64);
     c.closePath();
     c.stroke();
-    c.fillStyle = "#ffe0a0";
+    c.fillStyle = spectrum(c, 128);
     c.beginPath();
     c.arc(64, 64, 7, 0, Math.PI * 2);
     c.fill();
@@ -36,7 +46,7 @@ export function attachRareMarker(root) {
       depthWrite: false,
       toneMapped: false,
     });
-    // 正常透明混合和柔软金色中心，避免叠加式白核或高亮HDR过曝。
+    // 虹彩经径向透明遮罩淡出；正常混合，不产生叠加白核或真实光源。
     const texture = (draw) => {
       const canvas = document.createElement("canvas");
       canvas.width = canvas.height = 64;
@@ -47,10 +57,13 @@ export function attachRareMarker(root) {
     };
     glowMaterial = new THREE.SpriteMaterial({
       map: texture((ctx) => {
+        ctx.fillStyle = spectrum(ctx, 64);
+        ctx.fillRect(0, 0, 64, 64);
+        ctx.globalCompositeOperation = "destination-in";
         const g = ctx.createRadialGradient(32, 32, 0, 32, 32, 30);
-        g.addColorStop(0, "rgba(245,185,67,0.32)");
-        g.addColorStop(0.45, "rgba(228,152,35,0.18)");
-        g.addColorStop(1, "rgba(228,152,35,0)");
+        g.addColorStop(0, "rgba(255,255,255,0.55)");
+        g.addColorStop(0.45, "rgba(255,255,255,0.28)");
+        g.addColorStop(1, "rgba(255,255,255,0)");
         ctx.fillStyle = g;
         ctx.fillRect(0, 0, 64, 64);
       }),
@@ -60,11 +73,7 @@ export function attachRareMarker(root) {
     });
     glintMaterial = new THREE.SpriteMaterial({
       map: texture((ctx) => {
-        const g = ctx.createRadialGradient(32, 32, 0, 32, 32, 27);
-        g.addColorStop(0, "rgba(255,202,98,0.9)");
-        g.addColorStop(0.3, "rgba(246,176,52,0.65)");
-        g.addColorStop(1, "rgba(246,176,52,0)");
-        ctx.fillStyle = g;
+        ctx.fillStyle = spectrum(ctx, 64);
         ctx.beginPath();
         ctx.moveTo(32, 3);
         ctx.lineTo(38, 25);
@@ -76,6 +85,13 @@ export function attachRareMarker(root) {
         ctx.lineTo(26, 25);
         ctx.closePath();
         ctx.fill();
+        ctx.globalCompositeOperation = "destination-in";
+        const g = ctx.createRadialGradient(32, 32, 0, 32, 32, 29);
+        g.addColorStop(0, "rgba(255,255,255,0.95)");
+        g.addColorStop(0.35, "rgba(255,255,255,0.75)");
+        g.addColorStop(1, "rgba(255,255,255,0)");
+        ctx.fillStyle = g;
+        ctx.fillRect(0, 0, 64, 64);
       }),
       depthTest: true,
       depthWrite: false,

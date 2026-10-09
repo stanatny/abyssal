@@ -1,0 +1,33 @@
+> Historical candidate: the [first-crossing revision](regional_rare_habitat_crossing.md) supersedes the 500-unit 3D reveal and nursery suppression described here. These measurements remain evidence for this earlier build.
+
+# Earlier and persistent rare-search guidance — 2026-10-09
+
+## Diagnosis and authorization
+
+The user still rarely encounters regional rares and wonders whether a 30 m body is required. There is no such prerequisite: every expedition seeds one registered 1.8 m rare immediately. Ordinary mouth eligibility is prey length less than player length, so the initial 3 m character can capture it. No guardian, time or sonar-activation gate exists. The difficulty came from an easily missed tiny resident plus the initial 140-world-unit notice, which disappeared after departure and supplied no route or layer hint.
+
+The user authorizes additional hints. This refinement stays on `art/mariana-irregular-terrain` alongside the accepted local terrain commit `bd6850b` and earlier uncommitted rare work. The current AI agent alone develops it. Commit, push, main integration, version bump and formal Pages publication remain deferred until user review. Preserve the original candidate evidence in [the initial discovery review](regional_rare_discovery.md).
+
+## Shared staged guidance
+
+Outside the starting nursery, the selected habitat becomes known within **500 world units of its fixed center in 3D**. Its pale gold minimap circle marks the existing **90-unit resident range**. A compact notice says Rare clue, with an arrow toward that habitat relative to the player's horizontal heading. Deeper/higher indicates an approximate layer; within 45 vertical units the label says level. Inside the horizontal activity circle, the direction arrow is omitted rather than pointing to an artificial exact target. Displayed depth scaling does not alter these simulation thresholds.
+
+Actual separation from the living rare upgrades the notice to Rare nearby at **240 units**, retaining nearby emphasis until **300 units**. After that it returns to the search clue and keeps the known habitat circle, even if the player leaves the original search distance. Returning to the nursery temporarily hides feedback without erasing discovery. Pause also hides it and freezes state; resume recomputes it. Capture clears the clue, circle and stored resident on the next ordinary update. New round, home, terminal and population replacement retain their existing reset contracts. No exact live creature coordinate or other unselected habitat is disclosed.
+
+All four characters share the cue independently of Orca sonar. The ordinary precise sonar contacts, creature gold shimmer and combat/zone alerts retain their existing behavior. The label stays a single restrained line in the existing minimap space; no flash, sound, timer, extra loop, scene light, geometry or texture is added. Circle size now uses the exact coordinate projection scale rather than a separately rounded constant.
+
+The bilingual Guide explicitly explains start-of-round availability, no 30 m requirement, heading/layer guidance, persistence and nursery hiding. Secluded habitats, one-per-round randomness and jitter, real navigation, elusive chase, sprint interception, once-only 150-cap refill, no growth and permanent retirement remain unchanged.
+
+## Verification and limits
+
+Formatting, production build and all **1,046 unit tests** pass. The focused suite passes 26 checks, including nine discovery regressions and exact circle/coordinate scale. Initial 3 m capture eligibility is checked for every rare; all 24 search choices retain their existing secluded habitat and single-population contracts.
+
+The headed populated development run passes **19 cases**: eight early outer-habitat clues at each map's ordinary start size, eight nearby/culling-independent habitat/lifecycle checks, and Chinese 390 px, English 320 px and English 780×360 layout checks. Both phases fit their native label bounds. Mariana and Penglai retain their configured 15 m starts; the other tested maps start at 3 m. The early clue appears before 30 m without changing body size, NPC position, stock or movement. Actual rare placement, selected range, layer, solids and one-per-region count remain legal.
+
+Three encounter cases pass: native sprinting from a clear 260-unit approach upgrades search to nearby, native steering/sprinting away restores the search label above 300 while retaining the circle, and a controlled paused player-mouth intercept hides the cue and settles the existing 150-cap/no-growth reward once; restart clears memory and restores normal caps/one live rare. The capture phase is a controlled contact fixture, not a naturally completed pursuit.
+
+Most importantly, **two native juvenile routes per compiled host** start at the ordinary Hawaii nursery, with actual selection/keyboard controls and no state, position, size, vital or NPC writes. The English 1440 px and Chinese 390 px local samples obtain a clue in 5.231/5.147 seconds after movement starts, with actual length **3 m**, positive health and sonar inactive. The corresponding public samples obtain it in 5.147/5.149 seconds, also at 3 m. These are four short observed routes with randomized living habitats, not a guaranteed discovery time for all destinations or a full-round result. Public screenshots show the actual early clue, direction/layer, gold range and 3 m HUD.
+
+Local and public compiled UI each pass **33 native cases**: 24 bilingual eight-region Guide cases at 1440/390/320 px, six four-character/regional start/pause/resume/home flows and three same-address reloads. All Guide entries contain the no-30-m and persistent-area explanation; initial nursery hints remain hidden. Production debug hooks, observed page/console errors and HTTP resource errors are absent. Final nine-artifact/source fingerprints, sixteen private-path denials and refresh/replacement/removal bind the delivered build.
+
+The first public attempt through this machine's configured system proxy failed with a closed connection/TLS timeout; GitHub proxy access also timed out while the preserved tunnel was ready. Direct HTTPS and task-only direct Chrome then pass on the same URL. System proxy settings, services and tunnel identity were left unchanged. Preserve the failed proxy receipt and direct-mode evidence separately; this is a host public revisit, not independent user-device acceptance. Final records, the prior source baseline, patch, captures and operations remain under ignored `.local/rare_search_20261009/`. Controlled player staging remains separate from the native juvenile route. No naturally completed pursuit, entire expedition, physical-phone ergonomics or thermal-performance result is implied.

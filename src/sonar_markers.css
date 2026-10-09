@@ -98,3 +98,37 @@
 .sonar-world-markers .echo-neutral {
   color: #c1d2d0;
 }
+
+.sonar-world-markers .echo-rare {
+  color: var(--rare-marker-color);
+}
+.sonar-world-anchor.echo-rare {
+  border-radius: 0;
+  transform: translate(-50%, -50%) rotate(45deg);
+  border-color: #e6d9ff;
+  background: var(--rare-marker-spectrum);
+  box-shadow: 0 0 5px #b5adffb3;
+}
+.sonar-world-label.echo-rare {
+  border-color: transparent;
+  background:
+    linear-gradient(#06232bec, #06232bec) padding-box,
+    var(--rare-marker-spectrum) border-box;
+  box-shadow: 0 0 5px #b5adff40;
+}
+#target.is-rare > span,
+.sonar-world-label.echo-rare > span {
+  background: var(--rare-marker-spectrum);
+  background-clip: text;
+  -webkit-background-clip: text;
+  color: transparent;
+  text-shadow: none;
+  filter: drop-shadow(0 0 2px #b5adff80);
+}
+#target.is-rare {
+  border-bottom-color: transparent;
+  background:
+    linear-gradient(#06222bea, #06222bea) padding-box,
+    var(--rare-marker-spectrum) border-box;
+  box-shadow: 0 1px 5px #b5adff40;
+}
