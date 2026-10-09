@@ -64,7 +64,8 @@ test("成年人沿用回血捕食；释放保护期与重复捕食不会绕过",
   };
   assert.equal(consumeHuman(player, entity, 1.9), false);
   assert.equal(consumeHuman(player, entity, 2), true);
-  assert.ok(player.health > 50);
+  assert.equal(player.health, 50);
+  assert.ok(player.mealRecovery > 0);
   assert.equal(player.eaten, 1);
   assert.equal(consumeHuman(player, entity, 3), false);
 });

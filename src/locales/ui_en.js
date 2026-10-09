@@ -105,10 +105,10 @@ export const UI_EN = Object.freeze({
     "Keep stamina in reserve and use rock pillars to break a pursuer's line of sight.",
   "30 分钟探索结束 · 最终体长 {0} 米\n捕食 {1} 次 · 击败领主 {2} 位\n本次未达成深渊霸主；继续积累经验，再次出发。":
     "30-minute expedition complete · Final length {0}m\n{1} prey eaten · {2} lords defeated\nThe apex is still ahead. Learn from this journey and dive again.",
-  "WASD 转向，空格冲刺，J 声呐，K 慢游。标记偏好在出发前设置。\n声呐探测20秒，冷却60秒；接触猎物或领主时自动咬击。水下蓄势后向上破水，受伤进食优先治疗。":
-    "WASD to steer, Space to sprint, J for sonar, K to swim slowly. Set normal markers before departure.\nSonar lasts 20s with a 60s cooldown. Contact triggers feeding or attacks. Build speed underwater to breach; feeding heals injuries before growth.",
-  "WASD 转向，空格冲刺，J 角色技能，K 慢游。接触自动咬击。\n{0}：{1}\n水下蓄势后向上破水；受伤进食优先治疗。":
-    "WASD to steer, Space to sprint, J for your skill, K to swim slowly. Contact triggers feeding or attacks.\n{0}: {1}\nBuild speed underwater to breach; feeding heals injuries before growth.",
+  "WASD 转向，空格冲刺，J 声呐，K 慢游。标记偏好在出发前设置。\n声呐探测20秒，冷却60秒；接触猎物或领主时自动咬击。水下蓄势后向上破水，生命缓慢恢复，进食暂时加快回血。":
+    "WASD to steer, Space to sprint, J for sonar, K to swim slowly. Set normal markers before departure.\nSonar lasts 20s with a 60s cooldown. Contact triggers feeding or attacks. Build speed underwater to breach; health recovers slowly; feeding temporarily speeds recovery.",
+  "WASD 转向，空格冲刺，J 角色技能，K 慢游。接触自动咬击。\n{0}：{1}\n水下蓄势后向上破水；生命缓慢恢复，进食暂时加快回血。":
+    "WASD to steer, Space to sprint, J for your skill, K to swim slowly. Contact triggers feeding or attacks.\n{0}: {1}\nBuild speed underwater to breach; health recovers slowly; feeding temporarily speeds recovery.",
   跃出水面: "Airborne",
   喷射逃逸: "Jet escape",
   冲刺: "Sprint",
@@ -155,7 +155,16 @@ export const UI_EN = Object.freeze({
   墨汁迷失: "Disoriented",
   已脱离领地: "Leaving territory",
   领地边界: "Territory edge",
-  进食优先回血: "Feed to heal",
+  缓慢恢复: "Slow regen",
+  饥饿失血: "Starving",
+  "进食恢复最多3层，各自消退；当前恢复速度见生命栏。":
+    "Meal recovery stacks up to 3 independent layers. See the current rate in the health panel.",
+  进食恢复: "Fed regen",
+  "恢复 +0.5/秒": "Recovery +0.5/s",
+  "恢复 +{0}/秒": "Recovery +{0}/s",
+  "每秒恢复{0}生命，{1}层进食恢复，最多3层":
+    "Recover {0} health per second, {1} feeding layers, maximum 3",
+  "恢复加速 · ": "Faster recovery · ",
   健康成长: "Growing well",
   "破浪跃起 · 靠惯性捕食海鸥": "Airborne · Glide into gulls to feed",
   "先潜下水面，重新积蓄破浪动量": "Dive below the surface to build momentum",

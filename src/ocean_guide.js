@@ -20,7 +20,11 @@ import {
 import * as THREE from "three";
 import { europaGuideEntries } from "./europa_guide.js";
 import { createCreature } from "./creatures.js";
-import { HUNGER_RULES, PREY_REWARD_RULES } from "./simulation.js";
+import {
+  HUNGER_RULES,
+  PREY_REWARD_RULES,
+  HEALTH_RECOVERY_RULES,
+} from "./simulation.js";
 import { ALL_SPECIES, getRegionSpecies } from "./region_ecology.js";
 import { characterMovement } from "./character_rules.js";
 import { HUMAN_CATALOG, createHumanModel } from "./vehicle_models.js";
@@ -581,7 +585,7 @@ function buildRewardDetails() {
       latin: "ABYSSAL FRENZY",
       role: "近距吸食",
       keywords: "吞噬 狂食 捕食 吸食 范围",
-      text: tr`持续${REWARDS.frenzy.duration}秒：扩大近身吞噬范围，将附近无遮挡、原本就可捕食的水下生物吸向嘴部，珍兽也会被吸引。不会临时变大，也不能越级捕食；普通进食沿用回血和成长规则，珍兽结算本局恩赐。`,
+      text: tr`持续${REWARDS.frenzy.duration}秒：扩大近身吞噬范围，将附近无遮挡、原本就可捕食的水下生物吸向嘴部，珍兽也会被吸引。不会临时变大，也不能越级捕食；普通进食加快渐进回血并沿用成长规则，珍兽结算本局恩赐。`,
       counter: tr`沿着鱼群边缘游过，吸食可以减少反复对准。出生浅滩固定放置生命补给与洋流之息各一枚；百慕大出生点另有一枚固定狂食，该地图的随机狂食不会出现在安全浅滩。其余${RANDOM_REWARD_COUNT}枚奖励每局随机分布，其他地图仍可能在浅滩偶遇随机狂食。拾取后45秒在本局原位刷新，再次拾取狂食只刷新${REWARDS.frenzy.duration}秒效果。大于或等于自己体长的生物、水雷、潜艇和领主不会被吸入；礁石与船体会阻挡吸食。领主仍需真实体长25米，并通过多次侧翼攻击击败。`,
     },
   };
@@ -612,7 +616,7 @@ onLanguageChange(() => {
 
 function feedingProgressionNote() {
   const rules = PREY_REWARD_RULES;
-  return tr`${rules.startLength}米后，中大型猎物的收益随成长提高；到${rules.fullLength}米，成长收益最高为原来的${rules.maxGrowthMultiplier}倍，营养最高${rules.maxNutritionMultiplier}倍。小鱼仍有体型衰减，进食优先回血；领主与补给奖励不受此加成影响。`;
+  return tr`${rules.startLength}米后，中大型猎物的收益随成长提高；到${rules.fullLength}米，成长收益最高为原来的${rules.maxGrowthMultiplier}倍，营养最高${rules.maxNutritionMultiplier}倍。小鱼仍有体型衰减。非饥饿时每秒缓慢恢复${HEALTH_RECOVERY_RULES.baseRate}生命；每份食物提供每秒${HEALTH_RECOVERY_RULES.mealRate}的独立恢复效果，最多${HEALTH_RECOVERY_RULES.maxStacks}层，即每秒2、4、6生命，不会立即回血。营养决定单层${HEALTH_RECOVERY_RULES.minDuration}—${HEALTH_RECOVERY_RULES.maxDuration}秒的时长；满层只补充最早到期的一层，不延长其他层。满血时效果仍独立消退，饥饿时不回血，暂停冻结效果。生命补给、珍兽恩赐保留特殊恢复效果；领主与补给奖励不受成年收益加成影响。`;
 }
 
 /**
@@ -764,7 +768,7 @@ export function createOceanGuide(trigger) {
     // 切换海域后，原分类若已不存在，回到总览，避免留下空列表和隐藏选中态。
     if (!categories.has(category)) category = "all";
     const region = REGIONS.find((r) => r.id === regionId);
-    const commonRules = tr`<h4>通用生存规则</h4><p>可被捕食不代表安全：黄色标记表示可捕食但会反击，红色标记表示危险猎手。体长优势不足5米时，猎手仍会追击，并能从侧后方咬伤你。正面用嘴捕获优先结算；至少大出5米后它才不再反击。</p><p>基础营养为游戏数值，实际收益随相对体型和鱼群规则调整；进食同时恢复生命并用于成长。</p><p>${feedingProgressionNote()}</p>`;
+    const commonRules = tr`<h4>通用生存规则</h4><p>可被捕食不代表安全：黄色标记表示可捕食但会反击，红色标记表示危险猎手。体长优势不足5米时，猎手仍会追击，并能从侧后方咬伤你。正面用嘴捕获优先结算；至少大出5米后它才不再反击。</p><p>基础营养为游戏数值，实际收益随相对体型和鱼群规则调整；进食提供独立恢复效果并用于成长。</p><p>${feedingProgressionNote()}</p>`;
     setMarkup(
       regionIntro,
       region

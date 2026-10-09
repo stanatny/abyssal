@@ -172,7 +172,14 @@ test("仆从收益等于主角正常营养/回血/成长，额外体力按实际
     prey = { length: 8, nutrition: 30, growth: 2 };
   consumePrey(direct, prey);
   assert.equal(consumeMinionPrey(s, p, prey), true);
-  for (const key of ["health", "hunger", "mass", "length", "eaten"])
+  for (const key of [
+    "health",
+    "mealRecovery",
+    "hunger",
+    "mass",
+    "length",
+    "eaten",
+  ])
     assert.equal(p[key], direct[key]);
   assert.equal(p.stamina, 100);
   assert.equal(s.meals, 1);
@@ -191,7 +198,8 @@ test("真实仆从游到猎物口径后进食，借用猎物过渡后正常隐�
   }
   assert.equal(h.state.meals, 1);
   assert.equal(h.owner.eaten, 1);
-  assert.ok(h.owner.health > 50);
+  assert.equal(h.owner.health, 50);
+  assert.ok(h.owner.mealRecovery > 0);
   assert.ok(h.owner.stamina > 50);
   for (let i = 0; i < 90; i++) {
     h.owner.elapsed += 1 / 60;

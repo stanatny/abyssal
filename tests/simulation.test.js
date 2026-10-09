@@ -171,7 +171,7 @@ test("攻击无敌避免连续接触伤害，期满后可再次受伤", () => {
   assert.equal(takeDamage(player, 35), false);
   tickVitals(player, 0.02);
   assert.equal(takeDamage(player, 35), true);
-  assert.equal(player.health, 30);
+  approximately(player.health, 30 + 1.51 * 0.5);
 });
 
 test("狂食持续20秒，开始和结束都不改变只能吃小鱼的资格", () => {
@@ -333,15 +333,17 @@ test("致命攻击与饥饿均可死亡，死亡后不再进食或收集奖励",
   assert.equal(starved.health, 0);
 });
 
-test("重伤进食优先回血，仍保留30%成长且照常恢复饱食", () => {
+test("重伤进食预留渐进恢复，仍保留30%成长且照常恢复饱食", () => {
   const player = createAtLength(6);
   player.health = 30;
   player.hunger = 10;
   consumePrey(player, { length: 5, nutrition: 20, growth: 10 });
-  assert.equal(player.health, 46);
+  assert.equal(player.health, 30);
+  approximately(player.mealRecovery, 16);
   assert.equal(player.hunger, 30);
   approximately(player.mass, 4);
-  approximately(player.lastMeal.healed, 16);
+  approximately(player.lastMeal.recovery, 16);
+  assert.equal(player.lastMeal.healed, 0);
   approximately(player.lastMeal.growth, 3);
   approximately(player.lastMeal.nutrition, 20);
 });
@@ -353,10 +355,12 @@ test("轻伤只扣实际治疗份额，满血进食获得完整成长", () => {
   const prey = { length: 5, nutrition: 20, growth: 10 };
   consumePrey(injured, prey);
   consumePrey(healthy, prey);
-  assert.equal(injured.health, 100);
+  assert.equal(injured.health, 97);
+  assert.equal(injured.mealRecovery, 3);
   approximately(injured.mass, 1 + 10 * (1 - (3 / 16) * 0.7));
   approximately(healthy.mass, 11);
-  assert.equal(injured.lastMeal.healed, 3);
+  assert.equal(injured.lastMeal.healed, 0);
+  assert.equal(injured.lastMeal.recovery, 3);
   assert.equal(healthy.lastMeal.healed, 0);
 });
 
@@ -574,7 +578,8 @@ test("幼年成长抑制不影响营养与治疗，成年小鱼继续按原规�
   player.health = 50;
   player.hunger = 0;
   consumePrey(player, prey);
-  approximately(player.health, 56.4);
+  approximately(player.health, 50);
+  approximately(player.mealRecovery, 6.4);
   approximately(player.hunger, 8);
   approximately(player.lastMeal.growth, 0.018 * (3 / 6) * 0.3);
   for (const length of [6, 12, 24]) {

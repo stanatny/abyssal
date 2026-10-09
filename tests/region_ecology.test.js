@@ -313,7 +313,7 @@ test("两角色各体长阶段都有真实可食补给，营养按共享规则�
           best = {
             kind: species.kind,
             seconds,
-            healed: fed.lastMeal.healed,
+            recovery: fed.lastMeal.recovery,
             growth: fed.lastMeal.growth,
           };
       }
@@ -322,7 +322,7 @@ test("两角色各体长阶段都有真实可食补给，营养按共享规则�
         best.seconds > (length === 3 ? 12 : 20),
         `${character} ${length}m reserve`,
       );
-      assert.ok(best.healed > 0);
+      assert.ok(best.recovery > 0);
       if (length < 30) assert.ok(best.growth > 0);
       if (character === "orca")
         report.push({

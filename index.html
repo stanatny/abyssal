@@ -189,6 +189,15 @@
             </div>
             <div class="meter"><i id="hunger-bar"></i></div>
           </div>
+          <div id="health-recovery" class="health-recovery" data-state="base">
+            <span id="recovery-rate">恢复 +0.5/秒</span>
+            <div class="recovery-layers" aria-hidden="true">
+              <i id="recovery-layer-0"><em></em></i>
+              <i id="recovery-layer-1"><em></em></i>
+              <i id="recovery-layer-2"><em></em></i>
+            </div>
+            <b id="recovery-count">0/3</b>
+          </div>
         </div>
         <div class="speed">
           <b id="speed">12</b><span>m/s</span
@@ -255,6 +264,9 @@
               拖动左侧摇杆转向，按住冲刺按钮加速，按住慢游按钮减速；点击技能按钮释放主动技能。接触自动咬击。
             </p>
             <p id="overlay-skill"></p>
+            <p id="overlay-recovery">
+              进食恢复最多3层，各自消退；当前恢复速度见生命栏。
+            </p>
             <p id="overlay-rule"></p>
           </details>
         </div>

@@ -15,10 +15,10 @@ export const ATLANTIS_EN = Object.freeze({
   出现海域: "Found in",
   基础营养: "Base Nutrition",
   基础游速: "Base Swim Speed",
-  "基础营养为游戏数值，实际收益随相对体型和鱼群规则调整；进食同时恢复生命并用于成长。":
-    "Base nutrition is a game value. Actual gains depend on relative size and schooling rules; meals also restore health and support growth.",
-  "{0}米后，中大型猎物的收益随成长提高；到{1}米，成长收益最高为原来的{2}倍，营养最高{3}倍。小鱼仍有体型衰减，进食优先回血；领主与补给奖励不受此加成影响。":
-    "After {0} m, medium and large prey give increasing returns: at {1} m, up to {2}× growth and {3}× nutrition. Small-prey returns still diminish and meals heal first. Lord loot and pickups do not receive this bonus.",
+  "基础营养为游戏数值，实际收益随相对体型和鱼群规则调整；进食提供独立恢复效果并用于成长。":
+    "Base nutrition is a game value. Actual gains depend on relative size and schooling rules; meals provide independent recovery effects and support growth.",
+  "{0}米后，中大型猎物的收益随成长提高；到{1}米，成长收益最高为原来的{2}倍，营养最高{3}倍。小鱼仍有体型衰减。非饥饿时每秒缓慢恢复{4}生命；每份食物提供每秒{5}的独立恢复效果，最多{6}层，即每秒2、4、6生命，不会立即回血。营养决定单层{7}—{8}秒的时长；满层只补充最早到期的一层，不延长其他层。满血时效果仍独立消退，饥饿时不回血，暂停冻结效果。生命补给、珍兽恩赐保留特殊恢复效果；领主与补给奖励不受成年收益加成影响。":
+    "After {0} m, medium and large prey give increasing returns: at {1} m, up to {2}× growth and {3}× nutrition. Small-prey returns still diminish. While fed, recover {4} health per second; each meal provides an independent {5}-health-per-second effect, up to {6} layers: 2, 4 or 6 health per second, with no instant healing. Nutrition sets each layer’s {7}–{8}-second lifetime. At the cap, new food only tops up the earliest-ending layer; it never extends the others. Effects keep expiring at full health; starvation prevents healing and pause freezes them. Medical supplies and rare blessings retain their special recovery. Lords and supplies do not receive the adult reward bonus.",
   "从阳光海滩潜入火山深渊。珊瑚鱼群、远古巨兽与多位深渊领主在此共存。":
     "Dive from sunlit beaches into volcanic depths, home to reef fish, Ancient Giants, and several Abyss Lords.",
   "从月夜浅滩潜入贝珠辉光映照的沉没古城。独特鱼群栖息于列柱间，克拉肯守卫波塞冬神殿。":

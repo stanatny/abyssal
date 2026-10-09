@@ -27,6 +27,8 @@ export function createPlayer(
     vitalCap: 100,
     rareRewardClaimed: false,
     health: 100,
+    recoveryMeals: [],
+    mealRecovery: 0,
     stamina: 100,
     hunger: 100,
     startLength,
@@ -37,7 +39,7 @@ export function createPlayer(
     timedOut: false,
     bossesDefeated: 0,
     biteCooldown: 0,
-    lastMeal: { healed: 0, growth: 0, nutrition: 0 },
+    lastMeal: { healed: 0, recovery: 0, growth: 0, nutrition: 0 },
     buffs: { frenzy: 0, flow: 0 },
     invulnerable: 0,
     exhausted: false,
@@ -140,6 +142,29 @@ export function tickVitals(
   // 深度不额外扣体力或生命；小鱼营养仍按既有体型差距衰减。
   const hungerRate = hungerDrainRate(player.length, depth, hungerProfile);
   const fedTime = Math.min(elapsed, player.hunger / hungerRate);
+  // 每份食物独立提供2点/秒；最后一层结束后才回到基础恢复，长步也按各层边界积分。
+  const meals = player.recoveryMeals || [];
+  const lastExpiry = Math.max(0, ...meals.map((meal) => meal.remaining));
+  const recovery =
+    meals.reduce((sum, meal) => sum + Math.min(fedTime, meal.remaining), 0) *
+      HEALTH_RECOVERY_RULES.mealRate +
+    Math.max(0, fedTime - lastExpiry) * HEALTH_RECOVERY_RULES.baseRate;
+  const previousHealth = player.health;
+  player.health = Math.min(vitalLimit(player), player.health + recovery);
+  for (const meal of meals)
+    meal.remaining = Math.max(0, meal.remaining - elapsed);
+  player.recoveryMeals = meals.filter((meal) => meal.remaining > 1e-8);
+  // 额度仅记已分配的治疗营养，防止成长重复收费；它不决定恢复速度或各层时长。
+  player.mealRecovery = player.recoveryMeals.length
+    ? Math.min(
+        Math.max(0, vitalLimit(player) - player.health),
+        Math.max(
+          0,
+          nonNegative(player.mealRecovery, 0) -
+            (player.health - previousHealth),
+        ),
+      )
+    : 0;
   player.hunger = Math.max(0, player.hunger - hungerRate * elapsed);
   const starvingTime = elapsed - fedTime;
   if (starvingTime > 0) {
@@ -276,7 +301,7 @@ export function preyMealReward(length, prey) {
  * @param {object} player 玩家状态，将原地更新。
  * @param {{length?:number,nutrition?:number,growth?:number}} reward 基础奖励。
  * @param {number} efficiency 小型猎物收益系数；主宰战利品使用默认值1。
- * @returns {{healed:number,growth:number,nutrition:number}|null} 实际收益，无法获得时返回null。
+ * @returns {{healed:number,recovery:number,growth:number,nutrition:number}|null} 实际收益，无法获得时返回null。
  */
 export function applyNutrition(player, reward, efficiency = 1) {
   if (player.dead || player.won || player.timedOut) return null;
@@ -291,22 +316,28 @@ export function applyNutrition(player, reward, efficiency = 1) {
     nonNegative(reward.growth, (preyLength / 6) ** 3 * 0.4) *
     safeEfficiency *
     juvenileGrowth;
-  const healingCapacity = nutrition * 0.8;
-  const healed = Math.min(
-    Math.max(0, vitalLimit(player) - player.health),
-    healingCapacity,
-  );
-  // 受伤时最多将70%成长投入恢复；轻伤只扣除实际使用的治疗份额。
+  const healingCapacity = nutrition * HEALTH_RECOVERY_RULES.nutritionRecovery;
+  const pending = nonNegative(player.mealRecovery, 0);
+  const recoveryAdded = addRecoveryMeal(player, nutrition);
+  const reserved = recoveryAdded
+    ? Math.min(
+        Math.max(0, vitalLimit(player) - player.health - pending),
+        healingCapacity,
+      )
+    : 0;
+  // 保留治疗营养的成长分配；已有恢复额度不能再次占用成长份额。
   const healingShare =
-    healingCapacity > 0 ? (healed / healingCapacity) * 0.7 : 0;
+    healingCapacity > 0 ? (reserved / healingCapacity) * 0.7 : 0;
   const previousMass = player.mass;
   const previousHunger = player.hunger;
-  player.health = Math.min(vitalLimit(player), player.health + healed);
+  player.mealRecovery = pending + reserved;
   player.hunger = Math.min(vitalLimit(player), player.hunger + nutrition);
   player.mass = Math.min(125, player.mass + growth * (1 - healingShare));
   player.length = Math.min(30, 6 * Math.cbrt(player.mass));
   player.lastMeal = {
-    healed,
+    healed: 0,
+    recovery: reserved,
+    recoveryAdded,
     growth: player.mass - previousMass,
     nutrition: player.hunger - previousHunger,
   };
@@ -354,6 +385,10 @@ export function collectPickup(player, kind) {
   if (player.dead || player.won || player.timedOut) return false;
   if (kind === "stamina") {
     player.health = Math.min(vitalLimit(player), player.health + 50);
+    player.mealRecovery = Math.min(
+      nonNegative(player.mealRecovery, 0),
+      Math.max(0, vitalLimit(player) - player.health),
+    );
     player.stamina = Math.min(vitalLimit(player), player.stamina + 50);
     player.hunger = Math.min(vitalLimit(player), player.hunger + 50);
     player.exhausted = false;
@@ -426,6 +461,60 @@ export const PLAYER_MOVEMENT = Object.freeze({
   staminaRecovery: 19,
 });
 
+/** 无食物效果时每秒0.5；每层独立2点/秒，最多3层，营养决定有界时长。 */
+export const HEALTH_RECOVERY_RULES = Object.freeze({
+  baseRate: 0.5,
+  mealRate: 2,
+  maxStacks: 3,
+  minDuration: 2.5,
+  maxDuration: 10,
+  nutritionRecovery: 0.8,
+});
+
+/** 满层只替换将最早结束且能被新食物延长的一层；不改变其余食物的独立寿命。 */
+function addRecoveryMeal(player, nutrition) {
+  if (!(nutrition > 0)) return false;
+  const rules = HEALTH_RECOVERY_RULES;
+  const duration = Math.max(
+    rules.minDuration,
+    Math.min(
+      rules.maxDuration,
+      (nutrition * rules.nutritionRecovery) / rules.mealRate,
+    ),
+  );
+  const meals = (player.recoveryMeals ||= []);
+  const meal = { duration, remaining: duration };
+  if (meals.length < rules.maxStacks) meals.push(meal);
+  else {
+    let first = 0;
+    for (let i = 1; i < meals.length; i++)
+      if (meals[i].remaining < meals[first].remaining) first = i;
+    if (duration <= meals[first].remaining) return false;
+    meals[first] = meal;
+  }
+  return true;
+}
+
+/** HUD与模拟共用层数、速度和各层余量；满血也保留有限食物效果，不另建计时器。 */
+export function healthRecoveryStatus(player) {
+  const active =
+    !player.dead && !player.won && !player.timedOut && player.hunger > 0;
+  const meals = player.recoveryMeals || [];
+  const stacks = meals.length;
+  return {
+    rate: active
+      ? stacks > 0
+        ? stacks * HEALTH_RECOVERY_RULES.mealRate
+        : HEALTH_RECOVERY_RULES.baseRate
+      : 0,
+    boosted: active && stacks > 0,
+    stacks,
+    layers: meals.map((meal) =>
+      Math.max(0, Math.min(1, meal.remaining / meal.duration)),
+    ),
+  };
+}
+
 /** 现代与远古生物共享同一生态目录；主宰继续使用独立多阶段战斗配置。 */
 export const SPECIES = ECOSYSTEM_SPECIES;
 
@@ -485,8 +574,16 @@ function consumeRare(player, prey) {
   player.vitalCap = 150;
   player.rareRewardClaimed = prey.kind;
   player.health = player.stamina = player.hunger = 150;
+  player.recoveryMeals = [];
+  player.mealRecovery = 0;
   player.exhausted = false;
   player.eaten += 1;
-  player.lastMeal = { healed, nutrition, growth: 0, rare: prey.kind };
+  player.lastMeal = {
+    healed,
+    recovery: 0,
+    nutrition,
+    growth: 0,
+    rare: prey.kind,
+  };
   return true;
 }

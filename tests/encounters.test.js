@@ -27,7 +27,10 @@ function fixture(kind) {
     seabedHeight: () => -900,
     audio: { hit: noop, eat: noop, bossAttack: noop },
     notify: (message) => events.warnings.push(t(message)),
-    onDamage: () => events.hits++,
+    onDamage: () => {
+      events.hits++;
+      events.lastHitTime = time;
+    },
     onBite: () => events.bites++,
   });
   const entry = encounters.bosses.find(
@@ -255,7 +258,11 @@ test("织母真实前摇和扫网命中一次，垂直脱离与岩石遮挡均�
     }
     if (strategy === "standing") {
       assert.equal(f.events.hits, 1);
-      assert.ok(Math.abs(f.player.health - 68) < 0.001);
+      assert.ok(
+        Math.abs(
+          f.player.health - (68 + 0.5 * (f.time - f.events.lastHitTime)),
+        ) < 0.001,
+      );
       assert.ok(f.entry.state.attackCount >= 1);
       assert.ok(f.entry.fx.sectors.length === 3);
       assert.equal(f.entry.state.phase, "recover");
@@ -441,7 +448,12 @@ test("Lumen Stalker uses real sequential arm tips; sideways escape and solid cov
     assert.equal(f.entry.state.ability, "lash");
     assert.equal(f.events.hits, strategy === "standing" ? 1 : 0, strategy);
     assert.ok(
-      Math.abs(f.player.health - (strategy === "standing" ? 62 : 100)) < 0.001,
+      Math.abs(
+        f.player.health -
+          (strategy === "standing"
+            ? 62 + 0.5 * (f.time - f.events.lastHitTime)
+            : 100),
+      ) < 0.001,
     );
     assert.ok(
       f.entry.mesh.position.distanceTo(initial) < 45,

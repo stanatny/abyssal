@@ -1,5 +1,7 @@
 # Medium and late-game meal progression
 
+The current uncommitted recovery follow-up on `art/mariana-irregular-terrain` supersedes historical immediate-meal healing: baseline0.5 health/second, or up to three independently expiring2-health/second meal layers (2/4/6 total). Nutrition/growth allocation remains separate from rate and lifetime; hunger, adult bonuses and special rewards retain their rules. Read [the current recovery candidate](health_recovery_revision.md) for the2.5–10-second layer boundaries, HUD and verification limits. The original measurements below remain evidence for their recorded versions.
+
 Only Mechanical Shark torpedo kills of oversized ordinary prey use the growth-only assimilation described in [the all-region pacing candidate](progression_pacing_revision.md). Other characters and normal contact/companion feeding remain unaffected. The original adult curve below remains intact; its original test and publication status are historical.
 
 Uncommitted follow-up on `feature/mechanical-shark`, local checkpoint `8d55481`. The player accepted greater five-region food density but still found progression after 10 m too slow. This task explicitly changes effective meal returns; it preserves the preceding density, distribution, control, marker and torpedo work. No commit, push, main integration or formal release is authorized. Published Pages remains v0.8.3.

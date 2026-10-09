@@ -461,8 +461,8 @@ export const CATALOG_EN = Object.freeze({
   深渊狂食: "Abyssal Frenzy",
   近距吸食: "Close-Range Suction",
   "吞噬 狂食 捕食 吸食 范围": "swallow frenzy feeding suction reach",
-  "持续{0}秒：扩大近身吞噬范围，将附近无遮挡、原本就可捕食的水下生物吸向嘴部，珍兽也会被吸引。不会临时变大，也不能越级捕食；普通进食沿用回血和成长规则，珍兽结算本局恩赐。":
-    "For {0} seconds, feeding reach expands and nearby edible underwater creatures, including regional rares, are drawn toward your mouth through clear water. It does not enlarge your body or let you eat larger creatures. Ordinary meals keep their healing and growth; rares grant their blessing for this round.",
+  "持续{0}秒：扩大近身吞噬范围，将附近无遮挡、原本就可捕食的水下生物吸向嘴部，珍兽也会被吸引。不会临时变大，也不能越级捕食；普通进食加快渐进回血并沿用成长规则，珍兽结算本局恩赐。":
+    "For {0} seconds, feeding reach expands and nearby edible underwater creatures, including regional rares, are drawn toward your mouth through clear water. It does not enlarge your body or let you eat larger creatures. Ordinary meals speed gradual healing and retain their growth; rares grant their blessing for this round.",
   "沿着鱼群边缘游过，吸食可以减少反复对准。出生浅滩固定放置生命补给与洋流之息各一枚；百慕大出生点另有一枚固定狂食，该地图的随机狂食不会出现在安全浅滩。其余{0}枚奖励每局随机分布，其他地图仍可能在浅滩偶遇随机狂食。拾取后45秒在本局原位刷新，再次拾取狂食只刷新{1}秒效果。大于或等于自己体长的生物、水雷、潜艇和领主不会被吸入；礁石与船体会阻挡吸食。领主仍需真实体长25米，并通过多次侧翼攻击击败。":
     "Swim along a school to feed with less precise aiming. One Vitality Supply and one Ocean Current are fixed in the starting shallows. Bermuda also has one fixed Frenzy pickup at spawn; its random Frenzy pickups stay outside the safe nursery. The remaining {0} rewards are placed randomly each round. Other maps may still have random Frenzy pickups in the shallows. Pickups respawn in their current-round positions after 45 seconds. Another Frenzy pickup refreshes its {1}-second effect. Creatures at least as long as you, mines, submarines, and lords cannot be pulled in; reefs and hulls block suction. Lords still require 25 real meters and repeated flank attacks.",
 });

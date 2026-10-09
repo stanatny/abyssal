@@ -190,7 +190,7 @@ test("Final recovery homes and offscreen replacement stay legal in their feeding
     }
 });
 
-test("All four characters receive unchanged substantial recovery at 25 and 30 meters", () => {
+test("All four characters receive substantial delayed recovery at 25 and 30 meters", () => {
   for (const character of PLAYER_CHARACTERS.filter((c) => c.available))
     for (const length of [25, 30])
       for (const s of recovery) {
@@ -206,9 +206,11 @@ test("All four characters receive unchanged substantial recovery at 25 and 30 me
         assert.equal(consumePrey(player, s), true);
         assert.ok(Math.abs(player.hunger - Math.min(100, nutrition)) < 1e-8);
         assert.ok(
-          Math.abs(player.lastMeal.healed - Math.min(80, nutrition * 0.8)) <
+          Math.abs(player.lastMeal.recovery - Math.min(80, nutrition * 0.8)) <
             1e-8,
         );
+        assert.equal(player.health, 20);
+        assert.equal(player.lastMeal.healed, 0);
         assert.equal(player.eaten, 1);
       }
 });
@@ -238,7 +240,8 @@ test("Upper first-stock meals still reach the 25-meter gate without respawn or r
         `${character.id} ${initialHealth} captures`,
       );
       assert.ok(player.length >= 25 && player.length < 26);
-      assert.equal(player.health, 100);
+      assert.equal(player.health, initialHealth);
+      assert.equal(player.mealRecovery, 100 - initialHealth);
       assert.equal(player.elapsed, 0);
       assert.equal(player.won, false);
     }

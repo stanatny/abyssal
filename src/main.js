@@ -79,6 +79,7 @@ import {
   vitalLimit,
   createPlayer,
   tickVitals,
+  healthRecoveryStatus,
   canEat,
   consumePrey,
   takeDamage,
@@ -2133,7 +2134,7 @@ function eatEntity(entity, mouth, previousPrey = entity.mesh.position, dt = 0) {
   notify(
     isRegionalRare(species)
       ? "珍兽恩赐 · 三项补满，上限150（本局）"
-      : message`捕食 ${species.label} · ${player.lastMeal.healed > 0 ? message`生命 +${Math.round(player.lastMeal.healed)} · ` : ""}体长 ${player.length.toFixed(1)} m`,
+      : message`捕食 ${species.label} · ${player.lastMeal.recoveryAdded ? message`恢复加速 · ` : ""}体长 ${player.length.toFixed(1)} m`,
     isRegionalRare(species) ? 4 : 1.7,
   );
   return true;
@@ -3564,9 +3565,29 @@ function updateHud() {
       }[state.phase] || "领地边界",
     );
   }
-  $("feeding-mode").textContent = t(
-    player.health < vitalLimit(player) ? "进食优先回血" : "健康成长",
+  const recovery = healthRecoveryStatus(player);
+  $("feeding-mode").textContent = recovery.boosted
+    ? t("进食恢复")
+    : t(
+        player.health >= vitalLimit(player)
+          ? "健康成长"
+          : player.hunger <= 0
+            ? "饥饿失血"
+            : "缓慢恢复",
+      );
+  $("recovery-rate").textContent = tr`恢复 +${recovery.rate}/秒`;
+  $("recovery-count").textContent = `${recovery.stacks}/3`;
+  $("health-recovery").dataset.state =
+    recovery.rate === 0 ? "inactive" : recovery.boosted ? "stacked" : "base";
+  $("health-recovery").setAttribute(
+    "aria-label",
+    tr`每秒恢复${recovery.rate}生命，${recovery.stacks}层进食恢复，最多3层`,
   );
+  for (let i = 0; i < 3; i++) {
+    const layer = $("recovery-layer-" + i);
+    layer.classList.toggle("active", i < recovery.stacks);
+    layer.style.setProperty("--recovery-fill", recovery.layers[i] || 0);
+  }
   $("breach-hint").hidden =
     ["ice", "aether"].includes(surface.mode) ||
     position.y < -35 ||

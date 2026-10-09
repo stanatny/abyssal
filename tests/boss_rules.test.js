@@ -215,10 +215,12 @@ test("领主最后一口先补饱食，再单次结算击败战利品，返回�
     assert.equal(result.defeated, true);
     assert.equal(result.hungerRestored, 8);
     assert.equal(player.hunger, 100);
-    assert.equal(player.health, 100);
+    assert.equal(player.health, 20);
+    assert.equal(player.mealRecovery, 80);
     assert.equal(player.bossesDefeated, 1);
     assert.equal(player.lastMeal.nutrition, 82);
-    assert.equal(player.lastMeal.healed, 80);
+    assert.equal(player.lastMeal.healed, 0);
+    assert.equal(player.lastMeal.recovery, 80);
     assert.ok(Math.abs(player.mass - mass - boss.species.growth * 0.3) < 1e-8);
     const settled = structuredClone(player);
     const repeated = hitBoss(player, boss, FLANK);
@@ -381,8 +383,9 @@ test("击败奖励只结算一次，25米先击败主宰后还需继续成长", 
     updateBossContact(boss, false, 0.35);
   }
   assert.equal(player.bossesDefeated, 1);
-  assert.ok(player.health > 90);
-  assert.ok(player.lastMeal.healed > 70);
+  assert.ok(Math.abs(player.health - 21.21) < 1e-8);
+  assert.equal(player.lastMeal.healed, 0);
+  assert.ok(player.lastMeal.recovery > 70);
   assert.ok(player.length < 30);
   assert.equal(player.won, false);
   const before = structuredClone(player);

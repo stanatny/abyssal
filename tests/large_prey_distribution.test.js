@@ -95,7 +95,8 @@ test("木卫二各大型食物层保持覆盖，实际独居库存降低而单�
   p.mass = (25 / 6) ** 3;
   p.health = 50;
   assert.ok(consumeDefeatedPrey(p, original));
-  assert.ok(p.health > 90);
+  assert.equal(p.health, 50);
+  assert.ok(p.mealRecovery > 40);
   assert.ok(p.length > 25);
 });
 test("七海域配置保持完整可分段、不越界，大型个体拥有稳定单独锚点", () => {

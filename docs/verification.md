@@ -1,3 +1,27 @@
+# Accepted meal recovery checkpoint — 2026-10-10
+
+The user authorizes a local commit of the independently stacking recovery candidate, then requests a separate runtime performance review for phone stutter and M4 Mac heat. The verified recovery implementation and its evidence below are accepted for this local checkpoint on `art/mariana-irregular-terrain`. Older uncommitted labels describe the historical review stages. Commit locally only; no push, main integration or Pages release is authorized for the new performance work. The current AI agent continues development alone and preserves existing services and canceled work.
+
+---
+
+# Independent meal recovery layers — 2026-10-10
+
+The user's current refinement supersedes the single-credit/countdown mechanism below: baseline0.5/s without layers, or independently expiring2/4/6/s for one/two/three nutritious meals. Full health retains finite effects; starvation blocks healing, pause freezes them and new rounds reset them. Shared nutrition/growth allocation is separate from timers and rate. Both recovery iterations remain uncommitted on `art/mariana-irregular-terrain` at accepted rare checkpoint `9f15f3a`; no push/main/Pages release.
+
+Fresh checks pass **1,064 units**, then **22 focused** recovery/localization/Guide tests after final presentation and stronger three-layer integration coverage, formatting/build, **four actual role meal paths**, **one native three-meal6→4→2→0.5 expiry sequence** and **two actual rare-capture/150-cap narrow-HUD cases** (English320/Chinese390). Compiled restricted local/public hosts each pass **four no-hook normal-spawn native routes**, English1440/320 and Chinese390/780×360: Guide, actual torpedo food/three-layer HUD, translated expanded pause help with reachable Home, freeze/resume, reset and reload. No browser errors or viewport overflow. Desktop and Chinese narrow/150-cap screenshots are visually inspected.
+
+All670 candidate fingerprints,307 build inputs and nine active artifact hashes, twenty denied private paths per host, absent production hooks, same-address A/B/delete proof, ready tunnel and preserved process identities bind the final receipt under ignored `.local/health_stacks_20261009/`. Read [current rules, evidence and failures](health_recovery_revision.md). Player damage/pose fixtures and emulated viewports do not establish natural full-expedition pacing, physical-device ergonomics or measured performance. Trial: https://saver-recorded-digit-could.trycloudflare.com/?preview=health-stacks-20261010. Formal Pages remains v0.11.3.
+
+---
+
+# Gradual health recovery candidate — 2026-10-09
+
+The preceding rare work is locally committed as `9f15f3a` on `art/mariana-irregular-terrain`; this next recovery candidate remains uncommitted/unpushed for review. Formatting/build and **1,060 units** pass. The final countdown-to-full-health refinement subsequently passes all seven focused recovery contracts. **Four fresh populated native-input meal cases** cover Orca/Squid mouth, Mechanical Shark torpedo and Zombie Shark companion, with passive0.5/second, meal-assisted2/second, no ordinary instant healing, finite credit, bilingual Guide/HUD and pause/new-round behavior. Development cases use legal player position/facing and actual damage fixtures, retaining real NPCs, ecology, costs, models and lighting.
+
+Final compiled restricted local/public hosts each pass **two no-hook ordinary-spawn native cases**, English1440/Chinese390, including Guide, real cast cost/recovery/countdown, pause/resume, Home/reset and reload. Browser errors and narrow-layout overflow are absent. All307 build inputs and nine active artifacts, full source fingerprints, twenty private-path denials per host, no production hooks and same-address replacement/removal are verified in the ignored receipt. Existing process identities and prior runtimes remain. Read [rules, evidence and limits](health_recovery_revision.md); ignored raw reports/operations are `.local/health_recovery_20261009/`. Controlled fixtures and browser viewport emulation do not establish natural expedition pacing, player enjoyment, physical-device ergonomics or performance. The review link is https://saver-recorded-digit-could.trycloudflare.com/?preview=health-recovery-20261009; main/Pages remains v0.11.3.
+
+---
+
 # Accepted regional rare local checkpoint — 2026-10-09
 
 The user authorizes committing the verified combined rare candidate locally on the existing branch before the next gradual-health-recovery iteration. The evidence below is retained unchanged: 1,053 units, ten controlled capture cases, two normal-spawn telemetry-guided routes, native compiled local/public lifecycle checks and source/artifact/privacy/refresh receipts. Acceptance documentation changes no runtime/build inputs. Historical no-commit candidate labels below are superseded by this local checkpoint authorization; no push, main merge, version bump or Pages release.

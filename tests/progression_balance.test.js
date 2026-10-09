@@ -204,7 +204,7 @@ test("机械鲨鱼正常吞食及不超过1.25倍的鱼雷猎物保留完整成�
   }
 });
 
-test("两次巨大鱼雷击杀仍有成长和完整治疗，但不会跳过幼年阶段", () => {
+test("两次巨大鱼雷击杀仍有成长和有限恢复额度，但不会跳过幼年阶段", () => {
   const player = createPlayer("mechanical_shark");
   player.hunger = 0;
   for (let i = 0; i < 2; i++) {
@@ -212,7 +212,8 @@ test("两次巨大鱼雷击杀仍有成长和完整治疗，但不会跳过幼�
     assert.ok(
       consumeDefeatedPrey(player, { length: 32, nutrition: 98, growth: 3.7 }),
     );
-    assert.equal(player.health, 100);
+    assert.equal(player.health, 100 - 20 * (i + 1));
+    assert.equal(player.mealRecovery, 20 * (i + 1));
     assert.ok(player.lastMeal.growth > 0);
   }
   assert.ok(player.length > 3 && player.length < 3.4);

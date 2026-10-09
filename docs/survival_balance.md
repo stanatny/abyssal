@@ -1,5 +1,7 @@
 # Depth and food-chain balance
 
+The current uncommitted recovery follow-up on `art/mariana-irregular-terrain` supersedes historical immediate-meal healing: baseline0.5 health/second, or up to three independently expiring2-health/second meal layers (2/4/6 total). Nutrition/growth allocation remains separate from rate and lifetime; hunger, adult bonuses and special rewards retain their rules. Read [the current recovery candidate](health_recovery_revision.md) for the2.5–10-second layer boundaries, HUD and verification limits. The original measurements below remain evidence for their recorded versions.
+
 The current [Mariana layered refinement](mariana_layer_brief.md) adds an explicitly authorized optional regional hunger profile through the shared survival helper. Other seven regions retain their existing curve. The preceding [all-region progression candidate](progression_pacing_revision.md) preserved the shared hunger curve; its historical budgets below are not new runtime measurements.
 
 ## Mariana layer pressure — current candidate

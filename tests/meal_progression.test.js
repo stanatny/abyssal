@@ -82,7 +82,9 @@ test("大型猎物提高实际回血与饱食，治疗仍优先且保留成长�
   p.health = 35;
   p.hunger = 0;
   assert.equal(consumePrey(p, prey), true);
-  approximately(p.lastMeal.healed, 59.71968);
+  approximately(p.lastMeal.recovery, 59.71968);
+  assert.equal(p.lastMeal.healed, 0);
+  assert.equal(p.health, 35);
   approximately(p.lastMeal.nutrition, 74.6496);
   approximately(p.lastMeal.growth, 1.327104);
   const hungry = atLength(25),

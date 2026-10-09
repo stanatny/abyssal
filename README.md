@@ -1,5 +1,7 @@
 # ABYSSAL
 
+The accepted local recovery checkpoint follows the accepted rare checkpoint `9f15f3a` with independently stacking meal recovery. Without food effects, fed players regain0.5 health/second. Each nutritious meal adds one2-health/second layer for2.5–10 active seconds; up to three layers give2/4/6 per second, with no instant ordinary healing. Each expires independently. HUD shows the available rate and three small lifetime indicators, including at full health. Mouth feeding, torpedo kills, companions and lord nutrition share the rule. Medical supplies and rare blessings keep their special recovery effects. See [the current recovery review](docs/health_recovery_revision.md); the user has authorized its local commit on `art/mariana-irregular-terrain`, without a main/Pages release. A separate runtime performance review follows.
+
 A third-person ocean survival game for the browser. Choose an Orca, Giant Squid, Zombie Shark or Mechanical Shark: feed, grow, escape hunters, and challenge the giants below. Explore eight destinations: Hawaii, Atlantis, Bermuda, Mariana, the Amazon River, Europa's alien ice ocean, the airborne mythic Penglai Sanctuary and the underwater Odyssean Sea.
 
 **[Play the published game](https://stanatny.github.io/abyssal/)** · [GitHub repository](https://github.com/stanatny/abyssal)
