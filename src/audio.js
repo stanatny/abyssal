@@ -8,6 +8,7 @@ import { FishBiteBank } from "./fish_bite_assets.js";
 import { ZombieAudioBank } from "./zombie_audio_assets.js";
 import { HumanVoiceBank } from "./human_voice_assets.js";
 import { createFeedingSound } from "./feeding_audio.js";
+import { createWaterAmbience } from "./water_ambience.js";
 import { AtlantisMusic, ATLANTIS_SCORE } from "./music_atlantis.js";
 
 /**
@@ -428,12 +429,18 @@ export class OceanAudio {
       0.18,
     );
     this.waterFilter.frequency.setTargetAtTime(
-      this.aboveWater ? 1700 : 340 - depthRatio * 150,
+      this.aboveWater ? 1700 : 240 - depthRatio * 90,
       now,
       0.55,
     );
+    // 低幅慢起伏只服务环境底声，深水更安静，危险强度不再抬高持续沙沙声。
+    const waterDrift =
+      0.96 + Math.sin(now * 0.29) * 0.025 + Math.sin(now * 0.51 + 1.1) * 0.015;
     this.waterGain.gain.setTargetAtTime(
-      (this.aboveWater ? 0.035 : 0.058 + depthRatio * 0.023 + this.ink * 0.01) *
+      (this.aboveWater
+        ? 0.035
+        : 0.038 - depthRatio * 0.006 + this.ink * 0.002) *
+        waterDrift *
         (odyssey
           ? ODYSSEY_SCORE.ambientWater
           : penglai
@@ -446,8 +453,14 @@ export class OceanAudio {
       now,
       0.6,
     );
+    this.currentFilter.frequency.setTargetAtTime(
+      this.aboveWater ? 720 : 310 - depthRatio * 80,
+      now,
+      0.7,
+    );
     this.currentGain.gain.setTargetAtTime(
-      (this.aboveWater ? 0.012 : 0.021 + intensity * 0.012) *
+      (this.aboveWater ? 0.012 : 0.006 + intensity * 0.002) *
+        waterDrift *
         (odyssey
           ? ODYSSEY_SCORE.ambientCurrent
           : penglai
@@ -1087,20 +1100,28 @@ export class OceanAudio {
     const samples = this.noiseBuffer.getChannelData(0);
     for (let index = 0; index < samples.length; index++)
       samples[index] = this.random() * 2 - 1;
+    // 环境循环与一次性效果分开，旧噪声PCM和随机序列保持，避免重写已验收音效。
+    const ambience = createWaterAmbience(context.sampleRate);
+    this.waterBuffer = context.createBuffer(
+      1,
+      ambience.length,
+      context.sampleRate,
+    );
+    this.waterBuffer.getChannelData(0).set(ambience);
     this.waterSource = context.createBufferSource();
-    this.waterSource.buffer = this.noiseBuffer;
+    this.waterSource.buffer = this.waterBuffer;
     this.waterSource.loop = true;
     this.waterFilter = context.createBiquadFilter();
     this.waterFilter.type = "lowpass";
-    this.waterFilter.frequency.value = 340;
+    this.waterFilter.frequency.value = 240;
     this.waterFilter.Q.value = 0.6;
-    this.waterGain = this.makeBus(0.058, this.mix);
+    this.waterGain = this.makeBus(0.038, this.mix);
     this.waterSource.connect(this.waterFilter).connect(this.waterGain);
     this.currentFilter = context.createBiquadFilter();
     this.currentFilter.type = "bandpass";
-    this.currentFilter.frequency.value = 720;
+    this.currentFilter.frequency.value = 310;
     this.currentFilter.Q.value = 0.4;
-    this.currentGain = this.makeBus(0.021, this.mix);
+    this.currentGain = this.makeBus(0.006, this.mix);
     this.waterSource.connect(this.currentFilter).connect(this.currentGain);
     this.waterSource.start();
     this.nextStep = context.currentTime + 0.035;

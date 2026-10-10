@@ -1,3 +1,15 @@
+# v0.11.5 release — 2026-10-10
+
+The user authorizes committing and pushing the combined accepted branch to main. All703 ambient-candidate fingerprints match before release-only metadata changes. The release integrates accepted lord/rare, model/emergence, damaging/commanded corpse-blast and audio checkpoints, then the softer ambience. Prior candidate checks below remain attributable to their exact stages; fresh release1,168-unit/29-general-browser/format/build results and exact Node22 CI/Pages receipts belong to ignored `.local/release_v0_11_5/`. Read [release scope and limits](release_v0_11_5.md). No tag/GitHub Release is requested. Earlier uncommitted/listening-pending/publication-authorization labels are historical and superseded by current user acceptance. Existing services and canceled work are preserved; physical-device FPS/heat and calibrated speaker measurements remain unverified.
+
+---
+
+# Softer underwater ambience — 2026-10-10
+
+The accepted companion/gameplay/audio checkpoint is local `3d36d45`; main/Pages remains4060d86 / v0.11.4. New ambience is separate and uncommitted. See [current review](underwater_ambience_revision.md); ignored evidence and receipt are `.local/underwater_ambience_revision_20261010/`. Thirty-six focused tests pass. Eighteen matched real game-graph cases verify shallow/deep/chase/regions, surface/transitions, mute and music/skill overlap with zero clipped/nonfinite samples. Isolated ambience RMS falls about6.9 dB shallow and10.5 dB deep, with no calibrated physical speaker claim. Five existing skill graph cases pass; isolated fission/burst/deep-pair/mute clips match accepted hashes exactly. Bounded compiled native desktop/narrow lifecycle, artifact/privacy/refresh and same-service proof are recorded in the final receipt. Listening clips remain for user review; prior full/general results are not rerun or relabeled for this audio-only change. No push/publication is authorized.
+
+---
+
 # Accepted local checkpoint — 2026-10-10
 
 The user accepts the current blast-led audio and requests a local commit of the completed companion/corpse-blast/audio candidate before underwater ambience work. Latest delivered699 source fingerprints,315 build inputs and11 artifacts are verified unchanged; only acceptance metadata is added for this checkpoint. Existing focused/graph/native/compiled results below remain evidence for that delivered candidate, alongside its earlier gameplay/boundary records. The user supplies listening acceptance for these skill sounds. Earlier pending/uncommitted labels below are historical; no physical-phone listening result is inferred. Main/Pages remains4060d86 / v0.11.4; no push/publication is authorized. Ignored `.local/zombie_audio_accepted_checkpoint_20261010/` preserves the exact delivered receipt/manifest/patch, authorization and resulting commit identity. The new ambient refinement is separate.

@@ -121,6 +121,8 @@ test("Europa pursuit starts from actual pursuit even at zero danger, skips old b
 
 test("Europa reduces ambient noise and wet mix locally, while switching to Earth restores the existing mix", () => {
   const { audio, context } = fixture();
+  // 环境声带慢起伏，区域比例比较使用同一音频时刻。
+  context.currentTime = 1;
   audio.update(0, 0, { depth: 400, pursuing: false });
   const water = audio.waterGain.gain.value,
     current = audio.currentGain.gain.value;
@@ -139,7 +141,6 @@ test("Europa reduces ambient noise and wet mix locally, while switching to Earth
   assert.equal(audio.musicWet.gain.value, 0.11);
   for (const region of ["hawaii", "atlantis", "bermuda", "mariana"]) {
     audio.setRegion(region);
-    context.currentTime++;
     audio.update(context.currentTime, 0, { depth: 400, pursuing: false });
     assert.equal(audio.waterGain.gain.value, water);
     assert.equal(audio.currentGain.gain.value, current);

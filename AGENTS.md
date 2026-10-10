@@ -1,5 +1,7 @@
 # ABYSSAL Development Rules
 
+Current release scope: the user authorizes the accepted lord/rare, Zombie companion/gameplay/audio and softer-ambience branch for main publication as v0.11.5 on2026-10-10. Earlier candidate-only publication labels in the rules/reviews are historical for that integrated scope. Future changes still follow the default review/commit authorization rule below. See [the release record](docs/release_v0_11_5.md).
+
 Read [README.md](README.md) and [HANDOFF.md](HANDOFF.md) first, then the documents relevant to the task. Historical states in the handoff do not override current rules.
 
 ## Quality bar for new content
