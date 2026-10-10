@@ -96,7 +96,7 @@ test("真实仆从从本尊体内逐渐长出，沿连续轨迹挣脱；未成�
     step(h, 1.3, []);
     assert.equal(h.minion.presentation, null);
     assert.equal(h.minion.state.activeUntil, 60);
-    assert.equal(h.minion.state.readyAt, 60);
+    assert.equal("readyAt" in h.minion.state, false);
     h.minion.reset();
     assert.equal(mesh.visible, false);
     assert.equal(h.minion.presentation, null);

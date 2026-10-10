@@ -106,3 +106,62 @@ combined.wav
 ```
 
 Actual native firing routes both events. The development candidate and game-path clips are provided for listening review; signal metrics do not establish subjective sound quality. See [the character verification](mechanical_shark_revision.md) for runtime and device limits.
+
+## Zombie Shark candidate: recorded fission and corpse blast
+
+**Independent.nu**, uploaded by **qubodup**, provides [8 wet squish, slurp impacts](https://opengameart.org/content/8-wet-squish-slurp-impacts) under [CC0 1.0](https://creativecommons.org/publicdomain/zero/1.0/). This candidate layers four recordings from `independent_nu_ljudbank-wet_squish_slurp_impacts.7z`. These are wet Foley, not authentic underwater/body recordings; no human scream is used. Local originals, the source-page snapshot and exact processing receipt are retained under `.local/zombie_audio_revision_20261010/sources/` and are not runtime dependencies. Runtime playback fetches only the bundled files from the application origin.
+
+Original archive SHA-256: `81fba6009d1b3e48c258b122eef735ed27e86a2dcace9b6a2c93d05b80c83515`.
+
+| Original file            | SHA-256                                                            |
+| ------------------------ | ------------------------------------------------------------------ |
+| `impactsplat02.mp3.flac` | `164aea403082be4179208644dcd2f77d115c26f4e666c5911ba1e6fd89b0c925` |
+| `impactsplat05.mp3.flac` | `adf9fbbe3d32c61dfd2c66de9aa42e8c8d2b5bbadceb0d4ee6e9298113e3f3f9` |
+| `impactsplat07.mp3.flac` | `adae57b90523d754a7b0221876d1c3e4c7b90d5ded732af4895c5b8d0489b640` |
+| `impactsplat08.mp3.flac` | `08620cd7dbeaa27cff28a5295846ee9079be7ec6c83725a4af568b9dcc0d045d` |
+
+### Processing and final assets
+
+The hash-checking `scripts/process_zombie_audio.mjs` uses installed Chrome/Playwright for offline FLAC decoding and Web Audio processing; no new runtime codec or authoring dependency is required. Run from the repository root:
+
+```bash
+node scripts/process_zombie_audio.mjs .local/zombie_audio_revision_20261010/sources/impsplat src/assets/audio
+```
+
+Each original is converted to mono32 kHz, high-pass filtered at65 Hz (Q0.5) and low-pass filtered at3,900 Hz (Q0.55). The following finite layers specify original offset, output onset, fixed authoring playback rate, output length and gain. Per-layer fades are5 ms in /35 ms out. Overall fades are16 ms in /140 ms out for fission and5 ms in /150 ms out for burst. DC reduction and peak0.72 normalization precede PCM16 export. Authoring rate changes below are baked into the assets; runtime playback stays at1.
+
+| Output  | Source | Offset s | Onset s | Rate | Length s | Gain |
+| ------- | ------ | -------- | ------- | ---- | -------- | ---- |
+| Fission | 05     | 0.055    | 0       | 0.9  | 1.15     | 0.76 |
+| Fission | 02     | 0.14     | 0.38    | 1.06 | 0.65     | 0.32 |
+| Fission | 07     | 0.035    | 0.97    | 1    | 0.28     | 0.28 |
+| Burst   | 08     | 0.048    | 0       | 0.9  | 0.53     | 0.85 |
+| Burst   | 07     | 0.035    | 0.015   | 0.85 | 0.44     | 0.65 |
+| Burst   | 02     | 0.17     | 0.105   | 1.25 | 0.4      | 0.28 |
+
+| Runtime file under `src/assets/audio/` | Duration | Bytes  | Normalization gain | SHA-256                                                            |
+| -------------------------------------- | -------- | ------ | ------------------ | ------------------------------------------------------------------ |
+| `zombie_fission.wav`                   | 1.28 s   | 81,964 | 1.1035110200866742 | `4b1f5c476788a7f9426b7aee99ff0d48cca1e50b6292046afdcd8c3c510569bd` |
+| `zombie_corpse_burst.wav`              | 0.72 s   | 46,124 | 0.844559169748164  | `5dc428a6b6301f6bbea68ff2d1b8cfbb100a363a5d21b6f1bb9b788bc923d07f` |
+
+The two final assets total128,088 bytes. `ZombieAudioBank` uses the existing `RecordedAudioBank` byte/promise and per-context decode cache. The real paid summon/blast events play fixed-rate samples through the existing effects graph with bounded two-source concurrency, brief music ducking and quiet procedural pressure beds. Missing/late samples immediately use the preceding synthesis fallback; they do not replay after loading. Mute, pause, reset and retry behavior, game-mix listening clips and pending subjective review are documented in [the current review](zombie_audio_revision.md) and [verification](verification.md).
+
+### Current blast-led corpse cue — supersedes the wet-impact mix above
+
+After listening feedback, the corpse cue now uses **Joth**'s [Chunky Explosion](https://opengameart.org/content/chunky-explosion) under [CC0 1.0](https://creativecommons.org/publicdomain/zero/1.0/). Original `Chunky Explosion.mp3` SHA-256: `4de53bffac187e59d3f5b43096df2f8fcb4160076b65b71a67074947950e025f`. The page snapshot and original are retained under `.local/zombie_blast_audio_revision_20261010/sources/`. It is a designed explosion effect, not an authentic underwater/body recording.
+
+The earlier fission file/recipe/hash remains exact. The old corpse hash `5dc428a6…23d07f`, primary wet-impact layers,5 ms attack/150 ms tail and separate98→30 Hz recorded-path tone above are superseded. The processor's current invocation is:
+
+```bash
+node scripts/process_zombie_audio.mjs .local/zombie_audio_revision_20261010/sources/impsplat src/assets/audio .local/zombie_blast_audio_revision_20261010/sources/chunky_explosion.mp3
+```
+
+The blast source passes45 Hz high-pass (Q0.5) and5,200 Hz low-pass (Q0.55); Foley processing remains65 /3,900 Hz. All layers are converted to mono32 kHz. Global burst envelope is3 ms attack, `exp(-3.8*t)` decay and squared120 ms end fade. Existing5 /35 ms local fades, DC reduction and peak0.72 normalization remain. Current burst layers:
+
+| Source     | Offset s | Onset s | Authoring rate | Length s | Gain  |
+| ---------- | -------- | ------- | -------------- | -------- | ----- |
+| Joth blast | 0        | 0       | 1              | 0.72     | 1     |
+| Foley07    | 0.035    | 0.095   | 0.95           | 0.35     | 0.075 |
+| Foley02    | 0.17     | 0.23    | 1.2            | 0.34     | 0.035 |
+
+Final `src/assets/audio/zombie_corpse_burst.wav`:0.72 seconds, mono32 kHz PCM16,46,124 bytes, normalization gain1.147336799647581, SHA-256 `285284586818b76f39cf0906c240a5231d19ac5589c2ee392f2e3fadae6b06fd`. The two runtime assets still total128,088 bytes. The current processing receipt is `sources/zombie_processing.json` in the new ignored evidence folder; earlier source/processing receipts are retained. Runtime fixed-rate playback, gain0.78, actual blast trigger, loading fallback, mute/pause/reset and bounded caching remain. Game-mix clips and pending listening acceptance are documented in [the current review](zombie_audio_revision.md).

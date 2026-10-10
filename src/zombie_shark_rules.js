@@ -4,13 +4,12 @@ import { isRegionalRare } from "./regional_rare.js";
 
 /** 尸鲨仆从只使用当前远征时钟；状态不持有场景、对象或墙钟。 */
 export function createSummonState() {
-  return { activatedAt: null, readyAt: 0, activeUntil: 0, meals: 0 };
+  return { activatedAt: null, activeUntil: 0, meals: 0 };
 }
 
 /** 返回明确的拒绝原因，供按钮和键盘技能入口共用；失败不扣除任何属性。 */
 export function summonStatus(state, player, now = player.elapsed) {
   const validTime = Number.isFinite(now) && now >= 0;
-  const cooldownRemaining = validTime ? Math.max(0, state.readyAt - now) : 0;
   const active =
     validTime && state.activatedAt !== null && now < state.activeUntil;
   const skill = getCharacter("zombie_shark").active;
@@ -23,7 +22,7 @@ export function summonStatus(state, player, now = player.elapsed) {
     player.timedOut
   )
     reason = "inactive";
-  else if (cooldownRemaining > 0 || active) reason = "cooldown";
+  else if (active) reason = "active";
   else if (
     !Number.isFinite(player.length) ||
     player.length < skill.minimumLength
@@ -38,8 +37,8 @@ export function summonStatus(state, player, now = player.elapsed) {
   return {
     active,
     remaining: active ? Math.max(0, state.activeUntil - now) : 0,
-    cooldownRemaining,
-    ready: cooldownRemaining === 0 && !active,
+    cooldownRemaining: 0,
+    ready: !active,
     usable: reason === null,
     reason,
     lethal: player.health === skill.cost,
@@ -55,7 +54,6 @@ export function activateSummon(state, player, now = player.elapsed) {
   player.dead = player.health <= 0;
   if (player.stamina === 0) player.exhausted = true;
   state.activatedAt = now;
-  state.readyAt = now + skill.cooldown;
   state.activeUntil = now + skill.duration;
   state.meals = 0;
   return true;
@@ -109,4 +107,7 @@ export const MINION_RULES = Object.freeze({
   rareLeadSeconds: 0.22,
   returnSpeed: 48,
   searchInterval: 0.25,
+  detonationSpeed: 48,
+  detonationTurnRate: 6,
+  detonationContactRadius: 2,
 });

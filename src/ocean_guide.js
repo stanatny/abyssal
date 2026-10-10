@@ -222,7 +222,7 @@ export function buildOceanCatalog(regionId) {
             : entry.kind === "mechanical_shark"
               ? "先留足生命与体力再开火，利用掩体和射程压制。爆炸不穿墙；击杀的普通生物立即计为主角吞噬，未击杀不发放收益。不比自己小的普通生物需两次有效命中；普通领主需三次有效命中，御剑真君需五次收势反击，且必须达到25米。"
               : entry.kind === "zombie_shark"
-                ? "先备好食物和退路再献祭；仆从不能代打领主，也不会提高主角吞食上限。体长正好5米时可以召唤并追捕珍兽，但普通猎物仍须满足减5米限制。"
+                ? "先备好食物和退路再献祭。仆从捕食仍有减5米限制，尸爆吞食只需比本尊小；5米时可召唤追捕珍兽。尸爆在仆从最后位置发生，不追踪目标；领主仍需25米和未用过的破绽，御剑真君只在收势可受伤。"
                 : entry.kind === "orca"
                   ? "用声呐判断前方猎物体长和捕食资格，雷达保留周围回声。高速冲刺可追捕猎物或拉开距离，水下连续蓄势后才能破水。"
                   : "遇到猎手追击时在水下喷墨脱身，提前把头朝向安全出口；喷射会受到礁石和船体阻挡。松开冲刺可发挥灵活转向的被动。",
@@ -1007,7 +1007,7 @@ export function createOceanGuide(trigger) {
         : "";
     const abilities =
       entry.category === "player"
-        ? tr`<div class="guide-player-skills"><section class="guide-player-skill" data-skill-type="active"><span class="guide-skill-type">主动技能</span><h4>${entry.activeSkill.name}</h4><p>${entry.activeSkill.description}</p><small class="guide-skill-cooldown">${tr`冷却${entry.activeSkill.cooldown}秒`} · ${"J / 手机技能键"}</small></section><section class="guide-player-skill" data-skill-type="passive"><span class="guide-skill-type">被动技能</span><h4>${entry.passiveSkill.name}</h4><p>${entry.passiveSkill.description}</p></section></div>`
+        ? tr`<div class="guide-player-skills"><section class="guide-player-skill" data-skill-type="active"><span class="guide-skill-type">主动技能</span><h4>${entry.activeSkill.name}</h4><p>${entry.activeSkill.description}</p><small class="guide-skill-cooldown">${entry.activeSkill.cooldown > 0 ? tr`冷却${entry.activeSkill.cooldown}秒` : "无冷却"} · ${"J / 手机技能键"}</small></section><section class="guide-player-skill" data-skill-type="passive"><span class="guide-skill-type">被动技能</span><h4>${entry.passiveSkill.name}</h4><p>${entry.passiveSkill.description}</p></section></div>`
         : renderCreatureSkillCards(entry);
     const behavior = ["player", "rare"].includes(entry.category)
       ? ""

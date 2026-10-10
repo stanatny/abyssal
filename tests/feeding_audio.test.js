@@ -2,6 +2,10 @@ import assert from "node:assert/strict";
 import test from "node:test";
 import { OceanAudio } from "../src/audio.js";
 import { createFeedingSound } from "../src/feeding_audio.js";
+import {
+  ZombieAudioBank,
+  ZOMBIE_AUDIO_URLS,
+} from "../src/zombie_audio_assets.js";
 
 function rms(samples, sampleRate, from, to) {
   const first = Math.floor(from * sampleRate);
@@ -59,6 +63,7 @@ function fishBuffers() {
 function audioFixture({
   ready = true,
   humanVoiceBank,
+  zombieAudioBank,
   fishReady = false,
   fishBiteBank = {
     preload: () => Promise.resolve(),
@@ -100,6 +105,7 @@ function audioFixture({
       attack: parameter(),
       release: parameter(),
       playbackRate: parameter(),
+      detune: parameter(),
       stoppedAt: Infinity,
       disconnected: false,
       connections: [],
@@ -110,6 +116,7 @@ function audioFixture({
       disconnect() {
         this.disconnected = true;
       },
+      setPeriodicWave() {},
       start(at = 0) {
         this.startedAt = at;
       },
@@ -134,6 +141,7 @@ function audioFixture({
     createWaveShaper: node,
     createConvolver: node,
     createBufferSource: node,
+    createOscillator: node,
     createStereoPanner: node,
     createPeriodicWave: () => ({}),
     decodeAudioData() {
@@ -152,7 +160,12 @@ function audioFixture({
     // 标识离线环境，暂停无需真正改变主线程时钟。
     startRendering() {},
   };
-  const audio = new OceanAudio({ context, humanVoiceBank, fishBiteBank });
+  const audio = new OceanAudio({
+    context,
+    humanVoiceBank,
+    fishBiteBank,
+    zombieAudioBank,
+  });
   audio.createGraph();
   if (ready) {
     audio.feedingBuffers.set("human_male", { duration: 1.84, sex: "male" });
@@ -636,4 +649,161 @@ test("开始入口独立准备水声，重复开始不重解码且重开保留�
   assert.ok(
     [...cache.values()].includes([...audio.feedingVoices.keys()][0].buffer),
   );
+});
+
+const zombieBuffers = () =>
+  new Map([
+    ["fission", { duration: 1.28, kind: "fission" }],
+    ["burst", { duration: 0.72, kind: "burst" }],
+  ]);
+
+test("分裂和尸爆使用两段不同的缓存拟音，定速且各自只触发一次", () => {
+  const { audio, context, nodes } = audioFixture();
+  audio.zombieSoundState = "ready";
+  audio.zombieBuffers = zombieBuffers();
+  audio.summonUndead();
+  audio.summonUndead();
+  audio.corpseBurst();
+  audio.corpseBurst();
+  const samples = nodes.filter((n) => n.buffer?.kind);
+  assert.deepEqual(
+    samples.map((s) => s.buffer.kind),
+    ["fission", "burst"],
+  );
+  for (const s of samples) {
+    assert.equal(s.playbackRate.value, 1);
+    assert.equal(s.loop, false);
+    assert.equal(s.startedAt, 0.006);
+    assert.ok(s.stoppedAt <= s.buffer.duration + 0.017);
+  }
+  assert.equal(audio.zombieVoices.size, 2);
+  assert.equal(audio.duckLevel, 0.48);
+  assert.equal(audio.duckUntil, 1.05);
+  const before = nodes.length;
+  audio.enabled = false;
+  context.currentTime = 2;
+  audio.summonUndead();
+  audio.corpseBurst();
+  assert.equal(nodes.length, before);
+  audio.enabled = true;
+  audio.setPaused(true);
+  audio.summonUndead();
+  audio.corpseBurst();
+  assert.equal(nodes.length, before);
+  for (const s of samples) s.finish();
+  assert.equal(audio.zombieVoices.size, 0);
+  for (const s of samples) assert.equal(s.disconnected, true);
+});
+
+test("技能录音最多两声，结束和重开清除声源但保留复用的解码缓存", () => {
+  const { audio, context, nodes } = audioFixture();
+  audio.zombieSoundState = "ready";
+  audio.zombieBuffers = zombieBuffers();
+  const cache = audio.zombieBuffers;
+  audio.summonUndead();
+  context.currentTime = 0.6;
+  audio.corpseBurst();
+  context.currentTime = 1.2;
+  audio.summonUndead();
+  const samples = nodes.filter((n) => n.buffer?.kind);
+  assert.equal(samples.length, 3);
+  assert.equal(audio.zombieVoices.size, 2);
+  assert.equal(samples[0].stoppedAt, 1.2);
+  audio.reset();
+  assert.equal(audio.zombieVoices.size, 0);
+  assert.equal(audio.duckUntil, 0);
+  assert.equal(audio.zombieBuffers, cache);
+  assert.equal(audio.zombieBuffers.size, 2);
+  for (const s of samples) assert.ok(s.stoppedAt <= 1.2);
+  for (const s of samples) s.finish();
+  assert.equal(audio.voices.size, 0);
+});
+
+test("预取不开上下文，解码去重，异步完成不补播旧分裂或尸爆", async () => {
+  let resolve,
+    calls = 0;
+  const pending = new Promise((r) => (resolve = r)),
+    bank = {
+      preload: async () => {
+        calls++;
+      },
+      load: () => pending,
+    };
+  const menu = new OceanAudio({ zombieAudioBank: bank });
+  assert.equal(await menu.preloadZombieSounds(), true);
+  assert.equal(menu.context, null);
+  assert.equal(menu.ready, false);
+  const { audio, context, nodes } = audioFixture({ zombieAudioBank: bank });
+  const preparation = audio.prepareZombieSounds();
+  assert.equal(audio.prepareZombieSounds(), preparation);
+  audio.summonUndead();
+  audio.corpseBurst();
+  assert.equal(audio.zombieVoices.size, 0);
+  const count = nodes.length;
+  resolve(zombieBuffers());
+  assert.equal(await preparation, true);
+  assert.equal(nodes.length, count);
+  assert.equal(audio.zombieSoundState, "ready");
+  assert.equal(calls, 1);
+  context.currentTime = 1;
+  audio.summonUndead();
+  assert.equal(audio.zombieVoices.size, 1);
+  assert.equal([...audio.zombieVoices.values()][0], "fission");
+});
+
+test("损坏的技能字节在失败后清空并重新下载，失败不阻止回退或缓存恢复", async () => {
+  let requests = 0,
+    broken = true;
+  const bank = new ZombieAudioBank({
+    fetcher: async () => {
+      requests++;
+      return { ok: true, arrayBuffer: async () => new ArrayBuffer(8) };
+    },
+  });
+  const { audio, context } = audioFixture({ zombieAudioBank: bank });
+  context.decodeAudioData = async () => {
+    if (broken) throw new Error("Corrupt fixture");
+    return { duration: 0.72 };
+  };
+  assert.equal(await audio.prepareZombieSounds(), false);
+  assert.equal(audio.zombieSoundState, "unavailable");
+  assert.equal(bank.bytes.size, 0);
+  assert.equal(audio.zombieVoices.size, 0);
+  audio.summonUndead();
+  audio.corpseBurst();
+  broken = false;
+  assert.equal(await audio.prepareZombieSounds(), true);
+  assert.equal(requests, 4);
+  assert.equal(audio.zombieBuffers.size, 2);
+  const buffers = audio.zombieBuffers;
+  assert.equal(await audio.prepareZombieSounds(), true);
+  assert.equal(audio.zombieBuffers, buffers);
+  assert.equal(requests, 4);
+  assert.equal(Object.keys(ZOMBIE_AUDIO_URLS).length, 2);
+});
+
+test("低优先级进食声不能取消技能让位，原时限后恢复正常且新一局清空", () => {
+  const { audio, context } = audioFixture();
+  audio.duckMusic(0.48, 0.38);
+  context.currentTime = 0.1;
+  audio.duckMusic(0.96, 0.08);
+  assert.equal(audio.duckLevel, 0.48);
+  assert.equal(audio.duckUntil, 0.38);
+  const targets = audio.musicDuck.gain.events.filter(
+    (e) => e.method === "target",
+  );
+  assert.deepEqual(
+    targets.slice(-2).map((e) => [e.value, e.time]),
+    [
+      [0.48, 0.1],
+      [1, 0.38],
+    ],
+  );
+  context.currentTime = 0.5;
+  audio.duckMusic(0.96, 0.08);
+  assert.equal(audio.duckLevel, 0.96);
+  assert.equal(audio.duckUntil, 0.58);
+  audio.reset();
+  assert.equal(audio.duckLevel, 1);
+  assert.equal(audio.duckUntil, 0);
 });

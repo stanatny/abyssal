@@ -1,3 +1,43 @@
+# Accepted local checkpoint — 2026-10-10
+
+The user accepts the current blast-led audio and requests a local commit of the completed companion/corpse-blast/audio candidate before underwater ambience work. Latest delivered699 source fingerprints,315 build inputs and11 artifacts are verified unchanged; only acceptance metadata is added for this checkpoint. Existing focused/graph/native/compiled results below remain evidence for that delivered candidate, alongside its earlier gameplay/boundary records. The user supplies listening acceptance for these skill sounds. Earlier pending/uncommitted labels below are historical; no physical-phone listening result is inferred. Main/Pages remains4060d86 / v0.11.4; no push/publication is authorized. Ignored `.local/zombie_audio_accepted_checkpoint_20261010/` preserves the exact delivered receipt/manifest/patch, authorization and resulting commit identity. The new ambient refinement is separate.
+
+---
+
+# Blast-led corpse-audio refinement — 2026-10-10
+
+The user reports an odd wet-impact cue and requests explosive feedback. This audio-only revision replaces the0.72-second corpse asset's primary material with a designed blast/rumble and quiet Foley scatter, removing its separate descending oscillator; the1.28-second fission asset remains byte-for-byte unchanged. The same uncommitted branch/UI HEAD5f17190 and formal4060d86 / v0.11.4 remain. Read [current review](zombie_audio_revision.md); source, processing, clips, baseline and receipts are in ignored `.local/zombie_blast_audio_revision_20261010/`. Previous73-test audio receipts below are historical.
+
+Current20 focused audio tests pass, and five actual offline `OceanAudio` graph cases pass (fission, blast, deep pair, music/feeding overlap, mute). Maximum peak0.4611, zero clipped/nonfinite samples, zero isolated tails/mute, maximum two recorded voices and no remaining recorded source. The two packed files remain128,088 bytes; decoded cost at the observed48 kHz context is384,000 bytes. Current native and restricted compiled English1440px / Chinese390px audio flows, build/format, exact11-artifact hashes,37 denied private paths per host, same-address refresh and live-process/tunnel proof are bound in the final candidate receipt. No gameplay alteration or fresh full/general suite result is claimed. The game-mix clip awaits user listening review; no physical-phone speaker or subjective acceptance is inferred from metrics.
+
+---
+
+# Zombie Shark fission and corpse-blast audio — 2026-10-10
+
+The user accepts the visual effects and asks for sounds. Two locally bundled CC0 wet-Foley cues follow actual paid fission and once-only corpse blasts, preserving all existing gameplay and the uncommitted `feat/lord-contact-rare-blessing` branch at UI HEAD5f17190. Main/Pages stays4060d86 / v0.11.4. See [the audio review](zombie_audio_revision.md) and [sources/processing](audio_sources.md#zombie-shark-candidate-recorded-fission-and-corpse-blast). Current ignored evidence is `.local/zombie_audio_revision_20261010/`; previous gameplay receipts below remain historical.
+
+Focused73 unit tests pass across feeding audio, recorded-bank/region music and companion/blast contracts; formatting/build pass. Five actual offline `OceanAudio` graph cases cover isolated fission/burst, deep pair, repeated cues with music/feeding and mute: maximum peak0.4954, zero clipped/nonfinite samples, isolated tails and muted output zero, maximum two recorded voices and no remaining recorded voice. Game-mix WAVs are provided for user listening review; no subjective or physical-phone speaker acceptance is claimed.
+
+Two headed DEV native keyboard/touch cases (English1440px / Chinese390px) pass actual summon/blast, pause/context and game-clock freeze, resume, mute without late replay, Home during formation and repeated same-context/same-two-buffer restart. Fixtures explicitly isolate real fish and set safe location/length/vitals/invulnerability; this verifies event routing, not a natural balance route. At the observed48 kHz context, the two decoded mono buffers occupy384,000 bytes; the packed runtime files total128,088 bytes. The diagnostic ambient-isolation and fixture-position pilots are preserved; corrected drivers pass without changing gameplay to satisfy them.
+
+Both restricted compiled hosts (local and Cloudflare) pass two no-DEV-hook native English1440px / Chinese390px routes: distinct fission/burst sample starts, real pause clock freeze, mute without replay, Home/reset stop and same-context/single-decode restart. All11 runtime artifacts,37 private-path denials per host, same-address replacement/removal and unchanged owned process identities are bound in this candidate's final delivery record. Earlier full1,157-unit and29-check browser results are not rerun or represented as new audio evidence.
+
+---
+
+# Corpse-blast empty-target and pursuit-expiry follow-up — 2026-10-10
+
+Empty acquisition preserves the companion and allows a later retry without payment. The original60-second expiry still takes precedence during commanded pursuit, with local-only blast and bilingual reason/settlement feedback. Accepted UI HEAD5f17190 and the uncommitted branch remain; main/Pages v0.11.4 and managed service identities are unchanged. Current checks and ignored evidence belong to `.local/zombie_corpse_boundaries_20261010/`. Current focused verification passes34 tests and three headed native desktop/narrow boundary cases, including no-target formation/hunting preservation, later valid retry, pause/Home cleanup, and local timeout before contact with no remote damage. Restricted local/public compiled hosts each pass three no-hook native Chinese1440/390 and English320 Guide/play/skill/pause/Home/reload cases without observed page errors. Current Guide copy describes no-target preservation and strict pursuit expiry in both languages. Formatting/build pass; the final source/build/artifact/privacy/refresh/process receipt is retained in the same evidence folder. Native cases explicitly use isolated real fish and shortened remaining lifetime; bilingual390/320px screenshots are inspected. The1,157-unit and native receipts below describe the preceding candidate. See [current rules](zombie_corpse_blast_revision.md).
+
+---
+
+# Zombie Shark damaging/commanded corpse blast and no cooldown — 2026-10-10
+
+Accepted preceding UI checkpoint: `5f17190`, exact311 delivered build inputs, local only. New gameplay remains uncommitted on `feat/lord-contact-rare-blessing`; main/Pages stays4060d86 / v0.11.4. The current AI agent alone completes [the corpse-blast review](zombie_corpse_blast_revision.md):14 m torpedo-strength local damage, owner-size meal settlement, one-target commanded pursuit, max one companion/max60s lifetime and immediate paid resummon with no extra cooldown.
+
+Final1,157 units pass (15 new blast contracts), formatting/build pass. Four headed DEV native cases cover smaller-fish food, larger-fish impact, rare150 blessing with immediate paid same-mesh resummon, and actual60.0168-active-second natural expiry. Two narrow native queued-command pause/Home/reset cases and a real posed Hawaii lord shortened-expiry/callback case pass:210→140, one validated hit and a spent opening. Local/public restricted compiled hosts each pass three no-hook native Chinese1440/390 and English320 Guide/start/cast/command/expiry/pause/Home/Mechanical20-cost/reload cases, without observed page errors. Explicit controlled fixtures, earlier60-CD evidence and failed driver/oracle pilots remain under `.local/zombie_corpse_blast_revision_20261010/`. The final receipt binds source/build inputs, nine runtime artifacts, private-path denial, same-address replacement/removal and unchanged services/remote main. These checks do not establish natural expedition balance or physical-phone FPS/thermal performance.
+
+---
+
 # Current continuous companion emergence — 2026-10-10
 
 The current AI agent alone follows up on `feat/lord-contact-rare-blessing`, HEAD45ebf24, with no new commit/push/main publication. Main/Pages remains4060d86 / v0.11.4. The real cached companion gradually grows from inside the posed owner flank, releases before feeding and transitions smoothly into swimming; the normal follow camera frames both bodies on narrow screens. See [the emergence review](zombie_emergence_revision.md). Earlier immediate-body/staged-camera arrival evidence below is historical. Existing torn muscle, last-pose corpse explosion,50/50/50 payment,60-second cast clocks and20/20 torpedoes remain.

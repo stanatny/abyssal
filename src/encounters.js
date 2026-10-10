@@ -47,6 +47,7 @@ import {
   steerBossPursuit,
   hitBoss,
   hitBossWithTorpedo,
+  hitBossWithCorpseBlast,
   updateBossContact,
   isBossFlankContact,
 } from "./boss_rules.js";
@@ -1605,15 +1606,26 @@ export function createEncounters(
     return affected;
   }
   function torpedoHit(player, entry, contact) {
+    return rangedHit(player, entry, contact, false);
+  }
+  function corpseBlastHit(player, entry, contact) {
+    return rangedHit(player, entry, contact, true);
+  }
+  function rangedHit(player, entry, contact, corpse) {
     if (!entry.enabled) return { hit: false };
-    const result = hitBossWithTorpedo(player, entry.state);
-    entry.lastTorpedoResult = result;
+    const result = (corpse ? hitBossWithCorpseBlast : hitBossWithTorpedo)(
+      player,
+      entry.state,
+    );
+    if (!corpse) entry.lastTorpedoResult = result;
     if (result.hit) {
       onTorpedoHit?.(contact, entry.state.species.length);
       notify(
         result.defeated
           ? message`击败 ${entry.state.species.label} · 深渊印记已获得`
-          : message`鱼雷命中 ${entry.state.species.label} · ${entry.state.validatedHits}/${bossRequiredHits(entry.state.species)}`,
+          : corpse
+            ? message`尸爆命中 ${entry.state.species.label} · ${entry.state.validatedHits}/${bossRequiredHits(entry.state.species)}`
+            : message`鱼雷命中 ${entry.state.species.label} · ${entry.state.validatedHits}/${bossRequiredHits(entry.state.species)}`,
         2,
       );
       if (result.defeated) hideDefeated(entry);
@@ -2457,6 +2469,7 @@ export function createEncounters(
     dispose,
     disorient,
     torpedoHit,
+    corpseBlastHit,
     bodyColliders(position, length = 0, previous = position) {
       const colliders = [];
       if (disposed) return colliders;

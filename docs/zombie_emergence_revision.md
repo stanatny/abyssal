@@ -1,3 +1,5 @@
+> Follow-up: the user has now authorized damaging/commanded expiry and removed the extra skill cooldown. See [the corpse-blast revision](zombie_corpse_blast_revision.md) for current local blast rules. The harmless-expiry statements and measurements below belong to earlier visual reviews; accepted emergence/model art and summon costs remain.
+
 # Zombie Shark continuous emergence and narrow-screen framing
 
 Current refinement, 2026-10-10, on `feat/lord-contact-rare-blessing` at local checkpoint45ebf24. The user reports an instantaneous companion and an arrival outside the phone view. The current AI agent alone follows up; no new commit, push or main/Pages change is authorized. The preceding torn-muscle model, corpse burst and20/20 torpedo work remain in the same uncommitted candidate. Main/Pages remains4060d86 / v0.11.4.

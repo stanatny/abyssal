@@ -5,6 +5,7 @@ import { EuropaMusic, EUROPA_SCORE } from "./music_europa.js";
 import { MarianaMusic, MARIANA_SCORE } from "./music_mariana.js";
 import { BermudaMusic, BERMUDA_SCORE } from "./music_bermuda.js";
 import { FishBiteBank } from "./fish_bite_assets.js";
+import { ZombieAudioBank } from "./zombie_audio_assets.js";
 import { HumanVoiceBank } from "./human_voice_assets.js";
 import { createFeedingSound } from "./feeding_audio.js";
 import { AtlantisMusic, ATLANTIS_SCORE } from "./music_atlantis.js";
@@ -19,10 +20,18 @@ export class OceanAudio {
     context = null,
     humanVoiceBank = new HumanVoiceBank(),
     fishBiteBank = new FishBiteBank(),
+    zombieAudioBank = new ZombieAudioBank(),
   } = {}) {
     this.context = context;
     this.humanVoiceBank = humanVoiceBank;
     this.fishBiteBank = fishBiteBank;
+    this.zombieAudioBank = zombieAudioBank;
+    this.zombieSoundState = "idle";
+    this.zombieSoundPreparation = null;
+    this.zombieBuffers = new Map();
+    this.zombieVoices = new Map();
+    this.duckUntil = 0;
+    this.duckLevel = 1;
     this.fishSoundState = "idle";
     this.fishSoundPreparation = null;
     this.lastFishVariant = -1;
@@ -72,6 +81,7 @@ export class OceanAudio {
     if (!this.ready) this.createGraph();
     void this.prepareHumanVoices();
     void this.prepareFishSounds();
+    void this.prepareZombieSounds();
     this.setPaused(false);
     this.update(0, this.lastDanger, {
       boss: this.boss,
@@ -194,6 +204,38 @@ export class OceanAudio {
     return this.fishSoundPreparation;
   }
 
+  /** 菜单预取两段技能拟音，不提前创建上下文或触发播放。 */
+  preloadZombieSounds() {
+    return this.zombieAudioBank
+      .preload()
+      .then(() => true)
+      .catch(() => false);
+  }
+
+  /** 每个上下文只解码一次；失败立即回退，完成后不会补播过去的技能。 */
+  prepareZombieSounds() {
+    if (this.zombieSoundPreparation) return this.zombieSoundPreparation;
+    if (!this.context?.decodeAudioData || this.context.state === "closed")
+      return Promise.resolve(false);
+    this.zombieSoundState = "loading";
+    this.zombieSoundPreparation = this.zombieAudioBank
+      .load(this.context)
+      .then((buffers) => {
+        this.zombieBuffers = buffers;
+        this.zombieSoundState = "ready";
+        return true;
+      })
+      .catch(() => {
+        this.zombieSoundState = "unavailable";
+        this.zombieSoundPreparation = null;
+        // 解码失败时丢弃可能损坏的原字节，下次start可重新下载，避免永久坏缓存。
+        this.zombieAudioBank.bytes?.clear();
+        if (this.zombieAudioBank.pending) this.zombieAudioBank.pending = null;
+        return false;
+      });
+    return this.zombieSoundPreparation;
+  }
+
   /** toggle 切换声音，首次使用时直接激活；返回当前是否启用声音。 */
   toggle() {
     if (!this.ready) {
@@ -270,6 +312,9 @@ export class OceanAudio {
     this.step = 0;
     this.cooldowns.clear();
     this.feedingVoices.clear();
+    this.zombieVoices.clear();
+    this.duckUntil = 0;
+    this.duckLevel = 1;
     if (!this.ready) return;
     const now = this.context.currentTime;
     this.stopMusic(now);
@@ -606,10 +651,19 @@ export class OceanAudio {
     this.duckMusic(0.55, 0.25);
   }
 
-  /** 献祭用下沉的失谐低音和收束水流，沿用有界音效图和静音/暂停逻辑。 */
+  /** 真实分裂起点播放渐进湿润撕裂拟音，低频水压作衬底，静音/暂停沿用共用音图。 */
   summonUndead() {
     if (!this.effectReady("summon-undead", 0.5)) return;
     const at = this.context.currentTime + 0.006;
+    if (this.playZombieSample("fission", at)) {
+      this.note(110, at, 0.62, 0.085, this.effects, {
+        end: 38,
+        attack: 0.035,
+        cutoff: 520,
+      });
+      this.duckMusic(0.6, 1.05);
+      return;
+    }
     this.note(126, at, 0.72, 0.18, this.effects, {
       end: 46,
       attack: 0.025,
@@ -626,10 +680,14 @@ export class OceanAudio {
     this.duckMusic(0.7, 0.35);
   }
 
-  /** 尸爆用短促水压冲击与气泡尾声，不使用真人惨叫或持续杂音。 */
+  /** 真实尸爆播放爆破冲击、低沉轰鸣和轻微散落声；未就绪时立即使用原有水压回退。 */
   corpseBurst() {
     if (!this.effectReady("corpse-burst", 0.5)) return;
     const at = this.context.currentTime + 0.006;
+    if (this.playZombieSample("burst", at)) {
+      this.duckMusic(0.48, 0.38);
+      return;
+    }
     this.note(98, at, 0.55, 0.16, this.effects, {
       end: 30,
       attack: 0.008,
@@ -642,6 +700,32 @@ export class OceanAudio {
       end: 110,
       attack: 0.02,
     });
+  }
+
+  /** 两个有界技能声源复用解码样本，结束/重开回收，不新增音频循环。 */
+  playZombieSample(kind, at) {
+    const buffer = this.zombieBuffers.get(kind);
+    if (this.zombieSoundState !== "ready" || !buffer) return false;
+    if (this.zombieVoices.size >= 2) {
+      const oldest = this.zombieVoices.keys().next().value;
+      oldest.stop(this.context.currentTime);
+      this.zombieVoices.delete(oldest);
+    }
+    const source = this.context.createBufferSource();
+    source.buffer = buffer;
+    source.loop = false;
+    source.playbackRate.value = 1;
+    const gain = this.makeBus(kind === "fission" ? 0.63 : 0.78);
+    source.connect(gain);
+    const nodes = [source, gain];
+    this.connectVoice(gain, this.effects, 0, nodes);
+    this.zombieVoices.set(source, kind);
+    this.releaseWhenEnded(source, nodes, () =>
+      this.zombieVoices.delete(source),
+    );
+    source.start(at);
+    source.stop(at + buffer.duration + 0.01);
+    return true;
   }
 
   /** breach 播放从低通水流打开到空气的破水声；无参数，无返回值。 */
@@ -1421,6 +1505,12 @@ export class OceanAudio {
 
   duckMusic(level, hold) {
     const at = this.context.currentTime;
+    // 小鱼等较轻事件不能提前解除正在播放的技能/警告声所需的配乐让位。
+    this.duckLevel = Math.min(level, at < this.duckUntil ? this.duckLevel : 1);
+    this.duckUntil = Math.max(
+      at + hold,
+      at < this.duckUntil ? this.duckUntil : at,
+    );
     const gain = this.musicDuck.gain;
     if (typeof gain.cancelAndHoldAtTime === "function")
       gain.cancelAndHoldAtTime(at);
@@ -1428,8 +1518,8 @@ export class OceanAudio {
       gain.cancelScheduledValues(at);
       gain.setValueAtTime(gain.value, at);
     }
-    gain.setTargetAtTime(level, at, 0.018);
-    gain.setTargetAtTime(1, at + hold, 0.27);
+    gain.setTargetAtTime(this.duckLevel, at, 0.018);
+    gain.setTargetAtTime(1, this.duckUntil, 0.27);
   }
 
   harmonicWave(partials) {

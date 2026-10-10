@@ -11,7 +11,7 @@ export const MECHANICAL_SHARK_EN = Object.freeze({
   鱼雷: "Torpedo",
   "鱼雷/侧咬 · 命中{0}/3 · 保留生命与体力":
     "Torpedo/flank bite · {0}/3 hits · Keep HP/SP in reserve",
-  " · 鱼雷伤害{0}/{1}": " · Torpedo hits {0}/{1}",
+  " · 爆炸伤害{0}/{1}": " · Blast hits {0}/{1}",
   "水下发射鱼雷；桌面准星沿真实发射线显示，转向时锁定提示即时更新。锁定准星前方7度内的无遮挡目标，发射后持续追踪该目标，不自动换目标；遮挡或目标消失时解除锁定。射程140米，爆炸半径14米。每发消耗20点生命、20点体力，生命须超过20点。比自己小的普通猎物一发击杀，其余普通生物需两发；击杀后直接计为吞噬，获得恢复加速、饱食与成长。仅机械鲨鱼用鱼雷击杀远超自身体长的普通猎物时，成长收益降低但仍会增长，营养和恢复加速不变；正常吞食不受此限制。25米起可对领主造成一次咬击伤害。":
     "The desktop crosshair shows the launch line; target feedback updates immediately as you steer. Fire an underwater torpedo at one unobstructed target within 7 degrees of the reticle. It keeps tracking that target without switching; obstruction or target retirement breaks the lock. Range: 140 m; blast radius: 14 m. Each cast costs 20 health and 20 stamina; health must exceed 20. Ordinary prey smaller than you fall in one hit; other ordinary creatures need two. Kills immediately count as feeding, granting faster gradual recovery, hunger and growth. Only Mechanical Shark torpedo kills of ordinary prey far larger than you grant reduced, still positive growth; nutrition and recovery stay unchanged. Normal contact feeding is unaffected. At 25 m, a lord hit equals one bite.",
   "承伤能力提高50%，攻击与环境伤害降至原来的三分之二；饥饿和技能消耗不减免。冲刺速度保持32米/秒，双推进器呈现尾焰。":

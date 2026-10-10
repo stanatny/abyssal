@@ -89,7 +89,7 @@ test("第三角色沿用所有海域的起点、上限及技能目录", () => {
       ["mariana", "penglai"].includes(r.id) ? 15 : 3,
     );
   const c = getCharacter("zombie_shark");
-  assert.equal(c.active.cooldown, 60);
+  assert.equal(c.active.cooldown, 0);
   assert.equal(c.active.duration, 60);
   for (const value of [
     c.name,
@@ -102,14 +102,14 @@ test("第三角色沿用所有海域的起点、上限及技能目录", () => {
   ])
     assert.equal(/[\u3400-\u9fff]/u.test(t(value, [], "en")), false);
 });
-test("召唤原子扣三项50，冷却/生存从同一活跃时刻开始，拒绝重复付款", () => {
+test("召唤原子扣三项50，无冷却/60秒生存从同一活跃时刻开始，拒绝重复付款", () => {
   const p = player(),
     s = createSummonState();
   p.elapsed = 12;
   p.invulnerable = 10;
   assert.equal(activateSummon(s, p), true);
   assert.deepEqual([p.health, p.stamina, p.hunger], [50, 50, 50]);
-  assert.equal(s.readyAt, 72);
+  assert.equal("readyAt" in s, false);
   assert.equal(s.activeUntil, 72);
   assert.equal(summonStatus(s, p, 71.99).active, true);
   const before = structuredClone({ s, p });

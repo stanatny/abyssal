@@ -1,3 +1,5 @@
+> Follow-up: the user has now authorized damaging/commanded expiry and removed the extra skill cooldown. See [the corpse-blast revision](zombie_corpse_blast_revision.md) for current local blast rules. The harmless-expiry statements and measurements below belong to earlier visual reviews; accepted emergence/model art and summon costs remain.
+
 # Zombie Shark character review
 
 The later [continuous real-body emergence and portrait framing](zombie_emergence_revision.md) supersedes the immediate companion arrival and its camera/timing evidence below; torn-muscle geometry, corpse explosion and20/20 torpedo payment remain.

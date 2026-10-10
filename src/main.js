@@ -36,6 +36,7 @@ import {
 } from "./ground_creatures.js";
 import { createPenglaiOceanAsync } from "./penglai_ocean.js";
 import { createAmazonOceanAsync } from "./amazon_ocean.js";
+import { createAreaBlast } from "./area_blast.js";
 import { createMechanicalTorpedoes } from "./mechanical_torpedoes.js";
 import {
   MECHANICAL_RULES,
@@ -273,6 +274,7 @@ scene.add(avatar);
 const audio = new OceanAudio();
 void audio.preloadHumanVoices();
 void audio.preloadFishSounds();
+void audio.preloadZombieSounds();
 const effects = createCombatEffects(scene, {
   colors: rareMarkerPalette(),
   reducedMotion: () => matchMedia("(prefers-reduced-motion: reduce)").matches,
@@ -383,6 +385,9 @@ minion = createZombieMinion(scene, {
   effects,
   audio,
   blockedBetween,
+  blastBlocked: (a, b) => torpedoes.blocked(a, b),
+  detonationTargets: () => [...entities, ...encounters.bosses],
+  onNoDetonationTarget: () => notify("附近没有可追击目标 · 仆从继续捕食", 2.8),
   resolveMovement: resolveMinionMotion,
   accessible: (entry) => surface.mode === "aether" || entry.mesh.position.y < 0,
   onConsume(entity, state, owner) {
@@ -396,6 +401,25 @@ minion = createZombieMinion(scene, {
       entity.mesh.userData.setGliding?.(false);
     }
     return true;
+  },
+  onExpire(point, owner, reason) {
+    const { killed, defeated, hits, bossHits, rare, rarePoint } = corpseBlast(
+      point,
+      owner,
+    );
+    if (rare) {
+      effects.rareBlessing(rarePoint, owner.length);
+      notify("珍兽恩赐 · 三项补满，上限150（本局）", 4);
+    } else if (defeated || hits > bossHits) {
+      notify(
+        reason === "lifetime"
+          ? message`寿命已尽 · 就地尸爆 · 吞噬${killed}，击杀${defeated}，另命中${hits}`
+          : message`尸爆 · 吞噬${killed}，击杀${defeated}，另命中${hits}`,
+        2.8,
+      );
+    } else if (reason === "lifetime" && !bossHits) {
+      notify("仆从寿命已尽 · 就地尸爆", 2.8);
+    }
   },
   onMeal(entity) {
     if (isRegionalRare(entity.species))
@@ -442,6 +466,15 @@ torpedoes = createMechanicalTorpedoes(scene, {
       notify(message`鱼雷爆炸 · 命中${hits}，尚未击杀`, 2);
   },
 });
+const corpseBlast = createAreaBlast({
+  entities: () => entities,
+  bosses: () => encounters.bosses,
+  blocked: (a, b) => torpedoes.blocked(a, b),
+  hitBoss: encounters.corpseBlastHit,
+  effects,
+  creditOversized: false,
+});
+
 const keys = new Set();
 const pointer = { x: 0, y: 0 };
 const position = new THREE.Vector3(0, -18, 75);
@@ -876,6 +909,12 @@ function activateCharacterSkill() {
 
   if (player.characterId === "zombie_shark") {
     if (mode !== "playing") return false;
+    if (minion.active) {
+      const commanded = minion.commandDetonation(player);
+      if (commanded) notify("仆从追击尸爆 · 不再消耗属性", 2.8);
+      updateSonar();
+      return commanded;
+    }
     const status = summonStatus(minion.state, player);
     if (!status.usable) {
       if (status.reason === "length") notify("体长达到5米后才能分裂", 2);
@@ -1051,11 +1090,14 @@ function updateSonar() {
     !surface.airborne &&
     (surface.mode === "aether" ||
       position.y < WORLD.surfaceY - player.length * 0.2);
-  const usable =
-    statusData.ready &&
-    (["summon", "torpedo"].includes(skill.id)
-      ? statusData.usable
-      : player.characterId !== "squid" || underwater);
+  const liveCompanion =
+    skill.id === "summon" && minion.active && statusData.active;
+  const usable = liveCompanion
+    ? !minion.commanded
+    : statusData.ready &&
+      (["summon", "torpedo"].includes(skill.id)
+        ? statusData.usable
+        : player.characterId !== "squid" || underwater);
   // 浮点加减可能让整两秒略大于2，向上取整前消除数值误差，资格仍用原时钟。
   const cooldownSeconds = Math.ceil(
     Math.max(0, statusData.cooldownRemaining - 1e-9),
@@ -1063,7 +1105,7 @@ function updateSonar() {
   const shortName = {
     ink: "喷墨",
     sonar: "声呐",
-    summon: "分裂",
+    summon: liveCompanion ? "尸爆" : "分裂",
     torpedo: "鱼雷",
   }[skill.id];
   const activeLabel = { ink: "墨幕", sonar: "探测", summon: "仆从" }[skill.id];
@@ -1080,15 +1122,17 @@ function updateSonar() {
   const forming = skill.id === "summon" && minion.forming;
   const status = forming
     ? "分裂中"
-    : statusData.active
-      ? tr`${activeLabel} ${Math.ceil(statusData.remaining)}s`
-      : statusData.ready
-        ? usable
-          ? statusData.lethal
-            ? "致命献祭"
-            : "就绪"
-          : blockedLabel
-        : tr`冷却 ${Math.ceil(statusData.cooldownRemaining)}s`;
+    : liveCompanion && minion.commanded
+      ? tr`追击尸爆 ${Math.ceil(statusData.remaining)}s`
+      : statusData.active
+        ? tr`${activeLabel} ${Math.ceil(statusData.remaining)}s`
+        : statusData.ready
+          ? usable
+            ? statusData.lethal
+              ? "致命献祭"
+              : "就绪"
+            : blockedLabel
+          : tr`冷却 ${Math.ceil(statusData.cooldownRemaining)}s`;
   $("sonar-control").textContent = t(tr`J ${shortName} · ${status}`);
   $("touch-sonar").querySelector("span").textContent = t(shortName);
   $("touch-sonar-status").textContent = t(
@@ -1121,7 +1165,9 @@ function updateSonar() {
       String(
         Math.max(
           0,
-          Math.min(1, 1 - statusData.cooldownRemaining / skill.cooldown),
+          skill.cooldown > 0
+            ? Math.min(1, 1 - statusData.cooldownRemaining / skill.cooldown)
+            : 1,
         ),
       ),
     );
@@ -1130,7 +1176,11 @@ function updateSonar() {
       "aria-label",
       t(tr`${character.name}${skill.name}，${status}。${skill.description}`),
     );
-    button.title = t(tr`J · ${skill.name} · 冷却${skill.cooldown}秒`);
+    button.title = liveCompanion
+      ? t("再次使用：追击附近目标尸爆，不再消耗属性")
+      : skill.cooldown > 0
+        ? t(tr`J · ${skill.name} · 冷却${skill.cooldown}秒`)
+        : t(tr`J · ${skill.name} · 无冷却`);
   }
   return scan;
 }
@@ -3591,7 +3641,7 @@ function updateHud() {
     if (!$("target").firstElementChild)
       $("target").append(document.createElement("span"));
     $("target").firstElementChild.textContent = t(
-      tr`${{ shoal: "Ⅰ 浅海鱼群", hunter: "Ⅱ 海洋霸主", ancient: "Ⅲ 远古巨兽", alien: "外星生命", mythic: "神话生灵", rare: "专属珍兽" }[e.species.category] || "海洋生物"} · ${e.species.label} · ${e.species.length}m${e.torpedoHits ? tr` · 鱼雷伤害${e.torpedoHits}/${MECHANICAL_RULES.giantHits}` : ""} · ${edible ? (retaliates ? "可捕食 · 会反击" : "可捕食") : e.species.predator ? "危险" : "暂不可吞食"} / ${Math.round(d)}m`,
+      tr`${{ shoal: "Ⅰ 浅海鱼群", hunter: "Ⅱ 海洋霸主", ancient: "Ⅲ 远古巨兽", alien: "外星生命", mythic: "神话生灵", rare: "专属珍兽" }[e.species.category] || "海洋生物"} · ${e.species.label} · ${e.species.length}m${e.torpedoHits ? tr` · 爆炸伤害${e.torpedoHits}/${MECHANICAL_RULES.giantHits}` : ""} · ${edible ? (retaliates ? "可捕食 · 会反击" : "可捕食") : e.species.predator ? "危险" : "暂不可吞食"} / ${Math.round(d)}m`,
     );
   }
   $("boss-panel").hidden = !activeBoss;

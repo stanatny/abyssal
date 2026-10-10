@@ -1,5 +1,4 @@
-import { isRegionalRare, preyRespawnDelay } from "./regional_rare.js";
-import { consumeDefeatedPrey } from "./simulation.js";
+import { createAreaBlast } from "./area_blast.js";
 import * as THREE from "three";
 import { createAttackTorpedoModel } from "./submarine_defense.js";
 import { createMechanicalTorpedoFx } from "./mechanical_torpedo_fx.js";
@@ -9,7 +8,6 @@ import {
   MECHANICAL_RULES as RULES,
   activateTorpedo,
   createTorpedoState,
-  hitOrdinaryWithTorpedo,
   resetTorpedoTarget,
 } from "./mechanical_shark_rules.js";
 
@@ -142,6 +140,13 @@ export function createMechanicalTorpedoes(
     }
     return null;
   }
+  const blast = createAreaBlast({
+    entities,
+    bosses,
+    blocked,
+    hitBoss,
+    effects,
+  });
   function detonate(p, at, player, directBoss = null) {
     detonation.copy(at);
     at = detonation;
@@ -149,64 +154,9 @@ export function createMechanicalTorpedoes(
     p.target = null;
     fx.burst(at, RULES.blastRadius);
     audio?.mechanicalExplosion?.();
-    let killed = 0,
-      hits = 0,
-      bossHits = 0,
-      rare = false,
-      rarePoint = null;
-    for (const e of entities()) {
-      if (e.hiddenFor > 0) continue;
-      const radius = Math.max(0.15, e.species.length * 0.13);
-      if (
-        e.mesh.position.distanceToSquared(at) >
-          (RULES.blastRadius + radius) ** 2 ||
-        blocked(at, e.mesh.position)
-      )
-        continue;
-      if (hitOrdinaryWithTorpedo(e, player)) {
-        if (consumeDefeatedPrey(player, e.species)) {
-          killed++;
-          e.hiddenFor = preyRespawnDelay(e.species);
-          rare ||= isRegionalRare(e.species);
-          if (isRegionalRare(e.species)) rarePoint = e.mesh.position.clone();
-          e.mesh.visible = false;
-          resetTorpedoTarget(e);
-        }
-        effects?.blood?.(e.mesh.position, Math.min(5, e.species.length));
-      } else hits++;
-    }
-    for (const b of bosses()) {
-      if (
-        !b.enabled ||
-        b.state.defeated ||
-        b.mesh.position.distanceTo(at) >
-          RULES.blastRadius + b.state.species.length * 0.7
-      )
-        continue;
-      const contact = b.mesh.userData.contactRoot || b.mesh;
-      // 爆炸检查真实网格表面，空触腕间隙不把整个包围盒视作领主体内。
-      contact.updateWorldMatrix(true, true);
-      forward.copy(b.mesh.position).sub(at);
-      const d = forward.length();
-      if (d < 0.001) forward.set(0, 0, -1);
-      else forward.divideScalar(d);
-      ray.set(at, forward);
-      ray.far = RULES.blastRadius;
-      intersections.length = 0;
-      ray.intersectObject(contact, true, intersections);
-      const hit = intersections.find(
-        (i) => i.object.isMesh && visibleMesh(i.object, contact),
-      );
-      const actual = b === directBoss ? at : hit?.point;
-      if (!actual || blocked(at, actual)) continue;
-      const result = hitBoss(player, b, actual);
-      if (result.hit) {
-        hits++;
-        bossHits++;
-      }
-    }
-    onBlast?.({ point: at, killed, hits, bossHits, rare, rarePoint });
+    onBlast?.(blast(at, player, directBoss));
   }
+
   function update(dt, player) {
     if (disposed || !(dt > 0) || player.dead || player.won || player.timedOut)
       return;
@@ -293,6 +243,7 @@ export function createMechanicalTorpedoes(
     },
     activate,
     previewAim: aim.select,
+    blocked,
     beforePreyMotion,
     update,
     reset,

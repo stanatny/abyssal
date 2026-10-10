@@ -3,6 +3,7 @@ import { createCreature } from "./creatures.js";
 import { createFeedingTransition } from "./feeding_transition.js";
 import { preyCaptureRadius, sweptCaptureFraction } from "./prey_capture.js";
 import { isRegionalRare } from "./regional_rare.js";
+import { createBlastBodyQuery } from "./area_blast.js";
 import {
   activateSummon,
   canMinionEat,
@@ -24,6 +25,10 @@ export function createZombieMinion(
     blockedBetween,
     onConsume,
     onMeal,
+    onExpire,
+    onNoDetonationTarget,
+    detonationTargets = () => [],
+    blastBlocked = blockedBetween,
     effects,
     audio,
     getOwnerMesh,
@@ -44,6 +49,10 @@ export function createZombieMinion(
     birthAge = 0,
     birthSide = 1,
     framingWeight = 0;
+  let commanded = false,
+    blastTarget = null;
+  const blastBodyPoint = createBlastBodyQuery(),
+    blastPrevious = new THREE.Vector3();
   const direction = new THREE.Vector3(0, 0, -1),
     desired = new THREE.Vector3(),
     delta = new THREE.Vector3();
@@ -62,14 +71,21 @@ export function createZombieMinion(
     axis = new THREE.Vector3(0, 0, -1),
     side = new THREE.Vector3();
   let previousLength = 0;
-  function expire() {
+  function expire(player, reason = "detonation") {
+    if (!alive) return;
+    const point = mesh.position.clone();
+    // 先关闭生命周期，避免伤害回调重入造成重复尸爆。重开/终局只调用reset。
+    alive = false;
+    target = null;
+    phase = "expired";
+    commanded = false;
+    blastTarget = null;
+    state.activeUntil = Math.min(state.activeUntil, player.elapsed);
     effects.minionTransition?.(mesh, "depart");
     audio?.corpseBurst?.();
     feeding.reset();
     mesh.visible = false;
-    alive = false;
-    target = null;
-    phase = "expired";
+    onExpire?.(point, player, reason);
   }
   function move(
     start,
@@ -93,7 +109,7 @@ export function createZombieMinion(
   }
   function activate(player, position, forward) {
     if (!summonStatus(state, player).usable) return false;
-    if (alive) expire();
+    if (alive) expire(player, "lifetime");
     if (!mesh) {
       mesh = createCreature("zombie_shark", 1, 733);
       mesh.name = "zombie_shark_minion";
@@ -135,6 +151,8 @@ export function createZombieMinion(
     mesh.visible = alive;
     phase = alive ? "forming" : "absent";
     target = null;
+    commanded = false;
+    blastTarget = null;
     if (alive) poseBirth(player, position, forward, 0);
     mesh.userData.getFeedingMouth(mouth);
     oldMouth.copy(mouth);
@@ -147,6 +165,133 @@ export function createZombieMinion(
       audio?.summonUndead?.();
     }
     return true;
+  }
+  function validBlastTarget(entry, player) {
+    const species = entry.state?.species || entry.species;
+    if (!species || entry.hiddenFor > 0 || entry.alive === false) return false;
+    if (entry.state)
+      return (
+        entry.enabled &&
+        !entry.state.defeated &&
+        !entry.state.locked &&
+        player.length >= species.minAttackLength
+      );
+    return (
+      !species.vehicle &&
+      !species.boss &&
+      species.tier !== 3 &&
+      species.category !== "lord" &&
+      species.length > 0 &&
+      accessible(entry)
+    );
+  }
+  function commandDetonation(player) {
+    if (
+      !alive ||
+      commanded ||
+      player.dead ||
+      player.won ||
+      player.timedOut ||
+      player.characterId !== "zombie_shark"
+    )
+      return false;
+    const status = summonStatus(state, player);
+    if (!status.active) {
+      expire(player, "lifetime");
+      return false;
+    }
+    let best = MINION_RULES.searchRadius ** 2,
+      selected = null;
+    for (const entry of detonationTargets()) {
+      if (!validBlastTarget(entry, player)) continue;
+      const point = entry.state
+        ? blastBodyPoint(mesh.position, entry, MINION_RULES.searchRadius)
+        : entry.mesh.position;
+      if (!point || blastBlocked?.(mesh.position, point)) continue;
+      const distance = mesh.position.distanceToSquared(point);
+      if (distance <= best) {
+        selected = entry;
+        best = distance;
+      }
+    }
+    // 没有目标时保留原捕食和剩余寿命，避免空按技能就浪费仆从。
+    if (!selected) {
+      onNoDetonationTarget?.();
+      return false;
+    }
+    blastTarget = selected;
+    blastPrevious.copy(selected.mesh.position);
+    commanded = true;
+    target = null;
+    feeding.reset();
+    if (phase !== "forming") phase = "detonating";
+    return true;
+  }
+  function updateDetonation(dt, player, ownerPosition) {
+    phase = "detonating";
+    if (
+      !blastTarget ||
+      !validBlastTarget(blastTarget, player) ||
+      mesh.position.distanceToSquared(ownerPosition) >
+        MINION_RULES.leashRadius ** 2
+    ) {
+      expire(player);
+      return;
+    }
+    const point = blastTarget.state
+      ? blastBodyPoint(mesh.position, blastTarget)
+      : blastTarget.mesh.position;
+    // 锁定目标退场或躲入掩体时就地爆炸，不换目标，也不让最后一段穿墙。
+    if (!point || blastBlocked?.(mesh.position, point)) {
+      expire(player);
+      return;
+    }
+    desired.copy(point);
+    const contactRadius =
+      MINION_RULES.detonationContactRadius +
+      (blastTarget.state
+        ? mesh.scale.x * 0.13
+        : Math.max(0.15, blastTarget.species.length * 0.13));
+    if (mesh.position.distanceToSquared(desired) <= contactRadius ** 2) {
+      expire(player);
+      return;
+    }
+    previous.copy(mesh.position);
+    delta.copy(desired).sub(previous).normalize();
+    // 四元数限速转弯也能处理正后方目标，避免反向向量插值后始终指向原方向。
+    rotation.setFromUnitVectors(axis, delta);
+    mesh.quaternion.rotateTowards(
+      rotation,
+      MINION_RULES.detonationTurnRate * dt,
+    );
+    direction.copy(axis).applyQuaternion(mesh.quaternion);
+    desired
+      .copy(previous)
+      .addScaledVector(
+        direction,
+        Math.min(previous.distanceTo(point), MINION_RULES.detonationSpeed * dt),
+      );
+    move(previous, desired, player);
+    mesh.quaternion.setFromUnitVectors(axis, direction);
+    mesh.userData.animate(player.elapsed, 1, {
+      dt,
+      speed: MINION_RULES.detonationSpeed,
+      turn: 0,
+    });
+    if (!blastTarget.state) {
+      const time = sweptCaptureFraction(
+        previous,
+        mesh.position,
+        blastPrevious,
+        blastTarget.mesh.position,
+        contactRadius,
+      );
+      if (time !== null && !blastBlocked?.(previous, mesh.position)) {
+        mesh.position.lerpVectors(previous, mesh.position.clone(), time);
+        expire(player);
+      }
+      blastPrevious.copy(blastTarget?.mesh.position || mesh.position);
+    }
   }
   function birthDestination(player, position, forward, sign, out) {
     side.set(-forward.z, 0, forward.x).normalize();
@@ -208,7 +353,7 @@ export function createZombieMinion(
     }
     const status = summonStatus(state, player);
     if (!status.active) {
-      expire();
+      expire(player, "lifetime");
       return;
     }
     if (!Number.isFinite(dt) || dt <= 0) return;
@@ -222,6 +367,13 @@ export function createZombieMinion(
           MINION_RULES.fissionDuration + 1.25,
         ));
     presentation.weight = framingWeight;
+    if (commanded) {
+      if (phase === "forming") {
+        poseBirth(player, position, forward, dt);
+        if (birthAge >= MINION_RULES.fissionDuration) phase = "detonating";
+      } else updateDetonation(dt, player, position);
+      return;
+    }
     const returning =
       mesh.position.distanceToSquared(position) > MINION_RULES.leashRadius ** 2;
     const available = (entry, tracking = false) =>
@@ -402,6 +554,8 @@ export function createZombieMinion(
     Object.assign(state, createSummonState());
     alive = false;
     target = null;
+    commanded = false;
+    blastTarget = null;
     phase = "absent";
     nextSearch = 0;
     birthAge = 0;
@@ -416,10 +570,12 @@ export function createZombieMinion(
     state,
     feeding,
     activate,
+    commandDetonation,
     update,
     reset,
     beforePreyMotion() {
       if (target) preyPrevious.copy(target.mesh.position);
+      if (blastTarget) blastPrevious.copy(blastTarget.mesh.position);
     },
     get presentation() {
       return alive && framingWeight > 0 ? presentation : null;
@@ -430,6 +586,9 @@ export function createZombieMinion(
     get forming() {
       return alive && phase === "forming";
     },
+    get commanded() {
+      return alive && commanded;
+    },
     get mesh() {
       return mesh;
     },
@@ -439,6 +598,9 @@ export function createZombieMinion(
       birthAge,
       framingWeight,
       target: target?.species.kind || target?.kind || null,
+      commanded,
+      blastTarget:
+        blastTarget?.species.kind || blastTarget?.state?.species.kind || null,
       meals: state.meals,
       position: mesh?.position.toArray(),
       length: mesh?.scale.x,

@@ -229,8 +229,17 @@ export function hitBoss(
 
 /** 有效鱼雷代替一口近身攻击，保留真实25米门槛、同轮破绽限制及同一击败结算。 */
 export function hitBossWithTorpedo(player, boss) {
+  return hitBossWithRangedImpact(player, boss, "mechanical_shark");
+}
+
+/** 尸爆等同一次鱼雷命中，不绕过角色、门槛、剑阵或同轮破绽。 */
+export function hitBossWithCorpseBlast(player, boss) {
+  return hitBossWithRangedImpact(player, boss, "zombie_shark");
+}
+
+function hitBossWithRangedImpact(player, boss, characterId) {
   if (
-    player.characterId !== "mechanical_shark" ||
+    player.characterId !== characterId ||
     player.dead ||
     player.won ||
     player.timedOut ||
@@ -267,7 +276,7 @@ export function hitBossWithTorpedo(player, boss) {
   return settleBossHit(player, boss);
 }
 
-// 两种有效攻击共用命中数、食物、战利品和持久击败，不复制目标判定。
+// 有效近身、鱼雷和尸爆共用命中数、食物、战利品和持久击败，不复制目标判定。
 function settleBossHit(player, boss) {
   // 整数命中数决定击败，最后一口直接清零，不让浮点余量要求额外进攻。
   const requiredHits = bossRequiredHits(boss.species);
