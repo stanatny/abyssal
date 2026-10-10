@@ -348,11 +348,25 @@ try {
   await page.keyboard.up("KeyK");
   const untouchedHealth = await page.evaluate(async () => {
     const { findBossContact } = await import("/src/encounters.js");
+    const { createBossState, tickBoss } = await import("/src/boss_rules.js");
     const g = window.__ABYSSAL__,
       b = g.encounters.bosses.find((e) => e.state.species.kind === "kraken");
     // 固定种类与无遮挡位置，避免随机领地、巨兽朝向和岩石改变接触夹具。
     g.encounters.bosses.forEach((entry) => (entry.enabled = entry === b));
     window.__testBoss = b;
+    b.state = createBossState(b.state.species);
+    window.__finishTestBossAttack = () => {
+      const count = b.state.attackCount;
+      for (let i = 0; i < 8; i++) {
+        if (b.state.phase === "recover" && b.state.attackCount > count) return;
+        tickBoss(b.state, b.state.phaseDuration - b.state.timer, {
+          inTerritory: true,
+          distance: 0,
+          lineOfSight: true,
+        });
+      }
+      throw new Error("No completed next boss attack");
+    };
     g.setLength(30);
     b.mesh.position.set(180, -90, -320);
     b.home.copy(b.mesh.position);
@@ -469,6 +483,16 @@ try {
       window.__testBoss.state.contactArmed,
   );
   await page.evaluate(() => window.__placeTestBossContact());
+  await page.waitForTimeout(250);
+  assert.equal(
+    await page.evaluate(() => window.__testBoss.state.health),
+    firstBite.health,
+  );
+  assert.match(await page.locator("#boss-weakness").innerText(), /破绽已用/);
+  await page.evaluate(() => {
+    window.__finishTestBossAttack();
+    window.__placeTestBossContact();
+  });
   await page.waitForFunction(
     (health) => window.__testBoss.state.health < health,
     firstBite.health,
@@ -476,13 +500,15 @@ try {
   await page.keyboard.up("KeyK");
   measurements.contactBite = firstBite;
   checks.push(
-    "Flank contact bites once, requires disengaging, and respects the 1.2-second cooldown",
+    "Flank contact requires disengaging, cooldown and the next completed skill before another bite",
   );
-  await page.evaluate(() => {
+  await page.evaluate(async () => {
+    const { createBossState } = await import("/src/boss_rules.js");
     const g = window.__ABYSSAL__,
       b = window.__testBoss;
-    b.state.health = b.state.maxHealth;
-    b.state.validatedHits = 0;
+    b.state = createBossState(b.state.species);
+    b.state.phase = "recover";
+    b.state.phaseDuration = 3;
     g.setPosition(b.mesh.position.x, b.mesh.position.y, b.mesh.position.z + 85);
   });
   // 固定遭遇位置验证多次真实接触咬击，终局不宣称自然通关。
@@ -500,7 +526,8 @@ try {
         window.__testBoss.state.contactArmed &&
         window.__ABYSSAL__.player.biteCooldown === 0,
     );
-    const old = await page.evaluate(() => {
+    const old = await page.evaluate((i) => {
+      if (i) window.__finishTestBossAttack();
       const g = window.__ABYSSAL__,
         b = window.__testBoss;
       b.state.phase = "recover";
@@ -512,7 +539,7 @@ try {
       const health = b.state.health;
       window.__placeTestBossContact();
       return health;
-    });
+    }, i);
     await page.waitForFunction((h) => window.__testBoss.state.health < h, old);
     hits++;
     if (i === 0) {

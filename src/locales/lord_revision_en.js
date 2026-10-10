@@ -1,4 +1,61 @@
 export const LORD_REVISION_EN = Object.freeze({
+  "鱼雷命中 {0} · {1}/{2}": "Torpedo hit {0} · {1}/{2}",
+  "收势戒备 · 正面将有反击，绕到侧背":
+    "Recovery guard · Front counter incoming; circle to a flank",
+  "正面反击 · 侧背仍有破绽": "Front counter · Flanks and back stay exposed",
+  "戒备反击命中 · 绕到侧背，咬中后及时脱离":
+    "Guard counter hit · Circle to a flank; disengage after biting",
+  "收势绕位 · 追准身体反击，每轮一次":
+    "Moving opening · Line up a body counter; one per cycle",
+  "收势时领主仍会绕位，命中后加快重整。近身戒备先预警{0}秒，再反击锁定的正面120度，每轮最多一次。绕到侧背或升降离开标记，咬中后及时脱离；戒备不关闭本轮身体破绽。":
+    "Lords keep moving during recovery and regroup faster after a hit. A close guard warns for {0}s, then counters in its locked 120-degree front sector, at most once per cycle. Circle to the sides or back, or change depth to leave the marker; disengage after biting. Guarding does not close the current body opening.",
+  "15米起步，游于莲池，行于云海。穿越桃林与浮空仙山，击败四象神兽；护阵一解，御剑真君开始全地图追击。":
+    "Start at 15 m, swim in lotus waters and fly through clouds. Explore peach groves and floating mountains and defeat the Four Symbols; once the ward falls, the Sword Sage pursues across the map.",
+  "15米起步 · 沿莲池与桃林觅食\n25米后挑战四神兽，护阵一解真君便开始全域追击":
+    "Start at 15 m · Feed among lotus waters and peach groves\nAt 25 m challenge the Four Symbols; breaking the ward starts the sage's map-wide pursuit",
+  "25米后挑战四神兽，护阵一解真君便开始全域追击":
+    "At 25 m challenge the Four Symbols; breaking the ward starts the sage's map-wide pursuit",
+  "回到莲池 · 御剑真君仍在追击":
+    "Back at the lotus cove · The Sword Sage still pursues",
+  "穿越桃林与浮空仙山，解除四象结界；真君随后全域追击。":
+    "Explore peach groves and floating mountains, break the Four-Symbol ward; the sage then pursues across the map.",
+  "15米起步，游于莲池，行于云海。<br />穿越桃林与浮空仙山，解除四象结界；真君随后全域追击。":
+    "Start at 15 m: swim in lotus waters and fly through clouds.<br />Explore peach groves and floating mountains, break the Four-Symbol ward; the sage then pursues across the map.",
+  "先留足生命与体力再开火，利用掩体和射程压制。爆炸不穿墙；击杀的普通生物立即计为主角吞噬，未击杀不发放收益。不比自己小的普通生物需两次有效命中；普通领主需三次有效命中，御剑真君需五次收势反击，且必须达到25米。":
+    "Keep health and stamina before firing; use cover and range. Explosions cannot pass through walls. Ordinary kills immediately count as your meals; nonlethal hits give no reward. Ordinary creatures at least your size need two valid hits; ordinary lords need three, and the Sword Sage needs five recovery counters, with a 25 m gate.",
+  "四象护阵已解 · 御剑真君开始全域追击":
+    "Ward broken · The Sword Sage now pursues across Penglai",
+  "四象护阵未解时留守道观，解锁后立即开始全域追击。":
+    "He guards the monastery until the ward falls, then immediately pursues across Penglai.",
+  "全域追猎 · 冲刺转向，借山石争取反击机会":
+    "Relentless pursuit · Sprint and turn, use mountains to set up a counter",
+  全域追猎: "Relentless pursuit",
+  "目标锁定 · 护体剑阵，收势时开火":
+    "Target locked · Sword ward; fire during recovery",
+  "护体剑阵 · {0}/{1} · 等收势反击": "Sword ward · {0}/{1} · Wait for recovery",
+  "收势{0}秒 · {1}/{2} · 咬中身体": "Recovery {0}s · {1}/{2} · Bite the body",
+  "25米可交战 · {0}次分轮反击。只有技能后的收势期能伤到本体，正面命中也有效。每轮最多一次，咬击与鱼雷共用；实体阻挡穿行，命中后需脱离。":
+    "Engage at 25 m · {0} separate counters. Only post-attack recovery exposes the body, including frontal hits. One hit per opening, shared by bites and torpedoes. The solid body blocks passage; disengage after each bite.",
+  "真君在蓄势前段继续逼近，末段锁定方向，再依次射出三柄飞剑。飞剑不追踪，会被山石和建筑阻挡；收势前本体受剑阵保护。":
+    "The sage advances during early windup, locks direction near its end, then fires three blades in sequence. Blades do not home and are blocked by mountains and buildings. His sword ward protects the body until recovery.",
+  "脚下巨剑亮起，剑路标出突进方向；真君踏剑沿直线短促冲阵，不会中途转向追踪。收势前本体受剑阵保护，冲阵结束后留下短暂反击窗口。":
+    "His greatsword glows and marks a straight dash path, with no homing after release. The sword ward protects his body until the short counter opening after the dash.",
+  "目标锁定 · 破绽已用，技能结束后开火":
+    "Target locked · Opening used; fire after the next skill",
+  "弱点咬击 {0} · {1}": "Weak-point bite {0} · {1}",
+  脱离后再进攻: "Disengage before attacking again",
+  "停顿破绽 · 咬中身体即可，每轮一次":
+    "Recovery opening · Bite the body, once per cycle",
+  "护甲重整 · 先躲下一轮技能": "Armor regrouping · Dodge the next skill",
+  护甲重整: "Armor regrouping",
+  "破绽已用 · {0}/{1} · 技能结束后再攻":
+    "Opening used · {0}/{1} · Counter after the next skill",
+  "身体命中即可 · {0}/{1} · 本轮可反击":
+    "Bite the body · {0}/{1} · Counter available",
+  "咬身体侧面、背部 · {0}/{1} · 本轮可偷袭":
+    "Bite the sides or back · {0}/{1} · Ambush available",
+  "25米可交战 · {0}次独立命中。身体侧面、背部是弱点；攻击后的收势期，正面咬中身体也有效。每轮最多一次有效伤害，需等下一轮技能结束再进攻；鱼雷共用这个间隔。身体会阻挡穿行，命中后需脱离再接近。":
+    "Engage at 25 m · {0} separate hits. Bite the body's sides or back; during post-attack recovery, a frontal body bite also counts. Each opening permits one damaging hit. Wait for the next skill to finish before attacking again; torpedoes share this limit. The solid body blocks passage. Disengage between bites.",
   辉腕穿刺: "Luminous Arm Lances",
   "辉腕锁定 · 横向或升降闪避三次刺击，借岩拱遮挡":
     "Arm paths locked · Dodge three lances sideways or vertically, or use arch cover",

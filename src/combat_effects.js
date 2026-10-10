@@ -1,16 +1,18 @@
 import * as THREE from "three";
 import { createElectricDischarge } from "./electric_discharge.js";
 import { createFluidTexture } from "./effect_textures.js";
+import { createRareBlessingEffect } from "./rare_blessing_effect.js";
 
 /**
  * 创建捕食血雾、咬合水流、受击冲击与乌贼墨云；粒子池限定总量并可随重开清空。
  * @param {THREE.Scene} scene 承载世界特效的场景。
  * @returns {object} 发射、更新、清空与墨云浓度查询接口。
  */
-export function createCombatEffects(scene) {
+export function createCombatEffects(scene, options = {}) {
   const group = new THREE.Group();
   group.name = "combat_effects";
   scene.add(group);
+  const blessing = createRareBlessingEffect(group, options);
   const texture = createFluidTexture("mist");
   const inkTexture = createFluidTexture("ink");
   const bubbleTexture = createFluidTexture("bubble");
@@ -374,6 +376,7 @@ export function createCombatEffects(scene) {
     return amount;
   }
   function update(dt, cameraPosition, playerPosition) {
+    blessing.update(dt, cameraPosition, playerPosition);
     discharge.update(dt);
     for (const p of pool) {
       if (!p.sprite.visible) continue;
@@ -451,6 +454,7 @@ export function createCombatEffects(scene) {
     ink = THREE.MathUtils.damp(ink, density, 5, dt);
   }
   function reset() {
+    blessing.reset();
     discharge.reset();
     for (const p of pool) p.sprite.visible = false;
     for (const ring of rings) ring.mesh.visible = false;
@@ -466,6 +470,8 @@ export function createCombatEffects(scene) {
     undeadBurst,
     flash,
     electricDischarge: discharge.emit,
+    rareBlessing: blessing.emit,
+    blessing,
     spawnInk,
     inkDensity,
     update,
@@ -479,6 +485,7 @@ export function createCombatEffects(scene) {
         ring.mesh.material.dispose();
       }
       discharge.dispose();
+      blessing.dispose();
       texture.dispose();
       inkTexture.dispose();
       bubbleTexture.dispose();

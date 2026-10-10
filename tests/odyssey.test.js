@@ -1,3 +1,4 @@
+import { finishNextBossAttack } from "./helpers/boss_cycle.js";
 import {
   habitatPosition,
   schoolPopulationGroups,
@@ -119,6 +120,7 @@ test("all three new lords preserve eligibility and three separate valid attacks"
     assert.equal(hitBoss(p, b, { inRange: true, isFlank: true }).hit, false);
     p.length = 25;
     for (let i = 0; i < 3; i++) {
+      if (i) finishNextBossAttack(b);
       p.biteCooldown = 0;
       b.biteCooldown = 0;
       b.contactArmed = true;

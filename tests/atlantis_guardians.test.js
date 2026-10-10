@@ -1,3 +1,4 @@
+import { finishNextBossAttack } from "./helpers/boss_cycle.js";
 import assert from "node:assert/strict";
 import test from "node:test";
 import * as THREE from "three";
@@ -251,24 +252,28 @@ for (const character of ["orca", "squid"]) {
       });
       target.state.phase = target.previousPhase = "recover";
       target.state.phaseDuration = 99;
-      // 在真实网格侧翼找第一接触点；没有人为放大攻击判定。
-      target.mesh.updateMatrixWorld(true);
-      const sideCenter = new THREE.Vector3(0, 0, 0.14).applyMatrix4(
-        target.mesh.getObjectByName("kraken_lord_anatomy").matrixWorld,
-      );
-      let contactX = null;
-      for (let x = 40; x > 0; x -= 0.1) {
-        const mouth = sideCenter.clone().add(new THREE.Vector3(x, 0, 0));
-        if (findBossContact(target.mesh, mouth, 1.5)) {
-          contactX = x;
-          break;
+      // 每次沿当前真实朝向重新找侧翼；收势运动不能复用旧的世界坐标。
+      const attackPose = () => {
+        target.mesh.updateMatrixWorld(true);
+        const sideCenter = new THREE.Vector3(0, 0, 0.14).applyMatrix4(
+          target.mesh.getObjectByName("kraken_lord_anatomy").matrixWorld,
+        );
+        const side = new THREE.Vector3(1, 0, 0).applyQuaternion(
+          target.mesh.quaternion,
+        );
+        let contactX = null;
+        for (let x = 40; x > 0; x -= 0.1) {
+          const mouth = sideCenter.clone().addScaledVector(side, x);
+          if (findBossContact(target.mesh, mouth, 1.5, { visibleBody: true })) {
+            contactX = x;
+            break;
+          }
         }
-      }
-      assert.notEqual(contactX, null);
-      const attackPosition = sideCenter
-        .clone()
-        .add(new THREE.Vector3(contactX + 25 * 0.38, 0, 0));
-      f.position.copy(attackPosition);
+        assert.notEqual(contactX, null);
+        inward.copy(side).negate();
+        return sideCenter.addScaledVector(side, contactX + 25 * 0.38);
+      };
+      f.position.copy(attackPose());
       f.step(1 / 60, inward);
       assert.equal(target.state.health, target.state.maxHealth);
       assert.equal(f.player.hunger, 40);
@@ -276,7 +281,8 @@ for (const character of ["orca", "squid"]) {
       f.player.mass = (25 / 6) ** 3;
       let bites = 0;
       while (!target.state.defeated && bites < 8) {
-        f.position.copy(attackPosition);
+        if (bites) finishNextBossAttack(target.state);
+        f.position.copy(attackPose());
         f.player.hunger = 40;
         f.step(1 / 60, inward);
         assert.equal(target.lastBiteResult.hit, true);

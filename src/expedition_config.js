@@ -223,12 +223,12 @@ export const REGIONS = Object.freeze(
       world: PENGLAI_WORLD,
       ecologyKind: "mythic",
       description: pt(
-        "15米起步，游于莲池，行于云海。穿越桃林与浮空仙山，击败四象神兽，解除道观结界，再挑战御剑真君。",
-        "Start at 15 m, swim in lotus waters and fly through clouds. Explore peach groves and floating mountains, defeat the Four Symbols, open the monastery ward and challenge the Sword Sage.",
+        "15米起步，游于莲池，行于云海。穿越桃林与浮空仙山，击败四象神兽；护阵一解，御剑真君开始全地图追击。",
+        "Start at 15 m, swim in lotus waters and fly through clouds. Explore peach groves and floating mountains and defeat the Four Symbols; once the ward falls, the Sword Sage pursues across the map.",
       ),
       departureHint: pt(
-        "15米起步 · 沿莲池与桃林觅食\n25米后挑战四神兽，全部击败才能进入道观结界",
-        "Start at 15 m · Feed among lotus waters and peach groves\nAt 25 m challenge the Four Symbols; all four open the monastery",
+        "15米起步 · 沿莲池与桃林觅食\n25米后挑战四神兽，护阵一解真君便开始全域追击",
+        "Start at 15 m · Feed among lotus waters and peach groves\nAt 25 m challenge the Four Symbols; breaking the ward starts the sage's map-wide pursuit",
       ),
       speciesKinds: REGION_SPECIES_KINDS.penglai,
       bossKinds: PENGLAI_BOSS_INSTANCES.map((b) => b.kind),

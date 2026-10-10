@@ -1,3 +1,4 @@
+import { finishNextBossAttack } from "./helpers/boss_cycle.js";
 import test from "node:test";
 import assert from "node:assert/strict";
 import * as THREE from "three";
@@ -265,6 +266,7 @@ test("领主规则保留冷却和25米门槛，第三击只记一次击败", () 
     boss = createBossState(BOSS_SPECIES[0]);
   const s = createTorpedoState();
   for (let i = 0; i < 3; i++) {
+    if (i) finishNextBossAttack(boss);
     p.elapsed = i * 5;
     assert.equal(activateTorpedo(s, p), true);
     p.biteCooldown = boss.biteCooldown = 0;
@@ -284,6 +286,8 @@ test("领主规则保留冷却和25米门槛，第三击只记一次击败", () 
   assert.equal(hitBoss(p, b, { inRange: true, isFlank: true }).hit, true);
   assert.equal(hitBossWithTorpedo(p, b).hit, false);
   p.biteCooldown = b.biteCooldown = 0;
+  assert.equal(hitBossWithTorpedo(p, b).reason, "opening_spent");
+  finishNextBossAttack(b);
   assert.equal(hitBossWithTorpedo(p, b).hit, true);
   assert.equal(b.validatedHits, 2);
 });

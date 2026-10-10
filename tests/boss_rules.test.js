@@ -1,3 +1,4 @@
+import { finishNextBossAttack } from "./helpers/boss_cycle.js";
 import assert from "node:assert/strict";
 import test from "node:test";
 import * as THREE from "three";
@@ -7,6 +8,8 @@ import {
   BOSS_SPECIES,
   BOSS_BITE_HUNGER,
   BOSS_REQUIRED_HITS,
+  bossRequiredHits,
+  bossCounterOpen,
   createBossState,
   hitBoss,
   tickBoss,
@@ -130,6 +133,8 @@ test("咬击检查距离，冷却为玩家全局1.2秒，不能交替主宰绕�
   tickBoss(first, 1.21, CLOSE);
   assert.equal(hitBoss(player, first, FLANK).reason, "must_disengage");
   updateBossContact(first, false, 0.35);
+  assert.equal(hitBoss(player, first, FLANK).reason, "opening_spent");
+  finishNextBossAttack(first);
   assert.equal(hitBoss(player, first, FLANK).hit, true);
 });
 
@@ -175,6 +180,7 @@ test("体型、角度、距离、冷却、未脱离或终态拒绝的攻击完�
     ["cooldown", (player) => (player.biteCooldown = 1), FLANK],
     ["cooldown", (_, boss) => (boss.biteCooldown = 1), FLANK],
     ["must_disengage", (_, boss) => (boss.contactArmed = false), FLANK],
+    ["opening_spent", (_, boss) => (boss.openingSpent = true), FLANK],
     ["boss_defeated", (_, boss) => (boss.defeated = true), FLANK],
     ...["dead", "won", "timedOut"].map((status) => [
       "player_unavailable",
@@ -292,7 +298,7 @@ test("死亡、胜利或到时后即使保持接触也不伤害领主或领取�
   }
 });
 
-test("两角色在25至30米，领主保留阶段护甲与三次独立有效侧咬", () => {
+test("两角色在25至30米，领主保留阶段护甲与按配置分轮有效命中", () => {
   assert.equal(BOSS_REQUIRED_HITS, 3);
   for (const species of BOSS_SPECIES)
     for (const characterId of ["orca", "squid"])
@@ -321,20 +327,34 @@ test("两角色在25至30米，领主保留阶段护甲与三次独立有效侧�
               assert.equal(boss.validatedHits, 0);
               assert.equal(boss.health, species.health);
             }
-            for (let hits = 1; hits <= BOSS_REQUIRED_HITS; hits += 1) {
-              boss.phase = guarded ? "recover" : phase;
+            boss.phase = phase;
+            const counterClosed = !bossCounterOpen(boss);
+            if (counterClosed && !guarded) {
+              assert.equal(
+                hitBoss(player, boss, FLANK).reason,
+                "opening_closed",
+              );
+              assert.equal(boss.validatedHits, 0);
+              assert.equal(boss.health, species.health);
+            }
+            const requiredHits = bossRequiredHits(species);
+            for (let hits = 1; hits <= requiredHits; hits += 1) {
+              boss.phase = guarded || counterClosed ? "recover" : phase;
               const result = hitBoss(player, boss, FLANK);
               assert.equal(result.hit, true);
               assert.equal(boss.validatedHits, hits);
-              assert.ok(Math.abs(result.damage - species.health / 3) < 1e-9);
-              assert.equal(result.defeated, hits === BOSS_REQUIRED_HITS);
-              assert.equal(boss.defeated, hits === BOSS_REQUIRED_HITS);
-              if (hits < BOSS_REQUIRED_HITS) {
+              assert.ok(
+                Math.abs(result.damage - species.health / requiredHits) < 1e-9,
+              );
+              assert.equal(result.defeated, hits === requiredHits);
+              assert.equal(boss.defeated, hits === requiredHits);
+              if (hits < requiredHits) {
                 assert.ok(boss.health > 0);
                 assert.equal(player.bossesDefeated, 0);
                 tickVitals(player, 1.21);
                 tickBoss(boss, 1.21, CLOSE);
                 updateBossContact(boss, false, 0.35);
+                finishNextBossAttack(boss);
               }
             }
             assert.equal(boss.health, 0);
@@ -360,6 +380,7 @@ test("奇数或非整数生命值第三口直接归零，恢复期不增加伤�
         tickVitals(player, 1.21);
         tickBoss(boss, 1.21, CLOSE);
         updateBossContact(boss, false, 0.35);
+        finishNextBossAttack(boss);
       }
     }
     assert.equal(boss.validatedHits, 3);
@@ -381,6 +402,7 @@ test("击败奖励只结算一次，25米先击败主宰后还需继续成长", 
     tickVitals(player, 1.21);
     tickBoss(boss, 1.21, CLOSE);
     updateBossContact(boss, false, 0.35);
+    finishNextBossAttack(boss);
   }
   assert.equal(player.bossesDefeated, 1);
   assert.ok(Math.abs(player.health - 21.21) < 1e-8);
@@ -410,7 +432,7 @@ test("从领地较远处即可发招，预警末段留有明确锁定和规避�
   }
 });
 
-test("左右侧翼朝内攻击有效，头尾背部和反向贴靠都无效", () => {
+test("朝内咬侧面、背部和尾后有效，非停顿期的正面及朝外贴靠无效", () => {
   const context = {
     bossPosition: new THREE.Vector3(),
     bossForward: new THREE.Vector3(0, 0, -1),
@@ -425,11 +447,7 @@ test("左右侧翼朝内攻击有效，头尾背部和反向贴靠都无效", ()
       true,
     );
   }
-  for (const position of [
-    new THREE.Vector3(0, 0, -20),
-    new THREE.Vector3(0, 0, 20),
-    new THREE.Vector3(0, 20, 0),
-  ]) {
+  for (const position of [new THREE.Vector3(0, 0, -20)]) {
     assert.equal(
       isBossFlankContact({
         ...context,
@@ -437,6 +455,20 @@ test("左右侧翼朝内攻击有效，头尾背部和反向贴靠都无效", ()
         playerForward: position.clone().normalize().negate(),
       }),
       false,
+    );
+  }
+  for (const position of [
+    new THREE.Vector3(0, 0, 20),
+    new THREE.Vector3(0, 20, 0),
+    new THREE.Vector3(12, 4, -7),
+  ]) {
+    assert.equal(
+      isBossFlankContact({
+        ...context,
+        playerPosition: position,
+        playerForward: position.clone().normalize().negate(),
+      }),
+      true,
     );
   }
   assert.equal(
@@ -482,6 +514,8 @@ test("持续贴住不连咬，脱离0.35秒且冷却完成才会重新武装", (
     updateBossContact(boss, false, 0.2);
     assert.equal(boss.contactArmed, false);
     updateBossContact(boss, false, 0.15);
+    assert.equal(hitBoss(player, boss, FLANK).reason, "opening_spent");
+    finishNextBossAttack(boss);
     const hunger = player.hunger;
     const result = hitBoss(player, boss, FLANK);
     assert.equal(result.hit, true);
@@ -519,4 +553,41 @@ test("领主垂直转身时仍按模型真实左右侧判定，不产生无法�
     }),
     true,
   );
+});
+
+test("停顿期正面实体命中生效，仍保留资格、遮挡确认、冷却与配置命中数", () => {
+  for (const species of BOSS_SPECIES) {
+    const player = grownPlayer(25);
+    const boss = createBossState(species);
+    boss.phase = "recover";
+    assert.equal(
+      hitBoss(player, boss, { inRange: false }).reason,
+      "out_of_range",
+    );
+    player.length = 24.99;
+    assert.equal(hitBoss(player, boss, { inRange: true }).reason, "too_small");
+    player.length = 25;
+    for (let i = 0; i < bossRequiredHits(species); i++) {
+      if (i) {
+        player.biteCooldown = boss.biteCooldown = 0;
+        assert.equal(
+          hitBoss(player, boss, { inRange: true }).reason,
+          "must_disengage",
+        );
+        updateBossContact(boss, false, 0.35);
+        finishNextBossAttack(boss);
+      }
+      assert.equal(
+        hitBoss(player, boss, { inRange: true, isFlank: false }).hit,
+        true,
+        species.kind,
+      );
+      assert.equal(boss.validatedHits, i + 1);
+      assert.equal(boss.defeated, i === bossRequiredHits(species) - 1);
+    }
+    assert.equal(
+      hitBoss(player, boss, { inRange: true }).reason,
+      "boss_defeated",
+    );
+  }
 });

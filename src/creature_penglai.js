@@ -2,6 +2,7 @@ import { PENGLAI_TRANSFORMATION_FORMS } from "./penglai_transformation_species.j
 import { buildKunPeng } from "./creature_penglai_kun.js";
 import * as THREE from "three";
 import { pgBakeStatic } from "./creature_penglai_art.js";
+import { prepareLordBody } from "./lord_body.js";
 import { PENGLAI_SPECIES } from "./penglai_species.js";
 import { PENGLAI_LORDS } from "./penglai_lords.js";
 import { buildPenglaiFish } from "./creature_penglai_fish.js";
@@ -34,6 +35,7 @@ export function buildPenglaiCreature(kind, root, motions) {
   )
     buildPenglaiSpecial(kind, b, motions, root);
   else buildPenglaiFish(kind, b, motions);
+  prepareLordBody(root, kind);
   pgBakeStatic(b, kind);
   b.updateMatrixWorld(true);
   // 旋转的护阵和翼鳍不能用松散包围盒缩小主体；精确顶点测量每种只做一次。

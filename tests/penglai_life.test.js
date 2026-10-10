@@ -38,7 +38,7 @@ test("Ground turns retain world up through opposite headings and vertical jump t
   uprightHeadingQuaternion(q, { x: 0, y: 100, z: 0 }, 1.3);
   assert.ok(up.clone().applyQuaternion(q).distanceTo(up) < 1e-10);
 });
-test("Sage pursuit starts only after unlocked entry, persists outside, resets and leaves other guardians territorial", () => {
+test("Sage pursuit starts on unlock without territorial entry, persists outside, resets and leaves other guardians territorial", () => {
   const sage = createBossState(
     PENGLAI_LORDS.find((s) => s.kind === "sword_sage"),
   );
@@ -46,7 +46,7 @@ test("Sage pursuit starts only after unlocked entry, persists outside, resets an
   assert.equal(bossEngagement(sage, true), false);
   assert.equal(sage.pursuitStarted, false);
   sage.locked = false;
-  assert.equal(bossEngagement(sage, false), false);
+  assert.equal(bossEngagement(sage, false), true);
   assert.equal(bossEngagement(sage, true), true);
   assert.equal(bossEngagement(sage, false), true);
   tickBoss(sage, 0.1, {

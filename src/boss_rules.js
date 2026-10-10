@@ -1,7 +1,7 @@
 import { ODYSSEY_LORDS } from "./odyssey_lords.js";
 import { PENGLAI_LORDS } from "./penglai_lords.js";
 import { AMAZON_LORDS } from "./amazon_lords.js";
-/** 深海主宰的独立战斗规则：领地、蓄力预警、攻击、恢复与三次有效侧咬。 */
+/** 深海主宰的独立战斗规则：领地、蓄力预警、攻击、恢复与按配置分轮有效攻击。 */
 import { applyNutrition, vitalLimit } from "./simulation.js";
 
 /*********************************************
@@ -24,6 +24,7 @@ export function createBossState(species) {
     biteCooldown: 0,
     contactArmed: true,
     contactReleaseTime: 0,
+    openingSpent: false,
     ability: species.ability,
     attackCount: 0,
     validatedHits: 0,
@@ -32,15 +33,19 @@ export function createBossState(species) {
   };
 }
 
-/** 只有配置持续追击的、已解锁领主进入领域后记住玩家；新状态自然重置。 */
+/** 持续追击守卫在入域或配置的解锁时记住玩家；锁定与新状态仍隔离追击。 */
 export function bossEngagement(boss, atHome) {
   if (boss.defeated || boss.locked) return false;
-  if (boss.species.persistentPursuit && atHome) boss.pursuitStarted = true;
+  if (
+    boss.species.persistentPursuit &&
+    (atHome || boss.species.pursuitOnUnlock)
+  )
+    boss.pursuitStarted = true;
   return atHome || boss.pursuitStarted;
 }
 
 /**
- * 推进主宰状态机，保留未完成战斗的生命值，脱离领地后结束追击。
+ * 推进主宰状态机，保留未完成战斗的生命值，普通领主脱离领地后结束追击，持续追击守卫由场景保留交战状态。
  * @param {object} boss createBossState返回的状态，将原地更新。
  * @param {number} dt 经过的秒数，非正数与非有限值不推进时间。
  * @param {object} context 领地内与否、距离、视线以及玩家是否存活。
@@ -118,7 +123,7 @@ export function tickBoss(
 }
 
 /**
- * 记录嘴部是否已离开实体；一次侧翼进攻之后须脱离至少0.35秒才能再次咬击。
+ * 记录嘴部是否已离开实体；一次近身进攻之后须脱离至少0.35秒才能再次咬击。
  * @param {object} boss 主宰状态。
  * @param {boolean} touching 嘴部小球是否仍接触实际模型，不能使用宽相包围盒代替。
  * @param {number} dt 本帧有效游戏秒数。
@@ -134,7 +139,7 @@ export function updateBossContact(boss, touching, dt) {
 }
 
 /**
- * 判断玩家位于领主左右侧翼且朝内进攻，排除正面、尾后及背部垂直贴靠。
+ * 判断朝内的侧面、背部或尾后进攻；仅正面护甲和朝外贴靠不算弱点。
  * @param {object} context 世界坐标与单位朝向；可提供实际模型bossRight，支持领主垂直转身。
  * @returns {boolean} 是否属于可以伤害领主的侧翼进攻方向。
  */
@@ -163,26 +168,32 @@ export function isBossFlankContact({
           horizontal /
           distance,
   );
-  const longitudinal = Math.abs(
+  const longitudinal =
     (bossForward.x * offset.x +
       bossForward.y * offset.y +
       bossForward.z * offset.z) /
-      distance,
-  );
+    distance;
   const facing =
     -(
       playerForward.x * offset.x +
       playerForward.y * offset.y +
       playerForward.z * offset.z
     ) / distance;
-  return side >= 0.6 && longitudinal <= 0.65 && facing >= 0.25;
+  const dorsal = Math.sqrt(
+    Math.max(0, 1 - side * side - longitudinal * longitudinal),
+  );
+  return (
+    longitudinal <= 0.55 &&
+    (side >= 0.35 || dorsal >= 0.35 || longitudinal < -0.35) &&
+    facing >= 0.15
+  );
 }
 
 /**
- * 结算接触后的自动侧咬；每位领主恰需三次有效进攻，交战始终使用真实体长。
+ * 结算接触后的自动咬击；每位领主恰需三次有效进攻，交战始终使用真实体长。
  * @param {object} player 玩家状态，将更新全局咬击冷却、有效命中的饱食补给和最终战利品。
  * @param {object} boss 主宰状态，将更新生命、冷却和击败状态。
- * @param {{inRange?:boolean,isFlank?:boolean}} options 场景确认嘴部接触实体、无遮挡且从侧翼朝内进攻。
+ * @param {{inRange?:boolean,isFlank?:boolean}} options 场景确认嘴部接触实体、无遮挡且朝内接近弱点（恢复期允许正面）。
  * @returns {{hit:boolean,damage:number,hungerRestored:number,defeated:boolean,reason:string}} 本次攻击结果；hungerRestored仅含这一口的实际饱食补给，不含击败战利品。
  */
 export function hitBoss(
@@ -206,15 +217,17 @@ export function hitBoss(
   if (!inRange) return failure("out_of_range");
   if (boss.species.guardedPhases?.includes(boss.phase))
     return failure("shell_guarded");
-  if (!isFlank) return failure("armored_angle");
+  if (!bossCounterOpen(boss)) return failure("opening_closed");
+  if (boss.phase !== "recover" && !isFlank) return failure("armored_angle");
   if (player.biteCooldown > 0 || boss.biteCooldown > 0)
     return failure("cooldown");
   if (!boss.contactArmed) return failure("must_disengage");
+  if (boss.openingSpent) return failure("opening_spent");
 
   return settleBossHit(player, boss);
 }
 
-/** 有效鱼雷代替一口侧咬，保留真实25米门槛、间隔及同一击败结算。 */
+/** 有效鱼雷代替一口近身攻击，保留真实25米门槛、同轮破绽限制及同一击败结算。 */
 export function hitBossWithTorpedo(player, boss) {
   if (
     player.characterId !== "mechanical_shark" ||
@@ -235,19 +248,34 @@ export function hitBossWithTorpedo(player, boss) {
       defeated: false,
       reason: "ineligible",
     };
+  if (!bossCounterOpen(boss))
+    return {
+      hit: false,
+      damage: 0,
+      hungerRestored: 0,
+      defeated: false,
+      reason: "opening_closed",
+    };
+  if (boss.openingSpent)
+    return {
+      hit: false,
+      damage: 0,
+      hungerRestored: 0,
+      defeated: false,
+      reason: "opening_spent",
+    };
   return settleBossHit(player, boss);
 }
 
 // 两种有效攻击共用命中数、食物、战利品和持久击败，不复制目标判定。
 function settleBossHit(player, boss) {
-  // 整数命中数决定击败，最后一口直接清零，不让浮点余量要求第四次进攻。
-  const remainingHits = BOSS_REQUIRED_HITS - boss.validatedHits;
+  // 整数命中数决定击败，最后一口直接清零，不让浮点余量要求额外进攻。
+  const requiredHits = bossRequiredHits(boss.species);
+  const remainingHits = requiredHits - boss.validatedHits;
   const damage = boss.health / remainingHits;
   boss.validatedHits += 1;
   boss.health =
-    boss.validatedHits === BOSS_REQUIRED_HITS
-      ? 0
-      : Math.max(0, boss.health - damage);
+    boss.validatedHits === requiredHits ? 0 : Math.max(0, boss.health - damage);
   // 只对真正造成伤害的一口补饱食，不提前发放击败后的治疗或成长奖励。
   const hungerRestored =
     damage > 0
@@ -261,7 +289,8 @@ function settleBossHit(player, boss) {
   boss.biteCooldown = 1.2;
   boss.contactArmed = false;
   boss.contactReleaseTime = 0;
-  if (boss.validatedHits < BOSS_REQUIRED_HITS) {
+  boss.openingSpent = true;
+  if (boss.validatedHits < requiredHits) {
     if (boss.phase === "dormant" || boss.phase === "return")
       setPhase(boss, "hunt");
     return {
@@ -293,8 +322,35 @@ function settleBossHit(player, boss) {
 /** 有效咬伤领主时恢复的饱食上限，实际恢复不得超过100点总上限。 */
 export const BOSS_BITE_HUNGER = 8;
 
-/** 每位领主所需的有效侧翼攻击数；体长、狂食和恢复阶段均不会改变次数。 */
+/** 普通领主默认的有效攻击数；体长、狂食和恢复阶段均不会改变次数。 */
 export const BOSS_REQUIRED_HITS = 3;
+
+/** 普通领主三次，明确配置的终局守卫使用自己的次数；HUD和结算共用。 */
+export function bossRequiredHits(species) {
+  return species.requiredHits ?? BOSS_REQUIRED_HITS;
+}
+
+/** 指定反击阶段的守卫不保留收势以外的可用破绽；其他领主沿用原规则。 */
+export function bossCounterOpen(boss) {
+  return (
+    !boss.species.counterPhases ||
+    boss.species.counterPhases.includes(boss.phase)
+  );
+}
+
+/** 有界转向处理正后方目标；直立守卫的升降运动不依赖模型的水平朝向。 */
+export function steerBossPursuit(current, desired, dt, turnRate, out) {
+  const from = Math.atan2(current.x, current.z);
+  const to = Math.atan2(desired.x, desired.z);
+  const delta = Math.atan2(Math.sin(to - from), Math.cos(to - from));
+  const limit = Math.max(0, dt) * turnRate;
+  const yaw = from + Math.max(-limit, Math.min(limit, delta));
+  const horizontal = Math.hypot(desired.x, desired.z);
+  out.x = Math.sin(yaw) * horizontal;
+  out.y = desired.y;
+  out.z = Math.cos(yaw) * horizontal;
+  return out;
+}
 
 /** 未指定地图领地时采用的领域半径；固定守卫仍使用各地图的实际配置。 */
 export const BOSS_DEFAULT_TERRITORY_RADIUS = 125;
@@ -439,6 +495,8 @@ export const BOSS_SPECIES = Object.freeze(
  ********************************************/
 
 function setPhase(boss, phase) {
+  // 一次破绽只结算一次伤害；完整释放下一轮技能后才重新开放，撤出或喷墨不重置。
+  if (boss.phase === "attack" && phase === "recover") boss.openingSpent = false;
   boss.phase = phase;
   boss.timer = 0;
   if (phase === "windup" && boss.species.abilityCycle?.length)
@@ -449,7 +507,7 @@ function setPhase(boss, phase) {
   const timings = boss.species.abilityTimings?.[boss.ability];
   boss.phaseDuration = {
     dormant: Infinity,
-    hunt: 1,
+    hunt: boss.species.huntDuration ?? 1,
     windup: timings?.windup ?? boss.species.windupDuration,
     attack: timings?.attack ?? boss.species.attackDuration,
     recover: timings?.recover ?? 3,

@@ -57,6 +57,7 @@ import {
   sculptedFin,
 } from "./creature_surface.js";
 import { mergeGeometries } from "three/addons/utils/BufferGeometryUtils.js";
+import { prepareLordBody } from "./lord_body.js";
 import { buildExtraCreature, EXTRA_CREATURE_KINDS } from "./creature_extra.js";
 import {
   buildEcosystemCreature,
@@ -137,6 +138,7 @@ export function createCreature(kind, length = 6, seed = 1) {
   else if (kind === "tuna") buildTuna(root, motions);
   else buildFish(root, motions, random);
 
+  prepareLordBody(root, kind);
   mergeStaticParts(root, kind);
   // 新外观不改变已发布领主的触碰区域；隐藏代理保持原动作与归一化。
   if (kind === "mayan") {

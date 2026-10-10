@@ -77,7 +77,7 @@ export const PENGLAI_LORDS = Object.freeze(
       label: t(zh, en),
       mythic: true,
       length,
-      health: 210,
+      health: kind === "sword_sage" ? 350 : 210,
       minAttackLength: 25,
       speed:
         kind === "white_tiger"
@@ -85,7 +85,7 @@ export const PENGLAI_LORDS = Object.freeze(
           : kind === "black_tortoise"
             ? 22
             : kind === "sword_sage"
-              ? 28
+              ? 36
               : 32,
       engageRange: 135,
       lockWindow: 0.8,
@@ -118,12 +118,18 @@ export const PENGLAI_LORDS = Object.freeze(
         ? {
             abilityCycle: Object.freeze(["swords", "charge"]),
             abilityTimings: Object.freeze({
-              swords: Object.freeze({ windup: 2.2, attack: 1.6, recover: 3.5 }),
-              charge: Object.freeze({ windup: 2.2, attack: 0.9, recover: 4 }),
+              swords: Object.freeze({ windup: 1.9, attack: 1.6, recover: 2.2 }),
+              charge: Object.freeze({ windup: 1.9, attack: 0.9, recover: 2.6 }),
             }),
             chargeSpeed: 65,
             chargeHandlesContact: true,
             persistentPursuit: true,
+            pursuitOnUnlock: true,
+            huntDuration: 0.8,
+            pursuitTurnRate: 2.4,
+            windupAdvanceSpeeds: Object.freeze({ swords: 20 }),
+            requiredHits: 5,
+            counterPhases: Object.freeze(["recover"]),
             skillTips: Object.freeze({
               swords: t(
                 "飞剑将至 · 横向闪避或绕山石遮挡",
@@ -193,7 +199,7 @@ export const PENGLAI_LORD_DESCRIPTIONS = Object.freeze(
           appearance: t(appearance, enAppearance),
           text: t(
             kind === "sword_sage"
-              ? "四神兽未全部击败时结界阻挡道观入口。解除护阵并进入领地后，真君会持续缓慢追击，冲刺可拉开距离。击败真君完成远征。"
+              ? "四神兽未全部击败时结界阻挡道观入口。护阵一解，真君即开始全域追击，并在飞剑蓄势前段继续逼近。生命350，需要五轮有效反击；只有齐射或冲阵后的短暂收势期可伤到本体。借山石遮挡、冲刺转向，再抓住破绽。击败真君完成远征。"
               : kind === "azure_dragon"
                 ? "“沧溟龙息”凝聚云水，沿预警锁定方向喷出有限射程的水流；横向或上下避开，待收势时从侧翼反击。镇守东峰，击败后本局不再刷新。"
                 : kind === "white_tiger"
@@ -202,7 +208,7 @@ export const PENGLAI_LORD_DESCRIPTIONS = Object.freeze(
                     ? "“玄甲镇渊”在蓄势与脉冲期间升起护甲，挡住咬击和鱼雷；甲阵退去后的4.5秒才是侧翼反击窗口。镇守北池，击败后本局不再刷新。"
                     : "“朱羽焚天”蓄势后发出三道焰息，攻击力为四神兽之最；横向变向避开连弹，趁收势反击。镇守南方天空，击败后本局不再刷新。",
             kind === "sword_sage"
-              ? "The monastery is sealed until all four guardians fall. After unsealing the ward and entering his territory, the sage keeps pursuing slowly; sprint to gain distance. Defeat him to complete Penglai."
+              ? "The monastery is sealed until all four guardians fall. Once the ward falls, the sage pursues across Penglai and advances during early blade windup. He has 350 health and requires five separate counters; only brief post-volley or post-dash recovery exposes his body. Use mountain cover and sprint turns, then seize an opening. Defeat him to complete Penglai."
               : kind === "azure_dragon"
                 ? "Dragon Breath of the Azure Sea gathers cloud-water and releases a finite stream along the warned direction. Dodge sideways or vertically and counter at the flank during recovery. It guards the eastern peak and never respawns after defeat."
                 : kind === "white_tiger"
@@ -212,12 +218,16 @@ export const PENGLAI_LORD_DESCRIPTIONS = Object.freeze(
                     : "Vermilion Skyfire prepares three flame volleys; this is the hardest-hitting Four-Symbol guardian. Change course sideways and counter during recovery. It guards the southern sky and never respawns after defeat.",
           ),
           counter: t(
-            kind === "black_tortoise"
-              ? "25米后避开脉冲，等待甲阵消退的4.5秒窗口，从侧翼完成三次独立命中；鱼雷也无法穿过生效中的甲阵。"
-              : "25米后观察预警，从侧翼完成三次独立命中。地形可以掩护，但不要留在蓄势攻击的路径上。",
-            kind === "black_tortoise"
-              ? "At 25 m, avoid the pulse and use the 4.5-second exposed window for three separated flank hits. Torpedoes cannot pierce the active shell ward either."
-              : "At 25 m, watch the warnings and land three separated flank hits. Terrain offers cover; avoid the warned attack path.",
+            kind === "sword_sage"
+              ? "25米后避开1.9秒预警的飞剑与冲阵，在齐射后2.2秒、冲阵后2.6秒的收势期咬中身体，正面也有效。五轮有效反击即可击败，每轮最多一次；咬击和鱼雷共用破绽。"
+              : kind === "black_tortoise"
+                ? "25米后避开脉冲，等待甲阵消退的4.5秒窗口，从侧翼完成三次独立命中；鱼雷也无法穿过生效中的甲阵。"
+                : "25米后观察预警，从侧翼完成三次独立命中。地形可以掩护，但不要留在蓄势攻击的路径上。",
+            kind === "sword_sage"
+              ? "At 25 m, dodge the blades and dash after their 1.9-second warning. Bite the body from any angle during 2.2-second volley or 2.6-second dash recovery. Five separate counters defeat him, with one hit per opening shared by bites and torpedoes."
+              : kind === "black_tortoise"
+                ? "At 25 m, avoid the pulse and use the 4.5-second exposed window for three separated flank hits. Torpedoes cannot pierce the active shell ward either."
+                : "At 25 m, watch the warnings and land three separated flank hits. Terrain offers cover; avoid the warned attack path.",
           ),
         },
       ],

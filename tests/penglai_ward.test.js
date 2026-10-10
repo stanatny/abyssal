@@ -96,23 +96,23 @@ test("Sword Sage alternates telegraphed swords and short dash, retaining recover
   const s = PENGLAI_LORDS.find((s) => s.kind === "sword_sage"),
     boss = createBossState(s),
     context = { inTerritory: true, distance: 40, lineOfSight: true };
-  tickBoss(boss, 1, context);
+  tickBoss(boss, 0.8, context);
   assert.equal(boss.phase, "windup");
   assert.equal(boss.ability, "swords");
-  assert.equal(boss.phaseDuration, 2.2);
-  tickBoss(boss, 2.2, context);
+  assert.equal(boss.phaseDuration, 1.9);
+  tickBoss(boss, 1.9, context);
   assert.equal(boss.phase, "attack");
   tickBoss(boss, 1.6, context);
   assert.equal(boss.phase, "recover");
-  assert.equal(boss.phaseDuration, 3.5);
-  tickBoss(boss, 4.5, context);
+  assert.equal(boss.phaseDuration, 2.2);
+  tickBoss(boss, 3, context);
   assert.equal(boss.phase, "windup");
   assert.equal(boss.ability, "charge");
-  tickBoss(boss, 2.2, context);
+  tickBoss(boss, 1.9, context);
   assert.equal(boss.phaseDuration, 0.9);
   tickBoss(boss, 0.9, context);
   assert.equal(boss.phase, "recover");
-  assert.equal(boss.phaseDuration, 4);
+  assert.equal(boss.phaseDuration, 2.6);
   assert.ok(s.chargeSpeed * 0.9 < 60);
   assert.equal(
     hitBossWithTorpedo(createPlayer("mechanical_shark", 24), boss).hit,

@@ -181,8 +181,8 @@ export const REGIONAL_RARES = Object.freeze(
         "Rare blessing · 150 vital caps this round",
       ),
       description: copy(
-        "每次远征仅有一只，随机栖息于隐蔽区域，捕获后不再刷新。吞食立即补满生命、体力与饥饿，并将三项上限提升至150；新远征恢复100。它会巡游、逃跑和变向躲闪；普通游速难以追上，预判路线并短冲刺可以拉近距离。狂食的近距吸食对它生效；尸鲨仆从也能加速追捕珍兽，恩赐归主角。",
-        "One per expedition, in a randomly chosen secluded area, with no respawn after capture. Eating it fills health, stamina and hunger and raises all three caps to 150 for this round; a new expedition resets them to 100. It patrols, flees and dodges; cruise swimming cannot close the gap, but anticipation and a short sprint can. Frenzy suction also works on it. A Zombie Shark companion can speed up to hunt it and awards its blessing to you.",
+        "每次远征仅有一只，随机栖息于隐蔽区域，捕获后不再刷新。吞食立即补满生命、体力与饥饿，并将三项上限提升至150；新远征恢复100。捕获时彩光收束并环绕主角。它会巡游、逃跑和变向躲闪；普通游速难以追上，预判路线并短冲刺可以拉近距离。狂食的近距吸食对它生效；尸鲨仆从也能加速追捕珍兽，恩赐归主角。",
+        "One per expedition, in a randomly chosen secluded area, with no respawn after capture. Eating it fills health, stamina and hunger and raises all three caps to 150 for this round; a new expedition resets them to 100. Rainbow light gathers around the owner on capture. It patrols, flees and dodges; cruise swimming cannot close the gap, but anticipation and a short sprint can. Frenzy suction also works on it. A Zombie Shark companion can speed up to hunt it and awards its blessing to you.",
       ),
       counter: copy(
         "线索只指向可能的栖息区域，不代表固定位置。开局即可寻找和捕获，无需长到30米。首次游经活动圈以内的海域时，无论深度，都会提示“发现珍兽海域”，并在小地图揭示柔光虹彩活动圈；开局不会提前标记。发现后，箭头按当前朝向指向这片栖地，“更深／更高”提示水层；靠近个体时提示附近有珍兽。已发现的范围保留到捕获或新局。范围不追踪它的实时位置。发现其发亮的虹彩菱形后，预判转向并冲刺追捕。",

@@ -1,3 +1,4 @@
+import { LORD_RECOVERY } from "./lord_recovery.js";
 import { ODYSSEY_LORD_DESCRIPTIONS } from "./odyssey_lords.js";
 import { disposePenglaiTigerMotion } from "./creature_penglai_tiger.js";
 import { creatureGuideSkills } from "./creature_guide_skills.js";
@@ -28,7 +29,11 @@ import {
 import { ALL_SPECIES, getRegionSpecies } from "./region_ecology.js";
 import { characterMovement } from "./character_rules.js";
 import { HUMAN_CATALOG, createHumanModel } from "./vehicle_models.js";
-import { BOSS_SPECIES, BOSS_BITE_HUNGER } from "./boss_rules.js";
+import {
+  BOSS_SPECIES,
+  BOSS_BITE_HUNGER,
+  bossRequiredHits,
+} from "./boss_rules.js";
 import { BERMUDA_HAZARDS } from "./bermuda_hazard_rules.js";
 import { BERMUDA_WRECK } from "./bermuda_sites.js";
 import { WORLD } from "./world_config.js";
@@ -215,7 +220,7 @@ export function buildOceanCatalog(regionId) {
           : regionId === "europa"
             ? "冰壳下的海洋没有大气出口，无法跃出水面。陡角度接触冰顶会短暂回到平游；技能、捕食与岩拱碰撞规则不变。"
             : entry.kind === "mechanical_shark"
-              ? "先留足生命与体力再开火，利用掩体和射程压制。爆炸不穿墙；击杀的普通生物立即计为主角吞噬，未击杀不发放收益。不比自己小的普通生物需两次有效命中；领主仍需三次，且必须达到25米。"
+              ? "先留足生命与体力再开火，利用掩体和射程压制。爆炸不穿墙；击杀的普通生物立即计为主角吞噬，未击杀不发放收益。不比自己小的普通生物需两次有效命中；普通领主需三次有效命中，御剑真君需五次收势反击，且必须达到25米。"
               : entry.kind === "zombie_shark"
                 ? "先备好食物和退路再献祭；仆从不能代打领主，也不会提高主角吞食上限。体长正好5米时可以召唤并追捕珍兽，但普通猎物仍须满足减5米限制。"
                 : entry.kind === "orca"
@@ -294,8 +299,12 @@ export function buildOceanCatalog(regionId) {
       kind: config.kind,
       ...DESCRIPTIONS[config.kind],
       skills: creatureGuideSkills(config, DESCRIPTIONS[config.kind]),
+      requiredHits: bossRequiredHits(config),
+      counterPhases: config.counterPhases,
       text:
-        tr`未交战时也会在自己的领地内缓慢巡游，靠近时才发动追猎。` +
+        (config.pursuitOnUnlock
+          ? tr`四象护阵未解时留守道观，解锁后立即开始全域追击。`
+          : tr`未交战时也会在自己的领地内缓慢巡游，靠近时才发动追猎。`) +
         " " +
         (DESCRIPTIONS[config.kind].appearance
           ? t(DESCRIPTIONS[config.kind].appearance) + " "
@@ -586,7 +595,7 @@ function buildRewardDetails() {
       role: "近距吸食",
       keywords: "吞噬 狂食 捕食 吸食 范围",
       text: tr`持续${REWARDS.frenzy.duration}秒：扩大近身吞噬范围，将附近无遮挡、原本就可捕食的水下生物吸向嘴部，珍兽也会被吸引。不会临时变大，也不能越级捕食；普通进食加快渐进回血并沿用成长规则，珍兽结算本局恩赐。`,
-      counter: tr`沿着鱼群边缘游过，吸食可以减少反复对准。出生浅滩固定放置生命补给与洋流之息各一枚；百慕大出生点另有一枚固定狂食，该地图的随机狂食不会出现在安全浅滩。其余${RANDOM_REWARD_COUNT}枚奖励每局随机分布，其他地图仍可能在浅滩偶遇随机狂食。拾取后45秒在本局原位刷新，再次拾取狂食只刷新${REWARDS.frenzy.duration}秒效果。大于或等于自己体长的生物、水雷、潜艇和领主不会被吸入；礁石与船体会阻挡吸食。领主仍需真实体长25米，并通过多次侧翼攻击击败。`,
+      counter: tr`沿着鱼群边缘游过，吸食可以减少反复对准。出生浅滩固定放置生命补给与洋流之息各一枚；百慕大出生点另有一枚固定狂食，该地图的随机狂食不会出现在安全浅滩。其余${RANDOM_REWARD_COUNT}枚奖励每局随机分布，其他地图仍可能在浅滩偶遇随机狂食。拾取后45秒在本局原位刷新，再次拾取狂食只刷新${REWARDS.frenzy.duration}秒效果。大于或等于自己体长的生物、水雷、潜艇和领主不会被吸入；礁石与船体会阻挡吸食。领主仍需真实体长25米；普通领主三次有效命中，御剑真君五次收势反击。`,
     },
   };
 }
@@ -988,7 +997,7 @@ export function createOceanGuide(trigger) {
     }
     const combat =
       entry.category === "lord"
-        ? tr`${"25米可交战 · 三次侧翼攻击，命中后需脱离再接近"} · ${tr`每次有效咬击恢复${BOSS_BITE_HUNGER}点饱食（不超过当前上限），不额外回血或成长；击败奖励另计。`}`
+        ? tr`${entry.counterPhases ? tr`25米可交战 · ${entry.requiredHits}次分轮反击。只有技能后的收势期能伤到本体，正面命中也有效。每轮最多一次，咬击与鱼雷共用；实体阻挡穿行，命中后需脱离。` : tr`25米可交战 · ${entry.requiredHits}次独立命中。身体侧面、背部是弱点；攻击后的收势期，正面咬中身体也有效。每轮最多一次有效伤害，需等下一轮技能结束再进攻；鱼雷共用这个间隔。身体会阻挡穿行，命中后需脱离再接近。`} · ${tr`每次有效咬击恢复${BOSS_BITE_HUNGER}点饱食（不超过当前上限），不额外回血或成长；击败奖励另计。`}`
         : entry.category === "player"
           ? tr`巡游 ${characterMovement(entry.characterId).cruiseSpeed} m/s · 冲刺 ${characterMovement(entry.characterId).sprintSpeed} m/s`
           : entry.role;
@@ -1005,7 +1014,7 @@ export function createOceanGuide(trigger) {
       : tr`<h4>${entry.skills?.length ? "遭遇与习性" : entry.ability}</h4><p>${entry.text}</p>`;
     setMarkup(
       info,
-      tr`<div class="guide-eyebrow">${entry.latin}</div><div class="guide-name-row"><h3>${entry.name}</h3><span>${entry.role}</span></div><div class="guide-facts"><div><small>本作尺度</small><b>${entry.size}</b></div><div><small>活动水层</small><b>${entry.habitat}</b></div></div>${entry.category === "player" && entry.appearance ? tr`<p class="guide-appearance">${entry.appearance}</p>` : ""}${abilities}${entry.background ? tr`<section class="guide-background"><h4>${entry.backgroundType}</h4><p>${entry.background}</p></section>` : ""}${behavior}<div class="guide-advice"><b>生存建议</b><p>${entry.counter}</p></div><small class="guide-combat">${combat}</small>${survival}${entry.realSize ? tr`<div class="guide-advice"><b>生态注记</b><p>${entry.realSize} ${entry.habitatNote || ""}</p></div>` : ""}`,
+      tr`<div class="guide-eyebrow">${entry.latin}</div><div class="guide-name-row"><h3>${entry.name}</h3><span>${entry.role}</span></div><div class="guide-facts"><div><small>本作尺度</small><b>${entry.size}</b></div><div><small>活动水层</small><b>${entry.habitat}</b></div></div>${entry.category === "player" && entry.appearance ? tr`<p class="guide-appearance">${entry.appearance}</p>` : ""}${abilities}${entry.background ? tr`<section class="guide-background"><h4>${entry.backgroundType}</h4><p>${entry.background}</p></section>` : ""}${behavior}<div class="guide-advice"><b>生存建议</b><p>${entry.counter}</p></div><small class="guide-combat">${combat}</small>${entry.category === "lord" ? tr`<p class="guide-recovery">${tr`收势时领主仍会绕位，命中后加快重整。近身戒备先预警${LORD_RECOVERY.warning}秒，再反击锁定的正面120度，每轮最多一次。绕到侧背或升降离开标记，咬中后及时脱离；戒备不关闭本轮身体破绽。`}</p>` : ""}${survival}${entry.realSize ? tr`<div class="guide-advice"><b>生态注记</b><p>${entry.realSize} ${entry.habitatNote || ""}</p></div>` : ""}`,
     );
     showRegionalFacts(entry);
     if (!renderer) return;

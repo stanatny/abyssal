@@ -152,7 +152,8 @@ export function createMechanicalTorpedoes(
     let killed = 0,
       hits = 0,
       bossHits = 0,
-      rare = false;
+      rare = false,
+      rarePoint = null;
     for (const e of entities()) {
       if (e.hiddenFor > 0) continue;
       const radius = Math.max(0.15, e.species.length * 0.13);
@@ -167,6 +168,7 @@ export function createMechanicalTorpedoes(
           killed++;
           e.hiddenFor = preyRespawnDelay(e.species);
           rare ||= isRegionalRare(e.species);
+          if (isRegionalRare(e.species)) rarePoint = e.mesh.position.clone();
           e.mesh.visible = false;
           resetTorpedoTarget(e);
         }
@@ -203,7 +205,7 @@ export function createMechanicalTorpedoes(
         bossHits++;
       }
     }
-    onBlast?.({ point: at, killed, hits, bossHits, rare });
+    onBlast?.({ point: at, killed, hits, bossHits, rare, rarePoint });
   }
   function update(dt, player) {
     if (disposed || !(dt > 0) || player.dead || player.won || player.timedOut)

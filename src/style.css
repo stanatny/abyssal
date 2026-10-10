@@ -3363,6 +3363,14 @@ html[lang="en"] #boss-tip {
   overflow-wrap: anywhere;
   letter-spacing: 0;
 }
+#boss-weakness {
+  margin: 4px 0 0;
+  color: #e4c9ff;
+  font-size: 11px;
+  line-height: 1.4;
+  letter-spacing: 0;
+  overflow-wrap: anywhere;
+}
 .modal-card {
   max-height: calc(100dvh - 32px);
   overflow-y: auto;

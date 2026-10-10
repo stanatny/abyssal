@@ -1,5 +1,7 @@
 # Penglai supplies and monastery entrance
 
+> Current uncommitted candidate, 2026-10-10: the [Sword Sage follow-up](lord_contact_rare_blessing_revision.md#sword-sage-pursuit-and-final-guardian-pressure--2026-10-10) supersedes the Sage-specific slow pursuit, first-domain-entry, three-hit total and long recovery windows described below. Other guardian rules and the historical measurements remain. Main/Pages is still v0.11.4.
+
 ## Local checkpoint
 
 The user approved a local commit on 2026-10-04, including the complete preceding Penglai implementation and this follow-up. Runtime fingerprints still match the verified preview and the receipts below. This checkpoint remains on `feature/penglai`; push, merge and formal release were not requested. The review record below describes the uncommitted state at measurement time.

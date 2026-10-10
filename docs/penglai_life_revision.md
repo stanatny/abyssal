@@ -1,5 +1,7 @@
 # Penglai living-scene revision
 
+> Current uncommitted candidate, 2026-10-10: the [Sword Sage follow-up](lord_contact_rare_blessing_revision.md#sword-sage-pursuit-and-final-guardian-pressure--2026-10-10) supersedes the Sage-specific slow pursuit, first-domain-entry, three-hit total and long recovery windows described below. Other guardian rules and the historical measurements remain. Main/Pages is still v0.11.4.
+
 ## Scope and baseline
 
 The player rejected the preceding White Tiger, slow crowded aerial movement, insufficient northern combat food, unfinished mountain paths and hollow monastery facade. The preceding flight/guardian receipts remain historical evidence, not acceptance of these details. Preserve the uncommitted Penglai map on `feature/penglai`, base `da0adbe`; this task authorizes no commit, push or formal release.

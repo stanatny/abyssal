@@ -1,10 +1,12 @@
+import { LORD_RECOVERY, recoveryGuardStatus } from "../src/lord_recovery.js";
+import { finishNextBossAttack } from "./helpers/boss_cycle.js";
 import { groundTerrainPose } from "../src/ground_navigation.js";
 import { t } from "../src/i18n.js";
 import assert from "node:assert/strict";
 import test from "node:test";
 import * as THREE from "three";
 import { createEncounters, findBossContact } from "../src/encounters.js";
-import { createBossState } from "../src/boss_rules.js";
+import { BOSS_SPECIES, createBossState } from "../src/boss_rules.js";
 import { createPlayer, tickVitals } from "../src/simulation.js";
 
 // 场景逻辑测试仅替换二维贴图绘制，不替换三维网格、状态机、弹体或接触判定。
@@ -20,16 +22,17 @@ globalThis.document = {
   createElement: () => ({ width: 0, height: 0, getContext: () => context }),
 };
 
-function fixture(kind) {
+function fixture(kind, floor = -900) {
   const scene = new THREE.Scene();
   const events = { hits: 0, bites: 0, warnings: [] };
   const encounters = createEncounters(scene, {
-    seabedHeight: () => -900,
+    seabedHeight: () => floor,
     audio: { hit: noop, eat: noop, bossAttack: noop },
     notify: (message) => events.warnings.push(t(message)),
     onDamage: () => {
       events.hits++;
       events.lastHitTime = time;
+      events.lastHitHealth = player.health;
     },
     onBite: () => events.bites++,
   });
@@ -209,7 +212,7 @@ test("已发招领主可被喷墨打断且停止移动整整10秒，离开后不
   assert.equal(f.encounters.disorient(f.position, 500, f.time), 0);
 });
 
-test("领主在真实侧翼网格接触时只咬一次，离开实体后可以重新进入攻击", () => {
+test("领主真实侧翼咬击需要离开实体和下一次完整技能，停顿内不能连咬", () => {
   const f = fixture("kraken");
   f.player.length = 30;
   f.player.mass = 125;
@@ -238,6 +241,10 @@ test("领主在真实侧翼网格接触时只咬一次，离开实体后可以�
   for (let i = 0; i < 23; i++) f.step();
   assert.equal(f.entry.state.contactArmed, true);
   f.position.copy(attackPosition);
+  f.step();
+  assert.equal(f.events.bites, 1);
+  assert.equal(f.entry.lastBiteResult.reason, "opening_spent");
+  finishNextBossAttack(f.entry.state);
   f.step();
   assert.equal(f.events.bites, 2);
   assert.ok(f.entry.state.health < health);
@@ -518,4 +525,222 @@ test("Lumen lances cannot pass a newly entered rock plane and ink/reset removes 
   assert.equal(ink.events.hits, 0);
   assert.equal(ink.entry.state.phase, "disoriented");
   ink.encounters.dispose();
+});
+
+test("实际正面网格接触在恢复期命中，遮挡仍拒绝；实体在击败、切图和销毁时退出", () => {
+  const f = fixture("kraken");
+  f.player.length = 30;
+  f.entry.state.phase = f.entry.previousPhase = "recover";
+  f.entry.state.phaseDuration = 99;
+  f.forward.set(0, 0, 1);
+  f.step(0);
+  let contactZ;
+  for (let z = -50; z < 25; z += 0.1) {
+    if (
+      findBossContact(f.entry.mesh, new THREE.Vector3(0, -400, z), 2.7, {
+        visibleBody: true,
+      })
+    ) {
+      contactZ = z;
+      break;
+    }
+  }
+  assert.ok(contactZ !== undefined);
+  f.position.set(0, -400, contactZ - 30 * 0.38);
+  f.step(0, () => true);
+  assert.equal(f.events.bites, 0);
+  assert.equal(f.entry.lastBiteResult.reason, "out_of_range");
+  f.step(0);
+  assert.equal(f.events.bites, 1);
+  assert.equal(f.entry.lastAttackSide, false);
+  assert.ok(f.encounters.bodyColliders(f.position, 30).length);
+  f.entry.state.defeated = true;
+  assert.equal(f.encounters.bodyColliders(f.position, 30).length, 0);
+  f.encounters.reset([]);
+  assert.equal(f.encounters.bodyColliders(f.position, 30).length, 0);
+  f.encounters.dispose();
+  assert.equal(f.encounters.bodyColliders(f.position, 30).length, 0);
+});
+
+test("Sage pursues a directly vertical target while keeping a nonzero upright heading", () => {
+  for (const height of [-100, 100]) {
+    const f = fixture("sword_sage");
+    f.player.length = 25;
+    f.position.copy(f.entry.mesh.position);
+    f.position.y += height;
+    const start = f.entry.mesh.position.clone();
+    for (let i = 0; i < 8; i++) {
+      f.step(0.05);
+      assert.ok(Math.abs(f.entry.heading.length() - 1) < 1e-10);
+      assert.equal(f.entry.heading.y, 0);
+      assert.ok(
+        new THREE.Vector3(0, 1, 0).applyQuaternion(f.entry.mesh.quaternion).y >
+          0.99999,
+      );
+    }
+    assert.ok((f.entry.mesh.position.y - start.y) * Math.sign(height) > 10);
+    assert.ok(Math.abs(f.entry.mesh.position.x - start.x) < 1e-10);
+    assert.ok(Math.abs(f.entry.mesh.position.z - start.z) < 1e-10);
+    assert.equal(f.entry.state.pursuitStarted, true);
+    f.encounters.dispose();
+  }
+});
+
+// 使用完整场景和各自真实技能时钟；不替换移动、地形或接触实现。
+for (const species of BOSS_SPECIES) {
+  test(`${species.kind} recovery keeps moving within the existing punish window and terrain`, (t) => {
+    const f = fixture(species.kind, species.groundbound ? 20 : -900);
+    t.after(() => f.encounters.dispose());
+    finishNextBossAttack(f.entry.state);
+    f.entry.previousPhase = "attack";
+    // 真实陆行/海床居民从其合法地面高度开始，不能把返巢限位当作收势运动。
+    if (species.seabedCrawler) f.entry.home.y = -900 + species.floorClearance;
+    if (species.groundbound)
+      f.entry.home.y = groundTerrainPose(
+        f.entry.mesh.position,
+        f.entry.heading,
+        f.entry.groundHabitat,
+        () => 20,
+      ).y;
+    f.entry.mesh.position.copy(f.entry.home);
+    f.position.copy(f.entry.home).add(new THREE.Vector3(0, 0, -85));
+    f.step(0);
+    f.entry.home.copy(f.entry.mesh.position);
+    f.position.copy(f.entry.home).add(new THREE.Vector3(0, 0, -85));
+    const before = f.entry.mesh.position.clone();
+    const duration = f.entry.state.phaseDuration;
+    const count = f.entry.state.attackCount;
+    for (let i = 0; i < 90; i++) f.step();
+    assert.equal(f.entry.state.phase, "recover");
+    assert.equal(f.entry.state.phaseDuration, duration);
+    assert.equal(f.entry.state.attackCount, count);
+    assert.equal(f.entry.state.validatedHits, 0);
+    assert.ok(f.entry.mesh.position.distanceTo(before) > 1);
+    assert.ok(
+      f.entry.mesh.position.distanceTo(before) <= 9 * 1.5 + 1e-6,
+      JSON.stringify({
+        before: before.toArray(),
+        after: f.entry.mesh.position.toArray(),
+      }),
+    );
+    assert.ok(f.entry.mesh.quaternion.toArray().every(Number.isFinite));
+    assert.ok(f.encounters.bodyColliders(f.position, 30).length);
+    if (species.groundbound) {
+      const pose = groundTerrainPose(
+        f.entry.mesh.position,
+        f.entry.heading,
+        f.entry.groundHabitat,
+        () => 20,
+      );
+      assert.ok(pose.walkable);
+      assert.ok(Math.abs(f.entry.mesh.position.y - pose.y) < 1e-6);
+    }
+  });
+}
+
+test("Recovery maneuver cannot cross blocked cover; zero dt and ink freeze/cancel defense", (t) => {
+  const f = fixture("sword_sage");
+  t.after(() => f.encounters.dispose());
+  finishNextBossAttack(f.entry.state);
+  f.entry.previousPhase = "attack";
+  f.position.set(0, -400, -20);
+  f.step(0);
+  const before = f.entry.mesh.position.clone();
+  const timer = f.entry.state.timer;
+  f.step(0);
+  assert.equal(f.entry.state.timer, timer);
+  assert.deepEqual(f.entry.mesh.position.toArray(), before.toArray());
+  for (let i = 0; i < 45; i++) f.step(1 / 60, () => true);
+  assert.deepEqual(f.entry.mesh.position.toArray(), before.toArray());
+  assert.equal(f.entry.recovery.startedAt, -1);
+  f.step();
+  assert.equal(
+    recoveryGuardStatus(f.entry.recovery.startedAt, f.entry.state.timer),
+    "warning",
+    JSON.stringify({
+      state: f.entry.state,
+      pos: f.entry.mesh.position.toArray(),
+      player: f.position.toArray(),
+    }),
+  );
+  assert.equal(f.entry.ring.visible, true);
+  assert.equal(f.entry.ring.geometry.drawRange.count, 72);
+  f.encounters.disorient(f.position, 500, f.time);
+  assert.equal(f.entry.recovery.startedAt, -1);
+  assert.equal(f.entry.ring.visible, false);
+  const inkPosition = f.entry.mesh.position.clone();
+  for (let i = 0; i < 90; i++) f.step();
+  assert.deepEqual(f.entry.mesh.position.toArray(), inkPosition.toArray());
+  assert.equal(f.events.hits, 0);
+});
+
+test("Close recovery defense gives a full locked warning, keeps body exposed and hits only once", (t) => {
+  const f = fixture("sword_sage");
+  t.after(() => f.encounters.dispose());
+  finishNextBossAttack(f.entry.state);
+  f.entry.previousPhase = "attack";
+  f.position.set(0, -400, -20);
+  f.forward.set(0, 0, 1);
+  for (let i = 0; i < 37; i++) f.step();
+  assert.equal(
+    recoveryGuardStatus(f.entry.recovery.startedAt, f.entry.state.timer),
+    "warning",
+  );
+  const started = f.entry.recovery.startedAt;
+  const direction = f.entry.recovery.direction.clone();
+  // 移到真正的前端表面，长度不足25米，故此夹具不自动咬击/杀死目标。
+  function touchFront() {
+    const origin = f.entry.mesh.position;
+    let contact;
+    for (let y = 0; y < 18 && !contact; y += 1)
+      for (let z = -38; z < 0; z += 0.25) {
+        const q = new THREE.Vector3(0, y, z)
+          .applyQuaternion(f.entry.mesh.quaternion)
+          .add(origin);
+        if (findBossContact(f.entry.mesh, q, 0.4, { visibleBody: true })) {
+          contact = q;
+          break;
+        }
+      }
+    assert.ok(contact);
+    f.forward.copy(direction).negate();
+    f.position
+      .copy(contact)
+      .addScaledVector(f.forward, -f.player.length * 0.38);
+  }
+  while (f.entry.state.timer - started < LORD_RECOVERY.warning - 1 / 60) {
+    touchFront();
+    f.step();
+    assert.equal(f.events.hits, 0);
+    assert.deepEqual(f.entry.recovery.direction.toArray(), direction.toArray());
+  }
+  while (
+    f.entry.state.timer <
+    started + LORD_RECOVERY.warning + LORD_RECOVERY.strike
+  ) {
+    touchFront();
+    f.step();
+  }
+  assert.equal(f.events.hits, 1);
+  assert.equal(
+    f.events.lastHitHealth,
+    100 - f.entry.state.species.damage * LORD_RECOVERY.damageFraction,
+  );
+  assert.equal(f.entry.state.openingSpent, false);
+  assert.equal(f.entry.state.validatedHits, 0);
+  assert.ok(f.events.lastHitTime - started >= LORD_RECOVERY.warning);
+  assert.equal(
+    f.events.warnings.filter((x) => x.includes("正面将有反击")).length,
+    1,
+  );
+  f.entry.state.phase = "hunt";
+  f.entry.state.timer = 0;
+  f.entry.state.phaseDuration = 10;
+  f.position.set(0, -400, -90);
+  f.step();
+  assert.equal(f.entry.recovery.startedAt, -1);
+  assert.equal(f.entry.ring.geometry.drawRange.count, Infinity);
+  f.encounters.reset([]);
+  assert.equal(f.entry.recovery.startedAt, -1);
+  assert.equal(f.entry.ring.visible, false);
 });

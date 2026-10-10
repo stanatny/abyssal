@@ -36,18 +36,28 @@ import {
   tentacleChunkBounds,
 } from "./tentacle_motion.js";
 import { createCreature } from "./creatures.js";
+import { updateLordBody } from "./lord_body.js";
 import {
   BOSS_SPECIES,
   BOSS_DEFAULT_TERRITORY_RADIUS,
   createBossState,
   tickBoss,
   bossEngagement,
+  bossRequiredHits,
+  steerBossPursuit,
   hitBoss,
   hitBossWithTorpedo,
   updateBossContact,
   isBossFlankContact,
 } from "./boss_rules.js";
 import { takeDamage } from "./simulation.js";
+import {
+  LORD_RECOVERY,
+  recoveryGuardStatus,
+  recoveryGuardCanStart,
+  recoverySpeed,
+  inRecoveryGuard,
+} from "./lord_recovery.js";
 import { makeLabel } from "./rewards.js";
 import { createFluidTexture } from "./effect_textures.js";
 
@@ -107,8 +117,14 @@ function loomEdgesGeometry() {
  * @param {number} radius 嘴部接触半径，单位为游戏米。
  * @returns {THREE.Vector3|null} 首个实际接触点；没有接触时返回null。
  */
-export function findBossContact(mesh, mouth, radius) {
-  mesh = mesh.userData.contactRoot || mesh;
+export function findBossContact(
+  mesh,
+  mouth,
+  radius,
+  { visibleBody = false } = {},
+) {
+  // 已注册实体解剖的领主以可见模型为准，不使用旧隐藏外形。
+  mesh = visibleBody ? mesh : mesh.userData.contactRoot || mesh;
   if (!Number.isFinite(radius) || radius < 0) return null;
   mesh.updateWorldMatrix(true, true);
   const sphere = new THREE.Sphere();
@@ -123,7 +139,7 @@ export function findBossContact(mesh, mouth, radius) {
   const intersection = new THREE.Vector3();
   const radiusSquared = radius * radius;
   let contact = null;
-  mesh.traverse((part) => {
+  mesh[visibleBody ? "traverseVisible" : "traverse"]((part) => {
     if (contact || !part.isMesh || !part.visible) return;
     const geometry = part.geometry;
     const vertices = geometry.attributes.position;
@@ -889,6 +905,8 @@ export function createEncounters(
   let active = null;
   let disposed = false;
   let bossHomes = {};
+  let bodyGeneration = 0;
+  const bodyQuery = new THREE.Line3();
   const previousPlayerPosition = new THREE.Vector3();
   const playerVelocity = new THREE.Vector3();
   let hasPlayerPosition = false;
@@ -971,6 +989,13 @@ export function createEncounters(
         next: new THREE.Vector3(),
         offset: new THREE.Vector3(),
         groundStart: new THREE.Vector3(),
+        orientation: new THREE.Quaternion(),
+      },
+      recovery: {
+        startedAt: -1,
+        hit: false,
+        side: 1,
+        direction: new THREE.Vector3(),
         orientation: new THREE.Quaternion(),
       },
       attackOrigin: new THREE.Vector3(),
@@ -1057,6 +1082,9 @@ export function createEncounters(
     );
     entry.contactCooldown = 0;
     entry.disorientedUntil = 0;
+    entry.pursuitAnnounced = false;
+    entry.recovery.startedAt = -1;
+    entry.recovery.hit = false;
     entry.volleyShots = 0;
     entry.lastBiteResult = null;
     entry.lastAttackSide = false;
@@ -1077,6 +1105,7 @@ export function createEncounters(
   /** 复用每物种的实例池；固定守卫与夏威夷随机名单分开选择，重开不保留战斗状态。 */
   function reset(allowedKinds, homes = {}, instances = null) {
     if (disposed) return;
+    bodyGeneration++;
     bossHomes = homes;
     const selected = [];
     if (instances) {
@@ -1126,6 +1155,8 @@ export function createEncounters(
       entry.label.visible = false;
       entry.ring.visible = false;
       entry.lashReady = false;
+      entry.recovery.startedAt = -1;
+      entry.recovery.hit = false;
       entry.grapple = createKrakenGrapple();
       entry.mesh.userData.resetKrakenGrip?.();
       entry.mesh.userData.resetLumenLash?.();
@@ -1228,6 +1259,17 @@ export function createEncounters(
   }
   function enterPhase(entry, playerPosition) {
     const state = entry.state;
+    entry.recovery.startedAt = -1;
+    entry.recovery.hit = false;
+    if (state.phase === "recover") {
+      // 按玩家所在侧选择绕位；正前方时逐轮换边，不额外消耗随机生态序列。
+      const offset = entry.motion.offset
+        .copy(playerPosition)
+        .sub(entry.mesh.position);
+      const side = -entry.heading.z * offset.x + entry.heading.x * offset.z;
+      entry.recovery.side =
+        Math.abs(side) > 1 ? -Math.sign(side) : state.attackCount % 2 ? 1 : -1;
+    }
     if (state.phase === "disoriented") entry.mesh.userData.resetLumenLash?.();
     if (state.phase === "windup") {
       for (const fx of entry.fxVariants) resetAbilityFx(fx);
@@ -1402,7 +1444,14 @@ export function createEncounters(
       trailAge: 0,
     });
   }
-  function moveBoss(entry, direction, speed, dt, blockedBetween) {
+  function moveBoss(
+    entry,
+    direction,
+    speed,
+    dt,
+    blockedBetween,
+    turnRate = entry.state.species.pursuitTurnRate,
+  ) {
     if (dt <= 0 || speed <= 0) return;
     const step = speed * dt;
     const origin = entry.mesh.position;
@@ -1456,9 +1505,18 @@ export function createEncounters(
       }
     }
     if (!clear) return;
-    candidate
-      .lerpVectors(entry.heading, candidate, 1 - Math.exp(-dt * 3.6))
-      .normalize();
+    if (turnRate !== undefined)
+      steerBossPursuit(
+        entry.heading,
+        candidate,
+        dt,
+        turnRate,
+        candidate,
+      ).normalize();
+    else
+      candidate
+        .lerpVectors(entry.heading, candidate, 1 - Math.exp(-dt * 3.6))
+        .normalize();
     next.copy(origin).addScaledVector(candidate, step);
     if (entry.state.species.seabedCrawler)
       next.y =
@@ -1483,7 +1541,12 @@ export function createEncounters(
           entry.state.species.minimumGroundHeight) &&
       !blockedBetween(origin, next)
     ) {
-      entry.heading.copy(candidate);
+      // 直上/直下仍移动，但直立模型不以零水平向量替换已有朝向。
+      if (
+        !entry.state.species.upright ||
+        candidate.x ** 2 + candidate.z ** 2 > 1e-12
+      )
+        entry.heading.copy(candidate);
       origin.copy(next);
     }
   }
@@ -1519,7 +1582,7 @@ export function createEncounters(
       if (
         !entry.enabled ||
         entry.state.defeated ||
-        !["hunt", "windup", "attack", "disoriented"].includes(
+        !["hunt", "windup", "attack", "recover", "disoriented"].includes(
           entry.state.phase,
         ) ||
         entry.mesh.position.distanceTo(center) > radius
@@ -1528,6 +1591,8 @@ export function createEncounters(
       entry.disorientedUntil = Math.max(entry.disorientedUntil, now + duration);
       tickBoss(entry.state, 0, { inTerritory: true, disoriented: true });
       entry.previousPhase = "disoriented";
+      entry.recovery.startedAt = -1;
+      entry.recovery.hit = false;
       entry.ring.visible = false;
       entry.fx.group.visible = false;
       entry.phaseHit = true;
@@ -1548,7 +1613,7 @@ export function createEncounters(
       notify(
         result.defeated
           ? message`击败 ${entry.state.species.label} · 深渊印记已获得`
-          : message`鱼雷命中 ${entry.state.species.label} · ${entry.state.validatedHits}/3`,
+          : message`鱼雷命中 ${entry.state.species.label} · ${entry.state.validatedHits}/${bossRequiredHits(entry.state.species)}`,
         2,
       );
       if (result.defeated) hideDefeated(entry);
@@ -1556,6 +1621,8 @@ export function createEncounters(
     return result;
   }
   function hideDefeated(entry) {
+    entry.recovery.startedAt = -1;
+    entry.recovery.hit = false;
     entry.mesh.visible = entry.label.visible = entry.ring.visible = false;
     entry.fx.group.visible = false;
     entry.grapple = createKrakenGrapple();
@@ -1565,6 +1632,7 @@ export function createEncounters(
   }
   function update(dt, time, player, position, forward, { blockedBetween }) {
     if (disposed) return null;
+    bodyGeneration++;
     dt = Number.isFinite(dt) ? Math.max(0, dt) : 0;
     active = null;
     if (player.dead || player.won || player.timedOut) return active;
@@ -1598,6 +1666,14 @@ export function createEncounters(
         homeDistance = entry.home.distanceTo(position),
         atHome = homeDistance < entry.radius;
       const inTerritory = bossEngagement(state, atHome);
+      if (
+        state.species.pursuitOnUnlock &&
+        state.pursuitStarted &&
+        !entry.pursuitAnnounced
+      ) {
+        entry.pursuitAnnounced = true;
+        notify("四象护阵已解 · 御剑真君开始全域追击", 3);
+      }
       entry.mesh.visible = distance < (state.species.mythic ? 850 : 230);
       entry.label.visible = homeDistance < 175 && !inTerritory;
       entry.contactCooldown = Math.max(0, entry.contactCooldown - dt);
@@ -1633,6 +1709,75 @@ export function createEncounters(
           dt,
           blockedBetween,
         );
+      } else if (
+        windup &&
+        state.timer < state.phaseDuration - state.species.lockWindow &&
+        state.species.windupAdvanceSpeeds?.[state.ability] &&
+        distance > state.species.length * 0.65
+      ) {
+        const approach = entry.motion.target
+          .copy(position)
+          .sub(entry.mesh.position)
+          .normalize();
+        moveBoss(
+          entry,
+          approach,
+          state.species.windupAdvanceSpeeds[state.ability],
+          dt,
+          blockedBetween,
+        );
+      } else if (recover) {
+        const guard = entry.recovery;
+        if (
+          guard.startedAt < 0 &&
+          recoveryGuardCanStart(state, distance, player.length, sight)
+        ) {
+          guard.startedAt = state.timer;
+          guard.direction
+            .copy(FORWARD_AXIS)
+            .applyQuaternion(entry.mesh.quaternion)
+            .normalize();
+          guard.orientation.copy(entry.mesh.quaternion);
+          notify(
+            "收势戒备 · 正面将有反击，绕到侧背",
+            LORD_RECOVERY.warning + LORD_RECOVERY.strike,
+          );
+        }
+        const status = recoveryGuardStatus(guard.startedAt, state.timer);
+        if (status === "warning" || status === "strike") {
+          // 方向与身体朝向在预警时锁定，沿标记小幅前移，不追踪已侧闪的玩家。
+          entry.heading.copy(guard.direction);
+          moveBoss(
+            entry,
+            guard.direction,
+            status === "warning" ? 2 : 6,
+            dt,
+            blockedBetween,
+            0,
+          );
+        } else {
+          const toPlayer = entry.motion.target
+            .copy(position)
+            .sub(entry.mesh.position)
+            .normalize();
+          const direction = entry.motion.offset
+            .set(-toPlayer.z, 0, toPlayer.x)
+            .multiplyScalar(guard.side);
+          const spacing = state.species.length * 0.55 + player.length * 0.4;
+          direction.addScaledVector(toPlayer, distance < spacing ? -0.35 : 0.5);
+          if (direction.lengthSq() < 1e-9) direction.copy(entry.heading);
+          direction.normalize();
+          moveBoss(
+            entry,
+            direction,
+            recoverySpeed(state),
+            dt,
+            blockedBetween,
+            state.openingSpent
+              ? LORD_RECOVERY.spentTurnRate
+              : LORD_RECOVERY.turnRate,
+          );
+        }
       } else if (state.phase === "return") {
         const back = entry.home.clone().sub(entry.mesh.position);
         if (back.length() > 2) {
@@ -1717,7 +1862,7 @@ export function createEncounters(
         entry.mesh.position.y =
           seabedHeight(entry.mesh.position.x, entry.mesh.position.z) +
           state.species.floorClearance;
-      // 领主被限制在自己的领域附近，不会穿越整张地图追杀初生玩家。
+      // 普通领主留在领域；持续追击守卫仅在解锁后解除领域距离限制。
       const fromHome = entry.motion.offset
         .copy(entry.mesh.position)
         .sub(entry.home);
@@ -1806,6 +1951,11 @@ export function createEncounters(
       if (state.ability === "lash" && (windup || attack))
         updateLumenLash(entry, player, position, attack, blockedBetween);
       else entry.lashReady = false;
+      entry.ring.geometry.setDrawRange(0, Infinity);
+      entry.ring.rotation.set(-Math.PI / 2, 0, 0);
+      entry.ring.material.color.setHex(
+        state.species.abilityColors?.[state.ability] ?? COLORS[state.ability],
+      );
       entry.ring.visible =
         !state.species.western &&
         !["loom", "water", "lash"].includes(state.ability) &&
@@ -1829,6 +1979,24 @@ export function createEncounters(
       entry.ring.material.opacity = windup
         ? 0.35 + Math.sin(time * 12) * 0.2
         : 0.8;
+      const recoveryGuard = recover
+        ? recoveryGuardStatus(entry.recovery.startedAt, state.timer)
+        : "idle";
+      if (recoveryGuard === "warning" || recoveryGuard === "strike") {
+        // 复用原有72段警戒圈，裁成锁定正面的120度弧，不新增网格/纹理/灯。
+        entry.ring.visible = true;
+        entry.ring.geometry.setDrawRange(0, 24 * 3);
+        entry.ring.position.copy(entry.mesh.position);
+        entry.ring.quaternion.copy(entry.recovery.orientation);
+        entry.ring.rotateX(-Math.PI / 2);
+        entry.ring.rotateZ(Math.PI / 6);
+        entry.ring.scale.setScalar(
+          state.species.length * 0.55 + player.length * 0.45,
+        );
+        entry.ring.material.color.setHex(LORD_RECOVERY.color);
+        entry.ring.material.opacity =
+          recoveryGuard === "warning" ? 0.5 + 0.15 * Math.sin(time * 10) : 0.9;
+      }
       if ((attack || windup) && state.ability === "water")
         waterPath(entry, blockedBetween);
       if (state.ability === "undertow" && (windup || attack))
@@ -2068,6 +2236,7 @@ export function createEncounters(
             );
         }
       }
+      // 领主近身攻击保留四角色共用的前端区域；乌贼反向吞咽锚点不能令实体战斗无法接近。
       const mouth = position
         .clone()
         .addScaledVector(forward, player.length * 0.38);
@@ -2078,10 +2247,29 @@ export function createEncounters(
         !player.won &&
         !player.timedOut &&
         player.length >= minimumLength;
-      if (canAttempt || !state.contactArmed) {
-        const radius = Math.max(0.4, player.length * 0.06);
-        const contact = findBossContact(entry.mesh, mouth, radius);
+      if (canAttempt || !state.contactArmed || recoveryGuard === "strike") {
+        const radius = Math.max(0.4, player.length * 0.09);
+        const contact = findBossContact(entry.mesh, mouth, radius, {
+          visibleBody: true,
+        });
         updateBossContact(state, Boolean(contact), dt);
+        if (
+          recoveryGuard === "strike" &&
+          !entry.recovery.hit &&
+          contact &&
+          inRecoveryGuard(
+            entry.motion.offset.copy(position).sub(entry.mesh.position),
+            entry.recovery.direction,
+          ) &&
+          !blockedBetween(mouth, contact)
+        ) {
+          // 每次戒备只结算一次轻反击，不叠加普通贴身伤害，也不关闭可用咬击窗口。
+          entry.recovery.hit = damage(
+            player,
+            state.species.damage * LORD_RECOVERY.damageFraction,
+            "戒备反击命中 · 绕到侧背，咬中后及时脱离",
+          );
+        }
         const bossForward = new THREE.Vector3(0, 0, -1).applyQuaternion(
           entry.mesh.quaternion,
         );
@@ -2114,7 +2302,7 @@ export function createEncounters(
           notify(
             result.defeated
               ? message`击败 ${state.species.label} · 深渊印记已获得`
-              : message`侧翼咬击 ${Math.round(result.damage)} · ${result.hungerRestored > 0 ? message`饱食 +${Math.round(result.hungerRestored)}` : recover ? "弱点命中，脱离后再进攻" : "脱离接触，等待技能后的侧翼破绽"}`,
+              : message`弱点咬击 ${Math.round(result.damage)} · ${result.hungerRestored > 0 ? message`饱食 +${Math.round(result.hungerRestored)}` : "脱离后再进攻"}`,
             2,
           );
           if (result.defeated) {
@@ -2162,10 +2350,18 @@ export function createEncounters(
               ? "四象护阵未解 · 先击败四神兽"
               : state.phase === "disoriented"
                 ? "墨汁迷失中 · 趁机离开领地"
-                : recover
-                  ? "侧翼破绽 · 绕侧咬击，脱离后再进攻"
-                  : (state.species.skillTips?.[state.ability] ??
-                    TIPS[state.ability]),
+                : state.phase === "hunt" && state.species.pursuitOnUnlock
+                  ? "全域追猎 · 冲刺转向，借山石争取反击机会"
+                  : recoveryGuard === "warning"
+                    ? "收势戒备 · 正面将有反击，绕到侧背"
+                    : recoveryGuard === "strike"
+                      ? "正面反击 · 侧背仍有破绽"
+                      : recover
+                        ? state.openingSpent
+                          ? "护甲重整 · 先躲下一轮技能"
+                          : "收势绕位 · 追准身体反击，每轮一次"
+                        : (state.species.skillTips?.[state.ability] ??
+                          TIPS[state.ability]),
           };
     }
     for (let i = projectiles.length - 1; i >= 0; i--) {
@@ -2261,6 +2457,30 @@ export function createEncounters(
     dispose,
     disorient,
     torpedoHit,
+    bodyColliders(position, length = 0, previous = position) {
+      const colliders = [];
+      if (disposed) return colliders;
+      for (const entry of bosses) {
+        if (!entry.enabled || entry.state.defeated || !entry.mesh.visible)
+          continue;
+        const range = entry.state.species.length * 1.2 + length + 12;
+        const nearest = bodyQuery
+          .set(previous, position)
+          .closestPointToPoint(
+            entry.mesh.position,
+            true,
+            entry.motion.candidate,
+          );
+        if (entry.mesh.position.distanceToSquared(nearest) > range * range)
+          continue;
+        if (entry.bodyGeneration !== bodyGeneration) {
+          updateLordBody(entry.mesh);
+          entry.bodyGeneration = bodyGeneration;
+        }
+        colliders.push(...entry.mesh.userData.lordBody.colliders);
+      }
+      return colliders;
+    },
     get active() {
       return active;
     },

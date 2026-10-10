@@ -1,3 +1,4 @@
+import { finishNextBossAttack } from "./helpers/boss_cycle.js";
 import {
   groundCreatureProfile,
   groundSpawnPose,
@@ -381,7 +382,7 @@ test("Ground hunter leap has a warning, bounded arc and a real recovery cooldown
   assert.equal(s.phase, "walk");
 });
 
-test("Four real guardian defeats unlock the sage; 25 m and three real hits are still required", () => {
+test("Four real guardian defeats unlock the sage; 25 m and five recovery counters are required for the sage", () => {
   const e = getExpedition("penglai"),
     o = createExpeditionObjective(e.region),
     p = createPlayer();
@@ -404,6 +405,7 @@ test("Four real guardian defeats unlock the sage; 25 m and three real hits are s
     assert.equal(hitBossWithTorpedo(p, b.state).hit, false);
     p.length = 25;
     for (let i = 0; i < 3; i++) {
+      if (i) finishNextBossAttack(b.state);
       p.biteCooldown = 0;
       b.state.biteCooldown = 0;
       b.state.contactArmed = true;
@@ -417,10 +419,11 @@ test("Four real guardian defeats unlock the sage; 25 m and three real hits are s
   }
   assert.equal(o.defeated.size, 4);
   sage.locked = false;
-  for (let i = 0; i < 3; i++) {
+  for (let i = 0; i < 5; i++) {
+    finishNextBossAttack(sage);
     p.biteCooldown = 0;
     sage.biteCooldown = 0;
-    assert.equal(hitBossWithTorpedo(p, sage).defeated, i === 2);
+    assert.equal(hitBossWithTorpedo(p, sage).defeated, i === 4);
   }
   advanceExpeditionObjective(o, p, bosses);
   assert.equal(p.won, true);

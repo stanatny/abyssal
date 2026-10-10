@@ -21,6 +21,7 @@ import {
 } from "./regional_rare.js";
 import { createRareDiscovery } from "./regional_rare_discovery.js";
 import { attachRareMarker } from "./regional_rare_marker.js";
+import { rareMarkerPalette } from "./regional_rare_palette.js";
 import {
   aerialFormationPose,
   createAerialSpacing,
@@ -41,7 +42,7 @@ import {
   torpedoStatus,
   resetTorpedoTarget,
 } from "./mechanical_shark_rules.js";
-import { BOSS_REQUIRED_HITS } from "./boss_rules.js";
+import { bossRequiredHits, bossCounterOpen } from "./boss_rules.js";
 import { attachDeepVents } from "./deep_vents.js";
 import {
   canPredatorRetaliate,
@@ -272,7 +273,10 @@ scene.add(avatar);
 const audio = new OceanAudio();
 void audio.preloadHumanVoices();
 void audio.preloadFishSounds();
-const effects = createCombatEffects(scene);
+const effects = createCombatEffects(scene, {
+  colors: rareMarkerPalette(),
+  reducedMotion: () => matchMedia("(prefers-reduced-motion: reduce)").matches,
+});
 const frenzyEffect = createFrenzyEffect(scene);
 const captureStart = new THREE.Vector3();
 const previousPreyPosition = new THREE.Vector3();
@@ -392,6 +396,8 @@ minion = createZombieMinion(scene, {
     return true;
   },
   onMeal(entity) {
+    if (isRegionalRare(entity.species))
+      effects.rareBlessing(entity.mesh.position, player.length);
     if (entity.sex) audio.eatHuman(entity.species.length, entity.sex);
     else audio.eatFish(entity.species.length);
     notify(
@@ -423,8 +429,9 @@ torpedoes = createMechanicalTorpedoes(scene, {
   onLaunch() {
     avatar.userData.triggerLaunch?.();
   },
-  onBlast({ killed, hits, bossHits, rare }) {
+  onBlast({ killed, hits, bossHits, rare, rarePoint }) {
     if (rare) {
+      effects.rareBlessing(rarePoint, player.length);
       notify("珍兽恩赐 · 三项补满，上限150（本局）", 4);
       return;
     }
@@ -750,7 +757,7 @@ function updateRegionPresentation() {
   setMarkup(
     document.querySelector(".intro"),
     aether
-      ? "15米起步，游于莲池，行于云海。<br />穿越桃林与浮空仙山，解除四象结界，挑战御剑真君。"
+      ? "15米起步，游于莲池，行于云海。<br />穿越桃林与浮空仙山，解除四象结界；真君随后全域追击。"
       : expedition.region.surfaceMode === "river"
         ? "沿弯曲河道穿越雨林，两条支流通往巨兽深潭。<br />在沉根与浮叶之间成长，迎战河道的两位主宰。"
         : ice
@@ -1579,6 +1586,7 @@ function showOverlay(kind) {
   if (["dead", "won", "timeup"].includes(kind)) {
     minion.reset();
     torpedoes.reset();
+    effects.blessing.reset();
     resetTorpedoAim();
   }
   const returningFromRefuge = mode === "epilogue";
@@ -1770,6 +1778,7 @@ function resolvePlayerMotion(previous, merge = false) {
       ...(ocean.barriers || []),
       ...surface.colliders,
       ...humans.colliders,
+      ...encounters.bodyColliders(position, player.length, previous),
     ],
     radius,
     forward,
@@ -1819,6 +1828,7 @@ function resolveMinionMotion(previous, desired, heading, length) {
       ...(ocean.barriers || []),
       ...surface.colliders,
       ...humans.colliders,
+      ...encounters.bodyColliders(desired, length, previous),
     ],
     radius: r,
     forward: heading,
@@ -2136,6 +2146,7 @@ function eatEntity(entity, mouth, previousPrey = entity.mesh.position, dt = 0) {
   audio.eatFish(species.length);
   avatar.userData.triggerFeed?.();
   effects.bite(captureContact, forward, player.length);
+  if (isRegionalRare(species)) effects.rareBlessing(preyContact, player.length);
   entity.hiddenFor = preyRespawnDelay(species);
   feeding.start(mesh, species.length);
   resetTorpedoTarget(entity);
@@ -3206,10 +3217,14 @@ function updateTorpedoAim() {
     (aim.boss
       ? aim.entity.enabled && !aim.entity.state.defeated
       : aim.entity.hiddenFor <= 0);
+  const aimDamageReady =
+    aim?.eligible &&
+    (!aim.boss ||
+      (!aim.entity.state.openingSpent && bossCounterOpen(aim.entity.state)));
   $("reticle").classList.toggle("aim-assisted", Boolean(aimAlive));
   $("reticle").classList.toggle(
     "aim-ineligible",
-    Boolean(aimAlive && !aim.eligible),
+    Boolean(aimAlive && !aimDamageReady),
   );
   $("torpedo-aim").hidden = !aimAlive;
   $("torpedo-aim-point").hidden = true;
@@ -3219,7 +3234,7 @@ function updateTorpedoAim() {
       ? aim.entity.state.validatedHits
       : aim.entity.torpedoHits || 0;
     const totalHits = aim.boss
-      ? BOSS_REQUIRED_HITS
+      ? bossRequiredHits(species)
       : MECHANICAL_RULES.giantHits;
     const needed =
       aim.boss || species.length >= player.length
@@ -3227,13 +3242,17 @@ function updateTorpedoAim() {
         : 1;
     $("torpedo-aim").querySelector("b").textContent = t(species.label);
     $("torpedo-aim").querySelector("small").textContent = t(
-      aim.eligible
-        ? tr`目标锁定 · 预计${needed}发 · ${Math.round(aim.distance)}m`
-        : aim.boss && aim.entity.state.locked
-          ? "四象护阵未解 · 先击败四神兽"
-          : "领主体型门槛 · 需25米",
+      aim.eligible && aim.boss && aim.entity.state.openingSpent
+        ? "目标锁定 · 破绽已用，技能结束后开火"
+        : aim.eligible && aim.boss && !bossCounterOpen(aim.entity.state)
+          ? "目标锁定 · 护体剑阵，收势时开火"
+          : aim.eligible
+            ? tr`目标锁定 · 预计${needed}发 · ${Math.round(aim.distance)}m`
+            : aim.boss && aim.entity.state.locked
+              ? "四象护阵未解 · 先击败四神兽"
+              : "领主体型门槛 · 需25米",
     );
-    $("torpedo-aim").classList.toggle("ineligible", !aim.eligible);
+    $("torpedo-aim").classList.toggle("ineligible", !aimDamageReady);
     aimProjection.copy(aim.entity.mesh.position).project(camera);
     if (
       aimProjection.z >= -1 &&
@@ -3243,7 +3262,7 @@ function updateTorpedoAim() {
     ) {
       const marker = $("torpedo-aim-point");
       marker.hidden = false;
-      marker.classList.toggle("ineligible", !aim.eligible);
+      marker.classList.toggle("ineligible", !aimDamageReady);
       marker.style.left = (aimProjection.x * 0.5 + 0.5) * innerWidth + "px";
       marker.style.top = (-aimProjection.y * 0.5 + 0.5) * innerHeight + "px";
       const label = $("torpedo-aim"),
@@ -3321,7 +3340,11 @@ function updateHud() {
         ? expedition.region.surfaceMode === "ice"
           ? "回到冰穹育幼湾 · 猎手停止追击"
           : expedition.region.id === "penglai"
-            ? "回到莲池育幼湾 · 猎手停止追击"
+            ? encounters.bosses.some(
+                (b) => b.enabled && b.state.pursuitStarted && !b.state.defeated,
+              )
+              ? "回到莲池 · 御剑真君仍在追击"
+              : "回到莲池育幼湾 · 猎手停止追击"
             : expedition.region.id === "amazon"
               ? "回到浮叶育幼湾 · 猎手停止追击"
               : "回到安全浅滩 · 猎手停止追击"
@@ -3561,16 +3584,27 @@ function updateHud() {
         ? "四象护阵未解 · 先击败四神兽"
         : player.length < state.species.minAttackLength
           ? "体型不足 · 借地形与技能间隙撤出领地"
-          : player.characterId === "mechanical_shark"
-            ? tr`鱼雷/侧咬 · 命中${state.validatedHits}/3 · 保留生命与体力`
-            : tip,
+          : tip,
+    );
+    $("boss-weakness").hidden =
+      state.locked || player.length < state.species.minAttackLength;
+    $("boss-weakness").textContent = t(
+      state.openingSpent
+        ? tr`破绽已用 · ${state.validatedHits}/${bossRequiredHits(state.species)} · 技能结束后再攻`
+        : !bossCounterOpen(state)
+          ? tr`护体剑阵 · ${state.validatedHits}/${bossRequiredHits(state.species)} · 等收势反击`
+          : state.phase === "recover"
+            ? state.species.counterPhases
+              ? tr`收势${Math.max(0, state.phaseDuration - state.timer).toFixed(1)}秒 · ${state.validatedHits}/${bossRequiredHits(state.species)} · 咬中身体`
+              : tr`身体命中即可 · ${state.validatedHits}/${bossRequiredHits(state.species)} · 本轮可反击`
+            : tr`咬身体侧面、背部 · ${state.validatedHits}/${bossRequiredHits(state.species)} · 本轮可偷袭`,
     );
     $("boss-phase").textContent = t(
       {
-        hunt: "领地主宰",
+        hunt: state.species.pursuitOnUnlock ? "全域追猎" : "领地主宰",
         windup: "危险 · 技能蓄力",
         attack: "技能释放",
-        recover: "弱点暴露",
+        recover: state.openingSpent ? "护甲重整" : "弱点暴露",
         disoriented: "墨汁迷失",
         return: "已脱离领地",
       }[state.phase] || "领地边界",
@@ -3791,7 +3825,11 @@ function frame(now) {
       audio.pickup();
       notify("圣珠已吞食 · 亚特兰蒂斯的秘密已解开", 6);
     }
-    if (!position.equals(beforeEncounter) || player.length !== beforeBossLength)
+    if (
+      !position.equals(beforeEncounter) ||
+      player.length !== beforeBossLength ||
+      encounters.bodyColliders(position, player.length).length
+    )
       resolvePlayerMotion(beforeEncounter, true);
     avatar.position.copy(position);
     avatar.scale.setScalar(player.length);

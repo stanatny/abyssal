@@ -77,8 +77,8 @@ test("each registered lord technique has its own bilingual card and timings agre
   assert.equal(sage.skills.length, 2);
   assert.match(sage.skills[0].description, /三柄飞剑/);
   assert.match(sage.skills[1].description, /直线/);
-  assert.equal(sage.skills[0].recovery, 3.5);
-  assert.equal(sage.skills[1].recovery, 4);
+  assert.equal(sage.skills[0].recovery, 2.2);
+  assert.equal(sage.skills[1].recovery, 2.6);
   assert.ok(!/万剑归宗|踏剑惊鸿/.test(sage.text));
   assert.equal(
     catalog.find((e) => e.kind === "black_tortoise").skills[0].recovery,

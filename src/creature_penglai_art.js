@@ -120,7 +120,7 @@ export function pgCurve(
 }
 /** 放样体躯避免球体堆叠的轮廓；截面提供位置和两个方向半径。 */
 export function pgLoft(parent, key, material, sections) {
-  return pgPart(
+  const mesh = pgPart(
     parent,
     pgGeometry(key, () => {
       const p = [],
@@ -177,6 +177,8 @@ export function pgLoft(parent, key, material, sections) {
     }),
     material,
   );
+  mesh.userData.anatomyKey = key;
+  return mesh;
 }
 export function pgFin(
   parent,

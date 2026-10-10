@@ -72,8 +72,6 @@ export const PENGLAI_EN = Object.freeze({
   "在浅水与云海间自由游动，寻找神话生灵；25米后挑战四神兽与御剑真君。":
     "Swim and fly freely among mythic creatures; at 25 m challenge the Four Symbols and Sword Sage.",
   "四象守卫 {0}/4 · 25米后挑战": "Four Symbols {0}/4 · Challenge at 25 m",
-  "四象护阵已解 · 前往道观挑战御剑真君":
-    "The ward is broken · Challenge the Sword Sage at the monastery",
   "15米起步，游于莲池，行于云海。":
     "Start at 15 m: swim through lotus waters and fly among clouds.",
   "穿越桃林与浮空仙山，解除四象结界，挑战御剑真君。":

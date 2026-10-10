@@ -194,7 +194,7 @@ export function expeditionObjectiveHint(objective, player) {
   if (objective.regionId === "penglai")
     return objective.defeated.size < 4
       ? message`四象守卫 ${objective.defeated.size}/4 · 25米后挑战`
-      : "四象护阵已解 · 前往道观挑战御剑真君";
+      : "四象护阵已解 · 御剑真君开始全域追击";
   if (objective.regionId === "atlantis")
     return !objective.keyCollected
       ? objective.clueRead
