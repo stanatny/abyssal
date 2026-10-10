@@ -122,20 +122,20 @@ test("钢铁之躯抵抗普通攻击和危害，固定献祭及饥饿不减免",
   assert.equal(takeDamage(p, 30), false);
   const s = createTorpedoState();
   assert.equal(activateTorpedo(s, p), true);
-  assert.equal(p.health, 70);
-  assert.equal(p.stamina, 90);
+  assert.equal(p.health, 60);
+  assert.equal(p.stamina, 80);
   p.invulnerable = 0;
   p.hunger = 0;
   const before = p.health;
   tickVitals(p, 1, false, 600);
   assert.equal(before - p.health, 7);
 });
-test("10点固定最大属性支付与2秒冷却原子结算，低血量不可自杀，失败不扣费", () => {
+test("20点固定最大属性支付与2秒冷却原子结算，低血量不可自杀，失败不扣费", () => {
   const p = player(),
     s = createTorpedoState();
   p.elapsed = 3;
-  p.health = 11;
-  p.stamina = 10;
+  p.health = 21;
+  p.stamina = 20;
   assert.equal(activateTorpedo(s, p), true);
   assert.equal(p.health, 1);
   assert.equal(p.stamina, 0);
@@ -145,8 +145,8 @@ test("10点固定最大属性支付与2秒冷却原子结算，低血量不可�
   assert.equal(activateTorpedo(s, p), false);
   assert.deepEqual({ p, s }, before);
   for (const mutate of [
-    (p) => (p.health = 10),
-    (p) => (p.stamina = 9.9),
+    (p) => (p.health = 20),
+    (p) => (p.stamina = 19.9),
     (p) => (p.health = NaN),
     (p) => (p.dead = true),
     (p) => (p.won = true),

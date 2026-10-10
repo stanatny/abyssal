@@ -1,5 +1,7 @@
 # Mechanical Shark — first candidate verification
 
+Current follow-up (2026-10-10): [companion blood/bone effects, opaque wound lining and 20/20 torpedo payment](minion_torpedo_revision.md) supersede the visual/payment details below; the original evidence remains historical.
+
 The subsequent [ordinary durability follow-up](torpedo_durability_revision.md) changes equal/larger ordinary creatures to two hits; the three-hit observations below remain historical. Lords still require three valid hits.
 
 Historical evidence below used the former 5-second cooldown. The subsequent [touch/control follow-up](touch_slow_torpedo_revision.md) changes the current interval to 2 seconds; retain earlier measurements as historical evidence.

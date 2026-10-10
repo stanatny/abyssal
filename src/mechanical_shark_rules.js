@@ -1,8 +1,8 @@
 /** 机械鲨鱼的支付、冷却与普通生物耐久；与渲染器无关。 */
 export const MECHANICAL_RULES = Object.freeze({
   cooldown: 2,
-  healthCost: 10,
-  staminaCost: 10,
+  healthCost: 20,
+  staminaCost: 20,
   resistance: 1.5,
   range: 140,
   speed: 70,

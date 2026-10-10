@@ -1,5 +1,9 @@
 # Zombie Shark character review
 
+The later [continuous real-body emergence and portrait framing](zombie_emergence_revision.md) supersedes the immediate companion arrival and its camera/timing evidence below; torn-muscle geometry, corpse explosion and20/20 torpedo payment remain.
+
+Current follow-up (2026-10-10): [torn muscle, owner-origin fission and corpse explosion](zombie_fission_revision.md), with unchanged [20/20 torpedo payment](minion_torpedo_revision.md) supersede the visual/payment details below; the original evidence remains historical.
+
 Status: the user accepted the redraw and authorized a local checkpoint on `feature/europa`, based on `995ee10`. The local commit covers the completed character and redraw; no push, main integration or formal release is authorized. Published Pages remains v0.8.3.
 
 ## Rules

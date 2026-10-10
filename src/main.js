@@ -378,6 +378,8 @@ const humans = createHumanActivity(scene, {
   },
 });
 minion = createZombieMinion(scene, {
+  getOwnerMesh: () => avatar,
+  reducedMotion: () => matchMedia("(prefers-reduced-motion: reduce)").matches,
   effects,
   audio,
   blockedBetween,
@@ -848,7 +850,10 @@ function activateCharacterSkill() {
     const status = torpedoStatus(torpedoes.state, player, underwater);
     if (!status.usable) {
       if (status.reason === "resources")
-        notify("鱼雷需要生命超过10点、体力至少10点", 2);
+        notify(
+          tr`鱼雷需要生命超过${MECHANICAL_RULES.healthCost}点、体力至少${MECHANICAL_RULES.staminaCost}点`,
+          2,
+        );
       else if (status.reason === "underwater")
         notify("潜入水下后可发射鱼雷", 2);
       return false;
@@ -860,7 +865,11 @@ function activateCharacterSkill() {
       forward,
       underwater,
     );
-    if (active) notify("鱼雷发射 · 生命 -10 · 体力 -10", 2);
+    if (active)
+      notify(
+        tr`鱼雷发射 · 生命 -${MECHANICAL_RULES.healthCost} · 体力 -${MECHANICAL_RULES.staminaCost}`,
+        2,
+      );
     updateSonar();
     return active;
   }
@@ -875,7 +884,7 @@ function activateCharacterSkill() {
       return false;
     }
     const activated = minion.activate(player, position, forward);
-    if (activated) notify("尸鲨仆从已召唤 · 三项属性各消耗50点", 3);
+    if (activated) notify("血肉正在分裂 · 生命、体力、饱食各 -50", 3);
     updateSonar();
     return activated;
   }
@@ -1061,34 +1070,39 @@ function updateSonar() {
   const blockedLabel =
     skill.id === "torpedo"
       ? statusData.reason === "resources"
-        ? "需生命>10/体力10"
+        ? tr`需生命>${MECHANICAL_RULES.healthCost}/体力${MECHANICAL_RULES.staminaCost}`
         : "需潜入水下"
       : skill.id === "summon"
         ? statusData.reason === "length"
           ? "需5米体长"
           : "需三项各50"
         : "需潜入水下";
-  const status = statusData.active
-    ? tr`${activeLabel} ${Math.ceil(statusData.remaining)}s`
-    : statusData.ready
-      ? usable
-        ? statusData.lethal
-          ? "致命献祭"
-          : "就绪"
-        : blockedLabel
-      : tr`冷却 ${Math.ceil(statusData.cooldownRemaining)}s`;
+  const forming = skill.id === "summon" && minion.forming;
+  const status = forming
+    ? "分裂中"
+    : statusData.active
+      ? tr`${activeLabel} ${Math.ceil(statusData.remaining)}s`
+      : statusData.ready
+        ? usable
+          ? statusData.lethal
+            ? "致命献祭"
+            : "就绪"
+          : blockedLabel
+        : tr`冷却 ${Math.ceil(statusData.cooldownRemaining)}s`;
   $("sonar-control").textContent = t(tr`J ${shortName} · ${status}`);
   $("touch-sonar").querySelector("span").textContent = t(shortName);
   $("touch-sonar-status").textContent = t(
-    statusData.ready
-      ? usable
-        ? statusData.lethal
-          ? "致命献祭"
-          : "就绪"
-        : ["summon", "torpedo"].includes(skill.id)
-          ? blockedLabel
-          : "水下使用"
-      : tr`${statusData.active ? Math.ceil(statusData.remaining) : cooldownSeconds}s`,
+    forming
+      ? "分裂中"
+      : statusData.ready
+        ? usable
+          ? statusData.lethal
+            ? "致命献祭"
+            : "就绪"
+          : ["summon", "torpedo"].includes(skill.id)
+            ? blockedLabel
+            : "水下使用"
+        : tr`${statusData.active ? Math.ceil(statusData.remaining) : cooldownSeconds}s`,
   );
   for (const id of ["touch-sonar", "sonar-control"]) {
     const button = $(id);
@@ -2945,16 +2959,25 @@ function followCameraPose() {
     .applyEuler(
       new THREE.Euler((waterMotion?.posePitch ?? pitch) * 0.35, yaw, 0, "YXZ"),
     );
+  // 分裂时平滑容纳本尊与真实仆从；竖屏稍微后移，不切换相机或暂停操作。
+  const birthFrame = minion?.presentation;
+  if (birthFrame)
+    offset.multiplyScalar(
+      1 + (camera.aspect < 1 ? 0.32 : 0.1) * birthFrame.weight,
+    );
   const desired = position.clone().add(offset);
   desired.y = Math.max(desired.y, floorAt(desired.x, desired.z, 2));
   shortenCamera(desired);
-  return {
-    position: desired,
-    target: position
-      .clone()
-      .addScaledVector(forward, 9 * juvenileRatio + ratio * 2)
-      .add(new THREE.Vector3(0, 1.1, 0)),
-  };
+  const target = position
+    .clone()
+    .addScaledVector(forward, 9 * juvenileRatio + ratio * 2)
+    .add(new THREE.Vector3(0, 1.1, 0));
+  if (birthFrame)
+    target.lerp(
+      position.clone().lerp(birthFrame.position, 0.45),
+      birthFrame.weight * 0.65,
+    );
+  return { position: desired, target };
 }
 function shortenCamera(point) {
   const hit = queryWorldSegment(position, point, 0.6);

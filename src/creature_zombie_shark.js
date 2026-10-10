@@ -8,7 +8,7 @@ import {
 import { addFeedingMouth, bindPlayerAppendage } from "./player_motion.js";
 
 /**
- * 原创尸鲨：贯通缺口、裸露骨架、断鳍和破损颌面；不是完整鲨鱼的换色模型。
+ * 原创尸鲨：凹陷肌肉伤口、裸露骨架、断鳍和破损颌面；不是完整鲨鱼的换色模型。
  * @param {THREE.Group} root 单位全长根节点，头朝-Z，调用方负责实际成长缩放。
  * @param {Function[]} motions 接收独立角色动作时钟，不移动游戏根节点。
  * @returns {void} 安装共享几何、独立骨架、咬合姿态和可见嘴部锚点。
@@ -19,7 +19,13 @@ export function buildZombieShark(root, motions) {
   root.add(torso);
   add(torso, "torn_skin", skin, SKIN);
   add(torso, "cartilage_ribs", skeleton, BONE);
-  add(torso, "raw_wound_edges", wounds, FLESH);
+  add(torso, "recessed_muscle_lining", muscleLining, MUSCLE);
+  add(
+    torso,
+    "raw_wound_edges",
+    () => merge([wounds(), tornMuscleFibers()]),
+    FLESH,
+  );
   add(torso, "shredded_dorsal_tail", fins, SKIN);
   add(torso, "predatory_brow", brow, SKIN);
   const bones = bindPlayerAppendage(
@@ -27,6 +33,25 @@ export function buildZombieShark(root, motions) {
     "zombie_shark_axial",
     [0, 0.12, 0.32],
   );
+  // 分裂起点跟随躯干骨架和转弯倾斜；选择面向实际仆从的一侧伤口。
+  const splitAnchors = [-1, 1].map((side) => {
+    const anchor = new THREE.Object3D();
+    anchor.name = `zombie_fission_flank_${side}`;
+    anchor.position.set(side * 0.094, 0.005, -0.035);
+    bones[0].add(anchor);
+    return anchor;
+  });
+  const left = new THREE.Vector3(),
+    right = new THREE.Vector3();
+  root.userData.getFissionSource = (out, toward) => {
+    splitAnchors[0].getWorldPosition(left);
+    splitAnchors[1].getWorldPosition(right);
+    return out.copy(
+      left.distanceToSquared(toward) < right.distanceToSquared(toward)
+        ? left
+        : right,
+    );
+  };
   for (const side of [-1, 1]) {
     const fin = new THREE.Group();
     fin.name = `zombie_shark_pectoral_${side}`;
@@ -45,7 +70,7 @@ export function buildZombieShark(root, motions) {
   jaw.position.set(0, -0.036, -0.245);
   torso.add(jaw);
   add(jaw, "broken_jaw_bone", jawBone, BONE);
-  add(jaw, "ragged_gums", () => gum(false), FLESH);
+  add(jaw, "ragged_gums", () => merge([gum(false), jawTissue()]), FLESH);
   add(jaw, "lower_dentition", () => teeth(false), BONE);
   add(torso, "upper_dentition", () => teeth(true), BONE);
   add(
@@ -76,7 +101,9 @@ export function buildZombieShark(root, motions) {
   addFeedingMouth(root, jaw, [0, -0.01, -0.205]);
   root.userData.normalizedLength = 1;
   root.userData.zombieAnatomy = {
-    openFlankWounds: 2,
+    recessedFlankWounds: 2,
+    solidMuscleLining: true,
+    muscleTears: MUSCLE_TEARS.length,
     ribs: 11,
     tornPectorals: 2,
     damagedRegions: ["skull", "gills", "flanks", "spine", "tail"],
@@ -118,6 +145,12 @@ const FLESH = skinMaterial({
   roughness: 0.62,
   clearcoat: 0.12,
   pattern: 0.13,
+});
+const MUSCLE = skinMaterial({
+  vertexColors: true,
+  roughness: 0.7,
+  clearcoat: 0.08,
+  pattern: 0.09,
 });
 const CAVITY = new THREE.MeshStandardMaterial({
   color: "#181d1b",
@@ -252,6 +285,115 @@ function skin() {
   g.setIndex(ix);
   g.computeVertexNormals();
   return g;
+}
+// 封闭的肌肉体积位于皮肤内、肋骨后；共享同一轴向蒙皮，伤口凹陷但不会贯通。
+// 不规则深裂口切掉表层肌肉体积，底部保留暗色组织，避免穿透整个身体。
+const MUSCLE_TEARS = [
+  { z: -0.13, a: 0.12, rz: 0.033, ra: 0.39 },
+  { z: -0.055, a: -0.28, rz: 0.039, ra: 0.31 },
+  { z: 0.024, a: 0.17, rz: 0.029, ra: 0.36 },
+  { z: -0.069, a: Math.PI + 0.2, rz: 0.033, ra: 0.4 },
+  { z: 0.013, a: Math.PI - 0.29, rz: 0.034, ra: 0.32 },
+  { z: 0.092, a: Math.PI + 0.21, rz: 0.028, ra: 0.36 },
+  { z: 0.14, a: Math.PI / 2, rz: 0.027, ra: 0.3 },
+];
+function muscleDamage(z, a) {
+  let gouge = 0,
+    edge = 0;
+  for (const tear of MUSCLE_TEARS) {
+    const dz = (z - tear.z) / tear.rz;
+    const da = Math.atan2(Math.sin(a - tear.a), Math.cos(a - tear.a)) / tear.ra;
+    const d =
+      Math.hypot(dz, da) *
+      (1 +
+        Math.sin(z * 337 + a * 13) * 0.15 +
+        Math.sin(a * 23 - z * 191) * 0.09);
+    gouge = Math.max(gouge, 1 - THREE.MathUtils.smoothstep(d, 0.48, 1));
+    edge = Math.max(edge, Math.max(0, 1 - Math.abs(d - 1) * 5));
+  }
+  return { gouge, edge };
+}
+function muscleLining() {
+  const rings = 56,
+    sides = 32,
+    positions = [],
+    colors = [],
+    indices = [];
+  const deep = new THREE.Color("#30151c"),
+    raw = new THREE.Color("#94353b"),
+    shade = new THREE.Color();
+  for (let row = 0; row <= rings; row++) {
+    const z = THREE.MathUtils.lerp(-0.48, 0.36, row / rings);
+    const [rx, ry, cy] = sampleSection(PROFILE, z);
+    const cap = Math.min(1, row / 2, (rings - row) / 2);
+    for (let col = 0; col <= sides; col++) {
+      const a = (col / sides) * Math.PI * 2;
+      // 细长纤维与局部鼓起形成肉层，不用透明材质掩盖裂缝。
+      const fiber =
+        Math.sin(a * 18 + z * 23) * 0.035 + Math.sin(z * 103 - a * 5) * 0.015;
+      const { gouge, edge } = muscleDamage(z, a);
+      const inset = (0.77 + fiber - gouge * 0.37 + edge * 0.028) * cap;
+      const y = cy + ry * Math.sin(a) * inset;
+      const opening = 1 - THREE.MathUtils.smoothstep(z, -0.265, -0.235);
+      positions.push(
+        rx * Math.cos(a) * inset,
+        THREE.MathUtils.lerp(y, Math.max(-0.025, y), opening),
+        z,
+      );
+      shade
+        .copy(deep)
+        .lerp(
+          raw,
+          (0.3 + (Math.sin(a * 18 + z * 23) * 0.5 + 0.5) * 0.45) *
+            (1 - gouge * 0.9) +
+            edge * 0.22,
+        );
+      colors.push(shade.r, shade.g, shade.b);
+      if (row < rings && col < sides) {
+        const n = row * (sides + 1) + col;
+        // 端点为扇形封口，避免首尾环退化三角形。
+        if (row > 0) indices.push(n, n + 1, n + sides + 1);
+        if (row < rings - 1) indices.push(n + 1, n + sides + 2, n + sides + 1);
+      }
+    }
+  }
+  const geometry = new THREE.BufferGeometry();
+  geometry.setAttribute(
+    "position",
+    new THREE.Float32BufferAttribute(positions, 3),
+  );
+  geometry.setAttribute("color", new THREE.Float32BufferAttribute(colors, 3));
+  geometry.setIndex(indices);
+  geometry.computeVertexNormals();
+  return geometry;
+}
+function tornMuscleFibers() {
+  const parts = [];
+  for (const [i, tear] of MUSCLE_TEARS.entries()) {
+    for (const offset of [-0.11, 0.1]) {
+      const a = tear.a + offset;
+      const points = [-0.8, -0.28, 0.3, 0.55].map((t) => {
+        const z = tear.z + tear.rz * t;
+        const [rx, ry, cy] = sampleSection(PROFILE, z);
+        const inset = 0.78 - (t + 0.8) * 0.18;
+        return [
+          rx * Math.cos(a) * inset,
+          cy + ry * Math.sin(a) * inset - 0.003 * (t + 0.8),
+          z,
+        ];
+      });
+      // 纤维一端仍附着，另一端缩回深裂口；不跨越整个空隙填成平面。
+      parts.push(tube(points, i % 2 ? 0.0018 : 0.0023, 6));
+    }
+  }
+  return merge(parts);
+}
+function jawTissue() {
+  return merge([
+    ellipsoid([0, -0.02, -0.105], [0.043, 0.008, 0.087]),
+    ellipsoid([0, -0.014, -0.087], [0.016, 0.006, 0.045]),
+    ellipsoid([0, -0.006, -0.016], [0.049, 0.027, 0.02]),
+  ]);
 }
 function skeleton() {
   const parts = [

@@ -205,7 +205,7 @@ export function buildOceanCatalog(regionId) {
         entry.kind === "mechanical_shark"
           ? "机械鲨鱼：深蓝与钴蓝分块装甲、铜色工程带、宽肩护甲、测距传感器、铰接鳍尾和腹部鱼雷舱；双推进器在冲刺时喷出蓝白与橙色尾焰。"
           : entry.kind === "zombie_shark"
-            ? "亡灵鲨鱼：头颌、侧腹、背脊和尾柄有不规则撕裂与裸露骨架，断鳍和伤口带有血迹，低压眉骨与尖牙呈现凶狠神态；并非真实动物。"
+            ? "亡灵鲨鱼：头颌、侧腹、背脊和尾柄有不规则撕裂与裸露骨架，伤口内层肌肉也有深裂口与断裂纤维，深处保留暗红组织，破颌内有口腔组织；断鳍与伤口带有血迹，低压眉骨与尖牙呈现凶狠神态。"
             : undefined,
       length: startingLength(entry),
       size: tr`${startingLength(entry)}—30 m（成长玩法）`,

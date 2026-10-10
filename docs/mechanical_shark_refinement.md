@@ -1,5 +1,7 @@
 # Mechanical Shark — visual and aiming refinement
 
+Current follow-up (2026-10-10): [companion blood/bone effects, opaque wound lining and 20/20 torpedo payment](minion_torpedo_revision.md) supersede the visual/payment details below; the original evidence remains historical.
+
 The subsequent [ordinary durability follow-up](torpedo_durability_revision.md) changes equal/larger ordinary creatures to two hits; the three-hit observations below remain historical. Lords still require three valid hits.
 
 Historical review: the later [homing and feeding follow-up](homing_feeding_revision.md) replaces the earlier limited steering corridor; its range, costs, 2-second cooldown and touch controls remain current.

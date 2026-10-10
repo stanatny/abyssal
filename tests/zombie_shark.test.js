@@ -60,7 +60,12 @@ function harness({ wall = false } = {}) {
       return true;
     },
     effects: {
-      undeadBurst: (...args) => state.bursts.push(args),
+      minionTransition: (mesh, mode) =>
+        state.bursts.push({
+          mode,
+          position: mesh.position.clone(),
+          scale: mesh.scale.clone(),
+        }),
       mealMist() {},
       bite() {},
     },
@@ -225,13 +230,20 @@ test("实体墙遮挡不锁定也不捕食，环游仍使用多球连续碰撞",
     movingCover.position,
     movingCover.forward,
   );
-  movingCover.minion.update(
-    1 / 60,
-    movingCover.owner,
-    movingCover.position,
-    movingCover.forward,
-    [movingCover.prey],
-  );
+  for (
+    let i = 0;
+    i < 120 && movingCover.minion.snapshot().phase !== "hunt";
+    i++
+  ) {
+    movingCover.owner.elapsed += 1 / 60;
+    movingCover.minion.update(
+      1 / 60,
+      movingCover.owner,
+      movingCover.position,
+      movingCover.forward,
+      [movingCover.prey],
+    );
+  }
   assert.equal(movingCover.minion.snapshot().target, "tuna");
   movingCover.solids.push({
     type: "box",
@@ -253,7 +265,7 @@ test("实体墙遮挡不锁定也不捕食，环游仍使用多球连续碰撞",
   assert.equal(movingCover.minion.snapshot().target, null);
   assert.equal(movingCover.state.meals, 0);
 });
-test("暂停无时钟推进，到期只尸爆一次，死亡/重开清除仆从与吞食，资源实例复用", () => {
+test("暂停无时钟推进，到期只解体一次，死亡/重开清除仆从与吞食，资源实例复用", () => {
   const h = harness();
   h.minion.activate(h.owner, h.position, h.forward);
   const mesh = h.minion.mesh;
@@ -264,7 +276,7 @@ test("暂停无时钟推进，到期只尸爆一次，死亡/重开清除仆从�
   h.owner.elapsed = 60;
   h.minion.update(1 / 60, h.owner, h.position, h.forward, []);
   h.minion.update(1 / 60, h.owner, h.position, h.forward, []);
-  assert.equal(h.state.bursts.filter((b) => b[2]).length, 1);
+  assert.equal(h.state.bursts.filter((b) => b.mode === "depart").length, 1);
   assert.equal(mesh.visible, false);
   h.minion.reset();
   h.owner.health = h.owner.stamina = h.owner.hunger = 100;
@@ -275,7 +287,7 @@ test("暂停无时钟推进，到期只尸爆一次，死亡/重开清除仆从�
   assert.equal(mesh.visible, false);
   assert.equal(h.minion.state.activatedAt, null);
 });
-test("尸鲨有贯通侧腹和独立侧向摆尾，3/15/30米真实顶点有界；缓存与动作独立", () => {
+test("尸鲨有肌肉衬底侧腹和独立侧向摆尾，3/15/30米真实顶点有界；缓存与动作独立", () => {
   const a = createCreature("zombie_shark", 3),
     b = createCreature("zombie_shark", 3);
   const initialPhase = b.userData.motionState.phase;
@@ -287,9 +299,9 @@ test("尸鲨有贯通侧腹和独立侧向摆尾，3/15/30米真实顶点有界�
   b.traverse((x) => {
     if (x.isMesh) br.push(x);
   });
-  assert.equal(ar.length, 10);
+  assert.equal(ar.length, 11);
   assert.ok(ar.every((m, i) => m.geometry === br[i].geometry));
-  assert.equal(a.userData.zombieAnatomy.openFlankWounds, 2);
+  assert.equal(a.userData.zombieAnatomy.recessedFlankWounds, 2);
   const v = new THREE.Vector3();
   for (const length of [3, 15, 30]) {
     a.scale.setScalar(length);
@@ -333,4 +345,81 @@ test("本地通关榜接受并保留第三角色身份，未知角色仍拒绝",
     }),
   );
   assert.equal(store.list("hawaii")[0].character, "zombie_shark");
+});
+
+test("破损侧腹有不透明肌肉衬底，左右射线不穿过躯体；衬底与骨架一起蒙皮", () => {
+  const model = createCreature("zombie_shark", 1);
+  const muscle = [];
+  model.traverse((mesh) => {
+    if (mesh.isSkinnedMesh && mesh.material.vertexColors && !mesh.material.side)
+      muscle.push(mesh);
+  });
+  // 独立红色肌肉批次采用正面、不透明材质；两侧伤口的视线均命中衬底。
+  assert.equal(muscle.length, 1);
+  assert.equal(muscle[0].material.transparent, false);
+  assert.equal(model.userData.zombieAnatomy.solidMuscleLining, true);
+  for (const length of [3, 15, 30]) {
+    model.scale.setScalar(length);
+    for (const side of [-1, 1]) {
+      model.userData.animate(2, 3, {
+        dt: 1 / 30,
+        speed: 32,
+        boosting: true,
+        turn: 0.7,
+      });
+      model.updateMatrixWorld(true);
+      muscle[0].skeleton.update();
+      const ray = new THREE.Raycaster(
+        new THREE.Vector3(side * length, 0, -0.03 * length),
+        new THREE.Vector3(-side, 0, 0),
+      );
+      const hits = ray.intersectObject(muscle[0]);
+      assert.ok(hits.length > 0);
+      assert.ok(Math.abs(hits[0].point.x) < length * 0.12);
+    }
+  }
+});
+
+test("内层肌肉有真实深裂口且保留不透明底面，分裂起点随独立躯干姿态选择近侧", () => {
+  const model = createCreature("zombie_shark", 1),
+    other = createCreature("zombie_shark", 1);
+  let muscle;
+  model.traverse((m) => {
+    if (m.isSkinnedMesh && m.material.vertexColors && !m.material.side)
+      muscle = m;
+  });
+  model.updateMatrixWorld(true);
+  muscle.skeleton.update();
+  const surface = (z) =>
+    new THREE.Raycaster(
+      new THREE.Vector3(1, 0.014, z),
+      new THREE.Vector3(-1, 0, 0),
+    ).intersectObject(muscle)[0];
+  const torn = surface(-0.13),
+    intact = surface(-0.18);
+  assert.ok(torn && intact);
+  assert.ok(intact.point.x - torn.point.x > 0.015);
+  assert.equal(model.userData.zombieAnatomy.muscleTears, 7);
+  const point = new THREE.Vector3(),
+    target = new THREE.Vector3(10, 0, 0);
+  model.userData.getFissionSource(point, target);
+  assert.ok(point.x > 0);
+  model.position.set(10, -40, 15);
+  model.rotation.set(0.3, 0.7, 0.2);
+  model.scale.setScalar(15);
+  model.userData.animate(2, 3, {
+    dt: 0.05,
+    speed: 32,
+    boosting: true,
+    turn: 1,
+  });
+  const expected = model
+    .getObjectByName("zombie_fission_flank_1")
+    .getWorldPosition(new THREE.Vector3());
+  target.copy(expected).addScalar(0.1);
+  model.userData.getFissionSource(point, target);
+  assert.ok(point.distanceTo(expected) < 1e-9);
+  const untouched = new THREE.Vector3();
+  other.userData.getFissionSource(untouched, new THREE.Vector3(5, 0, 0));
+  assert.ok(untouched.distanceTo(point) > 10);
 });

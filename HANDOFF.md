@@ -1,3 +1,33 @@
+# Accepted companion UI checkpoint — 2026-10-10
+
+The user accepts continuous body emergence and the phone framing/model UI, then explicitly requests a local commit before developing damaging corpse blasts. This checkpoint includes the preceding model/fission presentation and20/20 torpedo payment, with verified1,142 units and compiled preview receipts retained under `.local/zombie_emergence_revision_20261010/`. The old uncommitted/authorization labels below are historical. Damage, active detonation and their future checks are excluded. No push/main publication is requested; established services and canceled worktrees remain.
+
+---
+
+# Current continuous companion emergence — 2026-10-10
+
+The user rejects the preceding immediate full-size arrival and reports an invisible companion on phones. The current AI agent alone continues the same dirty `feat/lord-contact-rare-blessing` at local45ebf24; no new commit/push is authorized. Main/Pages remains4060d86 / v0.11.4. Preserve earlier torn muscle, last-pose corpse burst,20/20 torpedoes and all accepted rare/lord behavior. Existing services and canceled worktrees remain intact.
+
+Read [the current emergence review](docs/zombie_emergence_revision.md). The actual cached model grows from inside the posed flank, releases over1.2 active seconds, then turns into pursuit or a gently expanding orbit. Formation cannot feed. The running follow camera smoothly includes both bodies in portrait view; bilingual HUD identifies formation. Existing32 m acquisition/64 m minion leash remains, with bounded continuity for already acquired rares to avoid dropping them during emergence. Payment and60-second lifetime/cooldown begin at cast. Ignored evidence is `.local/zombie_emergence_revision_20261010/`; final checks pass1,142 units, formatting/build and29 headed shared browser checks, eight native running-camera emergence cases and two pause/turn/expiry/reset boundary cases. Restricted compiled and hash/privacy receipts and remaining limits are recorded there and in verification. All earlier immediate-body/staged-camera arrival checks below are historical rather than evidence for this new behavior.
+
+---
+
+# Current Zombie Shark fission refinement — 2026-10-10
+
+The user asks for damage within exposed muscle, a companion visibly split from the owner's own flesh to convey the existing sacrificial cost, and a corpse explosion when it expires. The current AI agent alone continues the same dirty `feat/lord-contact-rare-blessing` at local checkpoint45ebf24; no new commit or push is authorized. Main/Pages remains4060d86 / v0.11.4. Preserve the preceding20/20 torpedo change and all accepted rare/lord behavior. Existing preview services and canceled worktrees stay intact.
+
+Read [the current fission review](docs/zombie_fission_revision.md). The preceding blood/muscle candidate is preserved as the comparison baseline in ignored `.local/zombie_fission_revision_20261010/`; its earlier checks below are historical, not evidence for the refined event. The new event uses real posed owner-flank and resolved companion anchors, two bounded slots, curved tissue extraction and an outward last-pose corpse burst. The shared model retains opaque backing under deep tears and broken muscle fibers. All three50-point costs,5 m eligibility,60 active seconds, feeding rules, pause/reset/reduced-motion and independent cached rigs remain. Final units1,138, formatting/build and29 headed shared browser checks pass; three bilingual desktop/narrow dev cases verify exact costs and real desktop60.0140s expiry. Four-angle muscle views, staged/deep effects, populated render costs and six native cache-reset rounds are recorded in the review. Final compiled-host/hash/privacy/refresh evidence is retained with the delivery receipt.
+
+---
+
+# Current companion/model and torpedo follow-up — 2026-10-10
+
+The preceding rare/lord candidate has been accepted and committed locally as `45ebf24` on `feat/lord-contact-rare-blessing`; no push was requested. The historical uncommitted/HEAD labels below are superseded by that checkpoint. New user scope: bloodier Zombie Shark companion arrival/expiry, a less hollow shared model, and fixed20-health/20-stamina torpedo casts. The current AI agent alone implements it on the same branch, leaving new changes uncommitted for review. Main/Pages stays4060d86 / v0.11.4. Existing owned services and canceled worktrees remain intact.
+
+Read [the current review](docs/minion_torpedo_revision.md). Preserve all accepted rare rewards, lord contact/openings and moving recovery. The shared model gains opaque skinned muscle and jaw tissue; a bounded two-slot blood/bone pool follows real arrival and last-pose expiry, with pause/reset/reduced-motion handling. Mechanical payment, thresholds and bilingual HUD/Guide share20/20 values; targeting/cooldown and settlement stay intact. Validation passes1,136 units, formatting/build and29 headed shared browser checks; native companion/torpedo, model poses, deep/narrow effects and repeat-cache checks are recorded in the review. Evidence and operating records are in ignored `.local/minion_torpedo_revision_20261010/`; predecessor commit receipt is in `.local/lord_recovery_revision_20261010/accepted_commit.json`. No delegation, new commit/push or main publication is authorized for this follow-up.
+
+---
+
 # Active Sword Sage pressure follow-up — 2026-10-10
 
 ## Current recovery interaction — 2026-10-10

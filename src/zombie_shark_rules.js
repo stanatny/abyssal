@@ -100,6 +100,7 @@ export function consumeMinionPrey(state, player, prey) {
 /** 有界近距巡游范围；仆从随主角成长，但不改变主角的体长与碰撞配置。 */
 export const MINION_RULES = Object.freeze({
   sizeRatio: 0.65,
+  fissionDuration: 1.2,
   preyGap: 5,
   searchRadius: 32,
   leashRadius: 64,

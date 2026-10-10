@@ -26,6 +26,8 @@ export function createZombieMinion(
     onMeal,
     effects,
     audio,
+    getOwnerMesh,
+    reducedMotion = () => false,
     accessible = (entry) => entry.mesh.position.y < 0,
   } = {},
 ) {
@@ -38,7 +40,10 @@ export function createZombieMinion(
     nextSearch = 0,
     alive = false,
     phase = "absent",
-    orbitPhase = 0;
+    orbitPhase = 0,
+    birthAge = 0,
+    birthSide = 1,
+    framingWeight = 0;
   const direction = new THREE.Vector3(0, 0, -1),
     desired = new THREE.Vector3(),
     delta = new THREE.Vector3();
@@ -48,17 +53,17 @@ export function createZombieMinion(
     contact = new THREE.Vector3(),
     preyContact = new THREE.Vector3(),
     preyPrevious = new THREE.Vector3(),
-    intakeOffset = new THREE.Vector3();
+    intakeOffset = new THREE.Vector3(),
+    birthOrigin = new THREE.Vector3(),
+    birthTarget = new THREE.Vector3(),
+    birthHeading = new THREE.Vector3();
+  const presentation = { position: birthTarget, weight: 0 };
   const rotation = new THREE.Quaternion(),
     axis = new THREE.Vector3(0, 0, -1),
     side = new THREE.Vector3();
   let previousLength = 0;
-  function expire(player) {
-    effects.undeadBurst?.(
-      mesh.position,
-      player.length * MINION_RULES.sizeRatio,
-      true,
-    );
+  function expire() {
+    effects.minionTransition?.(mesh, "depart");
     audio?.corpseBurst?.();
     feeding.reset();
     mesh.visible = false;
@@ -66,14 +71,16 @@ export function createZombieMinion(
     target = null;
     phase = "expired";
   }
-  function move(start, end, player) {
-    const result = resolveMovement?.(
-      start,
-      end,
-      direction,
-      player.length * MINION_RULES.sizeRatio,
-    );
+  function move(
+    start,
+    end,
+    player,
+    visibleLength = player.length * MINION_RULES.sizeRatio,
+  ) {
+    const result = resolveMovement?.(start, end, direction, visibleLength);
     mesh.position.copy(result?.position || end);
+    // 体积逐渐增大时的重叠推出也不能把中心送到墙另一侧。
+    if (blockedBetween?.(start, mesh.position)) mesh.position.copy(start);
     if (result?.contacts?.length) {
       for (const hit of result.contacts) {
         const normal = hit.normal;
@@ -86,7 +93,7 @@ export function createZombieMinion(
   }
   function activate(player, position, forward) {
     if (!summonStatus(state, player).usable) return false;
-    if (alive) expire(player);
+    if (alive) expire();
     if (!mesh) {
       mesh = createCreature("zombie_shark", 1, 733);
       mesh.name = "zombie_shark_minion";
@@ -96,28 +103,97 @@ export function createZombieMinion(
     feeding.reset();
     mesh.userData.resetMotion?.();
     previousLength = player.length;
-    mesh.scale.setScalar(player.length * MINION_RULES.sizeRatio);
     direction.copy(forward);
-    side.set(-forward.z, 0, forward.x).normalize();
-    if (side.lengthSq() < 0.1) side.set(1, 0, 0);
-    desired.copy(position).addScaledVector(side, player.length * 0.6 + 2);
-    move(position, desired, player);
-    mesh.quaternion.setFromUnitVectors(axis, direction);
-    mesh.userData.getFeedingMouth(mouth);
-    oldMouth.copy(mouth);
+    // 先选择能够真正容纳仆从的近侧；不在墙外、手机视野外突然生成完整身体。
+    birthSide = 1;
+    birthDestination(player, position, forward, 1, desired);
+    const right = resolveMovement?.(
+      position,
+      desired,
+      forward,
+      player.length * MINION_RULES.sizeRatio,
+    )?.position;
+    const rightDistance = delta
+      .copy(right || desired)
+      .distanceToSquared(position);
+    birthDestination(player, position, forward, -1, desired);
+    const left = resolveMovement?.(
+      position,
+      desired,
+      forward,
+      player.length * MINION_RULES.sizeRatio,
+    )?.position;
+    if (
+      delta.copy(left || desired).distanceToSquared(position) >
+      rightDistance + 0.25
+    )
+      birthSide = -1;
+    birthAge = 0;
+    framingWeight = 0;
+    mesh.position.copy(position);
     alive = !player.dead;
     mesh.visible = alive;
-    phase = "orbit";
+    phase = alive ? "forming" : "absent";
     target = null;
+    if (alive) poseBirth(player, position, forward, 0);
+    mesh.userData.getFeedingMouth(mouth);
+    oldMouth.copy(mouth);
     nextSearch = player.elapsed;
     orbitPhase = 0;
-    effects.undeadBurst?.(
-      mesh.position,
-      player.length * MINION_RULES.sizeRatio,
-      false,
-    );
-    audio?.summonUndead?.();
+    presentation.position = mesh.position;
+    presentation.weight = 0;
+    if (alive) {
+      effects.minionTransition?.(mesh, "appear", getOwnerMesh?.());
+      audio?.summonUndead?.();
+    }
     return true;
+  }
+  function birthDestination(player, position, forward, sign, out) {
+    side.set(-forward.z, 0, forward.x).normalize();
+    if (side.lengthSq() < 0.1) side.set(1, 0, 0);
+    side.multiplyScalar(sign);
+    return out
+      .copy(position)
+      .addScaledVector(side, player.length * 0.28)
+      .addScaledVector(forward, player.length * 0.1)
+      .addScaledVector(THREE.Object3D.DEFAULT_UP, player.length * 0.035);
+  }
+  function poseBirth(player, position, forward, dt) {
+    const u = Math.min(1, birthAge / MINION_RULES.fissionDuration);
+    const fullLength = player.length * MINION_RULES.sizeRatio;
+    birthDestination(player, position, forward, birthSide, birthTarget);
+    const owner = getOwnerMesh?.();
+    if (owner?.visible && owner.userData.getFissionSource) {
+      owner.userData.getFissionSource(birthOrigin, birthTarget);
+      birthOrigin.addScaledVector(side, -player.length * 0.085);
+    } else
+      birthOrigin
+        .copy(position)
+        .addScaledVector(forward, player.length * 0.035);
+    // 同一真实模型在体内起始，头先探出侧腹，再长成完整体积并转入游动方向。
+    const growth = THREE.MathUtils.smoothstep(u, 0.04, 0.72);
+    const separation = THREE.MathUtils.smoothstep(u, 0.05, 0.86);
+    birthHeading
+      .copy(side)
+      .multiplyScalar(0.86)
+      .addScaledVector(forward, 0.51)
+      .normalize();
+    if (reducedMotion()) birthHeading.copy(forward);
+    delta.copy(forward);
+    if (target) delta.copy(target.mesh.position).sub(birthTarget).normalize();
+    direction
+      .copy(birthHeading)
+      .lerp(delta, THREE.MathUtils.smoothstep(u, 0.42, 0.94))
+      .normalize();
+    previous.copy(mesh.position);
+    mesh.scale.setScalar(fullLength * THREE.MathUtils.lerp(0.08, 1, growth));
+    mesh.userData.fissionVisualLength = fullLength;
+    desired.copy(birthOrigin).lerp(birthTarget, separation);
+    move(previous, desired, player, mesh.scale.x);
+    mesh.quaternion.setFromUnitVectors(axis, direction);
+    mesh.userData.animate(player.elapsed, 0.55, { dt, speed: 4, turn: 0 });
+    oldMouth.copy(mesh.userData.getFeedingMouth(mouth));
+    previousLength = player.length;
   }
   function update(dt, player, position, forward, prey, otherPrey = []) {
     if (!alive || !mesh) return;
@@ -132,23 +208,39 @@ export function createZombieMinion(
     }
     const status = summonStatus(state, player);
     if (!status.active) {
-      expire(player);
+      expire();
       return;
     }
     if (!Number.isFinite(dt) || dt <= 0) return;
-    oldMouth.copy(mesh.userData.getFeedingMouth(mouth));
-    const visibleLength = player.length * MINION_RULES.sizeRatio;
+    birthAge += dt;
+    framingWeight =
+      THREE.MathUtils.smoothstep(birthAge, 0, 0.35) *
+      (1 -
+        THREE.MathUtils.smoothstep(
+          birthAge,
+          MINION_RULES.fissionDuration + 0.35,
+          MINION_RULES.fissionDuration + 1.25,
+        ));
+    presentation.weight = framingWeight;
     const returning =
       mesh.position.distanceToSquared(position) > MINION_RULES.leashRadius ** 2;
-    const available = (entry) =>
+    const available = (entry, tracking = false) =>
       canMinionEat(player, entry.species) &&
       (entry.hiddenFor || 0) <= 0 &&
       entry.alive !== false &&
       !(entry.protectedUntil > player.elapsed) &&
       accessible(entry) &&
-      entry.mesh.position.distanceToSquared(position) <=
-        MINION_RULES.searchRadius ** 2;
-    if (target && (!available(target) || returning)) target = null;
+      (entry.mesh.position.distanceToSquared(position) <=
+        (tracking && isRegionalRare(entry.species)
+          ? MINION_RULES.leashRadius
+          : MINION_RULES.searchRadius) **
+          2 ||
+        (tracking &&
+          isRegionalRare(entry.species) &&
+          entry.mesh.position.distanceToSquared(mesh.position) <=
+            MINION_RULES.searchRadius ** 2));
+    // 分裂耗时不能让已合法发现的珍兽因本尊暂时落后而被遗忘；仍受原有牵绳和遮挡限制。
+    if (target && (!available(target, true) || returning)) target = null;
     if (!returning && player.elapsed >= nextSearch) {
       nextSearch = player.elapsed + MINION_RULES.searchInterval;
       // 猎物绕到建筑/船体背后时换目标，不持续顶着墙追逐。
@@ -173,6 +265,14 @@ export function createZombieMinion(
           }
       }
     }
+    if (phase === "forming") {
+      poseBirth(player, position, forward, dt);
+      if (birthAge >= MINION_RULES.fissionDuration) phase = "orbit";
+      return;
+    }
+    presentation.position = mesh.position;
+    oldMouth.copy(mesh.userData.getFeedingMouth(mouth));
+    const visibleLength = player.length * MINION_RULES.sizeRatio;
     orbitPhase += dt * 0.7;
     if (target) {
       phase = "hunt";
@@ -205,19 +305,40 @@ export function createZombieMinion(
       phase = returning ? "return" : "orbit";
       side.set(-forward.z, 0, forward.x).normalize();
       if (side.lengthSq() < 0.1) side.set(1, 0, 0);
-      const radius = player.length * 0.58 + 3;
+      const settle = THREE.MathUtils.smoothstep(
+        birthAge,
+        MINION_RULES.fissionDuration,
+        MINION_RULES.fissionDuration + 1.5,
+      );
+      const radius = THREE.MathUtils.lerp(
+        player.length * 0.28,
+        player.length * 0.58 + 3,
+        settle,
+      );
       desired
         .copy(position)
-        .addScaledVector(side, Math.cos(orbitPhase) * radius)
+        .addScaledVector(side, Math.cos(orbitPhase) * radius * birthSide)
         .addScaledVector(forward, Math.sin(orbitPhase) * radius);
       desired.y += Math.sin(orbitPhase * 0.6) * 1.1;
     }
     previous.copy(mesh.position);
     delta.copy(desired).sub(previous);
     const distance = delta.length();
-    const swimSpeed =
-      returning || !target
-        ? MINION_RULES.returnSpeed
+    const swimSpeed = returning
+      ? MINION_RULES.returnSpeed
+      : !target
+        ? Math.min(
+            distance * 3,
+            THREE.MathUtils.lerp(
+              MINION_RULES.cruiseSpeed,
+              MINION_RULES.returnSpeed,
+              THREE.MathUtils.smoothstep(
+                birthAge,
+                MINION_RULES.fissionDuration,
+                MINION_RULES.fissionDuration + 1.5,
+              ),
+            ),
+          )
         : isRegionalRare(target.species)
           ? MINION_RULES.rarePursuitSpeed
           : MINION_RULES.cruiseSpeed;
@@ -248,7 +369,7 @@ export function createZombieMinion(
     // 成长只影响下帧捕获，不把尺寸跳变当作跨墙吞食扫掠。
     if (player.length !== previousLength) oldMouth.copy(mouth);
     previousLength = player.length;
-    if (target && available(target)) {
+    if (target && available(target, true)) {
       const range = preyCaptureRadius(visibleLength, target.species.length);
       const fraction = sweptCaptureFraction(
         oldMouth,
@@ -276,12 +397,16 @@ export function createZombieMinion(
     feeding.update(dt, { mouth, direction });
   }
   function reset() {
+    effects.minionTransitions?.reset();
     feeding.reset();
     Object.assign(state, createSummonState());
     alive = false;
     target = null;
     phase = "absent";
     nextSearch = 0;
+    birthAge = 0;
+    framingWeight = 0;
+    presentation.weight = 0;
     if (mesh) {
       mesh.visible = false;
       mesh.userData.resetMotion?.();
@@ -296,8 +421,14 @@ export function createZombieMinion(
     beforePreyMotion() {
       if (target) preyPrevious.copy(target.mesh.position);
     },
+    get presentation() {
+      return alive && framingWeight > 0 ? presentation : null;
+    },
     get active() {
       return alive;
+    },
+    get forming() {
+      return alive && phase === "forming";
     },
     get mesh() {
       return mesh;
@@ -305,6 +436,8 @@ export function createZombieMinion(
     snapshot: () => ({
       alive,
       phase,
+      birthAge,
+      framingWeight,
       target: target?.species.kind || target?.kind || null,
       meals: state.meals,
       position: mesh?.position.toArray(),
