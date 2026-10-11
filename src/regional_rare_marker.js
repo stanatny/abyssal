@@ -98,7 +98,7 @@ export function attachRareMarker(root) {
       toneMapped: false,
     });
   }
-  // 贴图共用，透明度每个实例独立；缓存种群最多各海域一套，不逐帧分配。
+  // 贴图共用，透明度每个实例独立；只释放实例材质，底图仍由所有海域共用，不逐帧分配。
   const marker = new THREE.Sprite(markerMaterial.clone());
   marker.name = "regional_rare_marker";
   marker.position.set(0, 0.55, 0);
@@ -135,6 +135,12 @@ export function attachRareMarker(root) {
       );
       glint.scale.setScalar(0.095 + 0.035 * Math.sin(t * 2.7 + i * 1.7));
     }
+  };
+  root.userData.disposeRareShimmer = () => {
+    marker.material.dispose();
+    halo.material.dispose();
+    material.dispose();
+    delete root.userData.disposeRareShimmer;
   };
   root.userData.updateRareShimmer(0, 0);
   return marker;

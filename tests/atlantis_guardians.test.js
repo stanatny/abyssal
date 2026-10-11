@@ -332,7 +332,7 @@ test("喷墨和冷却各归自己的实例，重开与切图复用网格且清�
   assert.equal(first.state.phase, "disoriented");
   assert.equal(second.state.phase, "dormant");
   assert.equal(third.state.phase, "dormant");
-  const meshes = f.encounters.bosses.map((entry) => entry.mesh.uuid);
+  const meshes = f.guardians.map((entry) => entry.mesh.uuid);
   const resources = () => {
     const nodes = new Set(),
       geometries = new Set(),
@@ -364,7 +364,9 @@ test("喷墨和冷却各归自己的实例，重开与切图复用网格且清�
     assert.ok(enabled.every((entry) => entry.poolIndex === 0));
     f.reset();
     assert.deepEqual(
-      f.encounters.bosses.map((entry) => entry.mesh.uuid),
+      f.encounters.bosses
+        .filter((entry) => entry.enabled)
+        .map((entry) => entry.mesh.uuid),
       meshes,
     );
     assert.deepEqual(resources(), baseline);

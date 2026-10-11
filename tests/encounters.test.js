@@ -36,6 +36,7 @@ function fixture(kind, floor = -900) {
     },
     onBite: () => events.bites++,
   });
+  encounters.reset([kind]);
   const entry = encounters.bosses.find(
     (boss) => boss.state.species.kind === kind,
   );
@@ -743,4 +744,33 @@ test("Close recovery defense gives a full locked warning, keeps body exposed and
   f.encounters.reset([]);
   assert.equal(f.entry.recovery.startedAt, -1);
   assert.equal(f.entry.ring.visible, false);
+});
+
+test("Lord models are lazy, dormant pools are detached, and all species can be reused", () => {
+  const f = fixture("kraken");
+  try {
+    assert.ok(f.encounters.bosses.length <= 3);
+    for (const species of BOSS_SPECIES) {
+      f.encounters.reset([species.kind]);
+      const entry = f.encounters.bosses.find((b) => b.enabled);
+      assert.equal(entry.state.species, species);
+      assert.equal(
+        entry.patrolStart,
+        (91 + BOSS_SPECIES.indexOf(species)) * 2.399963,
+      );
+      assert.equal(entry.mesh.parent, f.scene);
+      for (const inactive of f.encounters.bosses.filter((b) => !b.enabled)) {
+        assert.equal(inactive.mesh.parent, null);
+        assert.equal(inactive.ring.parent, null);
+        assert.equal(inactive.label.parent, null);
+        assert.ok(inactive.fxVariants.every((fx) => fx.group.parent === null));
+      }
+      const mesh = entry.mesh;
+      f.encounters.reset([species.kind]);
+      assert.equal(f.encounters.bosses.find((b) => b.enabled).mesh, mesh);
+    }
+    assert.equal(f.encounters.bosses.length, BOSS_SPECIES.length);
+  } finally {
+    f.encounters.dispose();
+  }
 });

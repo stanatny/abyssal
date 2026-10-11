@@ -355,14 +355,16 @@ export function createHumanActivity(
         : ordinaryHumanHome(entity.kind, i);
       entity.home.copy(base);
       entity.anchor.copy(
-        safePosition(
-          base,
-          1.4,
-          i,
-          entity.kind === "swimmer"
-            ? WORLD.surfaceY + 0.03
-            : WORLD.surfaceY - 0.6,
-        ),
+        allowed
+          ? safePosition(
+              base,
+              1.4,
+              i,
+              entity.kind === "swimmer"
+                ? WORLD.surfaceY + 0.03
+                : WORLD.surfaceY - 0.6,
+            )
+          : base,
       );
       entity.mesh.position.copy(entity.anchor);
       entity.mesh.visible = entity.alive;
@@ -377,7 +379,10 @@ export function createHumanActivity(
         -[185, 285, 395][i],
         -[445, 660, 855][i],
       );
-      submarine.mesh.position.copy(safePosition(base, 12, i));
+      // 禁用对象不会进入世界，回到允许它的海域时再按真实地形落位。
+      submarine.mesh.position.copy(
+        activity.submarines !== false ? safePosition(base, 12, i) : base,
+      );
       submarine.mesh.rotation.set(0, 0, 0);
       submarine.mesh.visible = activity.submarines !== false;
       submarine.collider = makeSubmarineCollider(submarine);
@@ -399,7 +404,9 @@ export function createHumanActivity(
         -230 - band * 125,
         -570 - band * 220,
       );
-      hazard.mesh.position.copy(safePosition(base, 3, i * 1.6));
+      hazard.mesh.position.copy(
+        hazard.active ? safePosition(base, 3, i * 1.6) : base,
+      );
       hazard.mesh.rotation.y = i * 0.8;
       hazard.mesh.visible = hazard.active;
       hazard.warning.position.copy(hazard.mesh.position);

@@ -403,3 +403,33 @@ test("男女游泳者与潜水员结算传递同源性别，普通复活继续�
     activity.dispose();
   }
 });
+
+test("Disabled regional humans perform no terrain placement; enabling restores real homes", () => {
+  let probes = 0;
+  const scene = new THREE.Scene();
+  const activity = createHumanActivity(scene, {
+    heightAt: () => {
+      probes++;
+      return -1000;
+    },
+  });
+  try {
+    probes = 0;
+    activity.reset({
+      swimmers: false,
+      divers: false,
+      releasedDivers: false,
+      submarines: false,
+      mines: false,
+    });
+    assert.equal(probes, 0);
+    assert.equal(activity.colliders.length, 0);
+    assert.ok(activity.entities.every((e) => !e.alive && !e.mesh.visible));
+    activity.reset();
+    assert.ok(probes > 0);
+    assert.equal(activity.colliders.length, HUMAN_RULES.submarineCount);
+    assert.ok(activity.entities.some((e) => e.alive && e.mesh.visible));
+  } finally {
+    activity.dispose();
+  }
+});

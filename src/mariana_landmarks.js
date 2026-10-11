@@ -1,3 +1,4 @@
+import { finishScenePreparation } from "./scene_preparation.js";
 import * as THREE from "three";
 import { mergeGeometries } from "three/addons/utils/BufferGeometryUtils.js";
 import { addSurfaceDetail } from "./ocean_visuals.js";
@@ -103,7 +104,7 @@ const RADIAL_STEPS = 3;
 const ANGULAR_STEPS = 48;
 
 /** 地图拥有最终资源；每个地点只生成三个合批，动态与销毁仍由海域主循环管理。 */
-export function addMarianaLandmarks({ root, keep, group, materials }) {
+export function* addMarianaLandmarksSteps({ root, keep, group, materials }) {
   if (!root || !keep || !group || !materials?.basalt || !materials?.pale)
     throw new TypeError(
       "Mariana landmarks require the regional owner contract",
@@ -502,6 +503,7 @@ export function addMarianaLandmarks({ root, keep, group, materials }) {
       triangles,
       colliders: siteColliders.length,
     });
+    yield "landmark";
   }
   stats.colliders = colliders.length;
   root.userData.marianaLandmarkGeometry = {
@@ -709,4 +711,8 @@ function reliefFan(root, radius, angle) {
   geometry.setIndex(idx);
   geometry.computeVertexNormals();
   return geometry;
+}
+
+export function addMarianaLandmarks(options) {
+  return finishScenePreparation(addMarianaLandmarksSteps(options));
 }

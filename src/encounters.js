@@ -931,11 +931,13 @@ export function createEncounters(
     const poolIndex = bosses.filter(
       (entry) => entry.state.species.kind === species.kind,
     ).length;
-    const mesh = createCreature(
-      species.kind,
-      species.length,
-      91 + bosses.length,
-    );
+    // 延迟建模不改变首个实例的外观/巡游种子；固定地图的重复守卫有独立相位。
+    const seed =
+      91 +
+      (poolIndex === 0
+        ? BOSS_SPECIES.indexOf(species)
+        : BOSS_SPECIES.length + poolIndex - 1);
+    const mesh = createCreature(species.kind, species.length, seed);
     scene.add(mesh);
     const ring = new THREE.Mesh(
       new THREE.CircleGeometry(1.03, 72),
@@ -980,7 +982,7 @@ export function createEncounters(
       previousPhase: "dormant",
       heading: new THREE.Vector3(0, 0, -1),
       // 实例有独立巡游相位，转向及位移复用临时对象；切图和重开均恢复起始相位。
-      patrolStart: (91 + bosses.length) * 2.399963,
+      patrolStart: seed * 2.399963,
       patrolAngle: 0,
       motion: {
         target: new THREE.Vector3(),
@@ -1032,9 +1034,14 @@ export function createEncounters(
         ),
     ];
     bosses.push(entry);
+    // 延迟创建也保留原有物种处理顺序，重复守卫仍排在首个实例之后。
+    const order = (e) =>
+      e.poolIndex === 0
+        ? BOSS_SPECIES.indexOf(e.state.species)
+        : BOSS_SPECIES.length + e.poolIndex - 1;
+    bosses.sort((a, b) => order(a) - order(b));
     return entry;
   }
-  for (const species of BOSS_SPECIES) createEntry(species);
   function removeProjectile(p) {
     scene.remove(p.mesh);
     // 光晕材质属于单发弹体，弹体本身的共享几何和材质继续复用。
@@ -1129,14 +1136,17 @@ export function createEncounters(
       }
     } else {
       // 额外的同种守卫只供固定地图使用，不增加夏威夷的抽签权重或种类数量。
-      const shuffled = bosses
-        .filter(
-          (entry) =>
-            entry.poolIndex === 0 &&
-            (!allowedKinds || allowedKinds.includes(entry.state.species.kind)),
-        )
-        .sort(() => Math.random() - 0.5);
-      selected.push(...shuffled.slice(0, 2).map((entry) => ({ entry })));
+      const shuffled = BOSS_SPECIES.filter(
+        (species) => !allowedKinds || allowedKinds.includes(species.kind),
+      ).sort(() => Math.random() - 0.5);
+      for (const species of shuffled.slice(0, 2)) {
+        const entry =
+          bosses.find(
+            (candidate) =>
+              candidate.state.species === species && candidate.poolIndex === 0,
+          ) ?? createEntry(species);
+        selected.push({ entry });
+      }
     }
     for (const p of projectiles) removeProjectile(p);
     projectiles.length = 0;
@@ -1162,7 +1172,14 @@ export function createEncounters(
       entry.mesh.userData.resetKrakenGrip?.();
       entry.mesh.userData.resetLumenLash?.();
       entry.mesh.userData.resetGroundTravel?.();
-      for (const fx of entry.fxVariants) resetAbilityFx(fx);
+      // 禁用池留待复用，但不进入矩阵遍历或新地图材质预编译。
+      entry.mesh.removeFromParent();
+      entry.ring.removeFromParent();
+      entry.label.removeFromParent();
+      for (const fx of entry.fxVariants) {
+        resetAbilityFx(fx);
+        fx.group.removeFromParent();
+      }
     });
     selected.forEach(({ entry, instance }, index) => {
       if (instance) {
@@ -1173,6 +1190,8 @@ export function createEncounters(
         entry.maxCenterY = instance.maxCenterY ?? Infinity;
         entry.radius = instance.radius ?? BOSS_DEFAULT_TERRITORY_RADIUS;
       }
+      scene.add(entry.mesh, entry.ring, entry.label);
+      for (const fx of entry.fxVariants) scene.add(fx.group);
       place(entry, index);
       entry.state.locked = entry.requiresGuardians?.length > 0;
       entry.mesh.userData.setLocked?.(entry.state.locked);

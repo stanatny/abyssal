@@ -1,10 +1,11 @@
+import { finishScenePreparation } from "./scene_preparation.js";
 import * as THREE from "three";
 import { marianaPitPoint, marianaPitFrame } from "./mariana_pit_profile.js";
 import { mergeGeometries } from "three/addons/utils/BufferGeometryUtils.js";
 import { addSurfaceDetail } from "./ocean_visuals.js";
 
 /** 将软体底栖装饰贴附最终岩壁三角形；不增加食物、伤害或阻挡通道的碰撞体。 */
-export function addMarianaMarine({ root, keep, group, floor, time }) {
+export function* addMarianaMarineSteps({ root, keep, group, floor, time }) {
   const mat = (name, color, emissive = 0) => {
     const m = keep(
       new THREE.MeshStandardMaterial({
@@ -118,10 +119,12 @@ export function addMarianaMarine({ root, keep, group, floor, time }) {
           section,
         );
       }
+      yield "marine-wall-patch";
     }
   }
   // 陡坡顶部到下层出口也有附着群落，采样最终地形，避免只装饰两侧而漏掉下降坑面。
   for (let i = 0; i < 120; i++) {
+    yield "marine-floor-patch";
     const z = -90 - random() * 162,
       x = (random() - 0.5) * 350;
     ray.set(new THREE.Vector3(x, 30, z), new THREE.Vector3(0, -1, 0));
@@ -187,6 +190,10 @@ export function addMarianaMarine({ root, keep, group, floor, time }) {
   // 开发验收用轻量元数据：每个附着点可重新射线验证，不将宿主或临时几何留在闭包中。
   root.userData.marineAttachments = records;
   return { count: records.length };
+}
+
+export function addMarianaMarine(options) {
+  return finishScenePreparation(addMarianaMarineSteps(options));
 }
 
 function spongeGeometry() {

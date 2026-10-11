@@ -20,6 +20,7 @@ import {
   preyRespawnDelay,
 } from "./regional_rare.js";
 import { createRareDiscovery } from "./regional_rare_discovery.js";
+import { trimPopulationCache } from "./population_cache.js";
 import { attachRareMarker } from "./regional_rare_marker.js";
 import { rareMarkerPalette } from "./regional_rare_palette.js";
 import {
@@ -59,7 +60,7 @@ import { createWorldBoundary, WORLD_EDGE_INSET } from "./world_boundary.js";
 import { createEuropaOceanAsync } from "./europa_ocean.js";
 import { needsIceRecovery, stepIceSteering } from "./ice_steering.js";
 import { stepSteering } from "./steering_rules.js";
-import { createMarianaOcean } from "./mariana_ocean.js";
+import { createMarianaOceanAsync } from "./mariana_ocean.js";
 import { MARIANA_GATES, MARIANA_REFUGE } from "./mariana_config.js";
 import { createBermudaOcean } from "./bermuda_ocean.js";
 import { initializeLanguage, setLanguageEnabled } from "./i18n.js";
@@ -633,7 +634,25 @@ async function selectRegion(region) {
                   },
                 })
               : region.id === "mariana"
-                ? createMarianaOcean(container)
+                ? await createMarianaOceanAsync(container, {
+                    onStep(label) {
+                      regionLoader.stage(
+                        "正在绘制海底与海岸…",
+                        label.startsWith("marine")
+                          ? 38
+                          : ({
+                              floor: 20,
+                              cliff: 28,
+                              spur: 30,
+                              gate: 33,
+                              outcrops: 41,
+                              ecology: 43,
+                              landmark: 46,
+                              refuge: 49,
+                            }[label] ?? 28),
+                      );
+                    },
+                  })
                 : region.id === "atlantis"
                   ? await createAtlantisOceanAsync(container, {
                       onStep(label) {
@@ -702,6 +721,7 @@ async function selectRegion(region) {
       scene.add(entity.mesh);
       if (entity.telegraph) scene.add(entity.telegraph);
     }
+    populationCache.delete(region.id);
     seedPopulation();
     seedPickups();
     await regionLoader.paint();
@@ -755,6 +775,9 @@ async function selectRegion(region) {
     setup.setRegion(loadedRegion);
     await regionLoader.fail();
   } finally {
+    // 首帧提交或回退后才淘汰；旧环境仍可回退时不得销毁其种群。
+    populationCache.delete(loadedRegion);
+    trimPopulationCache(populationCache);
     regionLoader.end();
     regionLoading = false;
     setLanguageEnabled(true);

@@ -330,7 +330,7 @@ export const UI_EN = Object.freeze({
     "Reach 30m and earn an abyssal mark to win.",
   "耳机体验更佳 · 推荐电脑全屏游玩":
     "Best with headphones · Desktop fullscreen recommended",
-  "海洋远征 / v0.11.5": "Ocean Expeditions / v0.11.5",
+  "海洋远征 / v0.11.6": "Ocean Expeditions / v0.11.6",
   生存状态: "Survival status",
   "m / 深度": "m / depth",
   食物链进化: "RISE THROUGH THE FOOD CHAIN",

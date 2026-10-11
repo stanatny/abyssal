@@ -349,8 +349,12 @@ try {
   const untouchedHealth = await page.evaluate(async () => {
     const { findBossContact } = await import("/src/encounters.js");
     const { createBossState, tickBoss } = await import("/src/boss_rules.js");
-    const g = window.__ABYSSAL__,
-      b = g.encounters.bosses.find((e) => e.state.species.kind === "kraken");
+    const g = window.__ABYSSAL__;
+    // 按需模型池需要显式准备接触夹具，不依赖之前随机抽中过该种类。
+    g.encounters.reset(["kraken"]);
+    const b = g.encounters.bosses.find(
+      (e) => e.state.species.kind === "kraken",
+    );
     // 固定种类与无遮挡位置，避免随机领地、巨兽朝向和岩石改变接触夹具。
     g.encounters.bosses.forEach((entry) => (entry.enabled = entry === b));
     window.__testBoss = b;

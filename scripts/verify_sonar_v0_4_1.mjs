@@ -564,6 +564,8 @@ async function createOccludedFixture(targetPage) {
       y: origin.y,
       z: origin.z - 300,
     });
+    // 显式准备声呐夹具，避免依赖随机名单提前构建全部领主。
+    g.encounters.reset(["kraken"]);
     const lord = g.encounters.bosses.find(
       (e) => e.state.species.kind === "kraken",
     );
