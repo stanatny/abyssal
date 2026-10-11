@@ -1,3 +1,31 @@
+# v0.11.8 publication — localization and undead lore — 2026-10-11
+
+The user authorizes the accepted localization/story branch for commit and main publication. All 721 delivered source fingerprints match before release-only edits. The six translation routes and three-paragraph bilingual Zombie Shark story are included; game rules, assets and audio are unchanged. See [the release record](release_v0_11_8.md). Accepted candidate evidence remains in the two review sections below; release-specific checks and exact Node22 CI/deployment, downloaded artifact and formal runtime receipts belong to ignored `.local/release_v0_11_8/`. Fresh release formatting, 12 affected localization/background tests, build, four native character flows and four bilingual desktop/narrow Guide cases pass, with no observed browser errors or production hooks. Earlier uncommitted labels are historical for this authorized scope. Native desktop/touch emulation is not physical-device acceptance.
+
+---
+
+# Zombie Shark Guide background — 2026-10-11
+
+The uncommitted localization branch also contains a user-requested bilingual Zombie Shark story. Its wreck-graveyard origin leads into costly bodily fission, shared feeding and the companion's short-lived corpse blast. Only its introduction and appended lore records change; numerical ability cards, game rules and assets remain. See [the narrative follow-up](zombie_companion_revision.md#guide-story-follow-up--2026-10-11).
+
+Fresh validation passes **12 existing background/localization/source-route tests**, scoped formatting and the production build. **Four public compiled Chrome cases** (Chinese/English1440 px, Chinese390 px, English320 px) verify the exact three-paragraph story, intact ability-card copy, readable wrapping/scroll access, language switching with the selected entry retained, and saved language after same-address reload. Zero browser errors and no production development API are observed. The actual desktop and narrow story screenshots are inspected. The first visual probe revealed that the old appended lore repeated the new introduction; the final source splits the new three paragraphs across the existing introduction/lore records and replaces that duplication. The failed pilot receipt is retained separately.
+
+Evidence is ignored `.local/zombie_lore_revision_20261011/`: baseline source manifest, final unit/build logs, `browser_final/report.json`, actual screenshots and delivery hashes. This is text/Guide validation on desktop browsers and viewport emulation, not renewed combat or physical-phone testing. The preceding translation candidate is preserved; no commit or push is performed, and formal Pages remains v0.11.7.
+
+---
+
+# English localization follow-up — 2026-10-11
+
+Uncommitted `fix/english-localization` starts from main `3d3eebf` / v0.11.7. See [scope, diagnosis and limits](localization_revision.md). Six routes are corrected: initial loading title, destination counts, active depth rail, mine notice, Odyssean ebb-ring notice and ice/aether radar accessibility suffixes. No gameplay or asset changes are included.
+
+Fresh verification passes **48 focused tests**, including a source-route scan, all **1,919 loaded English dictionary entries** and their interpolation slots, regional/character configuration, Guide abilities, minimap rules and human activity. Formatting, diff checks and production build pass; the existing large-chunk warning remains. The native pre-fix baseline reproduces startup Chinese and additionally finds picker/depth/radar leaks while traversing **273 regional Guide entries**. The new route test also identifies the two event notices. The source inventory distinguishes internal object labels and explicitly bilingual lore from runtime leaks.
+
+The final restricted local Chrome audit passes **20 recorded cases**: first-load/reload observations for three profiles plus eight English desktop regional flows and three each at English320 px and Chinese390 px. Desktop traverses every regional Guide entry; native pickers, expanded home/Guide descriptions, human variants, records, all four characters across the map tour, abilities, HUD, pause/Home, language switches and persistence are checked. Public WebKit touch emulation passes **10 cases** across English320 px and Chinese390 px. Both final reports contain zero untranslated-English issues and zero browser errors; both compiled hosts omit the development API. The actual English and Chinese loading screenshots are inspected. Earlier harness failures from using `inputValue` on a button and the hidden desktop skill button at a touch viewport remain in their original reports and are superseded by native value/mobile-button selection; no game changes were needed for those harness corrections.
+
+Evidence: ignored `.local/localization_revision_20261011/`, especially `baseline_full/report.json`, `routes_before.log`, `unit.log`, `chrome_final/report.json`, `webkit_public/report.json`, build/format logs, candidate manifest and delivery receipts. Runtime/source hashes, private-path denials, tunnel readiness and unchanged process identities are checked before delivery. This is desktop/browser viewport evidence, not physical-phone acceptance or a natural traversal of every combat event and regional ending. Existing Pages remains v0.11.7; no commit or push is performed.
+
+---
+
 # v0.11.7 publication — mobile input and Zombie Shark companion — 2026-10-11
 
 The user authorizes the accepted combined branch for commit and main publication. All 717 candidate source hashes match before release-only edits. Accepted implementation checks are retained under `.local/mobile_touch_revision_20261011/` and `.local/zombie_companion_revision_20261011/`; the latter passes 1,183 units, native Chrome/WebKit ability flows, short-screen layouts and 12 mobile-input regression checks. Fresh release formatting, seven localization tests, build, three compiled Chrome companion cases and 12 compiled WebKit mobile-input checks pass. Release checks and exact CI/artifact/formal-page receipts are separate under `.local/release_v0_11_7/`. See [the release record](release_v0_11_7.md). Earlier candidate-only labels below are historical, not a prohibition on this authorized release. Physical-device acceptance is distinct from desktop touch emulation.

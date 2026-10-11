@@ -1,6 +1,6 @@
 # ABYSSAL Development Rules
 
-Current release scope: the user authorizes the accepted mobile-input and Zombie Shark companion branch for commit and main publication as v0.11.7 on 2026-10-11. Earlier candidate-only publication labels in those reviews are historical for this integrated scope. The v0.11.6 resource budget and prior accepted art, combat and audio remain. Future changes still follow the default review/commit authorization rule below. See [the release record](docs/release_v0_11_7.md).
+Current release scope: the user authorizes the accepted English localization fixes and bilingual Zombie Shark Guide story for commit and main publication as v0.11.8 on 2026-10-11. Earlier candidate-only labels in the linked reviews are historical for this integrated scope. The v0.11.7 gameplay, art, audio and resource budget remain. Future changes follow the default review/commit authorization rule below. See [the release record](docs/release_v0_11_8.md).
 
 Read [README.md](README.md) and [HANDOFF.md](HANDOFF.md) first, then the documents relevant to the task. Historical states in the handoff do not override current rules.
 
@@ -24,7 +24,7 @@ Whenever a gameplay rule changes or an element is added, renamed, or removed, ch
 
 - Keep gameplay values in their existing shared configuration or rule helpers. Make durations, limits, eligibility, and displayed values agree; remove abandoned branches, state, and duplicate constants when a design is simplified.
 - Update both `en` and `zh-CN`, including static text, dynamic messages, canvas/world labels, and localized search terms. Check language switching and interpolation; an English fallback is not a completed translation.
-- Verify the actual DOM translation unit. Markup separated by a `<br>` or nested element may be translated as individual text nodes; a dictionary entry for the entire HTML string alone does not cover them. Inspect the native home/menu as well as Guide copy in both languages.
+- Include first-load and region-switch loading overlays in localization checks; waiting only for loading to finish misses transient untranslated copy. Verify the actual DOM translation unit. Markup separated by a `<br>` or nested element may be translated as individual text nodes; a dictionary entry for the entire HTML string alone does not cover them. Inspect the native home/menu as well as Guide copy in both languages.
 - Synchronize the Ocean Guide: categories, cards, descriptions, statistics, abilities, reward effects, survival tips, search, and model previews must describe the implemented behavior.
 - Check affected menus, control hints, settings, HUD labels, buff timers, cooldowns, notifications, radar, and results. A changed rule must remain consistent wherever the player encounters it.
 - Verify content wiring where relevant: selection, region/depth distribution, spawn frequency, size, behavior, collision/contact points, rewards, sound, and visual triggers. An entry in the guide alone does not make a new element playable or discoverable.

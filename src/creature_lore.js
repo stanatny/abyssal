@@ -203,8 +203,8 @@ export const CREATURE_LORE = [
   ],
   [
     "zombie_shark",
-    "传说中，这条鲨鱼曾在无名沉船的阴影里消失，归来时伤口仍未愈合，骨架与肌肉却重新开始运动。它召出的仆从像一段从本体分离的旧梦，围着主人寻找食物。每次献祭都在消耗它尚存的生命，力量与残缺始终伴在一起。",
-    "The tale tells of a shark that vanished beside an unnamed wreck and returned with unhealed wounds, bones and muscles moving once more. Its summoned servant resembles a fragment of an old dream, circling its master in search of food. Each sacrifice spends part of its remaining life; its strength can never be separated from its ruin.",
+    "猎物难以追及时，它会让侧腹残存的血肉重新蠕动，把自己的生命、气力与积存的养分剥出一部分，孕成一只较小的尸鲨。仆从挣断最后的肉丝，便绕着本尊寻食。两副颚骨听命于同一份饥饿，仆从吞下的食物也会滋养那具伤痕累累的母体。\n\n借来的活力维持不了太久。本尊可以驱使仆从扑向附近的敌人，让短命的躯壳在最后一冲中炸裂；没有接到命令的仆从，也会在生命耗尽时原地化作血雾与碎骨。尸鲨每唤出一个帮手，都先从自己身上割走生存的本钱。",
+    "When prey slips beyond its reach, the flesh along its torn flank begins to stir. It parts with some of its own life, strength and stored nourishment to form a smaller undead shark. The companion breaks the last strands of tissue and circles its maker in search of food. Two sets of jaws obey the same hunger; what the companion swallows also nourishes the scarred body that gave it life.\n\nThat borrowed vitality cannot last. Its maker can send it lunging at a nearby enemy, turning its brief existence into a final, explosive charge. Without that command, it still bursts into blood mist and bone where its life runs out. Every helper the shark creates is carved from the reserves keeping it alive.",
   ],
   [
     "mechanical_shark",

@@ -409,8 +409,8 @@ const original = [
   ],
   [
     "zombie_shark",
-    "亡灵鲨鱼从沉船阴影中归来，破损皮肤之下仍有运动的骨骼与肌肉。它以献祭换取仆从，力量并非无代价。",
-    "Zombie Shark is an undead hunter with moving bones and muscles beneath torn skin. Its summoned servant requires a costly sacrifice.",
+    "水手说，沉船墓地里有一头早该死去的鲨鱼。锚链曾撕开它的侧腹，冰冷海水灌进胸腔；多年后，搜救灯下却又出现了那排残缺的背鳍。它拖着裸露的骨架游过旧航道，像是连死亡也没能止住它的饥饿。",
+    "Sailors tell of a shark in the wreck graveyard that should have died long ago. An anchor chain tore open its flank and cold seawater flooded its chest. Years later, searchlights caught its ragged dorsal fin again. It still prowls the old shipping lanes with its skeleton exposed, as though even death could not end its hunger.",
   ],
   [
     "mechanical_shark",

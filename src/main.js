@@ -181,7 +181,7 @@ const targetPanels = document.querySelectorAll(
   "header, .location, .mission, #threat, #boss-panel, #notification, #ink-status, #breach-hint, #round-clock, #buffs, .vitals, .speed, #joystick, #sonar-panel, #sonar-control, #touch-skills, #touch-boost, #touch-slow, #minimap",
 );
 const regionLoader = createRegionLoading();
-regionLoader.begin(t("夏威夷海滩"));
+regionLoader.begin(getExpedition().region.name);
 $("loading").hidden = true;
 await regionLoader.paint();
 let renderer;

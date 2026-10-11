@@ -214,6 +214,7 @@ export const UI_EN = Object.freeze({
   "海域雷达，北向固定，{0}，{1}，{2}{3}":
     "Ocean radar, north up. {0}, {1}, {2}{3}",
   "，安全浅滩": ", nursery shallows",
+  "，{0}": ", {0}",
   浅滩正上方: "Home above",
   浅滩正下方: "Home below",
   浅滩附近: "Near home",
@@ -330,8 +331,9 @@ export const UI_EN = Object.freeze({
     "Reach 30m and earn an abyssal mark to win.",
   "耳机体验更佳 · 推荐电脑全屏游玩":
     "Best with headphones · Desktop fullscreen recommended",
-  "海洋远征 / v0.11.7": "Ocean Expeditions / v0.11.7",
+  "海洋远征 / v0.11.8": "Ocean Expeditions / v0.11.8",
   生存状态: "Survival status",
+  深度: "Depth",
   "m / 深度": "m / depth",
   食物链进化: "RISE THROUGH THE FOOD CHAIN",
   "捕食小鱼，成长至 10 米": "Feed on small fish · Reach 10m",

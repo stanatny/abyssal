@@ -687,7 +687,7 @@ export function createHumanActivity(
       hazard.warning.visible = distance < 90;
     }
     if (nearest < 30 && now >= nextWarning) {
-      notify("附近有接触鱼雷 · 避开红色警示圈");
+      notify("附近有接触水雷 · 避开红色警示圈");
       nextWarning = now + 7;
     }
     for (const particle of particles) {

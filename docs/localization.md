@@ -23,6 +23,10 @@ The visible language option names remain in their native forms so players can re
 
 The ordinary species, character, reward, ecology, and combat configurations remain the source of gameplay values. English text must preserve those values and any distinction between game scale, natural history, and fantasy creatures.
 
+## Current follow-up
+
+See [the 2026-10-11 English localization review](localization_revision.md). Observe the loading overlay from initial document startup, not only after it disappears. Interpolated HTML must translate dynamic text such as species counts before rendering; concatenating punctuation with a configured name can also hide that name from dictionary lookup. Use parameterized translation for the entire suffix.
+
 ## Verification
 
 Run the relevant checks while the development server is available:
@@ -32,10 +36,10 @@ npm test
 npm run check
 npm run build
 npm run test:browser
-node scripts/verify_i18n.mjs
+ABYSSAL_PREVIEW_URL=http://127.0.0.1:7188/ node scripts/verify_localization.mjs
 ```
 
-The bilingual browser verifier uses the real language controls, checks persistence and preserved state, inspects guide content and model reuse, and captures desktop, small portrait, and landscape layouts. It writes evidence to ignored `.local/i18n_verification/`. Browser emulation is not real-phone acceptance, and a language-only change does not revalidate audio quality or a natural full round.
+The current bilingual browser verifier uses the real language controls, observes initial/switch/reload loading text, checks persistence, traverses all regional Guide entries and samples desktop and narrow layouts. It writes evidence to ignored `.local/localization_review/` by default; override with `ABYSSAL_REVIEW_OUT`. The older `verify_i18n.mjs` contains historical roster counts and requires updated expectations before reuse; its earlier results remain historical. Browser emulation is not real-phone acceptance, and a language-only change does not revalidate audio quality or a natural full round.
 
 The main gameplay verifier explicitly uses a Chinese browser locale so its existing text assertions do not depend on the developer's system language. For local Vite testing, operate the page's language controls instead of importing a second unversioned copy of an HMR module: a second module instance has independent state and cannot reliably test the loaded application.
 

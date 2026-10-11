@@ -1,3 +1,25 @@
+# Current main release — v0.11.8 — 2026-10-11
+
+The user authorizes committing and pushing the accepted `fix/english-localization` branch to main. All 721 delivered Zombie-lore candidate source fingerprints match before release-only version/footer/documentation edits. Integrate the six localization routes and bilingual Zombie Shark background from `3d3eebf` / v0.11.7. The current AI agent owns the release; no delegation, tag/GitHub Release or cleanup is requested. Keep established preview services, runtime archives and canceled worktrees intact. See [the release summary](docs/release_v0_11_8.md). Earlier uncommitted/publication-prohibited labels below describe their historical candidate state and are superseded for this accepted scope; they do not authorize future releases.
+
+Accepted checks include 48 localization-related tests, 20 local Chrome/10 public WebKit audit cases, all 273 regional Guide entries, and the subsequent 12-test/four-case bilingual story review. Release-only verification and exact main CI/Pages artifact/runtime receipts belong to ignored `.local/release_v0_11_8/`; candidate receipts remain separate. Gameplay, art, effects, audio and resource budget remain. Desktop browser evidence does not establish physical-phone keyboard, gesture or thermal performance.
+
+---
+
+# Current Zombie Shark Guide story — 2026-10-11
+
+The user requests more background in the Zombie Shark Guide, grounded in its skills. Continue the uncommitted `fix/english-localization` branch at `3d3eebf`; preserve the preceding translation fixes. The current agent replaces the character's bilingual introduction and appended lore in `src/creature_backgrounds.js` and `src/creature_lore.js`: a wreck-graveyard revenant, costly fission from its own body, shared nourishment and a brief companion life ending in commanded or natural corpse detonation. Keep numerical rules in the existing skill cards; no gameplay, model, effect or audio changes. No commit/push is authorized. See [the narrative follow-up](docs/zombie_companion_revision.md#guide-story-follow-up--2026-10-11). Evidence is ignored `.local/zombie_lore_revision_20261011/`; services and previous runtimes remain preserved.
+
+---
+
+# Current English localization candidate — 2026-10-11
+
+The user reports Chinese in an English loading screen and requests a wider audit. The current AI agent alone works on `fix/english-localization` from published main `3d3eebf` / v0.11.7. No commit/push is authorized for this follow-up. Read [the current review](docs/localization_revision.md). Initial loading now uses the configured regional name; picker counts and radar nursery suffixes use parameterized translation; depth and ebb-ring copy are translated; the contact-mine warning reuses its established source text. Game rules, resources, audio and existing language preferences remain unchanged.
+
+Evidence belongs to ignored `.local/localization_revision_20261011/`: pre-fix native reproduction, 273 regional Guide entry checks, source-route and dictionary coverage, focused units and fresh native candidate validation. Read the verification log for completed results and limits. Keep the restricted compiled preview on its existing processes, preserve archived runtimes and canceled worktrees, and leave formal Pages at v0.11.7. Earlier release authorizations below are historical for their own scope.
+
+---
+
 # Current main release — v0.11.7 — 2026-10-11
 
 The user authorizes commit and push of the accepted `fix/mobile-touch-keyboard` branch, integrating mobile input and Zombie Shark companion improvements from `3605bc9` / v0.11.6. All 717 delivered source hashes match before version/footer/documentation-only edits. The current AI agent integrates alone; no tag, GitHub Release, delegated work or cleanup is requested. Established services and canceled worktrees remain intact. Read [the release summary](docs/release_v0_11_7.md). Earlier uncommitted/publication-prohibited labels below are historical for this accepted scope; future changes follow normal authorization rules.

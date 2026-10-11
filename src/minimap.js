@@ -295,7 +295,7 @@ export function createMinimap(container) {
       container.setAttribute(
         "aria-label",
         t(
-          tr`海域雷达，北向固定，${snapshot.homeLabel}，${snapshot.depthLabel}，${snapshot.attitude.label}${nursery ? `，${nurseryLabel}` : ""}`,
+          tr`海域雷达，北向固定，${snapshot.homeLabel}，${snapshot.depthLabel}，${snapshot.attitude.label}${nursery ? tr`，${nurseryLabel}` : ""}`,
         ),
       );
       playerMarker.setAttribute("visibility", "visible");

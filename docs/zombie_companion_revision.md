@@ -1,5 +1,15 @@
 # Zombie companion accessibility and deliberate detonation
 
+## Guide story follow-up — 2026-10-11
+
+Publication update: the user accepts this bilingual story and authorizes its commit and main publication with the localization fixes in [v0.11.8](release_v0_11_8.md). Uncommitted labels below preserve the original review state.
+
+The user asks for a richer Zombie Shark background connected to its abilities. The same uncommitted localization branch now expands its existing Chinese/English background into three paragraphs: a revenant from a wreck graveyard; a companion formed by sacrificing the owner's flesh, strength and stored food, whose meals nourish its maker; and borrowed life that ends in a commanded charge or a local corpse blast at expiry. Numerical skill rules remain in their existing cards. Only the two bilingual narrative records change; gameplay, models, effects and audio remain intact.
+
+Current evidence belongs to `.local/zombie_lore_revision_20261011/`, separately from the published gameplay review below. Background/dictionary/source-route tests and compiled bilingual desktop/narrow Guide checks validate the candidate. See the current [verification record](verification.md). No new commit or main publication is authorized.
+
+---
+
 Publication update — 2026-10-11: the user authorizes this accepted revision for commit and main publication in [v0.11.7](release_v0_11_7.md). Candidate-only/uncommitted statements and measurements below retain their historical meaning; they do not block this release or authorize future releases.
 
 Status: local candidate on `fix/mobile-touch-keyboard`, based on published v 0.11.6 / `3605bc 9`. The accepted preceding mobile touch/keyboard candidate is retained. No commit or publication is authorized for this revision.

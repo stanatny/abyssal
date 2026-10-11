@@ -1,4 +1,6 @@
 export const ODYSSEY_UI_EN = {
+  "退潮震环命中 · 上浮或下潜避开锁定水层":
+    "Ebb ring hit · Rise or dive out of the locked depth band",
   涅瑞伊德花园: "Nereid Gardens",
   双兽峡门: "Twin-monster Gateway",
   归航古桨船: "Homeward Galley",
