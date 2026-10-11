@@ -20,9 +20,9 @@ import { getCharacter } from "../src/character_rules.js";
 function player(length = 20) {
   return createPlayer("zombie_shark", length);
 }
-function harness({ wall = false } = {}) {
+function harness({ wall = false, length = 20, preyLength = 8 } = {}) {
   const scene = new THREE.Scene(),
-    owner = player(),
+    owner = player(length),
     state = { bursts: [], meals: 0 };
   const solids = wall
     ? [
@@ -73,8 +73,8 @@ function harness({ wall = false } = {}) {
   const position = new THREE.Vector3(0, -50, 0),
     forward = new THREE.Vector3(0, 0, -1);
   const prey = {
-    species: { kind: "tuna", length: 8, nutrition: 30, growth: 2 },
-    mesh: createCreature("tuna", 8),
+    species: { kind: "tuna", length: preyLength, nutrition: 30, growth: 2 },
+    mesh: createCreature("tuna", preyLength),
     hiddenFor: 0,
   };
   prey.mesh.position.set(14, -50, -15);
@@ -118,9 +118,11 @@ test("召唤原子扣三项50，无冷却/60秒生存从同一活跃时刻开始
   assert.equal(summonStatus(s, p, 72).active, false);
   assert.equal(summonStatus(s, p, 72).ready, true);
 });
-test("不足5米、任何单项不足50、非法时钟和终局不能支付；精确50生命是合法的致死献祭", () => {
+test("任何单项不足50、非法体长/时钟和终局不能支付；精确50生命是合法的致死献祭", () => {
   for (const edit of [
-    (p) => (p.length = 4.99),
+    (p) => (p.length = NaN),
+    (p) => (p.length = 0),
+    (p) => (p.length = -1),
     (p) => (p.health = 49.99),
     (p) => (p.stamina = 49.99),
     (p) => (p.hunger = 49.99),
@@ -148,7 +150,7 @@ test("不足5米、任何单项不足50、非法时钟和终局不能支付；�
   assert.equal(p.stamina, 0);
   assert.equal(p.hunger, 0);
 });
-test("实时体长减5米是包含端点的硬上限，狂食不绕过；领主和载具永不可捕", () => {
+test("实时体长减5米含端点且保底3米，狂食不绕过；领主和载具永不可捕", () => {
   const p = player();
   p.buffs.frenzy = 20;
   assert.equal(canMinionEat(p, { length: 15 }), true);
@@ -163,7 +165,7 @@ test("实时体长减5米是包含端点的硬上限，狂食不绕过；领主�
   for (const n of [NaN, Infinity, 0, -1])
     assert.equal(canMinionEat(p, { length: n }), false);
   p.length = 5;
-  assert.equal(canMinionEat(p, { length: 0.01 }), false);
+  assert.equal(canMinionEat(p, { length: 0.01 }), true);
   p.length = 10;
   assert.equal(canMinionEat(p, { length: 5 }), true);
 });
@@ -422,4 +424,60 @@ test("内层肌肉有真实深裂口且保留不透明底面，分裂起点随�
   const untouched = new THREE.Vector3();
   other.userData.getFissionSource(untouched, new THREE.Vector3(5, 0, 0));
   assert.ok(untouched.distanceTo(point) > 10);
+});
+
+test("开局3米可召唤并保底捕食恰好3米，超界拒绝，成长后上限继续增长", () => {
+  for (const length of [3, 4.99, 5, 7.99, 8, 8.01, 20]) {
+    const p = player(length),
+      state = createSummonState();
+    const limit = Math.max(3, length - 5);
+    assert.equal(summonStatus(state, p).maxPreyLength, limit);
+    assert.equal(activateSummon(state, p), true);
+    assert.equal(canMinionEat(p, { length: 0.1 }), true);
+    assert.equal(canMinionEat(p, { length: limit }), true);
+    assert.equal(canMinionEat(p, { length: limit + 0.001 }), false);
+    const before = structuredClone(p);
+    assert.equal(consumeMinionPrey(state, p, { length: limit + 0.001 }), false);
+    assert.deepEqual(p, before);
+    assert.equal(
+      consumeMinionPrey(state, p, { length: limit, nutrition: 20, growth: 1 }),
+      true,
+    );
+    assert.equal(p.eaten, 1);
+    assert.equal(state.meals, 1);
+    assert.ok(p.stamina > 50);
+    assert.ok(p.hunger > 50);
+    assert.ok(p.length > length);
+  }
+});
+
+test("3米本尊的真实仆从游到3米鱼并结算一次，不只放宽图鉴或搜索资格", () => {
+  const h = harness({ length: 3, preyLength: 3 });
+  h.minion.activate(h.owner, h.position, h.forward);
+  for (let i = 0; i < 900 && !h.state.meals; i++) {
+    h.minion.beforePreyMotion();
+    h.owner.elapsed += 1 / 60;
+    h.minion.update(1 / 60, h.owner, h.position, h.forward, [h.prey]);
+  }
+  assert.equal(h.state.meals, 1);
+  assert.equal(h.owner.eaten, 1);
+  assert.ok(h.owner.length > 3);
+  assert.ok(h.owner.stamina > 50);
+  h.minion.reset();
+});
+
+test("尸爆保护独立于60秒寿命和重召唤，采用活跃时钟且暂停不流逝", () => {
+  const p = player(3),
+    s = createSummonState();
+  p.elapsed = 12;
+  activateSummon(s, p);
+  assert.equal(summonStatus(s, p).detonationReadyIn, 2);
+  p.elapsed = 13.999;
+  assert.ok(summonStatus(s, p).detonationReadyIn > 0);
+  p.elapsed = 14;
+  assert.equal(summonStatus(s, p).detonationReadyIn, 0);
+  assert.equal(summonStatus(s, p).remaining, 58);
+  p.elapsed = 72;
+  assert.equal(summonStatus(s, p).usable, true);
+  assert.equal(summonStatus(s, p).cooldownRemaining, 0);
 });

@@ -24,17 +24,17 @@ import {
 import { createCreature } from "../src/creatures.js";
 import { castSegment } from "../src/collision.js";
 
-test("a legal 5 m summon can capture registered rares without relaxing ordinary prey or exclusions", () => {
+test("a starting 3 m summon can capture registered rares while ordinary prey keep the 3 m ceiling and exclusions", () => {
   for (const rare of REGIONAL_RARES) {
-    const owner = createPlayer("zombie_shark", 5),
+    const owner = createPlayer("zombie_shark", 3),
       state = createSummonState();
     assert.equal(activateSummon(state, owner), true);
     assert.equal(canMinionEat(owner, rare), true);
     assert.equal(
-      canMinionEat(owner, { kind: "tuna", category: "rare", length: 1.8 }),
+      canMinionEat(owner, { kind: "tuna", category: "rare", length: 3.01 }),
       false,
     );
-    assert.equal(canMinionEat(owner, { kind: "tuna", length: 0.01 }), false);
+    assert.equal(canMinionEat(owner, { kind: "tuna", length: 0.01 }), true);
     for (const flag of [
       { tier: 3 },
       { category: "lord" },
@@ -42,7 +42,7 @@ test("a legal 5 m summon can capture registered rares without relaxing ordinary 
       { vehicle: true },
     ])
       assert.equal(canMinionEat(owner, { ...rare, ...flag }), false);
-    assert.equal(canMinionEat(owner, { ...rare, length: 5 }), false);
+    assert.equal(canMinionEat(owner, { ...rare, length: 3 }), false);
     const mass = owner.mass;
     assert.equal(consumeMinionPrey(state, owner, rare), true);
     assert.deepEqual(
@@ -50,7 +50,7 @@ test("a legal 5 m summon can capture registered rares without relaxing ordinary 
       [150, 150, 150],
     );
     assert.equal(owner.mass, mass);
-    assert.equal(owner.length, 5);
+    assert.equal(owner.length, 3);
     assert.equal(state.meals, 1);
     assert.equal(consumeMinionPrey(state, owner, rare), false);
     assert.equal(consumePrey(owner, rare), false);
@@ -60,7 +60,7 @@ test("a legal 5 m summon can capture registered rares without relaxing ordinary 
   }
   assert.equal(
     activateSummon(createSummonState(), createPlayer("zombie_shark", 4.99)),
-    false,
+    true,
   );
 });
 
@@ -100,7 +100,7 @@ test("Frenzy closes a moving rare within its existing near intake, not from outs
 
 for (const wall of [false, true])
   test(`moving rare companion capture respects ${wall ? "a solid wall" : "swept contact, active time and once-only retirement"}`, () => {
-    const owner = createPlayer("zombie_shark", 5),
+    const owner = createPlayer("zombie_shark", 3),
       position = new THREE.Vector3(0, -50, 0),
       forward = new THREE.Vector3(0, 0, -1),
       scene = new THREE.Scene();
@@ -173,7 +173,7 @@ for (const wall of [false, true])
       );
       assert.equal(owner.rareRewardClaimed, species.kind);
       assert.equal(prey.hiddenFor, Infinity);
-      assert.equal(owner.length, 5);
+      assert.equal(owner.length, 3);
       assert.equal(owner.vitalCap, 150);
     } else {
       assert.equal(owner.vitalCap, 100);

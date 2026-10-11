@@ -1,5 +1,7 @@
 # Zombie Shark corpse blast — 2026-10-10
 
+Current candidate: [companion accessibility and deliberate detonation](zombie_companion_revision.md) supersedes the5 m summon gate, ordinary companion prey floor, immediate/formation-queued command and nearest-only acquisition described below. The original blast damage/lifetime/cover rules and historical evidence remain.
+
 The user accepts the preceding continuous emergence/mobile framing and requests its separate local checkpoint before this gameplay change. That UI checkpoint is `5f17190` on `feat/lord-contact-rare-blessing`; its exact311 build inputs match the delivered emergence candidate. The current AI agent alone develops the new corpse-blast behavior on the same branch. No push/main publication is authorized; formal v0.11.4 and existing services remain. Earlier harmless-expiry statements are historical.
 
 ## Current rules

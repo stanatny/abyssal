@@ -4,6 +4,7 @@ import { createFeedingTransition } from "./feeding_transition.js";
 import { preyCaptureRadius, sweptCaptureFraction } from "./prey_capture.js";
 import { isRegionalRare } from "./regional_rare.js";
 import { createBlastBodyQuery } from "./area_blast.js";
+import { MECHANICAL_RULES } from "./mechanical_shark_rules.js";
 import {
   activateSummon,
   canMinionEat,
@@ -106,6 +107,7 @@ export function createZombieMinion(
       if (direction.lengthSq() < 0.01) direction.set(-axis.z, 0, axis.x);
       direction.normalize();
     }
+    return result;
   }
   function activate(player, position, forward) {
     if (!summonStatus(state, player).usable) return false;
@@ -200,7 +202,9 @@ export function createZombieMinion(
       expire(player, "lifetime");
       return false;
     }
-    let best = MINION_RULES.searchRadius ** 2,
+    // 短保护期只拦截尸爆，不排队，不延长寿命，不增加重召唤冷却。
+    if (phase === "forming" || status.detonationReadyIn > 0) return false;
+    let best = Infinity,
       selected = null;
     for (const entry of detonationTargets()) {
       if (!validBlastTarget(entry, player)) continue;
@@ -209,7 +213,12 @@ export function createZombieMinion(
         : entry.mesh.position;
       if (!point || blastBlocked?.(mesh.position, point)) continue;
       const distance = mesh.position.distanceToSquared(point);
-      if (distance <= best) {
+      if (
+        distance <= MINION_RULES.searchRadius ** 2 &&
+        (!selected ||
+          (entry.state && !selected.state) ||
+          (Boolean(entry.state) === Boolean(selected.state) && distance < best))
+      ) {
         selected = entry;
         best = distance;
       }
@@ -224,7 +233,7 @@ export function createZombieMinion(
     commanded = true;
     target = null;
     feeding.reset();
-    if (phase !== "forming") phase = "detonating";
+    phase = "detonating";
     return true;
   }
   function updateDetonation(dt, player, ownerPosition) {
@@ -271,14 +280,26 @@ export function createZombieMinion(
         direction,
         Math.min(previous.distanceTo(point), MINION_RULES.detonationSpeed * dt),
       );
-    move(previous, desired, player);
+    const motion = move(previous, desired, player);
     mesh.quaternion.setFromUnitVectors(axis, direction);
     mesh.userData.animate(player.elapsed, 1, {
       dt,
       speed: MINION_RULES.detonationSpeed,
       turn: 0,
     });
-    if (!blastTarget.state) {
+    if (blastTarget.state) {
+      // 撞到锁定领主的实体也算撞击，不要求仆从中心穿进刚体才触发。
+      // 最后仍验证可见身体在当地爆炸半径内且无遮挡，地形碰撞不能代替命中。
+      const bodies = blastTarget.mesh.userData.lordBody?.colliders;
+      if (motion?.contacts?.some((hit) => bodies?.includes(hit.collider))) {
+        const impact = blastBodyPoint(
+          mesh.position,
+          blastTarget,
+          MECHANICAL_RULES.blastRadius,
+        );
+        if (impact && !blastBlocked?.(mesh.position, impact)) expire(player);
+      }
+    } else {
       const time = sweptCaptureFraction(
         previous,
         mesh.position,
@@ -368,10 +389,7 @@ export function createZombieMinion(
         ));
     presentation.weight = framingWeight;
     if (commanded) {
-      if (phase === "forming") {
-        poseBirth(player, position, forward, dt);
-        if (birthAge >= MINION_RULES.fissionDuration) phase = "detonating";
-      } else updateDetonation(dt, player, position);
+      updateDetonation(dt, player, position);
       return;
     }
     const returning =
@@ -600,7 +618,7 @@ export function createZombieMinion(
       target: target?.species.kind || target?.kind || null,
       commanded,
       blastTarget:
-        blastTarget?.species.kind || blastTarget?.state?.species.kind || null,
+        blastTarget?.species?.kind || blastTarget?.state?.species.kind || null,
       meals: state.meals,
       position: mesh?.position.toArray(),
       length: mesh?.scale.x,

@@ -222,7 +222,7 @@ export function buildOceanCatalog(regionId) {
             : entry.kind === "mechanical_shark"
               ? "先留足生命与体力再开火，利用掩体和射程压制。爆炸不穿墙；击杀的普通生物立即计为主角吞噬，未击杀不发放收益。不比自己小的普通生物需两次有效命中；普通领主需三次有效命中，御剑真君需五次收势反击，且必须达到25米。"
               : entry.kind === "zombie_shark"
-                ? "先备好食物和退路再献祭。仆从捕食仍有减5米限制，尸爆吞食只需比本尊小；5米时可召唤追捕珍兽。尸爆在仆从最后位置发生，不追踪目标；领主仍需25米和未用过的破绽，御剑真君只在收势可受伤。"
+                ? "先备好食物和退路再献祭。开局即可分裂，普通猎物捕食上限至少3米，珍兽仍需比本尊小。召唤2秒后才能下令尸爆，优先追击附近符合挑战条件的领主；尸爆吞食仍需比本尊小。爆炸在仆从最后位置发生，不穿墙；领主仍需25米和未用过的破绽，御剑真君只在收势可受伤。"
                 : entry.kind === "orca"
                   ? "用声呐判断前方猎物体长和捕食资格，雷达保留周围回声。高速冲刺可追捕猎物或拉开距离，水下连续蓄势后才能破水。"
                   : "遇到猎手追击时在水下喷墨脱身，提前把头朝向安全出口；喷射会受到礁石和船体阻挡。松开冲刺可发挥灵活转向的被动。",
@@ -740,6 +740,26 @@ export function createOceanGuide(trigger) {
   }
   const reduceMotion = matchMedia("(prefers-reduced-motion: reduce)").matches;
   const themeQuery = matchMedia("(prefers-color-scheme: dark)");
+  const touchQuery = matchMedia("(pointer: coarse)");
+  function syncSearchInput() {
+    // 触屏只通过海域、分类和条目浏览；姓名以外不提供可唤起键盘的编辑框。
+    const touch = touchQuery.matches;
+    const wasFocused = document.activeElement === input;
+    if (touch) {
+      input.blur();
+      input.value = "";
+    }
+    input.disabled = touch;
+    input.hidden = touch;
+    dialog.querySelector('label[for="guide-search"]').hidden = touch;
+    if (dialog.open) {
+      renderList();
+      if (touch && wasFocused)
+        dialog.querySelector(".guide-close").focus({ preventScroll: true });
+    }
+  }
+  touchQuery.addEventListener("change", syncSearchInput);
+  syncSearchInput();
   // 系统主题变化只更新现有灯光；不重建模型、环境贴图或动画循环。
   function syncTheme() {
     const dark = themeQuery.matches;
@@ -1173,6 +1193,7 @@ export function createOceanGuide(trigger) {
     // 图鉴关闭保留模型和环境缓存；页面真正离开时释放独立的反射渲染目标。
     if (!event.persisted) {
       themeQuery.removeEventListener("change", syncTheme);
+      touchQuery.removeEventListener("change", syncSearchInput);
       environment?.dispose();
       for (const cachedModel of modelCache.values())
         disposePenglaiTigerMotion(cachedModel);

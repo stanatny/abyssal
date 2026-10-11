@@ -6,7 +6,9 @@ import { createMechanicalTorpedoes } from "../src/mechanical_torpedoes.js";
 import { createZombieMinion } from "../src/zombie_minion.js";
 import { createPlayer, consumePrey } from "../src/simulation.js";
 import { getRegionalRare } from "../src/regional_rare.js";
-import { castSegment } from "../src/collision.js";
+import { castSegment, resolveMotion, bodyRadius } from "../src/collision.js";
+import { createCreature } from "../src/creatures.js";
+import { updateLordBody } from "../src/lord_body.js";
 import {
   BOSS_SPECIES,
   createBossState,
@@ -414,9 +416,10 @@ test("no cooldown: one living minion blocks replacement; detonation permits imme
   const mesh = m.mesh;
   assert.equal(m.activate(p, origin, forward), false);
   assert.deepEqual([p.health, p.stamina, p.hunger], [100, 100, 100]);
-  assert.equal(m.commandDetonation(p), true);
-  p.elapsed = 1.3;
+  assert.equal(m.commandDetonation(p), false);
+  p.elapsed = 2;
   m.update(1.3, p, origin, forward, []);
+  assert.equal(m.commandDetonation(p), true);
   p.elapsed += 0.01;
   m.update(0.01, p, origin, forward, []);
   assert.equal(m.active, false);
@@ -431,7 +434,7 @@ test("no cooldown: one living minion blocks replacement; detonation permits imme
   assert.deepEqual([p.health, p.stamina, p.hunger], [50, 49.99, 50]);
 });
 
-test("formation queues valid second use until release; new cover or retirement cause a local blast without retargeting", () => {
+test("formation ignores early commands; after protection new cover or retirement cause a local blast without retargeting", () => {
   for (const mode of ["cover", "retired"]) {
     const p = createPlayer("zombie_shark", 20),
       e = prey(25, 25),
@@ -445,13 +448,15 @@ test("formation queues valid second use until release; new cover or retirement c
       onExpire: (point) => calls.push(point.clone()),
     });
     m.activate(p, origin, forward);
-    assert.equal(m.commandDetonation(p), true);
+    assert.equal(m.commandDetonation(p), false);
     p.elapsed = 0.6;
     m.update(0.6, p, origin, forward, []);
     assert.equal(m.forming, true);
     assert.equal(calls.length, 0);
     p.elapsed = 1.3;
     m.update(0.7, p, origin, forward, []);
+    p.elapsed = 2;
+    assert.equal(m.commandDetonation(p), true);
     if (mode === "cover") covered = true;
     if (mode === "retired") e.hiddenFor = 20;
     const last = m.mesh.position.clone();
@@ -529,7 +534,7 @@ test("empty or ineligible acquisition preserves formation, hunting, lifetime and
     assert.equal(m.state.activeUntil, 60);
     assert.equal(m.active, true);
     assert.equal(calls.length, 0);
-    assert.equal(rejected.length, 4);
+    assert.equal(rejected.length, 3);
     eligible = true;
     e.hiddenFor = 0;
     e.species.vehicle = false;
@@ -599,7 +604,7 @@ test("a rejected empty command preserves an acquired hunting target and its norm
     },
   });
   m.activate(p, origin, forward);
-  p.elapsed = 1.3;
+  p.elapsed = 2;
   m.update(1.3, p, origin, forward, [e]);
   const before = m.snapshot();
   assert.equal(before.target, "tuna");
@@ -634,4 +639,139 @@ test("no-target and lifetime-expiry notices and Guide explanations are bilingual
   assert.match(guide, /no nearby target, it stays alive and keeps hunting/);
   assert.match(guide, /Pursuit never extends its lifetime/);
   assert.ok(!/[\u3400-\u9fff]/.test(guide));
+});
+
+test("early repeated commands are ignored, not queued; paused updates do not arm or pay again", () => {
+  const p = createPlayer("zombie_shark", 3),
+    e = prey(4, 12),
+    calls = [];
+  const m = createZombieMinion(new THREE.Scene(), {
+    blockedBetween: () => false,
+    detonationTargets: () => [e],
+    effects: { minionTransition() {}, mealMist() {} },
+    onExpire: (point) => calls.push(point.clone()),
+  });
+  m.activate(p, origin, forward);
+  for (const time of [0, 0.06, 0.2, 1, 1.5, 1.999]) {
+    const dt = time - p.elapsed;
+    p.elapsed = time;
+    m.update(dt, p, origin, forward, []);
+    assert.equal(m.commandDetonation(p), false);
+    assert.equal(m.commanded, false);
+  }
+  const paused = m.snapshot();
+  for (let i = 0; i < 10; i++) m.update(0, p, origin, forward, []);
+  assert.deepEqual(m.snapshot(), paused);
+  p.elapsed = 2;
+  m.update(0.001, p, origin, forward, []);
+  assert.equal(m.active, true);
+  assert.equal(m.commanded, false);
+  assert.equal(calls.length, 0);
+  assert.deepEqual([p.health, p.stamina, p.hunger], [50, 50, 50]);
+  assert.equal(m.commandDetonation(p), true);
+  assert.equal(m.commandDetonation(p), false);
+  assert.equal(m.state.activeUntil, 60);
+  m.reset();
+});
+
+for (const kind of ["kraken", "leviathan", "sword_sage"]) {
+  test(`${kind}: explicit detonation prioritizes a moving solid lord over closer fish and damages one opening`, () => {
+    const species = BOSS_SPECIES.find((s) => s.kind === kind),
+      p = createPlayer("zombie_shark", 25),
+      scene = new THREE.Scene();
+    const b = {
+      enabled: true,
+      state: createBossState(species),
+      mesh: createCreature(kind, species.length, 91),
+    };
+    b.state.phase = "recover";
+    b.mesh.position.set(0, -50, -30);
+    scene.add(b.mesh);
+    b.mesh.userData.animate(0, 1);
+    updateLordBody(b.mesh);
+    const small = prey(1, 1),
+      blasts = [];
+    const blast = createAreaBlast({
+      bosses: () => [b],
+      hitBoss: (p, b) => hitBossWithCorpseBlast(p, b.state),
+    });
+    const m = createZombieMinion(scene, {
+      blockedBetween: () => false,
+      detonationTargets: () => [small, b],
+      resolveMovement: (a, z, heading, length) =>
+        resolveMotion(a, z, {
+          colliders: updateLordBody(b.mesh),
+          forward: heading,
+          length,
+          radius: bodyRadius(length),
+        }),
+      effects: { minionTransition() {}, mealMist() {} },
+      onExpire: (point, owner) => blasts.push(blast(point, owner)),
+    });
+    m.activate(p, origin, forward);
+    p.elapsed = 2;
+    m.update(1.3, p, origin, forward, []);
+    small.mesh.position.copy(m.mesh.position).add(new THREE.Vector3(0.1, 0, 0));
+    assert.equal(
+      m.snapshot().target,
+      null,
+      "lord cannot become an ordinary meal target",
+    );
+    assert.equal(m.commandDetonation(p), true);
+    assert.equal(m.snapshot().blastTarget, kind);
+    const health = b.state.health;
+    for (let i = 0; i < 180 && m.active; i++) {
+      b.mesh.position.x += 0.02;
+      b.mesh.userData.animate(p.elapsed, 1);
+      updateLordBody(b.mesh);
+      p.elapsed += 1 / 60;
+      m.update(1 / 60, p, origin, forward, []);
+    }
+    assert.equal(blasts.length, 1);
+    assert.equal(blasts[0].bossHits, 1);
+    assert.equal(b.state.validatedHits, 1);
+    assert.ok(b.state.health < health);
+    assert.equal(p.eaten, 0);
+    assert.equal(small.hiddenFor, 0);
+    assert.equal(
+      blast(blasts[0].point, p).bossHits,
+      0,
+      "same opening cannot damage twice",
+    );
+    m.reset();
+  });
+}
+
+test("command does not prefer locked, defeated, covered, distant or under-size lords", () => {
+  for (const condition of [
+    "locked",
+    "defeated",
+    "covered",
+    "distant",
+    "under-size",
+  ]) {
+    const species = BOSS_SPECIES.find((s) => s.kind === "sword_sage"),
+      p = createPlayer("zombie_shark", condition === "under-size" ? 24.99 : 25);
+    const b = {
+      enabled: true,
+      state: createBossState(species),
+      mesh: createCreature(species.kind, species.length, 91),
+    };
+    b.mesh.position.set(0, -50, condition === "distant" ? -200 : -28);
+    if (condition === "locked") b.state.locked = true;
+    if (condition === "defeated") b.state.defeated = true;
+    const small = prey(4, 12);
+    const m = createZombieMinion(new THREE.Scene(), {
+      blockedBetween: () => false,
+      blastBlocked: (_a, z) => condition === "covered" && z.z < -10,
+      detonationTargets: () => [b, small],
+      effects: { minionTransition() {}, mealMist() {} },
+    });
+    m.activate(p, origin, forward);
+    p.elapsed = 2;
+    m.update(1.3, p, origin, forward, []);
+    assert.equal(m.commandDetonation(p), true, condition);
+    assert.equal(m.snapshot().blastTarget, "tuna", condition);
+    m.reset();
+  }
 });

@@ -1,5 +1,10 @@
 import { getCharacter } from "./character_rules.js";
-import { consumePrey, preyMealReward, vitalLimit } from "./simulation.js";
+import {
+  consumeDefeatedPrey,
+  consumePrey,
+  preyMealReward,
+  vitalLimit,
+} from "./simulation.js";
 import { isRegionalRare } from "./regional_rare.js";
 
 /** 尸鲨仆从只使用当前远征时钟；状态不持有场景、对象或墙钟。 */
@@ -19,15 +24,12 @@ export function summonStatus(state, player, now = player.elapsed) {
     player.characterId !== "zombie_shark" ||
     player.dead ||
     player.won ||
-    player.timedOut
+    player.timedOut ||
+    !Number.isFinite(player.length) ||
+    player.length <= 0
   )
     reason = "inactive";
   else if (active) reason = "active";
-  else if (
-    !Number.isFinite(player.length) ||
-    player.length < skill.minimumLength
-  )
-    reason = "length";
   else if (
     [player.health, player.stamina, player.hunger].some(
       (value) => !Number.isFinite(value) || value < skill.cost,
@@ -38,11 +40,14 @@ export function summonStatus(state, player, now = player.elapsed) {
     active,
     remaining: active ? Math.max(0, state.activeUntil - now) : 0,
     cooldownRemaining: 0,
+    detonationReadyIn: active
+      ? Math.max(0, state.activatedAt + skill.detonationDelay - now)
+      : 0,
     ready: !active,
     usable: reason === null,
     reason,
     lethal: player.health === skill.cost,
-    maxPreyLength: Math.max(0, player.length - MINION_RULES.preyGap),
+    maxPreyLength: minionPreyLimit(player.length),
   };
 }
 
@@ -59,7 +64,14 @@ export function activateSummon(state, player, now = player.elapsed) {
   return true;
 }
 
-/** 普通猎物保留减5米限制；已注册珍兽只需小于主角，不借用狂食或仆从可见尺寸。 */
+/** 幼年保底可捕3米普通猎物，长大后沿用减5米；独立于可见体型与狂食。 */
+function minionPreyLimit(length) {
+  return Number.isFinite(length) && length > 0
+    ? Math.max(MINION_RULES.minimumPreyLimit, length - MINION_RULES.preyGap)
+    : 0;
+}
+
+/** 已注册珍兽仍只需小于主角；领主和载具不进入普通捕食。 */
 export function canMinionEat(player, prey) {
   return (
     !!prey &&
@@ -71,7 +83,7 @@ export function canMinionEat(player, prey) {
     prey.length > 0 &&
     (isRegionalRare(prey)
       ? prey.length < player.length
-      : prey.length <= player.length - MINION_RULES.preyGap) &&
+      : prey.length <= minionPreyLimit(player.length)) &&
     prey.tier !== 3 &&
     prey.category !== "lord" &&
     !prey.boss &&
@@ -84,7 +96,10 @@ export function consumeMinionPrey(state, player, prey) {
   if (!summonStatus(state, player).active || !canMinionEat(player, prey))
     return false;
   const reward = preyMealReward(player.length, prey);
-  if (!consumePrey(player, prey)) return false;
+  // 3米本尊的仆从可吃恰好3米普通猎物，不能再次套用本尊嘴部的严格小于限制。
+  // 先通过仆从资格，再共用营养/成长/恢复结算；珍兽保留原资格。
+  if (!(isRegionalRare(prey) ? consumePrey : consumeDefeatedPrey)(player, prey))
+    return false;
   // 用捕食前体长计算的有效营养恢复体力，不受饱食封顶影响，也不重复成年加成。
   player.stamina = Math.min(
     vitalLimit(player),
@@ -100,6 +115,7 @@ export const MINION_RULES = Object.freeze({
   sizeRatio: 0.65,
   fissionDuration: 1.2,
   preyGap: 5,
+  minimumPreyLimit: 3,
   searchRadius: 32,
   leashRadius: 64,
   cruiseSpeed: 20,

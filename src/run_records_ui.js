@@ -137,6 +137,11 @@ export function createRunRecordsUI(getRegion) {
           ? "名称已保存。"
           : "浏览器存储不可用，本次记录仅在当前页面保留。",
       );
+      // 保存后结束编辑，避免触屏浏览器在继续浏览结果时仍保留软键盘。
+      result.querySelector("input").blur();
+      result.querySelector('button[type="submit"]').focus({
+        preventScroll: true,
+      });
     }
   });
   function open(region, from) {

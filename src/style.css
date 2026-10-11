@@ -35,6 +35,15 @@
 }
 * {
   box-sizing: border-box;
+  /* 覆盖弹窗和独立滚动容器，阻止双击放大；保留滚动及双指缩放，专用游戏手势另行覆盖。 */
+  touch-action: manipulation;
+}
+/* 移动端原生选择器与录名框保持可读字号，避免聚焦小字表单时浏览器自动放大。 */
+@media (pointer: coarse) {
+  html .language-control select,
+  #guide-region {
+    font-size: 16px;
+  }
 }
 body {
   margin: 0;

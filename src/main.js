@@ -933,6 +933,13 @@ function activateCharacterSkill() {
   if (player.characterId === "zombie_shark") {
     if (mode !== "playing") return false;
     if (minion.active) {
+      if (
+        minion.forming ||
+        summonStatus(minion.state, player).detonationReadyIn > 0
+      ) {
+        notify("分裂后短暂保护 · 稍后再次点击尸爆", 1.5);
+        return false;
+      }
       const commanded = minion.commandDetonation(player);
       if (commanded) notify("仆从追击尸爆 · 不再消耗属性", 2.8);
       updateSonar();
@@ -940,8 +947,7 @@ function activateCharacterSkill() {
     }
     const status = summonStatus(minion.state, player);
     if (!status.usable) {
-      if (status.reason === "length") notify("体长达到5米后才能分裂", 2);
-      else if (status.reason === "resources")
+      if (status.reason === "resources")
         notify("召唤需要生命、体力、饱食各至少50点", 2);
       return false;
     }
@@ -1115,8 +1121,13 @@ function updateSonar() {
       position.y < WORLD.surfaceY - player.length * 0.2);
   const liveCompanion =
     skill.id === "summon" && minion.active && statusData.active;
+  const forming = skill.id === "summon" && minion.forming;
+  const arming = liveCompanion && (forming || statusData.detonationReadyIn > 0);
+  const armSeconds = Math.ceil(
+    Math.max(0, statusData.detonationReadyIn - 1e-9),
+  );
   const usable = liveCompanion
-    ? !minion.commanded
+    ? !arming && !minion.commanded
     : statusData.ready &&
       (["summon", "torpedo"].includes(skill.id)
         ? statusData.usable
@@ -1138,59 +1149,67 @@ function updateSonar() {
         ? tr`需生命>${MECHANICAL_RULES.healthCost}/体力${MECHANICAL_RULES.staminaCost}`
         : "需潜入水下"
       : skill.id === "summon"
-        ? statusData.reason === "length"
-          ? "需5米体长"
-          : "需三项各50"
+        ? "需三项各50"
         : "需潜入水下";
-  const forming = skill.id === "summon" && minion.forming;
   const status = forming
     ? "分裂中"
-    : liveCompanion && minion.commanded
-      ? tr`追击尸爆 ${Math.ceil(statusData.remaining)}s`
-      : statusData.active
-        ? tr`${activeLabel} ${Math.ceil(statusData.remaining)}s`
-        : statusData.ready
-          ? usable
-            ? statusData.lethal
-              ? "致命献祭"
-              : "就绪"
-            : blockedLabel
-          : tr`冷却 ${Math.ceil(statusData.cooldownRemaining)}s`;
+    : arming
+      ? tr`尸爆准备 ${armSeconds}s`
+      : liveCompanion && minion.commanded
+        ? tr`追击尸爆 ${Math.ceil(statusData.remaining)}s`
+        : statusData.active
+          ? tr`${activeLabel} ${Math.ceil(statusData.remaining)}s`
+          : statusData.ready
+            ? usable
+              ? statusData.lethal
+                ? "致命献祭"
+                : "就绪"
+              : blockedLabel
+            : tr`冷却 ${Math.ceil(statusData.cooldownRemaining)}s`;
   $("sonar-control").textContent = t(tr`J ${shortName} · ${status}`);
   $("touch-sonar").querySelector("span").textContent = t(shortName);
   $("touch-sonar-status").textContent = t(
     forming
       ? "分裂中"
-      : statusData.ready
-        ? usable
-          ? statusData.lethal
-            ? "致命献祭"
-            : "就绪"
-          : ["summon", "torpedo"].includes(skill.id)
-            ? blockedLabel
-            : "水下使用"
-        : tr`${statusData.active ? Math.ceil(statusData.remaining) : cooldownSeconds}s`,
+      : arming
+        ? tr`准备 ${armSeconds}s`
+        : statusData.ready
+          ? usable
+            ? statusData.lethal
+              ? "致命献祭"
+              : "就绪"
+            : ["summon", "torpedo"].includes(skill.id)
+              ? blockedLabel
+              : "水下使用"
+          : tr`${statusData.active ? Math.ceil(statusData.remaining) : cooldownSeconds}s`,
   );
   for (const id of ["touch-sonar", "sonar-control"]) {
     const button = $(id);
     button.dataset.skill = skill.id;
-    button.dataset.state = statusData.active
-      ? "active"
-      : statusData.ready
-        ? usable
-          ? "ready"
-          : "blocked"
-        : "cooldown";
+    button.dataset.state = arming
+      ? "cooldown"
+      : statusData.active
+        ? "active"
+        : statusData.ready
+          ? usable
+            ? "ready"
+            : "blocked"
+          : "cooldown";
     button.disabled = !usable || mode !== "playing";
-    button.dataset.remaining = String(cooldownSeconds);
+    button.dataset.remaining = String(arming ? armSeconds : cooldownSeconds);
     button.style.setProperty(
       "--skill-progress",
       String(
         Math.max(
           0,
-          skill.cooldown > 0
-            ? Math.min(1, 1 - statusData.cooldownRemaining / skill.cooldown)
-            : 1,
+          arming
+            ? Math.min(
+                1,
+                1 - statusData.detonationReadyIn / skill.detonationDelay,
+              )
+            : skill.cooldown > 0
+              ? Math.min(1, 1 - statusData.cooldownRemaining / skill.cooldown)
+              : 1,
         ),
       ),
     );
@@ -1200,7 +1219,7 @@ function updateSonar() {
       t(tr`${character.name}${skill.name}，${status}。${skill.description}`),
     );
     button.title = liveCompanion
-      ? t("再次使用：追击附近目标尸爆，不再消耗属性")
+      ? t("再次使用：优先追击附近可挑战领主尸爆，不再消耗属性")
       : skill.cooldown > 0
         ? t(tr`J · ${skill.name} · 冷却${skill.cooldown}秒`)
         : t(tr`J · ${skill.name} · 无冷却`);

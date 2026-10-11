@@ -740,7 +740,9 @@ async function verifyLayouts(page, viewport) {
       return { ...layout, screenshot, actionsScreenshot };
     });
     await page.click("#open-guide");
-    await page.fill("#guide-search", "");
+    if (await page.locator("#guide-search").isEnabled())
+      await page.fill("#guide-search", "");
+    else assert.equal(await page.locator("#guide-search").isVisible(), false);
     await page.click('[data-category="player"]');
     await page.click('.guide-entry[data-kind="squid"]');
     await settle(page);
