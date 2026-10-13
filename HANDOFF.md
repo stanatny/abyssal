@@ -1,3 +1,13 @@
+# Current main release — v0.11.9 — 2026-10-13
+
+The user explicitly authorizes pushing the accepted `feat/lord-lock-feedback` optimizations to main. Integrate accepted lord body-lock/release feedback (`9a2a30b`), Bermuda's manual forward/right Frenzy pickup (`56864b5`) and the rare alert-radius refinement (`bcea45d`) from preceding main `cd819e4` / v0.11.8. All728 delivered source fingerprints match before release-only version/footer/documentation edits. The current AI agent integrates alone; established services, runtime archives and canceled worktrees remain. No tag or GitHub Release is requested. Earlier branch-only/no-main/uncommitted labels below retain their historical meaning and are superseded for this accepted release scope, not future changes.
+
+See [the release summary](docs/release_v0_11_9.md). Accepted candidate checks remain separate from fresh release formatting/full-unit/build, native compiled flows and exact-commit Node22 CI/Pages artifact/runtime receipts, which belong to ignored `.local/release_v0_11_9/`. Do not claim physical-phone, human-difficulty or thermal acceptance from desktop browser emulation.
+
+Fresh local checks pass1,203 unit tests, formatting, the production build, four native character start/skill/pause/Home cases and two bilingual rare Guide/discovery/sonar/Home/reload routes on the restricted compiled host. Browser errors and production hooks are absent. The mobile-sized footer oracle was corrected to account for its existing hidden version span; the failed driver receipt is preserved without game changes. Exact-commit CI/Pages receipts follow separately.
+
+---
+
 # Accepted combined branch delivery — 2026-10-13
 
 The user accepts the slight rare-awareness refinement and authorizes committing and pushing these optimizations to the remote. Deliver the combined `feat/lord-lock-feedback` branch: accepted body-focused lord lock/release feedback (`9a2a30b`), Bermuda's manual forward/right Frenzy pickup (`56864b5`), and the rare alert-radius increase from32 to35m with bilingual Guide copy and its regression test. All728 delivered source fingerprints match before these acceptance-only documentation edits. The existing cruise/escape speeds, dodges, intake/minion advantages, effects and reward rules remain exactly as reviewed. No new gameplay change, delegation, version bump, tag or main/Pages publication is part of this branch push. Earlier uncommitted/no-push labels below record historical candidate stages and are superseded only for these accepted optimizations.
