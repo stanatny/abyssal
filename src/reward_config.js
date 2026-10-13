@@ -51,7 +51,12 @@ export function rewardSlots(region = {}) {
     ...(region.extraStarterRewards ?? []).map((reward) => ({
       id: reward.id,
       kind: reward.kind,
-      position: reward.atSpawn ? region.spawn : reward.position,
+      // 相对出生点保留可见、需主动接近的奖励位置，不把额外奖励直接贴在角色身上。
+      position: reward.spawnOffset
+        ? region.spawn.map(
+            (coordinate, axis) => coordinate + reward.spawnOffset[axis],
+          )
+        : reward.position,
     })),
   ];
 }

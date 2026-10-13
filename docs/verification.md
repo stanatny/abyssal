@@ -1,3 +1,17 @@
+# Accepted Bermuda forward pickup checkpoint — 2026-10-13
+
+The user accepts the forward/right Bermuda Frenzy correction and authorizes a local commit on2026-10-13 before a separate slight rare-capture difficulty refinement. All728 delivered source fingerprints match before these acceptance-only documentation edits. Existing46 focused tests, four native character cases, nine menu map selections, two compiled public profiles and artifact/privacy/process receipts remain under ignored `.local/bermuda_forward_frenzy_20261013/`; they are not newly rerun release evidence. Commit the already-reviewed reward position, map/Guide translations and tests. No push, release, version bump or delegation is authorized. Established services, archives and canceled worktrees remain.
+
+---
+
+# Bermuda forward pickup correction — 2026-10-13
+
+Fresh focused checks pass46 reward/region/Frenzy/localization tests. Four native character cases verify no startup grant or straight-route pickup, visible forward reward, manual steering/contact collection, pause freeze and Home/new-round reset/reuse without editing game state. Real Bermuda colliders reject no pickup positions at three bob samples, with2.25m visual clearance; actual traversal succeeds for every character. Nine native menu selections cover all eight maps and return to Bermuda: the twenty shared id/kind/mesh UUIDs stay identical, the extra UUID stays reused and disabled/hidden in the other seven maps. English desktop and Chinese390px compiled public play both pass map/Guide copy, no initial Frenzy, actual steering collection, pause/reset and same-address reload with no production hook or browser error. All11 runtime artifacts match on both local/public origins;20 private paths per origin are denied, process identities and tunnel readiness remain. Actual starting/pickup and Guide screenshots are inspected. The full45-second replenish interval is not newly waited in this pass; its unchanged update path and reset/pause behavior remain separately evidenced. These are host browser/touch-emulation checks, not physical-phone or thermal results. The reward correction remains uncommitted and unpushed; `9a2a30b` contains only the preceding accepted lord-feedback checkpoint.
+
+Current evidence is ignored `.local/bermuda_forward_frenzy_20261013/`; earlier accepted lord and historical Bermuda checks remain distinct below. See [the current placement review](bermuda_reward_revision.md).
+
+---
+
 # Accepted lord lock feedback checkpoint — 2026-10-13
 
 The user accepts the delivered lord lock/release feedback and authorizes a local commit on2026-10-13 before a separate Bermuda pickup-placement fix. Commit the reviewed persistent red pulse and body dissolve exactly as delivered; the prior suggestion to split steady pursuit from flashing attacks was explanatory and has not been implemented. No push, release, version bump or delegation is authorized. Formal main/Pages remains `cd819e4` / v0.11.8. The26 focused tests, five native cases and compiled public/byte/privacy/process receipts in ignored `.local/lord_lock_pulse_revision_20261013/` are accepted candidate evidence, not newly rerun release tests. Source hashes match all728 delivered files before acceptance-only documentation edits. Established services, runtime archives and canceled worktrees remain.

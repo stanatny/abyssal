@@ -73,7 +73,7 @@ test("Default starters remain Supply and Flow; eighteen random slots remain bala
   assert.equal(REWARDS.flow.duration, 30);
 });
 
-test("Bermuda appends exactly one fixed spawn Frenzy without shifting the twenty shared slot identities", () => {
+test("Bermuda appends one Frenzy ahead and off the straight spawn route, preserving all shared slots", () => {
   const defaults = rewardSlots(),
     bermuda = REGIONS.find((region) => region.id === "bermuda"),
     expectedIds = [
@@ -115,7 +115,9 @@ test("Bermuda appends exactly one fixed spawn Frenzy without shifting the twenty
       assert.equal(fixed.length, 3);
       assert.equal(frenzy.length, 1);
       assert.equal(slots.at(-1).id, "bermuda_spawn_frenzy");
-      assert.deepEqual(frenzy[0].position, region.spawn);
+      assert.deepEqual(frenzy[0].position, [6, -18, 39]);
+      assert.ok(frenzy[0].position[2] < region.spawn[2] - 30);
+      assert.ok(frenzy[0].position[0] >= region.spawn[0] + 5);
       const position = new THREE.Vector3(...frenzy[0].position);
       assert.equal(isNursery(position), true);
       assert.ok(
@@ -136,7 +138,8 @@ test("Bermuda appends exactly one fixed spawn Frenzy without shifting the twenty
   // 出生点来自海域数据，后续改坐标也不能留下硬编码位置。
   const spawn = [12, -22, 76],
     relocated = rewardSlots({ ...bermuda, spawn });
-  assert.deepEqual(relocated.at(-1).position, spawn);
+  assert.deepEqual(relocated.at(-1).position, [18, -22, 40]);
+  assert.deepEqual(spawn, [12, -22, 76]);
   assert.deepEqual(rewardSlots(bermuda).slice(0, 20), rewardSlots(REGIONS[0]));
   assert.equal(REWARD_BOB_AMPLITUDE, 0.6);
 });

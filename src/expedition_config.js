@@ -63,12 +63,12 @@ export const REGIONS = Object.freeze(
       available: true,
       seabedHeat: false,
       description:
-        "风暴遮蔽神秘外海，探索可进入的巨型沉船，避开龙卷水柱与幽灵炮击。出生点固定有一枚深渊狂食，随机狂食不会出现在安全浅滩。",
+        "风暴遮蔽神秘外海，探索可进入的巨型沉船，避开龙卷水柱与幽灵炮击。出生点前方偏右固定有一枚深渊狂食，游过去拾取；随机狂食不会出现在安全浅滩。",
       extraStarterRewards: Object.freeze([
         Object.freeze({
           id: "bermuda_spawn_frenzy",
           kind: "frenzy",
-          atSpawn: true,
+          spawnOffset: Object.freeze([6, 0, -36]),
         }),
       ]),
       randomRewardPlacement: Object.freeze({

@@ -1,3 +1,18 @@
+# Accepted Bermuda forward pickup checkpoint — 2026-10-13
+
+The user accepts the forward/right Bermuda Frenzy correction and authorizes a local commit on2026-10-13 before a separate slight rare-capture difficulty refinement. All728 delivered source fingerprints match before these acceptance-only documentation edits. Existing46 focused tests, four native character cases, nine menu map selections, two compiled public profiles and artifact/privacy/process receipts remain under ignored `.local/bermuda_forward_frenzy_20261013/`; they are not newly rerun release evidence. Commit the already-reviewed reward position, map/Guide translations and tests. No push, release, version bump or delegation is authorized. Established services, archives and canceled worktrees remain.
+
+---
+
+# Current Bermuda forward Frenzy correction — 2026-10-13
+
+The accepted lord-lock feedback is committed locally as `9a2a30be07f162704ae22220b985e5a84388d513`, without push or release. The user reports the guaranteed Bermuda Frenzy overlapping spawn and asks for a visible pickup ahead of the player. Current AI agent alone keeps exactly one regional extra slot and moves it via immutable spawn-relative offset `[6,0,-36]`: six meters right,36m ahead, same base depth. Straight departure misses its contact range, requiring approach/steering. Keep the same pool id/model,45-second same-location replenishment,20-second effect, pause/reset rules and Bermuda random nursery exclusion. Other seven maps retain twenty shared slots and random Frenzy with no extra fixed starter. Synchronize bilingual map/Guide copy. Read [the placement review](docs/bermuda_reward_revision.md). This separate fix remains uncommitted for review on `feat/lord-lock-feedback`; no push, delegation, version bump or formal main release is requested. Preserve processes, logs, runtime archives and canceled worktrees. Current evidence is ignored `.local/bermuda_forward_frenzy_20261013/`; older receipts below remain historical.
+
+
+Fresh46 focused tests, four native character play cases, nine map selections and two native compiled public profiles pass. Source/slot/UUID, three real-collider bob samples, manual approach, bilingual map/Guide, pause/reset,11 runtime artifacts and20 denied private paths per origin, same-address reload and process/tunnel checks are retained in the current evidence folder. Starting and collected screenshots are inspected; full45-second replenishment and physical-phone behavior are not newly measured.
+
+---
+
 # Accepted lord lock feedback checkpoint — 2026-10-13
 
 The user accepts the delivered lord lock/release feedback and authorizes a local commit on2026-10-13 before a separate Bermuda pickup-placement fix. Commit the reviewed persistent red pulse and body dissolve exactly as delivered; the prior suggestion to split steady pursuit from flashing attacks was explanatory and has not been implemented. No push, release, version bump or delegation is authorized. Formal main/Pages remains `cd819e4` / v0.11.8. The26 focused tests, five native cases and compiled public/byte/privacy/process receipts in ignored `.local/lord_lock_pulse_revision_20261013/` are accepted candidate evidence, not newly rerun release tests. Source hashes match all728 delivered files before acceptance-only documentation edits. Established services, runtime archives and canceled worktrees remain.
