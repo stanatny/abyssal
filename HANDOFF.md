@@ -1,3 +1,27 @@
+# Accepted lord lock feedback checkpoint — 2026-10-13
+
+The user accepts the delivered lord lock/release feedback and authorizes a local commit on2026-10-13 before a separate Bermuda pickup-placement fix. Commit the reviewed persistent red pulse and body dissolve exactly as delivered; the prior suggestion to split steady pursuit from flashing attacks was explanatory and has not been implemented. No push, release, version bump or delegation is authorized. Formal main/Pages remains `cd819e4` / v0.11.8. The26 focused tests, five native cases and compiled public/byte/privacy/process receipts in ignored `.local/lord_lock_pulse_revision_20261013/` are accepted candidate evidence, not newly rerun release tests. Source hashes match all728 delivered files before acceptance-only documentation edits. Established services, runtime archives and canceled worktrees remain.
+
+---
+
+# Previous red lock warning and body dissolve — 2026-10-13
+
+The user requests red flashing at final aim and a dissipating reticle after escape. Current AI agent alone continues uncommitted `feat/lord-lock-feedback` at `cd819e4` / v0.11.8. Warm-white body brackets still contract over1.6 active seconds; afterward they stay red during all real pursuit, softly cycling opacity0.55–0.95 every1.4 active seconds. Do not expire this danger cue after the2.6-second HUD onset. After the existing0.45-second final-pursuer grace, the same brackets turn pale green, expand from their last rendered size and fade over0.9 active seconds; preserve the separate accepted green viewport release. Reduced motion keeps a static red cue and fade without expansion. Use only the existing active loop; pause freezes it, multi-lord/ink rules remain and reset/terminal/Home/region cleanup clears it. Preserve the body projection, fixed event size, ten HUD/control masks and compact landscape strip. No combat/audio changes, delegation, commit or push are requested. Formal Pages remains v0.11.8. Read [the review](docs/lord_lock_feedback_revision.md); current receipts belong to ignored `.local/lord_lock_pulse_revision_20261013/`, earlier receipts below are historical. Established services, archives and canceled worktrees remain.
+
+
+Fresh26 focused tests, five headed native Chrome cases and the actual compiled public Hydra route pass. Public samples include379 red-warning and55 dissolve frames, with no browser errors. All11 active artifacts per origin and18 denied private paths per origin, same-address reload and process readiness pass after one recorded network-probe interruption. The16.734-second native clip and inspected screenshots are ready for user visual review; source/build/operations evidence stays in the current local folder. Touch emulation is not a physical phone. No commit or push is made.
+
+---
+
+# Previous character-focus candidate — 2026-10-13
+
+The user clarifies that the shrinking reticle must focus on the character, not the HUD icon. Current AI agent alone continues uncommitted `feat/lord-lock-feedback` from `cd819e4` / v0.11.8. Read [the review](docs/lord_lock_feedback_revision.md). One reused SVG follows the actual avatar center projected after camera updates. Warm-white brackets shrink for1.6 active seconds, hold until2.2 and fade by2.6; capture event sizing so camera zoom cannot reopen them, while position keeps tracking. Ten reused mask cuts protect HUD/buttons, refreshed at most10Hz from the existing frame. Reduced motion uses a stationary body cue. Persistent HUD status and the green release remain; no purple viewport lock frame. Real pursuit/ink/multiple-lord/terminal/Home/region rules remain unchanged. Current evidence is ignored `.local/lord_character_lock_revision_20261013/`; prior edge/HUD/visibility receipts remain historical. Projection uses two reused vectors, no new world mesh/material/light or separate loop. These effects require actual pursuit, not a25 m gate. Preserve services/canceled worktrees; no commit/push requested, Pages stays v0.11.8.
+
+
+Fresh checks pass25 focused tests, five native controlled Chrome cases and the real compiled public Hydra route. Final phone-size screenshots expose real strokes, not just a visible SVG DOM. The latter records157 shrinking samples and supplies the actual12.462-second review clip. Local/public11-artifact hashes,18 private-path denials per origin, same-address reload and process readiness pass. Full-screen touch-parent masking and the crowded landscape stack were corrected; all pilots are retained separately. Touch emulation is not an actual phone. Source/artifact/operations receipts are retained in the current evidence folder.
+
+---
+
 # Current main release — v0.11.8 — 2026-10-11
 
 The user authorizes committing and pushing the accepted `fix/english-localization` branch to main. All 721 delivered Zombie-lore candidate source fingerprints match before release-only version/footer/documentation edits. Integrate the six localization routes and bilingual Zombie Shark background from `3d3eebf` / v0.11.7. The current AI agent owns the release; no delegation, tag/GitHub Release or cleanup is requested. Keep established preview services, runtime archives and canceled worktrees intact. See [the release summary](docs/release_v0_11_8.md). Earlier uncommitted/publication-prohibited labels below describe their historical candidate state and are superseded for this accepted scope; they do not authorize future releases.

@@ -69,6 +69,12 @@ import * as THREE from "three";
 import "./style.css";
 import "./bermuda_ui.css";
 import "./overlay_ui.css";
+import "./lord_lock_feedback.css";
+import { createLordLockFeedback } from "./lord_lock_feedback.js";
+import {
+  createCharacterLockCue,
+  createCharacterLockProjector,
+} from "./lord_character_lock.js";
 import "./hud_adaptive.css";
 import { createCreature } from "./creatures.js";
 import { createVisualPipeline } from "./visual_pipeline.js";
@@ -178,7 +184,7 @@ try {
     initialHighQuality = savedQuality === "high";
 } catch {}
 const targetPanels = document.querySelectorAll(
-  "header, .location, .mission, #threat, #boss-panel, #notification, #ink-status, #breach-hint, #round-clock, #buffs, .vitals, .speed, #joystick, #sonar-panel, #sonar-control, #touch-skills, #touch-boost, #touch-slow, #minimap",
+  "header, .location, .mission, #threat, #lord-lock-alert, #boss-panel, #notification, #ink-status, #breach-hint, #round-clock, #buffs, .vitals, .speed, #joystick, #sonar-panel, #sonar-control, #touch-skills, #touch-boost, #touch-slow, #minimap",
 );
 const regionLoader = createRegionLoading();
 regionLoader.begin(getExpedition().region.name);
@@ -510,6 +516,35 @@ let threat = null,
   uiClock = 0,
   activeBoss = null;
 let launchTransition = null;
+const projectCharacterLock = createCharacterLockProjector();
+const characterLockCue = createCharacterLockCue({
+  layer: $("lord-lock-character"),
+  svg: $("lord-lock-character-svg"),
+  shape: $("lord-lock-character-shape"),
+  mask: $("lord-lock-character-mask"),
+  cuts: $("lord-lock-character-cuts"),
+  avoid: document.querySelectorAll(
+    "header, #hud-overview, #combat-status, #minimap, .bottom-hud, #joystick, #touch-skills, #touch-boost, #touch-slow, #sonar-control",
+  ),
+});
+function characterLockFocus() {
+  return avatar.visible
+    ? projectCharacterLock(
+        avatar.position,
+        player.length,
+        camera,
+        innerWidth,
+        innerHeight,
+      )
+    : null;
+}
+const lordLockFeedback = createLordLockFeedback({
+  panel: $("lord-lock-alert"),
+  frame: $("lord-lock-frame"),
+  title: $("lord-lock-title"),
+  detail: $("lord-lock-detail"),
+  characterCue: characterLockCue,
+});
 let worldRenderDirty = true;
 let movementLabel = "巡游";
 let lureFlash = 0,
@@ -786,6 +821,7 @@ async function selectRegion(region) {
 }
 
 function refreshRegionState() {
+  lordLockFeedback.reset();
   terrainColliders.splice(0, terrainColliders.length, ...ocean.colliders);
   const region = expedition.region;
   humans.reset(region.humanActivity);
@@ -1546,6 +1582,7 @@ function notify(source, duration = 3) {
   notificationUntil = elapsed + duration;
 }
 function resetExpedition(preserveWorld = false) {
+  lordLockFeedback.reset();
   rareDiscovery.reset();
   delete document.body.dataset.epilogue;
   runRecords.resetRound();
@@ -1690,6 +1727,7 @@ function updateLaunch(roundDt) {
 }
 function showOverlay(kind) {
   if (["dead", "won", "timeup"].includes(kind)) {
+    lordLockFeedback.reset();
     minion.reset();
     torpedoes.reset();
     effects.blessing.reset();
@@ -3982,6 +4020,15 @@ function frame(now) {
       camera.position,
       reducedMotionQuery.matches,
     );
+    if (player.dead || player.won || player.timedOut) lordLockFeedback.reset();
+    else
+      lordLockFeedback.update(
+        roundDt,
+        encounters.bosses,
+        position,
+        reducedMotionQuery.matches,
+        characterLockFocus,
+      );
     const bossCombat =
       activeBoss &&
       ["hunt", "windup", "attack", "recover", "disoriented"].includes(

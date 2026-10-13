@@ -1,4 +1,9 @@
 export const UI_EN = Object.freeze({
+  深渊领主锁定: "Abyss Lord Lock-on",
+  领主已锁定你: "Lord Locked On",
+  已脱离领主锁定: "Lord Lock Broken",
+  "{0} · 共{1}位领主追击": "{0} · {1} lords pursuing",
+  留意残留攻击与其他猎手: "Watch for lingering attacks and hunters",
   "J / 手机技能键": "J / Touch ability button",
   主动技能: "Active ability",
   被动技能: "Passive ability",

@@ -110,6 +110,37 @@
       </footer>
     </main>
     <section id="hud" hidden aria-label="生存状态">
+      <div id="lord-lock-character" hidden aria-hidden="true">
+        <svg id="lord-lock-character-svg" preserveAspectRatio="none">
+          <defs>
+            <path
+              id="lord-lock-character-brackets"
+              vector-effect="non-scaling-stroke"
+              d="M-100 -64V-100H-64M64 -100H100V-64M100 64V100H64M-64 100H-100V64M-100 0H-88M88 0H100"
+            />
+            <mask
+              id="lord-lock-character-mask"
+              maskUnits="userSpaceOnUse"
+              x="0"
+              y="0"
+            >
+              <rect width="100%" height="100%" fill="white" />
+              <g id="lord-lock-character-cuts"></g>
+            </mask>
+          </defs>
+          <g mask="url(#lord-lock-character-mask)">
+            <g id="lord-lock-character-shape">
+              <use
+                href="#lord-lock-character-brackets"
+                class="lock-cue-shadow"
+              />
+              <use href="#lord-lock-character-brackets" class="lock-cue-line" />
+              <path class="lock-cue-center" d="M0 -4L4 0L0 4L-4 0Z" />
+            </g>
+          </g>
+        </svg>
+      </div>
+      <div id="lord-lock-frame" hidden aria-hidden="true"></div>
       <div id="hud-overview">
         <div class="location">
           <div class="eyebrow" id="zone-code">SUNLIT REEF</div>
@@ -138,6 +169,24 @@
             ><span id="threat-detail">冲刺拉开距离，借岩石切断视线</span>
           </div>
           <b id="threat-distance"></b>
+        </div>
+        <div id="lord-lock-alert" hidden role="status" aria-live="polite">
+          <i aria-hidden="true">
+            <svg
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="1.5"
+            >
+              <path
+                d="M8 2H2v6M16 2h6v6M22 16v6h-6M8 22H2v-6M12 7l5 5-5 5-5-5z"
+              />
+            </svg>
+          </i>
+          <div>
+            <strong id="lord-lock-title"></strong>
+            <span id="lord-lock-detail"></span>
+          </div>
         </div>
         <div id="boss-panel" hidden>
           <div class="boss-head">
