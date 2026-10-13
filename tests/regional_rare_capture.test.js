@@ -2,7 +2,10 @@ import test from "node:test";
 import assert from "node:assert/strict";
 import * as THREE from "three";
 import { REGIONAL_RARES, preyRespawnDelay } from "../src/regional_rare.js";
-import { steerElusiveRare } from "../src/regional_rare_pursuit.js";
+import {
+  steerElusiveRare,
+  RARE_PURSUIT_RULES,
+} from "../src/regional_rare_pursuit.js";
 import {
   createPlayer,
   tickVitals,
@@ -23,6 +26,64 @@ import {
 } from "../src/prey_capture.js";
 import { createCreature } from "../src/creatures.js";
 import { castSegment } from "../src/collision.js";
+
+test("rares notice an approach earlier while retaining sprint and companion speed margins", () => {
+  const species = REGIONAL_RARES[0],
+    player = new THREE.Vector3(),
+    direction = new THREE.Vector3(),
+    state = {};
+  assert.equal(RARE_PURSUIT_RULES.alertRadius, 35);
+  assert.equal(species.speed, 14);
+  assert.equal(species.escapeSpeed, 18);
+  assert.equal(
+    steerElusiveRare(
+      state,
+      0.1,
+      new THREE.Vector3(0, 0, -34),
+      player,
+      direction,
+      7,
+      species,
+    ),
+    species.escapeSpeed,
+  );
+  assert.equal(
+    steerElusiveRare(
+      state,
+      0.8,
+      new THREE.Vector3(0, 0, -45),
+      player,
+      direction,
+      7,
+      species,
+    ),
+    species.escapeSpeed,
+  );
+  assert.equal(
+    steerElusiveRare(
+      state,
+      0.8,
+      new THREE.Vector3(0, 0, -45),
+      player,
+      direction,
+      7,
+      species,
+    ),
+    species.speed,
+  );
+  assert.equal(
+    steerElusiveRare(
+      {},
+      0.1,
+      new THREE.Vector3(0, 0, -41),
+      player,
+      direction,
+      7,
+      species,
+    ),
+    species.speed,
+  );
+});
 
 test("a starting 3 m summon can capture registered rares while ordinary prey keep the 3 m ceiling and exclusions", () => {
   for (const rare of REGIONAL_RARES) {

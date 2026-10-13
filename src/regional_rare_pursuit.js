@@ -41,7 +41,7 @@ export function steerElusiveRare(
 export const RARE_PURSUIT_RULES = Object.freeze({
   cruiseSpeed: 14,
   escapeSpeed: 18,
-  alertRadius: 32,
+  alertRadius: 35,
   escapeDuration: 1.6,
   lateralDodge: 0.18,
   secondaryDodge: 0.06,
