@@ -4,6 +4,10 @@ import { PLAYER_CHARACTERS } from "./character_rules.js";
 
 export const RUN_RECORD_KEY = "abyssal-runs-v1";
 export const RUN_RULESET = "survival-2026-10";
+// 变更目标的海域独立分榜，旧成绩仍保留在本机，不与新规则混排。
+const revisedRegions = new Set(["europa", "amazon", "atlantis"]);
+export const runRuleset = (region) =>
+  revisedRegions.has(region) ? "expedition-2026-10-14" : RUN_RULESET;
 export const RUN_RECORD_LIMIT = 10;
 const MAX_TIME_MS = ROUND_DURATION * 1000;
 
@@ -48,7 +52,7 @@ export function createRunRecordStore(
       row.id.length < 100 &&
       allowed.has(row.region) &&
       characters.has(row.character) &&
-      row.ruleset === RUN_RULESET &&
+      (row.ruleset === RUN_RULESET || row.ruleset === runRuleset(row.region)) &&
       Number.isInteger(row.timeMs) &&
       row.timeMs > 0 &&
       row.timeMs <= MAX_TIME_MS &&
@@ -65,8 +69,9 @@ export function createRunRecordStore(
     rows = rows.filter((row) => {
       if (ids.has(row.id)) return false;
       ids.add(row.id);
-      const count = (counts.get(row.region) || 0) + 1;
-      counts.set(row.region, count);
+      const bucket = `${row.region}:${row.ruleset}`;
+      const count = (counts.get(bucket) || 0) + 1;
+      counts.set(bucket, count);
       return count <= RUN_RECORD_LIMIT;
     });
   }
@@ -96,7 +101,9 @@ export function createRunRecordStore(
     },
     list(region) {
       return rows
-        .filter((row) => row.region === region)
+        .filter(
+          (row) => row.region === region && row.ruleset === runRuleset(region),
+        )
         .map((row) => ({ ...row }));
     },
     record({
@@ -115,7 +122,7 @@ export function createRunRecordStore(
         timeMs: Math.round(seconds * 1000),
         name: normalizeRunName(name),
         at,
-        ruleset: RUN_RULESET,
+        ruleset: runRuleset(region),
       };
       if (won !== true || !valid(row)) return null;
       const previous = rows.find((item) => item.id === id);

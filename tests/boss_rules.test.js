@@ -40,7 +40,7 @@ test("四位主宰均大于玩家上限，技能不同且栖息区在世界之�
     BOSS_SPECIES.filter((s) => !s.alien && !s.freshwater && !s.mythic).length,
     4,
   );
-  assert.equal(BOSS_SPECIES.length, 16);
+  assert.equal(BOSS_SPECIES.length, 18);
   assert.equal(new Set(BOSS_SPECIES.map((s) => s.ability)).size, 10);
   for (const species of BOSS_SPECIES.filter((s) => !s.mythic)) {
     assert.equal(species.tier, 3);

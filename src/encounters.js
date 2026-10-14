@@ -925,9 +925,34 @@ export function createEncounters(
       transparent: true,
       opacity: 0.95,
     });
+  let electricBoltGeo = null,
+    electricBoltMat = null;
+  function prepareElectricBolt() {
+    if (electricBoltGeo) return;
+    // 电弧弹体复用有限三连发池，只替换可见形状与材质。
+    electricBoltGeo = new THREE.TubeGeometry(
+      new THREE.CatmullRomCurve3(
+        [
+          [-0.1, -3, 0],
+          [0.35, -1.5, 0],
+          [-0.35, -0.5, 0],
+          [0.25, 0.4, 0],
+          [-0.2, 1.4, 0],
+          [0.1, 3, 0],
+        ].map((p) => new THREE.Vector3(...p)),
+      ),
+      18,
+      0.16,
+      5,
+      false,
+    );
+    electricBoltMat = fxMat.clone();
+    electricBoltMat.color.setHex(0xe1e4aa);
+  }
   const waterBallMat = fxMat.clone();
   waterBallMat.color.setHex(0x78c7d8);
   function createEntry(species) {
+    if (species.kind === "thunderbarbel") prepareElectricBolt();
     const poolIndex = bosses.filter(
       (entry) => entry.state.species.kind === species.kind,
     ).length;
@@ -1396,8 +1421,16 @@ export function createEncounters(
       state.ability === "swords"
         ? new THREE.Group()
         : new THREE.Mesh(
-            state.species.kind === "scylla" ? scyllaLanceGeo : ballGeo,
-            state.species.kind === "scylla" ? waterBallMat : fxMat,
+            state.species.kind === "thunderbarbel"
+              ? electricBoltGeo
+              : state.species.kind === "scylla"
+                ? scyllaLanceGeo
+                : ballGeo,
+            state.species.kind === "thunderbarbel"
+              ? electricBoltMat
+              : state.species.kind === "scylla"
+                ? waterBallMat
+                : fxMat,
           );
     if (state.ability === "swords") {
       const blade = pgSword(mesh, [0, 0, 0], 6);
@@ -1406,9 +1439,11 @@ export function createEncounters(
     mesh.name =
       state.ability === "swords"
         ? "sage_sword_projectile"
-        : state.species.kind === "scylla"
-          ? "scylla_water_projectile"
-          : "hydra_breath_projectile";
+        : state.species.kind === "thunderbarbel"
+          ? "thunderbarbel_discharge"
+          : state.species.kind === "scylla"
+            ? "scylla_water_projectile"
+            : "hydra_breath_projectile";
     mesh.scale.setScalar(2.6);
     const mouth = entry.mesh.userData.mouthAnchors?.[headIndex];
     const head = entry.mesh.userData.getHeadWorldPositions?.()[0];
@@ -1446,7 +1481,7 @@ export function createEncounters(
       .sub(mesh.position)
       .normalize()
       .multiplyScalar(state.species.projectileSpeed ?? 85);
-    if (state.species.kind === "scylla")
+    if (["scylla", "thunderbarbel"].includes(state.species.kind))
       mesh.quaternion.setFromUnitVectors(UP_AXIS, velocity.clone().normalize());
     if (state.ability === "swords")
       mesh.quaternion.setFromUnitVectors(
@@ -2261,9 +2296,11 @@ export function createEncounters(
             entry.phaseHit = damage(
               player,
               state.species.damage,
-              state.species.western
-                ? "退潮震环命中 · 上浮或下潜避开锁定水层"
-                : "遗迹脉冲命中 · 上下换层可躲避",
+              state.species.kind === "brine_regent"
+                ? "盐晶震层命中 · 上浮或下潜避开锁定水层"
+                : state.species.western
+                  ? "退潮震环命中 · 上浮或下潜避开锁定水层"
+                  : "遗迹脉冲命中 · 上下换层可躲避",
             );
         }
       }
@@ -2449,11 +2486,16 @@ export function createEncounters(
     disposed = true;
     for (const projectile of projectiles) removeProjectile(projectile);
     projectiles.length = 0;
-    const geometries = new Set([ballGeo, scyllaLanceGeo]);
-    const materials = new Set([fxMat, waterBallMat]);
+    const geometries = new Set(
+      [ballGeo, scyllaLanceGeo, electricBoltGeo].filter(Boolean),
+    );
+    const materials = new Set(
+      [fxMat, waterBallMat, electricBoltMat].filter(Boolean),
+    );
     const textures = new Set(Object.values(fxTextures));
     for (const entry of bosses) {
       for (const fx of entry.fxVariants) resetAbilityFx(fx);
+      entry.mesh.userData.disposeLocalMotion?.();
       disposeTentacleMotion(entry.mesh);
       disposeCrocodilianMotion(entry.mesh);
       disposePenglaiTigerMotion(entry.mesh);

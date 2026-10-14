@@ -38,29 +38,43 @@ import {
   advanceExpeditionObjective,
 } from "../src/expedition_objectives.js";
 
-test("either local Europa lord counts once, unrelated defeats and sub-30 bodies do not complete the bonus expedition", () => {
+test("Europa requires all three distinct persistent lords and maximum growth", () => {
   const region = getExpedition("europa").region;
-  for (const chosen of region.bossInstances) {
+  for (let first = 0; first < 3; first++) {
     const objective = createExpeditionObjective(region),
       player = createPlayer();
     player.length = 30;
-    advanceExpeditionObjective(objective, player, [
-      { enabled: true, id: "other_map_lord", state: { defeated: true } },
-    ]);
-    assert.equal(player.won, false);
-    const local = { enabled: true, id: chosen.id, state: { defeated: true } };
-    player.length = 29;
-    advanceExpeditionObjective(objective, player, [local]);
-    assert.equal(player.won, false);
+    const local = region.bossInstances.map((b) => ({
+      enabled: true,
+      id: b.id,
+      state: { defeated: false },
+    }));
+    const foreign = {
+      enabled: true,
+      id: "other_map_lord",
+      state: { defeated: true },
+    };
+    for (let i = 0; i < 3; i++) {
+      local[(first + i) % 3].state.defeated = true;
+      player.length = i === 2 ? 29.9 : 30;
+      advanceExpeditionObjective(objective, player, [
+        ...local,
+        foreign,
+        local[(first + i) % 3],
+      ]);
+      assert.equal(player.won, false);
+      assert.equal(objective.defeated.size, i + 1);
+    }
     player.length = 30;
-    advanceExpeditionObjective(objective, player, [local]);
-    assert.equal(player.won, true);
-    advanceExpeditionObjective(objective, player, [local]);
-    assert.equal(objective.defeated.size, 1);
+    assert.equal(
+      advanceExpeditionObjective(objective, player, local).won,
+      true,
+    );
+    assert.equal(createExpeditionObjective(region).defeated.size, 0);
   }
 });
 
-test("Europa registers 16 exclusive ordinary kinds and two isolated persistent alien lords", () => {
+test("Europa registers 16 exclusive ordinary kinds and three isolated persistent alien lords", () => {
   const region = getExpedition("europa").region;
   const kinds = EUROPA_SPECIES.map((s) => s.kind);
   assert.deepEqual(
@@ -79,8 +93,12 @@ test("Europa registers 16 exclusive ordinary kinds and two isolated persistent a
     247,
   );
   assert.ok(EUROPA_SPECIES.every((s) => s.category === "alien"));
-  assert.deepEqual(region.bossKinds, ["abyss_weaver", "lumen_stalker"]);
-  assert.equal(region.bossInstances.length, 2);
+  assert.deepEqual(region.bossKinds, [
+    "abyss_weaver",
+    "lumen_stalker",
+    "brine_regent",
+  ]);
+  assert.equal(region.bossInstances.length, 3);
   assert.ok(region.bossInstances.every((b) => b.persistentDefeat));
   assert.equal(region.surfaceMode, "ice");
   assert.ok(Object.values(region.humanActivity).every((v) => v === false));

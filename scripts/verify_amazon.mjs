@@ -1,3 +1,4 @@
+// 历史综合夹具；当前新增领主实战与结算分别由 verify_expedition_expansion/lifecycle 验证。
 import assert from "node:assert/strict";
 import { chromium } from "@playwright/test";
 import { mkdir, writeFile } from "node:fs/promises";
@@ -77,12 +78,16 @@ try {
     else {
       assert.equal(stock.count, 411);
       assert.equal(stock.kinds.length, 20);
-      assert.deepEqual(stock.bosses.sort(), ["rootjaw", "yacumama"]);
+      assert.deepEqual(stock.bosses.sort(), [
+        "rootjaw",
+        "thunderbarbel",
+        "yacumama",
+      ]);
     }
     report.stock.push(stock);
   }
   report.checks.push(
-    "Six actual populations remain isolated; Amazon has 20 kinds / 411 residents / two local lords",
+    "Six actual populations remain isolated; Amazon has 20 kinds / 411 residents / three local lords",
   );
   await start();
   await page.waitForTimeout(1000);
@@ -183,7 +188,11 @@ try {
   );
   await start("orca", 30);
   await page.keyboard.down("KeyK");
-  for (const id of ["amazon_serpent", "amazon_rootjaw"]) {
+  for (const id of [
+    "amazon_serpent",
+    "amazon_rootjaw",
+    "amazon_thunderbarbel",
+  ]) {
     await page.evaluate(async (id) => {
       const g = window.__ABYSSAL__,
         b = g.encounters.bosses.find((b) => b.id === id);
@@ -238,11 +247,11 @@ try {
     }
     assert.equal(
       await page.evaluate(() => window.__ABYSSAL__.mode),
-      id === "amazon_rootjaw" ? "won" : "playing",
+      id === "amazon_thunderbarbel" ? "won" : "playing",
     );
   }
   report.checks.push(
-    "Native separated flank contacts defeat each lord exactly once; first defeat does not win, second at 30 m does",
+    "Native separated flank contacts defeat each lord exactly once; first two defeats do not win, third at 30 m does",
   );
   await page.screenshot({ path: `${out}/victory.png` });
   assert.deepEqual(report.errors, []);

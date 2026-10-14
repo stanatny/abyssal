@@ -157,11 +157,11 @@ export const REGIONS = Object.freeze(
       surfaceMode: "river",
       world: AMAZON_WORLD,
       description:
-        "从浮叶育幼湾沿雨林两侧支流深入。电鳗、森蚺与复苏巨兽栖息于沉根和深潭，河母巨蛇与根颚君王守护两处危险水域。",
+        "从浮叶育幼湾沿雨林两侧支流深入。电鳗、森蚺与复苏巨兽栖息于沉根和深潭，河母巨蛇、根颚君王与雷须鲶王分别守护深潭和林岛根窟。",
       departureHint:
         "这里是浮叶育幼湾 · 沿根系捕食鱼群\n成长后沿雨林两侧河道探索深潭",
       speciesKinds: REGION_SPECIES_KINDS.amazon,
-      bossKinds: ["yacumama", "rootjaw"],
+      bossKinds: ["yacumama", "rootjaw", "thunderbarbel"],
       bossInstances: AMAZON_BOSS_INSTANCES,
       humanActivity: {
         swimmers: false,
@@ -183,10 +183,18 @@ export const REGIONS = Object.freeze(
       world: EUROPA_WORLD,
       ecologyKind: "alien",
       description:
-        "冰壳之下，盐脉与热泉孕育着幻想外星生命。探索五层栖地，挑战辉渊巡狩者与星渊织母。",
+        "冰壳之下，盐脉与热泉孕育着幻想外星生命。探索五层栖地，挑战盐晶君王、辉渊巡狩者与星渊织母。",
       speciesKinds: REGION_SPECIES_KINDS.europa,
-      bossKinds: ["abyss_weaver", "lumen_stalker"],
+      bossKinds: ["abyss_weaver", "lumen_stalker", "brine_regent"],
       bossInstances: [
+        {
+          id: "europa_brine",
+          kind: "brine_regent",
+          home: [125, -255, -360],
+          radius: 85,
+          maxCenterY: -180,
+          persistentDefeat: true,
+        },
         {
           id: "europa_lumen",
           kind: "lumen_stalker",

@@ -81,6 +81,7 @@ test("Conch keys use constructed public-gallery coordinates, not juvenile homes;
       z: -240.5,
       y: -90,
       lowerY: -119,
+      upperY: -76,
       variant: "sanctuary",
     },
     {
@@ -89,6 +90,7 @@ test("Conch keys use constructed public-gallery coordinates, not juvenile homes;
       z: -447.5,
       y: -190,
       lowerY: -219,
+      upperY: -176,
       variant: "bridges",
     },
     {
@@ -97,17 +99,18 @@ test("Conch keys use constructed public-gallery coordinates, not juvenile homes;
       z: -999.5,
       y: -490,
       lowerY: -519,
+      upperY: -476,
       variant: "terrace",
     },
   ];
   const scene = new THREE.Scene(),
     r = createAtlantisRelic(scene, { records });
-  assert.equal(r.keyArt.locations.length, 3);
+  assert.equal(r.keyArt.locations.length, 12);
   assert.deepEqual(
-    r.keyArt.getPoint("agora_bridges").toArray(),
-    [237, -219, -447.5],
+    r.keyArt.getPoint("colonnade_east").toArray(),
+    [239, -225, -425.5],
   );
-  for (const s of records) {
+  for (const s of r.keyArt.locations) {
     r.setState({
       keySiteId: s.id,
       keyCollected: false,
@@ -119,16 +122,16 @@ test("Conch keys use constructed public-gallery coordinates, not juvenile homes;
     assert.equal(r.root.getObjectByName("sacred_pearl").visible, false);
   }
   r.setState({
-    keySiteId: records[0].id,
+    keySiteId: r.keyArt.locations[0].id,
     keyCollected: true,
     relicUnlocked: true,
     relicCollected: false,
   });
-  r.update(2, r.keyArt.getPoint(records[0].id));
+  r.update(2, r.keyArt.getPoint(r.keyArt.locations[0].id));
   assert.equal(r.keyArt.key.visible, false);
   const lid = r.root.getObjectByName("sacred_chest_lid"),
     a = lid.rotation.x;
-  r.update(2, r.keyArt.getPoint(records[0].id));
+  r.update(2, r.keyArt.getPoint(r.keyArt.locations[0].id));
   assert.equal(lid.rotation.x, a);
   r.reset();
   assert.equal(lid.rotation.x, 0);

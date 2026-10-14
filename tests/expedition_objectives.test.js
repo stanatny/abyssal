@@ -215,5 +215,5 @@ test("Atlantis key and guardian are independent, order-free requirements; option
   let n = 0;
   const f = fixture("atlantis", () => [0, 0.99][n++]);
   assert.equal(f.state.guardianId, f.bosses[0].id);
-  assert.equal(f.state.keySiteId, "memorial_terrace");
+  assert.equal(f.state.keySiteId, "vault_east");
 });

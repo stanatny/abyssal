@@ -720,6 +720,18 @@ add(
   "金帆船蛸以薄如纸的螺壳托着身躯，扩大的背腕像一张金帆。它沿古航路独行，转身时先收起帆缘，再把两束灵动的触腕送进水流。",
   "Golden Argonaut carries a paper-thin coiled shell below enlarged dorsal arms like a golden sail. It follows old sea roads alone, furling its sail edges before sending two lively arm bundles into the current.",
 );
+add(
+  "brine_regent",
+  "背景故事",
+  "盐脉沉积在它的甲壳上，一层层留下冰下潮汐的痕迹。它用感压器倾听水层扰动，先收拢层鳍，再让盐环向黑暗扩散。",
+  "Brine deposits build tidal layers on its shell. Pressure sensors listen for disturbances; it gathers its lamellar fins before sending a salt-pressure ring into the dark.",
+);
+add(
+  "thunderbarbel",
+  "背景故事",
+  "沉根间的微光常被误认成落入河底的萤火。雷须鲶王藏在林岛阴影里，以长须探寻暗水中的动静；须端依次亮起时，沉根后方才是旅人的退路。",
+  "Glints between submerged roots resemble fallen fireflies. Thunderbarbel hides beneath the forest island, reading dark water with its long barbels. When their tips light in sequence, shelter behind the roots offers a way out.",
+);
 for (const [kind, zh, en] of CREATURE_LORE) {
   const previous = records.get(kind);
   add(

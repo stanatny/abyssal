@@ -1,4 +1,21 @@
 export const EUROPA_EN = {
+  "盐晶震层命中 · 上浮或下潜避开锁定水层":
+    "Brine wave hit · rise or dive out of the locked layer",
+  盐晶君王: "Brine Regent",
+  盐脉主宰: "Brine Sovereign",
+  "盐脉主宰 · 盐晶君王": "Brine Sovereign · Brine Regent",
+  盐晶震层: "Brine Pressure Wave",
+  "盐环锁定水层 · 上浮或下潜避开，借岩拱掩护":
+    "Brine ring locks a water layer · rise or dive, and use arches for cover",
+  "分节矿化甲壳包覆连续外套，六瓣口器向前张合，三对层鳍与双叶尾推动庞大身躯。琥珀色感压器在冰下盐脉间显现。":
+    "A segmented mineral carapace encloses a continuous mantle. Six mouth petals open forward; three pairs of lamellar fins and a split tail propel the body. Amber pressure sensors shine among the brine seams.",
+  "盘踞悬生花园下方的盐脉水层。感压器蓄光后释放水平扩张的盐环，警示水层锁定后不再随玩家升降。原创外星生命设定，不是木卫二存在生命的证据。":
+    "Lurks in the brine layer beneath the Suspended Garden. Its sensors charge before releasing an expanding horizontal ring; once locked, the warned layer no longer follows your depth. An original fictional lifeform, not evidence of life on Europa.",
+  "看到水平盐环后上浮或下潜，也可借真实岩拱阻断冲击；恢复期接近身体反击，25米后每个破绽只结算一次伤害。":
+    "Rise or dive away from the horizontal ring, or shelter behind a solid arch. At 25 m, approach its body during recovery; each opening allows one damaging counter.",
+
+  "冰下深渊领主 {0}/{1} · 成长至30米":
+    "Ice-ocean Abyss Lords {0}/{1} · reach 30 m",
   "冰下幻想生态；大型个体各自巡游，沿盐脉和热泉分散栖息，深层领地外围也能找到它们。":
     "An imagined ice-ocean ecology. Large individuals patrol separate homes along brine seams and vents; some inhabit the outskirts of deep territories.",
   冰穹: "ICE",
@@ -40,12 +57,12 @@ export const EUROPA_EN = {
   幻想奖励远征: "Fantasy bonus expedition",
   "冰下鱼群 → 悬生巨游 → 冰下深渊领主":
     "Ice-ocean shoals → floating giants → alien Abyss Lords",
-  "成长至30米，击败任一冰下深渊领主。":
-    "Reach 30 m and defeat either ice-ocean Abyss Lord.",
-  "冰下远征完成，已征服一位外星领主。":
-    "The ice-ocean expedition is complete. An alien lord has been conquered.",
-  "冰壳之下，盐脉与热泉孕育着幻想外星生命。探索五层栖地，挑战辉渊巡狩者与星渊织母。":
-    "Beneath the ice, brine and thermal vents nurture fictional alien life. Explore five habitats and challenge the Lumen Stalker and Abyss Weaver.",
+  "成长至30米，击败全部三位冰下深渊领主。":
+    "Reach 30 m and defeat all three ice-ocean Abyss Lords.",
+  "冰下远征完成，三位外星领主均已被征服。":
+    "The ice-ocean expedition is complete. All three alien lords have been conquered.",
+  "冰壳之下，盐脉与热泉孕育着幻想外星生命。探索五层栖地，挑战盐晶君王、辉渊巡狩者与星渊织母。":
+    "Beneath the ice, brine and thermal vents nurture fictional alien life. Explore five habitats and challenge the Brine Regent, Lumen Stalker and Abyss Weaver.",
   "幻想物种，非已发现的外星生命；尺寸与行为属于游戏设定。":
     "An imaginary lifeform, not a discovered alien species; size and behavior are gameplay adaptations.",
   "冰下幻想生态；沿盐脉、悬生群落与热泉寻找食物。":

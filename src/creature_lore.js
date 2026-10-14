@@ -325,3 +325,16 @@ CREATURE_LORE.push(
     "Fishing songs liken its golden sail to a lost traveler's final star. Yet it never waits: with one agile turn, its thin shell and gold arms vanish into the next blue reef shadow.",
   ],
 );
+
+CREATURE_LORE.push(
+  [
+    "brine_regent",
+    "旧甲上的盐纹像从未展开的海图。它不追逐远方的光，却能分辨每一次从层鳍之间穿过的涌流；当整片甲壳沉静下来，下一道震层已在酝酿。",
+    "Salt lines on its old shell resemble an unopened chart. It ignores distant light but senses every current passing between its layered fins. When the carapace falls still, the next pressure wave is gathering.",
+  ],
+  [
+    "thunderbarbel",
+    "枯木在洪水中沉降，河床的路便换了模样。它的长须记住那些通道，也记住从通道里经过的猎物。三道亮光之间的短暂黑暗，是潜行者绕到它身后的机会。",
+    "Floods sink dead trees and redraw the riverbed. Its barbels remember those passages and the prey that use them. The brief dark intervals between three flashes give a diver time to reach its flank.",
+  ],
+);

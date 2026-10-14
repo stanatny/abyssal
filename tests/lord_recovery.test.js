@@ -10,7 +10,7 @@ import {
 } from "../src/lord_recovery.js";
 import { t, setLanguage } from "../src/i18n.js";
 
-test("Recovery speed leaves all sixteen unspent openings catchable and bounds post-hit movement", () => {
+test("Recovery speed leaves all eighteen unspent openings catchable and bounds post-hit movement", () => {
   for (const species of BOSS_SPECIES) {
     const boss = createBossState(species);
     assert.equal(recoverySpeed(boss), 2);

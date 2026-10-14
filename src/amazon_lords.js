@@ -1,6 +1,32 @@
 import { amazonAnchor } from "./amazon_config.js";
-/** 只属于亚马逊的两位原创守卫，沿用真实25米门槛和三次独立命中。 */
+/** 只属于亚马逊的三位幻想守卫，沿用真实25米门槛和三次独立命中。 */
 export const AMAZON_LORDS = Object.freeze([
+  Object.freeze({
+    kind: "thunderbarbel",
+    label: "雷沼主宰 · 雷须鲶王",
+    freshwater: true,
+    length: 46,
+    health: 210,
+    minAttackLength: 25,
+    speed: 33,
+    engageRange: 110,
+    lockWindow: 0.7,
+    projectileSpeed: 62,
+    damage: 34,
+    ability: "volley",
+    depthMin: 90,
+    depthMax: 170,
+    nutrition: 100,
+    growth: 30,
+    tier: 3,
+    windupDuration: 2.3,
+    attackDuration: 1.8,
+    volleyInterval: 0.5,
+    projectileHitMessage: "雷须电弧命中 · 横移或借沉根遮挡后续放电",
+    abilityColors: { volley: 0xd9dfa2 },
+    skillLabels: { volley: "雷须三连击" },
+    skillTips: { volley: "长须亮起后分拍放电 · 横向变向，借沉根阻断电弧" },
+  }),
   Object.freeze({
     kind: "yacumama",
     label: "河母主宰 · 雅库玛玛",
@@ -46,6 +72,14 @@ export const AMAZON_LORDS = Object.freeze([
 ]);
 export const AMAZON_BOSS_INSTANCES = Object.freeze([
   Object.freeze({
+    id: "amazon_thunderbarbel",
+    kind: "thunderbarbel",
+    home: Object.freeze([0, -98, -560]),
+    radius: 78,
+    maxCenterY: -65,
+    persistentDefeat: true,
+  }),
+  Object.freeze({
     id: "amazon_serpent",
     kind: "yacumama",
     home: Object.freeze(amazonAnchor(-1, -760, 245)),
@@ -63,6 +97,19 @@ export const AMAZON_BOSS_INSTANCES = Object.freeze([
   }),
 ]);
 export const AMAZON_LORD_DESCRIPTIONS = Object.freeze({
+  thunderbarbel: {
+    name: "雷须鲶王",
+    latin: "THUNDERBARBEL / FANTASY RIVER LORD",
+    category: "lord",
+    role: "雷沼主宰",
+    color: "#c9cb8a",
+    ability: "雷须三连击",
+    appearance:
+      "宽扁骨颅、六条长须和厚鳃盖连接沉重的青褐色躯干，分叉尾与宽大胸鳍在根窟中推进。",
+    text: "栖守林岛下的暗水根窟。长须蓄光后发出三道错拍电弧；释放后的电弧不会追踪，沉根能阻挡它们。这是原创幻想领主，不代表亚马逊真实存在电鲶巨兽。",
+    counter:
+      "不要沿电弧直线后退；连续横移或借根系遮挡。25米后在恢复期接近身体，每个破绽只进攻一次。",
+  },
   yacumama: {
     name: "雅库玛玛 · 河母巨蛇",
     latin: "YACUMAMA / RIVER LEGEND",

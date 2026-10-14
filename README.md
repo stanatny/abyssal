@@ -1,5 +1,9 @@
 # ABYSSAL
 
+Accepted local checkpoint — 2026-10-14: the user approves committing the delivered three-lord expeditions and twelve Atlantis key sites before a separate Amazon crocodilian swimming fix. All739 delivered source fingerprints match before acceptance-only documentation edits. The existing1,216-test/native-preview receipts remain candidate evidence, not newly rerun release checks. This authorization supersedes the candidate-only no-commit labels below for this accepted scope. No push, version change or Pages publication is requested; preserve services and canceled worktrees. The current AI agent continues alone.
+
+Current uncommitted gameplay candidate: [three-lord expeditions and expanded Atlantis hiding places](docs/expedition_objectives_revision.md), based on published v0.11.9. Europa adds Brine Regent; Amazon adds Thunderbarbel. Both require three distinct local lord defeats plus 30 m. Atlantis has twelve hiding spots across six public structures; inscriptions indicate entrances rather than the exact item. Formal Pages remains v0.11.9 pending user acceptance and publication authorization.
+
 A third-person ocean survival game for the browser. Choose an Orca, Giant Squid, Zombie Shark or Mechanical Shark: feed, grow, escape hunters, and challenge the giants below. Explore eight destinations: Hawaii, Atlantis, Bermuda, Mariana, the Amazon River, Europa's alien ice ocean, the airborne mythic Penglai Sanctuary and the underwater Odyssean Sea.
 
 **[Play the published game](https://stanatny.github.io/abyssal/?v=0.11.9)** · [GitHub repository](https://github.com/stanatny/abyssal)
@@ -190,8 +194,8 @@ The regional roster audit covers actual food and threat populations alongside th
 | Atlantis Ruins    | 20 / 560                 | Find the conch key and secret guardian's mark, then consume the temple pearl at 30 m |
 | Bermuda Triangle  | 24 / 467                 | Defeat all four local lords                                                          |
 | Mariana Trench    | 22 / 453                 | Reach 30 m, defeat all four ordered gatekeepers and reach the bottom refuge          |
-| Amazon River      | 20 / 409                 | Reach 30 m and defeat Yacumama and Rootjaw                                           |
-| Europa            | 16 / 352                 | Reach 30 m and defeat either local alien lord                                        |
+| Amazon River      | 20 / 409                 | Reach 30 m and defeat Yacumama, Rootjaw and Thunderbarbel                            |
+| Europa            | 16 / 352                 | Reach 30 m and defeat all three local alien lords                                    |
 | Penglai Fairyland | 18 / 437                 | Defeat the Four Symbols and the Sword Sage; shared 25 m eligibility                  |
 | Odyssean Sea      | 21 / 269                 | Reach 30 m and defeat Karkinos, Scylla and Charybdis                                 |
 
@@ -199,7 +203,7 @@ All selected lords stay defeated for the round; ordinary prey still respawn in t
 
 ## Atlantis puzzle and living wildlife
 
-Atlantis hides one **conch key** in an adult-accessible public gallery each round. An optional conch inscription names its building and adds radar guidance. Collect the key and defeat the secret guardian in either order to open Poseidon's decorated vault chest; consume its pearl at 30 m to win. Ordinary house chests remain scenery. No quest object adds nutrition or growth.
+Atlantis draws one **conch key** uniformly from twelve hiding spots across six adult-accessible public structures each round. Optional conch inscriptions name its building and guide to the entrance; the interior still needs searching. Collect the key and defeat the secret guardian in either order to open Poseidon's decorated vault chest; consume its pearl at 30 m to win. Ordinary house chests remain scenery. No quest object adds nutrition or growth.
 
 The four regions add **Moon Jellies** and **Spiny Lobsters**, with bell pulsing, trailing oral arms, independent walking legs and real floor-following habitats. Hawaii/Mariana gain **White-tailed Tropicbirds**, while Atlantis/Bermuda gain **Brown Pelicans**. The surface keeps 28 birds in total per map; forward flight and wingbeats replace slow sideways gull orbiting. Shared mixed habitats and some sizes are qualified game adaptations.
 

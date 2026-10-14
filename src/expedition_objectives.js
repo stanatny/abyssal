@@ -1,6 +1,8 @@
 import { penglaiText as pt } from "./penglai_species.js";
 /** 各海域的终局状态与目标；不把普通食物或领主战利品当成特殊宝物。 */
 import { message } from "./i18n.js";
+import { ATLANTIS_KEY_SITES } from "./atlantis_key_sites.js";
+export { ATLANTIS_KEY_SITES };
 
 export const ATLANTIS_RELIC = Object.freeze({
   x: 0,
@@ -8,12 +10,6 @@ export const ATLANTIS_RELIC = Object.freeze({
   z: -922,
   radius: 5,
 });
-
-export const ATLANTIS_KEY_SITES = Object.freeze([
-  Object.freeze({ id: "harbor_sanctuary", name: "月湾圣所" }),
-  Object.freeze({ id: "agora_bridges", name: "市集柱廊" }),
-  Object.freeze({ id: "memorial_terrace", name: "纪念圣厅" }),
-]);
 
 export const REGION_OBJECTIVES = Object.freeze({
   odyssey: Object.freeze({
@@ -44,16 +40,16 @@ export const REGION_OBJECTIVES = Object.freeze({
   amazon: Object.freeze({
     kind: "all_lords",
     minimumLength: 30,
-    summary: "成长至30米，击败雅库玛玛与根颚君王。",
-    completed: "两位河道领主已被征服，亚马逊远征完成。",
-    difficulty: "河道探索与双主宰",
+    summary: "成长至30米，击败全部三位河道主宰。",
+    completed: "三位河道领主已被征服，亚马逊远征完成。",
+    difficulty: "河道探索与三主宰",
     food: "育幼湾鱼群 → 沉根猎手 → 深潭巨兽",
   }),
   europa: Object.freeze({
-    kind: "growth_and_lord",
+    kind: "all_lords",
     minimumLength: 30,
-    summary: "成长至30米，击败任一冰下深渊领主。",
-    completed: "冰下远征完成，已征服一位外星领主。",
+    summary: "成长至30米，击败全部三位冰下深渊领主。",
+    completed: "冰下远征完成，三位外星领主均已被征服。",
     difficulty: "幻想奖励远征",
     food: "冰下鱼群 → 悬生巨游 → 冰下深渊领主",
   }),
@@ -110,8 +106,12 @@ export function createExpeditionObjective(region, random = Math.random) {
         : null,
     keySiteId:
       region.id === "atlantis"
-        ? ATLANTIS_KEY_SITES[Math.min(2, Math.floor(Math.max(0, random()) * 3))]
-            .id
+        ? ATLANTIS_KEY_SITES[
+            Math.min(
+              ATLANTIS_KEY_SITES.length - 1,
+              Math.floor(Math.max(0, random()) * ATLANTIS_KEY_SITES.length),
+            )
+          ].id
         : null,
     keyCollected: false,
     clueRead: false,
@@ -209,6 +209,8 @@ export function expeditionObjectiveHint(objective, player) {
           : message`海螺钥匙已得 · 寻找守宝克拉肯 ${objective.defeated.size}/3`;
   if (objective.regionId === "odyssey")
     return message`神话海路守卫 ${objective.defeated.size}/${objective.required} · 成长至30米`;
+  if (objective.regionId === "europa")
+    return message`冰下深渊领主 ${objective.defeated.size}/${objective.required} · 成长至30米`;
   if (objective.regionId === "amazon")
     return message`河道主宰 ${objective.defeated.size}/${objective.required} · 成长至30米`;
   if (objective.regionId === "bermuda")

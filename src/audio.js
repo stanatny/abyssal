@@ -896,7 +896,7 @@ export class OceanAudio {
       this.duckMusic(0.68, 0.75);
       return;
     }
-    if (kind === "lumen_stalker") {
+    if (["lumen_stalker", "brine_regent"].includes(kind)) {
       for (let i = 0; i < 3; i++)
         this.note(98 * (1 + i * 0.5), at + i * 0.11, 1.1, 0.09, this.effects, {
           type: "glass",

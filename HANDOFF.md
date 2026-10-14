@@ -1,3 +1,15 @@
+# Accepted expedition checkpoint — 2026-10-14
+
+Accepted local checkpoint — 2026-10-14: the user approves committing the delivered three-lord expeditions and twelve Atlantis key sites before a separate Amazon crocodilian swimming fix. All739 delivered source fingerprints match before acceptance-only documentation edits. The existing1,216-test/native-preview receipts remain candidate evidence, not newly rerun release checks. This authorization supersedes the candidate-only no-commit labels below for this accepted scope. No push, version change or Pages publication is requested; preserve services and canceled worktrees. The current AI agent continues alone.
+
+---
+
+# Current gameplay candidate — 2026-10-14
+
+The current AI agent alone continues `feat/europa-atlantis-objectives` from published v0.11.9 / `fce23d0`. The user requests a third scene-appropriate lord in both Europa and Amazon, three-lord completion in Europa, and more concealed adult-accessible Atlantis keys. Both three-lord expeditions retain 30 m; Atlantis uses twelve spots across six public structures, independent of the secret guardian. Existing inscriptions guide to the building entrance. Read [the active review](docs/expedition_objectives_revision.md) for design and current checks. New models, attacks, bilingual Guide and routes require the fresh evidence in `.local/expedition_objectives_20261014/`; prior release receipts are not current validation. Fresh delivery passes1,216 unit tests, formatting/build, all twelve native adult key returns, bilingual new-lord flows, real attack cycles and repeated-map resource checks. The public restricted build is byte-identical across11 files and retains the existing preview processes. See the review for controlled-fixture limits and archive route corrections. No commit/push is authorized. Preserve running DEV/restricted preview/tunnel and canceled Kimi worktree; no delegation.
+
+---
+
 # Current main release — v0.11.9 — 2026-10-13
 
 The user explicitly authorizes pushing the accepted `feat/lord-lock-feedback` optimizations to main. Integrate accepted lord body-lock/release feedback (`9a2a30b`), Bermuda's manual forward/right Frenzy pickup (`56864b5`) and the rare alert-radius refinement (`bcea45d`) from preceding main `cd819e4` / v0.11.8. All728 delivered source fingerprints match before release-only version/footer/documentation edits. The current AI agent integrates alone; established services, runtime archives and canceled worktrees remain. No tag or GitHub Release is requested. Earlier branch-only/no-main/uncommitted labels below retain their historical meaning and are superseded for this accepted release scope, not future changes.

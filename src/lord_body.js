@@ -2,10 +2,12 @@ import * as THREE from "three";
 
 // 只取承重躯干和头骨；鳍、翅、触腕之间的空水域不能成为一整块障碍。
 const CORE =
-  /^(kraken_ribbed_mantle|gran_maja_continuous_swimming_body|gran_maja_(upper|lower)_head_disc|hydra_broad_torso|hydra_carved_skull|leviathan_armored_torso|leviathan_predator_skull|three_lobed_mantle|long_mantle|long_continuous_serpent|flattened_serpent_skull|serpent_mandible|scylla_armored_core|scylla_head\d_sculpted_skull|karkinos_sculpted_carapace|massive_turtle_carapace|thick_turtle_plastron|broad_robed_torso|sculpted_human_head)$/;
+  /^(brine_segmented_core|thunderbarbel_sculpted_core|kraken_ribbed_mantle|gran_maja_continuous_swimming_body|gran_maja_(upper|lower)_head_disc|hydra_broad_torso|hydra_carved_skull|leviathan_armored_torso|leviathan_predator_skull|three_lobed_mantle|long_mantle|long_continuous_serpent|flattened_serpent_skull|serpent_mandible|scylla_armored_core|scylla_head\d_sculpted_skull|karkinos_sculpted_carapace|massive_turtle_carapace|thick_turtle_plastron|broad_robed_torso|sculpted_human_head)$/;
 const KEYS =
   /^(white_tiger_feline_torso_v4|bird_v2_vermilion_bird|dragon_v2_azure_dragon_\d+|xuanwu_blocky_turtle_skull)$/;
 const KINDS = new Set([
+  "brine_regent",
+  "thunderbarbel",
   "kraken",
   "mayan",
   "hydra",

@@ -2,15 +2,19 @@ import { NONFISH_SPECIES } from "../nonfish_ecology.js";
 import { SURFACE_BIRDS } from "../surface_birds.js";
 
 export const LIVING_OCEAN_EN = {
+  月湾古港地下厅: "Moon Harbor Sunken Hall",
+  沉没市集档案库: "Sunken Agora Archive",
+  波塞冬地宫: "Poseidon’s Vault",
+
   海螺钥匙与神庙宝箱: "Conch Key & Temple Chest",
   遗迹解谜: "Ruin puzzle",
   任务宝物: "Quest treasure",
   古城公共建筑与波塞冬地宫: "Public galleries and Poseidon’s vault",
   "寻钥匙 · 解封 · 寻宝": "Find the key · break the seal · claim the treasure",
-  "每局有一把海螺钥匙藏在月湾圣所、市集柱廊或纪念圣厅的下层。接近海螺铭文可获得建筑线索，雷达随后提供方向。钥匙与真正守宝克拉肯的印记可以按任意顺序获得；两者齐全才开启神庙地宫的宝箱。成长至30米后吞食圣珠即可胜利。":
-    "Each round hides one conch key in the lower gallery of Moonbay Sanctuary, Agora Colonnade or Memorial Hall. Approach a conch inscription for a location clue and radar guidance. Collect the key and the true guardian Kraken’s mark in either order; together they open the chest beneath Poseidon’s temple. Reach 30 m and consume the pearl to win.",
-  "钥匙不提供营养，也不会替代守宝者的印记。普通房屋的宝箱是陈设。三处公共建筑均有成年角色可游过的廊道；回到主界面开启新局后，钥匙和守宝者重新抽取。":
-    "The key gives no nutrition and cannot replace the guardian’s mark. Ordinary house chests are scenery. All three public galleries have adult-size routes. Returning home and starting a new round draws a new key site and guardian.",
+  "每局从六座公共建筑的十二处藏点中抽取一把海螺钥匙。留意上下层柱廊、地下港厅、档案库和地宫的侧后方。海螺铭文只提示建筑及入口方向，进入后仍需搜索。钥匙与真正守宝克拉肯的印记可以按任意顺序获得；两者齐全才开启神庙地宫的宝箱。成长至30米后吞食圣珠即可胜利。":
+    "Each round hides one conch key at one of twelve spots in six public buildings. Search upper and lower colonnades, the harbor hall, archive and vault, including their side and rear spaces. Inscriptions name the building and guide to its entrance; search inside for the key. Collect the key and true guardian Kraken’s mark in either order to open the temple chest. Reach 30 m and consume its pearl to win.",
+  "钥匙不提供营养，也不会替代守宝者的印记。普通房屋的宝箱是陈设。所有藏点均沿成年角色可往返的公共路线，不会藏入幼体专用小屋；新局独立重抽钥匙位置与守宝者。":
+    "The key gives no nutrition and cannot replace the guardian’s mark. Ordinary house chests are scenery. Every hiding spot has an adult-accessible return route; none is in a juvenile-only house. New rounds draw the key site and guardian independently.",
   "寻找海螺钥匙，击败真正守宝者；成长至30米，打开地宫宝箱并吞食圣珠。":
     "Find the conch key and defeat the secret guardian; reach 30 m, open the vault chest and consume its sacred pearl.",
   "寻找海螺铭文与钥匙 · 探索城区公共建筑":

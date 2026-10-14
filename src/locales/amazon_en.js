@@ -1,12 +1,32 @@
 import { AMAZON_EN as SPECIES_EN } from "../amazon_species.js";
 export const AMAZON_EN = Object.freeze({
+  "六须蓄光后，三个放电端依次向预判位置发射电弧。弹道不会转弯追踪，沉根和岩石可以挡住后续攻击。":
+    "After its six barbels charge, three discharge points fire in sequence at predicted positions. Shots never home after launch; solid roots and rocks can block them.",
+  "连续横向变向，借沉根遮挡；不要躲过第一道电弧后停下。":
+    "Keep changing direction sideways and use roots for cover. Do not stop after dodging the first discharge.",
+
+  "雷须电弧命中 · 横移或借沉根遮挡后续放电":
+    "Barbel discharge hit · move sideways or shelter behind roots",
+  雷须鲶王: "Thunderbarbel",
+  雷沼主宰: "Stormwater Sovereign",
+  "雷沼主宰 · 雷须鲶王": "Stormwater Sovereign · Thunderbarbel",
+  雷须三连击: "Triple Barbel Discharge",
+  "长须亮起后分拍放电 · 横向变向，借沉根阻断电弧":
+    "Glowing barbels release staggered discharges · change direction sideways and use roots for cover",
+  "宽扁骨颅、六条长须和厚鳃盖连接沉重的青褐色躯干，分叉尾与宽大胸鳍在根窟中推进。":
+    "A broad flattened skull, six long barbels and thick gill covers join a heavy olive-brown body. Its forked tail and broad pectoral fins propel it through flooded root vaults.",
+  "栖守林岛下的暗水根窟。长须蓄光后发出三道错拍电弧；释放后的电弧不会追踪，沉根能阻挡它们。这是原创幻想领主，不代表亚马逊真实存在电鲶巨兽。":
+    "Guards dark water beneath the forest island. Glowing barbels release three staggered discharges that never home after launch and are blocked by solid roots. An original fantasy lord, not a claim that giant electric catfish inhabit the real Amazon.",
+  "不要沿电弧直线后退；连续横移或借根系遮挡。25米后在恢复期接近身体，每个破绽只进攻一次。":
+    "Avoid retreating along a discharge path. Keep moving sideways or use roots as cover. At 25 m, approach the body during recovery and attack once per opening.",
+
   ...SPECIES_EN,
-  "沿弯曲河道穿越雨林，两条支流通往巨兽深潭。<br />在沉根与浮叶之间成长，迎战河道的两位主宰。":
-    "Follow winding channels through the rainforest to giant-haunted pools.<br />Grow among roots and floating leaves, then face the two river sovereigns.",
+  "沿弯曲河道穿越雨林，两条支流通往巨兽深潭。<br />在沉根与浮叶之间成长，迎战河道的三位主宰。":
+    "Follow winding channels through the rainforest to giant-haunted pools.<br />Grow among roots and floating leaves, then face the three river sovereigns.",
   "沿弯曲河道穿越雨林，两条支流通往巨兽深潭。":
     "Follow winding channels through the rainforest to giant-haunted pools.",
-  "在沉根与浮叶之间成长，迎战河道的两位主宰。":
-    "Grow among roots and floating leaves, then face the two river sovereigns.",
+  "在沉根与浮叶之间成长，迎战河道的三位主宰。":
+    "Grow among roots and floating leaves, then face the three river sovereigns.",
   "回到浮叶育幼湾 · 猎手停止追击":
     "Back in the water-lily nursery · Predators disengage",
   "离开浮叶育幼湾 · 沿沉根寻找大一些的猎物":
@@ -19,16 +39,16 @@ export const AMAZON_EN = Object.freeze({
     "Find pool giants · Challenge the river lords at 25 m",
   远征海域: "Expedition waters",
   亚马逊河: "Amazon River",
-  "从浮叶育幼湾沿雨林两侧支流深入。电鳗、森蚺与复苏巨兽栖息于沉根和深潭，河母巨蛇与根颚君王守护两处危险水域。":
-    "Follow two rainforest channels from a water-lily nursery. Electric eels, anacondas and revived giants inhabit submerged roots and pools; Yacumama and the Rootjaw Sovereign guard the dangerous reaches.",
+  "从浮叶育幼湾沿雨林两侧支流深入。电鳗、森蚺与复苏巨兽栖息于沉根和深潭，河母巨蛇、根颚君王与雷须鲶王分别守护深潭和林岛根窟。":
+    "Follow two rainforest channels from a water-lily nursery. Electric eels, anacondas and revived giants inhabit submerged roots and pools; Yacumama, Rootjaw and Thunderbarbel guard the deep pools and under-island root vault.",
   "这里是浮叶育幼湾 · 沿根系捕食鱼群\n成长后沿雨林两侧河道探索深潭":
     "Water-lily nursery · Feed around the roots\nGrow, then explore the pools along either rainforest channel",
   "正在绘制河道与雨林…": "Shaping river channels and rainforest…",
-  "成长至30米，击败雅库玛玛与根颚君王。":
-    "Reach 30 m and defeat both Yacumama and the Rootjaw Sovereign.",
-  "两位河道领主已被征服，亚马逊远征完成。":
-    "Both river lords are conquered. Amazon expedition complete.",
-  河道探索与双主宰: "River exploration · Two lords",
+  "成长至30米，击败全部三位河道主宰。":
+    "Reach 30 m and defeat all three river lords.",
+  "三位河道领主已被征服，亚马逊远征完成。":
+    "All three river lords are conquered. Amazon expedition complete.",
+  河道探索与三主宰: "River exploration · Three lords",
   "育幼湾鱼群 → 沉根猎手 → 深潭巨兽":
     "Nursery schools → Root-channel hunters → Pool giants",
   "河道主宰 {0}/{1} · 成长至30米": "River lords {0}/{1} · Reach 30 m",

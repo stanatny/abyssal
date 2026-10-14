@@ -1,4 +1,6 @@
 export const UI_EN = Object.freeze({
+  "仅展示当前远征规则的成绩；旧规则记录仍保存在本机。":
+    "Only runs under the current expedition rules are ranked; previous-rule records remain saved locally.",
   深渊领主锁定: "Abyss Lord Lock-on",
   领主已锁定你: "Lord Locked On",
   已脱离领主锁定: "Lord Lock Broken",

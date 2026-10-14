@@ -134,3 +134,38 @@ test("通关角色与成绩一起持久保存，改名和新角色扩展不会�
   restored.record(run("future-run", "atlantis", 900, { character: "future" }));
   assert.equal(restored.list("atlantis")[0].character, "future");
 });
+
+test("Revised expeditions keep old records without ranking them against new objectives", () => {
+  const disk = storage();
+  const ids = ["hawaii", "europa", "amazon", "atlantis"];
+  disk.setItem(
+    RUN_RECORD_KEY,
+    JSON.stringify({
+      version: 1,
+      rows: ids.map((region) => ({
+        id: `old-${region}`,
+        region,
+        character: "orca",
+        timeMs: 1000,
+        name: "Old",
+        at: 1,
+        ruleset: "survival-2026-10",
+      })),
+    }),
+  );
+  const store = createRunRecordStore(disk, ids);
+  assert.equal(store.list("hawaii")[0].id, "old-hawaii");
+  for (const region of ids.slice(1)) {
+    assert.deepEqual(store.list(region), []);
+    for (let i = 0; i < 12; i++)
+      store.record(run(`${region}-${i}`, region, 100 + i));
+    assert.equal(store.list(region).length, 10);
+    assert.equal(store.list(region)[0].timeMs, 100000);
+  }
+  const stored = JSON.parse(disk.getItem(RUN_RECORD_KEY)).rows;
+  for (const region of ids)
+    assert.ok(stored.some((r) => r.id === `old-${region}`));
+  const reloaded = createRunRecordStore(disk, ids);
+  for (const region of ids.slice(1))
+    assert.deepEqual(reloaded.list(region), store.list(region));
+});

@@ -1,6 +1,11 @@
 import { t, tr, setMarkup, onLanguageChange } from "./i18n.js";
 import { REGIONS, CHARACTERS } from "./expedition_config.js";
-import { createRunRecordStore, formatRunTime } from "./run_records.js";
+import {
+  createRunRecordStore,
+  formatRunTime,
+  runRuleset,
+  RUN_RULESET,
+} from "./run_records.js";
 import "./run_records.css";
 
 /** 通关结果录名与海域排行榜，原生dialog负责焦点、触屏和Escape，胜利只登记一次。 */
@@ -62,6 +67,9 @@ export function createRunRecordsUI(getRegion) {
       region.objective.summary,
     );
     dialog.querySelector("caption").textContent = t(region.name);
+    if (runRuleset(regionId) !== RUN_RULESET)
+      dialog.querySelector(".run-board-note").textContent +=
+        " " + t("仅展示当前远征规则的成绩；旧规则记录仍保存在本机。");
     const rows = store.list(regionId),
       body = dialog.querySelector("tbody");
     body.replaceChildren();

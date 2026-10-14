@@ -1,5 +1,5 @@
 import * as THREE from "three";
-import { ATLANTIS_KEY_SITES } from "./expedition_objectives.js";
+import { resolveAtlantisKeySites } from "./atlantis_key_sites.js";
 import { addSurfaceDetail } from "./ocean_visuals.js";
 
 /**
@@ -49,19 +49,15 @@ export function createAtlantisKeyArt(parent, records = []) {
       material,
     );
   }
-  const locations = records
-    .filter((r) => ATLANTIS_KEY_SITES.some((s) => s.id === r.id))
-    .map((r) => ({
-      id: r.id,
-      name: ATLANTIS_KEY_SITES.find((s) => s.id === r.id).name,
-      point: new THREE.Vector3(
-        r.x + (r.variant === "bridges" ? 22 : 0),
-        r.lowerY,
-        r.z,
-      ),
-      clue: new THREE.Vector3(r.x, r.lowerY, r.z + 43),
-      roofY: r.y - 4,
-    }));
+  const locations = resolveAtlantisKeySites(records).map((site) => ({
+    ...site,
+    point: new THREE.Vector3(site.point.x, site.point.y, site.point.z),
+  }));
+  // 铭文保留三块，扩展藏点不增加网格、灯或每帧资源分配。
+  const clues = records.map((r) => ({
+    point: new THREE.Vector3(r.x, r.lowerY, r.z + 43),
+    roofY: r.y - 4,
+  }));
   const key = new THREE.Group();
   key.name = "conch_key";
   root.add(key);
@@ -104,9 +100,9 @@ export function createAtlantisKeyArt(parent, records = []) {
     new THREE.CylinderGeometry(0.055, 0.055, 1, 6),
     bronze,
   );
-  const plaques = locations.map((site) => {
+  const plaques = clues.map((site) => {
     const g = new THREE.Group();
-    g.position.copy(site.clue);
+    g.position.copy(site.point);
     root.add(g);
     mesh(
       g,
@@ -141,7 +137,7 @@ export function createAtlantisKeyArt(parent, records = []) {
         0.025,
         bronze,
       );
-    const hang = site.roofY - site.clue.y - 2.9;
+    const hang = site.roofY - site.point.y - 2.9;
     if (hang > 0)
       mesh(g, new THREE.CylinderGeometry(0.06, 0.06, hang, 6), bronze, [
         0,
@@ -152,13 +148,18 @@ export function createAtlantisKeyArt(parent, records = []) {
   });
   let selected = null,
     collected = false,
-    disposed = false;
+    disposed = false,
+    suspended = false;
   return {
     root,
     locations,
+    clues,
     key,
     getPoint(id) {
       return locations.find((s) => s.id === id)?.point ?? null;
+    },
+    getGuidancePoint(id) {
+      return locations.find((s) => s.id === id)?.guidance ?? null;
     },
     setState(state) {
       const site = locations.find((s) => s.id === state.keySiteId);
@@ -166,7 +167,8 @@ export function createAtlantisKeyArt(parent, records = []) {
         selected = site.id;
         key.position.copy(site.point);
         chain.position.copy(site.point);
-        const height = site.roofY - site.point.y - 0.9;
+        suspended = Number.isFinite(site.roofY);
+        const height = suspended ? site.roofY - site.point.y - 0.9 : 0;
         chainMesh.scale.y = Math.max(0, height);
         chainMesh.position.y = 0.9 + height / 2;
       }
@@ -177,7 +179,8 @@ export function createAtlantisKeyArt(parent, records = []) {
         !!selected &&
         !collected &&
         key.position.distanceToSquared(position) < 200 ** 2;
-      key.visible = chain.visible = visible;
+      key.visible = visible;
+      chain.visible = visible && suspended;
       // 接触点保持固定，只摆动饰纹与材质，不让钥匙游出建筑。
       bow.rotation.z = reducedMotion ? 0 : Math.sin(time * 0.6) * 0.025;
       bronze.emissiveIntensity =

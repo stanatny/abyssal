@@ -1,3 +1,5 @@
+import { buildBrineRegent } from "./creature_brine_regent.js";
+import { buildThunderbarbel } from "./creature_thunderbarbel.js";
 import {
   ODYSSEY_CREATURE_KINDS,
   buildOdysseyCreature,
@@ -103,6 +105,8 @@ export function createCreature(kind, length = 6, seed = 1) {
     buildRegionalRare(kind, root, motions);
   else if (kind === "mechanical_shark") buildMechanicalShark(root, motions);
   else if (kind === "zombie_shark") buildZombieShark(root, motions);
+  else if (kind === "brine_regent") buildBrineRegent(root, motions);
+  else if (kind === "thunderbarbel") buildThunderbarbel(root, motions);
   else if (kind === "abyss_weaver") buildAbyssWeaver(root, motions);
   else if (kind === "lumen_stalker") buildLumenStalker(root, motions);
   else if (PENGLAI_CREATURE_KINDS.has(kind))

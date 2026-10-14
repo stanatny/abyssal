@@ -332,7 +332,7 @@ test("Both end lagoons connect the arms and admit an adult body", () => {
   ocean.dispose();
 });
 
-test("Amazon ending needs both persistent local defeats and actual maximum growth", () => {
+test("Amazon ending needs three persistent local defeats and actual maximum growth", () => {
   const region = getExpedition("amazon").region,
     state = createExpeditionObjective(region),
     player = createPlayer();
@@ -347,12 +347,14 @@ test("Amazon ending needs both persistent local defeats and actual maximum growt
   bosses[0].state.defeated = true;
   assert.equal(advanceExpeditionObjective(state, player, bosses).won, false);
   bosses[1].state.defeated = true;
+  assert.equal(advanceExpeditionObjective(state, player, bosses).won, false);
+  bosses[2].state.defeated = true;
   player.length = 29.9;
   assert.equal(advanceExpeditionObjective(state, player, bosses).won, false);
   player.length = 30;
   assert.equal(advanceExpeditionObjective(state, player, bosses).won, true);
   advanceExpeditionObjective(state, player, bosses);
-  assert.equal(state.defeated.size, 2);
+  assert.equal(state.defeated.size, 3);
 });
 
 test("River models use finite normalized geometry and independent live animation", () => {

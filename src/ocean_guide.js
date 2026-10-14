@@ -91,6 +91,19 @@ export function groupOceanCatalog(catalog) {
 }
 
 const DESCRIPTIONS = {
+  brine_regent: {
+    name: "盐晶君王",
+    latin: "EUROPA LIFEFORM L-03",
+    category: "lord",
+    role: "盐脉主宰",
+    color: "#e6c894",
+    ability: "盐晶震层",
+    appearance:
+      "分节矿化甲壳包覆连续外套，六瓣口器向前张合，三对层鳍与双叶尾推动庞大身躯。琥珀色感压器在冰下盐脉间显现。",
+    text: "盘踞悬生花园下方的盐脉水层。感压器蓄光后释放水平扩张的盐环，警示水层锁定后不再随玩家升降。原创外星生命设定，不是木卫二存在生命的证据。",
+    counter:
+      "看到水平盐环后上浮或下潜，也可借真实岩拱阻断冲击；恢复期接近身体反击，25米后每个破绽只结算一次伤害。",
+  },
   ...ODYSSEY_LORD_DESCRIPTIONS,
   ...PENGLAI_LORD_DESCRIPTIONS,
   ...AMAZON_LORD_DESCRIPTIONS,
@@ -314,9 +327,9 @@ export function buildOceanCatalog(regionId) {
           : config.mythic
             ? t(DESCRIPTIONS[config.kind].text)
             : config.freshwater
-              ? tr`${DESCRIPTIONS[config.kind].text} ${tr`成长至30米，击败雅库玛玛与根颚君王。`}`
+              ? tr`${DESCRIPTIONS[config.kind].text} ${tr`成长至30米，击败全部三位河道主宰。`}`
               : config.alien
-                ? tr`${DESCRIPTIONS[config.kind].text} ${tr`成长至30米，击败任一冰下深渊领主。`}`
+                ? tr`${DESCRIPTIONS[config.kind].text} ${tr`成长至30米，击败全部三位冰下深渊领主。`}`
                 : regionId === "mariana"
                   ? config.kind === "hydra"
                     ? tr`${DESCRIPTIONS.hydra.text} ${tr`三头巨龙海德拉守卫首层深水岩谷，是第一道压力帘的必经守卫。达到25米后，从侧面完成三次独立咬击，击败它即可开启2600米处的第一道压力帘；本局不再复活。`}`
@@ -361,9 +374,9 @@ export function buildOceanCatalog(regionId) {
       length: 0,
       habitat: "古城公共建筑与波塞冬地宫",
       effect: "寻钥匙 · 解封 · 寻宝",
-      text: "每局有一把海螺钥匙藏在月湾圣所、市集柱廊或纪念圣厅的下层。接近海螺铭文可获得建筑线索，雷达随后提供方向。钥匙与真正守宝克拉肯的印记可以按任意顺序获得；两者齐全才开启神庙地宫的宝箱。成长至30米后吞食圣珠即可胜利。",
+      text: "每局从六座公共建筑的十二处藏点中抽取一把海螺钥匙。留意上下层柱廊、地下港厅、档案库和地宫的侧后方。海螺铭文只提示建筑及入口方向，进入后仍需搜索。钥匙与真正守宝克拉肯的印记可以按任意顺序获得；两者齐全才开启神庙地宫的宝箱。成长至30米后吞食圣珠即可胜利。",
       counter:
-        "钥匙不提供营养，也不会替代守宝者的印记。普通房屋的宝箱是陈设。三处公共建筑均有成年角色可游过的廊道；回到主界面开启新局后，钥匙和守宝者重新抽取。",
+        "钥匙不提供营养，也不会替代守宝者的印记。普通房屋的宝箱是陈设。所有藏点均沿成年角色可往返的公共路线，不会藏入幼体专用小屋；新局独立重抽钥匙位置与守宝者。",
     },
     {
       id: "deep_thermal_vents",
@@ -1195,8 +1208,10 @@ export function createOceanGuide(trigger) {
       themeQuery.removeEventListener("change", syncTheme);
       touchQuery.removeEventListener("change", syncSearchInput);
       environment?.dispose();
-      for (const cachedModel of modelCache.values())
+      for (const cachedModel of modelCache.values()) {
+        cachedModel.userData.disposeLocalMotion?.();
         disposePenglaiTigerMotion(cachedModel);
+      }
     }
   });
   return {

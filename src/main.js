@@ -853,7 +853,7 @@ function updateRegionPresentation() {
     aether
       ? "15米起步，游于莲池，行于云海。<br />穿越桃林与浮空仙山，解除四象结界；真君随后全域追击。"
       : expedition.region.surfaceMode === "river"
-        ? "沿弯曲河道穿越雨林，两条支流通往巨兽深潭。<br />在沉根与浮叶之间成长，迎战河道的两位主宰。"
+        ? "沿弯曲河道穿越雨林，两条支流通往巨兽深潭。<br />在沉根与浮叶之间成长，迎战河道的三位主宰。"
         : ice
           ? "潜入冰壳之下，循着盐脉与微光。<br />在陌生生命之间，寻找冰下的深渊领主。"
           : trench
@@ -1131,10 +1131,12 @@ function updateSonar() {
           ? [{ ...ATLANTIS_RELIC, open: false, relic: true }]
           : objectiveState?.clueRead &&
               !objectiveState.keyCollected &&
-              ocean.relic?.keyArt.getPoint(objectiveState.keySiteId)
+              ocean.relic?.keyArt.getGuidancePoint(objectiveState.keySiteId)
             ? [
                 {
-                  ...ocean.relic.keyArt.getPoint(objectiveState.keySiteId),
+                  ...ocean.relic.keyArt.getGuidancePoint(
+                    objectiveState.keySiteId,
+                  ),
                   open: false,
                   key: true,
                 },
@@ -3957,10 +3959,10 @@ function frame(now) {
           );
         })(),
         clueContact:
-          ocean.relic?.keyArt.locations.some(
+          ocean.relic?.keyArt.clues.some(
             (site) =>
-              position.distanceToSquared(site.clue) < 16 ** 2 &&
-              !blockedBetween(position, site.clue),
+              position.distanceToSquared(site.point) < 16 ** 2 &&
+              !blockedBetween(position, site.point),
           ) || false,
         trenchArrived: !!ocean.progress?.arrived,
       },
