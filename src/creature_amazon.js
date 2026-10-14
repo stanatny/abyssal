@@ -77,6 +77,6 @@ export function buildAmazonCreature(kind, root, motions) {
   if (body.userData.setCrocodilianPhase) {
     root.userData.setHunterPhase = body.userData.setCrocodilianPhase;
     root.userData.setBossPhase = body.userData.setCrocodilianPhase;
-    root.userData.artRevision = "amazon_crocodilian_v4_swim";
+    root.userData.artRevision = "amazon_crocodilian_v5_swim";
   } else root.userData.artRevision = "amazon_redraw_v2";
 }

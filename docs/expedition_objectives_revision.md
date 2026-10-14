@@ -1,5 +1,7 @@
 # Europa, Amazon and Atlantis expedition revision
 
+Accepted on2026-10-15 for a local commit and push of `feat/europa-atlantis-objectives`, together with the other delivered swimming refinement and accepted expedition checkpoint `f360f55`. Earlier uncommitted/no-push statements below describe the original candidate stages. All741 delivered source hashes match before acceptance-only documentation updates. Runtime code and the previously verified build are unchanged; existing test/browser receipts are not newly rerun release evidence. Formal main/Pages remains v0.11.9. This authorization covers branch delivery only, without a version bump, tag or new gameplay change.
+
 Accepted local checkpoint — 2026-10-14: the user approves committing the delivered three-lord expeditions and twelve Atlantis key sites before a separate Amazon crocodilian swimming fix. All739 delivered source fingerprints match before acceptance-only documentation edits. The existing1,216-test/native-preview receipts remain candidate evidence, not newly rerun release checks. This authorization supersedes the candidate-only no-commit labels below for this accepted scope. No push, version change or Pages publication is requested; preserve services and canceled worktrees. The current AI agent continues alone.
 
 Current candidate, 2026-10-14. The current AI agent develops alone on `feat/europa-atlantis-objectives`, based on published v0.11.9 / `fce23d0`. No commit or publication is authorized. Existing preview processes and canceled worktrees remain intact.

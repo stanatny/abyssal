@@ -2,6 +2,7 @@ import test from "node:test";
 import assert from "node:assert/strict";
 import * as THREE from "three";
 import { createCreature } from "../src/creatures.js";
+import { aquaticHeading } from "../src/aquatic_reptile_motion.js";
 import { sampleSection } from "../src/creature_surface.js";
 import {
   disposeTentacleMotion,
@@ -37,6 +38,41 @@ function trunk(root) {
   });
   return result;
 }
+
+test("all five Odyssean people use upright aquatic headings through reversal and ascent", () => {
+  const forward = new THREE.Vector3(0, 0, -1),
+    up = new THREE.Vector3(0, 1, 0),
+    direction = new THREE.Vector3();
+  for (const kind of [
+    "nereid",
+    "triton_guard",
+    "naga_huntress",
+    "siren_eel",
+    "hippocampus",
+  ]) {
+    const root = createCreature(kind, 1, 71);
+    assert.equal(root.userData.aquaticUpright, true, kind);
+    for (let step = 0; step <= 32; step++) {
+      const yaw = (step * Math.PI) / 16;
+      direction.set(Math.sin(yaw), 0.25, -Math.cos(yaw)).normalize();
+      aquaticHeading(root.quaternion, direction, yaw);
+      root.updateMatrixWorld(true);
+      assert.ok(up.clone().applyQuaternion(root.quaternion).y > 0.95, kind);
+      assert.ok(
+        forward.clone().applyQuaternion(root.quaternion).dot(direction) > 0.999,
+        kind,
+      );
+      assert.ok(
+        root.userData.mouthAnchors[0]
+          .getWorldPosition(new THREE.Vector3())
+          .toArray()
+          .every(Number.isFinite),
+      );
+    }
+    assert.deepEqual(root.position.toArray(), [0, 0, 0]);
+    disposeTentacleMotion(root);
+  }
+});
 
 test("Coral Mermaid preserves unit dimensions and its fixed visible mouth through vertical swimming", () => {
   const root = createCreature("nereid", 1, 71),
@@ -262,3 +298,130 @@ test("Mermaid shell bodice is fitted to the torso and follows the same skin unde
   }
   disposeTentacleMotion(root);
 });
+
+for (const kind of [
+  "nereid",
+  "triton_guard",
+  "naga_huntress",
+  "siren_eel",
+  "hippocampus",
+]) {
+  test(`${kind}: speed transitions keep the posed surfaces continuous and freeze at an unchanged clock`, () => {
+    const first = createCreature(kind, 1, 71),
+      second = createCreature(kind, 1, 71);
+    pose(first, 0, 0.4);
+    pose(second, 0, 0.4);
+    const initial = skinSamples(first),
+      untouched = skinSamples(second),
+      rootMatrix = first.matrixWorld.clone();
+    pose(first, 0, 3);
+    assert.deepEqual(
+      skinSamples(first).map(({ point }) => point.toArray()),
+      initial.map(({ point }) => point.toArray()),
+      "Changing speed at a frozen clock must not snap tail, hair or limb skin",
+    );
+    let previous = initial,
+      maxStep = 0;
+    for (let frame = 1; frame <= 360; frame++) {
+      pose(first, frame / 60, frame < 180 ? 3 : 0.4);
+      const current = skinSamples(first);
+      for (let index = 0; index < current.length; index++) {
+        assert.ok(current[index].point.toArray().every(Number.isFinite));
+        maxStep = Math.max(
+          maxStep,
+          current[index].point.distanceTo(previous[index].point),
+        );
+      }
+      previous = current;
+    }
+    assert.ok(maxStep < 0.035, `${kind}: per-frame surface step ${maxStep}`);
+    assert.deepEqual(first.matrixWorld.elements, rootMatrix.elements);
+    pose(first, 6, 3);
+    assert.deepEqual(
+      skinSamples(first).map(({ point }) => point.toArray()),
+      previous.map(({ point }) => point.toArray()),
+    );
+    assert.deepEqual(
+      skinSamples(second).map(({ point }) => point.toArray()),
+      untouched.map(({ point }) => point.toArray()),
+      "Neighbouring cached instances must keep independent poses",
+    );
+    disposeTentacleMotion(first);
+    disposeTentacleMotion(second);
+  });
+}
+
+test("Triton's anterior torso and tail use one uninterrupted skin with a stable head and mouth", () => {
+  const root = createCreature("triton_guard", 1, 71);
+  root.updateMatrixWorld(true);
+  const rig = trunk(root);
+  assert.ok(rig?.motion.continuousWaist);
+  const skin = rig.meshes.find((mesh) => {
+      const p = mesh.geometry.attributes.position;
+      let anterior = false,
+        posterior = false;
+      for (let i = 0; i < p.count; i++) {
+        anterior ||= p.getZ(i) < -0.2;
+        posterior ||= p.getZ(i) > 0.5;
+      }
+      return anterior && posterior;
+    }),
+    head = root.getObjectByName("triton_guard_anatomical_head"),
+    headMatrix = head.matrixWorld.clone(),
+    mouth = root.userData.mouthAnchors[0],
+    mouthPosition = mouth.getWorldPosition(new THREE.Vector3());
+  assert.ok(skin, "One actual skin must span the chest, waist and distal tail");
+  for (let frame = 0; frame <= 360; frame++) {
+    pose(root, frame / 60, frame < 180 ? 0.4 : 3);
+    assert.deepEqual(head.matrixWorld.elements, headMatrix.elements);
+    assert.ok(
+      mouth.getWorldPosition(new THREE.Vector3()).distanceTo(mouthPosition) <
+        1e-9,
+    );
+  }
+  disposeTentacleMotion(root);
+});
+
+for (const kind of ["nereid", "triton_guard", "naga_huntress"]) {
+  test(`${kind}: visible hands paddle gently at cruise and streamline at speed outside the flanks`, () => {
+    const root = createCreature(kind, 1, 71),
+      body = root.children[0],
+      arms = body.userData.dragArms,
+      inverse = new THREE.Matrix4(),
+      point = new THREE.Vector3();
+    const spans = [];
+    let time = 0;
+    for (const effort of [0.4, 3]) {
+      for (let frame = 0; frame < 240; frame++)
+        pose(root, (time += 1 / 60), effort);
+      const ranges = arms.map(() => ({ min: Infinity, max: -Infinity }));
+      for (let frame = 0; frame < 360; frame++) {
+        pose(root, (time += 1 / 60), effort);
+        inverse.copy(body.matrixWorld).invert();
+        arms.forEach(({ side, rig }, armIndex) => {
+          const skin = rig.meshes[0],
+            p = skin.geometry.attributes.position;
+          for (let index = 0; index < p.count; index += 17) {
+            if (p.getZ(index) < 0.34) continue;
+            skin
+              .getVertexPosition(index, point)
+              .applyMatrix4(skin.matrixWorld)
+              .applyMatrix4(inverse);
+            assert.ok(
+              side * point.x > 0.08,
+              "The actual hand must remain outside its torso flank",
+            );
+            ranges[armIndex].min = Math.min(ranges[armIndex].min, point.y);
+            ranges[armIndex].max = Math.max(ranges[armIndex].max, point.y);
+          }
+        });
+      }
+      spans.push(ranges.map(({ min, max }) => max - min));
+    }
+    assert.ok(
+      spans[0].every((span, index) => span > spans[1][index] + 0.004),
+      `Cruise/fast hand excursions: ${JSON.stringify(spans)}`,
+    );
+    disposeTentacleMotion(root);
+  });
+}

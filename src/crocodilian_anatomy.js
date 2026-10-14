@@ -170,30 +170,25 @@ export function buildCrocodilian(kind, parent, motions) {
       upper.add(lower);
       assembly.add(upper);
       const radius = c.giant ? 0.031 : 0.021;
-      part(
+      // 一条连续的肢体曲面跨过肘膝；关节附近混合两根骨骼，避免硬切管口在摆动时裂开。
+      const limbSurface = part(
         upper,
         taperedTube(
-          `croc_v3_${kind}_upper_${index}`,
-          [[0, 0, 0], [elbow.x * 0.55, -0.012, 0.007], elbow.toArray()],
-          radius,
-          radius * 0.84,
-        ),
-        c.back,
-      );
-      part(
-        lower,
-        taperedTube(
-          `croc_v3_${kind}_lower_${index}`,
+          `croc_v5_${kind}_limb_${index}`,
           [
             [0, 0, 0],
-            [side * 0.019, -0.018, 0.022],
-            [side * 0.03, -0.029, 0.062],
+            [elbow.x * 0.55, -0.012, 0.007],
+            elbow.toArray(),
+            [elbow.x + side * 0.019, elbow.y - 0.018, elbow.z + 0.022],
+            [elbow.x + side * 0.03, elbow.y - 0.029, elbow.z + 0.062],
           ],
-          radius * 0.86,
+          radius,
           radius * 0.58,
+          24,
         ),
         c.back,
       );
+      limbSurface.userData.continuousLimb = true;
       const count = pair ? 4 : 5;
       for (let digit = 0; digit < count; digit++) {
         const spread = (digit - (count - 1) / 2) * 0.012;
@@ -250,9 +245,23 @@ export function buildCrocodilian(kind, parent, motions) {
     for (let i = 0; i < positions.count; i++) {
       if (limbIndex >= 0) {
         const limb = limbs[limbIndex],
-          bone = 7 + limbIndex * 2 + (mesh.parent === limb.lower ? 1 : 0);
-        ids.push(bone, 0, 0, 0);
-        weights.push(1, 0, 0, 0);
+          bone = 7 + limbIndex * 2,
+          lowerWeight = mesh.userData.continuousLimb
+            ? THREE.MathUtils.smoothstep(
+                positions.getZ(i) - limb.anchor.z,
+                limb.elbow.z - 0.018,
+                limb.elbow.z + 0.028,
+              )
+            : mesh.parent === limb.lower
+              ? 1
+              : 0;
+        if (lowerWeight === 1) {
+          ids.push(bone + 1, 0, 0, 0);
+          weights.push(1, 0, 0, 0);
+        } else {
+          ids.push(bone, bone + 1, 0, 0);
+          weights.push(1 - lowerWeight, lowerWeight, 0, 0);
+        }
       } else appendCrocodilianAxialWeights(positions.getZ(i), ids, weights);
     }
     geometry.setAttribute("skinIndex", new THREE.Uint16BufferAttribute(ids, 4));
@@ -264,7 +273,7 @@ export function buildCrocodilian(kind, parent, motions) {
   });
   const body = part(
     parent,
-    amazonGeometry(`croc_v3_${kind}_rigged_armor`, () =>
+    amazonGeometry(`croc_v5_${kind}_rigged_armor`, () =>
       mergeGeometries(parts),
     ),
   );
@@ -582,17 +591,17 @@ function plate(kind, row, column, width, length, height) {
     return g;
   });
 }
-function taperedTube(key, points, startRadius, endRadius) {
+function taperedTube(key, points, startRadius, endRadius, segments = 12) {
   return amazonGeometry(key, () => {
     const curve = new THREE.CatmullRomCurve3(
         points.map((p) => new THREE.Vector3(...p)),
       ),
-      g = new THREE.TubeGeometry(curve, 12, startRadius, 8, false),
+      g = new THREE.TubeGeometry(curve, segments, startRadius, 8, false),
       p = g.attributes.position,
       center = new THREE.Vector3(),
       v = new THREE.Vector3();
     for (let i = 0; i < p.count; i++) {
-      const t = Math.floor(i / 9) / 12;
+      const t = Math.floor(i / 9) / segments;
       curve.getPointAt(t, center);
       v.fromBufferAttribute(p, i)
         .sub(center)

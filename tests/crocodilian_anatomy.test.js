@@ -207,7 +207,8 @@ test("posed lord tail and feet retain actual contact; empty water stays empty", 
       (i) => ids.getX(i) === 14,
     ]) {
       let index = 0;
-      while (!condition(index)) index++;
+      while (index < p.count && !condition(index)) index++;
+      assert.ok(index < p.count, "Contact sample exists on the posed surface");
       const live = body
         .getVertexPosition(index, new THREE.Vector3())
         .applyMatrix4(body.matrixWorld);
@@ -218,4 +219,73 @@ test("posed lord tail and feet retain actual contact; empty water stays empty", 
       null,
     );
   }
+});
+
+test("every crocodilian limb has a continuous load-bearing surface across the bending joint", () => {
+  for (const kind of KINDS) {
+    const body = rig(createCreature(kind, 1, 71)),
+      p = body.geometry.attributes.position,
+      ids = body.geometry.attributes.skinIndex,
+      weights = body.geometry.attributes.skinWeight;
+    for (let limb = 0; limb < 4; limb++) {
+      const upper = 7 + limb * 2,
+        lower = upper + 1,
+        adjacency = new Map(),
+        distal = new Set();
+      let start;
+      const key = (i) =>
+        [p.getX(i), p.getY(i), p.getZ(i)]
+          .map((v) => Math.round(v * 1e6))
+          .join(",");
+      const belongs = (i) => ids.getX(i) === upper || ids.getX(i) === lower;
+      for (let i = 0; i < p.count; i += 3) {
+        if (![i, i + 1, i + 2].every(belongs)) continue;
+        const keys = [i, i + 1, i + 2].map(key);
+        keys.forEach((k, j) => {
+          if (!adjacency.has(k)) adjacency.set(k, new Set());
+          for (const neighbor of keys) adjacency.get(k).add(neighbor);
+          if (ids.getX(i + j) === upper && weights.getX(i + j) === 1)
+            start ??= k;
+          if (ids.getX(i + j) === lower) distal.add(k);
+        });
+      }
+      assert.ok(start && distal.size);
+      const visited = new Set([start]),
+        queue = [start];
+      for (let i = 0; i < queue.length; i++)
+        for (const next of adjacency.get(queue[i]))
+          if (!visited.has(next)) {
+            visited.add(next);
+            queue.push(next);
+          }
+      assert.ok(
+        [...distal].some((k) => visited.has(k)),
+        `${kind} limb ${limb}: shoulder-to-wrist skin is connected, not separate tube ends`,
+      );
+    }
+  }
+});
+
+test("cruise, chase and braking transitions keep the actual skinned tail and limbs continuous", () => {
+  const root = createCreature("black_caiman", 1, 71),
+    body = rig(root),
+    positions = body.geometry.attributes.position,
+    sample = [],
+    point = new THREE.Vector3();
+  pose(root, 0, 0.5);
+  for (let i = 0; i < positions.count; i += 59)
+    sample.push([i, body.getVertexPosition(i, new THREE.Vector3())]);
+  let peak = 0;
+  for (let frame = 1; frame <= 480; frame++) {
+    pose(root, frame / 60, frame < 120 || frame > 360 ? 0.5 : 3);
+    for (const [i, previous] of sample) {
+      body.getVertexPosition(i, point);
+      peak = Math.max(peak, point.distanceTo(previous));
+      previous.copy(point);
+    }
+  }
+  assert.ok(
+    peak < 0.012,
+    `No pose pop larger than 1.2% of body length per 60 Hz frame: ${peak}`,
+  );
 });

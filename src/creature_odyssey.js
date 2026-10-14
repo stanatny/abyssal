@@ -75,6 +75,8 @@ export function buildOdysseyCreature(kind, root, motions) {
     .multiplyScalar(-scale);
   root.userData.normalizedLength = 1;
   root.userData.odysseyAnatomy = kind;
+  // 人形和海神马转向保持背侧朝上，避免反向升降时最短弧旋转翻身。
+  if (PEOPLE.has(kind)) root.userData.aquaticUpright = true;
   root.userData.mouthAnchors = body.userData.mouthAnchors || [];
   root.userData.combatAnchor = body.userData.combatAnchor;
   root.userData.anatomy = body.userData.anatomy;

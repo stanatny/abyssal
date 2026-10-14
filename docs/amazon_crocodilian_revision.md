@@ -1,5 +1,51 @@
 # Amazon crocodilian anatomy and swimming review
 
+Accepted on2026-10-15 for a local commit and push of `feat/europa-atlantis-objectives`, together with the other delivered swimming refinement and accepted expedition checkpoint `f360f55`. Earlier uncommitted/no-push statements below describe the original candidate stages. All741 delivered source hashes match before acceptance-only documentation updates. Runtime code and the previously verified build are unchanged; existing test/browser receipts are not newly rerun release evidence. Formal main/Pages remains v0.11.9. This authorization covers branch delivery only, without a version bump, tag or new gameplay change.
+
+## Current swim follow-up — 2026-10-14
+
+The user accepts a local checkpoint of the preceding regional objectives (`f360f55`) and requests another swimming correction. Work stays on `feat/europa-atlantis-objectives`, uncommitted and unpushed for this new fix; formal main remains v0.11.9. The current AI agent works alone. Earlier candidate/publication labels below describe their historical stages.
+
+Matched native Guide side/overhead sequences exposed visible elbow/knee gaps between separately posed tube ends, outward rear feet during fast swimming and weak rear-body propulsion. The correction makes each limb one continuous 24-section surface in place of two disconnected 12-section tubes. Weights blend across the actual joint; toes and claws remain attached to the distal bone. Forelimbs tuck around the broad chest, hindlimbs align more closely with the tapering waist. Slow paddling includes a modest lifted recovery stroke. A stronger rearward wave grows along the existing seven axial bones; the head and shoulder remain stable and upright world navigation is unchanged.
+
+A transition test additionally found that effort smoothing alone folded the legs too abruptly when chase began. Limb folding now has its own bounded exponential transition, separate from tail effort. One overly tight hindlimb pilot failed the existing outside-flank regression and was relaxed; that assertion remains unchanged. A first native driver also attempted a nonexistent exposed composer field; it was corrected to the existing `visuals.render()` API without a gameplay change.
+
+The model still uses four meshes and fifteen bones per creature. Triangle counts remain28,008 for Black Caiman, Saltwater Crocodile and Purussaurus,28,728 for Rootback Colossus and29,304 for Rootjaw. No new lights, audio, texture downloads or animation loop. Geometry/materials stay shared, skeletons and folding state stay per instance, and retirement remains idempotent. No speed, size, habitat, nutrition, attack, mouth/contact rule or objective is changed. The same factory serves river encounters and Ocean Guide.
+
+The existing [Davenport and Sayer primary observation](https://www.thebhs.org/publications/the-herpetological-journal/volume-1-number-8-december-1989/1206-06-observations-on-the-aquatic-locomotion-of-young-salt-water-crocodiles-crocodylus-porosus-schneider/file), pp.357–358, was reread: slow limb paddling, rearward waves and tucked limbs at speed inform the visual direction. Those observations concern young captive saltwater crocodiles; extending a stylized rig to caimans, extinct Purussaurus and fantasy giants is an artistic adaptation, not species-specific measured kinematics. No reference image is bundled.
+
+Fresh receipts: `.local/croc_swim_20261014/`, preserving before/first-candidate sequences and driver pilots. Forty-seven focused unit checks pass across crocodilian anatomy, Amazon, lord body/recovery and serpentine regression suites. They cover actual posed surfaces, uninterrupted shoulder-to-wrist topology, conservative culling, stable head/shoulder, trailing feet outside the flank, slow/chase/braking continuity, frozen clock, independent shared-resource ownership, disposal and real posed tail/foot contact. Final browser/build/delivery receipts are recorded below after execution. Desktop narrow viewports do not establish physical-phone behavior or thermals.
+
+### Complete roster coverage — 2026-10-14
+
+The user clarifies that the correction applies to every crocodilian-shaped creature, including giants and lords. A fresh audit enumerates all eight regions, the124 ordinary catalog kinds,18 lord kinds, eight regional rares, three surface birds, two alternate forms and four playable characters:159 distinct living factory kinds. Every kind is constructed through the actual `createCreature` entry point. Exactly the following five use the crocodilian anatomy; none remains on an older swim rig.
+
+| Factory kind          | English Guide name               | Runtime role      | Region |
+| --------------------- | -------------------------------- | ----------------- | ------ |
+| `black_caiman`        | Black Caiman                     | Ordinary predator | Amazon |
+| `saltwater_crocodile` | Saltwater Crocodile · Introduced | Ordinary predator | Amazon |
+| `purussaurus`         | Purussaurus                      | Giant predator    | Amazon |
+| `rootback_colossus`   | Rootback Colossus                | Giant predator    | Amazon |
+| `rootjaw`             | Rootjaw Sovereign                | Abyss Lord        | Amazon |
+
+All five expose `amazon_crocodilian_v5_swim`, one private fifteen-bone crocodilian skeleton and both phase setters. The path is `createCreature` → `buildAmazonCreature` → `buildAmazonReptile` → `buildCrocodilian` → `bindCrocodilianTail`. Ordinary world creation, encounter creation and Guide previews call the same public factory. The live regional Guide builder/filter matches the actual ordinary/lord roster for every region in both languages; no crocodilian is registered in another region. Scope follows the anatomical form rather than a name containing “crocodile.”
+
+Other potentially confusing long-snouted or armored forms were checked against their actual construction: Mosasaur and Pliosaur have flippers, Hydra has multiple necks and flippers, Leviathan and the Europa Rift Reaver have independent serpentine structures, and Penglai dragons retain their dragon limbs. They do not contain the crocodilian elbow/knee surfaces repaired here; replacing those distinct gaits with crocodilian foot tucking would change their established anatomy.
+
+Fresh evidence is `coverage/audit.mjs` and `coverage/report.json` under `.local/croc_swim_20261014/`. The audit passes actual model construction, rig census, finite posed bone matrices, bilingual regional roster equality and all740 delivered source hashes before these scope-documentation edits. Runtime files and the delivered build are unchanged; no additional model implementation is required. Previous47 focused tests and native/public receipts below remain applicable evidence, not newly rerun checks. This scope audit does not claim a new browser or physical-device test.
+
+### Native review and delivery receipts
+
+Native Chrome confirms live river motion and frozen paused bones for all five kinds. Final world images use the populated river with original lights/fog, an explicitly controlled paused observation camera and hidden player/HUD. Guide checks cover all five models in English1440×900 and Chinese390×667, with controlled cruise/chase/braking and overhead/side observations. The same five cached model UUIDs and mesh/triangle counts persist across the language switch; browser errors are empty. These are controlled observations, not a full natural expedition or physical phone test.
+
+The first world-image driver kept the pause overlay visible and could consume a smaller specimen with its30 m observer; those images are not final art evidence. A3 m deep-pool fixture did not remain valid for the complete capture. Final photography uses3 m for shallow ordinary crocodilians,20 m for Rootback and30 m for Rootjaw, without invulnerability or ecology edits; `verified_safe/` retains the first three ordinary successes, `world_final/` the visible Rootjaw, and `rootback_and_guide/` the complete corrected Rootback and ten properly framed Guide cases. The prior full `native/` report records live motion/pause for all five and ten Guide cases; its obscured/cropped stills are superseded. All driver pilots are preserved.
+
+The short review video records the actual Guide renderer with controlled swim effort and observation angle; it is not a separate animation mockup. Final formatting/build, public browser refresh, artifact hashes and process receipts belong to this same ignored evidence directory. No newly added geometry cost or improved device performance is claimed.
+
+Final candidate receipt:47 focused tests, full formatting and production build pass. The public native English desktop and Chinese390 px flows open all five Guide entries, start/pause/Home without browser errors or development hooks. Both restricted local and public origins match all11 active build files byte-for-byte; seven private paths per origin return404, tunnel readiness is200 and all four established process identities are unchanged. The new bundle is `index-CeA0mhpz.js`; formal Pages remains v0.11.9.
+
+The initial prebuild browser timed out waiting for archive/build completion, and an uncompressed public JavaScript download timed out. The successful retry uses normal compressed transfer with full decompressed-byte hash comparison. The old prebuild receipt names `index-BvCkRtYa.js`; a fresh visit and reload at the same URL both load `index-CeA0mhpz.js`. This is not a continuously held-tab migration claim. `public/report.json`, `public_hashes.json`, `build.log`, `final_fingerprints.json`, `delivery.json` and the16.6-second `clip/crocodilian_swim.mp4` retain the current receipts and operating instructions.
+
 ## Candidate status
 
 Uncommitted follow-up on `fix/penglai-ground-navigation`, based on local checkpoint `55f999f`. The preceding Europa attacks, regional-rare eyes, touch controls and Kraken distance-pressure work are preserved. Formal v0.10.1 is unchanged. This task authorizes a working preview, not commit, push, merge or formal release.

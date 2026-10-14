@@ -97,7 +97,7 @@ export function bindCrocodilianTail(mesh, motions, { limbs = [] } = {}) {
   geometry.computeBoundingSphere();
   skin.boundingSphere = geometry.boundingSphere.clone();
   skin.boundingSphere.radius += 0.18;
-  let effort, previousTime;
+  let effort, limbFold, previousTime;
   motions.push((t, e) => {
     const dt =
       previousTime === undefined
@@ -109,23 +109,31 @@ export function bindCrocodilianTail(mesh, motions, { limbs = [] } = {}) {
     for (let i = 1; i < 7; i++) {
       const along = (SPINE_Z[i] - SPINE_Z[0]) / (SPINE_Z[6] - SPINE_Z[0]);
       const tangent =
-        Math.sin(t * 0.85 - along * 5.2) *
-        along ** 1.35 *
-        (0.18 + Math.min(3, effort) * 0.14);
+        Math.sin(t * 0.85 - along * 4.4) *
+        along ** 1.05 *
+        (0.24 + Math.min(3, effort) * 0.17);
       bones[i].rotation.y = tangent - previous;
       previous = tangent;
     }
-    const fold = THREE.MathUtils.smoothstep(effort, 0.3, 1.6);
+    // 推进力度与收腿姿态分别缓动，避免巡游转追击时四肢在数帧内弹到体侧。
+    const targetFold = THREE.MathUtils.smoothstep(effort, 0.3, 1.6);
+    limbFold =
+      limbFold === undefined
+        ? targetFold
+        : THREE.MathUtils.damp(limbFold, targetFold, 4, dt);
+    const fold = limbFold;
     for (const { upper, lower, side, pair } of joints) {
-      // 快游肘部向后收，腕部反向折回，让脚掌沿体侧拖曳而非扫进腹部。
-      const paddle =
-        Math.sin(t * 0.55 + pair * Math.PI + (side > 0 ? 0 : Math.PI)) *
-        (1 - fold);
+      // 前肢绕开宽胸，后肢顺着收窄的腰尾；慢游回桨时抬足，不能像在水里踏步。
+      const phase = t * 0.55 + pair * Math.PI + (side > 0 ? 0 : Math.PI),
+        paddle = Math.sin(phase) * (1 - fold),
+        recovery = (0.5 + 0.5 * Math.cos(phase)) * (1 - fold);
       upper.rotation.y =
-        -side * (0.1 + fold * 0.65 + paddle * (pair ? 0.16 : 0.1));
-      lower.rotation.y = side * (fold * 0.55 - paddle * (pair ? 0.18 : 0.07));
-      upper.rotation.z = side * (0.1 + fold * 0.19 + paddle * 0.035);
-      lower.rotation.x = -fold * 0.1 + (1 - fold) * paddle * 0.07;
+        -side *
+        (0.1 + fold * (pair ? 0.8 : 0.7) + paddle * (pair ? 0.24 : 0.15));
+      lower.rotation.y =
+        side * (fold * (pair ? 0.55 : 0.72) - paddle * (pair ? 0.16 : 0.08));
+      upper.rotation.z = side * (0.1 + fold * 0.19 + recovery * 0.12);
+      lower.rotation.x = -fold * 0.1 - recovery * 0.12;
     }
   });
   return skin;

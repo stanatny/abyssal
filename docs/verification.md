@@ -1,3 +1,27 @@
+# Accepted swimming branch delivery — 2026-10-15
+
+All741 delivered source fingerprints, HEAD and worktree state match before acceptance-only documentation edits. The user approves committing and pushing the delivered crocodilian and Odyssean swimming corrections, with local expedition checkpoint `f360f55`, to `feat/europa-atlantis-objectives`. Existing47/52 focused tests and native/public/lifecycle/hash receipts remain separate unchanged-input evidence; only documentation formatting and staged-diff checks are newly required for this acceptance. Formal main/Pages stays v0.11.9; no version bump, tag or new gameplay is part of this branch push. Receipts are ignored `.local/accepted_swim_push_20261015/`. Earlier candidate restrictions below retain their historical meaning.
+
+---
+
+# Odyssean swimming follow-up — 2026-10-14
+
+The current uncommitted candidate refines the five people-shaped/related swimmers while preserving the preceding crocodilian correction. Fresh52 focused checks pass. See [the scoped review](odyssey_swimming_revision.md) and ignored `.local/odyssey_swim_20261014/` for actual before/candidate rendering, body costs, skin/heading/clock checks, and final preview receipts. Prior checks below remain separate evidence; no push or release is requested. Fresh native world/pause and ten bilingual Guide cases pass. Repeated Guide and three map round trips retain stable sampled resources and normal populations. Both restricted hosts match all11 files, deny eleven private paths and retain the original ready processes; compiled native public flows/reload pass without errors or hooks. The active bundle is `index-DvA6GLWK.js`; these desktop/narrow checks do not establish physical-phone performance.
+
+---
+
+# Crocodilian swimming follow-up — 2026-10-14
+
+Previous regional expansion is locally committed as `f360f55`; this separate swimming fix remains uncommitted on the same branch. See [the current review](amazon_crocodilian_revision.md) and ignored `.local/croc_swim_20261014/` for before/candidate motion sequences,47 focused checks, transition/joint coverage and native delivery receipts. Earlier expedition/release checks below are historical for this fix. No push or release is requested.
+
+Final candidate receipt:47 focused tests, full formatting and production build pass. The public native English desktop and Chinese390 px flows open all five Guide entries, start/pause/Home without browser errors or development hooks. Both restricted local and public origins match all11 active build files byte-for-byte; seven private paths per origin return404, tunnel readiness is200 and all four established process identities are unchanged. The new bundle is `index-CeA0mhpz.js`; formal Pages remains v0.11.9.
+
+The initial prebuild browser timed out waiting for archive/build completion, and an uncompressed public JavaScript download timed out. The successful retry uses normal compressed transfer with full decompressed-byte hash comparison. The old prebuild receipt names `index-BvCkRtYa.js`; a fresh visit and reload at the same URL both load `index-CeA0mhpz.js`. This is not a continuously held-tab migration claim. `public/report.json`, `public_hashes.json`, `build.log`, `final_fingerprints.json`, `delivery.json` and the16.6-second `clip/crocodilian_swim.mp4` retain the current receipts and operating instructions.
+
+Coverage clarification: a fresh factory/catalog audit checks159 distinct living kinds across all eight regions, then compares the five crocodilian models with the actual regional ordinary/lord rosters in both languages. Black Caiman, Saltwater Crocodile, Purussaurus, Rootback Colossus and Rootjaw Sovereign all expose the current fifteen-bone swim rig; no omitted crocodilian or obsolete rig is found. All740 delivered source hashes match before documentation-only scope edits. Runtime and preview artifacts are unchanged, so earlier47-test/native receipts remain separate unchanged-input evidence rather than a new rerun. See `coverage/report.json` and the complete roster in [the review](amazon_crocodilian_revision.md#complete-roster-coverage--2026-10-14).
+
+---
+
 # Accepted expedition checkpoint — 2026-10-14
 
 Accepted local checkpoint — 2026-10-14: the user approves committing the delivered three-lord expeditions and twelve Atlantis key sites before a separate Amazon crocodilian swimming fix. All739 delivered source fingerprints match before acceptance-only documentation edits. The existing1,216-test/native-preview receipts remain candidate evidence, not newly rerun release checks. This authorization supersedes the candidate-only no-commit labels below for this accepted scope. No push, version change or Pages publication is requested; preserve services and canceled worktrees. The current AI agent continues alone.
