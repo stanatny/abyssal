@@ -1,3 +1,11 @@
+# Current main release — v0.11.10 — 2026-10-15
+
+The user authorizes merging the accepted branch into main. Include checkpoints `f360f55` and `5f7e999`, following `fce23d0` / v0.11.9. All741 accepted source hashes match before release-only metadata edits. Fresh full-unit/build, no-hook native compiled and exact-commit Node22 CI/Pages artifact/public receipts belong to ignored `.local/release_v0_11_10/`; prior candidate evidence remains separate. See [the release summary](release_v0_11_10.md). No tag, GitHub Release or new gameplay change is requested. Preserve established services, archives and canceled worktrees.
+
+Fresh release checks pass1,228 local unit tests, formatting and production build. The isolated restricted compiled build passes all four native character start/skill/pause/Home flows, fourteen affected Guide cases in English1440 and Chinese390, Europa/Amazon/Atlantis start/pause/Home and same-address reload, with no browser errors or production development hook. Both desktop localized v0.11.10 footers are verified. The native first attempt used an incorrect port and failed before loading the page; the corrected attempt reads the actual task-owned server record, with no game change. Exact-commit Node22 CI/Pages and artifact/public receipts remain the next publication checks. Native desktop/narrow checks do not establish physical-phone or thermal acceptance.
+
+---
+
 # Accepted swimming branch delivery — 2026-10-15
 
 All741 delivered source fingerprints, HEAD and worktree state match before acceptance-only documentation edits. The user approves committing and pushing the delivered crocodilian and Odyssean swimming corrections, with local expedition checkpoint `f360f55`, to `feat/europa-atlantis-objectives`. Existing47/52 focused tests and native/public/lifecycle/hash receipts remain separate unchanged-input evidence; only documentation formatting and staged-diff checks are newly required for this acceptance. Formal main/Pages stays v0.11.9; no version bump, tag or new gameplay is part of this branch push. Receipts are ignored `.local/accepted_swim_push_20261015/`. Earlier candidate restrictions below retain their historical meaning.

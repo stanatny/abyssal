@@ -1,5 +1,7 @@
 # Amazon crocodilian anatomy and swimming review
 
+Release status: the user approves integration into main as v0.11.10 on2026-10-15. Earlier candidate/branch-only publication restrictions below describe their historical stages. Existing candidate evidence is not newly repeated release/CI evidence. See [the release record](release_v0_11_10.md) and [verification](verification.md).
+
 Accepted on2026-10-15 for a local commit and push of `feat/europa-atlantis-objectives`, together with the other delivered swimming refinement and accepted expedition checkpoint `f360f55`. Earlier uncommitted/no-push statements below describe the original candidate stages. All741 delivered source hashes match before acceptance-only documentation updates. Runtime code and the previously verified build are unchanged; existing test/browser receipts are not newly rerun release evidence. Formal main/Pages remains v0.11.9. This authorization covers branch delivery only, without a version bump, tag or new gameplay change.
 
 ## Current swim follow-up — 2026-10-14
