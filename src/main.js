@@ -46,6 +46,7 @@ import {
 } from "./mechanical_shark_rules.js";
 import { bossRequiredHits, bossCounterOpen } from "./boss_rules.js";
 import { attachDeepVents } from "./deep_vents.js";
+import { attachDeepHazards } from "./deep_hazards.js";
 import {
   canPredatorRetaliate,
   predatorBiteContact,
@@ -248,9 +249,13 @@ scene.add(playerLight);
 const visuals = createVisualPipeline(renderer, scene, camera);
 visuals.setQuality(initialHighQuality);
 $("quality").textContent = t(initialHighQuality ? "画质 · 高" : "画质 · 流畅");
-let ocean = attachDeepVents(createOcean(scene), "hawaii", {
-  heightAt: baseSeabedHeight,
-});
+let ocean = attachDeepHazards(
+  attachDeepVents(createOcean(scene), "hawaii", {
+    heightAt: baseSeabedHeight,
+  }),
+  "hawaii",
+  { heightAt: baseSeabedHeight },
+);
 const terrainColliders = [...ocean.colliders];
 let loadedRegion = "hawaii";
 let regionLoading = false;
@@ -709,6 +714,9 @@ async function selectRegion(region) {
     attachDeepVents(nextOcean, region.id, {
       heightAt: nextOcean.heightAt || baseSeabedHeight,
     });
+    attachDeepHazards(nextOcean, region.id, {
+      heightAt: nextOcean.heightAt || baseSeabedHeight,
+    });
     await regionLoader.paint();
     regionLoader.stage("正在准备海面与生物…", 52);
     await regionLoader.paint();
@@ -851,7 +859,7 @@ function updateRegionPresentation() {
   setMarkup(
     document.querySelector(".intro"),
     aether
-      ? "15米起步，游于莲池，行于云海。<br />穿越桃林与浮空仙山，解除四象结界；真君随后全域追击。"
+      ? "15米起步，游于莲池，行于云海。<br />留意高空雷云与罡风，穿越仙山解除四象结界；真君随后全域追击。"
       : expedition.region.surfaceMode === "river"
         ? "沿弯曲河道穿越雨林，两条支流通往巨兽深潭。<br />在沉根与浮叶之间成长，迎战河道的三位主宰。"
         : ice
@@ -2147,6 +2155,26 @@ function updatePlayer(dt, roundDt) {
       position,
       elapsed,
     );
+    for (const event of [
+      ...(ocean.deepHazards?.onMovement(previousPosition, position, elapsed, {
+        dt,
+        length: player.length,
+        blocked: blockedBetween,
+      }) || []),
+      ...(ocean.skyHazards?.onMovement(previousPosition, position, elapsed, {
+        dt,
+        length: player.length,
+        blocked: blockedBetween,
+      }) || []),
+    ]) {
+      if (event.warning) notify(event.warning, 3);
+      if (event.damage && takeDamage(player, event.damage)) {
+        audio.hit();
+        hitFlash = 0.65;
+        effects.hurt(position, player.length);
+        notify(event.message, 2.5);
+      }
+    }
     if (jet?.warning) notify("热流即将喷发 · 绕开橙色喷口", 3);
     if (jet?.damage && takeDamage(player, jet.damage)) {
       audio.hit();

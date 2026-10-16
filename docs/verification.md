@@ -1,3 +1,55 @@
+# Accepted local hazards/weather checkpoint — 2026-10-16
+
+Accepted local checkpoint — 2026-10-16: the user authorizes a local commit of the delivered regional deep hazards, complete-world waterlock flicker correction, and random moving Penglai weather with clearer wind and actual-hit media. All758 delivered source fingerprints match before acceptance-only documentation edits. Earlier uncommitted/no-commit labels below are historical and superseded for this checkpoint only. No push, version bump or formal publication is requested. The current AI agent then continues alone with a separate Penglai terrain-entrapment/combat follow-up, preserving all services, archives and canceled worktrees. Existing checks remain their recorded candidate evidence, not newly rerun release verification.
+
+---
+
+# Penglai wind readability and actual attacks — 2026-10-16
+
+The user reports faint wind. The existing mesh now uses wider dark-edged/silver-core trails and stronger forming/active contrast; rules and resource counts are unchanged. Fresh14 weather checks, formatting/build, two actual thunder hits, one wind hit and a separate390×667 touch/Smooth native-follow wind hit pass. The recorded adult/juvenile starts are controlled; real weather, damage, NPCs, lighting and HUD remain. Native pause/held-key fixture corrections and failed wind interception remain preserved. No full-suite, physical-phone or thermal result is claimed this turn. Current evidence is ignored `.local/penglai_weather_attack_20261016/`; see [the current review](penglai_sky_hazard_revision.md#wind-readability-and-actual-attacks--current-follow-up).
+
+Compiled public English1280/Chinese390/English390 native Guide/start/pause/Home/reload cases pass with no hooks/errors. Both restricted hosts byte-match all11 build files and deny22 private paths each; original services/readiness remain. Active bundle `index-Cy1KExMi.js`. Separate15.9s thunder /6.8s wind H264 clips pass decode and encoded-frame inspection, retaining genuine hit/health feedback. No commit/push or formal release.
+
+---
+
+# Random moving Penglai weather — 2026-10-16
+
+The user rejects the preceding fixed-site art and rules. Current evidence belongs to ignored `.local/penglai_weather_20261016/`; earlier static-sky checks below are historical and do not validate the new weather. See [the weather review](penglai_sky_hazard_revision.md). No commit/push or formal release is authorized.
+
+Fresh43 affected checks pass;1,260 full units pass before the final presentation-only contrast/width refinement, followed by43 affected checks again. Native natural-weather fixtures pass two actual hits (Orca82 /Steel Body88), two whole-period altitude bypasses at100 health, pause and three map-return disposals with stable671-geometry/210-texture counts. Both natural final event recordings complete formation, movement, activity and fade. Current compiled public English1280/Chinese390/English390 Guide/start/pause/Home/reload cases pass;11 artifacts per host match,22 private paths per host remain denied, production hooks are absent and the original processes/tunnel stay ready. Active bundle `index-CK0N-Ht4.js`;48.6s silent H264 decode and encoded-frame inspection pass. See the review for driver correction, controlled-camera limits and no physical-device/thermal claims.
+
+---
+
+# Penglai aerial hazard extension — 2026-10-16
+
+Uncommitted `feat/deep-ruin-hazards` adds two Thundercloud Arrays and two layered Aetherwind Corridors, retaining underwater stones. Fresh1,254 full unit tests and49 focused checks pass; native populated tests pass four30m contacts, four safe-gap flights with native pause, six bilingual Guide cases and four map-return disposals with stable warmed counts. Actual sky renders reject and fix two shader pilots; the final camera/caption clips are controlled observations. See [the sky review](penglai_sky_hazard_revision.md), [production brief](penglai_sky_hazard_brief.md) and ignored `.local/penglai_sky_hazards_20261016/`. Final49 focused checks and formatting/build pass. Three compiled public bilingual desktop/390px flows cover nine affected Guide views and same-address reloads without errors/hooks; all11 resources match both origins,22 private paths per host remain denied, and original processes/readiness pass (`index-eFnCLixX.js`). The13.5-second H264 clip passes decode and encoded-frame inspection. No commit/push or physical-phone/thermal claim is part of this candidate.
+
+---
+
+# Complete-world waterlock flicker correction — 2026-10-16
+
+The user reports residual rotation flicker after the border-only correction below. Its prior visual acceptance claim was incomplete: lower-hall paving shares floor+0.22 m with border caps, and end grilles also have small coplanar intersections. Raise only the border caps to+0.40 m while retaining buried bases, and separate the grille bars. Two new regressions fail before and pass after the change. Fresh25 focused tests pass; all four populated-site audits find zero new horizontal-face coplanar overlap in their inspected bounds. Front/diagonal stills, low-angle paused-time camera arcs and a native-triggered warning/release/cooldown clip provide fresh visual evidence. See [the complete-world follow-up](deep_hazard_revision.md#complete-world-flicker-follow-up--2026-10-16) and ignored `.local/waterlock_flicker_20261016/`. Fresh formatting/build, three bilingual desktop/390px native public flows/reloads, byte equality for all11 resources on both restricted origins,19 denied private paths per host and original process identities/readiness pass (`index-w_XoXULO.js`). Prior full-unit and eight-region video receipts remain separate historical evidence. No commit/push or service replacement is authorized.
+
+---
+
+# Waterlock edge follow-up and hazard videos — 2026-10-16
+
+The current uncommitted `feat/deep-ruin-hazards` candidate removes coplanar overlap between waterlock border stones. Final-mesh overlap falls from60 triangle pairs per kit to zero; frozen-time before/after orbit captures remove depth-fighting streaks while retaining the intended warning pulse. No gameplay or resource-count change is made. Fresh verification passes23 focused edge, hazard, real-map ownership, thermal and predator tests, formatting and build; the earlier1,243-unit full run below predates this small geometry fix.
+
+All eight actual populated-region videos contain native-triggered warning, release and entry into cooldown after controlled starting positions. Delivered H264 clips are approximately12 seconds for the waterlock plus an edge orbit, and54 seconds for the other seven regions. Inspecting the encoded files confirms phase labels and legible hazard views; full decoding passes. These are silent observation-camera clips, not natural travel or physical-phone evidence. No NPC, light or fog is removed or changed. Three new public compiled bilingual/390px Guide/start/pause/Home/reload cases pass with no errors or production hooks. All11 assets match on local/public origins,19 private probes per host are denied, and established process identities remain. See [the follow-up record](deep_hazard_revision.md#border-flicker-follow-up-and-motion-clips--2026-10-16); raw receipts stay in ignored `.local/deep_hazard_videos_20261016/`. No commit or push was made.
+
+---
+
+# Current deep terrain candidate — 2026-10-16
+
+Uncommitted `feat/deep-ruin-hazards` from v0.11.10 / `cabe2a5`: four Atlantis conch waterlocks plus two scene-specific side hazards in each other region. Existing food, predator retaliation, lords, objectives and adult routes remain. See [the current review](deep_hazard_revision.md) and [production brief](deep_hazard_brief.md).
+
+Fresh full validation passes1,243/1,243 tests, formatting and build. Native populated checks pass all18 triggers, armor/contact/pause/reset, four30 m Atlantis safe bypass/cooldown routes and sixteen serial map switches with complete old-pool disposal. Eight real-map tests also check fitted parts, unchanged collider arrays,64 actual Mariana shelf rays and once-only resource disposal. Twenty-four public Guide cases cover English desktop, Chinese390 and English390; native start/pause/Home covers all eight maps and four characters, with three same-address reloads, no browser errors and no production debug hook. All11 runtime resources byte-match the build on local/public restricted hosts;19 private paths per host are denied. Original processes remain.
+
+Raw receipts and preserved failed pilots are in ignored `.local/deep_hazards_20261016/`. Populated controlled fixtures are distinct from natural expedition pacing; desktop viewport emulation does not establish physical-phone performance, input feel or temperature. The source-matched public preview is separate from unchanged formal main/Pages v0.11.10. No commit or push is authorized for this candidate.
+
+---
+
 # Current main release — v0.11.10 — 2026-10-15
 
 The user authorizes merging the accepted branch into main. Include checkpoints `f360f55` and `5f7e999`, following `fce23d0` / v0.11.9. All741 accepted source hashes match before release-only metadata edits. Fresh full-unit/build, no-hook native compiled and exact-commit Node22 CI/Pages artifact/public receipts belong to ignored `.local/release_v0_11_10/`; prior candidate evidence remains separate. See [the release summary](release_v0_11_10.md). No tag, GitHub Release or new gameplay change is requested. Preserve established services, archives and canceled worktrees.

@@ -38,7 +38,7 @@ export const REGIONS = Object.freeze(
       name: "亚特兰蒂斯遗迹",
       available: true,
       description:
-        "从月夜浅滩潜入贝珠辉光映照的沉没古城。独特鱼群栖息于列柱间，克拉肯守卫波塞冬神殿。",
+        "从月夜浅滩潜入贝珠辉光映照的沉没古城。搜索公共遗迹时留意海螺水闸的刻纹预警，克拉肯守卫波塞冬神殿。",
       speciesKinds: REGION_SPECIES_KINDS.atlantis,
       bossKinds: ["kraken"],
       bossHomes: { kraken: [0, -420, -815] },

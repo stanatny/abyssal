@@ -1,3 +1,5 @@
+import { deepHazardGuideEntries } from "./deep_hazard_catalog.js";
+import { penglaiSkyHazardGuideEntries } from "./penglai_sky_hazard_catalog.js";
 import { LORD_RECOVERY } from "./lord_recovery.js";
 import { ODYSSEY_LORD_DESCRIPTIONS } from "./odyssey_lords.js";
 import { disposePenglaiTigerMotion } from "./creature_penglai_tiger.js";
@@ -396,6 +398,8 @@ export function buildOceanCatalog(regionId) {
       counter:
         "喷流仅覆盖喷口上方约42米、半径10米的水体；横向绕行即可避开。它们不封锁守关入口、古城宝藏或育幼区，也不会提供食物。",
     },
+    ...deepHazardGuideEntries(),
+    ...penglaiSkyHazardGuideEntries(),
     ...REGIONAL_RARES.map((config) => ({
       ...config,
       id: config.kind,

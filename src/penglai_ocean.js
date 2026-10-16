@@ -6,6 +6,7 @@ import {
 } from "./penglai_routes.js";
 import { createPenglaiWard } from "./penglai_ward.js";
 import { createPenglaiSkyIslands } from "./penglai_sky_islands.js";
+import { createPenglaiSkyHazards } from "./penglai_sky_hazards.js";
 import {
   PENGLAI_REWARD_HABITAT,
   penglaiRewardAnchor,
@@ -48,7 +49,8 @@ export function* createPenglaiOceanSteps(parent) {
     time = { value: 0 };
   let disposed = false,
     ward,
-    skyIslands;
+    skyIslands,
+    skyHazards;
   const material = (key, color, extra = {}) =>
     mats[key] ??
     (mats[key] = keep(
@@ -841,6 +843,9 @@ export function* createPenglaiOceanSteps(parent) {
     );
     ward = scope.own(createPenglaiWard(root));
     skyIslands = scope.own(createPenglaiSkyIslands(root, colliders));
+    skyHazards = scope.own(
+      createPenglaiSkyHazards(root, { heightAt: penglaiHeightAt }),
+    );
     yield "monastery";
     for (const [x, z] of [
       [-214, -315],
@@ -1199,6 +1204,7 @@ export function* createPenglaiOceanSteps(parent) {
       disposed = true;
       ward?.dispose();
       skyIslands?.dispose();
+      skyHazards?.dispose();
       root.removeFromParent();
       root.traverse((n) => {
         if (n.isInstancedMesh) n.dispose();
@@ -1225,16 +1231,28 @@ export function* createPenglaiOceanSteps(parent) {
       obstacles: [],
       barriers: ward.barriers,
       ward,
-      reset: () => ward.reset(),
+      skyHazards,
+      reset: () => {
+        ward.reset();
+        skyHazards.reset();
+      },
       updateProgress: (...args) => ward.updateProgress(...args),
       guardianWaypoints: PENGLAI_BOSS_INSTANCES,
       rewardHabitat: PENGLAI_REWARD_HABITAT,
       rewardAnchor: penglaiRewardAnchor,
-      update(t, position, dt, highQuality, cameraPosition = position) {
+      update(
+        t,
+        position,
+        dt,
+        highQuality,
+        cameraPosition = position,
+        reducedMotion = false,
+      ) {
         // 天幕随相机平移，最高空域与边角朝向也保持在球内。
         sky.position.copy(cameraPosition);
         time.value = t;
         ward.update(t, position);
+        skyHazards.update(t, position, reducedMotion, highQuality);
         skyMaterial.uniforms.underwater.value = Math.max(
           0,
           Math.min(1, (4 - position.y) / 22),

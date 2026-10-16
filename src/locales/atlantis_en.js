@@ -21,8 +21,8 @@ export const ATLANTIS_EN = Object.freeze({
     "After {0} m, medium and large prey give increasing returns: at {1} m, up to {2}× growth and {3}× nutrition. Small-prey returns still diminish. While fed, recover {4} health per second; each meal provides an independent {5}-health-per-second effect, up to {6} layers: 2, 4 or 6 health per second, with no instant healing. Nutrition sets each layer’s {7}–{8}-second lifetime. At the cap, new food only tops up the earliest-ending layer; it never extends the others. Effects keep expiring at full health; starvation prevents healing and pause freezes them. Medical supplies and rare blessings retain their special recovery. Lords and supplies do not receive the adult reward bonus.",
   "从阳光海滩潜入火山深渊。珊瑚鱼群、远古巨兽与多位深渊领主在此共存。":
     "Dive from sunlit beaches into volcanic depths, home to reef fish, Ancient Giants, and several Abyss Lords.",
-  "从月夜浅滩潜入贝珠辉光映照的沉没古城。独特鱼群栖息于列柱间，克拉肯守卫波塞冬神殿。":
-    "Descend from moonlit shallows into a pearl-lit sunken city. Distinctive creatures swim between its columns, while Krakens guard its districts and Poseidon's temple.",
+  "从月夜浅滩潜入贝珠辉光映照的沉没古城。搜索公共遗迹时留意海螺水闸的刻纹预警，克拉肯守卫波塞冬神殿。":
+    "Descend from moonlit shallows into a pearl-lit sunken city. Watch for engraved Conch Waterlock warnings while searching public ruins; Krakens guard Poseidon's temple.",
   "循着月光与鱼群，潜入沉没古城。<br />在波塞冬的珠光下，迎战守卫克拉肯。":
     "Follow moonlight and shoals into the sunken city.<br />Face the Kraken guardians in Poseidon's pearl-lit city.",
   "循着月光与鱼群，潜入沉没古城。":
