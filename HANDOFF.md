@@ -1,4 +1,14 @@
-# Current Penglai local checkpoint — 2026-10-17
+# Accepted remote branch delivery — 2026-10-17
+
+Accepted remote branch delivery — 2026-10-17: the user authorizes committing and pushing the reviewed Penglai flight and direction correction on `feat/deep-ruin-hazards`, together with accepted regional-hazard/weather checkpoint `538e032` and guardian/terrain checkpoint `7b67fd3`. All773 delivered source fingerprints and all11 compiled artifacts match before acceptance-only documentation updates. The current AI agent integrates alone. Earlier candidate-only/no-push labels below are historical and superseded for this accepted scope. Existing91 affected tests, native keyboard/CDP-touch, public bilingual flows and artifact receipts remain unchanged-input evidence, not newly rerun release checks. Preserve established services, runtime archives and canceled worktrees. This is a remote development-branch delivery; formal main/Pages stays v0.11.10, with no version bump, tag or GitHub Release. Future changes return to the default review/authorization rule.
+
+Branch-delivery receipts belong to ignored `.local/accepted_branch_push_20261017/`. The accepted flight implementation and current evidence are recorded in [the flight review](docs/penglai_flight_revision.md); the unchanged preview uses `index-De3zZMFV.js`.
+
+---
+
+# Current Penglai flight candidate — 2026-10-17
+
+Current Penglai flight candidate — 2026-10-17: after accepted local checkpoint `7b67fd3`, the user requests player-only sprint ascent, gentle normal gliding and faster Slow descent. Keep underwater movement, all other maps, NPC/lord flight, art, combat and existing stamina costs/recovery. The current AI agent works alone on `feat/deep-ruin-hazards`; no commit, push, release or personal Skill change is authorized. See [the flight review](docs/penglai_flight_revision.md). Direction correction: sprint starts from the actual current air heading and never restores a hidden earlier upward pitch. Apply current direction input normally; upward steering, not the sprint button alone, produces ascent. Keep this player-only transition in the shared flight-steering helper.
 
 Accepted local checkpoint — 2026-10-17: the user approves committing the delivered Penglai terrain-entrapment/guardian-combat fixes, Black Tortoise motion, Four-Symbol redraw and final head/Vermilion proportion correction on `feat/deep-ruin-hazards`, after `538e032`. All770 delivered source fingerprints match before acceptance-only documentation edits. The earlier candidate/no-commit labels below are historical and superseded for this accepted scope. Existing full/focused/native/public/media receipts remain their recorded unchanged-input evidence, not newly rerun release checks. The current AI agent integrates alone; preserve established services, archives and canceled worktrees. This authorization is for a local commit only: no push, main/Pages publication, version bump, tag or personal Skill change. Formal v0.11.10 stays unchanged; future work returns to the default authorization rule.
 

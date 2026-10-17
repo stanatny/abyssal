@@ -22,8 +22,8 @@ export const PENGLAI_EN = Object.freeze({
   "走兽蓄势跃击 · 上升或侧向避开":
     "Beast leap incoming · Rise or dodge sideways",
   蓬莱浅水与云海: "Penglai waters and cloud sea",
-  "蓬莱可在水中与空中自由行进，不受破水蓄势限制；四种角色的技能与消耗保持不变，山石与屋顶仍会阻挡移动和攻击。":
-    "Move freely through water and air in Penglai without charging a breach. All four characters retain their abilities and costs; mountains and roofs still block movement and attacks.",
+  "蓬莱水下可自由游动；空中只有冲刺能向上爬升，但需要向上拉方向，冲刺本身不会自动抬头。正常速度缓慢滑翔下降，慢速会更快下坠。松开冲刺可恢复体力，交替冲刺与滑翔可逐步升高；山石与屋顶仍会阻挡移动和攻击。":
+    "Swim freely underwater in Penglai. Only sprinting can climb in the air; steer upward to ascend. Sprint never pitches you up automatically. Cruise glides gently down and Slow descends faster. Release sprint to recover stamina, then alternate upward sprinting and gliding to gain altitude. Mountains and roofs still block movement and attacks.",
   莲池附近: "Near lotus waters",
   "莲池 {0} {1}": "Lotus {0} {1}",
   "上升 {0}m": "Ascend {0}m",
@@ -44,6 +44,20 @@ export const PENGLAI_EN = Object.freeze({
     "Find larger mountain meals · Challenge the Four Symbols at 25 m",
   凌云冲刺: "Cloud sprint",
   云间巡游: "Cloud flight",
+  云间滑翔: "Cloud glide",
+  慢速下坠: "Fast descent",
+  "15米起步，冲刺升空，滑翔恢复体力。":
+    "Start at 15 m: sprint to climb, glide to recover stamina.",
+  "留意高空雷云与罡风，穿越仙山解除四象结界；真君随后全域追击。":
+    "Watch for high storms and squalls, break the Four-Symbol ward and face the sage's map-wide pursuit.",
+  "15米起步，冲刺爬升、滑翔恢复体力。穿越桃林与浮空仙山，击败四象神兽；护阵一解，御剑真君开始全地图追击。":
+    "Start at 15 m: sprint to climb and glide to recover stamina. Explore peach groves and floating mountains and defeat the Four Symbols; once the ward falls, the Sword Sage pursues across the map.",
+  "15米起步 · 冲刺爬升，滑翔恢复体力\n25米后挑战四神兽，护阵一解真君便开始全域追击":
+    "Start at 15 m · Sprint to climb, glide to recover stamina\nAt 25 m challenge the Four Symbols; breaking the ward starts the sage's map-wide pursuit",
+  "15米起步 · 冲刺爬升，滑翔恢复体力":
+    "Start at 15 m · Sprint to climb, glide to recover stamina",
+  "15米起步，冲刺升空，滑翔恢复体力。<br />留意高空雷云与罡风，穿越仙山解除四象结界；真君随后全域追击。":
+    "Start at 15 m: sprint to climb, glide to recover stamina.<br />Watch for high storms and squalls, break the Four-Symbol ward and face the sage's map-wide pursuit.",
   "m / 高度": "m / altitude",
   "回到莲池育幼湾 · 猎手停止追击":
     "Back in the lotus nursery · Predators disengage",

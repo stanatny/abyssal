@@ -31,6 +31,10 @@ import {
 } from "./aerial_flocks.js";
 import "./penglai_ui.css";
 import {
+  PENGLAI_FLIGHT_HELP,
+  stepPenglaiFlightSteering,
+} from "./penglai_flight.js";
+import {
   stepGroundCreature,
   uprightHeadingQuaternion,
   stepGroundHeading,
@@ -861,7 +865,7 @@ function updateRegionPresentation() {
   setMarkup(
     document.querySelector(".intro"),
     aether
-      ? "15米起步，游于莲池，行于云海。<br />留意高空雷云与罡风，穿越仙山解除四象结界；真君随后全域追击。"
+      ? "15米起步，冲刺升空，滑翔恢复体力。<br />留意高空雷云与罡风，穿越仙山解除四象结界；真君随后全域追击。"
       : expedition.region.surfaceMode === "river"
         ? "沿弯曲河道穿越雨林，两条支流通往巨兽深潭。<br />在沉根与浮叶之间成长，迎战河道的三位主宰。"
         : ice
@@ -1828,6 +1832,9 @@ function renderOverlay(kind) {
   $("overlay-skill").textContent =
     tr`${ability.name}：${ability.description} 激活起冷却${ability.cooldown}秒。`;
   $("overlay-rule").textContent = t(expedition.region.objective.summary);
+  $("overlay-flight").hidden = surface.mode !== "aether";
+  $("overlay-flight").textContent =
+    surface.mode === "aether" ? t(PENGLAI_FLIGHT_HELP) : "";
   setMarkup(
     $("resume"),
     won || dead || timeup
@@ -2065,7 +2072,19 @@ function updatePlayer(dt, roundDt) {
       );
       ({ yaw, pitch } = recovered);
       groundRecovering = recovered.recovering;
-    } else if (surface.mode === "ice" || surface.mode === "aether") {
+    } else if (surface.mode === "aether") {
+      ({ yaw, pitch } = stepPenglaiFlightSteering(
+        { yaw, pitch },
+        { x: inputX, y: inputY },
+        movement,
+        dt,
+        {
+          inAir: position.y > WORLD.surfaceY,
+          boosting,
+          previousMotion: waterMotion,
+        },
+      ));
+    } else if (surface.mode === "ice") {
       ({ yaw, pitch } = stepSteering(
         { yaw, pitch },
         { x: inputX, y: inputY },
@@ -2114,6 +2133,8 @@ function updatePlayer(dt, roundDt) {
     forward,
     speed,
     boosting,
+    slowing: targetSpeed === PLAYER_MOVEMENT.slowSpeed,
+    yaw,
     length: player.length,
     now: elapsed,
   });
@@ -2228,7 +2249,9 @@ function updatePlayer(dt, roundDt) {
     surface.mode === "aether" && position.y > WORLD.surfaceY
       ? boosting
         ? "凌云冲刺"
-        : "云间巡游"
+        : waterMotion?.flightMode === "sink"
+          ? "慢速下坠"
+          : "云间滑翔"
       : surface.airborne
         ? "跃出水面"
         : jet

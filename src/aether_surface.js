@@ -1,5 +1,6 @@
 import { bodyRadius } from "./collision.js";
-/** 神话空域沿用水中操控，不启动破水弹道或自动纠正海面仰角。 */
+import { stepPenglaiFlight } from "./penglai_flight.js";
+/** 神话空域以冲刺爬升、巡航滑翔和慢速下坠代替自由悬停，不启动破水弹道。 */
 export function createAetherSurface({ worldBounds }) {
   const empty = () => {};
   return {
@@ -28,8 +29,12 @@ export function createAetherSurface({ worldBounds }) {
         0.4
       );
     },
-    move() {
-      return { airborne: false, reentering: false };
+    move(dt, context) {
+      if (!context) return { airborne: false, reentering: false };
+      return stepPenglaiFlight(dt, {
+        ...context,
+        surfaceY: worldBounds.surfaceY,
+      });
     },
   };
 }

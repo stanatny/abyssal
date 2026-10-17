@@ -44,6 +44,7 @@ import { getHunterAbility } from "./hunter_rules.js";
 import { REWARDS, RANDOM_REWARD_COUNT } from "./reward_config.js";
 import { createMarineEnvironment } from "./visual_pipeline.js";
 import "./ocean_guide.css";
+import { PENGLAI_FLIGHT_HELP } from "./penglai_flight.js";
 
 // 生物按由小到大的探索顺序展示，角色与人类活动单独归档。
 const GUIDE_CATEGORIES = [
@@ -231,7 +232,7 @@ export function buildOceanCatalog(regionId) {
       passiveSkill: entry.passive,
       counter:
         regionId === "penglai"
-          ? "蓬莱可在水中与空中自由行进，不受破水蓄势限制；四种角色的技能与消耗保持不变，山石与屋顶仍会阻挡移动和攻击。"
+          ? PENGLAI_FLIGHT_HELP
           : regionId === "europa"
             ? "冰壳下的海洋没有大气出口，无法跃出水面。陡角度接触冰顶会短暂回到平游；技能、捕食与岩拱碰撞规则不变。"
             : entry.kind === "mechanical_shark"

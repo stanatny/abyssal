@@ -26,6 +26,7 @@ import {
 import { habitatPosition, schoolSlot } from "../src/ecosystem_population.js";
 import { resolveCreatureMotion } from "../src/navigation.js";
 import { createAetherSurface } from "../src/aether_surface.js";
+import { PENGLAI_FLIGHT_HELP } from "../src/penglai_flight.js";
 import { createCreature } from "../src/creatures.js";
 import {
   bodyRadius,
@@ -462,6 +463,16 @@ test("All 24 mythic assets have finite independent articulated geometry through 
 test("Mythic Guide membership, fields and flight/radar information remain bilingual", () => {
   for (const locale of ["zh-CN", "en"]) {
     setLanguage(locale);
+    const region = REGIONS.find((entry) => entry.id === "penglai");
+    for (const text of [
+      region.description,
+      region.departureHint,
+      "15米起步，冲刺升空，滑翔恢复体力。",
+      "留意高空雷云与罡风，穿越仙山解除四象结界；真君随后全域追击。",
+    ]) {
+      if (locale === "en")
+        assert.equal(/[\u3400-\u9fff]/u.test(t(text)), false);
+    }
     const all = buildOceanCatalog("penglai"),
       selected = filterOceanCatalog(all, { regionId: "penglai" });
     assert.equal(selected.filter((e) => e.category === "mythic").length, 21);
@@ -486,6 +497,15 @@ test("Mythic Guide membership, fields and flight/radar information remain biling
             false,
             `${s.kind}.${field}:${value}`,
           );
+    const players = selected.filter((entry) => entry.category === "player");
+    assert.equal(players.length, CHARACTERS.length);
+    for (const entry of players) {
+      assert.equal(t(entry.counter), t(PENGLAI_FLIGHT_HELP));
+      assert.match(
+        t(entry.counter),
+        locale === "en" ? /Only sprinting can climb/ : /只有冲刺能向上爬升/,
+      );
+    }
     const radar = getMinimapState({
       position: { x: 0, y: 100, z: -200 },
       forward: { x: 0, y: 1, z: 0 },
