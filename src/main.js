@@ -1,3 +1,4 @@
+import { trackGroundProgress } from "./ground_creatures.js";
 import { createOdysseyOceanAsync } from "./odyssey_ocean.js";
 import {
   groundCreatureProfile,
@@ -351,6 +352,7 @@ let surface = createSurface(scene, audio, notify, surfaceOptions);
 const encounters = createEncounters(scene, {
   seabedHeight: activeSeabedHeight,
   groundHeightAt: activeGroundHeight,
+  navigationBlocked: (a, b, radius) => blockedBetween(a, b, radius),
   audio,
   notify,
   onDamage() {
@@ -1910,8 +1912,8 @@ function queryWorldSegment(a, b, radius = 0) {
     radius,
   });
 }
-function blockedBetween(a, b) {
-  return queryWorldSegment(a, b) !== null;
+function blockedBetween(a, b, radius = 0) {
+  return queryWorldSegment(a, b, radius) !== null;
 }
 function playerFloorHeight(x, z) {
   const radius = bodyRadius(player.length);
@@ -2762,20 +2764,29 @@ function updateEntities(dt) {
         groundHeight: activeGroundHeight(mesh.position.x, mesh.position.z),
         length: species.length,
       });
-      if (entity.groundState.avoidUntil > elapsed)
-        direction.copy(entity.groundState.avoidHeading);
-      direction.copy(
-        steerGroundTerrain(
-          mesh.position,
-          direction,
-          habitat,
-          activeGroundHeight,
-          entity.groundState,
-          elapsed,
-          entity.groundBlocked,
-        ),
-      );
-      stepGroundHeading(entity.velocity, direction, dt, entity.groundState);
+      if (
+        entity.groundState.retreatRemaining > 0 &&
+        entity.groundState.phase === "walk"
+      ) {
+        const h = entity.groundState.retreatHeading;
+        entity.velocity.set(h.x, 0, h.z);
+        groundMotion.speed = -0.7;
+      } else {
+        if (entity.groundState.avoidUntil > elapsed)
+          direction.copy(entity.groundState.avoidHeading);
+        direction.copy(
+          steerGroundTerrain(
+            mesh.position,
+            direction,
+            habitat,
+            activeGroundHeight,
+            entity.groundState,
+            elapsed,
+            entity.groundBlocked,
+          ),
+        );
+        stepGroundHeading(entity.velocity, direction, dt, entity.groundState);
+      }
       if (groundMotion.warning && previousPhase !== "windup") {
         effects.flash(mesh.position, 0xd9aa65, Math.min(18, species.length));
         if (distance < 100) notify("走兽蓄势跃击 · 上升或侧向避开", 2);
@@ -2958,6 +2969,14 @@ function updateEntities(dt) {
         entity.velocity.multiplyScalar(-1);
       }
     }
+    if (species.groundbound)
+      trackGroundProgress(
+        entity.groundState,
+        previousHabitatPosition,
+        mesh.position,
+        dt,
+        moveSpeed * dt,
+      );
     if (species.groundbound) {
       entity.groundState.safeDirection ??= { x: 0, y: 0, z: -1 };
       entity.groundState.safeDirection.x = entity.velocity.x;

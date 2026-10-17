@@ -86,11 +86,58 @@ export function stepGroundHeading(out, desired, dt, state) {
 export function groundGaitState(state, distance, length, dt) {
   state.gaitPhase =
     (state.gaitPhase ?? 0) +
-    (Math.max(0, distance) / Math.max(1, length * 0.38)) * Math.PI * 2;
+    (state.retreatRemaining > 0 ? -1 : 1) *
+      (Math.max(0, distance) / Math.max(1, length * 0.38)) *
+      Math.PI *
+      2;
   return {
     gaitPhase: state.gaitPhase,
     phase: state.phase,
     progress: Math.min(1, (state.timer ?? 0) / 1.3),
     speed: dt > 0 ? distance / dt : 0,
   };
+}
+
+/** 长时间顶住地形时先沿原朝向后退，再交回普通绕行；位置仍经过全部实体检查。 */
+export function trackGroundProgress(
+  state,
+  previous,
+  position,
+  dt,
+  wantedDistance,
+) {
+  if (!(dt > 0)) return;
+  if (state.retreatRemaining > 0) {
+    state.retreatRemaining = Math.max(0, state.retreatRemaining - dt);
+    state.stalledFor = 0;
+    state.progressAnchor = { x: position.x, z: position.z };
+    state.progressTime = state.progressWanted = 0;
+    return;
+  }
+  if (state.phase !== "walk") {
+    state.stalledFor = 0;
+    state.progressAnchor = { x: position.x, z: position.z };
+    state.progressTime = state.progressWanted = 0;
+    return;
+  }
+  state.progressAnchor ??= { x: previous.x, z: previous.z };
+  state.progressTime = (state.progressTime || 0) + dt;
+  state.progressWanted = (state.progressWanted || 0) + wantedDistance;
+  if (state.progressTime < 1.1) return;
+  const moved = Math.hypot(
+    position.x - state.progressAnchor.x,
+    position.z - state.progressAnchor.z,
+  );
+  state.stalledFor =
+    moved < Math.min(1.5, state.progressWanted * 0.18) ? 1.1 : 0;
+  state.progressAnchor.x = position.x;
+  state.progressAnchor.z = position.z;
+  state.progressTime = state.progressWanted = 0;
+  if (state.stalledFor >= 1.1 && state.safeDirection) {
+    state.retreatRemaining = 1.6;
+    state.retreatHeading = { ...state.safeDirection };
+    state.stalledFor = 0;
+    state.terrainAvoidUntil = 0;
+    state.avoidUntil = 0;
+  }
 }

@@ -606,6 +606,11 @@ const legends = [
     "Nine-tailed Fox belongs to ancient Qingqiu-associated lore. Its nine long tails form a distinctive silhouette as it stalks low through the mountains, spreading them in sequence through turns before disappearing into peach woods.",
   ],
   [
+    "pool_hujiao",
+    "寒潭虎蛟是蓬莱北池中罕见的成体虎蛟。它久居玄武北池，冠状背鳍和粗厚前身显出老猎手的体格；大型猎物也要保护侧背，趁它转向时从正面捕食。",
+    "Northern Hujiao is a rare mature Hujiao of the northern lotus pool. Its crowned dorsal crest and powerful forebody mark an old hunter of the northern pool. Even large prey must guard its flanks and seize a forward capture while it turns.",
+  ],
+  [
     "hujiao",
     "虎蛟是《山海经》中鱼身蛇尾的水中异兽。粗壮前身与绵长尾部在暗水中交替显露，鳍肢沿水流收放，转弯时尾端绕出悠长的弧线。",
     "Hujiao is the fish-bodied, serpent-tailed water beast of the Classic of Mountains and Seas. Its powerful forebody and long tail emerge in turn through dark water, with fins following the current and the tail tracing a broad curve through bends.",

@@ -7,7 +7,10 @@ import {
   pgTaper as taper,
   pgCurve as curve,
   pgCone as cone,
+  pgFeather as feather,
 } from "./creature_penglai_art.js";
+
+import { guardianLoft, guardianSweep } from "./creature_guardian_art.js";
 
 let limbMaterial;
 
@@ -16,7 +19,7 @@ export function buildPenglaiTiger(b, motions, root) {
   const fur = mat("#d9ddd5", 6),
     white = mat("#e4e7dc", 6),
     black = mat("#25312f"),
-    nose = mat("#67514f"),
+    nose = mat("#2d302e"),
     mouth = mat("#382c2e"),
     ivory = mat("#e2d9b8"),
     iris = mat("#83b9bd"),
@@ -32,15 +35,16 @@ export function buildPenglaiTiger(b, motions, root) {
   b.add(torso);
   const sections = [
     [-0.43, 0.025, 0.05, 0.055],
-    [-0.34, 0.136, 0.18, 0.033],
-    [-0.23, 0.15, 0.19, 0.023],
-    [-0.08, 0.131, 0.164, 0.018],
-    [0.1, 0.111, 0.127, 0.039],
+    [-0.34, 0.163, 0.195, 0.042],
+    [-0.23, 0.174, 0.204, 0.031],
+    [-0.08, 0.144, 0.177, 0.025],
+    [0.1, 0.108, 0.126, 0.043],
     [0.29, 0.14, 0.159, 0.031],
     [0.4, 0.094, 0.113, 0.025],
     [0.45, 0.025, 0.04, 0.014],
   ];
-  loft(torso, "white_tiger_feline_torso_v4", fur, sections);
+  const core = loft(torso, "white_tiger_feline_torso_v4", fur, sections);
+  core.userData.keepSeparate = core.userData.articulated = true;
   // 条纹沿放样截面贴合，粗细、倾斜与分叉有变化；避免整身均匀正弦条纹。
   const profile = new THREE.CatmullRomCurve3(
     sections.map((s) => new THREE.Vector3(s[1], s[2], s[3])),
@@ -49,12 +53,17 @@ export function buildPenglaiTiger(b, motions, root) {
     0.25,
   );
   for (let stripe = 0; stripe < 13; stripe++) {
-    const z = -0.32 + stripe * 0.054;
+    const z = [
+      -0.32, -0.285, -0.217, -0.166, -0.12, -0.037, 0.024, 0.084, 0.146, 0.212,
+      0.265, 0.318, 0.35,
+    ][stripe];
     const vertices = [],
       indices = [];
     for (let i = 0; i <= 24; i++) {
       const angle = -0.7 + (i / 24) * (Math.PI + 1.4),
-        taperWidth = 0.003 + 0.013 * Math.sin((i / 24) * Math.PI) ** 0.7;
+        taperWidth =
+          0.0025 +
+          (0.007 + (stripe % 4) * 0.003) * Math.sin((i / 24) * Math.PI) ** 0.7;
       const drift =
         0.028 * Math.cos(angle) * Math.sin(stripe * 2.1) +
         0.014 * Math.sin(angle * 3 + stripe);
@@ -102,30 +111,37 @@ export function buildPenglaiTiger(b, motions, root) {
   }
   loft(torso, "tiger_neck_v3", fur, [
     [-0.48, 0.075, 0.104, 0.062],
-    [-0.4, 0.124, 0.137, 0.066],
+    [-0.4, 0.143, 0.157, 0.062],
     [-0.31, 0.123, 0.16, 0.042],
     [-0.27, 0.04, 0.075, 0.01],
   ]);
   const head = new THREE.Group();
-  head.position.set(0, 0.095, -0.42);
+  head.position.set(0, 0.075, -0.432);
+  head.name = "sacred_white_tiger_head";
+  head.scale.set(1.2, 1.05, 1.25);
   torso.add(head);
-  loft(head, "tiger_broad_skull_v3", fur, [
-    [-0.198, 0.043, 0.045, -0.025],
-    [-0.155, 0.107, 0.073, 0.003],
-    [-0.086, 0.129, 0.104, 0.017],
+  guardianLoft(head, "tiger_broad_skull_v5", fur, [
+    [-0.208, 0.033, 0.021, 0.018],
+    [-0.155, 0.096, 0.045, 0.033],
+    [-0.086, 0.118, 0.084, 0.029],
     [0.006, 0.12, 0.104, 0.024],
     [0.064, 0.05, 0.068, 0.012],
   ]);
   const jaw = new THREE.Group();
   jaw.position.set(0, -0.042, -0.05);
   head.add(jaw);
-  oval(
+  guardianLoft(
     jaw,
+    "tiger_angular_lower_jaw_v5",
     white,
-    [0, -0.038, -0.055],
-    [0.092, 0.041, 0.105],
-    "continuous_lower_jaw",
-  );
+    [
+      [-0.17, 0.024, 0.012, -0.018],
+      [-0.13, 0.067, 0.021, -0.024],
+      [-0.05, 0.071, 0.026, -0.019],
+      [0.025, 0.041, 0.021, 0],
+    ],
+    0.67,
+  ).name = "continuous_lower_jaw";
   oval(
     jaw,
     mouth,
@@ -137,15 +153,15 @@ export function buildPenglaiTiger(b, motions, root) {
     oval(
       head,
       white,
-      [side * 0.057, -0.017, -0.173],
-      [0.059, 0.046, 0.048],
+      [side * 0.057, -0.001, -0.173],
+      [0.044, 0.025, 0.055],
       "feline_whisker_pad",
     );
     oval(
       head,
       white,
-      [side * 0.102, -0.018, -0.018],
-      [0.039, 0.07, 0.071],
+      [side * 0.102, -0.009, 0.019],
+      [0.029, 0.047, 0.061],
       "tiger_cheek_ruff",
     );
     const eye = new THREE.Group();
@@ -153,13 +169,13 @@ export function buildPenglaiTiger(b, motions, root) {
     eye.position.set(side * 0.093, 0.042, -0.147);
     eye.rotation.y = side * 2.22;
     head.add(eye);
-    oval(eye, black, [0, 0, 0], [0.027, 0.016, 0.008], "fierce_eye_socket");
-    oval(eye, iris, [0, 0, 0.006], [0.018, 0.01, 0.003], "blue_feline_iris");
+    oval(eye, black, [0, 0, 0], [0.026, 0.012, 0.008], "fierce_eye_socket");
+    oval(eye, iris, [0, 0, 0.006], [0.014, 0.0065, 0.003], "blue_feline_iris");
     oval(
       eye,
       pupil,
       [0, 0, 0.0085],
-      [0.0065, 0.009, 0.002],
+      [0.0045, 0.0065, 0.002],
       "round_tiger_pupil",
     );
     oval(
@@ -188,7 +204,8 @@ export function buildPenglaiTiger(b, motions, root) {
       "feline_brow_stripe",
     );
     const ear = new THREE.Group();
-    ear.position.set(side * 0.094, 0.098, 0.016);
+    ear.position.set(side * 0.09, 0.096, 0.029);
+    ear.scale.set(0.72, 0.66, 0.84);
     head.add(ear);
     oval(
       ear,
@@ -240,15 +257,15 @@ export function buildPenglaiTiger(b, motions, root) {
     cone(
       head,
       ivory,
-      [side * 0.065, -0.051, -0.153],
-      [0.007, 0.043, 0.007],
+      [side * 0.065, -0.047, -0.192],
+      [0.009, 0.058, 0.009],
       [Math.PI, 0, 0],
       "upper_canine",
     );
     cone(
       jaw,
       ivory,
-      [side * 0.06, -0.004, -0.11],
+      [side * 0.06, -0.004, -0.147],
       [0.005, 0.022, 0.005],
       [0, 0, 0],
       "lower_canine",
@@ -257,8 +274,8 @@ export function buildPenglaiTiger(b, motions, root) {
   oval(
     head,
     nose,
-    [0, 0.003, -0.217],
-    [0.031, 0.017, 0.01],
+    [0, 0.016, -0.217],
+    [0.027, 0.012, 0.011],
     "broad_tiger_nose",
   );
   curve(
@@ -284,6 +301,32 @@ export function buildPenglaiTiger(b, motions, root) {
       0.004,
       "forehead_crown_stripe",
     );
+  // 厚眉骨压低眼线，颊鬃向后收尖；威严来自颅面和肩颈，避免圆耳圆脸幼态。
+  for (const side of [-1, 1]) {
+    guardianSweep(
+      head,
+      fur,
+      [
+        [side * 0.046, 0.067, -0.175],
+        [side * 0.087, 0.082, -0.151],
+        [side * 0.122, 0.084, -0.095],
+      ],
+      [0.008, 0.011, 0.003],
+      "heavy_feline_orbital_ridge",
+    );
+    for (let j = 0; j < 7; j++) {
+      const f = feather(
+        head,
+        j % 3 === 0 ? black : white,
+        0.105 + j * 0.006,
+        0.021,
+        0.016,
+        "swept_tiger_cheek_mane",
+      );
+      f.position.set(side * (0.096 + j * 0.002), 0.039 - j * 0.015, -0.008);
+      f.rotation.set(0.12, side * (0.38 + j * 0.07), side * 0.16);
+    }
+  }
   // 头朝局部 -Z、Y 向上；前肘朝后，后膝朝前，后踝构成独立的第三段。
   const legs = [];
   const joint = (parent, name) => {
@@ -297,7 +340,7 @@ export function buildPenglaiTiger(b, motions, root) {
       const limb = new THREE.Group();
       limb.name = `${front ? "fore" : "hind"}_${side < 0 ? "left" : "right"}_limb`;
       limb.position.set(
-        side * 0.112,
+        side * (front ? 0.13 : 0.112),
         front ? -0.043 : -0.022,
         front ? -0.263 : 0.29,
       );
@@ -316,7 +359,7 @@ export function buildPenglaiTiger(b, motions, root) {
         paw,
         white,
         [0, -0.018, -0.017],
-        [0.042, 0.025, 0.056],
+        [0.048, 0.027, 0.061],
         "broad_four_toed_paw",
       );
       oval(
@@ -380,7 +423,11 @@ export function buildPenglaiTiger(b, motions, root) {
       "irregular_tail_ring",
     );
   }
-  b.userData.headAnchor = new THREE.Vector3(0, 0.07, -0.637);
+  b.userData.headAnchor = new THREE.Vector3(
+    0,
+    0.075 - 0.014 * 1.05,
+    -0.432 - 0.217 * 1.25,
+  );
   const groundGait = {
     active: false,
     phase: 0,
@@ -459,8 +506,8 @@ export function buildPenglaiTiger(b, motions, root) {
       -0.06 * crouchWeight -
       0.06 * running * walking +
       Math.sin(stride * 2) * (0.002 + 0.006 * running) * effort * walking;
-    head.rotation.x = -0.07 * crouchWeight + 0.035 * leapWeight;
-    jaw.rotation.x = 0.02 + 0.16 * crouchWeight + 0.27 * leapWeight;
+    head.rotation.x = -0.035 - 0.07 * crouchWeight + 0.035 * leapWeight;
+    jaw.rotation.x = -0.07 - 0.2 * crouchWeight - 0.33 * leapWeight;
     const cos = Math.cos(torso.rotation.x),
       sin = Math.sin(torso.rotation.x);
     for (const {
@@ -567,8 +614,8 @@ export function buildPenglaiTiger(b, motions, root) {
           sides = 16;
         // 从埋入躯干的窄根渐扩至肌肉，再沿前臂/胫骨、后踝收细。
         const radii = front
-          ? [0.008, 0.063, 0.035, 0.026, 0.012]
-          : [0.008, 0.078, 0.037, 0.025, 0.026, 0.012];
+          ? [0.008, 0.091, 0.046, 0.032, 0.012]
+          : [0.008, 0.09, 0.042, 0.028, 0.028, 0.012];
         const radiusProfile = new THREE.CatmullRomCurve3(
           radii.map((radius) => new THREE.Vector3(radius, 0, 0)),
           false,
@@ -698,9 +745,10 @@ export function buildPenglaiTiger(b, motions, root) {
   motions.push(pose);
 }
 
-/** 只释放退役白虎的实例骨骼贴图，保留同类共用的几何与材质。 */
+/** 释放退役蓬莱神兽的实例骨骼贴图，保留同类共用的几何与材质。 */
 export function disposePenglaiTigerMotion(root) {
   root.traverse((part) => {
     part.userData.penglaiTigerSkeleton?.dispose();
+    part.userData.penglaiGuardianSkeleton?.dispose();
   });
 }

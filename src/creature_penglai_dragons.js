@@ -13,7 +13,7 @@ import {
 export function buildPenglaiDragon(kind, b, motions) {
   const gate = kind === "gate_dragon",
     dragon = kind === "azure_dragon" || gate,
-    fish = kind === "hujiao";
+    fish = kind === "hujiao" || kind === "pool_hujiao";
   const skin = mat(
       gate ? "#ad653a" : dragon ? "#347868" : fish ? "#527361" : "#506743",
       2,
@@ -48,6 +48,22 @@ export function buildPenglaiDragon(kind, b, motions) {
     g.name = "continuous_scaled_body_joint";
     g.position.copy(point(p));
     b.add(g);
+    if (kind === "pool_hujiao" && i % 3 === 1 && i <= 19) {
+      // 成体冠鳍直接扎根当前活动躯节，不能独立悬在摆动尾躯上方。
+      const crest = fin(
+        g,
+        gold,
+        [
+          [-0.018, 0],
+          [0.002, 0.045 - i * 0.001],
+          [0.021, 0],
+        ],
+        0.004,
+        "northern_hujiao_jointed_crest",
+      );
+      crest.position.y = r * 0.8;
+      crest.rotation.y = Math.PI / 2;
+    }
     const length = (extent / (n - 1)) * (dragon ? 1.95 : 1.3);
     loft(g, `dragon_v2_${kind}_${i}`, skin, [
       [-length / 2, r * 0.97, r * 0.97],

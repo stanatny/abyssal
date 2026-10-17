@@ -2,6 +2,12 @@ import { ODYSSEY_LORE } from "./odyssey_lore.js";
 /** 图鉴背景故事；出处与美术改编记录保留在内部来源文档。 */
 export const CREATURE_LORE = [
   [
+    "pool_hujiao",
+    "沉水石之间总有一条较深的阴影沿池岸移动。寒潭虎蛟不与小鱼争食，它等待较大的身影穿过莲根，才扭动长尾，从侧后方逼近。北池的旅人即使已经长成，也仍需留意甲阵之外的暗流。",
+    "A deeper shadow moves along the submerged stones. The Northern Hujiao waits for a larger silhouette among the lotus roots, then coils its long tail to approach from the flank. Even a grown traveler must watch the water outside the tortoise's ward.",
+  ],
+
+  [
     "sword_sage",
     "少年时，真君曾凭一柄利剑云游四方，连败名门高手，误以为天下已无敌手。直到魔族突袭师门，满门覆灭，他赶回时只见残破山门与熄灭的剑炉。昔日的锋芒救不了故人，他从此敛去轻狂，独入绝谷，以十数年的苦修重新问剑。\n\n他将悲愤化为持久的修行，终于由剑招入剑意，由剑意至以气御剑的化境。重返三界时，他斩破魔族旧阵，为师门雪恨，也成为足以纵横三界的大宗师。大仇得报之后，他却明白：若一生只追逐胜负，再强的剑也守不住内心的空缺。于是放下争名，渡海来到蓬莱。\n\n真君在中央仙山创立“承霄剑宗”，以“以气御剑”为门训，收青龙、白虎、玄武、朱雀为四方守护。他脚下的巨剑也名“承霄”，既载他巡行云海，也提醒他力量应有所承担。闯关者解除四象护阵后，真君会以“万剑归宗”与“踏剑惊鸿”试其胆识与应变；剑势有起落，来者有进退。如今他所求的不再是天下无敌，而是有人能够接过守护仙境的责任。",
     "As a young swordsman, the sage traveled with one blade, defeated renowned masters and mistook his victories for invincibility. Then a demon host destroyed his school. He returned to a ruined gate and cold sword furnaces, too late to save his teachers and companions. He abandoned his youthful pride and entered a secluded valley for years of disciplined practice.\n\nGrief became resolve. He passed from technique to intent, and finally to commanding swords through qi alone. Returning to the Three Realms, he broke the demons' old formations and avenged his school, becoming a grandmaster whose skill was acknowledged across the realms. Yet revenge revealed an emptiness that no further victory could fill. He relinquished fame and crossed the sea to Penglai.\n\nOn its central sacred mountain he founded the Skybearer Sword Sect, with 'Command the Sword with Qi' as its teaching, and accepted the Azure Dragon, White Tiger, Black Tortoise and Vermilion Bird as its four guardians. His greatsword, also named Skybearer, carries him through the clouds and reminds him that power carries responsibility. Once the Four-Symbol ward falls, Myriad Blades Converge and Skyborne Sword Rush test a challenger's courage and judgment, leaving opportunities to evade and answer. He now seeks a successor worthy of protecting the sanctuary, rather than another claim to invincibility.",
@@ -13,8 +19,8 @@ export const CREATURE_LORE = [
   ],
   [
     "white_tiger",
-    "西山的石阶常有新鲜爪痕，风过桃林时，树梢先静下来，白虎才从岩影中现身。传说中，它曾守过通往人间的旧隘口，后来受真君之托，成为蓬莱西方的护阵者。厚重肩胸与宽大虎掌，是它迅速发力的根基。\n\n“白虎掠风”讲求一瞬爆发：低身蓄势、踏地跃扑、落地收爪。它并非漫无目的的杀戮者，只守自己的山脊。面对它时，直线后退往往不如及时侧让，待虎势落尽再回身。",
-    "Fresh claw marks score the western stone steps. When wind passes through the peach groves, the treetops seem to fall still before the White Tiger emerges from rock shadows. In legend, it once guarded an old pass to the mortal world before accepting the sage's western watch. Heavy shoulders and broad paws ground its explosive movement.\n\nWhite Tiger Windstep is a committed burst: crouch, spring, land and recover. It guards its ridge rather than hunting without purpose. A timely sideways escape is wiser than retreating straight backward; turn to answer only after its momentum is spent.",
+    "西山的石阶常有新鲜爪痕，风过桃林时，树梢先静下来，白虎才从岩影中现身。传说中，它曾守过通往人间的旧隘口，后来受真君之托，成为蓬莱西方的护阵者。厚重肩胸与宽大虎掌，是它迅速发力的根基。\n\n“白虎掠风”讲求一瞬爆发：低身蓄势、踏地跃扑、落地收爪。“裂空虎啸”又将山风凝作音浪，驱离躲在空中的闯入者；虎啸锁向后便不再改变路线。它并非漫无目的的杀戮者，只守西山周边。面对它时，直线后退往往不如及时侧让，待虎势落尽再回身。",
+    "Fresh claw marks score the western stone steps. When wind passes through the peach groves, the treetops seem to fall still before the White Tiger emerges from rock shadows. In legend, it once guarded an old pass to the mortal world before accepting the sage's western watch. Heavy shoulders and broad paws ground its explosive movement.\n\nWhite Tiger Windstep is a committed burst: crouch, spring, land and recover. Sky-Rending Roar carries its warning into the air as a wave of sound, committed to its marked course. It guards the western airspace rather than hunting without purpose. A timely sideways escape is wiser than retreating straight backward; turn to answer only after its momentum is spent.",
   ],
   [
     "vermilion_bird",
@@ -23,8 +29,8 @@ export const CREATURE_LORE = [
   ],
   [
     "black_tortoise",
-    "北池的石碑有些早已沉没，玄武背上的甲纹却仍如古城般整齐。龟身承重，蛇身巡望，一静一动，共守北方。传说中，它记得莲池还未开花时的山势，因此也被称为仙岛的长年见证者。\n\n“玄甲镇渊”升起时，厚甲与水纹连成护阵，强攻难以得手。阵势退去后，侧翼才露出空隙。与它交手考验的是耐心与进退，而不是一味地追求速度。",
-    "Many inscriptions have sunk beneath the northern lotus pool, yet the Black Tortoise's shell plates remain ordered like an ancient city. The tortoise bears the weight while the serpent keeps watch: stillness and movement share the northern duty. In legend, it remembers the mountains before the first lotus bloomed.\n\nAbyss-Sealing Shell Ward joins armor and rippling water into a defense that cannot be rushed. Its flank opens only as the ward subsides. This trial rewards patience and timing rather than speed alone.",
+    "北池的石碑有些早已沉没，玄武背上的甲纹却仍如古城般整齐。龟身承重，蛇身巡望，一静一动，共守北方。传说中，它记得莲池还未开花时的山势，因此也被称为仙岛的长年见证者。\n\n“玄甲镇渊”升起时，厚甲与水纹连成护阵，强攻难以得手。两道相隔而来的震波掠过池水，阵势退去后，侧翼才短暂露出空隙。与它交手考验的是耐心与进退，而不是一味地追求速度。",
+    "Many inscriptions have sunk beneath the northern lotus pool, yet the Black Tortoise's shell plates remain ordered like an ancient city. The tortoise bears the weight while the serpent keeps watch: stillness and movement share the northern duty. In legend, it remembers the mountains before the first lotus bloomed.\n\nAbyss-Sealing Shell Ward joins armor and rippling water into a defense that cannot be rushed. Two successive pulses cross the pool; its flank opens briefly only as the ward subsides. This trial rewards patience and timing rather than speed alone.",
   ],
   [
     "jade_minnow",

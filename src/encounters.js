@@ -1,3 +1,12 @@
+import {
+  guardianPulseRadius,
+  guardianRoarContact,
+} from "./penglai_guardian_rules.js";
+import {
+  createLordNavigation,
+  lordMoveClear,
+  lordHeadingQuaternion,
+} from "./lord_navigation.js";
 import { isOdysseyAttack, createOdysseyAttackFx } from "./odyssey_combat_fx.js";
 import {
   ODYSSEY_ATTACKS,
@@ -72,6 +81,7 @@ import {
 
 const FORWARD_AXIS = new THREE.Vector3(0, 0, -1);
 const UP_AXIS = new THREE.Vector3(0, 1, 0);
+const WAVE_AXIS = new THREE.Vector3(0, 0, 1);
 const LASH_SEGMENT = new THREE.Line3();
 
 /** 三维边框明确压力带的上下界；不以不透明扇面遮住生物轮廓。 */
@@ -250,6 +260,7 @@ const TIPS = {
   pulse: "快速上浮或下潜，避开脉冲所在水层",
   volley: "横向变向躲开三连弹，不要直线后退",
   charge: "冲锋锁定后侧向闪避，等待撞击后的硬直",
+  roar: "虎啸锁向 · 横向或升降离开音浪，山石可以遮挡",
 };
 const SKILLS = {
   lash: "辉腕穿刺",
@@ -260,6 +271,7 @@ const SKILLS = {
   pulse: "遗迹脉冲",
   volley: "三重吐息",
   charge: "毁灭冲锋",
+  roar: "裂空虎啸",
 };
 const COLORS = {
   lash: 0x94d8e9,
@@ -270,6 +282,7 @@ const COLORS = {
   pulse: 0x73ffd0,
   volley: 0xffa16f,
   charge: 0x87dfff,
+  roar: 0xe8c390,
 };
 
 /*********************************************
@@ -540,6 +553,32 @@ function createAbilityFx(scene, ability, color, textures, species = {}) {
       group.add(sprite);
       fx.debris.push(sprite);
     }
+  } else if (ability === "roar") {
+    fx.rims = [];
+    for (let i = 0; i < 3; i++) {
+      const rim = new THREE.Mesh(
+        new THREE.CircleGeometry(1.03, 72),
+        additive({ map: textures.boundary, opacity: 0 }),
+      );
+      group.add(rim);
+      fx.rims.push(rim);
+    }
+    const rule = species.roar;
+    const cone = new THREE.CylinderGeometry(
+      rule.baseRadius + rule.range * rule.spread,
+      rule.baseRadius,
+      rule.range,
+      40,
+      1,
+      true,
+    );
+    cone.rotateX(Math.PI / 2);
+    cone.translate(0, 0, rule.range / 2);
+    fx.warning = new THREE.Mesh(
+      cone,
+      additive({ map: textures.swirl, opacity: 0.08 }),
+    );
+    group.add(fx.warning);
   } else if (ability === "pulse") {
     fx.disc = new THREE.Mesh(
       new THREE.CircleGeometry(1, 48),
@@ -764,6 +803,26 @@ function updateAbilityFx(
       sprite.scale.setScalar(attack ? 2.1 : 1.3);
       sprite.material.opacity = attack ? 0.5 : 0.22;
     }
+  } else if (fx.ability === "roar") {
+    const rule = state.species.roar;
+    fx.group.position.copy(entry.attackOrigin);
+    fx.group.quaternion.setFromUnitVectors(WAVE_AXIS, entry.roarHeading);
+    fx.warning.visible = windup;
+    fx.warning.material.opacity = 0.035 + phaseT * 0.07;
+    for (let i = 0; i < fx.rims.length; i++) {
+      const rim = fx.rims[i];
+      const front = windup
+        ? (rule.range * (i + 1)) / 3
+        : rule.speed * state.timer - i * 3;
+      rim.visible = front >= 0 && front <= rule.range;
+      rim.position.z = Math.max(0, front);
+      rim.scale.setScalar(rule.baseRadius + Math.max(0, front) * rule.spread);
+      rim.material.opacity = windup
+        ? 0.12 + phaseT * 0.2
+        : i === 0
+          ? 0.8
+          : 0.25;
+    }
   } else if (fx.ability === "pulse") {
     fx.group.position.copy(entry.attackOrigin);
     const gather = windup ? phaseT : 1;
@@ -782,6 +841,33 @@ function updateAbilityFx(
       echo.material.opacity = attack
         ? Math.max(0, (0.29 - i * 0.08) * (1 - phaseT))
         : 0;
+    }
+    if (state.species.pulseWaveCount > 1) {
+      const first = guardianPulseRadius(
+        state.species,
+        0,
+        state.timer,
+        state.phaseDuration,
+      );
+      fx.shell.visible = attack && first >= 0;
+      fx.shell.scale.setScalar(Math.max(0.01, first));
+      fx.shell.material.opacity = attack ? 0.68 : 0;
+      fx.echoes.forEach((echo, index) => {
+        const r = guardianPulseRadius(
+          state.species,
+          index + 1,
+          state.timer,
+          state.phaseDuration,
+        );
+        echo.visible =
+          attack && index + 1 < state.species.pulseWaveCount && r >= 0;
+        echo.position.y = 0;
+        echo.scale.setScalar(Math.max(0.01, r));
+        echo.material.opacity = 0.68;
+      });
+    } else {
+      fx.shell.visible = true;
+      fx.echoes.forEach((e) => (e.visible = true));
     }
     for (const sprite of fx.sparks) {
       const d = sprite.userData;
@@ -894,6 +980,7 @@ export function createEncounters(
   {
     seabedHeight,
     groundHeightAt = seabedHeight,
+    navigationBlocked = () => false,
     audio,
     notify,
     onDamage,
@@ -911,6 +998,7 @@ export function createEncounters(
   const previousPlayerPosition = new THREE.Vector3();
   const playerVelocity = new THREE.Vector3();
   let hasPlayerPosition = false;
+  const framePlayerStart = new THREE.Vector3();
   const fxTextures = {
     dot: createFluidTexture("mist"),
     foam: createFluidTexture("foam"),
@@ -992,6 +1080,9 @@ export function createEncounters(
         ? { ...species, ...groundCreatureProfile(mesh, species.length) }
         : null,
       mesh,
+      navigation: species.worldNavigation
+        ? createLordNavigation(mesh, species)
+        : null,
       home: new THREE.Vector3(),
       enabled: false,
       radius: BOSS_DEFAULT_TERRITORY_RADIUS,
@@ -1038,6 +1129,8 @@ export function createEncounters(
       waterRange: species.breathRange ?? 0,
       contactCooldown: 0,
       phaseHit: false,
+      pulseHits: [false, false],
+      roarHeading: new THREE.Vector3(0, 0, -1),
       disorientedUntil: 0,
       volleyShots: 0,
       lockedVelocity: new THREE.Vector3(),
@@ -1106,6 +1199,52 @@ export function createEncounters(
         groundCreatureClearance(entry.mesh, species.length, 3);
       entry.mesh.position.copy(entry.home);
     }
+    if (entry.navigation) {
+      const nav = entry.navigation;
+      let found = false;
+      const original = entry.mesh.position.clone();
+      for (let lift = 0; lift <= 84 && !found; lift += 7) {
+        if (entry.groundHabitat && lift > 0) break;
+        for (let turn = 0; turn < 16 && !found; turn++) {
+          entry.heading.set(
+            Math.sin((turn * Math.PI) / 8),
+            0,
+            -Math.cos((turn * Math.PI) / 8),
+          );
+          lordHeadingQuaternion(nav.orientation, entry.heading, true);
+          const candidate = original.clone();
+          candidate.y += lift;
+          if (entry.groundHabitat) {
+            const pose = groundTerrainPose(
+              candidate,
+              entry.heading,
+              entry.groundHabitat,
+              groundHeightAt,
+            );
+            if (!pose.walkable) continue;
+            candidate.y = pose.y;
+          }
+          if (
+            lordMoveClear(
+              entry,
+              candidate,
+              candidate,
+              nav.orientation,
+              groundHeightAt,
+              navigationBlocked,
+              nav.orientation,
+            )
+          ) {
+            entry.home.copy(candidate);
+            entry.mesh.position.copy(candidate);
+            entry.mesh.quaternion.copy(nav.orientation);
+            found = true;
+          }
+        }
+      }
+      entry.navigationReady = found;
+    }
+    entry.mesh.userData.resetSwimTravel?.();
     entry.mesh.visible = true;
     entry.enabled = true;
     entry.previousPhase = "dormant";
@@ -1126,8 +1265,10 @@ export function createEncounters(
     entry.grapple = createKrakenGrapple();
     entry.mesh.userData.setKrakenGrip?.(0);
     entry.patrolAngle = entry.patrolStart;
-    entry.heading.set(0, 0, -1);
-    entry.mesh.quaternion.identity();
+    if (!entry.navigation) {
+      entry.heading.set(0, 0, -1);
+      entry.mesh.quaternion.identity();
+    }
     entry.attackOrigin.set(0, 0, 0);
     entry.lockTarget.set(0, 0, 0);
     entry.lockedVelocity.set(0, 0, 0);
@@ -1264,6 +1405,17 @@ export function createEncounters(
       entry.mesh.userData.mouthAnchors?.[0]?.getWorldPosition(
         entry.attackOrigin,
       );
+    if (state.ability === "roar") {
+      entry.attackOrigin.addScaledVector(
+        entry.heading,
+        state.species.length * 0.36,
+      );
+      entry.attackOrigin.y += state.species.length * 0.04;
+      entry.roarHeading
+        .copy(entry.lockTarget)
+        .sub(entry.attackOrigin)
+        .normalize();
+    }
     const targetDirection = entry.lockTarget.clone().sub(entry.mesh.position);
     if (
       state.species.groundbound ||
@@ -1321,6 +1473,7 @@ export function createEncounters(
       entry.fx = entry.fxVariants.find((fx) => fx.ability === state.ability);
       lockAttack(entry, playerPosition);
       entry.phaseHit = false;
+      entry.pulseHits.fill(false);
       entry.lashReady = false;
       entry.grapple = createKrakenGrapple();
       entry.volleyShots = 0;
@@ -1554,7 +1707,24 @@ export function createEncounters(
           continue;
         lookahead.y = pose.y;
       }
-      if (!blockedBetween(origin, lookahead)) {
+      if (
+        !blockedBetween(origin, lookahead) &&
+        (!entry.navigation ||
+          lordMoveClear(
+            entry,
+            origin,
+            lookahead,
+            lordHeadingQuaternion(
+              entry.navigation.target,
+              candidate,
+              Boolean(entry.groundHabitat || entry.state.species.upright),
+              entry.navigation.pitchLimit,
+              entry.mesh.rotation.y,
+            ),
+            groundHeightAt,
+            blockedBetween,
+          ))
+      ) {
         clear = true;
         break;
       }
@@ -1594,7 +1764,22 @@ export function createEncounters(
       (!entry.state.species.groundbound ||
         seabedHeight(next.x, next.z) >=
           entry.state.species.minimumGroundHeight) &&
-      !blockedBetween(origin, next)
+      !blockedBetween(origin, next) &&
+      (!entry.navigation ||
+        lordMoveClear(
+          entry,
+          origin,
+          next,
+          lordHeadingQuaternion(
+            entry.navigation.target,
+            candidate,
+            Boolean(entry.groundHabitat || entry.state.species.upright),
+            entry.navigation.pitchLimit,
+            entry.mesh.rotation.y,
+          ),
+          groundHeightAt,
+          blockedBetween,
+        ))
     ) {
       // 直上/直下仍移动，但直立模型不以零水平向量替换已有朝向。
       if (
@@ -1711,6 +1896,9 @@ export function createEncounters(
       if (measured.length() > 100) measured.set(0, 0, 0);
       playerVelocity.lerp(measured, 1 - Math.exp(-dt * 8));
     } else playerVelocity.set(0, 0, 0);
+    framePlayerStart.copy(
+      hasPlayerPosition ? previousPlayerPosition : position,
+    );
     previousPlayerPosition.copy(position);
     hasPlayerPosition = true;
     for (const entry of bosses) {
@@ -1728,6 +1916,7 @@ export function createEncounters(
       );
       entry.mesh.userData.setLocked?.(state.locked);
       entry.motion.groundStart.copy(entry.mesh.position);
+      if (entry.navigation) entry.navigation.saved.copy(entry.mesh.quaternion);
       const distance = entry.mesh.position.distanceTo(position),
         homeDistance = entry.home.distanceTo(position),
         atHome = homeDistance < entry.radius;
@@ -1885,7 +2074,16 @@ export function createEncounters(
           (!state.species.groundbound ||
             seabedHeight(next.x, next.z) >=
               state.species.minimumGroundHeight) &&
-          !blockedBetween(old, next)
+          !blockedBetween(old, next) &&
+          (!entry.navigation ||
+            lordMoveClear(
+              entry,
+              old,
+              next,
+              entry.mesh.quaternion,
+              groundHeightAt,
+              blockedBetween,
+            ))
         )
           entry.mesh.position.copy(next);
         const sweep = new THREE.Line3(
@@ -1901,9 +2099,11 @@ export function createEncounters(
           entry.phaseHit = damage(
             player,
             state.species.damage,
-            state.species.skillLabels?.charge
-              ? "御剑冲阵命中 · 向侧面或上下闪避"
-              : "毁灭冲锋命中 · 锁定后向侧面闪避",
+            state.species.kind === "white_tiger"
+              ? "白虎跃扑命中 · 侧闪或升高避开"
+              : state.species.skillLabels?.charge
+                ? "御剑冲阵命中 · 向侧面或上下闪避"
+                : "毁灭冲锋命中 · 锁定后向侧面闪避",
           );
       }
       if (attack && ["volley", "swords"].includes(state.ability)) {
@@ -1916,14 +2116,15 @@ export function createEncounters(
           entry.volleyShots += 1;
         }
       }
-      entry.mesh.position.y = Math.min(
-        entry.maxCenterY,
-        Math.max(
-          entry.mesh.position.y,
-          seabedHeight(entry.mesh.position.x, entry.mesh.position.z) +
-            (state.species.floorClearance ?? state.species.length * 0.2 + 3),
-        ),
-      );
+      if (!entry.navigation)
+        entry.mesh.position.y = Math.min(
+          entry.maxCenterY,
+          Math.max(
+            entry.mesh.position.y,
+            seabedHeight(entry.mesh.position.x, entry.mesh.position.z) +
+              (state.species.floorClearance ?? state.species.length * 0.2 + 3),
+          ),
+        );
       if (state.species.seabedCrawler)
         entry.mesh.position.y =
           seabedHeight(entry.mesh.position.x, entry.mesh.position.z) +
@@ -1932,7 +2133,11 @@ export function createEncounters(
       const fromHome = entry.motion.offset
         .copy(entry.mesh.position)
         .sub(entry.home);
-      if (!state.pursuitStarted && fromHome.length() > entry.radius + 22)
+      if (
+        !entry.navigation &&
+        !state.pursuitStarted &&
+        fromHome.length() > entry.radius + 22
+      )
         entry.mesh.position
           .copy(entry.home)
           .add(fromHome.setLength(entry.radius + 22));
@@ -1965,20 +2170,45 @@ export function createEncounters(
                 entry.motion.orientation,
                 entry.heading,
                 entry.mesh.rotation.y,
+                entry.mesh.userData.aquaticPitchLimit,
               )
             : entry.motion.orientation.setFromUnitVectors(
                 FORWARD_AXIS,
                 entry.heading,
               );
-      // 地面朝向已在移动提案中平滑；不能再滞后旋转模型，使实际头部偏离已验证的占地。
-      if (state.species.groundbound) entry.mesh.quaternion.copy(orientation);
+      // 地面与限俯仰游姿的移动朝向已平滑；再次滞后会让躯体横滑并偏离已验证的占地。
+      if (
+        state.species.groundbound ||
+        Number.isFinite(entry.mesh.userData.aquaticPitchLimit)
+      )
+        entry.mesh.quaternion.copy(orientation);
       else entry.mesh.quaternion.slerp(orientation, Math.min(1, dt * 2));
+      if (
+        entry.navigation &&
+        !lordMoveClear(
+          entry,
+          entry.motion.groundStart,
+          entry.mesh.position,
+          entry.mesh.quaternion,
+          groundHeightAt,
+          blockedBetween,
+          entry.navigation.saved,
+        )
+      ) {
+        entry.mesh.position.copy(entry.motion.groundStart);
+        entry.mesh.quaternion.copy(entry.navigation.saved);
+        entry.heading.copy(FORWARD_AXIS).applyQuaternion(entry.mesh.quaternion);
+      }
       // 用实际通过地形和碰撞检查后的位移驱动步态；被阻挡时不能原地迈腿。
       entry.mesh.userData.setGroundTravel?.(
         Math.hypot(
           entry.mesh.position.x - entry.motion.groundStart.x,
           entry.mesh.position.z - entry.motion.groundStart.z,
         ),
+        dt,
+      );
+      entry.mesh.userData.setSwimTravel?.(
+        entry.mesh.position.distanceTo(entry.motion.groundStart),
         dt,
       );
       entry.mesh.userData.setBossPhase?.(state.phase);
@@ -2024,7 +2254,8 @@ export function createEncounters(
       );
       entry.ring.visible =
         !state.species.western &&
-        !["loom", "water", "lash"].includes(state.ability) &&
+        !["loom", "water", "lash", "roar"].includes(state.ability) &&
+        !(attack && state.species.pulseWaveCount > 1) &&
         (windup || attack);
       entry.ring.position.copy(
         ["pulse", "vortex"].includes(state.ability)
@@ -2283,25 +2514,65 @@ export function createEncounters(
               "深渊绞咬 · 未脱离涡心，被触腕拖入口器！",
             );
         }
+        if (
+          state.ability === "roar" &&
+          !entry.phaseHit &&
+          guardianRoarContact(
+            framePlayerStart,
+            position,
+            entry.attackOrigin,
+            entry.roarHeading,
+            Math.max(0, state.timer - dt),
+            state.timer,
+            state.species.roar,
+            player.length * 0.13,
+          ) &&
+          !blockedBetween(entry.attackOrigin, position)
+        )
+          entry.phaseHit = damage(
+            player,
+            state.species.damage,
+            "虎啸音浪命中 · 横移或升降离开音浪",
+          );
         if (state.ability === "pulse") {
           const radial = Math.hypot(
             position.x - entry.attackOrigin.x,
             position.z - entry.attackOrigin.z,
           );
-          if (
-            Math.abs(radial - ringSize) < 8 &&
-            Math.abs(position.y - entry.attackOrigin.y) < 10 &&
-            !entry.phaseHit
-          )
-            entry.phaseHit = damage(
-              player,
-              state.species.damage,
-              state.species.kind === "brine_regent"
-                ? "盐晶震层命中 · 上浮或下潜避开锁定水层"
-                : state.species.western
-                  ? "退潮震环命中 · 上浮或下潜避开锁定水层"
-                  : "遗迹脉冲命中 · 上下换层可躲避",
+          for (
+            let wave = 0;
+            wave < (state.species.pulseWaveCount ?? 1);
+            wave++
+          ) {
+            const radius = guardianPulseRadius(
+              state.species,
+              wave,
+              state.timer,
+              state.phaseDuration,
             );
+            if (
+              radius >= 0 &&
+              Math.abs(radial - radius) < (state.species.pulseBand ?? 8) &&
+              Math.abs(position.y - entry.attackOrigin.y) <
+                (state.species.pulseHalfHeight ?? 10) &&
+              !entry.pulseHits[wave] &&
+              (!(state.species.pulseWaveCount > 1) ||
+                !blockedBetween(entry.attackOrigin, position))
+            ) {
+              entry.pulseHits[wave] = damage(
+                player,
+                state.species.damage,
+                state.species.kind === "black_tortoise"
+                  ? "玄甲震波命中 · 上下换层避开连续震波"
+                  : state.species.kind === "brine_regent"
+                    ? "盐晶震层命中 · 上浮或下潜避开锁定水层"
+                    : state.species.western
+                      ? "退潮震环命中 · 上浮或下潜避开锁定水层"
+                      : "遗迹脉冲命中 · 上下换层可躲避",
+              );
+              entry.phaseHit ||= entry.pulseHits[wave];
+            }
+          }
         }
       }
       // 领主近身攻击保留四角色共用的前端区域；乌贼反向吞咽锚点不能令实体战斗无法接近。

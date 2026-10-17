@@ -82,7 +82,7 @@ test("each registered lord technique has its own bilingual card and timings agre
   assert.ok(!/万剑归宗|踏剑惊鸿/.test(sage.text));
   assert.equal(
     catalog.find((e) => e.kind === "black_tortoise").skills[0].recovery,
-    4.5,
+    3,
   );
 });
 

@@ -21,14 +21,19 @@ export function appendCrocodilianAxialWeights(z, ids, weights) {
   weights.push(1 - u, u, 0, 0);
 }
 /** 水生爬行动物以稳定背侧朝上转向，避免单向量最短弧造成翻滚。 */
-export function aquaticHeading(out, direction, previousYaw = 0) {
+export function aquaticHeading(
+  out,
+  direction,
+  previousYaw = 0,
+  pitchLimit = 0.65,
+) {
   const horizontal = Math.hypot(direction.x, direction.z);
   const yaw =
     horizontal > 1e-5 ? Math.atan2(-direction.x, -direction.z) : previousYaw;
   const pitch = THREE.MathUtils.clamp(
     Math.atan2(direction.y, horizontal),
-    -0.65,
-    0.65,
+    -pitchLimit,
+    pitchLimit,
   );
   return out.setFromEuler(euler.set(pitch, yaw, 0));
 }

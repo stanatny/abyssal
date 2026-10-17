@@ -284,6 +284,20 @@ const rows = [
     2,
     true,
   ],
+  [
+    "pool_hujiao",
+    "寒潭虎蛟",
+    "Northern Hujiao",
+    29,
+    8.8,
+    "#416b72",
+    "龙",
+    "北池的巨型成体虎蛟，厚实鱼身、冠状背鳍与连续蛇尾沿玄武外缘巡猎；即使30米的猎物仍可能遭到侧后方反击。",
+    "A mature northern-pool Hujiao with a powerful fish forebody, a crowned dorsal fin and a continuous serpent tail patrols outside the tortoise. Even a 30 m hunter can suffer its flank or rear bite.",
+    [[-42, -24, -1055]],
+    1,
+    true,
+  ],
 ];
 const formationBird = (kind) =>
   ["cloud_crane", "bifang", "gudiao"].includes(kind);
@@ -362,6 +376,18 @@ export const PENGLAI_SPECIES = Object.freeze(
       }
       return Object.freeze({
         kind,
+        ...(kind === "pool_hujiao"
+          ? {
+              residentRadius: 58,
+              spawnAnchors: [[-42, -24, -1055]],
+              hunterTerritory: {
+                minX: -112,
+                maxX: 112,
+                minZ: -1145,
+                maxZ: -930,
+              },
+            }
+          : {}),
         label: t(zh, en),
         latin: en.toUpperCase() + " / MYTHIC INTERPRETATION",
         mythic: true,
@@ -434,7 +460,7 @@ export const PENGLAI_SPECIES = Object.freeze(
               ? "Mountain ground and peach groves"
               : "Lotus pools and shallow stone beds",
         ),
-        ...(groundbound || predator
+        ...((groundbound || predator) && kind !== "pool_hujiao"
           ? {
               // 大型空中猎手各自巡游；不能把多只个体的家重复落在同一个中心。
               spawnAnchors:
@@ -459,12 +485,14 @@ export const PENGLAI_SPECIES = Object.freeze(
                 maxZ: -145,
               },
             }
-          : {
-              schoolProfiles: profiles,
-              schoolAnchors: profiles.map((p) => p.anchor),
-              layeredSchools: true,
-              nurseryResident: points === nursery,
-            }),
+          : kind === "pool_hujiao"
+            ? {}
+            : {
+                schoolProfiles: profiles,
+                schoolAnchors: profiles.map((p) => p.anchor),
+                layeredSchools: true,
+                nurseryResident: points === nursery,
+              }),
       });
     },
   ),

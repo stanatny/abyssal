@@ -75,7 +75,7 @@ export const PENGLAI_GUARDIANS = Object.freeze(
       id: "penglai_tiger",
       kind: "white_tiger",
       home: [-320, penglaiHeightAt(-320, -650) + 48 * 0.28 + 3, -650],
-      radius: 112,
+      radius: 190,
     },
     {
       id: "penglai_bird",

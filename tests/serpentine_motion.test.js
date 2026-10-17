@@ -25,7 +25,8 @@ function sample(skin, z) {
 test("青龙、云龙和长蛇躯节沿前后传播侧波，头部接触锚点稳定、相邻体节连续", () => {
   for (const kind of ["azure_dragon", "gate_dragon", "bashe", "hujiao"]) {
     const m = createCreature(kind, 1, 17),
-      joints = [];
+      rig = m.userData.azureAxialRig,
+      joints = rig ? [...rig.bones] : [];
     m.traverse((n) => {
       if (n.name === "continuous_scaled_body_joint") joints.push(n);
     });
@@ -37,19 +38,31 @@ test("青龙、云龙和长蛇躯节沿前后传播侧波，头部接触锚点�
       assert.ok(
         m.userData.getHeadWorldPositions()[0].distanceTo(anchor) < 1e-6,
       );
-      for (let j = 1; j < joints.length - 1; j++) {
-        const n = joints[j],
-          mesh =
-            n.children.find((c) => c.name === "rigid_anatomy_batch") ||
-            n.children.find((c) => c.geometry);
-        mesh.geometry.computeBoundingBox();
-        const half =
-          mesh.geometry.boundingBox.getSize(new THREE.Vector3()).z * n.scale.z;
-        assert.ok(
-          n.position.distanceTo(joints[j + 1].position) < half * 1.12,
-          `${kind}:${j}: continuous body`,
-        );
-      }
+      if (rig) {
+        // 连续蒙皮已取代重叠刚性躯节，直接检查相邻实际顶点环不断裂。
+        for (let row = 0; row < 144; row += 4) {
+          const a = rig.trunk.getVertexPosition(row * 25, new THREE.Vector3());
+          const b = rig.trunk.getVertexPosition(
+            (row + 1) * 25,
+            new THREE.Vector3(),
+          );
+          assert.ok(a.distanceTo(b) < 0.04, "continuous Azure skin rings");
+        }
+      } else
+        for (let j = 1; j < joints.length - 1; j++) {
+          const n = joints[j],
+            mesh =
+              n.children.find((c) => c.name === "rigid_anatomy_batch") ||
+              n.children.find((c) => c.geometry);
+          mesh.geometry.computeBoundingBox();
+          const half =
+            mesh.geometry.boundingBox.getSize(new THREE.Vector3()).z *
+            n.scale.z;
+          assert.ok(
+            n.position.distanceTo(joints[j + 1].position) < half * 1.12,
+            `${kind}:${j}: continuous body`,
+          );
+        }
     }
     const middle = positions.map((p) => p[Math.floor(p.length / 2)]);
     assert.ok(

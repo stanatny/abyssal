@@ -34,6 +34,7 @@ import {
 } from "../src/collision.js";
 import {
   createBossState,
+  bossRequiredHits,
   hitBoss,
   hitBossWithTorpedo,
 } from "../src/boss_rules.js";
@@ -64,10 +65,10 @@ const roster = getRegionSpecies("penglai");
 test("Penglai is the seventh isolated mythic destination with real ordinary and guardian registries", () => {
   assert.equal(REGIONS[6].id, "penglai");
   assert.equal(REGIONS[5].id, "europa");
-  assert.equal(roster.length, 18);
+  assert.equal(roster.length, 19);
   assert.equal(
     roster.reduce((n, s) => n + s.population, 0),
-    437,
+    438,
   );
   assert.ok(
     roster.every(
@@ -404,14 +405,15 @@ test("Four real guardian defeats unlock the sage; 25 m and five recovery counter
     p.length = 24.99;
     assert.equal(hitBossWithTorpedo(p, b.state).hit, false);
     p.length = 25;
-    for (let i = 0; i < 3; i++) {
-      if (i) finishNextBossAttack(b.state);
+    const hits = bossRequiredHits(b.state.species);
+    for (let i = 0; i < hits; i++) {
+      if (i || b.state.species.counterPhases) finishNextBossAttack(b.state);
       p.biteCooldown = 0;
       b.state.biteCooldown = 0;
       b.state.contactArmed = true;
       assert.equal(
         hitBoss(p, b.state, { inRange: true, isFlank: true }).defeated,
-        i === 2,
+        i === hits - 1,
       );
     }
     advanceExpeditionObjective(o, p, bosses);
@@ -432,7 +434,7 @@ test("Four real guardian defeats unlock the sage; 25 m and five recovery counter
   assert.equal(p.bossesDefeated, count);
 });
 
-test("All 23 mythic assets have finite independent articulated geometry through complete motion cycles", () => {
+test("All 24 mythic assets have finite independent articulated geometry through complete motion cycles", () => {
   for (const kind of [...roster, ...PENGLAI_LORDS].map((s) => s.kind)) {
     const a = createCreature(kind, 10),
       b = createCreature(kind, 10);
@@ -462,7 +464,7 @@ test("Mythic Guide membership, fields and flight/radar information remain biling
     setLanguage(locale);
     const all = buildOceanCatalog("penglai"),
       selected = filterOceanCatalog(all, { regionId: "penglai" });
-    assert.equal(selected.filter((e) => e.category === "mythic").length, 20);
+    assert.equal(selected.filter((e) => e.category === "mythic").length, 21);
     assert.equal(selected.filter((e) => e.category === "lord").length, 5);
     assert.ok(
       selected.every(

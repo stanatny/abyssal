@@ -77,7 +77,7 @@ test("Sage survives three real counters; five completed skills with mixed body/t
   assert.equal(player.bossesDefeated, 1);
 });
 
-test("Remote unlock starts Sage pursuit without sight; other fifteen lords keep three-hit territorial rules", () => {
+test("Remote unlock starts Sage pursuit without sight; other lords remain territorial with explicit guardian counter requirements", () => {
   const boss = createBossState(species);
   boss.locked = true;
   assert.equal(bossEngagement(boss, false), false);
@@ -96,8 +96,14 @@ test("Remote unlock starts Sage pursuit without sight; other fifteen lords keep 
   for (const other of BOSS_SPECIES.filter((s) => s !== species)) {
     const territorial = createBossState(other);
     assert.equal(bossEngagement(territorial, false), false);
-    assert.equal(bossRequiredHits(other), 3);
-    assert.equal(other.counterPhases, undefined);
+    assert.equal(
+      bossRequiredHits(other),
+      other.kind === "black_tortoise" ? 4 : 3,
+    );
+    assert.deepEqual(
+      other.counterPhases,
+      other.kind === "white_tiger" ? ["recover"] : undefined,
+    );
   }
 });
 

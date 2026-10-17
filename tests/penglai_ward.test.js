@@ -120,7 +120,7 @@ test("Sword Sage alternates telegraphed swords and short dash, retaining recover
   );
 });
 
-test("Four-Symbol strengths are distinct and shell guarding preserves three exposed hits without food farming", () => {
+test("Four-Symbol strengths are distinct and shell guarding requires independent exposed hits without food farming", () => {
   const kinds = Object.fromEntries(PENGLAI_LORDS.map((s) => [s.kind, s]));
   const guardians = PENGLAI_LORDS.filter((s) => s.kind !== "sword_sage");
   assert.ok(

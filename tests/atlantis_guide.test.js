@@ -94,7 +94,7 @@ test("the guide's full and regional catalogs agree with actual species and lord 
   const catalog = buildOceanCatalog();
   assert.equal(
     catalog.length,
-    178 + REGIONAL_RARES.length + PENGLAI_TRANSFORMATION_FORMS.length,
+    179 + REGIONAL_RARES.length + PENGLAI_TRANSFORMATION_FORMS.length,
   );
   assert.equal(
     catalog.filter((e) =>

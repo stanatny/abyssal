@@ -2,6 +2,18 @@ import { PENGLAI_EN as SPECIES_EN } from "../penglai_species.js";
 import "../penglai_lords.js";
 import "../penglai_transformation_species.js";
 export const PENGLAI_EN = Object.freeze({
+  "蓄势后沿锁定方向发出最远{0}米的扩散音浪，波前接触才会造成一次{1}点基础伤害；飞出山头不等于安全，音浪不会追踪。":
+    "After the warning, an expanding sound front follows its locked course for up to{0}m. Contact deals at most one{1}-damage hit. Air beyond the summit is still threatened; the wave never homes in.",
+  "观察虎啸方向，横向或升降离开波前，也可借真实山石遮挡；收势时本体可以反击。":
+    "Read the roar course and dodge sideways or vertically out of its front, or use solid mountain cover. Counter the body during recovery.",
+  "玄甲闭合后释放两道震波，间隔{2}秒，最远扩散至{0}米，每道最多造成一次{1}点基础伤害；蓄势和攻击期间护甲挡住咬击与鱼雷。":
+    "The shell ward releases two pulses{2}seconds apart, expanding up to{0}m. Each deals at most one{1}-damage hit. The armor blocks bites and torpedoes during windup and release.",
+  "玄甲震波命中 · 上下换层避开连续震波":
+    "Shell pulse impact · Change altitude to avoid the successive waves",
+  "虎啸音浪命中 · 横移或升降离开音浪":
+    "Roar wave impact · Dodge sideways or vertically out of its path",
+  "白虎跃扑命中 · 侧闪或升高避开":
+    "Tiger leap impact · Sidestep or climb out of its path",
   ...SPECIES_EN,
   "15米起步，游于莲池，行于云海。穿越桃林与浮空仙山，击败四象神兽，解除道观结界，再挑战御剑真君。":
     "Start at 15 m, swim in lotus waters and fly through clouds. Explore peach groves and floating mountains, defeat the Four Symbols, open the monastery ward and challenge the Sword Sage.",

@@ -11,6 +11,8 @@ import { buildPenglaiTiger } from "./creature_penglai_tiger.js";
 import { buildPenglaiBeast } from "./creature_penglai_beasts.js";
 import { buildPenglaiDragon } from "./creature_penglai_dragons.js";
 import { buildPenglaiSpecial } from "./creature_penglai_special.js";
+import { buildSacredDragon } from "./creature_sacred_dragon.js";
+import { buildSacredBird } from "./creature_sacred_bird.js";
 export const PENGLAI_CREATURE_KINDS = new Set(
   [...PENGLAI_SPECIES, ...PENGLAI_TRANSFORMATION_FORMS, ...PENGLAI_LORDS].map(
     (s) => s.kind,
@@ -23,12 +25,18 @@ export function buildPenglaiCreature(kind, root, motions) {
   b.name = kind + "_mythic_anatomy";
   root.add(b);
   if (["kun", "peng"].includes(kind)) buildKunPeng(kind, b, motions);
+  else if (kind === "azure_dragon") buildSacredDragon(b, motions, root);
+  else if (kind === "vermilion_bird") buildSacredBird(b, motions, root);
   else if (["cloud_crane", "bifang", "gudiao", "vermilion_bird"].includes(kind))
     buildPenglaiBird(kind, b, motions);
   else if (kind === "white_tiger") buildPenglaiTiger(b, motions, root);
   else if (["lushu", "nine_tail_fox", "zheng", "kui"].includes(kind))
     buildPenglaiBeast(kind, b, motions);
-  else if (["bashe", "hujiao", "azure_dragon", "gate_dragon"].includes(kind))
+  else if (
+    ["bashe", "hujiao", "pool_hujiao", "azure_dragon", "gate_dragon"].includes(
+      kind,
+    )
+  )
     buildPenglaiDragon(kind, b, motions);
   else if (
     ["xuangui", "black_tortoise", "sword_sage", "lotus_sprite"].includes(kind)
@@ -62,6 +70,13 @@ export function buildPenglaiCreature(kind, root, motions) {
     root.userData.mouthAnchors = b.userData.mouthAnchors;
   root.userData.groundSupport = normalization.get(kind).groundSupport;
   root.userData.normalizedLength = 1;
-  root.userData.artRevision = "penglai_v2";
+  root.userData.artRevision = [
+    "azure_dragon",
+    "white_tiger",
+    "black_tortoise",
+    "vermilion_bird",
+  ].includes(kind)
+    ? "penglai_guardians_v3"
+    : "penglai_v2";
   root.userData.mythicAnatomy = kind;
 }

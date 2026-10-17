@@ -23,19 +23,35 @@ export function creatureGuideSkills(species, entry = {}) {
         ...copy,
         counter: species.skillTips?.[id] || copy.counter,
         values:
-          id === "lash"
-            ? [LUMEN_LASH.range, species.damage, timing?.recover ?? 3]
-            : id === "loom"
-              ? [TIDAL_LOOM.outerRadius, species.damage, timing?.recover ?? 3]
-              : id === "water"
-                ? [species.breathRange, species.damage, timing?.recover ?? 3]
-                : id === "vortex"
+          id === "roar"
+            ? [species.roar.range, species.damage]
+            : id === "pulse" && species.pulseWaveCount > 1
+              ? [
+                  species.abilityRadius,
+                  species.damage,
+                  species.pulseWaveInterval,
+                ]
+              : id === "lash"
+                ? [LUMEN_LASH.range, species.damage, timing?.recover ?? 3]
+                : id === "loom"
                   ? [
-                      species.damage * KRAKEN_GRAPPLE.damageMultiplier,
+                      TIDAL_LOOM.outerRadius,
+                      species.damage,
                       timing?.recover ?? 3,
-                      KRAKEN_GRAPPLE.biteDelay,
                     ]
-                  : undefined,
+                  : id === "water"
+                    ? [
+                        species.breathRange,
+                        species.damage,
+                        timing?.recover ?? 3,
+                      ]
+                    : id === "vortex"
+                      ? [
+                          species.damage * KRAKEN_GRAPPLE.damageMultiplier,
+                          timing?.recover ?? 3,
+                          KRAKEN_GRAPPLE.biteDelay,
+                        ]
+                      : undefined,
         windup: timing?.windup ?? species.windupDuration,
         recovery: timing?.recover ?? 3,
       };
@@ -178,9 +194,15 @@ const LORD_SKILLS = {
       "低身蓄势后，以四神兽中最快的速度沿锁定路线跃扑。身体保持直立朝向，跃扑期间不会追着目标转弯。",
     counter: "及时上升或向侧面闪避，避开落点；等白虎落地收势后再攻击。",
   },
+  "white_tiger:roar": {
+    description:
+      "蓄势后沿锁定方向发出最远{0}米的扩散音浪，波前接触才会造成一次{1}点基础伤害；飞出山头不等于安全，音浪不会追踪。",
+    counter:
+      "观察虎啸方向，横向或升降离开波前，也可借真实山石遮挡；收势时本体可以反击。",
+  },
   "black_tortoise:pulse": {
     description:
-      "玄甲闭合并释放扩散脉冲。蓄势和攻击期间，护甲会同时挡住咬击与鱼雷；甲阵消退后才暴露侧翼。",
+      "玄甲闭合后释放两道震波，间隔{2}秒，最远扩散至{0}米，每道最多造成一次{1}点基础伤害；蓄势和攻击期间护甲挡住咬击与鱼雷。",
     counter: "绕开波纹，不要向闭合的甲阵浪费攻击；在暴露的恢复窗口从侧翼进攻。",
   },
   "vermilion_bird:volley": {
