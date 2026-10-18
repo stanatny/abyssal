@@ -224,7 +224,7 @@ test("胸鳍完整周期真实鳍尖可读，冲刺后掠且仍保持连续摆�
     means = [];
   for (const boost of [0, 1]) {
     const samples = Array.from({ length: 96 }, (_, i) =>
-      rig.pose((i / 96) * ((Math.PI * 2) / 0.55), { boost }),
+      rig.pose((i / 96) * ((Math.PI * 2) / 0.72), { boost }),
     );
     for (const side of [0, 1]) {
       const ys = samples.map((s) => s[side].y),
@@ -251,14 +251,17 @@ test("胸鳍差动与升降作用在真实表面，极端输入仍留在躯干�
     rightTurn = rig.pose(0, { turn: 1 }),
     up = rig.pose(0, { pitchInput: 1 }),
     down = rig.pose(0, { pitchInput: -1 });
-  assert.ok(leftTurn[0].y > leftTurn[1].y + 0.025);
-  assert.ok(rightTurn[1].y > rightTurn[0].y + 0.025);
+  // 头朝-Z、D为+X右转：内侧鳍下压/前展，与身体倾斜协调。
+  assert.ok(leftTurn[0].y < leftTurn[1].y - 0.025);
+  assert.ok(rightTurn[1].y < rightTurn[0].y - 0.025);
+  assert.ok(leftTurn[0].z < leftTurn[1].z - 0.02);
+  assert.ok(rightTurn[1].z < rightTurn[0].z - 0.02);
   for (let i = 0; i < 2; i++) assert.ok(up[i].y > down[i].y + 0.02);
   for (const boost of [0, 1])
     for (const turn of [-1, 0, 1])
       for (const pitchInput of [-1, 0, 1])
         for (let frame = 0; frame < 32; frame++) {
-          const tips = rig.pose((frame / 32) * ((Math.PI * 2) / 0.55), {
+          const tips = rig.pose((frame / 32) * ((Math.PI * 2) / 0.72), {
             boost,
             turn,
             pitchInput,

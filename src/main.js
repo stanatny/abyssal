@@ -1,3 +1,5 @@
+import { prepareSquidMaterials } from "./creature_squid.js";
+import { prepareOrcaMaterials } from "./creature_orca.js";
 import { trackGroundProgress } from "./ground_creatures.js";
 import { createOdysseyOceanAsync } from "./odyssey_ocean.js";
 import {
@@ -165,6 +167,7 @@ import {
 } from "./character_rules.js";
 import { bodyRadius, isPositionBlocked } from "./collision.js";
 import { prepareZombieSharkMaterials } from "./zombie_shark_asset.js";
+import { prepareMechanicalSharkMaterials } from "./mechanical_shark_asset.js";
 import { createZombieMinion } from "./zombie_minion.js";
 import { consumeMinionPrey, summonStatus } from "./zombie_shark_rules.js";
 
@@ -4423,7 +4426,12 @@ seedPickups();
 updateRegionPresentation();
 regionLoader.stage("正在准备光影…", 82);
 await regionLoader.paint();
-await prepareZombieSharkMaterials();
+await Promise.all([
+  prepareOrcaMaterials(),
+  prepareSquidMaterials(),
+  prepareZombieSharkMaterials(),
+  prepareMechanicalSharkMaterials(),
+]);
 await renderer.compileAsync(scene, camera);
 requestAnimationFrame(frame);
 await regionLoader.paint();

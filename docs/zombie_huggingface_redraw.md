@@ -1,5 +1,7 @@
 # Zombie Shark and companion: Hugging Face redraw
 
+Current motion follow-up: [the2026-10-19 shark swimming review](shark_swimming_revision.md) supersedes earlier pectoral timing/turn direction and sprint-cadence descriptions below. Asset geometry and accepted appearance remain; earlier measurements retain their original scope.
+
 ## Accepted fin checkpoint — 2026-10-18
 
 The user accepts the pectoral-motion correction and authorizes a local commit. All791 delivered source fingerprints and13 compiled files match before acceptance-only notes. Existing38 focused checks, motion footage and native/public receipts remain unchanged-input evidence; no push or release is requested. Further Mechanical Shark work must preserve this accepted asset and fully validate swimming before delivery.

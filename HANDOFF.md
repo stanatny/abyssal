@@ -1,6 +1,32 @@
+# Local player-redraw checkpoint / next Mechanical redesign — 2026-10-19
+
+Local checkpoint / Mechanical Shark redesign — 2026-10-19: the user authorizes a local commit of the current player-redraw, swimming and organic-shading work, then requests a completely new Mechanical Shark design. All delivered source fingerprints and15 compiled artifacts match before these acceptance-only notes; prior test receipts retain their recorded scope. This checkpoints the existing Mechanical candidate for rollback, not final acceptance of its design. No push/main release is requested. The current AI agent independently develops the replacement on this branch, preserving other characters, gameplay, services, archives and included-quota limits. New redesign work remains uncommitted for review.
+
+# Current organic shading follow-up — 2026-10-19
+
+Current Orca/Giant Squid shading follow-up — 2026-10-19: soften the two HF candidates' reflective highlights and generated albedo contrast; repair degenerate Squid fin-edge normals. Preserve geometry positions, rigs, motion, gameplay, other creatures and world lighting. The current AI agent works alone, with no HF request, commit or push. See [the shading review](docs/orca_squid_huggingface_redraw.md#shading-follow-up--2026-10-19); candidate acceptance remains pending.
+
+# Current player redraw candidate — Orca and Giant Squid — 2026-10-19
+
+Current Orca/Giant Squid HF candidate — 2026-10-19: the current AI agent alone develops the two player redraws with included Pro quota and individual user review. Preserve the prior shark candidates, gameplay and services; no commit/push is authorized. See [the production review](docs/orca_squid_huggingface_redraw.md) for source cleanup, anatomical rigging, quota receipts, resource costs and fresh checks. The resumable priority queue and160-ID ledger are local under `~/Documents/个人项目开发/projects/abyssal/`; no recurring timer or automatic acceptance is implied.
+
 # Repository creature-polish lessons — 2026-10-19
 
 The user authorizes a local documentation commit of the repository-local [Creature Polish Skill](.agents/skills/abyssal-creature-polish/SKILL.md) and its generated-mesh/fitted-hardware reference, with routing in AGENTS, README and the map-production Skill. The current AI agent distills the Zombie/Mechanical redraw, material and swimming lessons; specific colors, animation values, quotas and delivery receipts remain in task reviews. The Skill is usable without pending runtime files. This commit contains only these documentation changes; existing game source, assets and their pending review updates remain outside it. Validation covers Skill structure, formatting, committed-tree local references and preserved source/build fingerprints, without repeating game tests. No personal Skill change, push or service replacement is authorized.
+
+# Current shark swimming refinement — 2026-10-19
+
+Current shark swimming refinement — 2026-10-19: the user requests a real-shark reference review and more readable Zombie/Mechanical fin motion, including sprint. The current AI agent alone refines shared pectoral trim/turn direction and shark-only sprint cadence, preserving the blue Mechanical Shark finish, existing meshes/rigs/effects and gameplay. See [the motion review](docs/shark_swimming_revision.md) for biological sources, limits and fresh evidence. Work remains uncommitted/unpushed on `art/mechanical-hf-redraw`; preserve original services, archives and formal main v0.11.12.
+
+# Current Mechanical Shark blue palette — 2026-10-19
+
+Current Mechanical Shark blue palette — 2026-10-19: the user rejects red/gold as unnatural and requests a blue-led finish with clearly distinct sky-blue armor. Preserve the physical armor, HF mesh, rig, swimming, effects and gameplay; change only the two material configurations and bilingual Guide appearance copy. The red/gold pass is historical, superseded by [the blue palette review](docs/mechanical_huggingface_redraw.md#blue-palette-follow-up--2026-10-19). No new texture, geometry, light, loop or HF request. Work remains uncommitted/unpushed on `art/mechanical-hf-redraw`; preserve Zombie checkpoint `cb76194`, services and formal main v0.11.12.
+
+# Current Mechanical Shark structure follow-up — 2026-10-19
+
+Current Mechanical Shark structure follow-up — 2026-10-19: the user rejects the camouflage-like painted finish. The current AI agent retains the HF mesh and verified swimming, replaces the runtime texture finish with clean metal, and adds fitted physical armor, turbine blades and servo joints. New42 focused checks and native before/after/motion/lifecycle evidence are in [the current review](docs/mechanical_huggingface_redraw.md); previous1,313 full-suite results below remain historical. No new HF request, gameplay change, commit or push is authorized/performed. Preserve accepted Zombie Shark checkpoint `cb76194`, original services, all archives and formal main v0.11.12. Candidate branch remains `art/mechanical-hf-redraw`.
+
+Current Mechanical Shark Pro regeneration — 2026-10-18: accepted Zombie Shark fin correction is committed locally as `cb76194`. The user explicitly authorizes regeneration through the upgraded HF Pro account and asks for complete swimming validation before delivery. Preflight confirms Pro with2400 included seconds. Preserve this fin checkpoint, gameplay and existing services; new Mechanical Shark implementation stays uncommitted/unpushed. See [the production brief](docs/mechanical_huggingface_redraw.md). Earlier free-quota blocker labels are historical.
 
 # Accepted fin checkpoint / resume Mechanical Shark — 2026-10-18
 

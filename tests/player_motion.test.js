@@ -2,6 +2,39 @@ import test from "node:test";
 import assert from "node:assert/strict";
 import * as THREE from "three";
 import { createCreature } from "../src/creatures.js";
+import { createPlayerMotion } from "../src/player_motion.js";
+
+test("两种鲨鱼冲刺尾拍明显加快，急停/反打平滑且暂停不推进时钟", () => {
+  for (const kind of ["zombie_shark", "mechanical_shark"]) {
+    const motion = createPlayerMotion(kind, 0);
+    const rate = (boosting) => {
+      const input = { dt: 1 / 60, speed: boosting ? 32 : 12, boosting };
+      for (let i = 0; i < 180; i++) motion.update(i / 60, 1, input);
+      const before = motion.state.phase;
+      for (let i = 0; i < 60; i++) motion.update(i / 60, 1, input);
+      return motion.state.phase - before;
+    };
+    const cruise = rate(false),
+      sprint = rate(true);
+    assert.ok(cruise > 2.5 && cruise < 4);
+    assert.ok(sprint > cruise * 2 && sprint < cruise * 2.6);
+    const snapshot = { ...motion.state };
+    motion.update(999, 3, { dt: 0, speed: 0, turn: -1, pitchInput: 1 });
+    assert.deepEqual(motion.state, { ...snapshot, dt: 0 });
+    motion.update(1000, 1, {
+      dt: 1 / 60,
+      speed: 12,
+      turn: -1,
+      boosting: false,
+    });
+    assert.ok(motion.state.boost > 0.9 && motion.state.boost < 1);
+    assert.ok(motion.state.turn < 0 && motion.state.turn > -0.1);
+    motion.reset();
+    assert.equal(motion.state.phase, 0);
+    assert.equal(motion.state.boost, 0);
+    assert.equal(motion.state.turn, 0);
+  }
+});
 
 function advance(root, frames, input, offset = 0) {
   for (let frame = 1; frame <= frames; frame++)
@@ -86,7 +119,8 @@ test("真实嘴点跟随成长和父变换，乌贼所有游姿保持外套膜�
     root.worldToLocal(point);
     assert.ok(point.distanceTo(new THREE.Vector3(...expected[kind])) < 1e-12);
     if (kind === "squid") {
-      const arm = root.getObjectByName("squid_tentacle_-1");
+      const arm = root.getObjectByName("squid_tentacle_-1_0");
+      const tipBone = root.getObjectByName("squid_tentacle_-1_5");
       for (const input of [
         { speed: 12 },
         { speed: 32, boosting: true },
@@ -101,7 +135,7 @@ test("真实嘴点跟随成长和父变换，乌贼所有游姿保持外套膜�
           arm.getWorldPosition(new THREE.Vector3()),
         );
         const tip = root.worldToLocal(
-          arm.skeleton.bones.at(-1).getWorldPosition(new THREE.Vector3()),
+          tipBone.getWorldPosition(new THREE.Vector3()),
         );
         assert.ok(mouth.z > 0 && center.z > 0 && tip.z > 0.3);
         assert.equal(
@@ -123,28 +157,32 @@ test("乌贼腕足与吸盘连续蒙皮，各实例独立而几何和材质跨�
     assert.strictEqual(mesh.geometry, rightMeshes[index].geometry);
     assert.strictEqual(mesh.material, rightMeshes[index].material);
   });
-  const arms = leftMeshes.filter((mesh) => mesh.name.startsWith("squid_arm_"));
-  assert.equal(arms.length, 16);
-  assert.ok(
-    arms.every(
-      (mesh) => mesh.isSkinnedMesh && mesh.skeleton.bones.length === 5,
-    ),
+  const body = left.getObjectByName("squid_hf_body"),
+    other = right.getObjectByName("squid_hf_body");
+  assert.ok(body.isSkinnedMesh);
+  const arms = body.skeleton.bones.filter((b) =>
+    /^squid_arm_\d_0$/.test(b.name),
   );
-  const beforeLeft = vertices(arms[0]);
-  const rightArm = rightMeshes.find((mesh) => mesh.name === arms[0].name);
-  const beforeRight = vertices(rightArm);
-  const geometry = Array.from(arms[0].geometry.attributes.position.array);
+  assert.equal(arms.length, 8);
+  for (let i = 0; i < 8; i++)
+    for (let j = 0; j < 5; j++)
+      assert.ok(left.getObjectByName(`squid_arm_${i}_${j}`).isBone);
+  const beforeLeft = vertices(body),
+    beforeRight = vertices(other);
+  const geometry = Array.from(body.geometry.attributes.position.array);
   advance(left, 70, { turn: 0.8 });
-  assert.notDeepEqual(vertices(arms[0]), beforeLeft);
-  assert.deepEqual(vertices(rightArm), beforeRight);
+  assert.notDeepEqual(vertices(body), beforeLeft);
+  assert.deepEqual(vertices(other), beforeRight);
   assert.deepEqual(
-    Array.from(arms[0].geometry.attributes.position.array),
+    Array.from(body.geometry.attributes.position.array),
     geometry,
   );
-  assert.strictEqual(meshes(left)[0], leftMeshes[0]);
-  const bones = arms[0].skeleton.bones;
-  assert.notEqual(bones[1].rotation.x, bones[3].rotation.x);
-  assert.ok(Math.abs(bones[0].rotation.x) < 0.05);
+  assert.notStrictEqual(body.skeleton, other.skeleton);
+  assert.notEqual(
+    left.getObjectByName("squid_arm_0_1").rotation.x,
+    left.getObjectByName("squid_arm_0_3").rotation.x,
+  );
+  assert.ok(Math.abs(arms[0].rotation.x) < 0.05);
 });
 
 test("虎鲸尾鳍与尾柄共用连续骨架，空中收敛划水但不改飞行姿态", () => {
@@ -155,8 +193,8 @@ test("虎鲸尾鳍与尾柄共用连续骨架，空中收敛划水但不改飞�
   const flippers = [-1, 1].map((side) =>
     root.getObjectByName(`orca_flipper_${side}`),
   );
-  assert.ok(flippers[0].rotation.y > 0.55);
-  assert.ok(flippers[1].rotation.y < -0.55);
+  assert.ok(flippers[0].rotation.y > 0.3);
+  assert.ok(flippers[1].rotation.y < -0.3);
   advance(root, 120, { airborne: true });
   assert.ok(Math.abs(root.userData.pose.tailBeat) < 0.045);
   assert.equal(root.children[0].position.y, 0);
@@ -221,50 +259,43 @@ test("重开立即恢复角色初始姿势并清除上一局时钟和待收腕�
   }
 });
 
-test("虎鲸双叶尾鳍保持完整弦长、无自交轮廓和非退化三角形", () => {
-  const root = createCreature("orca");
-  const geometry = root.getObjectByName("orca_flukes").children[0].geometry;
-  const positions = geometry.attributes.position;
-  const edges = new Map();
-  const point = (index) => [positions.getX(index), positions.getZ(index)];
-  const key = (index) =>
-    point(index)
-      .map((value) => value.toFixed(6))
-      .join(",");
-  const cross = (a, b, c) =>
-    (b[0] - a[0]) * (c[1] - a[1]) - (b[1] - a[1]) * (c[0] - a[0]);
-  let area = 0;
-  for (let index = 0; index < geometry.index.count; index += 3) {
-    const vertices = [0, 1, 2].map((offset) =>
-      geometry.index.getX(index + offset),
+test("HF虎鲸完整水平尾鳍具有双侧弦长，蒙皮保持整片尾扇刚性", () => {
+  const root = createCreature("orca", 1, 4),
+    body = root.getObjectByName("orca_hf_body"),
+    geometry = body.geometry,
+    p = geometry.attributes.position,
+    w = geometry.attributes.skinWeight,
+    ids = geometry.attributes.skinIndex;
+  const tail = [];
+  for (let i = 0; i < p.count; i++)
+    if (p.getZ(i) > 0.382) {
+      tail.push(i);
+      let weight = 0;
+      for (let j = 0; j < 4; j++)
+        if (ids.getComponent(i, j) === 4) weight += w.getComponent(i, j);
+      assert.ok(Math.abs(weight - 1) < 1e-6);
+    }
+  assert.ok(tail.length > 100);
+  for (const side of [-1, 1])
+    for (const x of [0.06, 0.09, 0.12]) {
+      const z = tail
+        .filter((i) => Math.abs(p.getX(i) - side * x) < 0.008)
+        .map((i) => p.getZ(i));
+      assert.ok(z.length > 3);
+      assert.ok(Math.max(...z) - Math.min(...z) > 0.025);
+    }
+  const points = tail.filter((i) => Math.abs(p.getX(i)) > 0.12).slice(0, 30),
+    before = points.map((i) => new THREE.Vector3().fromBufferAttribute(p, i));
+  advance(root, 90, { speed: 32, boosting: true, turn: 1 });
+  root.updateMatrixWorld(true);
+  body.skeleton.update();
+  const after = points.map((i) =>
+    body.getVertexPosition(i, new THREE.Vector3()),
+  );
+  for (let i = 1; i < after.length; i++)
+    assert.ok(
+      Math.abs(
+        after[i].distanceTo(after[0]) - before[i].distanceTo(before[0]),
+      ) < 1e-6,
     );
-    const projectedArea = Math.abs(cross(...vertices.map(point))) / 2;
-    assert.ok(projectedArea > 1e-10, "尾鳍不能包含退化三角形");
-    area += projectedArea;
-    for (let edge = 0; edge < 3; edge++) {
-      const id = [key(vertices[edge]), key(vertices[(edge + 1) % 3])]
-        .sort()
-        .join("|");
-      edges.set(id, (edges.get(id) ?? 0) + 1);
-    }
-  }
-  // 上下表面各贡献一次平面面积；旧交叉轮廓在半翼处失去有效弦长。
-  assert.ok(area / 2 > 0.03 && area / 2 < 0.055);
-  const boundary = [];
-  for (const [id, count] of edges) {
-    assert.ok(count === 2 || count === 4, "投影边应只有边界或内部两类");
-    if (count === 2)
-      boundary.push(id.split("|").map((point) => point.split(",").map(Number)));
-  }
-  assert.ok(boundary.length > 20);
-  for (let first = 0; first < boundary.length; first++) {
-    for (let second = first + 1; second < boundary.length; second++) {
-      const [a, b] = boundary[first],
-        [c, d] = boundary[second];
-      const intersects =
-        cross(a, b, c) * cross(a, b, d) < -1e-15 &&
-        cross(c, d, a) * cross(c, d, b) < -1e-15;
-      assert.equal(intersects, false, "尾鳍前后缘不能穿过彼此");
-    }
-  }
 });

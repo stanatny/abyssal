@@ -1,3 +1,4 @@
+import { ORCA_SQUID_EN } from "./locales/orca_squid_en.js";
 import { ODYSSEY_EN } from "./odyssey_species.js";
 import { ODYSSEY_UI_EN } from "./locales/odyssey_en.js";
 import { LORD_REVISION_EN } from "./locales/lord_revision_en.js";
@@ -23,6 +24,7 @@ export const SUPPORTED_LANGUAGES = Object.freeze(["zh-CN", "en"]);
 const english = Object.freeze(
   Object.assign(
     Object.create(null),
+    ORCA_SQUID_EN,
     ODYSSEY_EN,
     ODYSSEY_UI_EN,
     CATALOG_EN,

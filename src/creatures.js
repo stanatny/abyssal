@@ -1,3 +1,4 @@
+import { buildOrca } from "./creature_orca.js";
 import { buildBrineRegent } from "./creature_brine_regent.js";
 import { buildThunderbarbel } from "./creature_thunderbarbel.js";
 import {
@@ -37,7 +38,7 @@ import {
   ATLANTIS_CREATURE_KINDS,
   buildAtlantisCreature,
 } from "./creature_atlantis.js";
-import { createPlayerMotion, addFeedingMouth } from "./player_motion.js";
+import { createPlayerMotion } from "./player_motion.js";
 import { SHOAL_CREATURE_KINDS, buildShoalCreature } from "./creature_shoal.js";
 import {
   HUNTER_CREATURE_KINDS,
@@ -209,51 +210,9 @@ const MATERIALS = {
   }),
 };
 
-// 虎鲸黑白分区在片元中求值，近景不会露出低分辨率顶点色的锯齿边。
-const ORCA_SKIN = skinMaterial({
-  color: "#ffffff",
-  roughness: 0.4,
-  pattern: 0.006,
-});
-const compileOrcaSkin = ORCA_SKIN.onBeforeCompile;
-ORCA_SKIN.onBeforeCompile = (shader) => {
-  compileOrcaSkin(shader);
-  shader.fragmentShader = shader.fragmentShader.replace(
-    "#include <color_fragment>",
-    `#include <color_fragment>
-    float chin = 1.0 - smoothstep(-0.405, -0.32, vSkinPosition.z);
-    float flank = exp(-pow((vSkinPosition.z - 0.255) / 0.074, 2.0));
-    float border = -0.065 + chin * 0.050 + flank * 0.047;
-    float belly = 1.0 - smoothstep(border - 0.002, border + 0.002, vSkinPosition.y);
-    diffuseColor.rgb = mix(vec3(0.003,0.009,0.014), vec3(0.79,0.86,0.8), belly);
-    float saddle = exp(-pow((vSkinPosition.z-0.18)/0.038,2.0)) * smoothstep(0.035,0.08,vSkinPosition.y);
-    diffuseColor.rgb = mix(diffuseColor.rgb,vec3(0.13,0.18,0.20),saddle*0.52);
-  `,
-  );
-};
-ORCA_SKIN.customProgramCacheKey = () => "orca_skin_v6";
-
 const SPHERE = new THREE.SphereGeometry(1, 14, 10);
 const SMALL_SPHERE = new THREE.SphereGeometry(1, 8, 6);
 const GEOMETRY_CACHE = new Map();
-const SADDLE = new THREE.Color("#6d828a");
-
-// 每个截面依次为 Z、横向半径、竖向半径、竖向偏移。
-const ORCA_PROFILE = [
-  [-0.478, 0.014, 0.02, -0.012],
-  [-0.463, 0.043, 0.043, -0.011],
-  [-0.442, 0.072, 0.064, -0.003],
-  [-0.4, 0.098, 0.101, 0.004],
-  [-0.32, 0.133, 0.135, 0.01],
-  [-0.2, 0.153, 0.151, 0.006],
-  [-0.04, 0.151, 0.148, 0],
-  [0.1, 0.127, 0.129, -0.004],
-  [0.22, 0.085, 0.091, -0.01],
-  [0.32, 0.05, 0.06, -0.014],
-  [0.4, 0.022, 0.03, -0.016],
-  [0.435, 0.005, 0.011, -0.016],
-];
-
 const SHARK_PROFILE = [
   [-0.48, 0.004, 0.007, -0.003],
   [-0.44, 0.031, 0.033, -0.002],
@@ -277,212 +236,6 @@ const LEVIATHAN_PROFILE = [
   [0.37, 0.027, 0.031, 0],
   [0.425, 0.009, 0.013, 0.002],
 ];
-
-function orcaColors(z, y, shade, upper, lower) {
-  // 下颌白区、胸腹白区向后沿体侧上卷，是虎鲸最易辨认的体色特征。
-  let threshold;
-  if (z < -0.34) threshold = -0.05;
-  else if (z < -0.05) threshold = -0.4;
-  else if (z < 0.16) threshold = -0.36;
-  else if (z < 0.34) threshold = -0.36 + ((z - 0.16) / 0.18) * 0.52;
-  else threshold = -0.55;
-  shade
-    .copy(upper)
-    .lerp(
-      lower,
-      1 - THREE.MathUtils.smoothstep(y, threshold - 0.09, threshold + 0.09),
-    );
-  if (z > 0.135 && z < 0.24 && y > 0.28) {
-    const saddle =
-      Math.sin(((z - 0.135) / 0.105) * Math.PI) *
-      0.5 *
-      THREE.MathUtils.smoothstep(y, 0.28, 0.55);
-    shade.lerp(SADDLE, saddle);
-  }
-}
-
-function orcaSection(z, theta) {
-  const s = Math.abs(Math.sin(theta));
-  const keel =
-    THREE.MathUtils.smoothstep(z, 0.22, 0.32) *
-    (1 - THREE.MathUtils.smoothstep(z, 0.38, 0.44)) *
-    THREE.MathUtils.smoothstep(s, 0.68, 0.95) *
-    0.22;
-  return [1, 1 + keel];
-}
-
-function buildOrca(root, motions) {
-  const inner = new THREE.Group();
-  root.add(inner);
-  const torso = mesh(
-    inner,
-    cached("orca_body", () =>
-      bodyGeometry(ORCA_PROFILE, "#0a181f", "#e6f2ea", {
-        rings: 54,
-        sides: 34,
-        colorFn: orcaColors,
-        sectionFn: orcaSection,
-      }),
-    ),
-    ORCA_SKIN,
-  );
-  const body = bindAxialMotion(torso, [], { axis: "x" });
-  const [, peduncle, tailJoint] = body.skeleton.bones;
-  addFeedingMouth(root, inner, [0, -0.052, -0.43]);
-
-  // 眼斑贴合体表，向后上方倾斜拉长。
-  for (const side of [-1, 1]) {
-    mesh(
-      inner,
-      cached(`orca_patch_${side}`, () =>
-        surfacePatch(ORCA_PROFILE, -0.305, 0.052, 0.052, 0.026, side, -0.42),
-      ),
-      MATERIALS.white,
-    );
-    ellipsoid(
-      inner,
-      MATERIALS.eye,
-      [side * 0.114, 0.014, -0.364],
-      [0.006, 0.0065, 0.008],
-    );
-    ellipsoid(
-      inner,
-      MATERIALS.white,
-      [side * 0.118, 0.016, -0.367],
-      [0.0014, 0.0014, 0.002],
-    );
-    mesh(
-      inner,
-      tube(
-        [
-          [side * 0.018, -0.052, -0.455],
-          [side * 0.062, -0.072, -0.415],
-          [side * 0.089, -0.08, -0.352],
-          [side * 0.094, -0.072, -0.3],
-        ],
-        0.0026,
-      ),
-      MATERIALS.mouth,
-    );
-    // 宽大桨状胸鳍，游动时轻缓划水，冲刺时向后收拢。
-    const flipper = new THREE.Group();
-    flipper.position.set(side * 0.095, -0.055, -0.185);
-    inner.add(flipper);
-    mesh(
-      flipper,
-      cached(`orca_flipper_${side}`, () =>
-        finSolid(
-          mirrorOutline(
-            [
-              [0.0, 0.02],
-              [-0.05, 0.055],
-              [-0.06, 0.13],
-              [-0.02, 0.21],
-              [0.04, 0.225],
-              [0.075, 0.155],
-              [0.06, 0.06],
-            ],
-            side,
-          ),
-          0.016,
-          "horizontal",
-          { bevel: 0.007 },
-        ),
-      ),
-      MATERIALS.orca,
-    );
-    flipper.name = `orca_flipper_${side}`;
-    motions.push((t, effort, state) => {
-      const folded = Math.max(state.boost, state.airborne);
-      flipper.rotation.z =
-        -side *
-          (0.3 - folded * 0.12 + Math.sin(t - 0.8) * 0.065 * (1 - folded)) +
-        state.turn * 0.26;
-      flipper.rotation.x = Math.sin(t - 0.7) * 0.055 + state.pitchInput * 0.16;
-      flipper.rotation.y = -side * (0.08 + folded * 0.53);
-    });
-  }
-  // 呼吸孔嵌在头顶，黑白体色之外保留近景解剖尺度。
-  ellipsoid(inner, MATERIALS.mouth, [0, 0.145, -0.225], [0.013, 0.0025, 0.009]);
-  // 高大镰刀形背鳍，从正后方也能立刻认出虎鲸。
-  mesh(
-    inner,
-    cached("orca_dorsal", () =>
-      finSolid(
-        [
-          [-0.115, 0.12],
-          [-0.055, 0.235],
-          [0.01, 0.345],
-          [0.055, 0.415],
-          [0.088, 0.4],
-          [0.108, 0.3],
-          [0.135, 0.175],
-          [0.125, 0.124],
-        ],
-        0.016,
-        "vertical",
-        { bevel: 0.006 },
-      ),
-    ),
-    MATERIALS.orca,
-  );
-
-  const tail = new THREE.Group();
-  tail.name = "orca_flukes";
-  tail.position.set(0, -0.016, 0.15);
-  tailJoint.add(tail);
-  mesh(
-    tail,
-    cached("orca_flukes", () =>
-      finSolid(
-        // 前后缘保持正的弦长，避免旧轮廓在两侧中段交叉成薄线。
-        [
-          [0.0, 0.0],
-          [0.012, 0.075],
-          [0.043, 0.16],
-          [0.095, 0.235],
-          [0.142, 0.265],
-          [0.148, 0.225],
-          [0.132, 0.16],
-          [0.105, 0.075],
-          [0.06, 0.018],
-          [0.048, 0.0],
-          [0.06, -0.018],
-          [0.105, -0.075],
-          [0.132, -0.16],
-          [0.148, -0.225],
-          [0.142, -0.265],
-          [0.095, -0.235],
-          [0.043, -0.16],
-          [0.012, -0.075],
-        ],
-        0.013,
-        "horizontal",
-        { bevel: 0.005 },
-      ),
-    ),
-    MATERIALS.orca,
-  );
-  motions.push((t, effort, state) => {
-    // 尾柄由近端到远端传递推进波，尾鳍接在同一骨骼上，避免与躯干脱节。
-    const amplitude =
-      (0.13 + state.power * 0.13 + state.boost * 0.04) *
-      (1 - state.airborne * 0.85);
-    peduncle.rotation.x = Math.sin(t) * amplitude * 0.48;
-    tailJoint.rotation.x = Math.sin(t - 0.62) * amplitude;
-    tailJoint.rotation.y = -state.turn * 0.08;
-    tail.rotation.x = Math.sin(t - 1.25) * amplitude * 1.15;
-    tail.rotation.y = -state.turn * 0.045;
-    inner.rotation.x = -state.boost * 0.018;
-    inner.rotation.z = -state.turn * 0.16;
-    Object.assign(root.userData.pose, {
-      tailBeat: tailJoint.rotation.x,
-      flukePitch: tail.rotation.x,
-      bank: inner.rotation.z,
-      folded: state.boost,
-    });
-  });
-}
 
 function countershaded(threshold, softness = 0.12) {
   return (z, y, shade, upper, lower) => {

@@ -8,6 +8,7 @@ import { mergeGeometries } from "three/addons/utils/BufferGeometryUtils.js";
  * @returns {object} update(time, effort, input) 返回稳定状态对象，feed() 触发收腕，reset() 恢复初始状态。
  */
 export function createPlayerMotion(kind, phase = 0) {
+  const shark = kind === "zombie_shark" || kind === "mechanical_shark";
   const initialState = {
     phase,
     dt: 0,
@@ -51,6 +52,7 @@ export function createPlayerMotion(kind, phase = 0) {
         kind === "orca" ? 42 : 32,
       );
       const smoothing = 1 - Math.exp(-dt * 8);
+      const steeringSmoothing = shark ? 1 - Math.exp(-dt * 4.5) : smoothing;
       for (const [key, target] of Object.entries({
         effort: clamp(effort, 0.15, 3),
         speed,
@@ -62,13 +64,19 @@ export function createPlayerMotion(kind, phase = 0) {
         airborne: Number(Boolean(input?.airborne)),
         feed: feedTarget,
       }))
-        state[key] += (target - state[key]) * smoothing;
+        state[key] +=
+          (target - state[key]) *
+          (key === "turn" || key === "pitchInput" || (shark && key === "boost")
+            ? steeringSmoothing
+            : smoothing);
       feedTarget *= Math.exp(-dt * 5);
       state.phase +=
         dt *
         (kind === "orca"
           ? 3.3 + state.power * 2.7 + state.boost * 1.2
-          : 2.8 + state.power * 1.7 + state.jet * 2.2);
+          : shark
+            ? 2.6 + state.power * 3 + state.boost * 1.8
+            : 2.8 + state.power * 1.7 + state.jet * 2.2);
       return state;
     },
   };

@@ -219,10 +219,12 @@ export function buildOceanCatalog(regionId) {
       color: entry.color || (entry.kind === "orca" ? "#a1e8d5" : "#c2a5e8"),
       appearance:
         entry.kind === "mechanical_shark"
-          ? "机械鲨鱼：深蓝与钴蓝分块装甲、铜色工程带、宽肩护甲、测距传感器、铰接鳍尾和腹部鱼雷舱；双推进器在冲刺时喷出蓝白与橙色尾焰。"
+          ? "机械鲨鱼：深蓝金属机身、天蓝色分层装甲、石墨关节、青蓝能量导线、机械颌与可动鳍尾；双推进器在冲刺时喷出蓝白尾焰，腹部鱼雷发射口随发射短暂亮起。"
           : entry.kind === "zombie_shark"
             ? "亡灵鲨鱼：头颌、侧腹、背脊和尾柄有不规则撕裂与裸露骨架，伤口内层肌肉也有深裂口与断裂纤维，深处保留暗红组织，破颌内有口腔组织；断鳍与伤口带有血迹，低压眉骨与尖牙呈现凶狠神态。"
-            : undefined,
+            : entry.kind === "orca"
+              ? "虎鲸：黑白体色、眼后白斑、灰色鞍斑、厚实桨状胸鳍和完整水平尾鳍；尾柄带动尾鳍上下推进，转向时胸鳍微调，冲刺时向后收拢。"
+              : "大王乌贼：铜褐斑纹外套膜、巨大的侧眼与尾端双鳍，八条带吸盘的腕围成腕冠，两条捕食触腕更长；巡游鳍波舒展，喷射时外套膜收缩、腕足顺流收束。",
       length: startingLength(entry),
       size: tr`${startingLength(entry)}—30 m（成长玩法）`,
       habitat: regionId === "penglai" ? "蓬莱浅水与云海" : "本作海洋全域",
