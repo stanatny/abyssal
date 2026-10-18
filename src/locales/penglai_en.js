@@ -2,6 +2,10 @@ import { PENGLAI_EN as SPECIES_EN } from "../penglai_species.js";
 import "../penglai_lords.js";
 import "../penglai_transformation_species.js";
 export const PENGLAI_EN = Object.freeze({
+  赑屃镇渊碑: "Bixi Guardian Stele",
+  "道观北侧是玄冥深潭，岸边驮碑石龟面向道观；下潜寻找玄武，留意深处巡游的寒潭虎蛟。":
+    "Xuanming Deep Basin lies north of the monastery, with a turtle-backed stele facing it from the shore. Dive to find Black Tortoise and watch for the Northern Hujiao.",
+  玄冥深潭: "Xuanming Deep Basin",
   "蓄势后沿锁定方向发出最远{0}米的扩散音浪，波前接触才会造成一次{1}点基础伤害；飞出山头不等于安全，音浪不会追踪。":
     "After the warning, an expanding sound front follows its locked course for up to{0}m. Contact deals at most one{1}-damage hit. Air beyond the summit is still threatened; the wave never homes in.",
   "观察虎啸方向，横向或升降离开波前，也可借真实山石遮挡；收势时本体可以反击。":

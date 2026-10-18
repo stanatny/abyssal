@@ -50,6 +50,20 @@ export function regionZone(regionId, depth, position = null) {
         "沿贝园与古代航路成长，寻找三位守卫领域外的丰厚食物，再探索深水峡口。",
     };
   }
+  if (
+    regionId === "penglai" &&
+    position?.z < -820 &&
+    position.z > -1280 &&
+    Math.abs(position.x) < 330 &&
+    position.y < -65
+  )
+    return {
+      ...zone,
+      name: "玄冥深潭",
+      code: "XUANMING DEEP BASIN",
+      description:
+        "道观北侧是玄冥深潭，岸边驮碑石龟面向道观；下潜寻找玄武，留意深处巡游的寒潭虎蛟。",
+    };
   if (regionId === "penglai")
     return {
       ...zone,

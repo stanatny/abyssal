@@ -63,13 +63,58 @@ const { buildOceanCatalog, filterOceanCatalog } = await import(
 hook.deregister();
 const roster = getRegionSpecies("penglai");
 
+test("Northern basin has adult underwater turning and vertical escape space on its rendered floor", () => {
+  const ocean = createPenglaiOcean(new THREE.Group()),
+    tortoise = PENGLAI_BOSS_INSTANCES.find((b) => b.kind === "black_tortoise");
+  try {
+    assert.ok(ocean.groundHeightAt(0, -1030) < -320);
+    assert.ok(tortoise.home[1] < -190);
+    assert.ok(tortoise.maxCenterY <= -130);
+    for (let i = 0; i < 24; i++) {
+      const a = (i * Math.PI) / 12,
+        x = Math.cos(a) * 210,
+        z = -1030 + Math.sin(a) * 150;
+      for (const y of [-145, -195, -245]) {
+        const at = new THREE.Vector3(x, y, z),
+          heading = new THREE.Vector3(Math.sin(a), 0, -Math.cos(a));
+        assert.ok(
+          ocean.groundHeightAt(x, z) < y - 15,
+          `floor clearance ${i}/${y}`,
+        );
+        assert.equal(
+          isPositionBlocked(at, {
+            colliders: ocean.colliders,
+            radius: bodyRadius(30),
+            length: 30,
+            forward: heading,
+          }),
+          false,
+        );
+      }
+    }
+    const turtle = createCreature("black_tortoise", 50);
+    turtle.position.y = tortoise.maxCenterY;
+    for (const time of [0, 0.4, 0.8, 1.2]) {
+      turtle.userData.animate(time, 2);
+      turtle.updateMatrixWorld(true);
+      const box = new THREE.Box3().setFromObject(turtle, true);
+      assert.ok(
+        box.max.y < PENGLAI_WORLD.surfaceY,
+        `whole turtle remains submerged ${box.max.y}`,
+      );
+    }
+  } finally {
+    ocean.dispose();
+  }
+});
+
 test("Penglai is the seventh isolated mythic destination with real ordinary and guardian registries", () => {
   assert.equal(REGIONS[6].id, "penglai");
   assert.equal(REGIONS[5].id, "europa");
   assert.equal(roster.length, 19);
   assert.equal(
     roster.reduce((n, s) => n + s.population, 0),
-    438,
+    400,
   );
   assert.ok(
     roster.every(

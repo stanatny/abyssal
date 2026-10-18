@@ -113,17 +113,17 @@ test("Northern pool provides real medium food school profiles and large hunters 
   const northern = groups.filter(
     (g) =>
       g.habitat.depthMin > 0 &&
-      g.habitat.schoolAnchors?.some((p) => p[2] < -1000),
+      g.habitat.schoolAnchors?.some((p) => p[2] < -900),
   );
   assert.equal(
     northern.reduce((n, g) => n + g.count, 0),
-    18,
+    9,
   );
-  assert.equal(h.spawnAnchors.filter((p) => p[2] < -995).length, 16);
+  assert.equal(h.spawnAnchors.filter((p) => p[2] < -995).length, 4);
   assert.ok(
     new Set(
       h.spawnAnchors.filter((p) => p[2] < -995).map((p) => `${p[0]},${p[2]}`),
-    ).size >= 4,
+    ).size >= 3,
   );
   assert.ok(carp.length >= 6 && h.length >= 15 && h.length < 25);
 });
@@ -140,16 +140,13 @@ test("Complete summit paths attach to terrain and monastery has physical facade/
         ) < 9,
       );
   }
-  const paths = o.root.getObjectByName("continuous_summit_stone_paths");
-  assert.equal(paths.children.length, 6);
-  for (const m of paths.children) {
-    const p = m.geometry.attributes.position;
-    for (let i = 0; i < p.count; i++)
-      assert.ok(
-        Math.abs(p.getY(i) - penglaiHeightAt(p.getX(i), p.getZ(i)) - 0.65) <
-          0.005,
-      );
-  }
+  // 石径与山体共用同一表面，不再检查会掩盖穿插问题的解析高度薄片。
+  assert.equal(
+    o.root.getObjectByName("continuous_summit_stone_paths"),
+    undefined,
+  );
+  const terrain = o.root.getObjectByName("same_source_mountain_floor");
+  assert.ok(terrain.material.userData.summitPathTexture?.isTexture);
   for (const kind of [
     "monastery_side_wall",
     "monastery_rear_wall",

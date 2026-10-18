@@ -1,5 +1,7 @@
 /** 尸鲨角色、图鉴、召唤状态和实际事件共用的英文文案。 */
 export const ZOMBIE_SHARK_EN = Object.freeze({
+  "尸爆被 {0} 挡下 · 等待新的反击窗口":
+    "{0} blocked the corpse blast · Wait for a fresh opening",
   丧尸鲨鱼: "Zombie Shark",
   "献祭召唤 · 环游猎仆": "Blood sacrifice · Hunting companion",
   "尸鲨分裂 · 最长存活60秒，无冷却": "Undead Fission · Up to 60s, no cooldown",

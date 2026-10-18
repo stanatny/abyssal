@@ -1,8 +1,9 @@
+import { createPenglaiBixi } from "./penglai_bixi.js";
 import { terrainMeshHeight } from "./terrain_mesh_height.js";
 import {
   PENGLAI_SUMMIT_ROUTES,
   besideSummitPath,
-  createPenglaiSummitPaths,
+  applyPenglaiSummitPaths,
 } from "./penglai_routes.js";
 import { createPenglaiWard } from "./penglai_ward.js";
 import { createPenglaiSkyIslands } from "./penglai_sky_islands.js";
@@ -17,7 +18,10 @@ import {
   PENGLAI_WORLD as W,
   PENGLAI_PEAKS,
   PENGLAI_BOSS_INSTANCES,
+  PENGLAI_DEEP_BASIN,
+  PENGLAI_BIXI,
   penglaiHeightAt,
+  penglaiBasinRadius,
 } from "./penglai_config.js";
 import {
   finishScenePreparation,
@@ -50,7 +54,8 @@ export function* createPenglaiOceanSteps(parent) {
   let disposed = false,
     ward,
     skyIslands,
-    skyHazards;
+    skyHazards,
+    bixi;
   const material = (key, color, extra = {}) =>
     mats[key] ??
     (mats[key] = keep(
@@ -716,6 +721,7 @@ export function* createPenglaiOceanSteps(parent) {
       new THREE.MeshStandardMaterial({ vertexColors: true, roughness: 0.96 }),
     );
     addSurfaceDetail(terrain, "stone", 0.2);
+    applyPenglaiSummitPaths(terrain, keep);
     const colors = {
         water: new THREE.Color("#547c75"),
         rock: new THREE.Color("#697f68"),
@@ -785,10 +791,16 @@ export function* createPenglaiOceanSteps(parent) {
         "#include <color_fragment>\nfloat wave=sin(vPool.x*.13+penglaiTime*.55)*sin(vPool.z*.17-penglaiTime*.3);diffuseColor.rgb*=.94+.06*wave;",
       );
     };
-    const waterg = keep(new THREE.PlaneGeometry(1200, 1560, 1, 1));
+    const waterg = keep(
+      new THREE.PlaneGeometry(W.maxX - W.minX, W.maxZ - W.minZ, 1, 1),
+    );
     waterg.rotateX(-Math.PI / 2);
     const water = new THREE.Mesh(waterg, watermat);
-    water.position.set(0, 4, -620);
+    water.position.set(
+      (W.minX + W.maxX) / 2,
+      W.surfaceY,
+      (W.minZ + W.maxZ) / 2,
+    );
     water.name = "opaque_lotus_water_top";
     root.add(water);
     const underside = new THREE.Mesh(
@@ -993,10 +1005,12 @@ export function* createPenglaiOceanSteps(parent) {
           z = peak.z + Math.sin(a) * r,
           y = penglaiHeightAt(x, z);
         if (
+          (Math.abs(x - PENGLAI_BIXI.x) < 55 &&
+            Math.abs(z - PENGLAI_BIXI.z) < 62) ||
           besideSummitPath(x, z, 12) ||
           (Math.abs(x) < 100 && Math.abs(z + 650) < 135) ||
           Math.hypot(x + 320, z + 650) < 88 ||
-          Math.hypot(x / 138, (z + 1030) / 125) < 1.3
+          penglaiBasinRadius(x, z) < 1.25
         )
           continue;
         colliders.push({
@@ -1028,11 +1042,6 @@ export function* createPenglaiOceanSteps(parent) {
           0.13,
         );
       }
-    createPenglaiSummitPaths(
-      root,
-      keep,
-      material("path_stone", "#b3b5a3", { side: THREE.DoubleSide }),
-    );
     for (const route of PENGLAI_SUMMIT_ROUTES) {
       pavilion(route.top.x, route.top.z, 0.72);
       yield "summit-pavilions";
@@ -1166,7 +1175,20 @@ export function* createPenglaiOceanSteps(parent) {
       chunks.push(m);
       yield "details";
     }
+    bixi = createPenglaiBixi(root, keep, colliders);
     const landmarks = [
+      {
+        name: "赑屃镇渊碑",
+        position: bixi.root.position.clone().add(new THREE.Vector3(0, 35, 0)),
+      },
+      {
+        name: "玄冥深潭",
+        position: new THREE.Vector3(
+          PENGLAI_DEEP_BASIN.x,
+          PENGLAI_DEEP_BASIN.guardianY,
+          PENGLAI_DEEP_BASIN.z,
+        ),
+      },
       { name: "莲池育幼湾", position: new THREE.Vector3(0, -18, 75) },
       { name: "龙门", position: new THREE.Vector3(0, gateY + 35, gateZ) },
       {
@@ -1252,6 +1274,7 @@ export function* createPenglaiOceanSteps(parent) {
         sky.position.copy(cameraPosition);
         time.value = t;
         ward.update(t, position);
+        bixi.update();
         skyHazards.update(t, position, reducedMotion, highQuality);
         skyMaterial.uniforms.underwater.value = Math.max(
           0,

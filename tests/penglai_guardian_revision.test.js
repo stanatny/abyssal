@@ -105,7 +105,7 @@ test("Northern Hujiao is a single ordinary pool resident and still retaliates at
   assert.equal(s.flying, false);
   assert.equal(s.groundbound, false);
   assert.equal(s.independentMovement, true);
-  assert.deepEqual(s.spawnAnchors, [[-42, -24, -1055]]);
+  assert.deepEqual(s.spawnAnchors, [[75, -170, -980]]);
   assert.equal(s.schoolProfiles, undefined);
   assert.equal(canEat(p, s.length), true);
   assert.equal(canPredatorRetaliate(30, s.length), true);

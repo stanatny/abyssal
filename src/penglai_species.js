@@ -38,9 +38,9 @@ const pond = [
   [-50, -18, -120],
   [80, -18, -190],
   [-95, -12, -270],
-  [-50, -20, -1030],
-  [60, -20, -1060],
-  [0, -20, -1110],
+  [-158, -30, -1020],
+  [145, -46, -1075],
+  [10, -72, -1140],
 ];
 const rows = [
   [
@@ -129,8 +129,8 @@ const rows = [
     4.2,
     "#e29652",
     "鱼",
-    "修长赤金锦鲤身、口边长须与飘带般的长尾，循龙门水流游动，也在北方莲池外缘成群穿行。",
-    "A long red-gold koi body, mouth barbels and veiled tail follow the Dragon Gate currents and school along the northern lotus pool rim.",
+    "修长赤金锦鲤身、口边长须与飘带般的长尾，循龙门水流游动，也在道观北侧深潭外缘成群穿行。",
+    "A long red-gold koi body, mouth barbels and veiled tail follow the Dragon Gate currents and school along the northern deep basin rim.",
     sky.slice(0, 4),
     4,
   ],
@@ -210,8 +210,8 @@ const rows = [
     "龙",
     "深体鱼身、放射状鳍与连续长蛇尾，贴水游猎。",
     "A deep fish body, rayed fins and continuous serpent tail form a water-skimming mythic hunter.",
-    [...pond.slice(2), [-64, -20, -1090]],
-    3,
+    [pond[2], [-200, -190, -1000], [200, -210, -1100], [40, -240, -1190]],
+    1,
     true,
   ],
   [
@@ -292,9 +292,9 @@ const rows = [
     8.8,
     "#416b72",
     "龙",
-    "北池的巨型成体虎蛟，厚实鱼身、冠状背鳍与连续蛇尾沿玄武外缘巡猎；即使30米的猎物仍可能遭到侧后方反击。",
-    "A mature northern-pool Hujiao with a powerful fish forebody, a crowned dorsal fin and a continuous serpent tail patrols outside the tortoise. Even a 30 m hunter can suffer its flank or rear bite.",
-    [[-42, -24, -1055]],
+    "道观北侧深潭的巨型成体虎蛟，厚实鱼身、冠状背鳍与连续蛇尾沿玄武外缘巡猎；即使30米的猎物仍可能遭到侧后方反击。",
+    "A mature Hujiao of the deep basin north of the monastery with a powerful fish forebody, a crowned dorsal fin and a continuous serpent tail patrols outside the tortoise. Even a 30 m hunter can suffer its flank or rear bite.",
+    [[75, -170, -980]],
     1,
     true,
   ],
@@ -351,25 +351,32 @@ export const PENGLAI_SPECIES = Object.freeze(
             ? "staggered"
             : null;
       const profiles = points.map((p) => ({
-        anchor: p,
-        count,
-        depthMin: -p[1] - (flying ? 35 : 8),
-        depthMax: -p[1] + (flying ? 35 : 8),
+        anchor:
+          kind === "xuangui" && p[2] < -900
+            ? [p[0] * 0.7, p[1] - 20, p[2] + 30]
+            : p,
+        count: !flying && !predator && p[2] < -900 ? 2 : count,
+        depthMin: kind === "pool_hujiao" ? 110 : -p[1] - (flying ? 35 : 8),
+        depthMax:
+          kind === "pool_hujiao"
+            ? 270
+            : -p[1] +
+              (flying ? 35 : kind === "xuangui" && p[2] < -900 ? 28 : 8),
         fixedHabitat: true,
         nurseryResident: points === nursery,
         densityLimit: Math.ceil(count * 1.7),
       }));
       if (kind === "spirit_carp") {
         for (const anchor of [
-          [-74, -17, -1060],
-          [65, -18, -1075],
-          [0, -20, -1132],
+          [-240, -130, -1000],
+          [240, -145, -920],
+          [80, -180, -1180],
         ])
           profiles.push({
             anchor,
-            count: 4,
-            depthMin: 8,
-            depthMax: 30,
+            count: 2,
+            depthMin: -anchor[1] - 8,
+            depthMax: -anchor[1] + 8,
             fixedHabitat: true,
             densityLimit: 6,
           });
@@ -378,13 +385,13 @@ export const PENGLAI_SPECIES = Object.freeze(
         kind,
         ...(kind === "pool_hujiao"
           ? {
-              residentRadius: 58,
-              spawnAnchors: [[-42, -24, -1055]],
+              residentRadius: 180,
+              spawnAnchors: [[75, -170, -980]],
               hunterTerritory: {
-                minX: -112,
-                maxX: 112,
-                minZ: -1145,
-                maxZ: -930,
+                minX: -270,
+                maxX: 270,
+                minZ: -1250,
+                maxZ: -820,
               },
             }
           : {}),
@@ -431,7 +438,7 @@ export const PENGLAI_SPECIES = Object.freeze(
                 ? "山径游走与跃击"
                 : flying
                   ? "云间巡游"
-                  : "浅水巡游",
+                  : "水域巡游",
           kind === "kun"
             ? "Soaring transformation"
             : kind === "dragon_carp"
@@ -440,7 +447,7 @@ export const PENGLAI_SPECIES = Object.freeze(
                 ? "Mountain patrol and leaps"
                 : flying
                   ? "Cloud flight"
-                  : "Shallow-water patrol",
+                  : "Water patrol",
         ),
         realSize: fantasy,
         counter,
@@ -453,12 +460,12 @@ export const PENGLAI_SPECIES = Object.freeze(
             ? "云海与山间空域"
             : groundbound
               ? "山间地表与桃花林"
-              : "莲池与浅水石床",
+              : "莲池与北方深潭",
           flying
             ? "Clouds and mountain airspace"
             : groundbound
               ? "Mountain ground and peach groves"
-              : "Lotus pools and shallow stone beds",
+              : "Lotus pools and the northern deep basin",
         ),
         ...((groundbound || predator) && kind !== "pool_hujiao"
           ? {
@@ -481,7 +488,7 @@ export const PENGLAI_SPECIES = Object.freeze(
               hunterTerritory: {
                 minX: -560,
                 maxX: 560,
-                minZ: -1350,
+                minZ: W.minZ + 50,
                 maxZ: -145,
               },
             }

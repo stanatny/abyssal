@@ -57,8 +57,8 @@ const rows = [
     50,
     "pulse",
     "#608c81",
-    "北方莲池中的重甲巨龟，脊状甲板、鹰喙龟首与甲缘角蛇坚守阵地，双前桨推水、后桨稳向；蓄势后释放两道宽域震波，甲阵消退后露出短暂破绽。",
-    "A massive armored tortoise with ridged plates, a beaked head and a rim-coiled horned serpent guards the northern lotus pool. Paired forepaddles propel it while hindpaddles steer. Its ward blocks attacks while two broad pulses expand, then briefly exposes its body.",
+    "道观北侧深潭中的重甲巨龟，脊状甲板、鹰喙龟首与甲缘角蛇坚守阵地，双前桨推水、后桨稳向；蓄势后释放两道宽域震波，甲阵消退后露出短暂破绽。",
+    "A massive armored tortoise with ridged plates, a beaked head and a rim-coiled horned serpent guards the deep basin north of the monastery. Paired forepaddles propel it while hindpaddles steer. Its ward blocks attacks while two broad pulses expand, then briefly exposes its body.",
   ],
   [
     "sword_sage",
@@ -246,7 +246,7 @@ export const PENGLAI_LORD_DESCRIPTIONS = Object.freeze(
                 : kind === "white_tiger"
                   ? "交替使用“白虎掠风”跃扑与“裂空虎啸”远程音浪，守望西山周边空域。虎啸锁定预警方向后不追踪；侧闪、升降或借山石遮挡，收势时再反击。击败后本局不再刷新。"
                   : kind === "black_tortoise"
-                    ? "“玄甲镇渊”在蓄势与脉冲期间升起护甲，挡住咬击和鱼雷；两道震波消退后的3秒收势期才是反击窗口，需四轮有效反击。镇守北池，击败后本局不再刷新。"
+                    ? "“玄甲镇渊”在蓄势与脉冲期间升起护甲，挡住咬击和鱼雷；两道震波消退后的3秒收势期才是反击窗口，需四轮有效反击。镇守道观北侧的玄冥深潭，朝岸边驮碑石龟方向下潜寻找，战斗始终留在深水，击败后本局不再刷新。"
                     : "“朱羽焚天”蓄势后发出三道焰息，攻击力为四神兽之最；横向变向避开连弹，趁收势反击。镇守南方天空，击败后本局不再刷新。",
             kind === "sword_sage"
               ? "The monastery is sealed until all four guardians fall. Once the ward falls, the sage pursues across Penglai and advances during early blade windup. He has 350 health and requires five separate counters; only brief post-volley or post-dash recovery exposes his body. Use mountain cover and sprint turns, then seize an opening. Defeat him to complete Penglai."
@@ -255,7 +255,7 @@ export const PENGLAI_LORD_DESCRIPTIONS = Object.freeze(
                 : kind === "white_tiger"
                   ? "It alternates White Tiger Windstep with a remote Sky-Rending Roar across the western mountain airspace. The roar follows its warned course without homing. Dodge sideways or vertically, or use mountain cover, then counter during recovery. It never respawns after defeat."
                   : kind === "black_tortoise"
-                    ? "Abyss-Sealing Shell Ward blocks bites and torpedoes during windup and pulse. Two expanding pulses are followed by a 3-second counter window; four separate counters defeat it. It guards the northern pool and never respawns after defeat."
+                    ? "Abyss-Sealing Shell Ward blocks bites and torpedoes during windup and pulse. Two expanding pulses are followed by a 3-second counter window; four separate counters defeat it. It stays deep in the basin north of the monastery. Descend toward the shore’s turtle-backed stele to find it. Once defeated, it does not respawn."
                     : "Vermilion Skyfire prepares three flame volleys; this is the hardest-hitting Four-Symbol guardian. Change course sideways and counter during recovery. It guards the southern sky and never respawns after defeat.",
           ),
           counter: t(

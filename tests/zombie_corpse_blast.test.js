@@ -1,7 +1,7 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 import * as THREE from "three";
-import { createAreaBlast } from "../src/area_blast.js";
+import { createAreaBlast, createBlastBodyQuery } from "../src/area_blast.js";
 import { createMechanicalTorpedoes } from "../src/mechanical_torpedoes.js";
 import { createZombieMinion } from "../src/zombie_minion.js";
 import { createPlayer, consumePrey } from "../src/simulation.js";
@@ -24,6 +24,85 @@ import { t } from "../src/i18n.js";
 
 const origin = new THREE.Vector3(0, -50, 0),
   forward = new THREE.Vector3(0, 0, -1);
+
+test("posed lord sections acquire real bodies from every reachable side, without extending range or skipping solid contact", () => {
+  for (const kind of [
+    "azure_dragon",
+    "white_tiger",
+    "black_tortoise",
+    "vermilion_bird",
+    "sword_sage",
+    "kraken",
+    "leviathan",
+  ]) {
+    for (let side = 0; side < 4; side++) {
+      const species = BOSS_SPECIES.find((s) => s.kind === kind),
+        b = {
+          enabled: true,
+          state: createBossState(species),
+          mesh: createCreature(kind, species.length, 91),
+        },
+        p = createPlayer("zombie_shark", 29),
+        at = new THREE.Vector3(
+          Math.sin((side * Math.PI) / 2) * 32,
+          100,
+          Math.cos((side * Math.PI) / 2) * 32,
+        ),
+        heading = new THREE.Vector3(0, 100, 0).sub(at).normalize(),
+        results = [];
+      p.length = 30;
+      b.state.phase = "recover";
+      b.mesh.position.y = 100;
+      b.mesh.userData.animate(0, 1);
+      updateLordBody(b.mesh);
+      const point = createBlastBodyQuery()(at, b, 32);
+      if (kind === "kraken" && side === 2) {
+        assert.equal(
+          point,
+          undefined,
+          "actual rear body is over32m away, despite the root being within range",
+        );
+        continue;
+      }
+      assert.ok(point && point.distanceTo(at) <= 32, `${kind}/${side}`);
+      const blast = createAreaBlast({
+          bosses: () => [b],
+          hitBoss: (p, b) => hitBossWithCorpseBlast(p, b.state),
+        }),
+        m = createZombieMinion(new THREE.Scene(), {
+          blockedBetween: () => false,
+          detonationTargets: () => [b],
+          resolveMovement: (a, z, h, l) =>
+            resolveMotion(a, z, {
+              colliders: updateLordBody(b.mesh),
+              forward: h,
+              length: l,
+              radius: bodyRadius(l),
+            }),
+          effects: { minionTransition() {}, mealMist() {} },
+          onExpire: (at, p) => results.push(blast(at, p)),
+        });
+      m.activate(p, at, heading);
+      p.elapsed = 2;
+      m.update(1.3, p, at, heading, []);
+      m.mesh.position.copy(at);
+      m.mesh.quaternion.setFromUnitVectors(
+        new THREE.Vector3(0, 0, -1),
+        heading,
+      );
+      assert.equal(m.commandDetonation(p), true, `${kind}/${side}`);
+      for (let i = 0; i < 240 && m.active; i++) {
+        p.elapsed += 1 / 60;
+        m.update(1 / 60, p, at, heading, []);
+      }
+      assert.equal(results.length, 1, `${kind}/${side}`);
+      assert.equal(results[0].bossHits, 1, `${kind}/${side}`);
+      assert.equal(b.state.validatedHits, 1);
+      assert.equal(blast(results[0].point, p).bossHits, 0);
+      m.reset();
+    }
+  }
+});
 function prey(length = 8, x = 5, species = {}) {
   const mesh = new THREE.Mesh(
     new THREE.SphereGeometry(1, 8, 6),

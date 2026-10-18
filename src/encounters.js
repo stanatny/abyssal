@@ -1868,6 +1868,11 @@ export function createEncounters(
         2,
       );
       if (result.defeated) hideDefeated(entry);
+    } else if (corpse && !entry.state.defeated && !player.dead) {
+      notify(
+        message`尸爆被 ${entry.state.species.label} 挡下 · 等待新的反击窗口`,
+        2.8,
+      );
     }
     return result;
   }

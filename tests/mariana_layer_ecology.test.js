@@ -82,7 +82,7 @@ test("Only five ordinary instances are added and the other seven regional invent
     bermuda: 467,
     amazon: 409,
     europa: 352,
-    penglai: 438,
+    penglai: 400,
     odyssey: 269,
   }))
     assert.equal(

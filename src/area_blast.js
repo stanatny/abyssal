@@ -1,4 +1,5 @@
 import * as THREE from "three";
+import { updateLordBody } from "./lord_body.js";
 import { isRegionalRare, preyRespawnDelay } from "./regional_rare.js";
 import { consumeDefeatedPrey, consumePrey } from "./simulation.js";
 import {
@@ -98,11 +99,11 @@ export function createAreaBlast({
 export function createBlastBodyQuery() {
   const ray = new THREE.Raycaster(),
     direction = new THREE.Vector3(),
-    intersections = [];
-  return (origin, boss, range = Infinity) => {
-    const contact = boss.mesh.userData.contactRoot || boss.mesh;
-    contact.updateWorldMatrix(true, true);
-    direction.copy(boss.mesh.position).sub(origin);
+    target = new THREE.Vector3(),
+    intersections = [],
+    candidates = [];
+  function cast(origin, at, contact, range) {
+    direction.copy(at).sub(origin);
     const distance = direction.length();
     if (distance < 0.001) direction.set(0, 0, -1);
     else direction.divideScalar(distance);
@@ -113,6 +114,34 @@ export function createBlastBodyQuery() {
     return intersections.find(
       (i) => i.object.isMesh && visibleMesh(i.object, contact),
     )?.point;
+  }
+  return (origin, boss, range = Infinity) => {
+    const contact = boss.mesh.userData.contactRoot || boss.mesh;
+    contact.updateWorldMatrix(true, true);
+    const direct = cast(origin, boss.mesh.position, contact, range);
+    if (direct) return direct;
+    // 模型原点可能落在四足之间或弯曲躯干外；截面只提供方向，命中仍须落到真实网格。
+    candidates.length = 0;
+    for (const section of updateLordBody(boss.mesh)) {
+      target.set(section.x, section.y, section.z);
+      const distance = target.distanceTo(origin);
+      if (distance <= range + Math.max(...Object.values(section.axes)))
+        candidates.push(section);
+    }
+    candidates.sort(
+      (a, b) =>
+        (a.x - origin.x) ** 2 +
+        (a.y - origin.y) ** 2 +
+        (a.z - origin.z) ** 2 -
+        ((b.x - origin.x) ** 2 + (b.y - origin.y) ** 2 + (b.z - origin.z) ** 2),
+    );
+    // 上限限制退路成本；不分配网格、不注册另一套动画/碰撞状态。
+    for (let i = 0; i < Math.min(8, candidates.length); i++) {
+      const section = candidates[i];
+      target.set(section.x, section.y, section.z);
+      const point = cast(origin, target, contact, range);
+      if (point) return point;
+    }
   };
 }
 
