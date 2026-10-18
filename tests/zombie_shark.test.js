@@ -301,7 +301,11 @@ test("尸鲨有肌肉衬底侧腹和独立侧向摆尾，3/15/30米真实顶点�
   b.traverse((x) => {
     if (x.isMesh) br.push(x);
   });
-  assert.equal(ar.length, 11);
+  assert.equal(ar.length, 1);
+  assert.equal(ar[0].geometry.index.count / 3, 29346);
+  assert.equal(ar[0].material, br[0].material);
+  assert.notEqual(ar[0].skeleton, br[0].skeleton);
+  assert.ok(ar[0].geometry.attributes.uv);
   assert.ok(ar.every((m, i) => m.geometry === br[i].geometry));
   assert.equal(a.userData.zombieAnatomy.recessedFlankWounds, 2);
   const v = new THREE.Vector3();
@@ -353,10 +357,9 @@ test("破损侧腹有不透明肌肉衬底，左右射线不穿过躯体；衬�
   const model = createCreature("zombie_shark", 1);
   const muscle = [];
   model.traverse((mesh) => {
-    if (mesh.isSkinnedMesh && mesh.material.vertexColors && !mesh.material.side)
-      muscle.push(mesh);
+    if (mesh.name === "zombie_shark_hf_body") muscle.push(mesh);
   });
-  // 独立红色肌肉批次采用正面、不透明材质；两侧伤口的视线均命中衬底。
+  // 实体重建采用正面、不透明材质；两侧伤口均有受蒙皮驱动的肌肉底面。
   assert.equal(muscle.length, 1);
   assert.equal(muscle[0].material.transparent, false);
   assert.equal(model.userData.zombieAnatomy.solidMuscleLining, true);
@@ -387,8 +390,7 @@ test("内层肌肉有真实深裂口且保留不透明底面，分裂起点随�
     other = createCreature("zombie_shark", 1);
   let muscle;
   model.traverse((m) => {
-    if (m.isSkinnedMesh && m.material.vertexColors && !m.material.side)
-      muscle = m;
+    if (m.name === "zombie_shark_hf_body") muscle = m;
   });
   model.updateMatrixWorld(true);
   muscle.skeleton.update();
@@ -397,11 +399,11 @@ test("内层肌肉有真实深裂口且保留不透明底面，分裂起点随�
       new THREE.Vector3(1, 0.014, z),
       new THREE.Vector3(-1, 0, 0),
     ).intersectObject(muscle)[0];
-  const torn = surface(-0.13),
-    intact = surface(-0.18);
+  const torn = surface(-0.1),
+    intact = surface(-0.11);
   assert.ok(torn && intact);
   assert.ok(intact.point.x - torn.point.x > 0.015);
-  assert.equal(model.userData.zombieAnatomy.muscleTears, 7);
+  assert.equal(model.userData.zombieAnatomy.source, "Microsoft TRELLIS.2-4B");
   const point = new THREE.Vector3(),
     target = new THREE.Vector3(10, 0, 0);
   model.userData.getFissionSource(point, target);

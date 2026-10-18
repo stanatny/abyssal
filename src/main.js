@@ -164,6 +164,7 @@ import {
   getCharacter,
 } from "./character_rules.js";
 import { bodyRadius, isPositionBlocked } from "./collision.js";
+import { prepareZombieSharkMaterials } from "./zombie_shark_asset.js";
 import { createZombieMinion } from "./zombie_minion.js";
 import { consumeMinionPrey, summonStatus } from "./zombie_shark_rules.js";
 
@@ -4422,6 +4423,7 @@ seedPickups();
 updateRegionPresentation();
 regionLoader.stage("正在准备光影…", 82);
 await regionLoader.paint();
+await prepareZombieSharkMaterials();
 await renderer.compileAsync(scene, camera);
 requestAnimationFrame(frame);
 await regionLoader.paint();
