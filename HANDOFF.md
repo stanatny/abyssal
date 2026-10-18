@@ -1,3 +1,13 @@
+# Accepted fin checkpoint / resume Mechanical Shark — 2026-10-18
+
+Accepted local fin checkpoint — 2026-10-18: the user authorizes committing the reviewed Zombie Shark pectoral-motion/pivot correction. All791 delivered source fingerprints and13 build files match before these acceptance-only notes. The existing38 focused checks and native/public receipts retain their recorded scope; no repeated game tests are claimed. Earlier uncommitted labels below are historical for this accepted fin change. No push/main release is requested. The user separately authorizes using the newly upgraded HF Pro account to regenerate Mechanical Shark; that new implementation remains uncommitted for review, preserving gameplay and requiring full swim/fin/tail validation.
+
+# Current Zombie Shark fin follow-up — 2026-10-18
+
+Current Zombie Shark fin follow-up — 2026-10-18: the current AI agent alone corrects under-readable chest-fin motion and misplaced fin pivots on `art/mechanical-hf-redraw`, after `93feab7`. Preserve the accepted HF surface/tail, mechanics, Mechanical Shark preparation, services and archives. This new work remains uncommitted/unpushed; see [the fin-motion review](docs/zombie_huggingface_redraw.md#pectoral-fin-motion-follow-up--2026-10-18). No further HF inference is needed for this rig correction.
+
+Fresh fin delivery:38 focused checks, formatting/build, matched Guide cycles, native owner/companion and public bilingual flows/refresh pass. The current restricted preview serves `index-CA9sIxfM.js`;13 runtime files match both origins,11 private paths per origin are denied and existing process identities remain. Evidence and21-second fixed-observer motion video: `.local/zombie_fins_20261018/`. No physical-phone performance claim. The accepted HF mesh/textures, tail and all mechanical/gameplay files are unchanged.
+
 # Current Mechanical Shark production checkpoint — 2026-10-18
 
 Accepted local production checkpoint — 2026-10-18: the user authorizes committing the Mechanical Shark design brief, fixed gameplay constraints and Hugging Face export-blocker record on `art/mechanical-hf-redraw`. This is documentation only: no new Mechanical Shark geometry, runtime effects or gameplay changes exist yet. The included quota remains169.924763 seconds with zero paid overage; do not repeat inference until the export reservation can be satisfied. Previous candidate/no-commit labels below are historical for these preparation documents only. Keep future implementation uncommitted for review and preserve the current preview. No push, main publication, version bump or tag is authorized.

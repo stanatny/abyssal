@@ -38,6 +38,10 @@ export function buildZombieShark(root, motions) {
     tornPectorals: 2,
     damagedRegions: ["skull", "gills", "flanks", "spine", "tail"],
   };
+  const fins = [
+    [-1, bones[5]],
+    [1, bones[6]],
+  ];
   motions.push((phase, effort, state) => {
     const power =
       0.065 +
@@ -49,13 +53,19 @@ export function buildZombieShark(root, motions) {
     bones[0].rotation.z = (state?.turn || 0) * -0.11;
     jaw.rotation.x =
       0.025 - (state?.feed || 0) * 0.2 - Math.sin(phase * 0.55) * 0.014;
-    for (const [side, fin] of [
-      [-1, bones[5]],
-      [1, bones[6]],
-    ]) {
-      fin.rotation.z =
-        side * (Math.sin(phase * 0.55) * 0.05) + (state?.turn || 0) * 0.1;
-      fin.rotation.y = side * (state?.boost || 0) * 0.1;
+    // 尾部仍是推进主动作；胸鳍以较慢周期调整升力，转弯时两侧差动。
+    // 输入已由实例动作时钟平滑，冲刺收鳍/松开及升降不能直接跳姿态。
+    const finPhase = phase * 0.55,
+      boost = state?.boost || 0,
+      turn = state?.turn || 0,
+      pitch = state?.pitchInput || 0,
+      lift = 0.07 + Math.sin(finPhase) * (0.18 - boost * 0.05) + pitch * 0.1,
+      sweep = 0.03 + boost * 0.24 + Math.sin(finPhase - 0.65) * 0.055;
+    for (const [side, fin] of fins) {
+      fin.rotation.z = side * lift + turn * 0.14;
+      // 头朝-Z；左右反号的Y旋转将鳍尖向+Z后掠，不能向吻部折叠。
+      fin.rotation.y = -side * sweep - turn * 0.06;
+      fin.rotation.x = Math.cos(finPhase) * 0.035 - pitch * 0.08;
     }
     Object.assign(root.userData.pose || {}, {
       tailBeat: bones[2].rotation.y,

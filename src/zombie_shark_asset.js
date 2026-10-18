@@ -141,8 +141,9 @@ export function createZombieSharkRig(root) {
   bones.forEach((bone, i) => (i ? bones[i - 1] : root).add(bone));
   for (const [name, position] of [
     ["zombie_shark_broken_mandible", [0, -0.036, -0.285]],
-    ["zombie_shark_pectoral_-1", [-0.085, -0.055, -0.085]],
-    ["zombie_shark_pectoral_1", [0.085, -0.055, -0.085]],
+    // 转轴贴合实际胸鳍根（腹侧），避免放大动作时从躯干中部拉长鳍根。
+    ["zombie_shark_pectoral_-1", [-0.1, -0.105, -0.105]],
+    ["zombie_shark_pectoral_1", [0.1, -0.105, -0.105]],
   ]) {
     const bone = new THREE.Bone();
     bone.name = name;

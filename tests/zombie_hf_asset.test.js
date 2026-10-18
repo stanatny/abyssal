@@ -8,6 +8,47 @@ function body(m) {
   return m.getObjectByName("zombie_shark_hf_body");
 }
 
+function finRig() {
+  const model = createCreature("zombie_shark", 1),
+    mesh = body(model),
+    p = mesh.geometry.attributes.position;
+  const tips = [-1, 1].map((side) => {
+    let tip = 0;
+    for (let i = 1; i < p.count; i++)
+      if (p.getX(i) * side > p.getX(tip) * side) tip = i;
+    return tip;
+  });
+  function positions() {
+    model.updateMatrixWorld(true);
+    mesh.skeleton.update();
+    // 排除身体转弯侧倾，只测实际鳍尖相对肩部的运动。
+    const support = mesh.skeleton.bones[0].matrixWorld.clone().invert();
+    return tips.map((i) =>
+      mesh
+        .getVertexPosition(i, new THREE.Vector3())
+        .applyMatrix4(mesh.matrixWorld)
+        .applyMatrix4(support),
+    );
+  }
+  return {
+    model,
+    mesh,
+    positions,
+    pose(phase, input = {}) {
+      Object.assign(model.userData.motionState, {
+        phase,
+        power: 0.3,
+        boost: 0,
+        turn: 0,
+        pitchInput: 0,
+        ...input,
+      });
+      model.userData.animate(0, 1, { dt: 0 });
+      return positions();
+    },
+  };
+}
+
 test("HF尸鲨UV重复点权重一致，四权重归一化，法线和骨骼索引有效", () => {
   const model = createCreature("zombie_shark", 1),
     g = body(model).geometry;
@@ -176,4 +217,103 @@ test("巡游和冲刺完整周期左右对称，整片尾鳍保持形状而非�
     assert.ok(Math.min(...xs) < -0.03 && Math.max(...xs) > 0.03);
     assert.ok(Math.max(...xs) - Math.min(...xs) < 0.28);
   }
+});
+
+test("胸鳍完整周期真实鳍尖可读，冲刺后掠且仍保持连续摆动", () => {
+  const rig = finRig(),
+    means = [];
+  for (const boost of [0, 1]) {
+    const samples = Array.from({ length: 96 }, (_, i) =>
+      rig.pose((i / 96) * ((Math.PI * 2) / 0.55), { boost }),
+    );
+    for (const side of [0, 1]) {
+      const ys = samples.map((s) => s[side].y),
+        span = Math.max(...ys) - Math.min(...ys);
+      assert.ok(span > (boost ? 0.03 : 0.045) && span < 0.09);
+    }
+    for (const [left, right] of samples) {
+      assert.ok(Math.abs(left.x + right.x) < 0.003);
+      assert.ok(Math.abs(left.y - right.y) < 0.003);
+      assert.ok(left.x < -0.18 && right.x > 0.18);
+    }
+    means.push(
+      samples.reduce((sum, s) => sum + s[0].z + s[1].z, 0) /
+        (samples.length * 2),
+    );
+  }
+  // 头朝-Z，+Z才是向后收鳍；旧版冲刺反而把鳍尖扫向前方。
+  assert.ok(means[1] > means[0] + 0.03);
+});
+
+test("胸鳍差动与升降作用在真实表面，极端输入仍留在躯干外侧", () => {
+  const rig = finRig();
+  const leftTurn = rig.pose(0, { turn: -1 }),
+    rightTurn = rig.pose(0, { turn: 1 }),
+    up = rig.pose(0, { pitchInput: 1 }),
+    down = rig.pose(0, { pitchInput: -1 });
+  assert.ok(leftTurn[0].y > leftTurn[1].y + 0.025);
+  assert.ok(rightTurn[1].y > rightTurn[0].y + 0.025);
+  for (let i = 0; i < 2; i++) assert.ok(up[i].y > down[i].y + 0.02);
+  for (const boost of [0, 1])
+    for (const turn of [-1, 0, 1])
+      for (const pitchInput of [-1, 0, 1])
+        for (let frame = 0; frame < 32; frame++) {
+          const tips = rig.pose((frame / 32) * ((Math.PI * 2) / 0.55), {
+            boost,
+            turn,
+            pitchInput,
+          });
+          for (let side = 0; side < 2; side++) {
+            const tip = tips[side];
+            assert.ok(tip.toArray().every(Number.isFinite));
+            assert.ok(tip.x * (side ? 1 : -1) > 0.17);
+            assert.ok(tip.y < -0.1 && tip.y > -0.3);
+          }
+        }
+});
+
+test("冲刺与转向切换不跳鳍，暂停冻结且重开恢复独立姿态", () => {
+  const a = finRig(),
+    b = finRig();
+  a.model.userData.resetMotion();
+  b.model.userData.resetMotion();
+  const untouched = b.positions().map((p) => p.toArray());
+  let previous = a.positions();
+  for (let frame = 0; frame < 240; frame++) {
+    const sprint = frame >= 60 && frame < 150;
+    a.model.userData.animate(frame / 60, sprint ? 2.2 : 0.9, {
+      dt: 1 / 60,
+      speed: sprint ? 32 : 12,
+      boosting: sprint,
+      turn: frame >= 100 && frame < 180 ? 1 : -1,
+      pitchInput: frame >= 150 ? -1 : 1,
+    });
+    const next = a.positions();
+    for (let i = 0; i < 2; i++)
+      assert.ok(next[i].distanceTo(previous[i]) < 0.01);
+    previous = next;
+  }
+  const paused = a.positions().map((p) => p.toArray());
+  a.model.userData.animate(100, 3, {
+    dt: 0,
+    speed: 32,
+    boosting: true,
+    turn: 1,
+    pitchInput: 1,
+  });
+  assert.deepEqual(
+    a.positions().map((p) => p.toArray()),
+    paused,
+  );
+  assert.deepEqual(
+    b.positions().map((p) => p.toArray()),
+    untouched,
+  );
+  a.model.userData.resetMotion();
+  assert.deepEqual(
+    a.positions().map((p) => p.toArray()),
+    untouched,
+  );
+  assert.equal(a.mesh.geometry, b.mesh.geometry);
+  assert.notEqual(a.mesh.skeleton, b.mesh.skeleton);
 });
