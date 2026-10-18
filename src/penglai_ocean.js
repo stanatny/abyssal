@@ -1,3 +1,5 @@
+import { createPenglaiGuardianLandmarks } from "./penglai_guardian_landmarks.js";
+import { guardianLandmarkReserved } from "./penglai_landmark_sites.js";
 import { createPenglaiBixi } from "./penglai_bixi.js";
 import { terrainMeshHeight } from "./terrain_mesh_height.js";
 import {
@@ -864,7 +866,6 @@ export function* createPenglaiOceanSteps(parent) {
       [230, -380],
       [-175, -785],
       [175, -905],
-      [-358, -680],
       [374, -1100],
     ]) {
       pavilion(x, z, 0.85);
@@ -900,6 +901,7 @@ export function* createPenglaiOceanSteps(parent) {
         z = -1240 + Math.floor(j / 45) * 27 + Math.cos(j * 2.399) * 7,
         y = penglaiHeightAt(x, z);
       if (
+        guardianLandmarkReserved(x, z, 8) ||
         y < 8 ||
         y > 160 ||
         (Math.abs(x) < 100 && Math.abs(z + 650) < 135) ||
@@ -1007,6 +1009,7 @@ export function* createPenglaiOceanSteps(parent) {
         if (
           (Math.abs(x - PENGLAI_BIXI.x) < 55 &&
             Math.abs(z - PENGLAI_BIXI.z) < 62) ||
+          guardianLandmarkReserved(x, z, 12) ||
           besideSummitPath(x, z, 12) ||
           (Math.abs(x) < 100 && Math.abs(z + 650) < 135) ||
           Math.hypot(x + 320, z + 650) < 88 ||
@@ -1043,6 +1046,8 @@ export function* createPenglaiOceanSteps(parent) {
         );
       }
     for (const route of PENGLAI_SUMMIT_ROUTES) {
+      if (Math.abs(route.top.x - 315) < 30 && Math.abs(route.top.z + 655) < 30)
+        continue;
       pavilion(route.top.x, route.top.z, 0.72);
       yield "summit-pavilions";
     }
@@ -1056,6 +1061,7 @@ export function* createPenglaiOceanSteps(parent) {
         z = -220 - (j % 23) * 46,
         y = penglaiHeightAt(x, z);
       if (
+        guardianLandmarkReserved(x, z, 8) ||
         y < 8 ||
         (Math.abs(x) < 92 && Math.abs(z + 650) < 112) ||
         besideSummitPath(x, z, 9)
@@ -1176,7 +1182,20 @@ export function* createPenglaiOceanSteps(parent) {
       yield "details";
     }
     bixi = createPenglaiBixi(root, keep, colliders);
+    const guardianLandmarks = createPenglaiGuardianLandmarks(
+      root,
+      keep,
+      colliders,
+      (x, z) => {
+        const index = Math.max(
+          0,
+          Math.min(groundStrips.length - 1, Math.floor((z - W.minZ) / 80)),
+        );
+        return groundStrips[index]?.(x, z) ?? penglaiHeightAt(x, z);
+      },
+    );
     const landmarks = [
+      ...guardianLandmarks.landmarks,
       {
         name: "赑屃镇渊碑",
         position: bixi.root.position.clone().add(new THREE.Vector3(0, 35, 0)),

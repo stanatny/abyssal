@@ -1,3 +1,13 @@
+# Current main release — v0.11.12 — 2026-10-18
+
+Current main publication — 2026-10-18: the user accepts the three guardian landmarks and explicitly authorizes commit and publication to main. Release v0.11.12 combines the accepted basin/companion checkpoint `5bd0144` with these landmarks, following v0.11.11 / `0821d6d`. All782 accepted source fingerprints and all11 compiled artifacts match before release-only metadata edits. Earlier candidate/local-only labels below are historical and superseded for this accepted scope. The current AI agent integrates alone, preserving established services, archives and canceled worktrees. No tag or GitHub Release is requested; future changes return to the default authorization rule.
+
+See [the release record](release_v0_11_12.md). Fresh release checks and exact-commit CI/Pages receipts belong to ignored `.local/release_v0_11_12/`; prior candidate evidence remains separate. Verify the actual deployed version, resources and native interaction before declaring publication complete.
+
+Fresh local release checks pass1,300/1,300 unit tests, formatting and the production build. Native Chrome against the restricted compiled build passes four character start/skill/pause/Home flows, fourteen bilingual Guide cases, all eight regional start/pause/Home routes, localized v0.11.12 footers and same-address reload, without observed browser errors or production hooks. All11 runtime files match dist and both local/Cloudflare origins; eleven private paths per origin are denied. Original process identities35213/35216/35218/35419 and tunnel readiness remain. These desktop/narrow checks are not physical-phone or thermal evidence. Exact-main Node22 CI/Pages checks follow separately.
+
+---
+
 # Current main publication — v0.11.11 — 2026-10-17
 
 Current main publication — 2026-10-17: the user explicitly authorizes merging the accepted `feat/deep-ruin-hazards` branch into main. Release v0.11.11 includes regional-hazard/weather checkpoint `538e032`, guardian/terrain checkpoint `7b67fd3` and player-directed flight checkpoint `a0ae196`, following v0.11.10 / `cabe2a5`. All773 accepted source fingerprints match before release-only version/footer/documentation changes. Earlier branch-only/candidate restrictions below are historical and superseded for this accepted release. The current AI agent integrates alone, preserving established services, archives and canceled worktrees. No tag or GitHub Release is requested; future changes return to the default authorization rule.

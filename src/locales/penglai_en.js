@@ -2,6 +2,9 @@ import { PENGLAI_EN as SPECIES_EN } from "../penglai_species.js";
 import "../penglai_lords.js";
 import "../penglai_transformation_species.js";
 export const PENGLAI_EN = Object.freeze({
+  苍龙云阙: "Azure Cloud Gate",
+  白虎镇山阙: "White Tiger Watchtowers",
+  朱雀朝阳台: "Vermilion Sun Altar",
   赑屃镇渊碑: "Bixi Guardian Stele",
   "道观北侧是玄冥深潭，岸边驮碑石龟面向道观；下潜寻找玄武，留意深处巡游的寒潭虎蛟。":
     "Xuanming Deep Basin lies north of the monastery, with a turtle-backed stele facing it from the shore. Dive to find Black Tortoise and watch for the Northern Hujiao.",
