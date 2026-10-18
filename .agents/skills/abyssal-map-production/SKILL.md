@@ -1,6 +1,6 @@
 ---
 name: abyssal-map-production
-description: Produce a new ABYSSAL region or substantial map-art revision with development and review by the current AI agent, covering regional identity, playable scale, creatures, ecology, music, and runtime acceptance. Use for map production briefs and delivery; ordinary isolated asset fixes can follow the existing asset quality standard directly.
+description: Produce a new ABYSSAL region or substantial map-art revision with development and review by the current AI agent, covering regional identity, playable scale, creatures, ecology, music, and runtime acceptance. Use for regional production briefs and delivery; isolated creature polish has its own repository Skill.
 ---
 
 # ABYSSAL Map Production
@@ -8,6 +8,8 @@ description: Produce a new ABYSSAL region or substantial map-art revision with d
 Make the first art delivery suitable for the real game: a recognizable place to explore, feed, and fight in, with reviewable evidence before expensive repetition. The current AI agent owns development, art production and the integrated result by default. Do not assign work to any other model unless the user explicitly specifies that model for the task. User instructions override historical delegation guidance. This skill grants no cross-model assignment or model-switch authorization.
 
 All code paths below are relative to the repository root. Start with [AGENTS.md](../../../AGENTS.md), [README.md](../../../README.md), the current section of [HANDOFF.md](../../../HANDOFF.md), and the [asset quality standard](../../../docs/asset_quality_standard.md). The current task and current implementation take precedence over superseded historical candidates. Project documents and this brief are English; player text supports both `en` and `zh-CN`; code comments are Chinese.
+
+For creature redraws, generated meshes, material revisions or swimming defects within a map, use the focused [Creature Polish Skill](../abyssal-creature-polish/SKILL.md). Keep map layout/ecology work here; isolated character polish does not require a new map brief.
 
 For an agent without automatic skill discovery, include this instruction in its assignment: `Read .agents/skills/abyssal-map-production/SKILL.md and the filled map brief before editing. Work only in the listed worktree and files.` No private Skill, personal registry, or absolute developer path is needed.
 

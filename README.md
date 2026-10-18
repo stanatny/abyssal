@@ -406,6 +406,8 @@ Frenzy changes only capture reach and suction. It does not alter feeding eligibi
 
 ## Local development
 
+For character models, materials and swimming refinements, use the repository-local [Creature Polish Skill](.agents/skills/abyssal-creature-polish/SKILL.md). It links the shared quality standard, generated-mesh workflow and current code entry points, with actual Guide/world motion and resource verification.
+
 New or redrawn creatures, humans, environments, audio, and effects must meet the [asset quality standard](docs/asset_quality_standard.md), using current refined counterparts as the minimum reference. Below-standard work remains an explicitly labeled prototype rather than shipping as a new category. Start with [AGENTS.md](AGENTS.md).
 
 For a new region or substantial map redraw, use the repository-local [map-production Skill](.agents/skills/abyssal-map-production/SKILL.md) and its [brief template](.agents/skills/abyssal-map-production/references/map_brief.md). The current AI agent develops and reviews the map by default, including art, ecology, regional audio, traversal and performance. Do not assign project work to another model unless the user explicitly specifies it; the Skill does not authorize cross-model delegation. The current [Hawaii performance follow-up](docs/hawaii_performance.md) reuses static collision indexing without changing the map art or feeding rules.
