@@ -2,7 +2,7 @@
 
 ## Scope and authorization
 
-The user accepted the four Hawaii lords and Kraken intake, locally committed as `8dbb4d5`, then requested sequential redraws of the remaining Hawaii creatures. Current agent alone; no push/main release or new candidate commit. Formal main remains v0.11.13. Preserve rules, size, populations, captures, attacks, resources and existing services.
+The user accepted the four Hawaii lords and Kraken intake, locally committed as `8dbb4d5`, then requested sequential redraws of the remaining Hawaii creatures. Eight ordinary redraws are now locally committed as `b6c81d9`; the next pair remains uncommitted. Current agent alone; no push/main release. Formal main remains v0.11.13. Preserve rules, size, populations, captures, attacks, resources and existing services.
 
 Registry audit: `getRegionSpecies("hawaii")` contains28 kinds/516 individuals; regional rare is Gilded Manta; surface birds are Gull and White-tailed Tropicbird. Humans, vehicles and scenery are not biological redraw targets. Other-map copies of a shared kind use the same factory.
 
@@ -10,16 +10,16 @@ Registry audit: `getRegionSpecies("hawaii")` contains28 kinds/516 individuals; r
 
 | Order | Kind            | State                          |
 | ----- | --------------- | ------------------------------ |
-| 1     | `shark`         | Candidate: pending user review |
-| 2     | `hammerhead`    | Candidate: pending user review |
-| 3     | `sperm_whale`   | Candidate: pending user review |
-| 4     | `ichthyotitan`  | Candidate: pending user review |
-| 5     | `megalodon`     | Candidate: pending user review |
-| 6     | `basilosaurus`  | Candidate: pending user review |
-| 7     | `mosasaur`      | Candidate: pending user review |
-| 8     | `pliosaur`      | Candidate: pending user review |
-| 9     | `plesiosaur`    | Queued                         |
-| 10    | `dunkleosteus`  | Queued                         |
+| 1     | `shark`         | Local checkpoint b6c81d9       |
+| 2     | `hammerhead`    | Local checkpoint b6c81d9       |
+| 3     | `sperm_whale`   | Local checkpoint b6c81d9       |
+| 4     | `ichthyotitan`  | Local checkpoint b6c81d9       |
+| 5     | `megalodon`     | Local checkpoint b6c81d9       |
+| 6     | `basilosaurus`  | Local checkpoint b6c81d9       |
+| 7     | `mosasaur`      | Local checkpoint b6c81d9       |
+| 8     | `pliosaur`      | Local checkpoint b6c81d9       |
+| 9     | `plesiosaur`    | Candidate: pending user review |
+| 10    | `dunkleosteus`  | Candidate: pending user review |
 | 11    | `archelon`      | Queued                         |
 | 12    | `turtle`        | Queued                         |
 | 13    | `ray`           | Queued                         |
@@ -42,7 +42,7 @@ Registry audit: `getRegionSpecies("hawaii")` contains28 kinds/516 individuals; r
 | 30    | `seagull`       | Queued                         |
 | 31    | `tropicbird`    | Queued                         |
 
-The first-pair receipts below retain their original scope; the current fourth-pair delivery is recorded at the end. The user explicitly requested continuation, which authorizes this batch but does not by itself close individual acceptance.
+The first-pair receipts below retain their original scope; the current fifth-pair delivery is recorded at the end. The user explicitly requested continuation, which authorizes this batch but does not by itself close individual acceptance.
 
 ## First pair references
 
@@ -196,3 +196,56 @@ After the necessary queue correction, services are DEV35213 / preview74197 / awa
 ## Authorized local checkpoint — 2026-10-19
 
 The user says “先commit一下，然后继续”. This authorizes a local checkpoint of the eight ordinary-creature redraws and continuation with Plesiosaur/Dunkleosteus. Prior no-commit labels describe their original production stage. No push, main publication or new gameplay change is authorized. Technical evidence remains scoped as recorded above; subjective individual feedback has not been invented. New candidates after this checkpoint remain uncommitted for review.
+
+## Fifth pair: Plesiosaur and Dunkleosteus — 2026-10-19
+
+The user's “先commit一下，然后继续” is fulfilled first by local checkpoint `b6c81d99600d93777b3e0f6bab3757f9f22a2a8d`, preserving the eight earlier ordinary-creature redraws. The current AI agent independently continues the next pair. Ten of31 kinds now have redraws;21 remain, next Archelon/Green Sea Turtle. These two new candidates await individual visual review and remain uncommitted/unpushed. Formal main/Pages remains v0.11.13 /110494c.
+
+### Reference, provenance and model correction
+
+The existing Plesiosaur registry identifies an elasmosaurid at12m, not the smaller genus Plesiosaurus. The [Natural History Museum's plesiosaur overview](https://www.nhm.ac.uk/discover/what-is-a-plesiosaur.html) and [2017 four-flipper propulsion study](https://pmc.ncbi.nlm.nih.gov/articles/PMC5577481/) inform its long horizontal neck, small head, four foils and short stabilizing tail. Front/rear phase and feathering are expressive adaptations, not measured behavior of this extinct individual. The [Cleveland Museum's Dunkleosteus account](https://www.cmnh.org/learn/science-blog/2025/02/07/meet-dunk-ohios-ancient-apex-predator) informs the broad armored head and cutting jaw plates. Its soft body/tail proportions remain reconstruction choices; existing6m game size is preserved, not asserted as a settled fossil measurement. Colors and skin detail are original artistic choices.
+
+Original concepts were generated for this project with the built-in image tool, then uploaded to Microsoft TRELLIS.2. No source photograph, project code or private data was uploaded. Live Pro/license/revision checks retain Space`ebf60b20fc5a4607f90a1c11c0aab0ceeda5429d`, model`af44b45f2e35a493886929c6d786e563ec68364d`, both MIT. Seeds741949/741950,1024 generation/texture, one actual generation per kind. Plesiosaur's initial three client setups failed TLS before inference; bounded read-only reconnects and the same verified Space endpoint succeeded. Dunkleosteus generation completed, but the export response was lost to a TLS failure. Recovery restored the same private session and repeated only export, not inference. Raw GLB header/length/hash checks passed. Failed receipts, originals and private session files remain in ignored`.local/hawaii_prehistoric_20261019/`; private session files are mode0600.
+
+| Kind         | Raw GLB SHA-256                                                    | Raw triangles | Runtime triangles     | Vertices | Meshes before → after | Bones |
+| ------------ | ------------------------------------------------------------------ | ------------- | --------------------- | -------- | --------------------- | ----- |
+| plesiosaur   | `ca52de0859ec919946f7aae161a7d08888beea744a0b6bd049c1a1cbcab5eef3` | 92,335        | 7,002 (before8,376)   | 6,647    | 11 → 1                | 9     |
+| dunkleosteus | `ec355678ed4caaa387ec7d87e4b560433f6295f2cb6b9d9908b11f95ef5b37d5` | 97,091        | 18,840 (before11,232) | 20,556   | 14 → 1                | 9     |
+
+The reproducible converter rigidly aligns actual heads to−Z and uniformly normalizes length. Plesiosaur's raw reconstruction had an extra branched hind fin on one side. Midline triangle clipping with interpolated UVs, followed by mirroring the anatomically sound side with reversed winding, restores four continuous foils. Dunkleosteus's neutral trunk was curved: a smooth centerline correction straightens the rest shape, with inverse-transpose normal correction. No opposite animation offset hides that bend.
+
+Close clay inspection rejected position-only Dunkleosteus decimation: thin fin surfaces intersected and created triangular shading patches. Recomputing/averaging normals and a smoothing experiment did not solve it; those experiments were discarded. The final bake includes normal/UV error and protects the actual distal pectoral surfaces. The18,840-triangle result deliberately retains7,608 more triangles than the old procedural model while reducing14 meshes to one; the earlier12k test cap was revised only after this actual visual finding and populated-scene measurement. Original texture islands are padded; original normal directions are preserved across thin opposing surfaces. Final clay, textured, top/side/underside and moving views were inspected.
+
+Each kind shares one immutable geometry/material and one padded1024² WebP, while each instance owns a nine-bone rig. Four Plesiosaur foils paddle with front/rear phase lag and stable head/neck. Dunkleosteus uses lateral posterior/tail propulsion and restrained pectoral/pelvic trim; the entire caudal fan follows one terminal support. Actual fin tips are checked relative to their supporting body, including the smaller pelvic fins, rather than reusing the Plesiosaur's width threshold. The shared accumulated clock supplies smooth cruise/chase transitions; pause freezes poses. Materials remain opaque, rough and nonmetallic, with bounded albedo-contrast correction and no lights, emission, effects or new loops. Failed texture fetches retain solid anatomical vertex colors.
+
+The same factory serves Guide and all regional instances. Plesiosaur populations remain Hawaii7/Atlantis8/Bermuda5/Mariana20 at12m; Dunkleosteus Hawaii7/Bermuda5 at6m. Other regions contain neither. Existing bilingual descriptions already match the anatomy and qualify reconstruction uncertainty. No gameplay, habitat, size, speed, population, damage, reward or difficulty value changes.
+
+### Fresh checks and limits
+
+- After final protected-fin bake, all1,370 tests pass, including seven new targeted geometry/motion/registry cases. These check finite unit normals and weights, normalized scale/budgets, immutable sharing, independent skeletons/idempotent disposal, four actual fin tips, whole-tail behavior, stable head/attack axis, continuous transitions, UV-seam deformation, pause and all eight region configurations. Failed intermediate results are retained, not counted as final passes.
+- Final native Chrome: six Guide opens, twelve region preparations;156 tracked skeletons,126 evicted bone textures disposed,30 retained by active/cached regions. Shared geometry/texture identities and per-instance rigs pass. World films show536/540 frames, >119m/123m world-axis displacement and frozen poses on pause. They use a staged invulnerable player and observer camera with ordinary ecology movement, not per-frame pinning; this is motion evidence, not natural encounter or balance verification.
+- Matched517-entity scenes replace both affected kinds under identical cameras/postprocessing. The Plesiosaur-facing view changes92→82 draws /386,590→385,216 triangles. The Dunkleosteus-facing view changes148→125 draws /586,218→592,452 triangles. Extra shared color maps and per-instance bone textures still cost memory. Lower draw count does not establish higher FPS or lower device heat; no physical-phone claim.
+- Included balance1774.058090→1697.973609 seconds, settled cost76.084481 seconds including export recovery, overquota0. Final live query2026-10-19T07:45:17Z returns reset approximately14:41:48Z (22:41 Beijing). No paid overage/account change. Recheck the live quota before the next batch.
+
+Formatting and production build pass. Final public receipts: Existing DEV35213 / preview74197 / awake74200 / tunnel35419 remain owned by`.local/mini_preview_20261007/manage.py status|rebuild|stop`, with loopback ports5188/7188/20248. Keep prior runtimes/logs; publish only index/assets through the unchanged restricted preview.
+
+- Controlled Guide films record540 frames per kind through cruise→chase→cruise; both failed-texture fallbacks pass. Final18-second H.264/yuv420p files, representative encoded frames and contact sheets were inspected. Video evidence stays in`.local/hawaii_prehistoric_20261019/delivery/`.
+- Final native public Chrome English1440px/Chinese390px Guide/start/boost/sonar/pause/Home and same-address reload pass. No page/console errors or failed HTTP resources were observed; both maps return200 and production development hooks are absent. Narrow touch is desktop emulation, not a physical-phone test.
+- All31 artifacts match dist, restricted local and public origins byte-for-byte;11 source/private paths per origin remain denied. Current entry`./assets/index-CyvusosL.js`, total18,425,804 runtime bytes (+1,238,946 versus the eight-creature checkpoint). Existing process identities remain unchanged this batch; the earlier queue correction remains project-local. Prior runtime retained as`runtime_before_20261019_154735`.
+- Baseline audit checks886 committed files: only the shared factory and four review/entry documents differ among pre-existing files. Eight new converter/asset/rig/test files are isolated. Earlier eight candidates, gameplay and other runtime sources remain byte-identical. Final source/artifact fingerprints and exact delivery message IDs are recorded locally.
+
+The unchanged preview is https://saver-recorded-digit-could.trycloudflare.com/ . Open Ocean Guide → Ancient Giants → Plesiosaur / Dunkleosteus. The local160-kind inventory and resumable queue now record10 of31 Hawaii non-lord kinds redrawn,21 queued, next Archelon/Green Sea Turtle. New pair review remains open as PP-Q031. No new candidate commit, push/main release, extra payment, recurring timer or personal Skill change.
+
+## Dunkleosteus head-color follow-up — 2026-10-19
+
+The user reports that the head should read more distinctly from the trunk. The delivered HF palette had similar brown-gray values on both. A Dunkleosteus-only material grade now gives the head plates a muted pale gray-bone color, retaining the generated surface grain and dark eyes, plate seams and mouth cavities. A local-position mask follows the anterior plate region, with a feathered posterior transition; fallback vertex colors also distinguish the head. The trunk, fins and tail retain their previous palette. This is an artistic readability choice, not a claim about the fossil animal's known coloration.
+
+Only`src/hawaii_prehistoric_asset.js` changes among runtime files. Original texture pixels, packed vertices/normals/indices, rigs, swimming, populations, size, combat and Plesiosaur materials remain unchanged. A separate shader cache key isolates the armor shader. No new mesh, texture, light, frame loop or HF request; no extra quota consumed, commit or push. Local checkpoint remainsb6c81d9.
+
+Seven targeted geometry/animation/registry tests pass after the material change. The earlier1,370-test full-suite receipt remains the preceding batch's result; it is not represented as rerun. Native Chrome matched Guide views and three actual-world camera angles were visually inspected. Identical paired draws/triangles are83/400,772,83/303,340 and95/438,436; the added fragment-color work has not been benchmarked for FPS or phone heat. World comparisons use a staged invulnerable observer, paused for identical lighting and poses. Evidence, baseline snapshots and exact source/build hashes are under ignored`.local/dunkleosteus_head_color_20261019/`. User acceptance of this color revision remains pending.
+
+Final color-preview verification: formatting/build pass;31 artifacts (18,426,709 bytes) match dist/local/public,11 forbidden paths per origin remain denied, and process identities are unchanged. Public native Chrome English1440px/Chinese390px Dunkleosteus Guide/start/boost/sonar/pause/Home and same-address reload pass with zero observed errors/failed resources; both color maps load200 and production hooks are absent. Current entry`./assets/index-C6f_gGgV.js` at the unchanged preview URL. Paired Guide/world color screenshots were sent; this new color follow-up remains uncommitted/unpushed for user review.
+
+## Fifth-pair local checkpoint — 2026-10-19
+
+Accepted local fifth-pair checkpoint — 2026-10-19: the user requests “提交吧，下一批”, authorizing a local commit of Plesiosaur, Dunkleosteus and the clearer head-armor palette, then continuation with Archelon and Green Sea Turtle. All894 delivered source fingerprints and31 artifacts match before acceptance-note edits. Existing test/native/public receipts retain their recorded scope. No push/main release. The current AI agent works alone; subsequent candidates stay uncommitted for individual review. Preserve gameplay, services and archives. Earlier pending/no-commit labels below describe their historical stage.

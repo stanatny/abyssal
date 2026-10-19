@@ -1,3 +1,4 @@
+import { buildHawaiiPrehistoricHF } from "./creature_hawaii_prehistoric_hf.js";
 import { buildHawaiiReptileHF } from "./creature_hawaii_reptiles_hf.js";
 import { buildHawaiiAncientHF } from "./creature_hawaii_ancients_hf.js";
 import { buildHawaiiGiantHF } from "./creature_hawaii_giants_hf.js";
@@ -141,6 +142,8 @@ export function createCreature(kind, length = 6, seed = 1) {
     buildHawaiiAncientHF(kind, root, motions);
   else if (kind === "mosasaur" || kind === "pliosaur")
     buildHawaiiReptileHF(kind, root, motions);
+  else if (kind === "plesiosaur" || kind === "dunkleosteus")
+    buildHawaiiPrehistoricHF(kind, root, motions);
   else if (ANCIENT_CREATURE_KINDS.has(kind))
     buildAncientCreature(kind, root, motions);
   else if (ECOSYSTEM_CREATURE_KINDS.has(kind))
