@@ -1,3 +1,13 @@
+# Current main release — v0.11.13 — 2026-10-19
+
+Current main publication — 2026-10-19: the user accepts the current four-player redraw and sprint refinement and authorizes publication to main as v0.11.13. Integrate the reviewed branch through sprint checkpoint `d63ae37`, following v0.11.12 / `8676fe9`. All836 accepted source fingerprints and17 build artifacts match before release-only metadata changes. Earlier candidate/local-only labels below are historical for this accepted scope; future work returns to the default review/authorization rule. The current AI agent integrates alone, preserving gameplay, existing services, archives and canceled worktrees. No tag or GitHub Release is requested. See [the release record](docs/release_v0_11_13.md).
+
+Fresh release receipts are in ignored `.local/release_v0_11_13/`. Candidate receipts keep their original scope; exact-main CI, deployed assets and native formal-page checks must be verified separately.
+
+Fresh local release checks pass 1,324/1,324 tests, formatting and the production build. Native Chrome on the restricted compiled release passes four character start/sprint/skill/pause/Home flows, eight bilingual player Guide cases, all eight regional start/pause/Home routes, localized v0.11.13 footers and same-address reload, with no observed browser errors or production hooks. All 17 runtime files match dist and both restricted/public origins; eleven private paths per origin remain denied. Original service identities and tunnel readiness are preserved. These desktop/narrow checks are not physical-phone or thermal evidence. Exact-main CI/Pages receipts follow separately.
+
+---
+
 # Current player sprint motion — 2026-10-19
 
 Accepted Orca seam correction is committed locally as `6bd4821`. The current AI agent independently refines sprint animation for Zombie Shark, Mechanical Shark, Orca and Giant Squid on `art/mechanical-hf-redraw`. Preserve all assets, gameplay, historical work and existing services. See [the current review](docs/player_sprint_motion_revision.md) and ignored `.local/player_sprint_20261019/` for fresh evidence and delivery receipts. New motion is uncommitted/unpushed pending user review; formal main/Pages remains v0.11.12. Earlier candidate-only labels below are historical for the committed Orca fix.
