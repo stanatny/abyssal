@@ -1,3 +1,7 @@
+import { buildHawaiiReptileHF } from "./creature_hawaii_reptiles_hf.js";
+import { buildHawaiiAncientHF } from "./creature_hawaii_ancients_hf.js";
+import { buildHawaiiGiantHF } from "./creature_hawaii_giants_hf.js";
+import { buildHawaiiSharkHF } from "./creature_hawaii_sharks_hf.js";
 import { buildOrca } from "./creature_orca.js";
 import { buildBrineRegent } from "./creature_brine_regent.js";
 import { buildThunderbarbel } from "./creature_thunderbarbel.js";
@@ -125,10 +129,18 @@ export function createCreature(kind, length = 6, seed = 1) {
     buildAtlantisCreature(kind, root, motions);
   else if (SHOAL_CREATURE_KINDS.has(kind))
     buildShoalCreature(kind, root, motions);
+  else if (kind === "shark" || kind === "hammerhead")
+    buildHawaiiSharkHF(kind, root, motions);
+  else if (kind === "sperm_whale" || kind === "ichthyotitan")
+    buildHawaiiGiantHF(kind, root, motions);
   else if (HUNTER_CREATURE_KINDS.has(kind))
     buildHunterCreature(kind, root, motions);
   else if (LORD_CREATURE_KINDS.has(kind))
     buildLordCreature(kind, root, motions);
+  else if (kind === "megalodon" || kind === "basilosaurus")
+    buildHawaiiAncientHF(kind, root, motions);
+  else if (kind === "mosasaur" || kind === "pliosaur")
+    buildHawaiiReptileHF(kind, root, motions);
   else if (ANCIENT_CREATURE_KINDS.has(kind))
     buildAncientCreature(kind, root, motions);
   else if (ECOSYSTEM_CREATURE_KINDS.has(kind))

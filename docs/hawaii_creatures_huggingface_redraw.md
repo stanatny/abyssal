@@ -1,0 +1,198 @@
+# Hawaii creature Hugging Face redraw
+
+## Scope and authorization
+
+The user accepted the four Hawaii lords and Kraken intake, locally committed as `8dbb4d5`, then requested sequential redraws of the remaining Hawaii creatures. Current agent alone; no push/main release or new candidate commit. Formal main remains v0.11.13. Preserve rules, size, populations, captures, attacks, resources and existing services.
+
+Registry audit: `getRegionSpecies("hawaii")` contains28 kinds/516 individuals; regional rare is Gilded Manta; surface birds are Gull and White-tailed Tropicbird. Humans, vehicles and scenery are not biological redraw targets. Other-map copies of a shared kind use the same factory.
+
+## Queue
+
+| Order | Kind            | State                          |
+| ----- | --------------- | ------------------------------ |
+| 1     | `shark`         | Candidate: pending user review |
+| 2     | `hammerhead`    | Candidate: pending user review |
+| 3     | `sperm_whale`   | Candidate: pending user review |
+| 4     | `ichthyotitan`  | Candidate: pending user review |
+| 5     | `megalodon`     | Candidate: pending user review |
+| 6     | `basilosaurus`  | Candidate: pending user review |
+| 7     | `mosasaur`      | Candidate: pending user review |
+| 8     | `pliosaur`      | Candidate: pending user review |
+| 9     | `plesiosaur`    | Queued                         |
+| 10    | `dunkleosteus`  | Queued                         |
+| 11    | `archelon`      | Queued                         |
+| 12    | `turtle`        | Queued                         |
+| 13    | `ray`           | Queued                         |
+| 14    | `sunfish`       | Queued                         |
+| 15    | `tuna`          | Queued                         |
+| 16    | `octopus`       | Queued                         |
+| 17    | `angler`        | Queued                         |
+| 18    | `wrasse`        | Queued                         |
+| 19    | `parrotfish`    | Queued                         |
+| 20    | `boxfish`       | Queued                         |
+| 21    | `flying_fish`   | Queued                         |
+| 22    | `fish`          | Queued                         |
+| 23    | `mackerel`      | Queued                         |
+| 24    | `sardine`       | Queued                         |
+| 25    | `herring`       | Queued                         |
+| 26    | `anchovy`       | Queued                         |
+| 27    | `moon_jelly`    | Queued                         |
+| 28    | `spiny_lobster` | Queued                         |
+| 29    | `golden_manta`  | Queued                         |
+| 30    | `seagull`       | Queued                         |
+| 31    | `tropicbird`    | Queued                         |
+
+The first-pair receipts below retain their original scope; the current fourth-pair delivery is recorded at the end. The user explicitly requested continuation, which authorizes this batch but does not by itself close individual acceptance.
+
+## First pair references
+
+- [NOAA White Shark](https://www.fisheries.noaa.gov/species/white-shark): torpedo body, conical snout, caudal keel and crescent tail.
+- [Florida Museum Scalloped Hammerhead](https://www.floridamuseum.ufl.edu/discover-fish/species-profiles/scalloped-hammerhead/): actual `SPHYRNA LEWINI` registry reference, broad scalloped cephalofoil and distinct dorsal/tail silhouette.
+- Original generated reference images are supplied to HF; source photographs are not uploaded. Motion remains an expressive game adaptation, not biomechanical simulation.
+
+## Actual generation and runtime assets
+
+Original references were generated for this project and sent to [Microsoft TRELLIS.2](https://huggingface.co/spaces/microsoft/TRELLIS.2), using TRELLIS.2-4B (MIT). Space revision `ebf60b20fc5a4607f90a1c11c0aab0ceeda5429d`, model revision `af44b45f2e35a493886929c6d786e563ec68364d`. Both actual GLB files passed header/byte-length/hash validation; one attempt per creature, seeds741941/741942. Raw inputs, original references, private session receipts and all verification evidence remain under ignored `.local/hawaii_creatures_20261019/`; credentials and private URLs are excluded from project documentation.
+
+| Kind       | Actual GLB SHA-256                                                 | Raw triangles | Runtime triangles    | Mesh draws  |
+| ---------- | ------------------------------------------------------------------ | ------------- | -------------------- | ----------- |
+| shark      | `207e543e5b5b84c3d27f75733dbe7c036b32857d723f5e17ff86db4e46e6d8c5` | 97,861        | 8,898 (before9,136)  | 1 (before9) |
+| hammerhead | `3ef3cd5f5dedb1156ec87886f79bb0b624608d1e8d29aebadaf2659c99dc6187` | 97,752        | 8,944 (before11,880) | 1 (before9) |
+
+Each kind shares one padded1024² WebP and one immutable geometry/material. Separate eight-joint skeletons animate the posterior lateral wave and fitted left/right pectorals; the whole caudal fan uses a terminal support. The shared ordinary-creature phase retains faster chase cadence and smooth effort changes. Rest-pose anatomy was inspected in clay and textured side/front/rear/top views; roughness and a bounded albedo correction soften baked dark/bright extremes without lights, emission or gameplay changes. The fallback retains opaque anatomical colors if texture fetch fails.
+
+The nominal6.4m White Shark and4m Scalloped Hammerhead, all species rules and populations remain unchanged. White Shark factory coverage: Hawaii, Bermuda and Mariana; Hammerhead: Hawaii. Previous procedural builders remain as reference/fallback source, but these actual world/Guide kinds route to the new HF builder. No other creature is claimed redrawn.
+
+Final settled included quota:1921.407634/2400 seconds; aggregate cost59.972348 seconds, overquota0. Reset returned2026-10-19T14:41:48.732Z (22:41:48 Beijing). The intermediate White Shark post-download receipt overlaps the other job's temporary180-second export reservation; it is not a separate billed cost. Do not add that temporary reservation to actual usage. Subsequent jobs must recheck actual balance.
+
+## Fresh verification and limitations
+
+- `npm test`:1,342/1,342; `npm run check` and build passed. Five new tests exercise real skinned tips, whole-tail excursion, abrupt cruise/chase transitions, frozen pause, duplicate-UV seam continuity, immutable sharing, independent skeletons, valid unit normals/weights and idempotent instance disposal. Existing hunter behavior checks remain unchanged.
+- Native desktop Chrome: both Guide models reopen across three cycles with identical geometry/texture identities and separate world skeletons. Three-region LRU inspection tracked54 skeletons;47 evicted skeletons disposed their bone textures. Remaining seven belong to the active plus one retained region. `native/quality_verified.json` preserves these results with its source report hash. An initial recording harness used a nonexistent `alive` property; corrected to real `hiddenFor`, then independently reran successful footage and pause checks (`native/movies.json`). A former all-region identity assertion was corrected because the existing one-region LRU intentionally evicts older models; no game cache rule was changed to satisfy the harness.
+- Native actual-world footage records536/540 frames with >4m displacement and frozen bones on pause. A staged invulnerable player and observer camera make ordinary ecology visible; entities and player are not pinned each frame. These clips showed patrol, not a new attack-behavior test. Separate controlled Guide films show cruise→chase effort→cruise; they are labeled motion inspection, not natural progression. No physical phone or heat/FPS claim.
+- Matched populated517-entity scene, identical cameras and postprocessing: the observed White Shark view changes1,398→1,390 draw calls and1,640,974→1,640,736 triangles; Hammerhead view225→217 calls and728,000→725,064 triangles. These are rendered cost samples, not FPS measurements. Added color maps and skeleton textures have a memory/download cost; candidate builds add1,075,259 runtime bytes over the accepted lord preview.
+- Texture-fetch failure fallback was exercised for both kinds. Native English1440px and Chinese390px public Guide/start/boost/sonar/pause/Home passed, with no page/console errors. Desktop touch emulation is not physical-phone validation.
+- Restricted preview23 artifacts (14,494,906 bytes) match local dist/public SHA-256;11 source/private paths denied at each origin; production debug hook absent; same-address refresh resolves `index-DaL2Vji-.js`.
+
+## Delivery and remaining work
+
+Preview: https://saver-recorded-digit-could.trycloudflare.com/ . Two before/after images and two18-second videos (controlled Guide inspection followed by real-world patrol) are under `.local/hawaii_creatures_20261019/delivery/`. User acceptance of these two new candidates remains pending; the other29 kinds are queued, starting with Sperm Whale. The user's previous per-model review requirement continues to apply. No new candidate commit or push occurred.
+
+Original services remain35213/35216/35218/35419, loopback dev5188/restricted production7188/metrics20248. `.local/mini_preview_20261007/manage.py status|rebuild|stop` remains the owner entry point; do not stop without need. The manager saved the previous runtime before replacing the index at the same origin. Rebuild sources and fingerprints are recorded locally; the public service allows only index/assets. Formal main remains v0.11.13 /110494c. No personal Skill was changed.
+
+## Second pair: Sperm Whale and Ichthyotitan — 2026-10-19
+
+The user requested continuation. The current AI agent independently produces the next two kinds on the same branch; no new commit, push, gameplay change or personal Skill edit. The first two shark candidates remain intact. Four ordinary candidates are now ready for individual review;27 kinds remain queued, next Megalodon and Basilosaurus.
+
+### References and reconstruction limits
+
+- [NOAA Sperm Whale](https://www.fisheries.noaa.gov/species/sperm-whale) and [AMNH adaptations](https://www.amnh.org/explore/news-blogs/sperm-whales-adaptations): large block-shaped head, narrow lower jaw, small steering flippers, low dorsal hump and horizontal flukes. Posterior vertical propulsion and restrained flipper trim are an expressive game animation, not a measured biomechanics simulation.
+- [Lomax et al., PLOS ONE,2024](https://journals.plos.org/plosone/article?id=10.1371/journal.pone.0300289): Ichthyotitan is known principally from incomplete jaw bones, with uncertain complete anatomy. [NHM ichthyosaur overview](https://www.nhm.ac.uk/discover/what-is-an-ichthyosaur.html) supplies broader ichthyosaur context, not proof of this species' exact fins, colors or gait. The long rostrum, four flippers, upright tail and lateral tail wave preserve the game's explicitly speculative reconstruction.28m size and aggressive behavior remain existing gameplay adaptations.
+
+Only original project-generated raster references were uploaded to HF; no source photograph, project code or secret was sent. References were made with the built-in image tool and copied into the project, then actual meshes were obtained from Microsoft TRELLIS.2-4B. The same Space/model revisions and MIT licenses listed above were rechecked. Seeds741943/741944,1024 generation and1024 texture export, one successful generation/export per creature. Actual complete GLBs, hashes, original concepts and private receipts are under ignored `.local/hawaii_giants_20261019/`.
+
+| Kind         | Actual GLB SHA-256                                                 | Raw triangles | Runtime triangles   | Meshes before → after |
+| ------------ | ------------------------------------------------------------------ | ------------- | ------------------- | --------------------- |
+| sperm_whale  | `4ea78ae83cdfddde38de86f43f7ff3bed5a95f4b3c0bdfd6bc64ce7466752775` | 99,508        | 7,000 (before8,632) | 8 → 1                 |
+| ichthyotitan | `cd67550fe3fb7f64245bbd50990219dc4c076c08add741d38d3537433358190b` | 96,853        | 7,000 (before9,080) | 12 → 1                |
+
+`scripts/prepare_hawaii_giant_hf_asset.mjs` preserves raw outputs, simplifies uniformly, corrects each actual source axis, smooths duplicated seam normals, repairs zero normals and pads texture islands. The whale originally faced+Z, the ichthyosaur−X; both normalize to the existing−Z travel/one-length convention. The generated whale flukes had unequal curl and chord width: the offline bake levels their neutral leaf surfaces and balances the outer planform without altering the torso, flipper roots or topology. Final actual-vertex checks prevent a permanently rolled, edge-on lobe. The texture/color mapping is retained through that correction.
+
+One immutable geometry/material and one1024² WebP are shared per kind; separate8/10-bone skeletons drive each instance. The whole whale fluke fan and ichthyosaur caudal fin stay on terminal supports. Each flipper uses its measured root; posterior ichthyosaur flippers inherit the flexing trunk. Actual-vertex inspection caught incomplete distal hind-flipper binding and opposing rotations that canceled visible motion; these were corrected before delivery. Materials use rough non-metallic skin with gently compressed baked contrast, no extra lights, emission or loops. Failed texture requests preserve opaque anatomical fallback colors.
+
+World and Guide share the same factory. Sperm Whale retains16m and Hawaii/Bermuda/Mariana populations4/8/8; Ichthyotitan retains28m and Hawaii/Atlantis/Bermuda/Mariana populations2/2/2/8. Existing descriptions already match the design and qualify reconstruction uncertainty in both languages. No habitat, size, combat, feeding, population or difficulty value changed.
+
+### Verification and delivery
+
+The final test/build/public receipts below are recorded for this batch, not inherited from the first pair. Native Chrome checks use the existing local development origin; public checks use only the restricted build. Source/artifact fingerprints, process identities and logs stay in the ignored evidence folder. An intermediate recording was invalidated during local file updates; it was discarded and the stable final source was recorded again. Controlled Guide clips show cruise→chase effort→cruise. World clips use a staged invulnerable player and observer camera, but keep normal ecology movement and no per-frame creature/player pinning; they demonstrate patrol, not natural encounter rates or changed attack difficulty. Desktop390px remains emulation, not physical-phone performance.
+
+Included GPU balance decreased1921.407634→1865.501534 seconds, settled cost55.906100 seconds, overquota0. Returned reset2026-10-19T14:41:48.438Z; subsequent work must recheck live quota. No more inference was used for the fin/tail corrections.
+
+Final receipts:
+
+- `npm test`:1,349/1,349 passed after the final tail bake. Seven new giant-specific tests cover actual-vertex fin/tail movement, neutral fluke planform, front/attack-axis stability, posterior support, transition continuity, pause, UV seams, finite unit normals/weights, shared immutable resources and independent/idempotently disposed skeletons. Formatting and production build passed.
+- Native Guide/world lifecycle inspection spans three cycles and four regions, tracking102 skeletons;76 evicted skeletons released their bone textures,26 belong to the active plus retained region. Each kind shares geometry/texture while world and Guide skeletons differ. This lifecycle/cost run preceded the final neutral-tail vertex bake; the later bake changed no resource ownership or mesh/triangle count. Final geometry/pose tests, motion recordings and public flows were rerun afterward.
+- Matched517-entity sampled views measured93→86 draws and407,630→405,998 triangles for the whale;98→87 draws and379,018→376,938 triangles for the ichthyosaur. These are the above batch cost samples, not FPS or phone thermal measurements. Two1024² color maps and per-instance bone textures add resource cost. The final runtime totals15,313,165 bytes, an increase of818,259 over the preceding shark pair.
+- Final native Guide films record515/521 frames; world observer films record524/533 frames with >121m world-axis displacement and paused-bone stability. Final clips were encoded to H.264 and inspected; no new attack behavior is claimed. Texture failure fallback passes for both kinds.
+- Public native Chrome English1440px and Chinese390px Guide/start/boost/sonar/pause/Home and same-address reload pass with no page/console errors. Both texture resources return200, and production development hooks are absent.25 artifacts match dist, restricted local origin and public origin byte-for-byte;11 forbidden paths per origin remain denied. Final entry`./assets/index-DwvA61BZ.js`.
+- Existing process identities35213/35216/35218/35419 and loopback ports5188/7188/20248 remain. Rebuild/stop/log ownership stays in `.local/mini_preview_20261007/manage.py` and its process manifest. The previous build was archived by the manager. No source, private receipt or debug hook is publicly served.
+
+Preview stays https://saver-recorded-digit-could.trycloudflare.com/ . Open Ocean Guide → Ocean Predators → Sperm Whale, or Ancient Giants → Ichthyotitan. The two18-second videos and matched before/after images are in `.local/hawaii_giants_20261019/delivery/` and `review/`. They are candidate deliveries for user review, not a main release. The local160-kind ledger and resumable plan are updated; no background schedule, additional paid use, commit or push was created.
+
+## Third pair: Megalodon and Basilosaurus — 2026-10-19
+
+The user asks how many remain and explicitly requests continuation. The current AI agent independently redraws the next two kinds with HF included Pro quota. The31-kind non-lord Hawaii queue now has six implemented candidates and25 still queued; next Mosasaurus and Pliosaurus. Previous individual reviews remain open: continuation authorizes production, not automatic visual acceptance. Preserve the four-lord local checkpoint8dbb4d5, first four ordinary candidates, all gameplay, services and archives. No new commit/push/main release or personal Skill change.
+
+### References, source assets and anatomy
+
+- [DePaul University / Shimada et al.,2025](https://www.depaul.edu/news/megalodon-study-2025) describes a more slender tentative Megalodon reconstruction and explicitly notes unknown fin shapes and positions. The new original candidate has an elongated trunk, broad jaw, five gill slits and lateral tail propulsion; it is not presented as a measured fossil reconstruction. Existing20m length, speed and predator behavior remain game adaptations. Muted slate skin, scars and all soft-tissue details are artistic choices.
+- [Smithsonian Sant Ocean Hall](https://naturalhistory.si.edu/visit/accessibility/audio-and-visual-description/sant-ocean-hall-visual-description-highlights-tour) and [University of Michigan Museum of Paleontology](https://lsa.umich.edu/content/dam/paleontology-assets/paleontology-documents/beyond-exhibits/InformationModule_Basilosaurus.pdf) support Basilosaurus's exceptionally long body, steering forelimbs, tiny external hind limbs and small tail flukes. The candidate uses a longer continuous axial rig with vertical undulation and independent foreflipper trim. Tiny hind limbs follow the trunk instead of paddling. Color and exact gait remain expressive reconstruction choices; existing18m length is unchanged.
+
+Original raster concepts were made with the built-in image tool, preserved with exact prompts, and uploaded to Microsoft TRELLIS.2. No third-party photograph, code, credential or private project material was sent. Pro identity, current Space/model MIT license and revision were rechecked: Space`ebf60b20fc5a4607f90a1c11c0aab0ceeda5429d`, model`af44b45f2e35a493886929c6d786e563ec68364d`. One generation/export per kind, seeds741945/741946,1024 generation and1024 texture. Actual GLB headers, complete byte lengths and hashes were validated; raw inputs, output, stage receipts and private session information remain in ignored`.local/hawaii_ancients_20261019/`.
+
+| Kind         | Raw GLB SHA-256                                                    | Raw triangles | Runtime triangles   | Meshes before → after | Bones |
+| ------------ | ------------------------------------------------------------------ | ------------- | ------------------- | --------------------- | ----- |
+| megalodon    | `dd1cd222a4e8b969728c43d32295643678b7731fccf0922b95398649acaa4dee` | 94,892        | 7,000 (before9,640) | 14 → 1                | 8     |
+| basilosaurus | `b99bba81b50c4763e49f030498568a3d93dfe18cd35ce65b30a3fdac0fa6e173` | 98,130        | 7,000 (before8,808) | 13 → 1                | 11    |
+
+Both raw meshes face+Z. The reproducible offline converter rotates them rigidly to−Z, normalizes uniformly to one body length, simplifies, smooths UV-seam normals, repairs zero normals and pads color-map islands. Actual clay/textured multi-angle inspection found that one Basilosaurus tail lobe was rolled edge-on; flattening alone left too little planar chord. A local tail-only correction restores comparable lobe width while retaining body/fin roots, UVs and topology. The initial runtime and failed geometric check remain in the evidence folder; the corrected actual-vertex tail test passes. No extra inference was needed.
+
+Each kind shares one immutable geometry/material and one1024² WebP; skeletons and phase state are instance-owned. Whole caudal fans use terminal supports. Fitted fin-root blends, smooth chase effort and the existing accumulated clock preserve continuity and pause. Materials retain matte nonmetallic skin and compressed baked contrast, with no added lights, particles or animation loop. Failed texture loading leaves opaque anatomical vertex colors. The shared Guide/world factory dispatches both kinds to the new builder; prior procedural code remains preserved. Both existing language descriptions already cover the visible anatomy and extinct reconstruction uncertainty.
+
+Regional populations remain exact: Hawaii Basilosaurus5/Megalodon5, Atlantis8/9, Bermuda0/9, Mariana12/15; neither kind is added to Odyssey, Europa, Amazon or Penglai. Existing sizes, habitat constraints, attack/feeding direction, damage, rewards and difficulty remain unchanged. The head stays aligned with the existing−Z attack/capture direction through all tested poses.
+
+### Fresh verification, resource cost and limits
+
+- All870 previous delivered source fingerprints match at preflight. The only changed pre-existing runtime file is the shared factory dispatch; other pre-existing changes are review/entry documentation. Previous assets, rules and tests are preserved.
+- Fresh full suite:1,356/1,356 tests. Seven new model checks use actual skinned tips and UV duplicates, finite unit normals/weights, pause/effort transitions, stable head alignment, fin clearance, neutral tail planform, independent skeletons/shared immutable resources, idempotent disposal and all eight region configurations. A subsequent equivalent allocation cleanup hoists the fin list out of the frame callback; all seven focused tests passed again. Formatting and production build pass.
+- Native Chrome on the M6 mini/32GB checks six Guide openings over three cycles and twelve world-region preparations across Hawaii/Atlantis/Bermuda/Mariana.189 instance skeletons are tracked;153 evictions dispose their bone textures,36 remain in the active plus one retained region. Geometry/color texture identities remain shared, Guide/world skeletons remain independent, and both texture-failure fallbacks pass.
+- Matched populated517-entity views: Megalodon95→82 draws and379,218→376,578 triangles; Basilosaurus112→100 draws and407,714→405,906 triangles. These are rendered cost samples, not FPS, power or thermal measurements. Two new color maps and per-instance bone textures have additional memory/download cost. Current27 runtime artifacts total16,185,464 bytes, an increase of872,299 bytes over the preceding pair.
+- Controlled Guide clips show cruise→chase effort→cruise with540/541 recorded frames. Real-world observer clips record534/540 frames, >55m displacement along at least one world axis and frozen bones on pause. The player is staged/invulnerable and the camera follows the observed entity; ecology movement is not pinned or overwritten each frame. These are patrol/visual evidence, not natural encounter-frequency or new attack-balance evidence. Encoded18-second H.264 clips and contact sheets were inspected.
+- Final native public Chrome English1440px / Chinese390px Guide/start/boost/sonar/pause/Home and same-address reload pass, with zero page/console errors or failed HTTP responses; both new textures return200 and production hooks are absent.27 artifacts match dist/local/public byte-for-byte;11 source/private paths per origin are denied. Final entry`./assets/index-BYKc-MA-.js`. Desktop/narrow touch emulation is not physical-phone performance evidence.
+- Two earlier public attempts are retained: the first completed four flows but recorded five502 responses (the tunnel log reports loopback-origin connection resets); the second navigation timed out at60 seconds. Local origin and tunnel readiness remained healthy when checked. A third serial run waited for DOM readiness with a120-second navigation budget and completed every flow without errors. No existing service was restarted or replaced. The final documentation/JSON-format-only rebuild matches all27 previously verified artifact hashes.
+
+HF balance1865.501534→1817.938009 included seconds, total47.563525 seconds consumed, overquota0. Reset returned2026-10-19T14:41:48.256Z. Recheck live balance before the next batch; no paid overage, account switch or automatic purchase was used. The queue is resumable, not an autonomous timer.
+
+Existing processes35213/35216/35218/35419 remain under`.local/mini_preview_20261007/manage.py status|rebuild|stop`, with logs and identity manifest alongside it. Dev5188/restricted production7188/metrics20248 bind to loopback. Keep previous runtimes and only serve index/assets through the existing tunnel. Preview remains https://saver-recorded-digit-could.trycloudflare.com/ ; formal main/Pages stays v0.11.13 /110494c.
+
+## Fourth pair: Mosasaurus and Pliosaurus — 2026-10-19
+
+The user explicitly says to continue. The current AI agent alone implements the next two kinds with included HF Pro quota. Eight candidates are now implemented in the31-kind non-lord Hawaii queue;23 remain, starting with Plesiosaur and Dunkleosteus. Continuation does not replace individual user acceptance. Preserve local lord checkpoint8dbb4d5, earlier candidates, formal main v0.11.13 and all services/archives. No new commit, push, model delegation or personal Skill change.
+
+### Reference and actual production
+
+[Lund University’s2013 mosasaur fossil report](https://www.lunduniversity.lu.se/article/unique-fossil-marine-lizard-discovered) and its [soft-tissue study](https://portal.research.lu.se/en/publications/soft-tissue-preservation-in-a-fossil-marine-lizard-with-a-bilobed/) support a streamlined mosasaur with a vertical bilobed tail. That fossil is Prognathodon, not direct soft-tissue evidence for the registry’s Mosasaurus hoffmannii. The candidate applies the derived mosasaur pattern as a reconstruction: long toothed snout, four paddles and posterior lateral propulsion. Existing13m game scale remains.
+
+[Bristol’s Pliosaurus account](https://www.bristol.ac.uk/news/2012/8488.html) describes a large head, short neck and four powerful flippers. The [2017 plesiosaur flipper study](https://pmc.ncbi.nlm.nih.gov/articles/PMC5577481/) supports coordinated propulsion from both pairs, with effective phase depending on morphology and speed. The candidate uses four independent foils with a bounded front/rear phase lag and feathering; its short tail stabilizes rather than drives a whale-like wave. Exact colors, soft tissue and animation phase/amplitude are artistic adaptations, not measured fossil behavior. Existing11m game scale remains. Neither animal receives a shark dorsal fin.
+
+Original project concepts were generated with the built-in image tool and uploaded to Microsoft TRELLIS.2. Source photographs, code and private project data were not uploaded. Each actual GLB used one generation/export, seeds741947/741948,1024 generation/texture. Separate stage receipts, complete GLB headers/byte lengths and hashes are preserved in ignored`.local/hawaii_reptiles_20261019/`. A first metadata preflight hit a transient TLS EOF; the generation runner independently checked live included quota before any job, and subsequent Pro/license/revision queries succeeded. Space revision`ebf60b20fc5a4607f90a1c11c0aab0ceeda5429d`, model revision`af44b45f2e35a493886929c6d786e563ec68364d`, both MIT; no paid overage or account switch.
+
+| Kind     | Raw GLB SHA-256                                                    | Raw triangles | Runtime triangles   | Vertices | Meshes before → after | Bones |
+| -------- | ------------------------------------------------------------------ | ------------- | ------------------- | -------- | --------------------- | ----- |
+| mosasaur | `5f0b0ee2ac1456c5f1c0a6e8360525e066dfdab37c6ce3481bec07254bf1f7be` | 96,021        | 7,000 (before8,912) | 7,379    | 12 → 1                | 11    |
+| pliosaur | `2e6d1df259ad54183c6c1aeda7083f4dcd4b28a1ef7970f30d06241ee8579137` | 96,626        | 7,200 (before8,520) | 9,691    | 11 → 1                | 9     |
+
+Both raw heads face+Z; the converter rigidly turns them to the existing−Z travel/attack axis and uniformly normalizes body length. Raw and runtime meshes were inspected in textured/clay side, front, rear, top and underside views. The Pliosaurus’s reconstructed hind foils were swept too close to its tail; a smooth local48/100-radian spread opens the distal foils around their actual roots. UVs, topology, torso and tail remain intact, with normals recomputed and duplicate seams averaged. No extra inference was used for correction.
+
+Each kind shares one immutable geometry/material and one padded1024² WebP; skeletons and phase state belong to individual instances. All four fin roots are fitted to the actual surface and rear joints follow the torso chain. Whole Mosasaurus tail fan has one terminal support. Actual-vertex tests revealed that the first Mosasaurus hind-fin pitch partly canceled its roll: the final hind trim restores readable excursion without making every limb a propulsion paddle. Pliosaurus has matched left/right strokes and front/rear timing, stable head/short tail and smoothly changing effort. The existing accumulated motion clock supplies faster chase cadence; pause freezes all poses.
+
+Pliosaurus underside inspection isolated a few baked dark texture patches: neutral material showed an intact surface. A spatially limited low-luminance belly grade softens these patches while preserving jaw/eyes/back markings. No geometry, gameplay or world lighting was changed for this material correction. Materials remain rough, nonmetallic, opaque and nonemissive; no added lights, particles or frame loops. Texture failure preserves opaque anatomical vertex colors.
+
+Regional populations remain exact: Hawaii Pliosaurus7/Mosasaurus7, Atlantis8/9, Bermuda5/8, Mariana17/15; none in the other four regions. The shared factory serves Guide and every existing regional instance. Existing body length, speed, ecology, attacks, damage, rewards and difficulty remain untouched; the old procedural builders stay preserved for comparison. Both language descriptions remain consistent with visible anatomy.
+
+### Fresh verification and limits
+
+- All878 delivered source fingerprints matched before work. Only the shared factory and review/entry documents change among pre-existing files; new mesh/asset/rig/converter/test files are isolated. Prior candidates and gameplay hashes are retained.
+- Full suite1,363/1,363 passed after final fin tuning; seven focused tests passed again after the belly-only material grade. Checks cover finite unit normals, weights, normalized dimensions/budgets, immutable resource sharing, independent skeletons/idempotent disposal, four actual foil tips relative to supporting bones, UV-duplicate continuity, abrupt cruise/chase changes, pause, fixed head alignment, vertical whole-tail support and all eight region configurations. Initial failed fin-motion receipts remain in the evidence folder.
+- Native Chrome: six Guide opens, twelve region preparations;228 skeletons tracked,183 evicted bone textures disposed and45 retained by active/cached regions. Shared geometry/material identity and independent instance rigs pass; both texture failure fallbacks pass. World clips record533/540 frames with >122m displacement and frozen bones on pause. Staged observer/invulnerable-player footage uses normal entity movement; it is not encounter or balance evidence. Final18-second encoded clips and contact sheets were inspected and sent.
+- Matched517-entity scenes: Mosasaurus92→81 draws /378,466→376,554 triangles; Pliosaurus91→81 draws /378,074→376,754 triangles.29 artifacts total17,186,858 bytes (+1,001,394). Extra shared color maps and independent bone textures still cost memory. These are geometry/draw samples, not physical-phone, heat or FPS evidence.
+- Final public native Chrome English1440px/Chinese390px Guide/start/boost/sonar/pause/Home and same-address reload pass with zero observed errors or failed HTTP resources. Both textures load200; production hooks are absent. All29 artifacts match dist/local/public, and11 private paths per origin are denied. Entry`./assets/index-BxrWu7bD.js`.
+- The earlier failed public attempt exposed a reproducible local-server backlog defect: default queue5 failed45 of96 simultaneous loopback requests. An ignored project-local wrapper changes only the imported restricted server queue to128; the personal Skill file is unchanged. The same96-request check now passes96/96. Only preview and its dependent awake process were restarted; DEV and tunnel identities remain. Initial failed receipts and original manager/state are archived. Bounded curl retries cover transient TLS failures without disabling certificate verification.
+
+Included balance1817.938009→1774.058090 seconds, settled cost43.879919 seconds, overquota0. Intermediate180-second export reservations are not additional settled consumption. Returned reset approximately2026-10-19T14:41:48Z; recheck live quota before another batch. This is a resumable queue, not an autonomous background timer.
+
+After the necessary queue correction, services are DEV35213 / preview74197 / awake74200 / tunnel35419 under`.local/mini_preview_20261007/manage.py status|rebuild|stop`; DEV5188, restricted build7188 and metrics20248 bind to loopback. Only index/assets are served. Keep all prior runtimes and logs. Preview stays https://saver-recorded-digit-could.trycloudflare.com/ ; formal Pages/main is unchanged.
+
+## Authorized local checkpoint — 2026-10-19
+
+The user says “先commit一下，然后继续”. This authorizes a local checkpoint of the eight ordinary-creature redraws and continuation with Plesiosaur/Dunkleosteus. Prior no-commit labels describe their original production stage. No push, main publication or new gameplay change is authorized. Technical evidence remains scoped as recorded above; subjective individual feedback has not been invented. New candidates after this checkpoint remain uncommitted for review.
