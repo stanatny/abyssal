@@ -1,3 +1,33 @@
+# Accepted local Hawaii creature checkpoint — 2026-10-20
+
+Accepted local Hawaii creature checkpoint — 2026-10-20: the user says “现在可以了，提交吧”, accepting the latest Swimmer repair and authorizing a local checkpoint of the delivered batches10–11 plus appearance-loading/human corrections. All976 source fingerprints and56 build artifacts match the final delivery before these acceptance notes; fresh1,433-test and native/public receipts retain their actual scope. No push/main publication is requested. Next, audit all remaining Hawaii elements, including the Torpedo Submarine; the existing creature queue did not claim vehicles or scenery were redrawn. Preserve gameplay, services and archives; the current AI agent works alone.
+
+Earlier pending/rejected entries below describe their historical stage. New redraws return to individual review and require separate commit authorization.
+
+---
+
+# Current Swimmer coordination repair — 2026-10-20
+
+Current Swimmer coordination repair — 2026-10-20: the user rejects the latest recovery pose again. The current AI agent alone corrects overlapping arm timing, anatomical elbow rotation, body roll and misplaced Swimmer ankle pivots. See [the review](docs/appearance_loading_human_revision.md#swimmer-coordination-and-ankle-pivots--2026-10-20). Keep accepted colors/loading status, Diver motion, other assets and gameplay unchanged; no commit/push and visual review remains pending.
+
+---
+
+# Swimmer recovery and loading contrast — 2026-10-20
+
+Current Swimmer/loading follow-up — 2026-10-20: the user confirms restored colors but rejects folded Swimmer recovery and the bright loading-status box. The current AI agent alone replaces the hand path and streamlines the kick, and corrects theme-aware loading status. See [the follow-up](docs/appearance_loading_human_revision.md#swimmer-recovery-and-loading-contrast-follow-up--2026-10-20). Preserve the accepted texture recovery, models, Diver motion, gameplay, services and archives. This remains uncommitted for review.
+
+# Appearance loading and human repair — 2026-10-20
+
+Current appearance/human repair — 2026-10-20: the user rejects eleventh-batch shoulder spheres and Diver posture and reports missing colors across generated creatures. The current AI agent alone repairs continuous human skinning and motion plus whole-roster recoverable texture loading. See [the repair record](docs/appearance_loading_human_revision.md). This is an uncommitted candidate; preserve batches10–11, accepted gameplay, services, archives and formal main/Pages v0.11.13. Earlier technical passes do not imply visual acceptance.
+
+# Current eleventh Hawaii batch — 2026-10-19
+
+Current eleventh Hawaii batch — 2026-10-19: the user explicitly adds seabirds and people. The current AI agent alone completes Gilded Manta, Gull, White-tailed Tropicbird and both adult Swimmer/Diver variants: seven candidate meshes across five kinds. The expanded non-lord queue is33 kinds /35 appearances; all now have candidates or prior checkpoints. Batches10–11 remain uncommitted for individual review; HEAD0eafb80 and formal main/Pages v0.11.13 stay unchanged. Preserve gameplay, services and archives. See [the current review](docs/hawaii_creatures_huggingface_redraw.md#eleventh-batch-gilded-manta-seabirds-and-adult-people--2026-10-19).
+
+# Current tenth Hawaii batch — 2026-10-19
+
+Current tenth Hawaii batch — 2026-10-19: the user-authorized batches7–9/Tuna checkpoint is locally committed as `0eafb80`. The current AI agent alone adds Herring, Anchovy, Moon Jelly and Spiny Lobster HF candidates, bringing the non-lord queue to28 of31 (3 remaining). This new batch stays uncommitted for individual review; preserve gameplay, services, archives and formal main v0.11.13. See [the current review](docs/hawaii_creatures_huggingface_redraw.md#tenth-batch-herring-anchovy-moon-jelly-and-spiny-lobster--2026-10-19). Earlier entries retain their historical scope.
+
 # Accepted local twelve-creature checkpoint — 2026-10-19
 
 Accepted local twelve-creature checkpoint — 2026-10-19: the user requests “好的，做一个提交，继续下一组吧”, authorizing a local checkpoint of batches7–9 and the Tuna UV correction before Herring, Anchovy, Moon Jelly and Spiny Lobster. All939 delivered source fingerprints and45 build artifacts match before these acceptance notes. Existing1,405-test/native/public receipts retain their recorded scope. No push/main release. The current AI agent works alone; new candidates remain uncommitted for individual review. Preserve gameplay, services and archives.

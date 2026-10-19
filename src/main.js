@@ -166,6 +166,7 @@ import {
   getCharacter,
 } from "./character_rules.js";
 import { bodyRadius, isPositionBlocked } from "./collision.js";
+import { waitForMaterials } from "./material_loading.js";
 import { prepareZombieSharkMaterials } from "./zombie_shark_asset.js";
 import { prepareMechanicalSharkMaterials } from "./mechanical_shark_asset.js";
 import { createZombieMinion } from "./zombie_minion.js";
@@ -4426,11 +4427,11 @@ seedPickups();
 updateRegionPresentation();
 regionLoader.stage("正在准备光影…", 82);
 await regionLoader.paint();
-await Promise.all([
-  prepareOrcaMaterials(),
-  prepareSquidMaterials(),
-  prepareZombieSharkMaterials(),
-  prepareMechanicalSharkMaterials(),
+await waitForMaterials([
+  prepareOrcaMaterials({ priority: 10 }),
+  prepareSquidMaterials({ priority: 10 }),
+  prepareZombieSharkMaterials({ priority: 10 }),
+  prepareMechanicalSharkMaterials({ priority: 10 }),
 ]);
 await renderer.compileAsync(scene, camera);
 requestAnimationFrame(frame);

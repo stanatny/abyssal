@@ -1,6 +1,9 @@
 import * as THREE from "three";
 import { addFeedingMouth } from "./player_motion.js";
-import { createZombieSharkRig } from "./zombie_shark_asset.js";
+import {
+  createZombieSharkRig,
+  prepareZombieSharkMaterials,
+} from "./zombie_shark_asset.js";
 import { poseSharkPectorals } from "./shark_swim_motion.js";
 
 /**
@@ -10,6 +13,8 @@ import { poseSharkPectorals } from "./shark_swim_motion.js";
  * @returns {void} 安装共享网格、实例骨架及真实嘴部、分裂锚点。
  */
 export function buildZombieShark(root, motions) {
+  root.userData.prepareMaterials = prepareZombieSharkMaterials;
+  prepareZombieSharkMaterials({ priority: 10 });
   const { bones } = createZombieSharkRig(root);
   const jaw = bones[4];
   const splitAnchors = [-1, 1].map((side) => {

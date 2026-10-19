@@ -1,3 +1,4 @@
+import { createMaterialPreparation } from "./material_loading.js";
 import * as THREE from "three";
 import packed from "./assets/models/zombie_shark_mesh.json" with { type: "json" };
 
@@ -10,53 +11,35 @@ const material = new THREE.MeshStandardMaterial({
   metalness: 0,
 });
 material.name = "zombie_shark_torn_hide";
-let textureTask;
-
-/**
- * 共享两张贴图；超时或离线仍保留实体伤口网格，不阻塞启动、不重复分配资源。
- * @returns {Promise<boolean>} 两张贴图是否都已就绪。
- */
-export function prepareZombieSharkMaterials() {
-  if (typeof window === "undefined") return Promise.resolve(false);
-  if (textureTask) return textureTask;
-  const load = async (url, colorSpace) => {
-    const controller = new AbortController();
-    const timer = setTimeout(() => controller.abort(), 5000);
-    try {
-      const response = await fetch(url, { signal: controller.signal });
-      if (!response.ok) throw new Error("Zombie texture unavailable");
-      const bitmap = await createImageBitmap(await response.blob());
-      const texture = new THREE.Texture(bitmap);
-      texture.flipY = false;
-      texture.colorSpace = colorSpace;
-      texture.needsUpdate = true;
-      return texture;
-    } finally {
-      clearTimeout(timer);
-    }
-  };
-  textureTask = Promise.allSettled([
-    load(
-      new URL("./assets/models/zombie_shark_color.webp", import.meta.url),
-      THREE.SRGBColorSpace,
-    ),
-    load(
-      new URL("./assets/models/zombie_shark_surface.webp", import.meta.url),
-      THREE.NoColorSpace,
-    ),
-  ]).then(([color, surface]) => {
-    if (color.status === "fulfilled") {
-      material.map = color.value;
-      material.color.set(0xffffff);
-    }
-    if (surface.status === "fulfilled") material.roughnessMap = surface.value;
-    material.needsUpdate = true;
-    material.userData.texturesReady =
-      color.status === "fulfilled" && surface.status === "fulfilled";
-    return material.userData.texturesReady;
-  });
-  return textureTask;
-}
+export const prepareZombieSharkMaterials = createMaterialPreparation(
+  [
+    {
+      name: "color",
+      url: new URL("./assets/models/zombie_shark_color.webp", import.meta.url),
+      colorSpace: THREE.SRGBColorSpace,
+      apply(texture) {
+        material.map = texture;
+        material.color.set(0xffffff);
+        material.needsUpdate = true;
+      },
+    },
+    {
+      name: "surface",
+      url: new URL(
+        "./assets/models/zombie_shark_surface.webp",
+        import.meta.url,
+      ),
+      colorSpace: THREE.NoColorSpace,
+      apply(texture) {
+        material.roughnessMap = texture;
+        material.needsUpdate = true;
+      },
+    },
+  ],
+  (ready) => {
+    material.userData.texturesReady = ready;
+  },
+);
 
 const smooth = (a, b, x) => THREE.MathUtils.smoothstep(x, a, b);
 function decode(value, Type) {

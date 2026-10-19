@@ -624,6 +624,8 @@ export function createSurface(
     dispose() {
       reset();
       fleet.dispose();
+      // 海鸟共享外观资源，但骨骼纹理属于每个飞行实例。
+      for (const bird of birds) bird.mesh.userData.disposeLocalMotion?.();
       nightSky?.dispose();
       scene.remove(root);
       foam.dispose();

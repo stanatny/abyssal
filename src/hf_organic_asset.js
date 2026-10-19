@@ -1,3 +1,4 @@
+import { createMaterialPreparation } from "./material_loading.js";
 import * as THREE from "three";
 
 /** 解码离线量化的实体网格；绑定由各物种按实际解剖提供，避免共用错误转轴。 */
@@ -113,35 +114,23 @@ export function organicSurface(name, url, roughness, kind) {
   const material = organicMaterial(roughness);
   material.name = name;
   balanceOrganicAlbedo(material, kind);
-  let task;
-  const prepare = () => {
-    if (typeof window === "undefined") return Promise.resolve(false);
-    if (task) return task;
-    task = (async () => {
-      const controller = new AbortController();
-      const timer = setTimeout(() => controller.abort(), 5000);
-      try {
-        const response = await fetch(url, { signal: controller.signal });
-        if (!response.ok) throw new Error("Creature texture unavailable");
-        const bitmap = await createImageBitmap(await response.blob());
-        const texture = new THREE.Texture(bitmap);
-        texture.flipY = false;
-        texture.colorSpace = THREE.SRGBColorSpace;
-        texture.needsUpdate = true;
-        material.map = texture;
-        material.vertexColors = false;
-        material.needsUpdate = true;
-        material.userData.texturesReady = true;
-        return true;
-      } catch {
-        material.userData.texturesReady = false;
-        return false;
-      } finally {
-        clearTimeout(timer);
-      }
-    })();
-    return task;
-  };
+  const prepare = createMaterialPreparation(
+    [
+      {
+        name: "color",
+        url,
+        colorSpace: THREE.SRGBColorSpace,
+        apply(texture) {
+          material.map = texture;
+          material.vertexColors = false;
+          material.needsUpdate = true;
+        },
+      },
+    ],
+    (ready) => {
+      material.userData.texturesReady = ready;
+    },
+  );
   return { material, prepare };
 }
 

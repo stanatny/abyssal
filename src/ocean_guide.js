@@ -716,6 +716,31 @@ export function createOceanGuide(trigger) {
     pointerX = 0,
     lastInteraction = 0;
   const modelCache = new Map();
+  const textureStatus = document.createElement("button");
+  textureStatus.type = "button";
+  textureStatus.className = "guide-texture-status";
+  textureStatus.hidden = true;
+  textureStatus.setAttribute("aria-live", "polite");
+  preview.append(textureStatus);
+  let textureRequest = 0;
+  async function preparePreview(owner, retry = false) {
+    const request = ++textureRequest;
+    const prepare = owner?.userData.prepareMaterials;
+    textureStatus.hidden = !prepare || prepare.state === "ready";
+    if (!prepare) return;
+    textureStatus.disabled = true;
+    textureStatus.textContent = t("正在加载外观…");
+    const ready = await prepare({ priority: 20, retry });
+    if (request !== textureRequest || owner !== model) return;
+    textureStatus.hidden = ready;
+    textureStatus.disabled = false;
+    textureStatus.textContent = t("外观未加载 · 点击重试");
+  }
+  textureStatus.addEventListener("click", () => preparePreview(model, true));
+  window.addEventListener("online", () => {
+    if (dialog.open && model?.visible) preparePreview(model, true);
+  });
+
   function syncRegionControl() {
     const region = REGIONS.find((entry) => entry.id === selectedRegion);
     setMarkup(
@@ -1010,6 +1035,8 @@ export function createOceanGuide(trigger) {
     rewardDisplay.hidden = !isReward;
     dragging = false;
     if (isReward) {
+      textureRequest++;
+      textureStatus.hidden = true;
       if (model) model.visible = false;
       rewardDisplay.querySelector(".guide-eyebrow").textContent = t(
         isHazard ? "海域奇观与危险" : "OCEAN REWARDS / 海洋奖励",
@@ -1073,6 +1100,7 @@ export function createOceanGuide(trigger) {
       model.position.sub(box.getCenter(new THREE.Vector3()));
       modelCache.set(modelKey, model);
     }
+    preparePreview(model);
     model.rotation.y = rotation;
     model.visible = true;
     scene.add(model);
@@ -1189,6 +1217,7 @@ export function createOceanGuide(trigger) {
     );
   });
   preview.addEventListener("pointerdown", (event) => {
+    if (event.target.closest("button")) return;
     if (
       ["reward", "hazard"].includes(selected.category) ||
       event.target.closest(".guide-variant-controls")

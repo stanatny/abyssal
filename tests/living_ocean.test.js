@@ -269,7 +269,7 @@ test("New wildlife has finite detailed geometry, shared resources, independent m
     );
     const nodes = [];
     a.traverse((n) => {
-      if (n.isGroup) nodes.push(n);
+      if (n.isGroup || n.isBone) nodes.push(n);
     });
     a.userData.animate(0);
     const before = nodes.map((n) => n.rotation.toArray().join());

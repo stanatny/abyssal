@@ -109,7 +109,11 @@ test("rare models have finite fully posed geometry, distinct silhouettes and ind
     shapes.push(poses[0]);
     assert.equal(
       b.userData.artRevision ?? b.userData.odysseyAnatomy,
-      s.regionId === "odyssey" ? "golden_argonaut" : "regional_rare_v1",
+      s.regionId === "odyssey"
+        ? "golden_argonaut"
+        : s.kind === "golden_manta"
+          ? "trellis_hawaii_batch11_20261019"
+          : "regional_rare_v1",
     );
     assert.ok(poses[0][2] > 0.8 && poses[0][2] < 1.2, s.kind);
   }

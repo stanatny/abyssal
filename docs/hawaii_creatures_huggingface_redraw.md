@@ -4,45 +4,47 @@
 
 The user accepted the four Hawaii lords and Kraken intake, locally committed as `8dbb4d5`, then requested sequential redraws of the remaining Hawaii creatures. Eight ordinary redraws are locally committed as `b6c81d9`, followed by Plesiosaur/Dunkleosteus and head-color feedback in `e705d6d`. The sixth pair, Archelon/Green Sea Turtle, is locally committed as `4715a62`. The seventh batch adds Ray, Sunfish, Tuna and Octopus candidates; the eighth adds Angler, Wrasse, Parrotfish and Boxfish. The ninth adds Flying Fish, Reef Fish, Pacific Mackerel and Pacific Sardine. The user now authorizes a local checkpoint of these twelve and the Tuna UV repair before the next batch; no push/main release. Earlier pending labels below retain their historical scope. Current agent alone; no push/main release. Formal main remains v0.11.13. Preserve rules, size, populations, captures, attacks, resources and existing services.
 
-Registry audit: `getRegionSpecies("hawaii")` contains28 kinds/516 individuals; regional rare is Gilded Manta; surface birds are Gull and White-tailed Tropicbird. Humans, vehicles and scenery are not biological redraw targets. Other-map copies of a shared kind use the same factory.
+Registry audit: `getRegionSpecies("hawaii")` contains28 kinds/516 individuals; regional rare is Gilded Manta; surface birds are Gull and White-tailed Tropicbird. The original31-kind queue omitted people. The user now explicitly adds adult Swimmer and Diver, each male/female: the current queue is33 kinds /35 appearances. Vehicles and scenery remain outside this biological batch. Other-map copies of a shared kind use the same factory.
 
 ## Queue
 
-| Order | Kind            | State                          |
-| ----- | --------------- | ------------------------------ |
-| 1     | `shark`         | Local checkpoint b6c81d9       |
-| 2     | `hammerhead`    | Local checkpoint b6c81d9       |
-| 3     | `sperm_whale`   | Local checkpoint b6c81d9       |
-| 4     | `ichthyotitan`  | Local checkpoint b6c81d9       |
-| 5     | `megalodon`     | Local checkpoint b6c81d9       |
-| 6     | `basilosaurus`  | Local checkpoint b6c81d9       |
-| 7     | `mosasaur`      | Local checkpoint b6c81d9       |
-| 8     | `pliosaur`      | Local checkpoint b6c81d9       |
-| 9     | `plesiosaur`    | Local checkpoint e705d6d       |
-| 10    | `dunkleosteus`  | Local checkpoint e705d6d       |
-| 11    | `archelon`      | Local checkpoint 4715a62       |
-| 12    | `turtle`        | Local checkpoint 4715a62       |
-| 13    | `ray`           | Local checkpoint (this commit) |
-| 14    | `sunfish`       | Local checkpoint (this commit) |
-| 15    | `tuna`          | Local checkpoint (this commit) |
-| 16    | `octopus`       | Local checkpoint (this commit) |
-| 17    | `angler`        | Local checkpoint (this commit) |
-| 18    | `wrasse`        | Local checkpoint (this commit) |
-| 19    | `parrotfish`    | Local checkpoint (this commit) |
-| 20    | `boxfish`       | Local checkpoint (this commit) |
-| 21    | `flying_fish`   | Local checkpoint (this commit) |
-| 22    | `fish`          | Local checkpoint (this commit) |
-| 23    | `mackerel`      | Local checkpoint (this commit) |
-| 24    | `sardine`       | Local checkpoint (this commit) |
-| 25    | `herring`       | Queued                         |
-| 26    | `anchovy`       | Queued                         |
-| 27    | `moon_jelly`    | Queued                         |
-| 28    | `spiny_lobster` | Queued                         |
-| 29    | `golden_manta`  | Queued                         |
-| 30    | `seagull`       | Queued                         |
-| 31    | `tropicbird`    | Queued                         |
+| Order | Kind            | State                                       |
+| ----- | --------------- | ------------------------------------------- |
+| 1     | `shark`         | Local checkpoint b6c81d9                    |
+| 2     | `hammerhead`    | Local checkpoint b6c81d9                    |
+| 3     | `sperm_whale`   | Local checkpoint b6c81d9                    |
+| 4     | `ichthyotitan`  | Local checkpoint b6c81d9                    |
+| 5     | `megalodon`     | Local checkpoint b6c81d9                    |
+| 6     | `basilosaurus`  | Local checkpoint b6c81d9                    |
+| 7     | `mosasaur`      | Local checkpoint b6c81d9                    |
+| 8     | `pliosaur`      | Local checkpoint b6c81d9                    |
+| 9     | `plesiosaur`    | Local checkpoint e705d6d                    |
+| 10    | `dunkleosteus`  | Local checkpoint e705d6d                    |
+| 11    | `archelon`      | Local checkpoint 4715a62                    |
+| 12    | `turtle`        | Local checkpoint 4715a62                    |
+| 13    | `ray`           | Local checkpoint 0eafb80                    |
+| 14    | `sunfish`       | Local checkpoint 0eafb80                    |
+| 15    | `tuna`          | Local checkpoint 0eafb80                    |
+| 16    | `octopus`       | Local checkpoint 0eafb80                    |
+| 17    | `angler`        | Local checkpoint 0eafb80                    |
+| 18    | `wrasse`        | Local checkpoint 0eafb80                    |
+| 19    | `parrotfish`    | Local checkpoint 0eafb80                    |
+| 20    | `boxfish`       | Local checkpoint 0eafb80                    |
+| 21    | `flying_fish`   | Local checkpoint 0eafb80                    |
+| 22    | `fish`          | Local checkpoint 0eafb80                    |
+| 23    | `mackerel`      | Local checkpoint 0eafb80                    |
+| 24    | `sardine`       | Local checkpoint 0eafb80                    |
+| 25    | `herring`       | Candidate: pending user review              |
+| 26    | `anchovy`       | Candidate: pending user review              |
+| 27    | `moon_jelly`    | Candidate: pending user review              |
+| 28    | `spiny_lobster` | Candidate: pending user review              |
+| 29    | `golden_manta`  | Candidate: pending user review              |
+| 30    | `seagull`       | Candidate: pending user review              |
+| 31    | `tropicbird`    | Candidate: pending user review              |
+| 32    | `swimmer`       | Male/female candidates: pending user review |
+| 33    | `diver`         | Male/female candidates: pending user review |
 
-The first-pair receipts below retain their original scope; the current ninth-batch delivery is recorded at the end. The user explicitly requested continuation, which authorizes this batch but does not by itself close individual acceptance.
+The first-pair receipts below retain their original scope; the current eleventh-batch delivery is recorded at the end. The user explicitly requested continuation, which authorizes this batch but does not by itself close individual acceptance.
 
 ## First pair references
 
@@ -460,3 +462,112 @@ Evidence, both original user screenshots, rejected trials, old packed mesh/textu
 ## Accepted twelve-creature checkpoint — 2026-10-19
 
 Accepted local twelve-creature checkpoint — 2026-10-19: the user requests “好的，做一个提交，继续下一组吧”, authorizing a local checkpoint of batches7–9 and the Tuna UV correction before Herring, Anchovy, Moon Jelly and Spiny Lobster. All939 delivered source fingerprints and45 build artifacts match before these acceptance notes. Existing1,405-test/native/public receipts retain their recorded scope. No push/main release. The current AI agent works alone; new candidates remain uncommitted for individual review. Preserve gameplay, services and archives.
+
+## Tenth batch: Herring, Anchovy, Moon Jelly and Spiny Lobster — 2026-10-19
+
+The user requests “好的，做一个提交，继续下一组吧”. All939 source fingerprints and45 runtime artifacts were checked against the prior Tuna delivery before acceptance-note edits. The twelve kinds from batches7–9 and Tuna UV repair are locally committed as `0eafb80c1c92e3e7fd1557bdac68bd267d51b3ed`; no push. This is the user's save/continue authorization, not an invented individual aesthetic rating. The current AI agent independently continues the four next kinds. Twenty-eight of31 non-lord kinds now have redraws; Gilded Manta, Gull and White-tailed Tropicbird remain. These four new candidates are uncommitted/unpushed, pending individual review. Formal main/Pages remains v0.11.13 / `110494c`.
+
+### References and anatomy
+
+- [NOAA Pacific Herring](https://www.fisheries.noaa.gov/species/pacific-herring): laterally compressed, deeper trunk, blue/olive back and silver sides. [NOAA Northern Anchovy](https://www.fisheries.noaa.gov/species/northern-anchovy): slender body, projecting snout, large mouth and silver flank band. These are the actual registry references Clupea pallasii and Engraulis mordax. The mixed Hawaii roster is a game adaptation, not a claim of native distribution.
+- [Monterey Bay Aquarium Moon Jelly](https://www.montereybayaquarium.org/animals-the-ocean/animals-a-to-z/moon-jelly) and [Australian Museum](https://australian.museum/learn/animals/jellyfish/moon-jelly/): translucent shallow bell, short marginal tentacles, four horseshoe gonads and four frilly oral arms. The latter is a named Aurelia example, not identification of the game's broad Aurelia spp. Four fitted internal horseshoes supplement the actual HF bell/frills because the reconstructed source did not visibly preserve those organs.
+- [NOAA Caribbean Spiny Lobster](https://www.fisheries.noaa.gov/species/caribbean-spiny-lobster): spined carapace, long antennae, segmented tail/fan, five walking-leg pairs and no giant front claws. The HF export has incomplete/detached appendage fragments; the offline converter removes generated walking appendages and the runtime fits ten continuous native articulated legs to the retained HF shell. The result is explicitly a hybrid, not a claim that the unedited generator supplied accurate limbs.
+
+Original project-generated references alone were uploaded; no external photographs, repository code or credentials. Four one-attempt generation/export chains use Microsoft TRELLIS.2-4B, seeds741965–741968,1024 generation/texture. Space revision `ebf60b20fc5a4607f90a1c11c0aab0ceeda5429d`, model `af44b45f2e35a493886929c6d786e563ec68364d`, MIT, as independently checked in preflight. Raw GLBs pass header, complete byte-length and hash checks. Receipts, clay/material views, source concepts and private session state are under ignored `.local/hawaii_batch10_20261019/`.
+
+| Kind          | Actual GLB SHA-256                                                 | Raw triangles | Runtime triangles before → after | Meshes before → after |
+| ------------- | ------------------------------------------------------------------ | ------------- | -------------------------------- | --------------------- |
+| Herring       | `5d8d59d16aa26cef70f45ae4ce19adbfda3df9c347da0629bd6ffb0abfbfc7e3` | 97,238        | 2,312 → 2,400                    | 5 → 1                 |
+| Anchovy       | `4ef8b76d21a48c3f41148a0a4ba2e83f12c4215445fa4a3b614313c111200401` | 97,422        | 2,312 → 2,390                    | 5 → 1                 |
+| Moon Jelly    | `afc1ee7e429904e96112140af52a9f3b9667bf9aae0ab9996392b64ff139943e` | 97,436        | 6,144 → 11,148                   | 7 → 2                 |
+| Spiny Lobster | `4d7c9e3f35d0e8b9c2f09934ac361ded92508e67bdf210e05351824c2da74ade` | 99,648        | 14,096 → 12,627                  | 18 → 2                |
+
+Herring/Anchovy each share a quantized body and one1024² WebP, with separate tail/pectoral skeletons. Fresh UV atlases transfer the original HF albedo offline by closest-source projection, avoiding the Tuna cross-chart reduction defect. The same method preserves Jelly color on its reduced9,804-triangle body;1,344 internal-organ triangles complete it. A6k transparent candidate was rejected for excessive facets; the final higher-detail bell uses front-surface transparency without costly transmission or additional lights. Lobster retains8,067 HF triangles and4,560 native leg/joint triangles, with one combined leg draw and independent joint chains. Texture failure falls back to anatomical vertex colors. Geometry/materials are immutable shared caches; every body/leg skeleton is per instance and idempotently disposable.
+
+The four anatomical units retain their existing lengths: Herring0.26m, Anchovy0.18m, Jelly0.4m bell diameter (arms extra), Lobster0.9m including antennae. Jelly bell crown/rest diameter, lobster floor clearance and appendages are checked explicitly. Fish use a posterior lateral wave and restrained fin trim; Jelly pulses with four oral-arm waves; Lobster alternates five pairs of jointed feet and sways antennae. Initial actual-world footage exposed the old generic fish-heading roll that inverted the Jelly. The two invertebrates now select the existing aquatic-upright visual-heading path; movement vectors, routes and speeds are unchanged. The final Jelly world clip retains its bell above its arms throughout the inspected turn. These are expressive game animations, not biomechanical simulation.
+
+Hawaii contains24 Herring,27 Anchovy,12 Jelly and8 Lobster (71 total); Bermuda30/0/12/8 (50), Atlantis0/0/12/8 (20), Mariana0/0/12/8 (20). Other four regions have none. Full eight-region species records match the saved baseline; school sizes are not multiplied into spawn counts. All feeding, attacks, growth, rewards, physics and player actions remain unchanged. No new wording was required: existing bilingual Guide entries already describe these species and structures accurately.
+
+### Fresh checks and resource tradeoffs
+
+- Final `npm test`:1,417/1,417.21 targeted checks cover actual appendage vertices, finite unit normals/weights, independent skeletons, UV duplicate continuity, culling bounds, phase freeze, four arms/gonads, ten legs, floor clearance, atlas-chart integrity, all regional biological contracts and upright Jelly turns/reversals. The legacy silhouette check now requires a measured1.8× Herring/Anchovy core-depth distinction rather than distorting the actual .229/.118 reconstructions to satisfy its old2× factor. Wildlife motion checks include bones as well as groups; no gameplay regression was removed. Formatting/build pass.
+- Native Chrome155.0.8059.80 on M6 Mac mini32GB/macOS27.0.1/Node24.21.0. Twelve Guide reopen cases across three cycles,12 four-region switches and four actual-world recordings pass. Shared geometry/texture identity is stable; per-instance skeletons remain independent. The primary-skin audit tracks483 skeletons,443 disposed and40 retained in the active/one-region LRU; all disposed bone textures are removed. Both Lobster body/leg skeletons are additionally covered by the idempotent unit disposal check. Texture-failure fallback works for all four.
+- The final actual-world clips record459–540 rendered frames over9 seconds, using normal ecology displacement and the existing clock, with a staged invulnerable player and observer camera. No entity/player pinning. Pause freezes all model bones. Controlled9-second Guide films show anatomical motion, followed by9-second world segments. The corrected Jelly stays upright; the encoded contact sheets were inspected. These fixtures and390px desktop touch emulation are not physical-phone, natural-progression, heat or FPS tests.
+
+Matched paused517-entity populated samples at1280×800 with the existing rendering/postprocessing; swap only the four candidate kinds at identical camera/transform/visibility:
+
+| Camera near   | Calls before → after | Triangles before → after |
+| ------------- | -------------------- | ------------------------ |
+| herring       | 549 → 345            | 1,729,572 → 1,726,639    |
+| anchovy       | 221 → 158            | 782,244 → 797,246        |
+| moon_jelly    | 120 → 109            | 522,228 → 522,048        |
+| spiny_lobster | 151 → 119            | 604,970 → 602,032        |
+
+These are rendered-cost samples, not frame-time measurements. The denser transparent Jelly adds mesh/overdraw work despite fewer calls; new texture/skeleton resources have memory cost, including separate uploads in game/Guide contexts. The final49-file package totals27,855,506 bytes, +1,877,688 over the accepted Tuna preview. Do not claim phone or thermal improvement.
+
+Final restricted preview https://saver-recorded-digit-could.trycloudflare.com/ serves `index-BV-M66DM.js`. All49 artifacts match dist/local/public SHA-256;11 private/source paths per origin are denied. Native English1440px and Chinese390px Guide/start/ability/pause/Home pass eight cases, same-address reload passes after a separately recorded transient Cloudflare connection-close recovery, no observed game page/console/resource errors or production debug hook. The original dev35213/preview74197/awake74200/tunnel35419 are preserved. `.local/mini_preview_20261007/manage.py status|rebuild|stop <owned-service>` remains the local manager, with identity checks, append-only logs and preserved runtime archives. No historical worktree or canceled Kimi output was changed.
+
+Settled included Pro usage is157.345646 seconds for this batch;2026-10-19T12:43:23Z quota995.904635/2400 seconds, overquota0, provider reset22:41:48 Beijing. This is a dated receipt, not future available quota. Next batch must recheck the live balance.
+
+Four before/after image sets and four18-second motion/world films plus a72-second compilation are under `.local/hawaii_batch10_20261019/delivery/`. New candidates remain pending individual user review (local ledger PP-Q036); the prior twelve are saved by the user's local-commit authorization. No new candidate commit, push, main release, timer or personal Skill change.
+
+## Eleventh batch: Gilded Manta, seabirds and adult people — 2026-10-19
+
+The user requests “下一批，除了鱼之外，应该还有海鸟、人等生物”. The current AI agent independently audits the actual species, rare, surface-bird and human factories. The previous31 kinds comprise28 ordinary kinds, Gilded Manta and two birds. Add two adult human kinds, each with male/female appearance:33 non-lord kinds /35 variants. All are now checkpointed or candidate-redrawn; this does not imply individual aesthetic acceptance. The four players and four Hawaii lords retain their earlier separate review/checkpoint history. Pelican belongs to Atlantis/Bermuda, not Hawaii; vehicles, mines and scenery are not claimed redrawn. Batches10–11 remain uncommitted/unpushed on `art/hawaii-lords-hf-redraw`, HEAD `0eafb80c1c92e3e7fd1557bdac68bd267d51b3ed`. Formal main remains v0.11.13 / `110494c`.
+
+### References, actual generation and fitting
+
+- [NOAA manta science](https://www.fisheries.noaa.gov/species/giant-manta-ray/science): wing-like disc, paired cephalic lobes, terminal mouth and ventral gills. The Gilded Manta is the existing fictional rare; warm organic mottling is not a metallic machine.
+- [Cornell Western Gull](https://www.allaboutbirds.org/guide/Western_Gull/id): white body, gray mantle, black primary tips and yellow bill inform the generic game Gull. This is a visual reference, not identification or a Hawaiian distribution claim. [Cornell White-tailed Tropicbird](https://www.allaboutbirds.org/guide/White-tailed_Tropicbird/id/) supports the black eye/wing marks, two long central tail streamers and Pacific yellow bill. The FWS catesbyi page describes a Caribbean subspecies and is not used to identify Hawaii.
+- [Swim England front crawl](https://www.swimming.org/masters/improving-front-crawl-technique/) informs the streamlined body, underwater push and overwater recovery. [SDI's official finning demonstration](https://www.youtube.com/watch?v=bsoIfdbu6JI) provides diver-trim context. Preserve the existing fifteen-joint crawl/alternating-flutter phase and timing rather than replacing it with a new movement mechanic. These are expressive game adaptations, not biomechanical simulation.
+
+Only original project-generated reference images were uploaded to [Microsoft TRELLIS.2](https://huggingface.co/spaces/microsoft/TRELLIS.2). Same independently checked MIT model/Space revisions as the preflight above: Space `ebf60b20fc5a4607f90a1c11c0aab0ceeda5429d`, model `af44b45f2e35a493886929c6d786e563ec68364d`. Actual1024-generation/100k-export GLBs pass complete length/header/hash checks. The three creature exports use attempt01. Initial four arms-down human exports are preserved and rejected: nearby/fused hands and torso produced unreliable weights and shoulder collapse, despite bone-only regressions passing. All four were regenerated from separated T-pose references. Final Swimmer male/female and Diver male are attempt02; Diver female attempt02 ended with a provider CancelledError, then authorized retry03 completed. Eleven complete GLBs plus one canceled attempt are retained; only seven are selected. No failed prototype is delivered as accepted.
+
+`prepare_hawaii_batch11_hf_asset.mjs` reduces, rigidly aligns and uniformly normalizes each selected source; `rebake_hawaii_batch11_hf_asset.mjs` unwraps a fresh atlas and projects source color offline. UV-degenerate source faces are excluded from the final human projection. Human garments receive an explicit offline navy/teal wetsuit, one-piece suit or red-trunks finish and dark hair, retaining source luminance detail. This is native finishing of actual HF geometry, not a claim that the unedited generator supplied correct clothing.
+
+Gull raw orientation was diagonal: measured yaw4.3rad, rather than blindly using the other sources' π. Humans use pitchπ/2 then yawπ, with local−Z forward/+Y dorsal. Manta uses continuous chest-wing waves; the two birds use separate feather-chain supports with flap/glide timing and restrained tail stabilization. The existing accumulated creature clock already scales phase by effort; final bird cadence accounts for that instead of multiplying a second full-speed clock. Pose tests track actual tips and UV copies through cruise/chase transitions.
+
+Human T-pose limbs use fitted shoulder bind rotations and the unchanged fifteen-joint animation interface. Native articulated soft shoulder joints close the separated generated shoulder surfaces, avoiding inverted/stretching triangles on large crawl rotations. This is explicitly an HF/native hybrid; all four variants keep independent skeletons and shared per-kind/sex resources. Existing `animate`, `samplePose`, period, bounds, ray/contact and refcount/disposal contracts remain. Guide and world share these factories. Both body and equipment retain opaque surfaces; no extra lights, effect loops or timers. Texture failure retains anatomical fallback colors.
+
+| Variant        | Selected GLB SHA-256                                               | Raw triangles | Runtime triangles before → after | Meshes before → after |
+| -------------- | ------------------------------------------------------------------ | ------------- | -------------------------------- | --------------------- |
+| golden_manta   | `50c0902c090165a02733d31427de8f20ccc95847494ead14ca97fa6d20280e60` | 96,446        | 10,136 → 8,998                   | 6 → 1                 |
+| seagull        | `44b094fd7688a11c79b53956216f2ddaa9f0944200a973f7f14e44607f92ea37` | 97,737        | 9,748 → 7,994                    | 12 → 1                |
+| tropicbird     | `dbe0463ca29206824fcc2f5c690aa3506792a02b93ace0f60e5aedbd7ed35743` | 92,542        | 8,652 → 8,000                    | 14 → 1                |
+| swimmer_male   | `9eded2961f3c17fd8400e14d04b4b29e8869fbae7124cff77a46c11db44a4826` | 97,719        | 6,192 → 9,504                    | 3 → 4                 |
+| swimmer_female | `b3b4d656d2371dc60173402fc3a8f6641abdef31a94297dfd22338b714b9094b` | 93,525        | 6,648 → 9,516                    | 3 → 4                 |
+| diver_male     | `6aedef1a1c2b4a3d5d8ef6b35ebf3d348cfdf7c20cc62d0753aeea480852c8b3` | 94,725        | 9,088 → 9,792                    | 3 → 4                 |
+| diver_female   | `329f9d5c3ae5626c1f06ef4d486891ab8a235dd5331639852c7ef24675dd1ad4` | 96,524        | 9,436 → 9,608                    | 3 → 4                 |
+
+Shared regional Gull copies in Hawaii/Atlantis/Bermuda/Mariana and Tropicbird copies in Hawaii/Mariana use the new builder. Hawaii retains18 Gulls and10 Tropicbirds; the rare remains one existing encounter. The human activity pool remains12 swimmers,10 divers and9 reserved released divers, with the original alternating variants and region-enable rules. Creating/auditing a pooled model in a disabled region does not enable human activity there. No species registry, population, size, feeding, reward, pursuit, player action or regional rule is changed. Existing bilingual descriptions already match these forms; no new game text is needed.
+
+### Fresh checks and costs
+
+- `npm test`:1,427/1,427;37 targeted checks, formatting and build pass. New checks cover immutable shared resources, independent/disposable skeletons, actual wing/tail vertices, weights/normals, culling bounds and repeated phase. Four human variants are sampled across240 phases for finite actual surfaces, unit normals, edge stretch, step continuity and bounded triangles, in addition to the ten existing crawl/diver/ray/refcount tests. Only the expected Golden Manta art revision changes in the existing rare test.
+- Native desktop Chrome:21 Guide cases over three reopen cycles,12 four-region switches, seven actual-world recordings and pause pose freezes pass. Guide model/geometry/material/texture identities stay stable. Initial lifecycle audit exposed missing bird-skeleton cleanup in `surface.dispose`; it now releases each instance's local motion without destroying shared assets. Final310 tracked skeletons:251 disposed with bone textures removed;59 retained are31 pooled people plus28 current birds. The human Guide pagehide path now uses the idempotent disposal alias; last-reference geometry/material/map/bitmap/abort cleanup remains refcounted.
+- Seven controlled6.5-second Guide clips plus seven7.5-second actual-world clips are encoded as H.264 and fully decoded; contact sheets were inspected. Real ecology/flight/human displacement is retained. Observer camera and invulnerable staged player are disclosed; no entity pinning. These are not physical-phone, natural progression, heat or FPS measurements.
+
+Matched populated517-entity1280×800 paused renders swap only this batch at identical transforms/visibility/camera, with existing postprocessing:
+
+| Camera near  | Calls before → after | Triangles before → after |
+| ------------ | -------------------- | ------------------------ |
+| seagull      | 188 → 165            | 748,010 → 780,930        |
+| swimmer      | 236 → 215            | 1,004,643 → 1,044,187    |
+| diver        | 264 → 277            | 1,260,905 → 1,298,689    |
+| golden_manta | 651 → 490            | 2,212,452 → 2,279,776    |
+
+The birds/Manta reduce isolated draws/triangles; human detail and one joint draw increase their cost. Actual populated renders reflect both effects, not an FPS improvement claim. Seven new1024² maps and skeletons cost download/GPU memory; Guide/game WebGL contexts can upload separately. Final56 artifacts total31,849,904 bytes (+3,994,398 versus batch10).
+
+Restricted preview https://saver-recorded-digit-could.trycloudflare.com/ serves `index-CWg-M3nS.js`. All56 dist/local/public resources match SHA-256;11 source/private paths per origin are denied. English1440px and Chinese390px native Guide/start/ability/pause/Home pass14 cases; same-address refresh passes, no observed game page/console/resource errors or production debug hook.390px is desktop touch emulation, not an actual phone. Preserve DEV35213/preview74197/awake74200/tunnel35419, logs, runtime archives and canceled/history worktrees. Manager `.local/mini_preview_20261007/manage.py status|rebuild|stop <owned-service>` retains identity checks and the same tunnel; the prior runtime is archived as `runtime_before_20261019_232715`.
+
+Quota crosses the22:41:49 Beijing reset. Preflight21:24BJT had995.904635/2400 seconds; settled first-seven balance22:40BJT was749.555942. Final22:57:48BJT had2261.391324/2400, overquota0, next returned reset2026-10-20 22:41:49 Beijing. Individual receipts preserve stage/reservation timing; do not sum overlapping reservations or subtract balances across reset. No extra payment, timer or personal Skill change.
+
+Evidence and original/rejected sources are under ignored `.local/hawaii_batch11_20261019/`: `asset_cost.json`, `targeted_tests_final.log`, `full_test_final.log`, native/motion/public reports, `artifacts.json`, preservation/final fingerprints and two comparison sheets/two grouped videos in `delivery/`. Local review ledger PP-Q037 tracks these seven appearances; PP-Q036 remains open for batch10. User continuation does not authorize either new commit or automatic acceptance.
+
+## Eleventh-batch rejection and repair — 2026-10-20
+
+The user rejects the added shoulder spheres and Diver posture and reports missing colors on both shark players, Octopus, Pliosaurus, Dunkleosteus and other generated creatures. These are real defects requiring repair; the preceding technical pass did not establish visual acceptance. See [the new repair record](appearance_loading_human_revision.md) for continuous human skinning, corrected motion and whole-roster texture recovery. Preserve the original candidates/evidence. PP-Q037 remains open, batches10–11 stay uncommitted, and formal main is unchanged.
+
+## Accepted local checkpoint — 2026-10-20
+
+Accepted local Hawaii creature checkpoint — 2026-10-20: the user says “现在可以了，提交吧”, accepting the latest Swimmer repair and authorizing a local checkpoint of the delivered batches10–11 plus appearance-loading/human corrections. All976 source fingerprints and56 build artifacts match the final delivery before these acceptance notes; fresh1,433-test and native/public receipts retain their actual scope. No push/main publication is requested. Next, audit all remaining Hawaii elements, including the Torpedo Submarine; the existing creature queue did not claim vehicles or scenery were redrawn. Preserve gameplay, services and archives; the current AI agent works alone.

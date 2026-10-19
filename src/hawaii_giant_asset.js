@@ -1,3 +1,4 @@
+import { createMaterialPreparation } from "./material_loading.js";
 import * as THREE from "three";
 import spermWhale from "./assets/models/sperm_whale_hf_mesh.json" with { type: "json" };
 import ichthyotitan from "./assets/models/ichthyotitan_hf_mesh.json" with { type: "json" };
@@ -43,35 +44,23 @@ export function hawaiiGiantAsset(kind, bind) {
     );
   };
   material.customProgramCacheKey = () => "hawaii_giant_albedo_v1";
-  let task;
-  const prepare = () => {
-    if (typeof window === "undefined") return Promise.resolve(false);
-    if (task) return task;
-    task = (async () => {
-      const controller = new AbortController();
-      const timer = setTimeout(() => controller.abort(), 8000);
-      try {
-        const response = await fetch(urls[kind], { signal: controller.signal });
-        if (!response.ok) throw new Error("Giant texture unavailable");
-        const bitmap = await createImageBitmap(await response.blob());
-        const texture = new THREE.Texture(bitmap);
-        texture.flipY = false;
-        texture.colorSpace = THREE.SRGBColorSpace;
-        texture.needsUpdate = true;
-        material.map = texture;
-        material.vertexColors = false;
-        material.needsUpdate = true;
-        material.userData.texturesReady = true;
-        return true;
-      } catch {
-        material.userData.texturesReady = false;
-        return false;
-      } finally {
-        clearTimeout(timer);
-      }
-    })();
-    return task;
-  };
+  const prepare = createMaterialPreparation(
+    [
+      {
+        name: "color",
+        url: urls[kind],
+        colorSpace: THREE.SRGBColorSpace,
+        apply(texture) {
+          material.map = texture;
+          material.vertexColors = false;
+          material.needsUpdate = true;
+        },
+      },
+    ],
+    (ready) => {
+      material.userData.texturesReady = ready;
+    },
+  );
   const asset = { geometry, material, prepare };
   cache.set(kind, asset);
   return asset;

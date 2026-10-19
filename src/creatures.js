@@ -1,3 +1,5 @@
+import { buildHawaiiBatch11HF } from "./creature_hawaii_batch11_hf.js";
+import { buildHawaiiBatch10HF } from "./creature_hawaii_batch10_hf.js";
 import { buildHawaiiBatch8HF } from "./creature_hawaii_batch8_hf.js";
 import { buildHawaiiBatch9HF } from "./creature_hawaii_batch9_hf.js";
 import { buildHawaiiBatch7HF } from "./creature_hawaii_batch7_hf.js";
@@ -109,7 +111,9 @@ export function createCreature(kind, length = 6, seed = 1) {
   let previousTime;
   let swimTime = phase;
 
-  if (ODYSSEY_CREATURE_KINDS.has(kind))
+  if (["golden_manta", "seagull", "tropicbird"].includes(kind))
+    buildHawaiiBatch11HF(kind, root, motions);
+  else if (ODYSSEY_CREATURE_KINDS.has(kind))
     buildOdysseyCreature(kind, root, motions);
   else if (RARE_CREATURE_KINDS.has(kind))
     buildRegionalRare(kind, root, motions);
@@ -125,6 +129,8 @@ export function createCreature(kind, length = 6, seed = 1) {
     buildAmazonCreature(kind, root, motions);
   else if (EUROPA_CREATURE_KINDS.has(kind))
     buildEuropaCreature(kind, root, motions);
+  else if (["herring", "anchovy", "moon_jelly", "spiny_lobster"].includes(kind))
+    buildHawaiiBatch10HF(kind, root, motions);
   else if (WILDLIFE_KINDS.has(kind)) buildWildlife(kind, root, motions);
   else if (MARIANA_CREATURE_KINDS.has(kind))
     buildMarianaCreature(kind, root, motions);

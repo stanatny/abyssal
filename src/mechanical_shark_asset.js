@@ -1,3 +1,4 @@
+import { createMaterialPreparation } from "./material_loading.js";
 import * as THREE from "three";
 import packed from "./assets/models/mechanical_shark_cinematic_mesh.json" with { type: "json" };
 
@@ -27,57 +28,39 @@ material.onBeforeCompile = (shader) => {
     );
 };
 material.customProgramCacheKey = () => "mechanical_cinematic_satin_1";
-let textureTask;
-/** 两张共享贴图只请求一次；失败保留完整银灰实体，不阻塞进入游戏。 */
-export function prepareMechanicalSharkMaterials() {
-  if (typeof window === "undefined") return Promise.resolve(false);
-  if (textureTask) return textureTask;
-  textureTask = (async () => {
-    const controller = new AbortController(),
-      timer = setTimeout(() => controller.abort(), 5000),
-      pending = [];
-    try {
-      const urls = [
-        new URL(
-          "./assets/models/mechanical_shark_cinematic_color.webp",
-          import.meta.url,
-        ),
-        new URL(
-          "./assets/models/mechanical_shark_cinematic_surface.webp",
-          import.meta.url,
-        ),
-      ];
-      // 串行收集可释放的纹理，任一失败都不会留下半套材质或悬空位图。
-      for (const url of urls) {
-        const response = await fetch(url, { signal: controller.signal });
-        if (!response.ok) throw new Error("Mechanical surface unavailable");
-        const bitmap = await createImageBitmap(await response.blob());
-        const texture = new THREE.Texture(bitmap);
-        texture.flipY = false;
-        texture.needsUpdate = true;
-        pending.push(texture);
-      }
-      pending[0].colorSpace = THREE.SRGBColorSpace;
-      material.color.set(0xffffff);
-      material.map = pending[0];
-      material.roughnessMap = material.metalnessMap = pending[1];
-      material.roughness = 1;
-      material.needsUpdate = true;
-      material.userData.texturesReady = true;
-      return true;
-    } catch {
-      pending.forEach((t) => {
-        t.dispose();
-        t.image.close?.();
-      });
-      material.userData.texturesReady = false;
-      return false;
-    } finally {
-      clearTimeout(timer);
-    }
-  })();
-  return textureTask;
-}
+export const prepareMechanicalSharkMaterials = createMaterialPreparation(
+  [
+    {
+      name: "color",
+      url: new URL(
+        "./assets/models/mechanical_shark_cinematic_color.webp",
+        import.meta.url,
+      ),
+      colorSpace: THREE.SRGBColorSpace,
+      apply(texture) {
+        material.map = texture;
+        material.color.set(0xffffff);
+        material.needsUpdate = true;
+      },
+    },
+    {
+      name: "surface",
+      url: new URL(
+        "./assets/models/mechanical_shark_cinematic_surface.webp",
+        import.meta.url,
+      ),
+      colorSpace: THREE.NoColorSpace,
+      apply(texture) {
+        material.roughnessMap = material.metalnessMap = texture;
+        material.roughness = 1;
+        material.needsUpdate = true;
+      },
+    },
+  ],
+  (ready) => {
+    material.userData.texturesReady = ready;
+  },
+);
 
 const smooth = (a, b, x) => THREE.MathUtils.smoothstep(x, a, b);
 function decode(value, Type) {

@@ -1,7 +1,10 @@
 import * as THREE from "three";
 import { mergeGeometries } from "three/addons/utils/BufferGeometryUtils.js";
 import { addFeedingMouth } from "./player_motion.js";
-import { createMechanicalSharkRig } from "./mechanical_shark_asset.js";
+import {
+  createMechanicalSharkRig,
+  prepareMechanicalSharkMaterials,
+} from "./mechanical_shark_asset.js";
 import {
   addMechanicalHardware,
   MECHANICAL_JETS,
@@ -19,6 +22,8 @@ import { poseSharkPectorals } from "./shark_swim_motion.js";
  * @returns {void} 安装共享装甲、实例动作与口部/发射口接口。
  */
 export function buildMechanicalShark(root, motions) {
+  root.userData.prepareMaterials = prepareMechanicalSharkMaterials;
+  prepareMechanicalSharkMaterials({ priority: 10 });
   const { body, bones } = createMechanicalSharkRig(root),
     torso = bones[0],
     jaw = bones[4];

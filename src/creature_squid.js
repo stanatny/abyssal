@@ -34,6 +34,8 @@ function sharedGeometry() {
 
 /** 保留HF外套膜、眼部与鳍；重拓扑的八腕与两条长触腕沿各自的连续独立骨链变形。 */
 export function buildSquid(root, motions) {
+  root.userData.prepareMaterials = surface.prepare;
+  surface.prepare({ priority: 10 });
   const inner = new THREE.Group();
   inner.name = "squid_swimming_frame";
   root.add(inner);

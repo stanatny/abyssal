@@ -1098,3 +1098,33 @@
   color: var(--archive-accent);
   margin-right: 4px;
 }
+
+/* 加载提示跟随图鉴明暗主题，独立于全局按钮的字色和底色，不遮住标本。 */
+.ocean-guide .guide-texture-status {
+  position: absolute;
+  left: 18px;
+  bottom: 44px;
+  z-index: 3;
+  max-width: calc(100% - 36px);
+  border: 0;
+  border-radius: 0;
+  padding: 3px 0;
+  color: var(--archive-body);
+  background: transparent;
+  box-shadow: none;
+  font-family: inherit;
+  font-size: 11px;
+  line-height: 1.4;
+  text-align: left;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  opacity: 1;
+  cursor: pointer;
+}
+.ocean-guide .guide-texture-status:disabled {
+  cursor: progress;
+  text-decoration: none;
+}
+.ocean-guide .guide-texture-status[hidden] {
+  display: none;
+}

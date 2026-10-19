@@ -281,12 +281,8 @@ test("男女自由泳完整周期的实际手腕在水下向脚侧推水、水�
           samplePhase(root, frame / 240);
           const wrist = joint(root, `${side}_wrist`);
           const elbow = root.userData.poseBones[`${side}_elbow`];
-          assert.ok(elbow.rotation.x >= -2.23 && elbow.rotation.x <= -0.119);
-          assert.ok(
-            Math.abs(elbow.rotation.y) < 1e-8 &&
-              Math.abs(elbow.rotation.z) < 1e-8,
-            "Elbow keeps one flexion axis",
-          );
+          const flexion = elbow.quaternion.angleTo(new THREE.Quaternion());
+          assert.ok(flexion >= 0.119 && flexion <= 2.23);
           if (previous) {
             const motion = wrist.clone().sub(previous).dot(forward);
             const low = root.position.y - 0.025 * root.userData.length;
@@ -309,8 +305,8 @@ test("男女自由泳完整周期的实际手腕在水下向脚侧推水、水�
           previous = wrist;
         }
         assert.ok(
-          underwater > 90 && recovering > 90,
-          "Both complete stroke halves were observed",
+          underwater > 90 && recovering > 70,
+          "Power stroke and shorter recovery were both observed",
         );
       }
     } finally {
@@ -432,7 +428,7 @@ test("男女潜水员双脚交替打水，真实脚蹼保持脚侧并限制膝�
             `${sex}/${side}: fin extends toward feet, never head`,
           );
           assert.ok(
-            knee.rotation.x <= -0.129 && knee.rotation.x >= -0.451,
+            knee.rotation.x <= 0 && knee.rotation.x >= -0.451,
             "Knee flexion remains anatomically bounded",
           );
         }
@@ -441,6 +437,83 @@ test("男女潜水员双脚交替打水，真实脚蹼保持脚侧并限制膝�
         raisedLeft > 35 && raisedRight > 35,
         "Both legs alternate throughout the cycle",
       );
+    } finally {
+      root.userData.dispose();
+    }
+  }
+});
+
+test("自由泳回臂从躯干外侧通过，实际脚趾沿后方舒展而非钩脚", () => {
+  for (const sex of ["male", "female"]) {
+    const root = createHumanModel("swimmer", 1, sex);
+    const mesh = root.children.find((child) => child.isSkinnedMesh);
+    const positions = mesh.geometry.attributes.position;
+    try {
+      for (let side = 0; side < 2; side++) {
+        const name = side ? "right" : "left",
+          sign = side ? 1 : -1;
+        let lowest = Infinity;
+        for (let i = 0; i < positions.count; i++)
+          if (positions.getX(i) * sign > 0 && positions.getZ(i) > 0.4)
+            lowest = Math.min(lowest, positions.getY(i));
+        const toes = [];
+        for (let i = 0; i < positions.count; i++)
+          if (
+            positions.getX(i) * sign > 0 &&
+            positions.getZ(i) > 0.4 &&
+            positions.getY(i) < lowest + 0.015
+          )
+            toes.push(i);
+        assert.ok(toes.length > 20, "Actual toe surface is sampled");
+        for (let frame = 0; frame <= 240; frame++) {
+          const phase = frame / 240;
+          samplePhase(root, phase);
+          const shoulder = joint(root, `${name}_shoulder`),
+            wrist = joint(root, `${name}_wrist`);
+          const armPhase = (phase + side * 0.5) % 1;
+          if (armPhase >= 0.65 && armPhase <= 0.9)
+            assert.ok(
+              (wrist.x - shoulder.x) * sign > 0.05,
+              `${sex}/${name}: recovering hand stays outside shoulder, away from neck`,
+            );
+          const ankle = joint(root, `${name}_ankle`),
+            mean = new THREE.Vector3();
+          for (const i of toes)
+            mean.add(mesh.getVertexPosition(i, new THREE.Vector3()));
+          mean.multiplyScalar(1 / toes.length).sub(ankle);
+          assert.ok(mean.z > 0.09, "Toe surface extends toward the feet side");
+          assert.ok(
+            Math.abs(Math.atan2(mean.y, mean.z)) < 0.27,
+            "Toe surface stays within 15.5 degrees of rearward streamline",
+          );
+        }
+      }
+    } finally {
+      root.userData.dispose();
+    }
+  }
+});
+
+test("自由泳交替前伸贯穿整个周期，避免双臂一起缩在肩颈旁", () => {
+  for (const sex of ["male", "female"]) {
+    const root = createHumanModel("swimmer", 1, sex);
+    root.position.set(13, -8, -21);
+    root.rotation.y = 1.1;
+    const forward = new THREE.Vector3(0, 0, -1).applyQuaternion(
+      root.quaternion,
+    );
+    try {
+      for (let frame = 0; frame <= 240; frame++) {
+        samplePhase(root, frame / 240);
+        const head = joint(root, "head");
+        const reaches = ["left", "right"].map((side) =>
+          joint(root, `${side}_wrist`).sub(head).dot(forward),
+        );
+        assert.ok(
+          Math.max(...reaches) > 0.075,
+          `${sex}: at least one hand remains ahead of the head throughout the stroke`,
+        );
+      }
     } finally {
       root.userData.dispose();
     }

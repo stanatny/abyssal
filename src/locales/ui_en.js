@@ -1,4 +1,6 @@
 export const UI_EN = Object.freeze({
+  "正在加载外观…": "Loading appearance…",
+  "外观未加载 · 点击重试": "Appearance unavailable · Retry",
   "仅展示当前远征规则的成绩；旧规则记录仍保存在本机。":
     "Only runs under the current expedition rules are ranked; previous-rule records remain saved locally.",
   深渊领主锁定: "Abyss Lord Lock-on",

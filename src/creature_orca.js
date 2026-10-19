@@ -59,6 +59,8 @@ function sharedGeometry() {
 
 /** 虎鲸以尾柄和整片水平尾鳍上下推进；胸鳍承担可读的姿态微调而非鸟翼扑动。 */
 export function buildOrca(root, motions) {
+  root.userData.prepareMaterials = surface.prepare;
+  surface.prepare({ priority: 10 });
   const inner = new THREE.Group();
   inner.name = "orca_swimming_frame";
   root.add(inner);
