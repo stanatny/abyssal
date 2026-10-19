@@ -1,19 +1,82 @@
 import * as THREE from "three";
-import packed from "./assets/models/mechanical_shark_mesh.json" with { type: "json" };
+import packed from "./assets/models/mechanical_shark_cinematic_mesh.json" with { type: "json" };
 
 // 尾柄结束后整片尾鳍只随同一骨骼摆动，不能把上/下叶沿Z再折成多段。
-const stations = [0.12, 0.22, 0.31, 0.375];
+const stations = [0, 0.12, 0.25, 0.35];
+const elevations = [0, 0.035, 0.035, 0.04];
 let geometry;
 const material = new THREE.MeshStandardMaterial({
-  color: 0x1c4e9a,
-  roughness: 0.38,
-  metalness: 0.66,
+  color: 0x9d9a8d,
+  roughness: 0.6,
+  metalness: 0.58,
 });
-material.name = "mechanical_shark_blue_frame";
-material.userData.texturesReady = true;
-/** Offline machined finish; keep the startup contract without runtime texture requests. */
+material.name = "mechanical_shark_cinematic_titanium";
+material.onBeforeCompile = (shader) => {
+  shader.fragmentShader = shader.fragmentShader
+    .replace(
+      "#include <map_fragment>",
+      `#include <map_fragment>
+      #ifdef USE_MAP
+      diffuseColor.rgb = diffuseColor.rgb * 0.88 + vec3(0.016);
+      #endif`,
+    )
+    .replace(
+      "#include <roughnessmap_fragment>",
+      `#include <roughnessmap_fragment>
+      roughnessFactor = clamp(roughnessFactor, 0.52, 0.82);`,
+    );
+};
+material.customProgramCacheKey = () => "mechanical_cinematic_satin_1";
+let textureTask;
+/** 两张共享贴图只请求一次；失败保留完整银灰实体，不阻塞进入游戏。 */
 export function prepareMechanicalSharkMaterials() {
-  return Promise.resolve(true);
+  if (typeof window === "undefined") return Promise.resolve(false);
+  if (textureTask) return textureTask;
+  textureTask = (async () => {
+    const controller = new AbortController(),
+      timer = setTimeout(() => controller.abort(), 5000),
+      pending = [];
+    try {
+      const urls = [
+        new URL(
+          "./assets/models/mechanical_shark_cinematic_color.webp",
+          import.meta.url,
+        ),
+        new URL(
+          "./assets/models/mechanical_shark_cinematic_surface.webp",
+          import.meta.url,
+        ),
+      ];
+      // 串行收集可释放的纹理，任一失败都不会留下半套材质或悬空位图。
+      for (const url of urls) {
+        const response = await fetch(url, { signal: controller.signal });
+        if (!response.ok) throw new Error("Mechanical surface unavailable");
+        const bitmap = await createImageBitmap(await response.blob());
+        const texture = new THREE.Texture(bitmap);
+        texture.flipY = false;
+        texture.needsUpdate = true;
+        pending.push(texture);
+      }
+      pending[0].colorSpace = THREE.SRGBColorSpace;
+      material.color.set(0xffffff);
+      material.map = pending[0];
+      material.roughnessMap = material.metalnessMap = pending[1];
+      material.roughness = 1;
+      material.needsUpdate = true;
+      material.userData.texturesReady = true;
+      return true;
+    } catch {
+      pending.forEach((t) => {
+        t.dispose();
+        t.image.close?.();
+      });
+      material.userData.texturesReady = false;
+      return false;
+    } finally {
+      clearTimeout(timer);
+    }
+  })();
+  return textureTask;
 }
 
 const smooth = (a, b, x) => THREE.MathUtils.smoothstep(x, a, b);
@@ -39,25 +102,27 @@ function sharedGeometry() {
       y = xyz[i * 3 + 1],
       z = xyz[i * 3 + 2];
     let joint = 0;
-    while (joint < stations.length - 2 && z > stations[joint + 1]) joint++;
-    const axial = smooth(stations[joint], stations[joint + 1], z);
+    while (joint < stations.length - 2 && z > stations[joint + 1] + 0.012)
+      joint++;
+    const axial = smooth(
+      stations[joint + 1] - 0.012,
+      stations[joint + 1] + 0.012,
+      z,
+    );
     // 下颌在嘴缝以下，鳍根渐变；保持 UV 接缝两侧顶点得到相同权重。
     const jawLine = THREE.MathUtils.lerp(
-      -0.052,
-      -0.025,
-      1 - smooth(-0.46, -0.34, z),
+      -0.019,
+      -0.036,
+      smooth(-0.46, -0.31, z),
     );
-    const launcher =
-      smooth(0.035, 0.055, Math.abs(x)) * (1 - smooth(-0.1, -0.08, y));
     const jaw =
-      (1 - smooth(-0.39, -0.3, z)) *
-      (1 - smooth(jawLine - 0.006, jawLine + 0.006, y)) *
-      (1 - launcher);
+      (1 - smooth(-0.36, -0.29, z)) *
+      (1 - smooth(jawLine - 0.006, jawLine + 0.006, y));
     const fin =
-      smooth(0.098, 0.158, Math.abs(x)) *
-      (1 - smooth(-0.07, -0.035, y)) *
-      smooth(-0.23, -0.18, z) *
-      (1 - smooth(0.06, 0.11, z));
+      smooth(0.086, 0.115, Math.abs(x)) *
+      (1 - smooth(-0.014, 0.008, y)) *
+      smooth(-0.31, -0.275, z) *
+      (1 - smooth(-0.12, -0.1, z));
     const appendage = Math.max(jaw, fin);
     const k = i * 4;
     ids[k] = joint;
@@ -97,14 +162,15 @@ export function createMechanicalSharkRig(root) {
     const bone = new THREE.Bone();
     bone.name = ["armored_hull", "tail_servo", "tail_joint", "swept_caudal"][i];
     bone.position.z = z - (i ? stations[i - 1] : 0);
+    bone.position.y = elevations[i] - (i ? elevations[i - 1] : 0);
     return bone;
   });
   bones.forEach((bone, i) => (i ? bones[i - 1] : root).add(bone));
   for (const [name, position] of [
     ["segmented_jaw", [0, -0.038, -0.265]],
     // 转轴贴合实际胸鳍根（腹侧），避免放大动作时从躯干中部拉长鳍根。
-    ["servo_pectoral_-1", [-0.1, -0.07, -0.16]],
-    ["servo_pectoral_1", [0.1, -0.07, -0.16]],
+    ["servo_pectoral_-1", [-0.09, -0.052, -0.265]],
+    ["servo_pectoral_1", [0.09, -0.052, -0.265]],
   ]) {
     const bone = new THREE.Bone();
     bone.name = name;

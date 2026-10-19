@@ -1,8 +1,5 @@
 import test from "node:test";
-import { createHash } from "node:crypto";
-import packed from "../src/assets/models/mechanical_shark_mesh.json" with { type: "json" };
-import armor from "../src/assets/models/mechanical_shark_armor.json" with { type: "json" };
-import conduits from "../src/assets/models/mechanical_shark_conduits.json" with { type: "json" };
+import packed from "../src/assets/models/mechanical_shark_cinematic_mesh.json" with { type: "json" };
 import assert from "node:assert/strict";
 import * as THREE from "three";
 import { createCreature } from "../src/creatures.js";
@@ -53,16 +50,13 @@ function rig() {
   };
 }
 test("机械HF权重归一化且UV接缝不裂开，独立骨架共享不可变表面", () => {
-  assert.equal(
-    conduits.sourceMeshHash,
-    createHash("sha256").update(JSON.stringify(packed)).digest("hex"),
-  );
-  assert.equal(armor.sourceMeshHash, conduits.sourceMeshHash);
   const a = rig(),
     b = rig(),
     g = a.mesh.geometry,
     { skinIndex: ids, skinWeight: w } = g.attributes,
     seen = new Map();
+  assert.equal(g.attributes.position.count, packed.vertices);
+  assert.equal(g.index.count / 3, packed.triangles);
   let seams = 0;
   for (let i = 0; i < a.p.count; i++) {
     const value = [],
@@ -95,7 +89,7 @@ test("尾柄截面居中，尾鳍完整周期双向摆动且全鳍保形", () =>
     const hits = [-1, 1].map(
       (s) =>
         new THREE.Raycaster(
-          new THREE.Vector3(s, -0.04, z),
+          new THREE.Vector3(s, 0.04, z),
           new THREE.Vector3(-s, 0, 0),
         ).intersectObject(a.mesh)[0],
     );
@@ -261,15 +255,13 @@ test("销毁只释放本实例特效与骨架，重复调用幂等且共享资�
   assert.ok(b.root.userData.pose.mechanical.boost > 0);
 });
 
-test("实体装甲与伺服关节跟随正确骨架，双涡轮独立且无彩绘纹理依赖", () => {
+test("新实体网格具有镜像完整外形，双水喷发动机和鳍根轴承跟随骨架", () => {
   const a = rig(),
     b = rig();
   assert.equal(a.mesh.material.map, null);
   assert.equal(a.mesh.material.roughnessMap, null);
   const names = new Set([
-    "bevelled_armor",
-    "armor_fasteners",
-    "tail_servo_joint",
+    "waterjet_housing",
     "pectoral_servo_hub",
     "intake_turbine",
   ]);
@@ -277,7 +269,7 @@ test("实体装甲与伺服关节跟随正确骨架，双涡轮独立且无彩�
   a.root.traverse((o) => {
     if (names.has(o.name)) parts.push(o);
   });
-  assert.equal(parts.filter((p) => p.name === "tail_servo_joint").length, 3);
+  assert.equal(parts.filter((p) => p.name === "waterjet_housing").length, 2);
   assert.equal(parts.filter((p) => p.name === "pectoral_servo_hub").length, 2);
   assert.equal(parts.filter((p) => p.name === "intake_turbine").length, 2);
   const fixed = parts.filter((p) => p.name !== "intake_turbine");
@@ -310,4 +302,62 @@ test("实体装甲与伺服关节跟随正确骨架，双涡轮独立且无彩�
   assert.equal(rotors[0].rotation.z, other.rotation.z);
   assert.notEqual(rotors[0], other);
   assert.equal(rotors[0].geometry, other.geometry);
+});
+
+test("硬表面尾舱和翼板保持刚性，尾流始终贴合躯干两侧推进器", () => {
+  const a = rig(),
+    positions = a.p;
+  const plates = [
+    (i) => positions.getZ(i) > 0.15 && positions.getZ(i) < 0.23,
+    (i) => positions.getX(i) > 0.19 && positions.getZ(i) < -0.14,
+    (i) => positions.getX(i) < -0.19 && positions.getZ(i) < -0.14,
+  ];
+  const ids = plates.map((filter) => {
+    const v = [];
+    for (let i = 0; i < positions.count; i += 17) if (filter(i)) v.push(i);
+    return v.slice(0, 24);
+  });
+  ids.forEach((p) => assert.ok(p.length > 8));
+  const base = ids.map((plate) =>
+    plate.map((i) => new THREE.Vector3().fromBufferAttribute(positions, i)),
+  );
+  const pods = [],
+    plumes = [];
+  a.root.traverse((o) => {
+    if (o.name === "waterjet_housing") pods.push(o);
+    if (o.name === "thruster_plume") plumes.push(o);
+  });
+  assert.equal(pods.length, 2);
+  assert.equal(plumes.length, 2);
+  for (let step = 0; step < 24; step++) {
+    a.pose(step * 0.5, {
+      boost: step % 2,
+      turn: Math.sin(step),
+      pitchInput: Math.cos(step),
+    });
+    ids.forEach((plate, k) => {
+      const actual = plate.map((i) =>
+        a.mesh.getVertexPosition(i, new THREE.Vector3()),
+      );
+      for (let i = 1; i < actual.length; i++)
+        assert.ok(
+          Math.abs(
+            actual[0].distanceTo(actual[i]) - base[k][0].distanceTo(base[k][i]),
+          ) < 1e-6,
+        );
+    });
+    pods.forEach((pod, i) => {
+      assert.equal(pod.parent, a.mesh.skeleton.bones[0]);
+      assert.ok(Math.abs(pod.position.x) > 0.1);
+      assert.ok(pod.position.z > 0 && pod.position.z < 0.11);
+      assert.ok(Math.abs(pod.position.y) < 0.03);
+      assert.equal(plumes[i].parent, pod.parent);
+      assert.ok(pod.quaternion.angleTo(plumes[i].quaternion) < 1e-7);
+      assert.ok(
+        pod
+          .getWorldPosition(new THREE.Vector3())
+          .distanceTo(plumes[i].getWorldPosition(new THREE.Vector3())) < 1e-7,
+      );
+    });
+  }
 });
