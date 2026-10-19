@@ -1,3 +1,4 @@
+import { createHawaiiVehicleModel } from "./vehicle_hf_models.js";
 import * as THREE from "three";
 import { message } from "./i18n.js";
 import { SUBMARINE_DEFENSE_RULES as RULES } from "./human_rules.js";
@@ -5,88 +6,9 @@ import { takeDamage } from "./simulation.js";
 import { bodyRadius, castSegment } from "./collision.js";
 import { isNursery } from "./nursery_rules.js";
 
-/** 原创钢壳直航鱼雷：锥鼻、四片尾翼和独立旋转螺旋桨，私有资源幂等释放。 */
+/** HF 直航鱼雷与图鉴共用艇身；独立尾桨保持原有主循环动画接口。 */
 export function createAttackTorpedoModel(length = 3) {
-  const root = new THREE.Group(),
-    owned = new Set();
-  root.name = "submarine_attack_torpedo";
-  root.userData.kind = "attack_torpedo";
-  root.userData.length = length;
-  const keep = (r) => (owned.add(r), r);
-  const steel = keep(
-    new THREE.MeshStandardMaterial({
-      color: 0x627982,
-      metalness: 0.68,
-      roughness: 0.36,
-    }),
-  );
-  const dark = keep(
-    new THREE.MeshStandardMaterial({
-      color: 0x283d45,
-      metalness: 0.6,
-      roughness: 0.49,
-    }),
-  );
-  const tip = keep(
-    new THREE.MeshStandardMaterial({
-      color: 0x8c6550,
-      metalness: 0.4,
-      roughness: 0.47,
-    }),
-  );
-  const part = (geo, mat, p = [0, 0, 0], parent = root) => {
-    const m = new THREE.Mesh(keep(geo), mat);
-    m.position.fromArray(p);
-    parent.add(m);
-    return m;
-  };
-  const body = new THREE.CylinderGeometry(0.065, 0.065, 0.72, 20);
-  body.rotateX(Math.PI / 2);
-  part(body, steel);
-  const nose = new THREE.SphereGeometry(0.065, 16, 12);
-  nose.scale(1, 1, 2.05);
-  part(nose, tip, [0, 0, -0.36]);
-  const tail = new THREE.ConeGeometry(0.065, 0.16, 16);
-  tail.rotateX(Math.PI / 2);
-  part(tail, dark, [0, 0, 0.4]);
-  for (let i = 0; i < 4; i++) {
-    const fin = part(
-      new THREE.BoxGeometry(0.018, 0.17, 0.15),
-      steel,
-      [0, 0, 0.35],
-    );
-    fin.rotation.z = (i * Math.PI) / 2;
-  }
-  const propeller = new THREE.Group();
-  propeller.position.z = 0.49;
-  root.add(propeller);
-  part(new THREE.SphereGeometry(0.03, 8, 6), dark, [0, 0, 0], propeller);
-  for (let i = 0; i < 3; i++) {
-    const blade = part(
-      new THREE.BoxGeometry(0.024, 0.13, 0.012),
-      tip,
-      [0, 0, 0],
-      propeller,
-    );
-    blade.rotation.z = (i * Math.PI * 2) / 3;
-  }
-  root.updateMatrixWorld(true);
-  const bounds = new THREE.Box3().setFromObject(root),
-    scale = length / bounds.getSize(new THREE.Vector3()).z;
-  const center = bounds.getCenter(new THREE.Vector3());
-  for (const child of root.children) child.position.sub(center);
-  root.scale.setScalar(scale);
-  root.userData.animate = (time) => {
-    propeller.rotation.z = time * 24;
-  };
-  let disposed = false;
-  root.userData.dispose = () => {
-    if (disposed) return;
-    disposed = true;
-    for (const r of owned) r.dispose();
-    root.removeFromParent();
-  };
-  return root;
+  return createHawaiiVehicleModel("attack_torpedo", length);
 }
 
 /**
@@ -139,6 +61,7 @@ export function createSubmarineDefense(
     hasMovement = false;
   function reset() {
     states.clear();
+    for (const s of submarines) s.mesh.userData.resetDefenseVisual?.();
     submarines.forEach((s, i) =>
       states.set(s.id, {
         phase: "idle",
@@ -179,6 +102,7 @@ export function createSubmarineDefense(
     threat = null;
     for (const s of submarines) {
       const state = states.get(s.id);
+      s.mesh.userData.setDefenseVisual?.(null, null, now);
       if (!allowed || s.state.destroyed) {
         state.phase = "idle";
         continue;
@@ -216,6 +140,7 @@ export function createSubmarineDefense(
           };
         // 艇身鼻部的信号灯闪烁，不影响原耐久指示灯的显隐。
         s.mesh.userData.defenseWarning = state.remaining;
+        s.mesh.userData.setDefenseVisual?.(state.remaining, state.aim, now);
         if (state.remaining <= 0) {
           const p = projectiles.find((p) => !p.active);
           state.phase = "idle";
@@ -234,6 +159,7 @@ export function createSubmarineDefense(
             new THREE.Vector3(0, 0, -1),
             p.direction,
           );
+          s.mesh.userData.launchTorpedoVisual?.(state.aim, now);
           audio?.hit?.(0.25);
           notify?.("鱼雷已发射 · 直线航行，横向避开白色尾迹", 3);
         }
@@ -334,6 +260,7 @@ export function createSubmarineDefense(
       trailGeometry.dispose();
       trailMaterial.dispose();
       states.clear();
+      for (const s of submarines) s.mesh.userData.resetDefenseVisual?.();
     },
   };
 }
