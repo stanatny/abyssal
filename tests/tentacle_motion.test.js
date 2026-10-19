@@ -10,7 +10,8 @@ import {
 import { findBossContact } from "../src/encounters.js";
 
 const kinds = [
-  "octopus",
+  // Octopus now has one integrated HF skin; its eight arms and instance lifecycle
+  // are exercised by hawaii_batch7_hf.test.js rather than eight procedural meshes.
   "cuttlefish",
   "crown_filterer",
   "abyss_weaver",

@@ -1,3 +1,6 @@
+import { buildHawaiiBatch8HF } from "./creature_hawaii_batch8_hf.js";
+import { buildHawaiiBatch9HF } from "./creature_hawaii_batch9_hf.js";
+import { buildHawaiiBatch7HF } from "./creature_hawaii_batch7_hf.js";
 import { buildHawaiiTurtleHF } from "./creature_hawaii_turtles_hf.js";
 import { buildHawaiiPrehistoricHF } from "./creature_hawaii_prehistoric_hf.js";
 import { buildHawaiiReptileHF } from "./creature_hawaii_reptiles_hf.js";
@@ -131,6 +134,12 @@ export function createCreature(kind, length = 6, seed = 1) {
     buildAtlantisCreature(kind, root, motions);
   else if (kind === "archelon" || kind === "turtle")
     buildHawaiiTurtleHF(kind, root, motions);
+  else if (["ray", "sunfish", "tuna", "octopus"].includes(kind))
+    buildHawaiiBatch7HF(kind, root, motions);
+  else if (["angler", "wrasse", "parrotfish", "boxfish"].includes(kind))
+    buildHawaiiBatch8HF(kind, root, motions);
+  else if (["flying_fish", "fish", "mackerel", "sardine"].includes(kind))
+    buildHawaiiBatch9HF(kind, root, motions);
   else if (SHOAL_CREATURE_KINDS.has(kind))
     buildShoalCreature(kind, root, motions);
   else if (kind === "shark" || kind === "hammerhead")

@@ -58,8 +58,8 @@ test("三种浅礁鱼进入真实构建分支、纵长归一且极值动画不�
       root.userData.animate(time, speed);
       const size = posedBounds(root).getSize(new THREE.Vector3());
       assert.ok(size.z > 1.7 && size.z < 2.2);
-      // 新箱鲀宽骨甲和展开胸鳍静止宽度为1.25；按自身静止姿态检测运动膨胀。
-      assert.ok(size.x > restSize.x * 0.85 && size.x < restSize.x * 1.15);
+      // HF 胸鳍真实展开/收回可改变总宽约27%；躯干刚性由实际顶点测试另行约束。
+      assert.ok(size.x > restSize.x * 0.65 && size.x < restSize.x * 1.3);
       assert.ok(size.y > 0.4 && size.y < 1.5);
     }
   }
@@ -81,8 +81,10 @@ test("共享礁鱼几何与材质，单个鱼的摆尾划鳍不改变邻居", ()
     left.userData.animate(0, 1);
     right.userData.animate(0, 1);
     const before = posedBounds(right).clone();
-    const leftTail = left.getObjectByName(`${kind}_tail`),
-      rightTail = right.getObjectByName(`${kind}_tail`);
+    const leftTail =
+        left.userData.hfRig.bones[left.userData.hfRig.chains[0].ids[0]],
+      rightTail =
+        right.userData.hfRig.bones[right.userData.hfRig.chains[0].ids[0]];
     const rightRotation = rightTail.rotation.y;
     for (let step = 1; step < 20; step++) left.userData.animate(step / 30, 1);
     assert.notEqual(leftTail.rotation.y, rightRotation);
@@ -95,7 +97,15 @@ test("各礁鱼主体在实际姿态与世界变换下可被射线命中，箱�
   const sizes = {};
   for (const kind of KINDS) {
     const root = createCreature(kind, 1, 3);
-    sizes[kind] = posedBounds(root).getSize(new THREE.Vector3());
+    // Compare the carapace/trunk, excluding spread pectorals and forehead horns.
+    const mesh = root.userData.hfRig.mesh,
+      p = mesh.geometry.attributes.position,
+      w = mesh.geometry.attributes.skinWeight,
+      core = new THREE.Box3();
+    for (let i = 0; i < p.count; i++)
+      if (w.getX(i) > 0.999 && p.getZ(i) > -0.25 && p.getZ(i) < 0.12)
+        core.expandByPoint(new THREE.Vector3().fromBufferAttribute(p, i));
+    sizes[kind] = core.getSize(new THREE.Vector3());
     root.position.set(8, -18, -12);
     root.rotation.y = 0.5;
     root.userData.animate(0.3, 2);

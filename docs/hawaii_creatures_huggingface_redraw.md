@@ -2,7 +2,7 @@
 
 ## Scope and authorization
 
-The user accepted the four Hawaii lords and Kraken intake, locally committed as `8dbb4d5`, then requested sequential redraws of the remaining Hawaii creatures. Eight ordinary redraws are locally committed as `b6c81d9`, followed by Plesiosaur/Dunkleosteus and head-color feedback in `e705d6d`. The sixth pair, Archelon/Green Sea Turtle, remains uncommitted for review. Current agent alone; no push/main release. Formal main remains v0.11.13. Preserve rules, size, populations, captures, attacks, resources and existing services.
+The user accepted the four Hawaii lords and Kraken intake, locally committed as `8dbb4d5`, then requested sequential redraws of the remaining Hawaii creatures. Eight ordinary redraws are locally committed as `b6c81d9`, followed by Plesiosaur/Dunkleosteus and head-color feedback in `e705d6d`. The sixth pair, Archelon/Green Sea Turtle, is locally committed as `4715a62`. The seventh batch adds Ray, Sunfish, Tuna and Octopus candidates; the eighth adds Angler, Wrasse, Parrotfish and Boxfish. The ninth adds Flying Fish, Reef Fish, Pacific Mackerel and Pacific Sardine. The user now authorizes a local checkpoint of these twelve and the Tuna UV repair before the next batch; no push/main release. Earlier pending labels below retain their historical scope. Current agent alone; no push/main release. Formal main remains v0.11.13. Preserve rules, size, populations, captures, attacks, resources and existing services.
 
 Registry audit: `getRegionSpecies("hawaii")` contains28 kinds/516 individuals; regional rare is Gilded Manta; surface birds are Gull and White-tailed Tropicbird. Humans, vehicles and scenery are not biological redraw targets. Other-map copies of a shared kind use the same factory.
 
@@ -20,20 +20,20 @@ Registry audit: `getRegionSpecies("hawaii")` contains28 kinds/516 individuals; r
 | 8     | `pliosaur`      | Local checkpoint b6c81d9       |
 | 9     | `plesiosaur`    | Local checkpoint e705d6d       |
 | 10    | `dunkleosteus`  | Local checkpoint e705d6d       |
-| 11    | `archelon`      | Candidate: pending user review |
-| 12    | `turtle`        | Candidate: pending user review |
-| 13    | `ray`           | Queued                         |
-| 14    | `sunfish`       | Queued                         |
-| 15    | `tuna`          | Queued                         |
-| 16    | `octopus`       | Queued                         |
-| 17    | `angler`        | Queued                         |
-| 18    | `wrasse`        | Queued                         |
-| 19    | `parrotfish`    | Queued                         |
-| 20    | `boxfish`       | Queued                         |
-| 21    | `flying_fish`   | Queued                         |
-| 22    | `fish`          | Queued                         |
-| 23    | `mackerel`      | Queued                         |
-| 24    | `sardine`       | Queued                         |
+| 11    | `archelon`      | Local checkpoint 4715a62       |
+| 12    | `turtle`        | Local checkpoint 4715a62       |
+| 13    | `ray`           | Local checkpoint (this commit) |
+| 14    | `sunfish`       | Local checkpoint (this commit) |
+| 15    | `tuna`          | Local checkpoint (this commit) |
+| 16    | `octopus`       | Local checkpoint (this commit) |
+| 17    | `angler`        | Local checkpoint (this commit) |
+| 18    | `wrasse`        | Local checkpoint (this commit) |
+| 19    | `parrotfish`    | Local checkpoint (this commit) |
+| 20    | `boxfish`       | Local checkpoint (this commit) |
+| 21    | `flying_fish`   | Local checkpoint (this commit) |
+| 22    | `fish`          | Local checkpoint (this commit) |
+| 23    | `mackerel`      | Local checkpoint (this commit) |
+| 24    | `sardine`       | Local checkpoint (this commit) |
 | 25    | `herring`       | Queued                         |
 | 26    | `anchovy`       | Queued                         |
 | 27    | `moon_jelly`    | Queued                         |
@@ -42,7 +42,7 @@ Registry audit: `getRegionSpecies("hawaii")` contains28 kinds/516 individuals; r
 | 30    | `seagull`       | Queued                         |
 | 31    | `tropicbird`    | Queued                         |
 
-The first-pair receipts below retain their original scope; the current sixth-pair delivery is recorded at the end. The user explicitly requested continuation, which authorizes this batch but does not by itself close individual acceptance.
+The first-pair receipts below retain their original scope; the current ninth-batch delivery is recorded at the end. The user explicitly requested continuation, which authorizes this batch but does not by itself close individual acceptance.
 
 ## First pair references
 
@@ -302,3 +302,161 @@ Native public Chrome passes both candidates in English1440px and Chinese390px Gu
 Preview: https://saver-recorded-digit-could.trycloudflare.com/ — reload an already-open tab. Formal main/Pages remain unchanged. Preserved identities: DEV35213 on127.0.0.1:5188, restricted preview74197 on127.0.0.1:7188, awake74200, cloudflared35419 with readiness200 at127.0.0.1:20248. Only index.html/assets are exposed. Logs and process identities remain in `.local/mini_preview_20261007/processes.json` and its named logs. Rebuild using `python3 .local/mini_preview_20261007/manage.py rebuild`; inspect `status` before any operation; authorized shutdown uses `stop` with explicit service names. No service was restarted/stopped this batch.
 
 Final files, source/build hashes, commit scope and delivery receipts are retained in `.local/hawaii_turtles_20261019/final_fingerprints.json` and `delivery.json`. Against894 baseline files, only the three entry documents, this review and the three-line common-factory dispatch changed; the eight new turtle asset/runtime/converter/test files are isolated. Other prior sources are unchanged. New pair remains uncommitted/unpushed, pending user review.
+
+## Seventh batch: Ray, Sunfish, Tuna and Octopus — 2026-10-19
+
+The user requests “提交，下一批，我觉得你可以效率高一点，一次多做几个给我审核吧”. The current AI agent alone first committed the accepted turtle checkpoint as `4715a62`, then completed a larger four-kind candidate batch. Sixteen of31 Hawaii non-lord kinds now have redraws;15 remain, next Angler, Humphead Wrasse, Bumphead Parrotfish and Longhorn Cowfish. These four new candidates remain uncommitted for individual review. No push, version bump, formal release, personal Skill modification or new delegated agent.
+
+### References, anatomy and actual HF provenance
+
+- [NOAA Giant Manta Ray](https://www.fisheries.noaa.gov/species/giant-manta-ray): terminal mouth, two cephalic lobes, broad pectoral wings and pale underside. The candidate uses paired wing waves with restrained tail motion.
+- [Monterey Bay Aquarium Ocean Sunfish](https://www.montereybayaquarium.org/animals-the-ocean/animals-a-to-z/ocean-sunfish): deep disk, tall dorsal/anal fins and clavus. Propulsion uses the paired vertical fins, with small pectoral/clavus trim.
+- [NOAA Pacific Bluefin Tuna](https://www.fisheries.noaa.gov/species/pacific-bluefin-tuna): the registry is `THUNNUS ORIENTALIS`, not Yellowfin; dark blue back, robust silver trunk, short pectorals, finlets and crescent tail. The candidate keeps the trunk steady and drives a lateral posterior wave, with the complete tail fan bound to one terminal support.
+- [Monterey Bay Aquarium Giant Pacific Octopus](https://www.montereybayaquarium.org/animals-the-ocean/animals-a-to-z/giant-pacific-octopus): eight sucker-bearing arms, reddish mantle/pale underside and defensive ink. This mesh has eight separate radial arms with delayed curling and mantle breathing. Its spread-arm game swim, existing5m length and Hawaii occurrence are game adaptations; this is not a simulation of measured jet propulsion or a new ecological claim.
+
+Only original generated references were uploaded. The first Octopus reference did not show eight clear arms and was rejected before HF; the second reference was used. Four actual GLBs were successfully generated/exported/downloaded, one HF attempt per kind, seeds741953–741956,1024 resolution and100,000-triangle/1024-texture export request. Raw source hashes below were verified against complete GLB headers/byte lengths. Space/model revisions and MIT licensing are the same as the first-pair record and were rechecked for this batch. Original references, receipts and commands are under ignored `.local/hawaii_batch7_20261019/`; private service URLs/session data and credentials are excluded from tracked files.
+
+| Kind    | Actual GLB SHA-256                                                 | Raw triangles | Runtime triangles / vertices | Meshes before → after |
+| ------- | ------------------------------------------------------------------ | ------------- | ---------------------------- | --------------------- |
+| ray     | `bebc6f481e634243804ecdccbd366d8597be47964b462ee7103c0b925d7aca91` | 94,821        | 5,500 /5,010                 | 2 →1                  |
+| sunfish | `291d1e9c46a8c0e3f774b9711702b85a6761849074cbb054d3360aec494fa0ba` | 93,309        | 3,800 /3,905                 | 7 →1                  |
+| tuna    | `386a69a618d7f8fdb876704405e78a51953a15a85568f282064a1efc8afcaf41` | 97,545        | 3,774 /3,457                 | 5 →1                  |
+| octopus | `3d6fad2a467c5f3c093c66357e58f4e6c6fbf1385bb40fcb35d42937e84f5320` | 92,796        | 16,516 /21,050               | 10 →1                 |
+
+The reproducible converter is `scripts/prepare_hawaii_batch7_hf_asset.mjs`. It resolves the actual input axes (Ray/Sunfish yawπ, Tuna−π/2, Octopus0), normalizes uniformly and pads final UV islands. Ray's asymmetric bind-pose tail is centered offline with corresponding normal correction, without changing the torso/wings. Tuna's UV-aware reduction initially stopped at11,032 triangles; the final bounded Permissive reduction allows seam collapses to reach3,774. This changes UV interpolation and coverage rather than claiming pixel-identical mapping to the raw mesh. Final textured side/under/front/reverse views and clay were inspected for distortion. No invalid normals remained. Current runtime triangle counts are below the respective accepted7,874/3,874/3,910/24,936 baselines.
+
+Each kind has one shared geometry/material and one padded1024² color map. Instances own independent10/8/8/34-bone skeletons. No added lights, emission, postprocessing or animation loop. A cached texture request has an8-second abort and opaque anatomical-color fallback. MeshStandard roughness and a bounded albedo adjustment soften generated lighting while retaining real scene lighting. All four use the same factory in Guide and world; the shared clock smooths effort transitions. Populations, size, motion physics, captures and existing abilities are unchanged.
+
+### Fresh verification and costs
+
+- `npm test`:1,383/1,383; format and build pass. Nine new tests cover actual appendage tips, all eight Octopus arms, abrupt effort transitions, immutable buffers, finite normalized weights/normals, UV-duplicate continuity, conservative deformation bounds, independent skeletons, idempotent disposal, pause and ray intersection. An older Octopus test assumed eight separate procedural meshes; its integrated-skin coverage is now in the new eight-arm test. The first full run correctly exposed that stale structural assertion (1,383 passed/1 failed); the corrected complete run is preserved as `test_final.log`.
+- Native desktop Chrome Guide reopening and three four-region switching cycles preserve shared geometry/texture identities while keeping independent skeletons. The affected populations are Hawaii183, Atlantis141, Bermuda140 and Mariana112; the other four maps have no such kinds. Across1,728 tracked world skeletons,1,476 evicted instances dispose their bone textures;252 belong to current/retained regions. Four texture-failure fallbacks pass. Region species allocations/lengths retain their accepted values.
+- Four controlled Guide clips show cruise→accelerated effort→cruise, followed by actual-world observer footage. Each world clip contains540 rendered frames, >4m displacement and a frozen pose on pause. No per-frame entity/player pinning; the observer player is staged and invulnerable. These are desktop captures, not physical-phone FPS/heat measurements. The final encoded contact sheets were reviewed for limb separation, body-axis errors and obvious flicker.
+- A separate real-game Octopus check stages an8m player near an existing creature and observes the ordinary AI trigger. It records an active-phase22m/6s defensive ink cloud exactly at the moving creature center, without directly invoking the ability. The actual world effect and sprite remain aligned; gameplay code is unchanged.
+- Matched paused517-entity scene samples, same camera/postprocessing: Ray110→109 draws and539,954→537,580 triangles; Sunfish126→120 /549,592→549,518; Tuna108→104 /514,402→514,266; Octopus95→86 /423,934→415,514. These samples show rendered draw/triangle costs, not an FPS guarantee. Four additional color maps cost texture memory and download; skeleton uploads remain per-instance. Current37-artifact package is21,469,591 bytes, +2,196,404 over the turtle build. Keeping vertices at UV seams means Octopus still has21,050 vertices despite16,516 triangles.
+
+Included HF quota settled from1,565.147070 to1,446.148700 seconds:118.998370 seconds consumed, overquota0. Reset returned around2026-10-19T14:41:48Z (22:41:48 Beijing). Intermediate reservations are not additional billed use; future requests must recheck live balance.
+
+### Preview and review handoff
+
+The same restricted preview is rebuilt to `./assets/index-kgRKsiPo.js`: https://saver-recorded-digit-could.trycloudflare.com/ . The previous runtime is retained at `.local/mini_preview_20261007/runtime_before_20261019_182745`. Current delivery evidence is in `.local/hawaii_batch7_20261019/`; final public/browser outcomes are recorded below after verification. Four before/after images and four18-second motion videos are prepared for individual user review.
+
+Preserved processes: DEV35213 / restricted preview74197 / awake74200 / tunnel35419, loopback5188/7188/20248. `python3 .local/mini_preview_20261007/manage.py status` verifies ownership; `rebuild` refreshes assets without replacing services; `stop` requires explicit owned service names. Logs and fingerprints remain in that local directory. Source/debug/private paths remain outside the public allowlist. Formal main/Pages stays v0.11.13; user visual acceptance and physical-phone validation remain pending.
+
+Final public verification: all37 artifacts at loopback and public origins match the reviewed dist hashes;11 source/private paths at each origin are denied. Native English1440px and Chinese390px Guide/start/boost/sonar/pause/Home pass all8 cases, all four color maps return200, same-address reload resolves `index-kgRKsiPo.js`, and the production debug hook is absent. No page/console errors or failed resource responses. This is a host revisit through the public tunnel and desktop touch emulation, not another-device or physical-phone measurement. `public/report.json` and `artifacts.json` hold the receipts. Local long-running redraw records mark the prior turtles as authorized local checkpoint4715a62 and the new four as PP-Q033 pending user review; no automatic timer or later acceptance is inferred.
+
+## Eighth batch: Angler, Wrasse, Parrotfish and Boxfish — 2026-10-19
+
+The user requests “下一批吧”. The current AI agent alone produces four further HF candidates, retaining the seventh batch without committing or interpreting continuation as individual acceptance. The non-lord queue now has20 of31 kinds redrawn, with11 remaining, next Flying Fish, the generic Reef Fish school, Mackerel and Sardine. HEAD remains4715a62; no push/main release, gameplay changes or personal Skill edits.
+
+### References and generated anatomy
+
+Registry identity matters: `angler` is the broader CERATIOIDEI group, `wrasse` is Cheilinus undulatus, `parrotfish` is Bolbometopon muricatum, and `boxfish` is Lactoria cornuta. The [MBARI black seadevil observation](https://www.mbari.org/news/amazing-black-sea-devil-anglerfish-observed-in-monterey-bay/) informs the recessed jaw, teeth, leathery body and single terminal lure; the game's1.2m angler remains an enlarged fantasy representative. Australian Museum references inform the [Humphead Maori Wrasse](https://australian.museum/learn/animals/fishes/humphead-maori-wrasse-cheilinus-undulatus/) hump, thick lips, rounded tail and facial lines, and the [Bumphead Parrotfish](https://australian.museum/learn/animals/fishes/bumphead-parrotfish-bolbometopon-muricatum-valenciennes-1840/) blunt forehead, hard pale beak and subdued grey-green adult body. [Fishes of Australia](https://fishesofaustralia.net.au/Home/species/837) informs the Longhorn Cowfish's front/rear horns and yellow-ochre body with blue spots.
+
+Primary motion references: [boxfish multi-fin gaits](https://pubmed.ncbi.nlm.nih.gov/11273807/), [rigid yellow-boxfish carapace and caudal steering](https://pmc.ncbi.nlm.nih.gov/articles/PMC7211845/), and [bird-wrasse pectoral propulsion](https://pubmed.ncbi.nlm.nih.gov/9319793/). These support the broad animation choices, not measured kinematics for the exact three reef species. The final rig is an expressive game adaptation; no new movement physics or ecology is inferred from these sources.
+
+Four original neutral references were generated and supplied to the actual TRELLIS.2 image-to-3D/export workflow, seeds741957–741960; one successful HF attempt each. Space/model revisions and MIT attribution remain those recorded above. Private receipts, raw GLBs and14 raw clay/material views per species are under ignored `.local/hawaii_batch8_20261019/`. Raw headers, lengths and hashes were verified before conversion.
+
+| Kind       | Actual raw GLB SHA-256                                             | Raw triangles | Runtime triangles    | Mesh draws before → after |
+| ---------- | ------------------------------------------------------------------ | ------------- | -------------------- | ------------------------- |
+| angler     | `8caede863372f59f621389b934651dad8cff2808b5309b5c225e50c56f40e684` | 98,760        | 13,744 (before9,608) | 9 → 1                     |
+| wrasse     | `73387537c9f0846682c716e1de9082a4ad15e2ef331d41969fea97f44c436b3e` | 94,377        | 9,010 (before4,104)  | 5 → 1                     |
+| parrotfish | `446b03b22b504c1f66ae31d8ca1605b8851b5a72d0df1fabba51c72958289712` | 93,984        | 10,602 (before3,882) | 5 → 1                     |
+| boxfish    | `fc4b5e0b157fcd712422757aceac7bce1f0fa29aa133ec7934e04349b79aac77` | 93,063        | 3,800 (before3,894)  | 5 → 1                     |
+
+The raw forward axis is+Z for Angler/Wrasse/Boxfish and-X for Parrotfish; only rigid yaw and uniform length normalization are applied. A permissive simplification trial reached lower counts but visibly corrupted facial/fin atlas boundaries. It was rejected. Final simplification preserves UV seams, retaining more vertices/triangles on the first three species; all normals remain valid and texture padding preserves covered texels. This is a disclosed resource tradeoff, not a claimed GPU optimization.
+
+### Runtime motion and coverage
+
+Each species shares immutable geometry, one1024² WebP and one opaque rough nonmetal material, with an independent skeleton per instance. Wrasse and Parrotfish have fitted paired pectoral strokes and restrained rear-body/whole-tail motion. Boxfish keeps its carapace and horns rigid while the two pectorals, dorsal/anal fins and tail move. Angler retains its recessed mouth, paired fins and a supported gently swaying lure. Local rest-position shading lights only the terminal bulb; there is no new point light, global material pulse, RAF, timer loop or combat anchor change. Existing effort/phase ownership controls acceleration and pause. Cached eight-second texture failure falls back to opaque anatomical colors.
+
+Actual affected populations: Hawaii40 (Angler7, Wrasse6, Parrotfish15, Boxfish12), Mariana15 Parrotfish, none in the other six regions. Their1.2/1.7/1.3/0.45m sizes, populations, diets, ordinary movement and Angler lure ability remain unchanged. Shared Guide/world factory dispatch covers every instance of these kinds. The older procedural reef tests now follow real HF bone identities and compare trunk proportions excluding spread fins; observed pectoral sweep changes overall width more than the earlier15% allowance. The updated bound is paired with independent actual-vertex rigidity, seam and deformation checks, rather than altering motion to satisfy an obsolete silhouette assumption.
+
+Settled HF quota at2026-10-19T10:47:23Z:1292.070048/2400 included seconds, aggregate use154.078652 seconds, overquota0. Returned reset2026-10-19T14:41:48.439Z (22:41:48 Beijing). Intermediate overlapping export reservations are not additive costs. Recheck live quota before the next batch.
+
+### Fresh verification, cost and delivery
+
+- Full suite1,394/1,394, formatting and production build pass. Fourteen focused new/updated checks cover finite normalized geometry, actual left/right fin and tail excursions through acceleration, UV-seam continuity, shared immutable buffers, independent skeletons, frozen phase, real transformed ray contacts, rigid Boxfish carapace/horns, connected Angler lure and recessed mouth. Older gameplay tests remain intact.
+- Native Chrome Guide review covers matched before/after textured/clay side/front/reverse/top/under/chase views. Three reopen cycles preserve model/texture identities; Hawaii/Mariana/Bermuda LRU cycles track165 candidate world skeletons,150 of which dispose their bone textures on eviction. Fifteen remain in the retained Mariana region; no candidate allocation accumulates per revisit. Four texture-failure fallbacks remain opaque and usable.
+- Actual Angler hunter test stages a juvenile invulnerable player near an existing fish, then lets the ordinary cooldown, chase, line-of-sight and ability code trigger. The real active-phase flash occurs at the entity position with unchanged size10; player overlay reaches0.4. No manual flash invocation or gameplay rule override is used.
+- Matched517-entity populated views retain identical cameras/postprocessing: Wrasse676→631 calls,989,366→1,048,026 triangles; Parrotfish366→346,718,348→731,506; Boxfish192→188,557,692→557,598; Angler89→81,386,310→390,446. Draws fall but geometry rises in three views. Cached textures/skeletons and the runtime download add cost; these samples are not CPU/GPU frame-time, physical-phone or thermal measurements.
+- Public native English1440px/Chinese390px Guide/start/boost/sonar/pause/Home passes eight cases, with zero observed page/console/resource failures, no production debug hook, and same-address refresh to `index-CYH-AW7K.js`. Desktop touch emulation is not a physical-phone test. All41 runtime files (23,977,409 bytes; +2,507,818 over batch7) match dist and both local/public SHA-256;11 private/source paths per origin remain denied. The bounded artifact verifier recovered transient TLS/HTTP2 fetch failures; it did not disable certificate verification.
+
+Delivery includes four matched comparison images and four18-second clips combining controlled Guide cruise→effort→cruise with actual world movement. Ordinary reef clips have534/540/540 captured game frames and approximately3m position ranges, appropriate to these smaller creatures. A previous harness's4m threshold was inherited from giant creatures and corrected to half the actual species length; no game movement was changed. The original Angler observer clip was obstructed by nearby large creatures; its delivery take uses a one-time open-water placement inside the existing depth band, then ordinary movement and clock without per-frame pinning. Staged/invulnerable/observer fixtures are labeled; they do not demonstrate natural progression or alter the shipped game. Final encoded frames are inspected before sending.
+
+Preview remains https://saver-recorded-digit-could.trycloudflare.com/ . Original service identities DEV35213, restricted preview74197, awake74200 and tunnel35419 remain intact; only index/assets are served. The same-origin rebuild archives the previous runtime at `.local/mini_preview_20261007/runtime_before_20261019_185127`. Logs, identity/port records, build fingerprints and `manage.py status|rebuild|stop <owned-service>` remain under that directory. Stop only an explicitly requested owned process after checking its identity. New candidates remain uncommitted/unpushed for individual user review; formal main/Pages stays v0.11.13 /110494c. All prior worktrees and canceled work remain preserved.
+
+## Ninth batch: Flying Fish, Reef Fish, Mackerel and Sardine — 2026-10-19
+
+The user requests “下一批”. The current AI agent independently adds four actual HF candidates, preserving the earlier uncommitted batches. The non-lord queue reaches24 of31 kinds; seven remain: Herring, Anchovy, Moon Jelly, Spiny Lobster, Gilded Manta, Gull and White-tailed Tropicbird. Continuation is not individual visual acceptance. HEAD remains4715a62; no commit, push, main release, gameplay or personal Skill change.
+
+### References and generated anatomy
+
+The [Australian Museum flying-fish reference](https://australian.museum/learn/animals/fishes/a-flyingfish-cheilopogon-sp/) informs the enlarged chest fins, smaller pelvic pair, longer lower tail lobe and gliding rather than birdlike flapping. NOAA references inform [Pacific Mackerel](https://www.fisheries.noaa.gov/species/pacific-mackerel) fusiform proportions, wavy back bars and finlets, and [Pacific Sardine](https://www.fisheries.noaa.gov/species/pacific-sardine) blue-green back, silver belly and flank spots. The `fish` registry is REEF FISH ASSEMBLAGE: the amber/blue model is an artistic composite, not an exact species claim. [Waikīkī Aquarium's Hawaiian reef exhibit](https://www.waikikiaquarium.org/experience/exhibits/edge-of-the-reef/) and [Yellow Tang outline](https://www.waikikiaquarium.org/experience/animal-guide/fishes/surgeonfishes/yellow-tang/) provide habitat and compressed-body context. Animation is a game adaptation, not measured biomechanics.
+
+Only original generated reference images were uploaded to Microsoft TRELLIS.2. Space/model revisions and MIT attribution remain those recorded above; current Space source confirms the100,000-triangle minimum export setting. Seeds741961–741964,1024 generation and1024 texture export. The first Flying Fish attempt produced misplaced enlarged belly fins and a crooked spine; it is preserved but rejected. A second original reference and HF attempt produced the correct paired-chest arrangement. All four final raw GLBs pass magic/declared-length/hash checks and14 clay/material views before runtime conversion.
+
+| Kind        | Raw GLB SHA-256                                                    | Raw triangles | Runtime vertices / triangles | Previous triangles | Meshes before → after |
+| ----------- | ------------------------------------------------------------------ | ------------- | ---------------------------- | ------------------ | --------------------- |
+| flying_fish | `0c2ee9e52c0c160a8190e0e0460004d4ece4416ceb99f571ed53d6e52e55f3d2` | 93,864        | 4,573 / 3,532                | 2,468              | 5 → 1                 |
+| fish        | `1948bfdc663e5e2703058c461e00e17b0eb9c81a82fe281dae9172dfe4671d52` | 93,354        | 8,822 / 7,300                | 2,336              | 5 → 1                 |
+| mackerel    | `e627798c3f94ebdb1ab33ca9136dd1a456b0769e64d08ff12494beacce013449` | 93,218        | 11,438 / 8,644               | 2,486              | 5 → 1                 |
+| sardine     | `fa01c6df07a5e9fe32370ce11385c47d953aa9586ef400863cc998b56c71244e` | 93,574        | 6,982 / 7,000                | 2,312              | 5 → 1                 |
+
+All raw heads face+Z; rigid yawπ and uniform full-length normalization give the project's-Z forward axis. UV-aware simplification preserves atlas seams. A3,984-triangle Sardine trial showed black stripe artifacts and was rejected in favor of7,000 triangles. Texture padding preserves covered pixels. Flying Fish's generated oversized mid-back fin is flattened offline at164 vertices with smooth spatial blending and Jacobian-correct normals, leaving the true rear dorsal and both paired fins intact; the result is recentered. No normal repair was needed on the other geometry. These corrections and rejected originals are reproducible under ignored `.local/hawaii_batch9_20261019/` and `scripts/prepare_hawaii_batch9_hf_asset.mjs`.
+
+Three downloads encountered interrupted transfer/timeouts. They resumed the existing exported files and passed full GLB validation; no replacement inference was charged for download recovery. Settled quota at2026-10-19T11:34:45Z is1153.250281/2400 included seconds, down138.819767 seconds from this batch's preflight; overquota remains0. Returned reset2026-10-19T14:41:48.768Z (22:41:48 Beijing). Intermediate reservation values are not summed as usage. Recheck live quota before further generation.
+
+### Runtime motion and shared coverage
+
+Each kind has one shared immutable geometry/material/1024² WebP and an independent skeleton. Three rear-body joints drive a continuous lateral tail wave; fitted chest fins provide restrained trim, with slower, broader strokes for Reef Fish. Flying Fish additionally has paired pelvic joints and smooth water-fold→air-spread→water-fold transitions controlled by the existing `setGliding` API. Settled airborne wings do not flap; tail motion is quieter. Existing phase/effort ownership preserves acceleration and pause. No new RAF, recurring timer, light or combat rule is added. Cached texture preparation has an eight-second timeout and opaque anatomical fallback.
+
+Actual affected populations remain Hawaii148 (Flying Fish15, Reef Fish75, Mackerel18, Sardine40), Bermuda100 Sardine, Atlantis172 Sardine and Mariana80 Sardine; the other four regions have none of these kinds. Lengths0.4/0.8/0.55/0.3m, speeds7/4/7.8/5.1m/s, diets, rewards, schooling and flight physics remain unchanged. Shared Guide/world dispatch covers all copies. No population-by-school-size multiplication is used.
+
+### Fresh verification and resource tradeoffs
+
+- Full suite1,404/1,404 passes;12 targeted checks cover normalized finite meshes/normals, actual transformed fin/tail vertices, effort/release, connected seam weights, independent skeletons/shared buffers, pause/disposal, ray contacts and regional populations. Flying Fish also runs the real4.4-second flight state machine through unfolding, steady glide and refolding. A prior silhouette test included spread fins in its trunk comparison; the corrected central-body cross-section excludes thin median fins and tests meaningful Anchovy/Herring/Mackerel/Tuna/Reef proportions. The initial failed comparison is documented here; the final full suite is a fresh pass.
+- Native Chrome matched before/after views cover textured and clay side/front/reverse/top/underside/chase poses, plus three Flying Fish glide angles. Guide textures/models stay stable over three reopen cycles. Three Hawaii/Bermuda/Atlantis/Mariana cycles track1,500 candidate skeletons;1,248 dispose their bone textures on eviction and252 remain in the retained regional scenes. Four failed-texture fixtures remain visible and usable.
+- Actual world movement uses normal ecology and clock, with a staged invulnerable player and observer camera. Four9-second clips have540 captured game frames and nonzero movement; pause freezes bones. The original Flying Fish observer faced the player away from its escape path, so distance culling hid it after landing. A separate final take faces the normally cruising player along that path; all sampled frames remain visible, the existing4.4-second flight completes, and glide blend falls from1 to below0.01 after landing. No per-frame entity/player pinning or flight-rule override is used. Both reports remain archived.
+- Same-camera, same-population517-entity render samples, with all four kinds switched together: Flying Fish view722→530 calls and1,085,188→1,311,760 triangles; Reef Fish243→163 and633,690→749,980; Mackerel212→179 and819,794→865,940; Sardine427→287 and810,872→983,232. Fewer calls come with higher geometry, skeletal processing and texture cost. These are render counters, not GPU timing or a phone-performance improvement claim.
+- English1440px and Chinese390px public native Guide/start/boost/sonar/pause/Home pass eight cases, no observed page/console/resource errors, no production debug hook, and same-address reload to `index-BQqh8uVi.js`. All45 runtime artifacts (25,995,283 bytes; +2,017,874 over batch8) match dist and both restricted/public origins byte for byte;11 private/source paths per origin are denied. Chrome155 on the M6mini is desktop evidence;390px touch emulation does not test a physical phone or thermal behavior.
+
+Delivery comprises matched old/new views and four18-second clips (controlled Guide animation followed by actual world movement); the Flying Fish world segment uses the corrected observer take. Videos are inspected after encoding. Formal main/Pages remains v0.11.13 /110494c. Preview stays https://saver-recorded-digit-could.trycloudflare.com/ . Original identities DEV35213, restricted preview74197, awake74200 and tunnel35419 remain; only index/assets are served. The same-origin rebuild archives the prior runtime at `.local/mini_preview_20261007/runtime_before_20261019_192735`. Logs, source/build hashes, ports and `manage.py status|rebuild|stop <owned-service>` remain under that directory; check process identity before any explicitly requested stop. Historical worktrees, rejected candidates and canceled work remain intact. Await individual user review.
+
+## Tuna UV atlas follow-up — 2026-10-19
+
+The user supplies two Guide screenshots showing smeared pale polygons and abrupt color changes on the Tuna back. The original seventh-batch visual inspection missed these defects; its acceptance remains pending. This correction supersedes that Tuna export's surface-quality claim. At the user's request the native menu switches this session to GPT6.1Sol Ultra Fast; machine-default service tier is restored to its original explicit default. The current AI agent works alone, without commit, push, personal Skill changes or further HF generation.
+
+### Diagnosis and chosen correction
+
+The raw HF mesh, source hash `386a69a618d7f8fdb876704405e78a51953a15a85568f282064a1efc8afcaf41`, has continuous dorsal color in both lit and unlit rendering. The delivered3,774-triangle reduction used Permissive seam collapse:1,327 triangles have UV edges exceeding15% of atlas width, with maximum length1.299 atlas units and maximum triangle area0.412. Those new faces sample unrelated pale belly/fin islands. The defects remain in unlit views, excluding scene reflections as the cause. Normals are valid; changing global light or roughness would conceal rather than repair the mapping.
+
+A seam-preserving10,370-triangle trial reduces the largest artifacts but retains small white patches. Stronger UV control produces a clean13,018-triangle trial, but108 Hawaii Tuna would multiply the geometry cost. Both trials remain under ignored `.local/tuna_finish_20261019/`; neither is delivered.
+
+The final solution keeps the original low body's exact triangle surfaces and normals, unwraps a fresh atlas, and transfers albedo from the original97,545-triangle HF surface with closest-surface/barycentric sampling and bilinear texel filtering. [glTF Transform's unwrap documentation](https://gltf-transform.dev/modules/functions/functions/unwrap) describes atlas generation and seam-induced vertex duplication; [three-mesh-bvh's closest-point API](https://gkjohnson.github.io/tools/docs/three-mesh-bvh/MeshBVH/) provides the source-surface query. Offline tools are watlas1.0.1 (MIT), three-mesh-bvh0.9.16 (MIT), Three0.185.0, existing glTF Transform4.5.1/Meshoptimizer1.3 and Sharp. They do not enter the game's runtime dependency graph.
+
+The source colors are projected at552,390 covered sample positions, mean source distance0.001109 body lengths,99th percentile0.004882 and maximum0.007178. The atlas has556 charts; positions/normals are only duplicated at new seams. Full quantized triangle-surface multisets, bounds and3,774 face count are identical before and after. Vertices rise3,457→5,341; this adds vertex/shader/buffer cost even though faces and draws stay fixed. The final image remains1024²; four-texel atlas padding is scaled from a1233×1243 pack and covered baked pixels are preserved. WebP drops307,590→235,380 bytes. A second complete conversion reproduces all geometry/UV/color output; only the recorded intermediate-file hash differs when its JSON whitespace differs. The shipped receipt uses the compact converter input and is reproducible through the command below.
+
+`prepare_hawaii_batch7_hf_asset.mjs` now requires the bake-tools directory for Tuna and generates its seam-collapsed low mesh only in an owned temporary directory. It immediately invokes `rebake_tuna_hf_asset.mjs` and removes that temporary input; the invalid old UVs can no longer be emitted as a final Tuna runtime asset. Other three species' conversion paths remain unchanged. No source image is artistically repainted, and no HF inference/export or quota is consumed.
+
+```bash
+node scripts/prepare_hawaii_batch7_hf_asset.mjs tuna \
+  .local/hawaii_batch7_20261019/tuna_attempt_01/tuna_trellis_raw.glb \
+  .local/zombie_hf_20261018/tools -1.5707963267948966 \
+  /path/to/output .local/tuna_finish_20261019/tools
+```
+
+The bake-tools directory contains the pinned local npm lockfile. The runtime factory, material, roughness, clocks,8-bone rig, movement, feeding contacts and3m game length are untouched. Actual populations remain Hawaii108, Bermuda76, Atlantis74 and Mariana64, with none in the other four regions. Other pending batches and all unrelated source files are preserved.
+
+### Fresh verification and delivery
+
+- Full1,405/1,405 tests,12 targeted checks, formatting and production build pass on the final rebaked asset. The new regression checks every atlas triangle belongs to a single chart, valid normalized UVs and the unchanged3,774-face budget. Existing checks exercise actual tail/fin vertices, UV-duplicate deformation continuity, independent skeletons, normalized normals/weights, ray contacts, pause and disposal.
+- Native Chrome matched before/after lit, unlit, side, reverse, dorsal, underside, clay and effort views show continuous dorsal blue and coherent fin/head coloring. A controlled Guide clip covers cruise→effort→release, followed by real-game observer movement:540 frames,11.12m/3.00m/8.00m axis ranges and frozen bones on pause. The staged invulnerable player and observer camera are fixtures, without per-frame entity/player pinning.
+- Three Guide reopen/four-region cycles track966 candidate skeletons;828 evictions dispose bone textures and138 remain in the retained Atlantis/Mariana scenes. Cached immutable geometry/material/texture identities stay shared; instances retain separate skeletons. The failed-texture fixture remains opaque and usable. A matched paused517-entity scene records117 calls and515,974 triangles both before and after; this does not measure GPU time, power, physical-phone performance or heat.
+- Same-origin restricted preview updates to `index-CQt-uJFw.js`. The final45-artifact build is25,977,818 bytes,17,465 bytes smaller than batch9. Bilingual English1440px/Chinese390px native Guide/start/boost/sonar/pause/Home passes both cases with no observed page/console/resource failures, same-address reload, no production hook and200 on the new Tuna texture. All45 artifacts match local/public SHA-256;11 private paths per origin stay denied. Exact public-resource outcomes are saved in `public/report.json` and `artifacts.json`.390px is desktop touch emulation, not a physical-phone test.
+
+Evidence, both original user screenshots, rejected trials, old packed mesh/texture, source preservation, conversion/reproduction logs and encoded comparison/motion media remain under ignored `.local/tuna_finish_20261019/`. Preview stays https://saver-recorded-digit-could.trycloudflare.com/ . Original DEV35213, restricted preview74197, awake74200 and tunnel35419 remain, with only index/assets served. Previous runtime archive is `.local/mini_preview_20261007/runtime_before_20261019_200702`; logs, identities, ports and `manage.py status|rebuild|stop <owned-service>` remain in that directory. Formal main/Pages stays v0.11.13 /110494c. Tuna and all other pending candidates still await individual user review; historical worktrees and canceled work remain preserved.
+
+## Accepted twelve-creature checkpoint — 2026-10-19
+
+Accepted local twelve-creature checkpoint — 2026-10-19: the user requests “好的，做一个提交，继续下一组吧”, authorizing a local checkpoint of batches7–9 and the Tuna UV correction before Herring, Anchovy, Moon Jelly and Spiny Lobster. All939 delivered source fingerprints and45 build artifacts match before these acceptance notes. Existing1,405-test/native/public receipts retain their recorded scope. No push/main release. The current AI agent works alone; new candidates remain uncommitted for individual review. Preserve gameplay, services and archives.

@@ -1,0 +1,82 @@
+import * as THREE from "three";
+import ray from "./assets/models/ray_hf_mesh.json" with { type: "json" };
+import sunfish from "./assets/models/sunfish_hf_mesh.json" with { type: "json" };
+import tuna from "./assets/models/tuna_hf_mesh.json" with { type: "json" };
+import octopus from "./assets/models/octopus_hf_mesh.json" with { type: "json" };
+import { decodeOrganicMesh } from "./hf_organic_asset.js";
+const data = { ray, sunfish, tuna, octopus };
+const urls = {
+  ray: new URL("./assets/models/ray_hf_color.webp", import.meta.url),
+  sunfish: new URL("./assets/models/sunfish_hf_color.webp", import.meta.url),
+  tuna: new URL("./assets/models/tuna_hf_color.webp", import.meta.url),
+  octopus: new URL("./assets/models/octopus_hf_color.webp", import.meta.url),
+};
+const cache = new Map();
+
+/** 四种生物分别共享实体与色图；每个实例保留独立的解剖骨架。 */
+export function hawaiiBatch7Asset(kind, bind) {
+  if (cache.has(kind)) return cache.get(kind);
+  const geometry = decodeOrganicMesh(data[kind], bind, (x, y, z, color) => {
+    color.set(
+      kind === "octopus"
+        ? 0xb96b49
+        : y < 0
+          ? 0xc2c8c3
+          : kind === "ray"
+            ? 0x3c4850
+            : kind === "tuna"
+              ? 0x526978
+              : 0x8e9b9d,
+    );
+  });
+  const material = new THREE.MeshStandardMaterial({
+    roughness: kind === "tuna" ? 0.5 : kind === "ray" ? 0.68 : 0.73,
+    metalness: 0,
+    vertexColors: true,
+  });
+  material.name = `${kind}_hf_skin`;
+  material.onBeforeCompile = (shader) => {
+    shader.fragmentShader = shader.fragmentShader.replace(
+      "#include <map_fragment>",
+      `#include <map_fragment>
+      #ifdef USE_MAP
+        float skinLum = dot(diffuseColor.rgb, vec3(0.2126,0.7152,0.0722));
+        vec3 skin = pow(max(diffuseColor.rgb,vec3(0.0)),vec3(0.79)) * 0.91;
+        diffuseColor.rgb = mix(diffuseColor.rgb,skin,smoothstep(0.001,0.012,skinLum));
+      #endif`,
+    );
+  };
+  material.customProgramCacheKey = () => "hawaii_batch7_albedo_v1";
+  let task;
+  const prepare = () => {
+    if (typeof window === "undefined") return Promise.resolve(false);
+    if (task) return task;
+    task = (async () => {
+      const controller = new AbortController();
+      const timer = setTimeout(() => controller.abort(), 8000);
+      try {
+        const response = await fetch(urls[kind], { signal: controller.signal });
+        if (!response.ok) throw new Error("Creature texture unavailable");
+        const bitmap = await createImageBitmap(await response.blob());
+        const texture = new THREE.Texture(bitmap);
+        texture.flipY = false;
+        texture.colorSpace = THREE.SRGBColorSpace;
+        texture.needsUpdate = true;
+        material.map = texture;
+        material.vertexColors = false;
+        material.needsUpdate = true;
+        material.userData.texturesReady = true;
+        return true;
+      } catch {
+        material.userData.texturesReady = false;
+        return false;
+      } finally {
+        clearTimeout(timer);
+      }
+    })();
+    return task;
+  };
+  const asset = { geometry, material, prepare };
+  cache.set(kind, asset);
+  return asset;
+}
