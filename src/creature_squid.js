@@ -72,8 +72,12 @@ export function buildSquid(root, motions) {
   };
   motions.push((phase, effort, state) => {
     const folded = Math.max(state.boost, state.jet);
+    // 冲刺保留更清晰的鳍波，强喷射时仍收拢；两者共用躯干收缩节奏。
+    const finFold = Math.max(state.boost * 0.55, state.jet);
     const contraction =
-      (0.018 + state.power * 0.018 + state.jet * 0.045) *
+      (0.018 +
+        state.power * 0.018 +
+        Math.max(state.boost * 0.02, state.jet * 0.045)) *
       (0.5 + Math.sin(phase * 1.4) * 0.5);
     bones[1].scale.set(1 - contraction, 1 - contraction, 1);
     for (const [side, first] of [
@@ -84,10 +88,10 @@ export function buildSquid(root, motions) {
         const bone = bones[first + j];
         bone.rotation.z =
           side *
-          (Math.sin(phase * 1.15 - j * 0.8) * (0.16 - folded * 0.11) +
-            folded * 0.28);
+          (Math.sin(phase * 1.15 - j * 0.8) * (0.16 - finFold * 0.11) +
+            finFold * 0.28);
         bone.rotation.x =
-          Math.sin(phase * 1.15 - j * 0.8) * (0.055 - folded * 0.035);
+          Math.sin(phase * 1.15 - j * 0.8) * (0.055 - finFold * 0.035);
       }
     for (const chain of packed.chains)
       for (let j = 0; j < chain.count; j++) {

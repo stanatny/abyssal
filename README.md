@@ -1,5 +1,7 @@
 # ABYSSAL
 
+Current candidate: four-player sprint motion after local Orca seam checkpoint `6bd4821`. Faster propulsion and clearer fin trim preserve ordinary cruise and gameplay; [review and evidence](docs/player_sprint_motion_revision.md). New motion is uncommitted/unpushed, awaiting user review.
+
 Accepted Orca texture checkpoint — 2026-10-19: the user accepts the atlas-seam correction and authorizes a local commit before reviewing sprint-fin motion for the four player characters. All835 delivered source fingerprints and17 artifacts match before these acceptance-only notes. Prior targeted/native/public checks retain their recorded scope. No push or release is requested; new motion work returns to uncommitted review status. The current AI agent works alone and preserves gameplay, services and archives.
 
 Current Orca texture-seam correction — 2026-10-19: local checkpoint `42b379e` preserves the reviewed Mechanical Shark redesign, side boosters and sprint black-frame fix. The current AI agent independently repairs Orca atlas padding after reproducing bright lines in unlit renders. Preserve all covered pattern RGB, model geometry, swimming, materials, lighting and gameplay. See [the current review](docs/orca_squid_huggingface_redraw.md#orca-atlas-seam-follow-up--2026-10-19). This new fix remains uncommitted/unpushed for review; keep original services, archives and formal main v0.11.12.

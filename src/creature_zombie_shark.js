@@ -47,7 +47,7 @@ export function buildZombieShark(root, motions) {
     const power =
       0.065 +
       (state?.power ?? Math.min(1, effort / 3)) * 0.07 +
-      (state?.boost || 0) * 0.012;
+      (state?.boost || 0) * 0.028;
     bones[1].rotation.y = Math.sin(phase - 0.8) * power * 0.65;
     bones[2].rotation.y = Math.sin(phase - 1.45) * power * 1.3;
     bones[3].rotation.y = Math.sin(phase - 1.9) * power * 0.55;

@@ -1,3 +1,9 @@
+# Current player sprint motion — 2026-10-19
+
+Accepted Orca seam correction is committed locally as `6bd4821`. The current AI agent independently refines sprint animation for Zombie Shark, Mechanical Shark, Orca and Giant Squid on `art/mechanical-hf-redraw`. Preserve all assets, gameplay, historical work and existing services. See [the current review](docs/player_sprint_motion_revision.md) and ignored `.local/player_sprint_20261019/` for fresh evidence and delivery receipts. New motion is uncommitted/unpushed pending user review; formal main/Pages remains v0.11.12. Earlier candidate-only labels below are historical for the committed Orca fix.
+
+---
+
 # Cinematic Mechanical Shark replacement — 2026-10-19
 
 Accepted Orca texture checkpoint — 2026-10-19: the user accepts the atlas-seam correction and authorizes a local commit before reviewing sprint-fin motion for the four player characters. All835 delivered source fingerprints and17 artifacts match before these acceptance-only notes. Prior targeted/native/public checks retain their recorded scope. No push or release is requested; new motion work returns to uncommitted review status. The current AI agent works alone and preserves gameplay, services and archives.

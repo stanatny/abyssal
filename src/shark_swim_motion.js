@@ -12,13 +12,13 @@ export function poseSharkPectorals(fins, phase, state = {}, flexibility = 1) {
     pitch = state.pitchInput || 0,
     q = phase * 0.72,
     lift =
-      0.065 + Math.sin(q) * (0.2 - boost * 0.08) * flexibility + pitch * 0.1,
+      0.065 + Math.sin(q) * (0.2 - boost * 0.025) * flexibility + pitch * 0.1,
     sweep =
       0.035 +
       boost * 0.21 +
-      Math.sin(q - 0.65) * (0.105 - boost * 0.045) * flexibility,
+      Math.sin(q - 0.65) * (0.105 - boost * 0.02) * flexibility,
     feather =
-      Math.cos(q - 0.35) * (0.06 - boost * 0.025) * flexibility - pitch * 0.14;
+      Math.cos(q - 0.35) * (0.06 - boost * 0.01) * flexibility - pitch * 0.14;
   for (const [side, fin] of fins) {
     fin.rotation.z = side * lift - turn * 0.12;
     fin.rotation.y = -side * sweep + turn * 0.1;

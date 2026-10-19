@@ -73,10 +73,14 @@ export function createPlayerMotion(kind, phase = 0) {
       state.phase +=
         dt *
         (kind === "orca"
-          ? 3.3 + state.power * 2.7 + state.boost * 1.2
+          ? 3.3 + state.power * 2.7 + state.boost * 2.2
           : shark
-            ? 2.6 + state.power * 3 + state.boost * 1.8
-            : 2.8 + state.power * 1.7 + state.jet * 2.2);
+            ? 2.6 + state.power * 3 + state.boost * 2.6
+            : 2.8 +
+              state.power * 1.7 +
+              (kind === "squid"
+                ? Math.max(state.boost * 1.1, state.jet * 2.2)
+                : state.jet * 2.2));
       return state;
     },
   };

@@ -90,7 +90,7 @@ export function buildOrca(root, motions) {
   motions.push((phase, effort, state) => {
     const folded = Math.max(state.boost, state.airborne);
     const amplitude =
-      (0.09 + state.power * 0.09 + state.boost * 0.025) *
+      (0.09 + state.power * 0.09 + state.boost * 0.045) *
       (1 - state.airborne * 0.85);
     bones[1].rotation.x = Math.sin(phase) * amplitude * 0.25;
     bones[2].rotation.x = Math.sin(phase - 0.58) * amplitude * 0.65;
@@ -103,7 +103,11 @@ export function buildOrca(root, motions) {
       [1, bones[6]],
     ]) {
       fin.rotation.z =
-        side * Math.sin(phase * 0.5 - 0.7) * 0.095 * (1 - folded * 0.7) +
+        side *
+          Math.sin(phase * 0.5 - 0.7) *
+          0.095 *
+          (1 - state.boost * 0.38) *
+          (1 - state.airborne * 0.7) +
         state.turn * 0.18;
       fin.rotation.x =
         Math.sin(phase * 0.5 - 1.1) * 0.045 + state.pitchInput * 0.2;

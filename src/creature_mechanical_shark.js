@@ -91,7 +91,7 @@ export function buildMechanicalShark(root, motions) {
       power = state.power ?? 0.25,
       turn = state.turn || 0;
     // 护甲前躯保持稳定，尾波只经过真实后部铰接段，尾鳍整体跟随末端骨骼。
-    const stroke = 0.06 + power * 0.055 + boost * 0.008;
+    const stroke = 0.06 + power * 0.055 + boost * 0.02;
     bones[1].rotation.y = Math.sin(phase - 0.55) * stroke - turn * 0.07;
     bones[2].rotation.y = Math.sin(phase - 1.1) * stroke;
     bones[3].rotation.y = Math.sin(phase - 1.55) * stroke * 0.75;
