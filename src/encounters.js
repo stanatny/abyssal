@@ -45,7 +45,7 @@ import {
   tentacleChunkBounds,
 } from "./tentacle_motion.js";
 import { createCreature } from "./creatures.js";
-import { updateLordBody } from "./lord_body.js";
+import { updateLordBody, insideLordCore } from "./lord_body.js";
 import {
   BOSS_SPECIES,
   BOSS_DEFAULT_TERRITORY_RADIUS,
@@ -137,6 +137,7 @@ export function findBossContact(
   // 已注册实体解剖的领主以可见模型为准，不使用旧隐藏外形。
   mesh = visibleBody ? mesh : mesh.userData.contactRoot || mesh;
   if (!Number.isFinite(radius) || radius < 0) return null;
+  if (insideLordCore(mesh, mouth)) return mouth.clone();
   mesh.updateWorldMatrix(true, true);
   const sphere = new THREE.Sphere();
   const bounds = new THREE.Box3();
@@ -151,7 +152,8 @@ export function findBossContact(
   const radiusSquared = radius * radius;
   let contact = null;
   mesh[visibleBody ? "traverseVisible" : "traverse"]((part) => {
-    if (contact || !part.isMesh || !part.visible) return;
+    if (contact || !part.isMesh || !part.visible || part.userData.visualOnly)
+      return;
     const geometry = part.geometry;
     const vertices = geometry.attributes.position;
     if (!vertices) return;
@@ -196,7 +198,8 @@ export function findBossContact(
           const point =
             offset === 0 ? triangle.a : offset === 1 ? triangle.b : triangle.c;
           const n = indices ? indices.getX(index + offset) : index + offset;
-          if (part.isSkinnedMesh) part.getVertexPosition(n, point);
+          if (part.isSkinnedMesh || part.morphTargetInfluences?.length)
+            part.getVertexPosition(n, point);
           else point.fromBufferAttribute(vertices, n);
           point.applyMatrix4(part.matrixWorld);
         }
@@ -1263,7 +1266,7 @@ export function createEncounters(
     entry.phaseHit = false;
     entry.lashReady = false;
     entry.grapple = createKrakenGrapple();
-    entry.mesh.userData.setKrakenGrip?.(0);
+    entry.mesh.userData.resetKrakenGrip?.();
     entry.patrolAngle = entry.patrolStart;
     if (!entry.navigation) {
       entry.heading.set(0, 0, -1);
@@ -1837,7 +1840,7 @@ export function createEncounters(
       entry.fx.group.visible = false;
       entry.phaseHit = true;
       entry.grapple = createKrakenGrapple();
-      entry.mesh.userData.setKrakenGrip?.(0);
+      entry.mesh.userData.resetKrakenGrip?.();
       entry.mesh.userData.resetLumenLash?.();
       entry.volleyShots = entry.state.species.volleyCount ?? 3;
       affected += 1;
@@ -1882,7 +1885,7 @@ export function createEncounters(
     entry.mesh.visible = entry.label.visible = entry.ring.visible = false;
     entry.fx.group.visible = false;
     entry.grapple = createKrakenGrapple();
-    entry.mesh.userData.setKrakenGrip?.(0);
+    entry.mesh.userData.resetKrakenGrip?.();
     if (entry.fx.ability === "charge")
       for (const puff of entry.fx.trail) puff.sprite.visible = false;
   }
@@ -1908,6 +1911,7 @@ export function createEncounters(
     hasPlayerPosition = true;
     for (const entry of bosses) {
       const state = entry.state;
+      let krakenBite = false;
       if (!entry.enabled) continue;
       if (state.defeated) {
         hideDefeated(entry);
@@ -2489,6 +2493,7 @@ export function createEncounters(
             mouthDistance: gripDistance,
             clear: gripClear,
           });
+          krakenBite = event === "bite";
           if (event === "grabbed")
             notify(
               "触腕缠绕 · 越近越难脱身，向外冲刺或借岩柱！",
@@ -2683,6 +2688,13 @@ export function createEncounters(
         );
         entry.contactCooldown = 2.4;
       }
+      // 口器只读取本帧真正的捕获/绞咬事件；不替换位移、伤害或逃脱规则。
+      entry.mesh.userData.updateKrakenIntake?.(dt, {
+        active: attack && sight && state.ability === "vortex",
+        held: entry.grapple.held,
+        bite: krakenBite,
+        target: position,
+      });
       if (inTerritory || state.phase === "return")
         if (!active || distance < active.distance)
           active = {

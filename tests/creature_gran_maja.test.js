@@ -1,19 +1,24 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 import * as THREE from "three";
-import {
-  buildLordCreature,
-  buildLegacyMayanContact,
-} from "../src/creature_lords.js";
+import { buildLegacyMayanContact } from "../src/creature_lords.js";
 import {
   granMajaHeadGeometry,
   granMajaHeadPoint,
 } from "../src/creature_gran_maja_geometry.js";
 
+import { buildGranMaja } from "../src/creature_gran_maja.js";
+
 function fixture() {
   const root = new THREE.Group(),
     motions = [];
-  buildLordCreature("mayan", root, motions);
+  const body = new THREE.Group();
+  root.add(body);
+  buildGranMaja(body, motions);
+  const bounds = new THREE.Box3().setFromObject(body);
+  const length = bounds.max.z - bounds.min.z;
+  body.scale.setScalar(1 / length);
+  body.position.z = -(bounds.max.z + bounds.min.z) / (2 * length);
   return { root, motions };
 }
 

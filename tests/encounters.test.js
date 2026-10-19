@@ -89,7 +89,14 @@ test("Restart clears an old Kraken grip even when that pooled lord is not select
     timer: 0,
     spent: false,
   });
-  assert.equal(f.entry.mesh.getObjectByName("kraken_toothed_maw").scale.x, 1);
+  const resting = fixture("kraken");
+  f.entry.mesh.userData.animate(1, 1, { gaitPhase: 0 });
+  resting.entry.mesh.userData.animate(0, 1, { gaitPhase: 0 });
+  assert.deepEqual(
+    f.entry.mesh.userData.hfRig.bones.map((b) => b.rotation.toArray()),
+    resting.entry.mesh.userData.hfRig.bones.map((b) => b.rotation.toArray()),
+  );
+  resting.encounters.dispose();
   assert.ok(f.entry.fxVariants.every((fx) => !fx.group.visible));
   f.encounters.dispose();
 });
@@ -220,28 +227,43 @@ test("领主真实侧翼咬击需要离开实体和下一次完整技能，停�
   f.entry.state.phase = f.entry.previousPhase = "recover";
   f.entry.state.phaseDuration = 99;
   f.forward.set(-1, 0, 0);
-  let contactX = 0;
-  for (let x = 40; x > 0; x -= 0.1) {
-    if (findBossContact(f.entry.mesh, new THREE.Vector3(x, -400, 6.3), 1.8)) {
-      contactX = x;
-      break;
+  const skin = f.entry.mesh.userData.hfRig.mesh,
+    p = skin.geometry.attributes.position;
+  let vertex = 0,
+    best = Infinity;
+  const target = new THREE.Vector3(0.145, 0, 0.22),
+    sample = new THREE.Vector3();
+  for (let i = 0; i < p.count; i++) {
+    const d = sample.fromBufferAttribute(p, i).distanceToSquared(target);
+    if (d < best) {
+      best = d;
+      vertex = i;
     }
   }
-  assert.ok(contactX > 0);
-  f.position.set(contactX + 30 * 0.38, -400, 6.3);
+  const followContact = () => {
+    f.entry.mesh.updateMatrixWorld(true);
+    skin.skeleton.update();
+    skin.getVertexPosition(vertex, sample).applyMatrix4(skin.matrixWorld);
+    f.forward.set(-1, 0, 0).transformDirection(f.entry.mesh.matrixWorld);
+    f.position.copy(sample).addScaledVector(f.forward, -30 * 0.38);
+  };
+  followContact();
   f.step();
   assert.equal(f.events.bites, 1);
   assert.equal(f.entry.lastAttackSide, true);
   assert.equal(f.entry.lastBiteResult.hit, true);
   const health = f.entry.state.health;
-  for (let i = 0; i < 100; i++) f.step();
+  for (let i = 0; i < 100; i++) {
+    followContact();
+    f.step();
+  }
   assert.equal(f.entry.state.health, health);
   assert.equal(f.entry.lastBiteResult.reason, "must_disengage");
   const attackPosition = f.position.clone();
   f.position.x += 40;
   for (let i = 0; i < 23; i++) f.step();
   assert.equal(f.entry.state.contactArmed, true);
-  f.position.copy(attackPosition);
+  followContact();
   f.step();
   assert.equal(f.events.bites, 1);
   assert.equal(f.entry.lastBiteResult.reason, "opening_spent");
@@ -340,6 +362,9 @@ test("克拉肯真实漩涡靠近、缠腕、延迟绞咬；普通角色冲刺�
     );
     const before = f.player.health;
     const captured = f.time;
+    const intake = f.entry.mesh.userData.krakenIntake;
+    assert.equal(intake.state.held, true);
+    assert.equal(intake.flow.visible, true);
     while (!f.entry.grapple.spent && f.time < captured + 2) {
       if (strategy === "sprint") {
         const mouth = f.entry.mesh.userData.mouthAnchors[0].getWorldPosition(
@@ -352,6 +377,8 @@ test("克拉肯真实漩涡靠近、缠腕、延迟绞咬；普通角色冲刺�
     }
     assert.equal(f.entry.grapple.held, false);
     assert.equal(f.entry.grapple.spent, true);
+    assert.equal(intake.flow.visible, false);
+    assert.equal(intake.state.biting, strategy === "trapped");
     if (strategy === "trapped") {
       assert.ok(f.time - captured >= 1.49);
       assert.equal(before - f.player.health, 60);
@@ -367,6 +394,8 @@ test("克拉肯真实漩涡靠近、缠腕、延迟绞咬；普通角色冲刺�
     } else
       assert.equal(f.player.health, before, `${strategy} failed to escape`);
     f.encounters.disorient(f.position, 500, f.time);
+    assert.equal(intake.state.biting, false);
+    assert.equal(intake.flow.visible, false);
     assert.equal(f.entry.grapple.held, false);
     f.encounters.dispose();
   }

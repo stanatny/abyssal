@@ -5,12 +5,14 @@ import {
   buildLordCreature,
   LORD_CREATURE_KINDS,
 } from "../src/creature_lords.js";
+import { prepareLordBody } from "../src/lord_body.js";
 import { findBossContact } from "../src/encounters.js";
 
 function fixture(kind, length = 1) {
   const root = new THREE.Group();
   const motions = [];
   buildLordCreature(kind, root, motions);
+  prepareLordBody(root, kind);
   root.scale.setScalar(length);
   return { root, motions };
 }
@@ -18,7 +20,7 @@ function fixture(kind, length = 1) {
 function meshes(root) {
   const result = [];
   root.traverse((part) => {
-    if (part.isMesh) result.push(part);
+    if (part.isMesh && !part.userData.visualOnly) result.push(part);
   });
   return result;
 }
@@ -48,7 +50,16 @@ test("四种深渊领主使用有限闭合实体，归一化体长且满足实�
         ).size;
       }
       if (!part.isMesh) return;
-      assert.equal(part.material.transparent, false, `${kind}: solid geometry`);
+      if (part.userData.visualOnly) {
+        assert.equal(part.name, "kraken_inward_water_ribbons");
+        assert.equal(part.material.depthWrite, false);
+        assert.ok(part.geometry.attributes.position.count <= 384);
+      } else
+        assert.equal(
+          part.material.transparent,
+          false,
+          `${kind}: solid geometry`,
+        );
       for (const attribute of Object.values(part.geometry.attributes)) {
         assert.ok(
           attribute.array.every(Number.isFinite),
@@ -110,7 +121,7 @@ test("领主侧腹在多种朝向可命中，触腕与三颈之间保持真实�
     const center =
       kind === "kraken"
         ? new THREE.Vector3(0, 0, 0.14).applyMatrix4(
-            root.getObjectByName("kraken_ribbed_mantle").matrixWorld,
+            root.userData.hfRig.mesh.matrixWorld,
           )
         : new THREE.Vector3(0, 0, 0.15).applyMatrix4(root.matrixWorld);
     const origin = center
@@ -142,7 +153,7 @@ test("领主侧腹在多种朝向可命中，触腕与三颈之间保持真实�
   }
   const kraken = fixture("kraken", 42).root;
   assert.equal(
-    findBossContact(kraken, new THREE.Vector3(0, 0, -12.6), 0.4),
+    findBossContact(kraken, new THREE.Vector3(0, 9, -12.6), 0.4),
     null,
   );
   const hydra = fixture("hydra", 46).root;
@@ -153,25 +164,28 @@ test("领主侧腹在多种朝向可命中，触腕与三颈之间保持真实�
 });
 
 test("新增分段触腕、长颈和蛇尾在完整摆动中保持真实网格接触", () => {
-  for (const [kind, distalName] of [
-    ["kraken", "kraken_curled_arm_1"],
-    ["hydra", "hydra_neck_surface_0_distal"],
-    ["leviathan", "leviathan_serpent_tail_distal"],
-  ]) {
+  for (const kind of ["kraken", "hydra", "leviathan"]) {
     const { root, motions } = fixture(kind, 53);
     root.position.set(17, -450, -83);
     root.rotation.set(0.25, 1.1, -0.13);
-    const distal = root.getObjectByName(distalName);
-    const surface = distal.children.find((part) => part.isMesh);
-    const index = Math.floor(surface.geometry.attributes.position.count * 0.8);
-    const vertex = new THREE.Vector3().fromBufferAttribute(
-      surface.geometry.attributes.position,
-      index,
-    );
+    const surface = root.userData.hfRig.mesh;
+    const positions = surface.geometry.attributes.position;
+    let index = 0;
+    for (let i = 1; i < positions.count; i++) {
+      const value = (j) =>
+        kind === "kraken"
+          ? positions.getX(j)
+          : kind === "hydra"
+            ? positions.getY(j)
+            : positions.getZ(j);
+      if (value(i) > value(index)) index = i;
+    }
+    const vertex = new THREE.Vector3().fromBufferAttribute(positions, index);
     const samples = [];
     for (let phase = 0; phase <= (Math.PI * 2) / 0.21; phase += 1) {
       for (const motion of motions) motion(phase, phase < 12 ? 0.7 : 2.5);
       root.updateMatrixWorld(true);
+      surface.skeleton.update();
       const point = (
         surface.isSkinnedMesh
           ? surface.getVertexPosition(index, new THREE.Vector3())
@@ -211,7 +225,7 @@ test("海德拉三枚吻端锚点跟随各自长颈，旋转缩放后仍相互�
   for (let i = 0; i < 3; i++) {
     assert.ok(after[i].distanceTo(before[i]) > 0.15);
     assert.ok(after[i].distanceTo(root.position) < 53 * 0.7);
-    assert.equal(anchors[i].parent.name, `hydra_dragon_head_${i + 1}`);
+    assert.equal(anchors[i].parent.name, `hydra_neck_${i + 1}_4`);
     for (let j = i + 1; j < 3; j++)
       assert.ok(after[i].distanceTo(after[j]) > 5);
   }

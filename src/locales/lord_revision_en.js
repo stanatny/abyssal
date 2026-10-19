@@ -101,8 +101,8 @@ export const LORD_REVISION_EN = Object.freeze({
     "Gathers cloud-water and exhales a stream up to {0} m from its snout. The warned direction locks before release without homing; each breath deals at most one {1}-point base hit, and mountains block its path.",
   "蓝色水路锁定后，向侧面或上下离开；不要沿水流方向直退。水息散去后的{2}秒可从侧翼反击。":
     "After the blue path locks, dodge sideways or vertically rather than retreating along it. Counter at the flank during the {2}-second recovery after the stream fades.",
-  "北欧海怪传说中的巨兽：八条细长肌肉腕连贯舒展、末梢盘卷，双列吸盘随腕变形；中央深陷的环形口器密布内向利齿。":
-    "A northern sea monster with eight long muscular arms, returning curls and paired sucker rows that deform with them. A recessed central maw carries rings of inward-pointing teeth.",
+  "北欧海怪传说中的巨兽：厚重外套连接八条肌肉腕，腕内吸盘随卷曲起伏；中央口腔张开吸水，长腕收拢后上下鹰喙猛然咬合。":
+    "A northern sea monster with a heavy mantle and eight muscular arms. Its central maw opens to draw water inward, then the arms close and the hooked upper and lower beaks snap shut.",
   "先在预计路线上聚起漩涡，再靠近被困目标。越接近中央巨口，水流牵引与长腕束缚越强，体力也流失得更快；向外冲刺拉开距离，压力便逐渐减轻。未及时脱身会被延迟绞咬，岩柱可以阻断触腕。":
     "Forms a vortex on the predicted route and closes in. Pull, arm restraint and stamina loss grow stronger near its central maw, easing as you sprint away. Failure to escape triggers a delayed crushing bite; rock pillars can interrupt the arms.",
   "预警后尽早冲出涡心，避免贴近巨口；被缠住后向外持续冲刺，或绕岩柱阻断触腕。绞咬结束后有4秒恢复期，从侧翼咬击，再脱离接触范围。":

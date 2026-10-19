@@ -10,7 +10,6 @@ import {
 import { findBossContact } from "../src/encounters.js";
 
 const kinds = [
-  "kraken",
   "octopus",
   "cuttlefish",
   "crown_filterer",
@@ -135,12 +134,9 @@ for (const kind of kinds)
 test("Kraken mouth is central and recessed, and collision follows the moving arm skin", () => {
   const root = createCreature("kraken", 48, 71);
   pose(root, 0);
-  const arm = arms(root)[0];
-  assert.ok(arm.userData.tentacle.restLength > 1.5);
+  const { mesh, chains } = root.userData.hfRig;
+  assert.equal(chains.filter((c) => c.type === "arm").length, 8);
   assert.equal(root.userData.mouthAnchors.length, 1);
-  assert.ok(root.getObjectByName("kraken_recessed_throat"));
-  assert.ok(root.getObjectByName("kraken_toothed_maw"));
-  const mesh = arm.userData.tentacle.meshes[0];
   for (let frame = 1; frame <= 240; frame++) pose(root, frame / 60);
   root.userData.setKrakenGrip(1);
   pose(root, 4.05);
@@ -148,7 +144,7 @@ test("Kraken mouth is central and recessed, and collision follows the moving arm
     weights = mesh.geometry.attributes.skinIndex;
   let tipIndex = 0;
   for (let i = 0; i < positions.count; i++)
-    if (weights.getX(i) >= 9) {
+    if (positions.getX(i) > 0.45) {
       tipIndex = i;
       break;
     }
@@ -168,7 +164,7 @@ test("Tentacle chunk filtering preserves brute-force surface and interior contac
   root.position.set(48, -250, -820);
   root.rotation.set(0.12, 1.4, -0.07);
   root.scale.multiply(new THREE.Vector3(1.1, 0.95, 1.05));
-  const parts = arms(root).flatMap((arm) => arm.userData.tentacle.meshes);
+  const parts = [root.userData.hfRig.mesh];
   for (const time of [0, 1.5, 4]) {
     pose(root, time);
     const part = parts[0];
@@ -191,7 +187,7 @@ test("Tentacle chunk filtering preserves brute-force surface and interior contac
       if (full) assert.ok(filtered.distanceTo(full) < 1e-7);
     }
   }
-  disposeTentacleMotion(root);
+  root.userData.disposeLocalMotion();
 });
 
 test("Lumen lance poses reach the real locked point, retain shared surfaces and reset to swimming", () => {

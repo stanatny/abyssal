@@ -350,8 +350,8 @@ export const CATALOG_EN = Object.freeze({
   格兰玛雅: "Gran Maja",
   遗迹主宰: "Ruins Lord",
   遗迹脉冲: "Ruin Pulse",
-  "灰银色扁宽三角头、额前六枚蓝眼与红色牙龈中的密集齿列，连接粗大环褶的蛇形长躯。蓄力时锁定你所在水层，向外发出高速脉冲；追击会压缩你和障碍物之间的空间。":
-    "A silver-gray, broad triangular head has six blue forehead eyes and dense teeth set in red gums, followed by a long serpentine body with heavy ring folds. Its windup locks your depth before a fast outward pulse, while pursuit squeezes escape routes.",
+  "灰银色宽头、额前六枚蓝眼与宽口密齿，连接布满不规则皮褶的蛇形长躯。蓄力时锁定你所在水层，向外发出高速脉冲；追击会压缩你和障碍物之间的空间。":
+    "A broad silver-gray head carries six blue forehead eyes and a wide, densely toothed mouth, followed by a serpentine body with irregular skin folds. Its windup locks your depth before a fast outward pulse, while pursuit squeezes escape routes.",
   "观察锁定水层，在预警末段上浮或下潜；冲击环结束后的3秒恢复期，转向躯干侧翼发动接触攻击。":
     "Watch the locked depth layer and rise or dive near the end of the warning. During the 3-second recovery after the shock ring ends, turn toward the body's flank for a contact attack.",
   三头海德拉: "Three-Headed Hydra",
@@ -366,8 +366,8 @@ export const CATALOG_EN = Object.freeze({
   利维坦: "Leviathan",
   深渊主宰: "Abyss Lord",
   毁灭冲锋: "Devastating Charge",
-  "古代传说中的紧密甲鳞、巨颚与曲折海蛇相连：重甲前躯连接侧向游摆的长尾，并非真实动物复原。":
-    "Ancient tales describe close armor scales, mighty jaws and a twisting sea serpent. Its armored forebody leads into a long, laterally undulating tail; it is not a reconstruction of a real animal.",
+  "以古代海怪传说为灵感：巨颚、层叠甲脊与三对鳍肢连接修长蛇尾，尾部侧摆推进；这是本作的幻想诠释，并非真实动物复原。":
+    "Inspired by ancient sea-monster tales: mighty jaws, layered dorsal armor and three pairs of flippers lead into a long tail that undulates sideways. This is an original fantasy interpretation, not a reconstruction of a real animal.",
   "深渊中体型最大的领主，会拦截你的逃跑路线，蓄力末段锁定方向后以100米/秒高速冲撞。普通冲刺无法直线甩开。":
     "The largest lord in the abyss intercepts your escape route, then locks its direction late in the windup and charges at 100 m/s. A normal sprint cannot outrun it in a straight line.",
   "等待最后的路线锁定提示，立即侧向避开冲撞；冲锋后3秒恢复期从躯干侧面向内切入，咬中后拉开再进攻。":

@@ -1,3 +1,4 @@
+import { buildHawaiiLordHF } from "./creature_hawaii_lords_hf.js";
 import * as THREE from "three";
 import { bindTentacleMotion } from "./tentacle_motion.js";
 import { buildGranMaja } from "./creature_gran_maja.js";
@@ -26,14 +27,19 @@ export function buildLordCreature(kind, root, motions) {
   const body = new THREE.Group();
   body.name = `${kind}_lord_anatomy`;
   root.add(body);
-  if (kind === "kraken") {
-    buildKraken(body, motions);
-    root.userData.setKrakenGrip = body.userData.setKrakenGrip;
-    root.userData.resetKrakenGrip = body.userData.resetKrakenGrip;
-  } else if (kind === "mayan") buildGranMaja(body, motions);
-  else if (kind === "hydra") buildHydra(body, motions);
-  else if (kind === "leviathan") buildLeviathan(body, motions);
-  else throw new Error(`Unknown abyssal lord: ${kind}`);
+  if (!LORD_CREATURE_KINDS.has(kind))
+    throw new Error(`Unknown abyssal lord: ${kind}`);
+  buildHawaiiLordHF(kind, body, motions);
+  for (const key of [
+    "hfRig",
+    "prepareMaterials",
+    "disposeLocalMotion",
+    "setKrakenGrip",
+    "resetKrakenGrip",
+    "krakenIntake",
+    "updateKrakenIntake",
+  ])
+    root.userData[key] = body.userData[key];
   if (body.userData.mouthAnchors)
     root.userData.mouthAnchors = body.userData.mouthAnchors;
   if (body.userData.combatAnchor)

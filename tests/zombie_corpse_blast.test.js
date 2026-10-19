@@ -56,14 +56,11 @@ test("posed lord sections acquire real bodies from every reachable side, without
       b.mesh.userData.animate(0, 1);
       updateLordBody(b.mesh);
       const point = createBlastBodyQuery()(at, b, 32);
-      if (kind === "kraken" && side === 2) {
-        assert.equal(
-          point,
-          undefined,
-          "actual rear body is over32m away, despite the root being within range",
-        );
-        continue;
-      }
+      assert.equal(
+        createBlastBodyQuery()(at, b, 0.01),
+        undefined,
+        "a root inside the search radius does not replace actual body distance",
+      );
       assert.ok(point && point.distanceTo(at) <= 32, `${kind}/${side}`);
       const blast = createAreaBlast({
           bosses: () => [b],

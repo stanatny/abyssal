@@ -37,6 +37,26 @@ export function prepareLordBody(root, kind) {
   const sections = [];
   root.traverse((part) => {
     if (!part.isMesh) return;
+    if (part.userData.lordCoreParts) {
+      // 重建网格按实际承重部位分组，长腕、颈间和鳍间保持开阔。
+      for (const indices of part.userData.lordCoreParts) {
+        const box = new THREE.Box3();
+        for (const index of indices)
+          box.expandByPoint(
+            point.fromBufferAttribute(part.geometry.attributes.position, index),
+          );
+        const section = makeSection(
+          part,
+          box.getCenter(new THREE.Vector3()),
+          box.getSize(new THREE.Vector3()).multiplyScalar(0.46),
+        );
+        section.skin = part;
+        const step = Math.max(1, Math.ceil(indices.length / 96));
+        section.samples = indices.filter((_, i) => i % step === 0);
+        sections.push(section);
+      }
+      return;
+    }
     const crocodile =
       kind === "rootjaw" &&
       (part.isSkinnedMesh ||
@@ -152,10 +172,11 @@ export function updateLordBody(root) {
       }
       box.getCenter(section.center);
       box.getSize(section.radii).multiplyScalar(0.46);
-      section.radii[section.axis] = Math.max(
-        section.radii[section.axis],
-        section.span * 0.65,
-      );
+      if (section.axis)
+        section.radii[section.axis] = Math.max(
+          section.radii[section.axis],
+          section.span * 0.65,
+        );
     }
     matrix.multiplyMatrices(section.parent.matrixWorld, section.local);
     matrix.decompose(point, orientation, scale);
@@ -170,4 +191,26 @@ export function updateLordBody(root) {
     collider.rotation.copy(orientation).multiply(section.rotation);
   });
   return body.colliders;
+}
+
+/** HF 表皮可能有薄内壁；以已贴合可见躯干的实体截面填充内部，保留腕足/长颈间空隙。 */
+export function insideLordCore(root, worldPoint) {
+  if (!root.userData.hfRig || !root.userData.lordBody) return false;
+  for (const collider of updateLordBody(root)) {
+    point.set(
+      worldPoint.x - collider.x,
+      worldPoint.y - collider.y,
+      worldPoint.z - collider.z,
+    );
+    orientation.copy(collider.rotation).invert();
+    point.applyQuaternion(orientation);
+    if (
+      (point.x / collider.axes.x) ** 2 +
+        (point.y / collider.axes.y) ** 2 +
+        (point.z / collider.axes.z) ** 2 <=
+      1
+    )
+      return true;
+  }
+  return false;
 }
