@@ -7,6 +7,7 @@ import { resolve, join } from "node:path";
 import { fileURLToPath, pathToFileURL } from "node:url";
 import { mkdir, writeFile, readFile } from "node:fs/promises";
 import { createHash } from "node:crypto";
+import { padTextureIslands } from "./lib/pad_texture_islands.mjs";
 
 const [input, toolDirectory, outputDirectory] = process.argv.slice(2);
 if (!input || !toolDirectory) {
@@ -145,12 +146,28 @@ const out = outputDirectory
   : fileURLToPath(new URL("../src/assets/models/", import.meta.url));
 await mkdir(out, { recursive: true });
 await writeFile(join(out, "orca_mesh.json"), JSON.stringify(asset) + "\n");
-for (const [key, name] of [["getBaseColorTexture", "color"]]) {
-  const tex = mesh.getMaterial()[key]();
-  if (tex.getMimeType() !== "image/webp")
-    throw new Error("Expected WebP image");
-  await writeFile(join(out, `orca_${name}.webp`), tex.getImage());
-}
+// 原图集空白区带亮色重建碎片，会在mipmap缩小时渗入接缝；只替换UV岛外像素。
+const sharp = require("sharp");
+const tex = mesh.getMaterial().getBaseColorTexture();
+if (tex.getMimeType() !== "image/webp") throw new Error("Expected WebP image");
+const decoded = await sharp(tex.getImage())
+  .ensureAlpha()
+  .raw()
+  .toBuffer({ resolveWithObject: true });
+const padded = padTextureIslands(
+  decoded.data,
+  decoded.info.width,
+  decoded.info.height,
+  Float64Array.from(uv16, (v) => v / 65535),
+  index,
+);
+await sharp(padded.data, {
+  raw: { width: decoded.info.width, height: decoded.info.height, channels: 4 },
+})
+  .removeAlpha()
+  .webp({ lossless: true })
+  .toFile(join(out, "orca_color.webp"));
+
 console.log(
   JSON.stringify({
     sourceSha256: createHash("sha256")
@@ -162,6 +179,7 @@ console.log(
     triangles: asset.triangles,
     min: lo,
     max: hi,
+    texturePadding: padded.stats,
     out,
   }),
 );
