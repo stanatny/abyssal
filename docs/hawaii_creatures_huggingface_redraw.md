@@ -2,7 +2,7 @@
 
 ## Scope and authorization
 
-The user accepted the four Hawaii lords and Kraken intake, locally committed as `8dbb4d5`, then requested sequential redraws of the remaining Hawaii creatures. Eight ordinary redraws are now locally committed as `b6c81d9`; the next pair remains uncommitted. Current agent alone; no push/main release. Formal main remains v0.11.13. Preserve rules, size, populations, captures, attacks, resources and existing services.
+The user accepted the four Hawaii lords and Kraken intake, locally committed as `8dbb4d5`, then requested sequential redraws of the remaining Hawaii creatures. Eight ordinary redraws are locally committed as `b6c81d9`, followed by Plesiosaur/Dunkleosteus and head-color feedback in `e705d6d`. The sixth pair, Archelon/Green Sea Turtle, remains uncommitted for review. Current agent alone; no push/main release. Formal main remains v0.11.13. Preserve rules, size, populations, captures, attacks, resources and existing services.
 
 Registry audit: `getRegionSpecies("hawaii")` contains28 kinds/516 individuals; regional rare is Gilded Manta; surface birds are Gull and White-tailed Tropicbird. Humans, vehicles and scenery are not biological redraw targets. Other-map copies of a shared kind use the same factory.
 
@@ -18,10 +18,10 @@ Registry audit: `getRegionSpecies("hawaii")` contains28 kinds/516 individuals; r
 | 6     | `basilosaurus`  | Local checkpoint b6c81d9       |
 | 7     | `mosasaur`      | Local checkpoint b6c81d9       |
 | 8     | `pliosaur`      | Local checkpoint b6c81d9       |
-| 9     | `plesiosaur`    | Candidate: pending user review |
-| 10    | `dunkleosteus`  | Candidate: pending user review |
-| 11    | `archelon`      | Queued                         |
-| 12    | `turtle`        | Queued                         |
+| 9     | `plesiosaur`    | Local checkpoint e705d6d       |
+| 10    | `dunkleosteus`  | Local checkpoint e705d6d       |
+| 11    | `archelon`      | Candidate: pending user review |
+| 12    | `turtle`        | Candidate: pending user review |
 | 13    | `ray`           | Queued                         |
 | 14    | `sunfish`       | Queued                         |
 | 15    | `tuna`          | Queued                         |
@@ -42,7 +42,7 @@ Registry audit: `getRegionSpecies("hawaii")` contains28 kinds/516 individuals; r
 | 30    | `seagull`       | Queued                         |
 | 31    | `tropicbird`    | Queued                         |
 
-The first-pair receipts below retain their original scope; the current fifth-pair delivery is recorded at the end. The user explicitly requested continuation, which authorizes this batch but does not by itself close individual acceptance.
+The first-pair receipts below retain their original scope; the current sixth-pair delivery is recorded at the end. The user explicitly requested continuation, which authorizes this batch but does not by itself close individual acceptance.
 
 ## First pair references
 
@@ -249,3 +249,56 @@ Final color-preview verification: formatting/build pass;31 artifacts (18,426,709
 ## Fifth-pair local checkpoint — 2026-10-19
 
 Accepted local fifth-pair checkpoint — 2026-10-19: the user requests “提交吧，下一批”, authorizing a local commit of Plesiosaur, Dunkleosteus and the clearer head-armor palette, then continuation with Archelon and Green Sea Turtle. All894 delivered source fingerprints and31 artifacts match before acceptance-note edits. Existing test/native/public receipts retain their recorded scope. No push/main release. The current AI agent works alone; subsequent candidates stay uncommitted for individual review. Preserve gameplay, services and archives. Earlier pending/no-commit labels below describe their historical stage.
+
+## Sixth pair: Archelon and Green Sea Turtle — 2026-10-19
+
+The user requests “提交吧，下一批”. The previous pair, including the requested pale Dunkleosteus armor, is locally committed as `e705d6d14085f9fdd25f6b9283768442ee697d73`; no push. The next two HF candidates are developed by the current agent alone on `art/hawaii-lords-hf-redraw` and remain uncommitted for user review. Twelve of31 non-lord kinds have redraws;19 remain, next Ray and Ocean Sunfish. The previous receipts above retain their original scope.
+
+### References and actual generation
+
+- [Natural History Museum: giant prehistoric turtles](https://www.nhm.ac.uk/discover/giant-prehistoric-turtles.html): Archelon uses a broad, shallow frame-supported carapace, hooked beak and long foreflippers. It is a protostegid, not asserted to be a leatherback ancestor. Color, soft tissue and motion remain an artistic reconstruction.
+- [NOAA: Green Turtle](https://www.fisheries.noaa.gov/species/green-turtle): smaller head, olive/brown/gray scuted shell and pale underside. The common name refers to green fat, not bright green skin.
+- [Smithsonian: sea turtles](https://ocean.si.edu/ocean-life/reptiles/sea-turtles) informs foreflipper propulsion and hindflipper steering; [the loggerhead specimen account](https://qrius.si.edu/browse/object/11054681) supports paired foreflipper strokes as a related-species analogy, not a precise universal gait.
+
+Original project-generated reference PNGs were supplied to Microsoft TRELLIS.2. Source photographs, repository source and credentials were not uploaded. Space revision `ebf60b20fc5a4607f90a1c11c0aab0ceeda5429d`, model TRELLIS.2-4B revision `af44b45f2e35a493886929c6d786e563ec68364d`, both MIT; seeds741951/741952, resolution1024, export100000 and1024² texture. All originals, reference briefs, revision receipts, failed candidates and private session records remain in ignored `.local/hawaii_turtles_20261019/`.
+
+Archelon attempts01–03 failed the read-only quota TLS preflight before GPU submission. Attempt04 generated but export and one same-session recovery returned TypeError; the service-side cause was not established. Attempt05 exported but clay inspection rejected inconsistent flippers/forked tail. A clearer original reference produced selected attempt06. Turtle attempt01 exported successfully. Intermittent read-only TLS and downloads were recovered with bounded retries and system curl, preserving receipts and TLS verification; no global network change or extra paid service was used.
+
+| Kind     | Actual selected GLB SHA-256                                        | Raw triangles | Runtime triangles   | Mesh draws   | Runtime vertices |
+| -------- | ------------------------------------------------------------------ | ------------- | ------------------- | ------------ | ---------------- |
+| archelon | `cf364c5f09205c3fc7cd48556fbbb470aa4f6ef4f87eb5445967256b24eb0a85` | 98,826        | 6,500 (before8,936) | 1 (before10) | 6,311            |
+| turtle   | `63c25228ee23933ea90401107006d88880e18717c0dd07c2cb5d1e3b542dc4ea` | 95,158        | 5,236 (before7,468) | 1 (before6)  | 5,176            |
+
+The final live included-quota reading at2026-10-19T09:56:47Z is1565.147070seconds, from1697.973609seconds at this batch's start:132.826539seconds consumed including unsuccessful attempts. Overquota used remains0; returned reset is approximately2026-10-19 22:41:48 Beijing time. Recheck live quota before future jobs; this is a historical receipt, not a future allowance guarantee.
+
+### Mesh, motion and scope
+
+Both GLBs are aligned head-forward and normalized to one body length, retaining region-defined size. The Turtle raw pose had one foreflipper baked downward: the converter clips and mirrors the neutral half with correct normals/UV/winding. It recenters the short tail before mirroring to avoid a forked tip and renormalizes after the clip. Archelon uses its selected symmetric mesh. Normal/UV-aware simplification preserves the flipper outline. Texture-island padding retains all covered RGB; covered texels are572,419/314,969. A mild material contrast correction softens generated shading; roughness.77/.67, metalness0, no lights or emission added.
+
+Each kind shares immutable geometry/material and one1024² WebP, with one six-joint skeleton per instance: rigid shell/root, four independently weighted flippers and short tail. Paired foreflippers propel; rear flippers trim with smaller motion; the shell stays stable. Existing phase and smoothed locomotion effort drive frequency/amplitude. No new animation loop or gameplay threshold is introduced. Texture failure keeps opaque anatomical vertex colors; skeleton disposal is idempotent without disposing shared assets.
+
+World and Guide use the common factory. Turtle dispatch is before the generic shoal builder. Hawaii retains9 Archelon at4.5m and10 Green Turtles at1.2m; Bermuda retains8 Green Turtles. These are total regional individuals, not totals multiplied by schoolSize. The other six regions contain neither kind. Existing bilingual descriptions already match the silhouettes and reconstruction limitations and are unchanged. Ecology, captures, collision/attack rules and other accepted models remain unchanged.
+
+New source modules: `src/hawaii_turtle_asset.js`, `src/creature_hawaii_turtles_hf.js`; reproducible conversion: `scripts/prepare_hawaii_turtle_hf_asset.mjs`; assets: two packed mesh JSONs and two WebPs. WebPs are317,850/185,942bytes, packed JSONs187,047/152,721bytes. New textures/skinning add memory/vertex work despite reduced draw calls and triangles; this is not a zero-cost change or a phone FPS claim.
+
+### Fresh verification and evidence
+
+- Full suite **1,375/1,375** passes (`full_test.log`), including five new geometry/weight/sharing/motion/region checks. Actual four flipper tips move; foreflipper excursion exceeds hindflippers, shell stays fixed, weights/normals/UV seams stay finite and continuous, and pause/raycast paths work.
+- Actual native Chrome155 on AppleM6/32GB, Node24.21.0: textured/clay side/front/reverse/top/belly/chase views, same-camera before/after comparisons and both real Guide entries pass (`review/`). No asset-only screenshot is passed off as actual world footage.
+- Six Guide opens and twelve region visits (Hawaii→Atlantis→Bermuda→Mariana, three cycles) retain counts and shared geometry/texture while using independent skeletons. Of81 observed world skeletons,73 evicted instances disposed their bone textures;8 remain in the retained Bermuda region. Guide warmed memory stabilizes at7 geometries/6 textures. These observations cover this bounded lifecycle, not an unlimited soak test.
+- Two9-second real-world films use an observer camera and invulnerable player but retain actual NPC movement. Archelon coordinate spans4.73×1.73×16.78m; Turtle7.39×2.17×8.49m. Pause freezes both. Each delivered18-second clip combines9seconds of close-up cruise→accelerate→cruise with9seconds of real-world swimming. Encoded H.264 contact frames were visually inspected. Acceleration is a motion preview, not a changed skill/rule.
+- Texture abort fallback tests pass for both; no observed browser errors. The first world fixture wrongly multiplied population by schoolSize; its failed receipt is retained and the fixture corrected to actual19/8 individual totals, without changing ecology. Final native and motion reports pass.
+- Same-camera old/new replacement samples in the517-entity Hawaii scene: Archelon view162→133 draw calls,646,070→634,706triangles; Turtle view107→102 calls,505,520→503,288triangles. Visibility differs by view; these bounded render samples are not device FPS, heat or energy measurements. Geometry/texture cache warm-up is recorded in `native/report.json`.
+- Evidence scripts/reports, raw candidates and films: `.local/hawaii_turtles_20261019/`. Desktop390px touch emulation must not be described as an actual phone test. User visual acceptance remains pending.
+
+Public preview build/hash/native verification is recorded in the delivery addendum below after completion. Existing services and earlier runtime archives remain preserved; no commit/push for this pair.
+
+### Sixth-pair public delivery
+
+The existing restricted preview was rebuilt in place; prior runtime is preserved at `.local/mini_preview_20261007/runtime_before_20261019_175825`. New entry is `./assets/index-CXDknQAf.js`: **33 artifacts /19,273,187bytes** match dist, local restricted server and public HTTPS byte-for-byte. Eleven forbidden paths per origin are rejected, including new source, raw mesh source path, Vite client and credentials/config paths. The production debug hook is absent. Build succeeds; the existing large-chunk warning remains a bundle-size limitation, not a claimed new loading optimization.
+
+Native public Chrome passes both candidates in English1440px and Chinese390px Guide/start/boost/sonar/pause/Home flows; actual screenshots were inspected, both new textures return200, same-address reload loads the new entry, and no browser/resource errors were observed. This is host-side public access and desktop touch emulation; user-network/physical-phone acceptance is still pending.
+
+Preview: https://saver-recorded-digit-could.trycloudflare.com/ — reload an already-open tab. Formal main/Pages remain unchanged. Preserved identities: DEV35213 on127.0.0.1:5188, restricted preview74197 on127.0.0.1:7188, awake74200, cloudflared35419 with readiness200 at127.0.0.1:20248. Only index.html/assets are exposed. Logs and process identities remain in `.local/mini_preview_20261007/processes.json` and its named logs. Rebuild using `python3 .local/mini_preview_20261007/manage.py rebuild`; inspect `status` before any operation; authorized shutdown uses `stop` with explicit service names. No service was restarted/stopped this batch.
+
+Final files, source/build hashes, commit scope and delivery receipts are retained in `.local/hawaii_turtles_20261019/final_fingerprints.json` and `delivery.json`. Against894 baseline files, only the three entry documents, this review and the three-line common-factory dispatch changed; the eight new turtle asset/runtime/converter/test files are isolated. Other prior sources are unchanged. New pair remains uncommitted/unpushed, pending user review.

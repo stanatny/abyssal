@@ -1,3 +1,4 @@
+import { buildHawaiiTurtleHF } from "./creature_hawaii_turtles_hf.js";
 import { buildHawaiiPrehistoricHF } from "./creature_hawaii_prehistoric_hf.js";
 import { buildHawaiiReptileHF } from "./creature_hawaii_reptiles_hf.js";
 import { buildHawaiiAncientHF } from "./creature_hawaii_ancients_hf.js";
@@ -128,6 +129,8 @@ export function createCreature(kind, length = 6, seed = 1) {
     buildBermudaCreature(kind, root, motions);
   else if (ATLANTIS_CREATURE_KINDS.has(kind))
     buildAtlantisCreature(kind, root, motions);
+  else if (kind === "archelon" || kind === "turtle")
+    buildHawaiiTurtleHF(kind, root, motions);
   else if (SHOAL_CREATURE_KINDS.has(kind))
     buildShoalCreature(kind, root, motions);
   else if (kind === "shark" || kind === "hammerhead")
