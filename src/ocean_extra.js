@@ -1,4 +1,5 @@
 import * as THREE from "three";
+import { acquireHawaiiLandmarkAsset } from "./hawaii_landmark_asset.js";
 import {
   addSurfaceDetail,
   ribbonGeometry,
@@ -599,7 +600,50 @@ export function createOceanExtra(
   smoke.frustumCulled = false;
   root.add(smoke);
 
-  for (const group of landmarkGroups) batchStatic(group, track);
+  // 原建造配方继续产生既有实体边界；用已拟合的 HF 表面替换外观。
+  // 台基与神殿引道按真实海床生成，不能随模型替换悬空或封住门洞。
+  const landmarkAssets = [];
+  for (const [kind, group] of [
+    ["wreck", wreck],
+    ["whale", whale],
+    ["temple", temple],
+    ["gate", gate],
+  ]) {
+    for (const child of [...group.children]) {
+      const foundation =
+        (kind === "temple" || kind === "gate") && child.position.y < 0;
+      const approach = kind === "temple" && child.position.z >= 40;
+      const ringEffect = kind === "gate" && child === ring;
+      const wreckBeam =
+        kind === "wreck" && (child.geometry === cylinder || child === wheel);
+      if (!foundation && !approach && !ringEffect && !wreckBeam)
+        group.remove(child);
+    }
+    batchStatic(group, track);
+    const asset = acquireHawaiiLandmarkAsset(kind);
+    landmarkAssets.push(asset);
+    const mesh = new THREE.Mesh(asset.geometry, asset.material);
+    mesh.name = `hawaii_${kind}_hf`;
+    group.add(mesh);
+    group.userData.artRevision = "hawaii-landmarks-hf-20261020";
+    group.userData.prepareMaterials = asset.prepare;
+    asset.prepare();
+  }
+  // 旧建造配方仅用于保持碰撞契约，未被最终场景使用的私有网格立即回收。
+  const live = new Set();
+  root.traverse((node) => {
+    if (node.geometry) live.add(node.geometry);
+    for (const mat of Array.isArray(node.material)
+      ? node.material
+      : [node.material])
+      if (mat) live.add(mat);
+  });
+  for (const resource of resources)
+    if (!live.has(resource)) {
+      resource.dispose();
+      resources.delete(resource);
+    }
+  let disposed = false;
 
   return {
     landmarks,
@@ -613,6 +657,9 @@ export function createOceanExtra(
       glow.emissiveIntensity = 1.9 + Math.sin(time * 0.8) * 0.5;
     },
     dispose() {
+      if (disposed) return;
+      disposed = true;
+      for (const asset of landmarkAssets) asset.release();
       parent.remove(root);
       root.traverse((node) => {
         if (node.isInstancedMesh) node.dispose();

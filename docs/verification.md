@@ -1,3 +1,9 @@
+# Hawaii seabed landmark candidate — 2026-10-20
+
+Fresh local checks pass1,445 tests, formatting, production build, native 30m gate passage both directions, region/pause/lifecycle checks and66 byte-matched runtime files. English desktop and Chinese390px public native flows pass; this is not a phone/thermal measurement. Details and dated evidence scope are in [the landmark review](hawaii_landmarks_huggingface_redraw.md). Candidate only; main/Pages remains v0.11.13.
+
+---
+
 # Current main release — v0.11.13 — 2026-10-19
 
 Current main publication — 2026-10-19: the user accepts the current four-player redraw and sprint refinement and authorizes publication to main as v0.11.13. Integrate the reviewed branch through sprint checkpoint `d63ae37`, following v0.11.12 / `8676fe9`. All836 accepted source fingerprints and17 build artifacts match before release-only metadata changes. Earlier candidate/local-only labels below are historical for this accepted scope; future work returns to the default review/authorization rule. The current AI agent integrates alone, preserving gameplay, existing services, archives and canceled worktrees. No tag or GitHub Release is requested. See [the release record](release_v0_11_13.md).
