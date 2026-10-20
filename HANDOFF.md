@@ -1,5 +1,7 @@
 # Accepted local vehicle checkpoint — 2026-10-20
 
+Accepted local surface-fleet checkpoint — 2026-10-20: the user says “提交吧，下一批”, accepting the three delivered HF surface ships and authorizing a local commit. All1,003 delivered source inputs match before these acceptance notes; recorded1,441-test/native/public receipts keep their unchanged-input scope. Preserve the separate uncommitted Contact Mine candidate. The current AI agent independently continues the four remaining Hawaii seabed landmarks, preserving gameplay and services. No push/main publication is authorized; formal main/Pages remains v0.11.13. See [the fleet review](docs/hawaii_surface_ships_huggingface_redraw.md).
+
 Accepted local vehicle checkpoint — 2026-10-20: the user requests “提交，下一批”, authorizing a local commit of the submarine, its straight-running torpedo and the ochre palette follow-up, then the Contact Mine redraw. All986 source inputs and58 runtime artifacts match the reviewed delivery before these acceptance notes. Prior checks retain their actual scope; no push/main release is requested. The current AI agent works alone; the next mine candidate requires separate visual acceptance and commit authorization. Preserve gameplay, services, archives and formal main/Pages v0.11.13.
 
 Earlier pending/no-commit entries below describe their historical stage.
