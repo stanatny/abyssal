@@ -1551,3 +1551,23 @@ The final source passed 370 unit tests. Focused browser lighting, Atlantis integ
 # Atlantis living-city follow-up — development preview
 
 The current uncommitted feature adds city feeding stock, pearl-shell illumination, traversable multilevel ruins, Atlantis-specific music, and Home-only language switching. Returning Home clears the current expedition, input captures, effects, and music. See the current [Atlantis verification record](atlantis_verification.md), [ecology](atlantis_city_ecology.md), [underways](atlantis_underways.md), and [music](atlantis_music.md) for actual checks, staged-test assumptions, and listening/device limits. Main and official GitHub Pages are unchanged; user acceptance is still required before a feature merge.
+
+# Octopus stationary/moving follow-up — 2026-10-20
+
+Fresh1,456 tests,16 focused checks, formatting/build, explicit idle/start/fast/stop skin transitions, real NPC travel-speed input/ink/pause and bilingual public native flows pass. Same70 runtime files match both preview origins, eleven private paths per origin remain denied, and same-address reload has no production hooks. Mesh/texture/bones/draw count and gameplay are retained; prior resource-lifecycle receipts keep their earlier scope. See [the motion follow-up](octopus_swimming_revision.md#idle-versus-swimming-follow-up--2026-10-20). Candidate remains uncommitted/unpushed for user review.
+
+# Octopus swimming candidate — 2026-10-20
+
+Fresh1,454 tests,14 focused checks, formatting and production build pass. Real skinned arms, matched views, world travel/turning/ink/pause, failed-map recovery and48 world skeleton disposals after intentional cache eviction pass. Ray/Sunfish/Tuna retain exact geometry/material/240 poses. All70 runtime files match dist/local/public; eleven private paths per origin are denied. English desktop and Chinese390px native public flows, same-address reload and absent production hooks pass; this is not physical-phone evidence. See [the swimming review](octopus_swimming_revision.md) for source, costs, fixtures and limitations. New candidate awaits user review, uncommitted/unpushed; previous pending batches and formal v0.11.13 remain intact.
+
+### Octopus natural-jet follow-up — 2026-10-20
+
+The user rejects the earlier motion. Actual NOAA transit footage informs a compact layered arm bundle, mantle-driven cadence and quiet tip drift, preserving gameplay and other candidates. Fresh19 focused/1,459 full tests and native real-displacement/ink/pause checks pass; visual acceptance remains pending. See [the review](octopus_swimming_revision.md#reference-footage-and-natural-jet-follow-up--2026-10-20). No commit/push or formal release.
+
+## Octopus volumetric bundle follow-up — 2026-10-20
+
+The user rejects the preceding flat crown. See [the current repair](octopus_swimming_revision.md#volumetric-arm-bundle-repair--2026-10-20) for the two-stage, section-preserving arm bundle, fresh20 targeted/1,460 full checks, matched motion media and resource costs. Evidence is `.local/octopus_bundle_20261020/`. This remains uncommitted and pending user review; earlier passes do not imply acceptance. Pending reef/Mine work and formal main/Pages are unchanged.
+
+## Local Octopus checkpoint authorization — 2026-10-20
+
+The user requests saving the current result locally. The [checkpoint record](octopus_swimming_revision.md#local-checkpoint-authorization--2026-10-20) supersedes only the Octopus pending/no-commit status. The final preview has70 verified resources; native English and separately retried Chinese flows pass with documented transient network failures. Other pending reef/Mine work and formal main/Pages remain unchanged.

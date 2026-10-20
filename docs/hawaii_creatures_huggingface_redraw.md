@@ -571,3 +571,19 @@ The user rejects the added shoulder spheres and Diver posture and reports missin
 ## Accepted local checkpoint — 2026-10-20
 
 Accepted local Hawaii creature checkpoint — 2026-10-20: the user says “现在可以了，提交吧”, accepting the latest Swimmer repair and authorizing a local checkpoint of the delivered batches10–11 plus appearance-loading/human corrections. All976 source fingerprints and56 build artifacts match the final delivery before these acceptance notes; fresh1,433-test and native/public receipts retain their actual scope. No push/main publication is requested. Next, audit all remaining Hawaii elements, including the Torpedo Submarine; the existing creature queue did not claim vehicles or scenery were redrawn. Preserve gameplay, services and archives; the current AI agent works alone.
+
+## Octopus swimming follow-up — 2026-10-20
+
+The user rejects the radial-arm swimming silhouette after the accepted batch-seven checkpoint. A new actual HF swim-ready source, fitted eight-arm rig and coordinated mantle/arm motion are an uncommitted candidate; preserve the earlier other species and gameplay. The [current review](octopus_swimming_revision.md) supersedes the previous Octopus pose/source for this candidate and records fresh1,454-test, native/public and lifecycle evidence. User visual acceptance remains pending.
+
+### Octopus natural-jet follow-up — 2026-10-20
+
+The user rejects the earlier motion. Actual NOAA transit footage informs a compact layered arm bundle, mantle-driven cadence and quiet tip drift, preserving gameplay and other candidates. Fresh19 focused/1,459 full tests and native real-displacement/ink/pause checks pass; visual acceptance remains pending. See [the review](octopus_swimming_revision.md#reference-footage-and-natural-jet-follow-up--2026-10-20). No commit/push or formal release.
+
+## Octopus volumetric bundle follow-up — 2026-10-20
+
+The user rejects the preceding flat crown. See [the current repair](octopus_swimming_revision.md#volumetric-arm-bundle-repair--2026-10-20) for the two-stage, section-preserving arm bundle, fresh20 targeted/1,460 full checks, matched motion media and resource costs. Evidence is `.local/octopus_bundle_20261020/`. This remains uncommitted and pending user review; earlier passes do not imply acceptance. Pending reef/Mine work and formal main/Pages are unchanged.
+
+## Local Octopus checkpoint authorization — 2026-10-20
+
+The user requests saving the current result locally. The [checkpoint record](octopus_swimming_revision.md#local-checkpoint-authorization--2026-10-20) supersedes only the Octopus pending/no-commit status. The final preview has70 verified resources; native English and separately retried Chinese flows pass with documented transient network failures. Other pending reef/Mine work and formal main/Pages remain unchanged.

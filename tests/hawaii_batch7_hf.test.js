@@ -41,7 +41,12 @@ for (const kind of kinds) {
       ma = a.userData.hfRig.mesh,
       mb = b.userData.hfRig.mesh,
       g = ma.geometry;
-    assert.equal(a.userData.artRevision, "trellis_hawaii_batch7_20261019");
+    assert.equal(
+      a.userData.artRevision,
+      kind === "octopus"
+        ? "trellis_octopus_swim_20261020"
+        : "trellis_hawaii_batch7_20261019",
+    );
     assert.equal(g, mb.geometry);
     assert.equal(ma.material, mb.material);
     assert.notEqual(ma.skeleton, mb.skeleton);
@@ -134,7 +139,11 @@ for (const kind of kinds) {
     assert.deepEqual(p.array, immutable);
     for (const t of tips) {
       const box = new THREE.Box3().setFromPoints(t.poses);
-      assert.ok(box.getSize(new THREE.Vector3()).length() > 0.025);
+      // Jetting Octopus arms trail quietly; they are not eight propulsive fins.
+      assert.ok(
+        box.getSize(new THREE.Vector3()).length() >
+          (kind === "octopus" ? 0.006 : 0.025),
+      );
       for (let i = 1; i < t.poses.length; i++)
         assert.ok(t.poses[i].distanceTo(t.poses[i - 1]) < 0.04);
     }
@@ -152,7 +161,14 @@ for (const kind of kinds) {
       paused,
     );
     const ray = new THREE.Raycaster(
-      new THREE.Vector3(0, 2, 0),
+      // 收腕后的原点可能是臂间空水域；对实体外套膜检查射线命中。
+      new THREE.Vector3(
+        0,
+        2,
+        kind === "octopus"
+          ? chains.find((c) => c.type === "mantle").points[0][2]
+          : 0,
+      ),
       new THREE.Vector3(0, -1, 0),
     );
     assert.ok(ray.intersectObject(m, true).length > 0);

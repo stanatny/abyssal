@@ -15,11 +15,11 @@ if (
   !["ray", "sunfish", "tuna", "octopus"].includes(kind) ||
   !input ||
   !tools ||
-  (kind === "tuna" && !bakeToolsArg) ||
+  (["tuna", "octopus"].includes(kind) && !bakeToolsArg) ||
   !Number.isFinite(Number(yawArg))
 )
   throw new Error(
-    "Usage: kind raw.glb tools-directory yaw-radians [output-directory] [tuna-bake-tools-directory]",
+    "Usage: kind raw.glb tools-directory yaw-radians [output-directory] [tuna-or-octopus-bake-tools-directory]",
   );
 const require = createRequire(join(resolve(tools), "package.json")),
   load = (n) => import(pathToFileURL(require.resolve(n)).href);
@@ -62,9 +62,9 @@ const [reduced] = MeshoptSimplifier.simplifyWithAttributes(
   [0.5, 0.5, 0.5, 1, 1],
   null,
   { ray: 5500, sunfish: 3800, tuna: 3800, octopus: 14500 }[kind] * 3,
-  kind === "tuna" ? 0.025 : 0.012,
-  // 金枪鱼的低面中间体必须重烘焙，旧 UV 不得直接成为运行资产。
-  kind === "tuna" ? ["Permissive"] : [],
+  ["tuna", "octopus"].includes(kind) ? 0.025 : 0.012,
+  // 接缝折叠的低面中间体必须重烘焙，旧 UV 不得直接成为运行资产。
+  ["tuna", "octopus"].includes(kind) ? ["Permissive"] : [],
 );
 primitive.getIndices().setArray(reduced);
 compactPrimitive(primitive);
@@ -169,8 +169,8 @@ const asset = {
 };
 const out = resolve(outArg || "src/assets/models");
 await mkdir(out, { recursive: true });
-if (kind === "tuna") {
-  const temporary = await mkdtemp(join(tmpdir(), "abyssal-tuna-bake-"));
+if (["tuna", "octopus"].includes(kind)) {
+  const temporary = await mkdtemp(join(tmpdir(), `abyssal-${kind}-bake-`));
   try {
     const low = join(temporary, "low.json");
     await writeFile(low, JSON.stringify(asset) + "\n");

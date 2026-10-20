@@ -5,6 +5,7 @@ import sunfish from "./assets/models/sunfish_hf_mesh.json" with { type: "json" }
 import tuna from "./assets/models/tuna_hf_mesh.json" with { type: "json" };
 import octopus from "./assets/models/octopus_hf_mesh.json" with { type: "json" };
 import { decodeOrganicMesh } from "./hf_organic_asset.js";
+import { prepareOctopusJetPose } from "./octopus_jet_pose.js";
 const data = { ray, sunfish, tuna, octopus };
 const urls = {
   ray: new URL("./assets/models/ray_hf_color.webp", import.meta.url),
@@ -14,22 +15,35 @@ const urls = {
 };
 const cache = new Map();
 
+/** 返回独立的游进骨架支点；与离线蒙皮使用相同网格和配置。 */
+export function octopusSwimAnatomy() {
+  return octopus.swimChains.map((chain) => ({
+    ...chain,
+    points: chain.points.map((point) => [...point]),
+  }));
+}
+
 /** 四种生物分别共享实体与色图；每个实例保留独立的解剖骨架。 */
 export function hawaiiBatch7Asset(kind, bind) {
   if (cache.has(kind)) return cache.get(kind);
-  const geometry = decodeOrganicMesh(data[kind], bind, (x, y, z, color) => {
-    color.set(
-      kind === "octopus"
-        ? 0xb96b49
-        : y < 0
-          ? 0xc2c8c3
-          : kind === "ray"
-            ? 0x3c4850
-            : kind === "tuna"
-              ? 0x526978
-              : 0x8e9b9d,
-    );
-  });
+  const geometry = decodeOrganicMesh(
+    data[kind],
+    kind === "octopus" ? null : bind,
+    (x, y, z, color) => {
+      color.set(
+        kind === "octopus"
+          ? 0xb96b49
+          : y < 0
+            ? 0xc2c8c3
+            : kind === "ray"
+              ? 0x3c4850
+              : kind === "tuna"
+                ? 0x526978
+                : 0x8e9b9d,
+      );
+    },
+  );
+  if (kind === "octopus") prepareOctopusJetPose(geometry, octopus.jetPose);
   const material = new THREE.MeshStandardMaterial({
     roughness: kind === "tuna" ? 0.5 : kind === "ray" ? 0.68 : 0.73,
     metalness: 0,

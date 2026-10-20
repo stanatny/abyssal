@@ -3039,6 +3039,14 @@ function updateEntities(dt) {
       reducedMotionQuery.matches,
     );
     if (mesh.visible) {
+      // 只有章鱼以实际位移判断停留/游进；碰撞减速不能仍使用名义巡游速度。
+      const octopusMotion =
+        species.kind === "octopus"
+          ? (entity.octopusMotion ??= { travelSpeed: 0 })
+          : undefined;
+      if (octopusMotion)
+        octopusMotion.travelSpeed =
+          mesh.position.distanceTo(previousPreyPosition) / Math.max(dt, 0.001);
       mesh.userData.setHunterPhase?.(hunter.phase);
       mesh.userData.animate?.(
         elapsed + entity.seed,
@@ -3053,7 +3061,7 @@ function updateEntities(dt) {
               species.length,
               dt,
             )
-          : undefined,
+          : octopusMotion,
       );
     }
     if (

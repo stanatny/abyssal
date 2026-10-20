@@ -1,4 +1,4 @@
-/** 为金枪鱼低面网格重新展开图集，并离线投射原始 HF 表面颜色；保持三角面、姿态与体长。 */
+/** 为低面网格重新展开图集，并离线投射原始 HF 表面颜色；保持三角面、姿态与体长。 */
 import { createRequire } from "node:module";
 import { resolve, join } from "node:path";
 import { pathToFileURL } from "node:url";
@@ -199,10 +199,13 @@ const out = {
   },
 };
 await mkdir(outPath, { recursive: true });
-await writeFile(join(outPath, "tuna_hf_mesh.json"), JSON.stringify(out) + "\n");
+await writeFile(
+  join(outPath, `${d.kind}_hf_mesh.json`),
+  JSON.stringify(out) + "\n",
+);
 await sharp(pad.data, { raw: { width: size, height: size, channels: 4 } })
   .webp({ quality: 94 })
-  .toFile(join(outPath, "tuna_hf_color.webp"));
+  .toFile(join(outPath, `${d.kind}_hf_color.webp`));
 distances.sort((a, b) => a - b);
 const report = {
   triangles: d.triangles,

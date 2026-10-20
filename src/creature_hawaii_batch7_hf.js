@@ -1,7 +1,12 @@
 import * as THREE from "three";
-import { hawaiiBatch7Asset } from "./hawaii_batch7_asset.js";
+import {
+  hawaiiBatch7Asset,
+  octopusSwimAnatomy,
+} from "./hawaii_batch7_asset.js";
 import { bindOrganicBody } from "./hf_organic_asset.js";
 import { chainWeights, lordEffortSmoother } from "./hawaii_lord_rig.js";
+
+import { createOctopusSwim } from "./octopus_swim.js";
 
 const smooth = (a, b, v) => THREE.MathUtils.smoothstep(v, a, b);
 const point = new THREE.Vector3();
@@ -57,21 +62,8 @@ export function buildHawaiiBatch7HF(kind, root, motions) {
         side,
       });
   } else {
-    // Eight distinct radial arms; sequential joints carry the same cup-bearing surface.
-    for (let i = 0; i < 8; i++) {
-      const angle = Math.PI / 8 + (i * Math.PI) / 4;
-      add(
-        `arm_${i + 1}`,
-        "arm",
-        [0.1, 0.23, 0.36, 0.48].map((r) => [
-          Math.cos(angle) * r,
-          -0.077,
-          Math.sin(angle) * r,
-        ]),
-        { angle, index: i },
-      );
-    }
-    add("mantle", "mantle", [[0, 0.015, 0.17]]);
+    // 实际游进网格的八腕支点离线拟合，与预烘焙权重共用一份来源。
+    chains.push(...octopusSwimAnatomy());
   }
   const base = new THREE.Bone();
   base.name = `${kind}_root`;
@@ -143,29 +135,6 @@ export function buildHawaiiBatch7HF(kind, root, motions) {
         ids[o + 3] = chains[x < 0 ? 1 : 2].ids[0];
         w[o + 3] += blend;
       }
-    } else {
-      const radius = Math.hypot(x, z),
-        angle = Math.atan2(z, x);
-      let selected = chains[0],
-        best = Infinity;
-      for (const c of chains.slice(0, 8)) {
-        const d = Math.abs(
-          Math.atan2(Math.sin(angle - c.angle), Math.cos(angle - c.angle)),
-        );
-        if (d < best) {
-          best = d;
-          selected = c;
-        }
-      }
-      const arm = smooth(0.105, 0.22, radius) * (1 - smooth(-0.015, 0.045, y));
-      chainWeights(selected, point, arm, ids, w, o);
-      const mantle =
-        smooth(-0.005, 0.075, y) *
-        smooth(0.04, 0.12, z) *
-        (1 - smooth(0.1, 0.17, Math.abs(x)));
-      for (let j = 0; j < 3; j++) w[o + j] *= 1 - mantle;
-      ids[o + 3] = chains[8].ids[0];
-      w[o + 3] = mantle;
     }
   });
   const mesh = bindOrganicBody(
@@ -179,7 +148,10 @@ export function buildHawaiiBatch7HF(kind, root, motions) {
   root.userData.hfRig = { kind, chains, bones, mesh };
   root.userData.normalizedLength = 1;
   root.userData[kind === "octopus" ? "hunterAnatomy" : "shoalAnatomy"] = kind;
-  root.userData.artRevision = "trellis_hawaii_batch7_20261019";
+  root.userData.artRevision =
+    kind === "octopus"
+      ? "trellis_octopus_swim_20261020"
+      : "trellis_hawaii_batch7_20261019";
   root.userData.prepareMaterials = asset.prepare;
   asset.prepare();
   let disposed = false;
@@ -190,7 +162,15 @@ export function buildHawaiiBatch7HF(kind, root, motions) {
     }
   };
   const effort = lordEffortSmoother();
-  motions.push((phase, speed) => {
+  const octopusSwim =
+    kind === "octopus" && createOctopusSwim(chains, bones, mesh);
+  let hunterPhase = "idle";
+  if (octopusSwim) {
+    root.userData.setHunterPhase = (phase) => {
+      hunterPhase = phase;
+    };
+  }
+  motions.push((phase, speed, motionState) => {
     const e = smooth(0.5, 3, effort(phase, speed));
     if (kind === "ray") {
       const t = phase * 0.7;
@@ -230,21 +210,10 @@ export function buildHawaiiBatch7HF(kind, root, motions) {
         bones[c.ids[0]].rotation.z = c.side * Math.sin(t * 0.5) * 0.045;
       }
     } else {
-      const t = phase * 0.65;
-      for (const c of chains.slice(0, 8))
-        c.ids.forEach((id, j) => {
-          const bend =
-            Math.sin(t - j * 0.7 + c.index * 0.65) *
-            (0.1 + e * 0.035) *
-            (j ? 1 : 0.55);
-          bones[id].rotation.set(
-            Math.sin(c.angle) * bend,
-            Math.sin(t * 0.8 - j * 0.5 + c.index) * 0.025,
-            -Math.cos(c.angle) * bend,
-          );
-        });
-      const breath = 1 + Math.sin(t * 1.4) * 0.013;
-      bones[chains[8].ids[0]].scale.set(breath, breath, 1);
+      const travel = Number.isFinite(motionState?.travelSpeed)
+        ? smooth(0.2, 2, motionState.travelSpeed)
+        : smooth(0.5, 0.8, speed);
+      octopusSwim(phase, e, hunterPhase, travel);
     }
   });
 }
