@@ -1,4 +1,6 @@
 import * as THREE from "three";
+import { applyAtlantisSurface } from "./atlantis_surface_material.js";
+import { masonrySurfaces } from "./atlantis_masonry_surface.js";
 import {
   MergeBucket,
   atlantisMaterials,
@@ -14,13 +16,17 @@ export function poseidonTempleMaterials() {
   if (!SharedRitualMaterials)
     SharedRitualMaterials = {
       ...atlantisMaterials(),
-      ritualLapis: new THREE.MeshStandardMaterial({
-        vertexColors: true,
-        roughness: 0.84,
-        metalness: 0.08,
-        emissive: "#284f62",
-        emissiveIntensity: 0.28,
-      }),
+      ritualLapis: applyAtlantisSurface(
+        new THREE.MeshStandardMaterial({
+          vertexColors: true,
+          roughness: 0.84,
+          metalness: 0.08,
+          emissive: "#284f62",
+          emissiveIntensity: 0.19,
+        }),
+        "marble",
+        "ritual_lapis",
+      ),
     };
   return SharedRitualMaterials;
 }
@@ -31,6 +37,7 @@ export class PoseidonTempleBuilder {
     this.bucket = new MergeBucket();
     this.colliders = colliders;
     this.ordinal = 0;
+    this.masonry = [];
   }
   add(geometry, material, position, euler = null, scale = 1) {
     this.bucket.add(geometry, material, {
@@ -42,7 +49,9 @@ export class PoseidonTempleBuilder {
   }
   box(material, w, h, d, x, y, z, options = {}) {
     const { solid = true, euler = null, kind = "poseidon_masonry" } = options;
-    this.add(unitBox(material), material, [x, y, z], euler, [w, h, d]);
+    if (!euler)
+      this.masonry.push({ material, size: [w, h, d], center: [x, y, z] });
+    else this.add(unitBox(material), material, [x, y, z], euler, [w, h, d]);
     if (!solid) return;
     const rotation = euler
       ? new THREE.Quaternion().setFromEuler(new THREE.Euler(...euler))
@@ -63,6 +72,16 @@ export class PoseidonTempleBuilder {
         },
       }),
     });
+  }
+  finishMasonry() {
+    for (const { geometry, material } of masonrySurfaces(
+      this.masonry,
+      unitBox,
+    )) {
+      this.add(geometry, material, [0, 0, 0]);
+      geometry.dispose();
+    }
+    this.masonry.length = 0;
   }
   column(x, y, z, height, radius, ornate = true) {
     const trunk = cachedGeometry("poseidon_fluted_column_v1", () => {

@@ -1,3 +1,5 @@
+import { createAtlantisLightPool } from "./atlantis_light_pool.js";
+import { prepareAtlantisSurfaces } from "./atlantis_surface_material.js";
 import { PEARL_LIGHT_INTENSITY } from "./atlantis_pearl.js";
 import {
   finishScenePreparation,
@@ -30,6 +32,7 @@ import {
 } from "./atlantis_poseidon_site.js";
 import { selectMarineFacades } from "./atlantis_marine_anchors.js";
 import { ATLANTIS_EXCAVATION_SITES } from "./atlantis_terrain.js";
+import { acquireAtlantisCivicKit } from "./atlantis_civic_asset.js";
 import { cityArchitecture } from "./atlantis_architecture.js";
 import {
   ATLANTIS_CITY_BOUNDS,
@@ -51,6 +54,7 @@ export function* createAtlantisCitySteps(parent, { heightAt } = {}) {
   root.name = "atlantis_city";
   parent.add(root);
   const materials = atlantisMaterials();
+  prepareAtlantisSurfaces();
   const owned = new Set(),
     colliders = [],
     obstacles = [],
@@ -71,10 +75,23 @@ export function* createAtlantisCitySteps(parent, { heightAt } = {}) {
       }
       return monumentAssets.get(kind);
     }
+    const civicKits = new Map();
+    function civicKit(kind) {
+      if (!civicKits.has(kind)) {
+        const kit = acquireAtlantisCivicKit(kind);
+        civicKits.set(kind, kit);
+        owned.add({ dispose: kit.release });
+        kit.prepare();
+      }
+      return civicKits.get(kind);
+    }
     root.userData.prepareMaterials = (options) =>
-      Promise.all(
-        [...monumentAssets.values()].map((asset) => asset.prepare(options)),
-      );
+      Promise.all([
+        prepareAtlantisSurfaces(options),
+        ...[...monumentAssets.values(), ...civicKits.values()].map((asset) =>
+          asset.prepare(options),
+        ),
+      ]);
     let disposed = false;
     // 特殊台基先保留空间，避免普通住宅在稍后放入的神殿、圆亭或塔楼中被掩埋。
     const residentialReservations = [
@@ -302,7 +319,9 @@ export function* createAtlantisCitySteps(parent, { heightAt } = {}) {
                 (part) => part.material === materials.guideTeal,
               ),
             ]
-          : kit.parts;
+          : ["temple", "rotunda", "gateway"].includes(kind)
+            ? civicKit(kind).parts
+            : kit.parts;
       for (const part of parts)
         instance(part.geometry, part.material, x, y, z, {
           scale: [scale, scale, scale],
@@ -695,11 +714,7 @@ export function* createAtlantisCitySteps(parent, { heightAt } = {}) {
     colliders.push(...residential.colliders);
     landmarks.push(...residential.landmarks);
     // 固定数量动态点光复用，按玩家距离选最近灯位，避免全城数十盏灯进入每个着色器。
-    const lightPool = Array.from({ length: 5 }, () => {
-      const l = new THREE.PointLight(0xffffff, 0, 100, 2);
-      root.add(l);
-      return l;
-    });
+    const lightPool = createAtlantisLightPool(root, lights);
     const stats = {
       coverage: cityCoverage(),
       bounds: ATLANTIS_CITY_BOUNDS,
@@ -737,28 +752,7 @@ export function* createAtlantisCitySteps(parent, { heightAt } = {}) {
           !position ||
           Math.hypot(chunk.center.x - position.x, chunk.center.z - position.z) <
             reach;
-      const fixed = lights.filter((l) => l.fixed);
-      const nearby = position
-        ? [...lights]
-            .filter((l) => !fixed.includes(l))
-            .sort(
-              (a, b) =>
-                a.position.distanceToSquared(position) -
-                b.position.distanceToSquared(position),
-            )
-        : lights;
-      const activeLights = [...fixed, ...nearby];
-      lightPool.forEach((light, i) => {
-        const source = activeLights[i];
-        light.visible = !!source && (highQuality || i < 3);
-        if (source) {
-          light.position.copy(source.position);
-          light.color.set(source.color);
-          light.distance = source.distance;
-          light.intensity =
-            source.intensity * (0.96 + Math.sin(time * 0.8 + i) * 0.04);
-        }
-      });
+      lightPool.update(time, dt, position, highQuality);
       void dt;
     }
     update(0, 0, new THREE.Vector3(0, -18, 75));

@@ -1,5 +1,29 @@
 # ABYSSAL
 
+Accepted Atlantis city checkpoint — 2026-10-22: the user says “可以先提交一版，
+看起来还不错”, accepting the civic components and material/wall-stability follow-up.
+All 1,160 delivered inputs match before these acceptance-only notes. The recorded
+1,544-test/native/public results retain their original scope. This authorizes a
+local commit, without push or main publication. The current agent independently
+investigates and optimizes reported phone stutter and loading delay, preserving
+the accepted visual quality and gameplay. New performance changes require a new
+review; older pending labels below are historical for the accepted city batch.
+
+Atlantis material follow-up — 2026-10-22: the user requests a coherent royal-city
+and underground surface upgrade and reports flickering temple walls. The current
+agent adds shared limestone/marble materials, clips duplicate Poseidon masonry
+skins and smooths existing lamp-source transitions, preserving collision/layout
+and accepted assets. All 1,544 tests and native route/cache/recovery checks pass;
+visual acceptance remains pending. The preceding civic batch stays uncommitted.
+See [the material review](docs/atlantis_material_revision.md).
+
+Atlantis civic-component candidates — 2026-10-21: accepted Poseidon/obelisks
+are locally committed as `3072def`, without push. The current agent independently
+rebuilds the colonnades, marine-relief pediments and arch stones of two temples,
+six pavilions and four gateways using three actual HF meshes. Original layout,
+colliders, accepted models and gameplay remain unchanged. All 1,541 tests pass;
+new candidates await visual review. See [the civic review](docs/atlantis_civic_huggingface_redraw.md).
+
 Accepted Atlantis monuments checkpoint — 2026-10-21: the user says
 “提交吧，亚特兰蒂斯古城，其他海底建筑也想办法重绘一下吧”, accepting
 Poseidon and the six inscribed obelisks and authorizing a local commit. All

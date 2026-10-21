@@ -54,6 +54,7 @@ export function createAtlantisPoseidonTemple(
   }
   const furnitureStats = furniture.stats;
   furniture.dispose();
+  b.finishMasonry();
   b.bucket.build(poseidonTempleMaterials(), root, owned);
   root.traverse((mesh) => {
     if (!mesh.isMesh) return;

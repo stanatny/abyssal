@@ -145,6 +145,7 @@ test("Poseidon open well, slab, roof and rear portal agree in rendering and coll
     centerBottom = { x: 0, y: -707, z: -922 };
   assert.equal(castSegment(centerTop, centerBottom, temple.colliders), null);
   assert.equal(visibleHit(temple.root, centerTop, centerBottom), undefined);
+  // 内衬与台基组成一体：从两侧水域检查联合外皮，不要求实体内部保留重叠面。
   const pairs = [
     [
       { x: -34, y: -615, z: -922 },
@@ -159,8 +160,8 @@ test("Poseidon open well, slab, roof and rear portal agree in rendering and coll
     [{ x: 43, y: -553, z: -933 }, { x: 43, y: -532, z: -933 }, "poseidon_roof"],
     [
       { x: 42, y: -691, z: -932 },
-      { x: 49, y: -691, z: -932 },
-      "poseidon_vault_lining",
+      { x: 70, y: -691, z: -932 },
+      ["poseidon_vault_lining", "poseidon_foundation"],
     ],
   ];
   for (const [a, b, kind] of pairs)
@@ -171,7 +172,9 @@ test("Poseidon open well, slab, roof and rear portal agree in rendering and coll
       const hit = castSegment(
         start,
         end,
-        temple.colliders.filter((c) => c.kind === kind),
+        temple.colliders.filter((c) =>
+          Array.isArray(kind) ? kind.includes(c.kind) : c.kind === kind,
+        ),
       );
       const visible = visibleHit(temple.root, start, end);
       assert.ok(hit && visible, kind);

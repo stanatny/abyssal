@@ -1,4 +1,5 @@
 import * as THREE from "three";
+import { applyAtlantisSurface } from "./atlantis_surface_material.js";
 import { mergeGeometries } from "three/addons/utils/BufferGeometryUtils.js";
 
 /**
@@ -42,112 +43,6 @@ function makeCanvas(size) {
   canvas.width = size;
   canvas.height = size;
   return canvas;
-}
-
-/**
- * 砌筑石材质纹理：砖缝、斑点、裂缝与苔藻渍。
- * @param {string} key 缓存键（"stone" 粗砌块 / "marble" 细石材）。
- * @returns {THREE.CanvasTexture|null} 共享纹理；无 DOM 环境返回 null。
- */
-export function stoneTexture(key = "stone") {
-  if (TEXTURES.has(key)) return TEXTURES.get(key);
-  const canvas = makeCanvas(512);
-  if (!canvas) return null;
-  const ctx = canvas.getContext("2d");
-  const rand = seededRandom(key === "marble" ? 4117 : 9281);
-  const fine = key === "marble";
-  ctx.fillStyle = fine ? "#9aa0a2" : "#848b89";
-  ctx.fillRect(0, 0, 512, 512);
-
-  // 砌缝：水平灰缝加错缝竖线，大理石用更密更弱的线。
-  const course = fine ? 42 : 64;
-  ctx.strokeStyle = fine ? "rgba(52,56,58,0.34)" : "rgba(38,42,44,0.55)";
-  ctx.lineWidth = fine ? 2 : 4;
-  for (let y = 0; y <= 512; y += course) {
-    ctx.beginPath();
-    ctx.moveTo(0, y + (rand() - 0.5) * 3);
-    ctx.lineTo(512, y + (rand() - 0.5) * 3);
-    ctx.stroke();
-    const offset = (Math.floor(y / course) % 2) * course;
-    for (let x = offset; x < 512 + course; x += course * (fine ? 1 : 2)) {
-      ctx.beginPath();
-      ctx.moveTo(x + (rand() - 0.5) * 4, y);
-      ctx.lineTo(x + (rand() - 0.5) * 4, y + course);
-      ctx.stroke();
-    }
-  }
-
-  // 石面斑点与高光颗粒。
-  for (let i = 0; i < (fine ? 2600 : 4200); i += 1) {
-    const shade = rand() > 0.5 ? 255 : 0;
-    ctx.fillStyle = `rgba(${shade},${shade},${shade},${0.03 + rand() * 0.06})`;
-    ctx.fillRect(
-      rand() * 512,
-      rand() * 512,
-      1 + rand() * 2.5,
-      1 + rand() * 2.5,
-    );
-  }
-
-  // 侵蚀裂缝：随机折线。
-  ctx.strokeStyle = "rgba(30,34,36,0.5)";
-  for (let i = 0; i < (fine ? 6 : 14); i += 1) {
-    ctx.lineWidth = 0.8 + rand() * 1.6;
-    let x = rand() * 512;
-    let y = rand() * 512;
-    ctx.beginPath();
-    ctx.moveTo(x, y);
-    const segments = 4 + Math.floor(rand() * 5);
-    for (let s = 0; s < segments; s += 1) {
-      x += (rand() - 0.5) * 90;
-      y += (rand() - 0.3) * 70;
-      ctx.lineTo(x, y);
-    }
-    ctx.stroke();
-  }
-
-  // 苔藻与水渍晕染。
-  for (let i = 0; i < (fine ? 8 : 16); i += 1) {
-    const x = rand() * 512;
-    const y = rand() * 512;
-    const radius = 24 + rand() * 90;
-    const gradient = ctx.createRadialGradient(x, y, 0, x, y, radius);
-    const green = rand() > 0.45;
-    gradient.addColorStop(
-      0,
-      green ? "rgba(64,102,74,0.34)" : "rgba(52,64,70,0.3)",
-    );
-    gradient.addColorStop(1, "rgba(0,0,0,0)");
-    ctx.fillStyle = gradient;
-    ctx.fillRect(x - radius, y - radius, radius * 2, radius * 2);
-  }
-
-  // 大理石加浅色脉络。
-  if (fine) {
-    ctx.strokeStyle = "rgba(214,220,222,0.28)";
-    for (let i = 0; i < 9; i += 1) {
-      ctx.lineWidth = 1 + rand() * 2;
-      ctx.beginPath();
-      ctx.moveTo(rand() * 512, rand() * 512);
-      ctx.bezierCurveTo(
-        rand() * 512,
-        rand() * 512,
-        rand() * 512,
-        rand() * 512,
-        rand() * 512,
-        rand() * 512,
-      );
-      ctx.stroke();
-    }
-  }
-
-  const texture = new THREE.CanvasTexture(canvas);
-  texture.wrapS = THREE.RepeatWrapping;
-  texture.wrapT = THREE.RepeatWrapping;
-  texture.anisotropy = 4;
-  texture.colorSpace = THREE.SRGBColorSpace;
-  TEXTURES.set(key, texture);
-  return texture;
 }
 
 /** 粒子用的柔边圆点纹理。 */
@@ -221,19 +116,16 @@ function applyLocalGlow(material) {
 export function atlantisMaterials() {
   if (SHARED_MATERIALS) return SHARED_MATERIALS;
   const stone = new THREE.MeshStandardMaterial({
-    map: stoneTexture("stone"),
     vertexColors: true,
     roughness: 0.93,
     metalness: 0.06,
   });
   const marble = new THREE.MeshStandardMaterial({
-    map: stoneTexture("marble"),
     vertexColors: true,
-    roughness: 0.78,
+    roughness: 0.86,
     metalness: 0.04,
   });
   const rockDark = new THREE.MeshStandardMaterial({
-    map: stoneTexture("stone"),
     color: "#5d6a6d",
     vertexColors: true,
     roughness: 0.96,
@@ -241,7 +133,7 @@ export function atlantisMaterials() {
   });
   const bronze = new THREE.MeshStandardMaterial({
     vertexColors: true,
-    roughness: 0.46,
+    roughness: 0.64,
     metalness: 0.62,
   });
   const guideTeal = new THREE.MeshStandardMaterial({
@@ -252,7 +144,6 @@ export function atlantisMaterials() {
     metalness: 0.1,
   });
   const lapisGlow = new THREE.MeshStandardMaterial({
-    map: stoneTexture("marble"),
     vertexColors: true,
     color: "#10235c",
     emissive: "#4d8dff",
@@ -300,6 +191,11 @@ export function atlantisMaterials() {
   applyFogRelief(lapisGlow, 0.9);
   applyLocalGlow(guideTeal);
   applyLocalGlow(pearl);
+  applyAtlantisSurface(stone, "stone");
+  applyAtlantisSurface(marble, "marble");
+  applyAtlantisSurface(rockDark, "stone", "dark");
+  applyAtlantisSurface(bronze, "marble", "bronze");
+  applyAtlantisSurface(lapisGlow, "marble", "lapis");
   SHARED_MATERIALS = {
     pearlReef,
     shell,

@@ -27,6 +27,22 @@ export function cityArchitecture(kind) {
   if (kind === "pearl") return pearlHabitat();
   if (templates.has(kind)) return templates.get(kind);
   const b = new Builder(kind);
+  populateBuilder(b, kind);
+  const result = b.finish();
+  templates.set(kind, result);
+  return result;
+}
+
+/** 仅供新城区的可释放视觉套件；原始模板与碰撞契约不受替换影响。 */
+export function createCityArchitectureVisual(kind, components) {
+  if (!["temple", "rotunda", "gateway"].includes(kind))
+    throw Error(`Unsupported civic visual: ${kind}`);
+  const b = new Builder(kind, components);
+  populateBuilder(b, kind);
+  return b.finish();
+}
+
+function populateBuilder(b, kind) {
   if (kind === "courtyard") courtyard(b);
   else if (kind === "villa") villa(b);
   else if (kind === "ruins") ruins(b);
@@ -45,13 +61,10 @@ export function cityArchitecture(kind) {
     b.height = 2.4;
     b.amphora(0, 0, 0);
   } else throw new Error(`Unknown city architecture: ${kind}`);
-  const result = b.finish();
-  templates.set(kind, result);
-  return result;
 }
 
 class Builder {
-  constructor(kind) {
+  constructor(kind, components = null) {
     this.kind = kind;
     this.bucket = new MergeBucket();
     this.colliders = [];
@@ -59,8 +72,36 @@ class Builder {
     this.depth = 20;
     this.height = 20;
     this.ordinal = 0;
+    this.components = components;
+    this.suppressVisual = 0;
+    if (components) {
+      // 原方法仍完整产生同序碰撞，并推进旧色彩种子；仅替换指定构件的绘制表面。
+      for (const name of ["column", "pediment"]) {
+        const original = this[name].bind(this);
+        this[name] = (...args) => {
+          this.suppressVisual++;
+          try {
+            original(...args);
+          } finally {
+            this.suppressVisual--;
+          }
+          this.component(name, args);
+        };
+      }
+    }
+  }
+  component(name, args) {
+    const part = this.components.create(name, args);
+    // HF 原 UV 与同源顶点色不经过世界投影或程序染色。
+    this.bucket.add(part.geometry, part.key, part.transform);
+    part.geometry.dispose();
   }
   add(geometry, mat, position, euler = null, tint = null) {
+    if (this.suppressVisual) {
+      this.ordinal++;
+      geometry.dispose();
+      return;
+    }
     paintStone(geometry, {
       base: tint || PALETTE[mat],
       algae: "#467967",
@@ -225,7 +266,20 @@ class Builder {
       const px = x + Math.cos(a) * mid,
         py = y + spring + Math.sin(a) * mid;
       const geo = new THREE.BoxGeometry(1.52, ((Math.PI * mid) / 13) * 1.02, d);
-      this.add(geo, mat, [px, py, z], [0, 0, a]);
+      if (this.components) {
+        this.suppressVisual++;
+        this.add(geo, mat, [px, py, z], [0, 0, a]);
+        this.suppressVisual--;
+        this.component("archstone", [
+          px,
+          py,
+          z,
+          1.52,
+          ((Math.PI * mid) / 13) * 1.02,
+          d,
+          a,
+        ]);
+      } else this.add(geo, mat, [px, py, z], [0, 0, a]);
       this.colliders.push({
         type: "box",
         kind: "city_arch",
@@ -320,10 +374,15 @@ class Builder {
   finish() {
     const group = new THREE.Group(),
       owned = new Set();
-    this.bucket.build(atlantisMaterials(), group, owned);
+    this.bucket.build(
+      { ...atlantisMaterials(), ...this.components?.materials },
+      group,
+      owned,
+    );
     const parts = group.children.map((mesh, i) => {
       const key = `city_kit_v2_${this.kind}_${i}`;
-      GEOMETRIES.set(key, mesh.geometry);
+      if (!this.components) GEOMETRIES.set(key, mesh.geometry);
+      else mesh.geometry.name = `civic_${this.kind}_${mesh.geometry.name}`;
       mesh.geometry.computeBoundingSphere();
       return { geometry: mesh.geometry, material: mesh.material };
     });
