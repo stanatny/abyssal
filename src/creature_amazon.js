@@ -1,10 +1,12 @@
 import * as THREE from "three";
+import { createRestPoseNormalizer } from "./rest_pose_normalization.js";
 import { buildAmazonFish, buildAmazonRay } from "./creature_amazon_fish.js";
 import {
   buildAmazonReptile,
   buildAmazonSerpent,
   buildAmazonTurtle,
 } from "./creature_amazon_reptiles.js";
+const normalizeRestPose = createRestPoseNormalizer();
 export const AMAZON_CREATURE_KINDS = new Set([
   "neon_tetra",
   "amazon_discus",
@@ -52,13 +54,8 @@ export function buildAmazonCreature(kind, root, motions) {
     buildAmazonTurtle(kind, body, motions);
   else if (kind === "river_stingray") buildAmazonRay(body, motions);
   else buildAmazonFish(kind, body, motions);
-  body.updateMatrixWorld(true);
-  const bounds = new THREE.Box3().setFromObject(body),
-    scale = 1 / bounds.getSize(new THREE.Vector3()).z;
-  body.scale.setScalar(scale);
-  body.position
-    .copy(bounds.getCenter(new THREE.Vector3()))
-    .multiplyScalar(-scale);
+  // 鼠鱼的既有工厂会继续塑造共享甲片顶点，不能把它假定为不可变模板。
+  normalizeRestPose(body, kind === "armored_cory" ? null : kind);
   root.userData.normalizedLength = 1;
   root.userData.amazonAnatomy = kind;
   if (

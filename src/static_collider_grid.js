@@ -315,12 +315,15 @@ function rotatedExtent(axes, rotation, ellipsoid = false) {
 }
 
 function cellRange(bounds, cellSize) {
-  return Object.fromEntries(
-    Object.entries(bounds).map(([axis, value]) => [
-      axis,
-      Math.floor(value / cellSize),
-    ]),
-  );
+  // 固定六个轴界直接计算，避免每次查询产生 entries/map 的中间数组。
+  return {
+    minX: Math.floor(bounds.minX / cellSize),
+    maxX: Math.floor(bounds.maxX / cellSize),
+    minY: Math.floor(bounds.minY / cellSize),
+    maxY: Math.floor(bounds.maxY / cellSize),
+    minZ: Math.floor(bounds.minZ / cellSize),
+    maxZ: Math.floor(bounds.maxZ / cellSize),
+  };
 }
 
 function cellCount(range) {

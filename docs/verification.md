@@ -1,3 +1,17 @@
+# v0.11.14 release verification — 2026-10-21
+
+All 1,078 accepted inputs match the delivered CPU candidate before release-only
+metadata edits. The recorded 1,498-test and native candidate results retain
+their original scope. Exact-main CI, compiled-build and Pages evidence belongs
+to `.local/release_v0_11_14/`; see [the release record](release_v0_11_14.md).
+
+# Runtime CPU candidate — 2026-10-21
+
+Fresh 1,498 unit checks and serial baseline/candidate measurements cover
+normalization, exact collision parity, 48 map switches, eight active samples
+and four direct-frame samples. This is desktop Chrome evidence; it does not
+establish phone FPS or thermal behavior. See [the CPU review](runtime_cpu_optimization_revision.md).
+
 # Loading-cache checkpoint — 2026-10-21
 
 All current preview changes accepted — 2026-10-21: the user confirms that all

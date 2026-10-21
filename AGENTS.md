@@ -1,5 +1,27 @@
 # ABYSSAL Development Rules
 
+Main publication authorized — 2026-10-21: the user requests committing and
+pushing the accepted changes to main. This supersedes the earlier local-only
+and pending labels for the accumulated Hawaii redraws, selected combat/lord
+audio, loading cache and CPU optimization. All 1,078 delivered input hashes
+match before release-only metadata edits. The current AI agent integrates
+alone; preserve gameplay, services and historical worktrees. Release v0.11.14
+follows v0.11.13 / `110494c`; no tag or GitHub Release is requested. See the
+[release record](docs/release_v0_11_14.md). Future changes return to the default
+authorization rule.
+
+## Historical development checkpoints
+
+Runtime CPU candidate — 2026-10-21: after accepted checkpoint `87095f5`, the
+current agent independently reuses deterministic Amazon/Odyssey rest bounds
+and removes grid-range intermediate arrays. Exact collision rules, models,
+quality and gameplay remain unchanged. Armored Cory retains uncached bounds
+because its existing factory mutates its shared armor surface. Fresh 1,498
+tests and serial baseline/candidate measurements are recorded in
+[the CPU review](docs/runtime_cpu_optimization_revision.md). Warm switches
+improve on this host; no physical-phone, M4 thermal or general FPS gain is
+claimed. This candidate is uncommitted, with no push or formal release.
+
 All current preview changes accepted — 2026-10-21: the user confirms that all
 current effects have passed review and authorizes committing them together.
 This includes Contact Mine, the four reef decorations, Sunfish/turtle refinements,
@@ -10,11 +32,9 @@ The current AI agent next audits runtime CPU/GPU costs independently.
 
 Hawaii visual refinement — 2026-10-20: the current AI agent independently audits remaining visual elements, narrows Sunfish lateral thickness and refines Green Sea Turtle/Archelon power-stroke and recovery motion. Preserve gameplay, accepted Octopus, pending reef/Mine work and services. Fresh tests and real-NPC evidence are in [the review](docs/hawaii_sunfish_turtle_revision.md). This candidate awaits user review; no commit/push or formal release.
 
-
 Local Octopus checkpoint authorization — 2026-10-20: the user says “你先按照这个提交吧”, authorizing a local checkpoint of the current volumetric swimming repair. Preserve the open-rest/quiet-transit/compact-fast poses, unchanged gameplay and the recorded20 focused/1,460 full checks. This supersedes earlier pending/no-commit labels only for Octopus. Reef PP-Q042 and Contact Mine PP-Q039 remain separate uncommitted candidates. No push, version bump or main/Pages release is authorized. See [the review](docs/octopus_swimming_revision.md#local-checkpoint-authorization--2026-10-20).
 
 Volumetric Octopus bundle — 2026-10-20: the user rejects the preceding flattened fan. The current AI agent alone preserves arm/cup sections around the travel axis with offline full/halfway poses, retaining open rest, actual-travel blending and gameplay. Fresh20 focused /1,460 full tests and real-NPC/visual/resource checks pass; this new candidate awaits user review, without commit/push. Preserve pending reef/Mine work. See [the repair](docs/octopus_swimming_revision.md#volumetric-arm-bundle-repair--2026-10-20).
-
 
 Natural-jet Octopus follow-up — 2026-10-20: the user rejects the previous swimming animation as artificial. After inspecting NOAA transit footage, the current AI agent alone replaces synchronized arm rowing with a compact three-dimensional trailing envelope, brief mantle contraction and quiet asynchronous tip drift. Stationary arms relax; existing movement/ink rules and the pending reef/Mine candidates remain intact. This new candidate awaits user visual review, without commit/push. See [the motion review](docs/octopus_swimming_revision.md#reference-footage-and-natural-jet-follow-up--2026-10-20).
 

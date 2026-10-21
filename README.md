@@ -1,5 +1,27 @@
 # ABYSSAL
 
+Main publication authorized — 2026-10-21: the user requests committing and
+pushing the accepted changes to main. This supersedes the earlier local-only
+and pending labels for the accumulated Hawaii redraws, selected combat/lord
+audio, loading cache and CPU optimization. All 1,078 delivered input hashes
+match before release-only metadata edits. The current AI agent integrates
+alone; preserve gameplay, services and historical worktrees. Release v0.11.14
+follows v0.11.13 / `110494c`; no tag or GitHub Release is requested. See the
+[release record](docs/release_v0_11_14.md). Future changes return to the default
+authorization rule.
+
+## Historical development checkpoints
+
+Runtime CPU candidate — 2026-10-21: after accepted checkpoint `87095f5`, the
+current agent independently reuses deterministic Amazon/Odyssey rest bounds
+and removes grid-range intermediate arrays. Exact collision rules, models,
+quality and gameplay remain unchanged. Armored Cory retains uncached bounds
+because its existing factory mutates its shared armor surface. Fresh 1,498
+tests and serial baseline/candidate measurements are recorded in
+[the CPU review](docs/runtime_cpu_optimization_revision.md). Warm switches
+improve on this host; no physical-phone, M4 thermal or general FPS gain is
+claimed. This candidate is uncommitted, with no push or formal release.
+
 All current preview changes accepted — 2026-10-21: the user confirms that all
 current effects have passed review and authorizes committing them together.
 This includes Contact Mine, the four reef decorations, Sunfish/turtle refinements,

@@ -3,6 +3,7 @@ import {
   buildOdysseyExtra,
 } from "./creature_odyssey_extra.js";
 import * as THREE from "three";
+import { createRestPoseNormalizer } from "./rest_pose_normalization.js";
 import { buildOdysseyShallows } from "./creature_odyssey_shallows.js";
 import { buildOdysseyPeople } from "./creature_odyssey_people.js";
 import { buildOdysseyHunters } from "./creature_odyssey_hunters.js";
@@ -31,6 +32,7 @@ export const ODYSSEY_CREATURE_KINDS = new Set([
   "golden_argonaut",
   ...ODYSSEY_EXTRA_KINDS,
 ]);
+const normalizeRestPose = createRestPoseNormalizer();
 const SHALLOWS = new Set([
     "ambrosia_sprat",
     "moon_scallop",
@@ -65,14 +67,7 @@ export function buildOdysseyCreature(kind, root, motions) {
   else if (kind === "scylla" || kind === "charybdis")
     buildOdysseyLord(kind, body, motions);
   else buildOdysseyHunters(kind, body, motions);
-  body.updateMatrixWorld(true);
-  const bounds = new THREE.Box3().setFromObject(body),
-    size = bounds.getSize(new THREE.Vector3()),
-    scale = 1 / size.z;
-  body.scale.setScalar(scale);
-  body.position
-    .copy(bounds.getCenter(new THREE.Vector3()))
-    .multiplyScalar(-scale);
+  normalizeRestPose(body, kind);
   root.userData.normalizedLength = 1;
   root.userData.odysseyAnatomy = kind;
   // 人形和海神马转向保持背侧朝上，避免反向升降时最短弧旋转翻身。
