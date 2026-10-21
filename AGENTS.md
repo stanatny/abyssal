@@ -1,5 +1,27 @@
 # ABYSSAL Development Rules
 
+Accepted Atlantis surface checkpoint — 2026-10-21: the user says
+“提交，下一批”, authorizing a local commit of the three night boats and the
+missed Brown Pelican replacement. All 1,134 delivered inputs match before these
+acceptance-only notes; the recorded 1,533-test/native/public results retain their
+original scope. The current agent continues independently with a bounded
+unredrawn scenery batch. No push/main publication is requested; new candidates
+require visual review. Earlier pending labels below are historical.
+
+Atlantis surface-inventory correction — 2026-10-21: the user identifies the
+still-procedural Brown Pelican and requests the next batch. The current agent
+alone adds its actual HF replacement for the shared Atlantis/Bermuda Guide and
+world path. The earlier 20-kind count covered underwater ecology, not surface
+birds. Preserve all accepted assets and the preceding uncommitted night boats;
+no commit/push or formal publication. See [the Pelican review](docs/atlantis_pelican_huggingface_redraw.md).
+
+Atlantis third HF batch — 2026-10-21: the user-accepted second creature batch
+and Spadefish repair are locally committed as `1b58a90`, without push. The current
+agent alone replaces the three remaining regional night boats through actual
+HF inference, preserving routes, dimensions, collision/impact and accepted
+assets. See [the fleet review](docs/atlantis_fleet_huggingface_redraw.md).
+These new boats await visual review; no new commit or formal publication.
+
 Accepted Atlantis second-batch checkpoint — 2026-10-21: the user says
 “提交吧，下一批”, accepting Spadefish (including its swimming follow-up),
 Seahorse, Cuttlefish and Pearl Nautilus and authorizing their local commit.

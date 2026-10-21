@@ -187,12 +187,19 @@ function box(root, material, keep, size, position, rotation) {
  * 放样船壳：U 形截面沿艏艉收窄，舷缘带舷弧（两端上翘、艏更高），
  * 法线沿船体连续；附带甲板板、舷缘压条与水线色带。
  */
-export function buildHull(root, ship, materials, keep) {
-  const { length, width } = ship;
+/** 船壳碰撞元数据独立于美术来源，HF 船体和旧放样基线共用。 */
+export function initializeShipHull(ship) {
   const spec = HULL_SPECS[ship.kind];
   ship.hullStations = spec.stations;
   ship.hullDraft = spec.draft;
   ship.hullFreeboard = spec.freeboard;
+  ship.deckY = spec.freeboard * 0.78;
+}
+
+export function buildHull(root, ship, materials, keep) {
+  const { length, width } = ship;
+  const spec = HULL_SPECS[ship.kind];
+  initializeShipHull(ship);
   // 归一化 U 形截面：[-1..1] → 上段乘干舷、下段乘吃水。
   const profile = [
     [-1, 1],

@@ -1,5 +1,14 @@
 # Atlantis creature redraw — 2026-10-21
 
+Coverage correction: the 20 ordinary kinds below refer to underwater ecology.
+The surface Brown Pelican remained procedural and is now handled in the
+[fourth-batch review](atlantis_pelican_huggingface_redraw.md); Seagull is already
+shared from Hawaii. Do not use the underwater count as a full-map inventory.
+
+The accepted second batch and Spadefish repair are committed as `1b58a90`.
+The next bounded batch is the [regional night fleet](atlantis_fleet_huggingface_redraw.md);
+accepted shared creatures are preserved.
+
 Current status: batches 1 and 2, including the Spadefish swimming repair, are
 accepted for local checkpoint. Batch 1 is `267d4d0`; the second checkpoint
 follows the user’s “提交吧，下一批”. Earlier pending/rejected labels keep their

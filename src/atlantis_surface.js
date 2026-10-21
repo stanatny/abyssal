@@ -1,4 +1,5 @@
 import * as THREE from "three";
+import { acquireAtlantisFleetAsset } from "./atlantis_fleet_asset.js";
 import { WORLD } from "./world_config.js";
 import { createFluidTexture } from "./effect_textures.js";
 import { createSurfaceShipImpact } from "./surface_ship_impact.js";
@@ -9,12 +10,10 @@ import {
   buildIslands,
 } from "./atlantis_art_sky.js";
 import {
-  makeFleetMaterials,
-  SHIP_BUILDERS,
+  initializeShipHull,
   addShipColliders,
   makeWakeMaterial,
   makeWakeGeometry,
-  batchShipMeshes,
 } from "./atlantis_art_fleet.js";
 
 /**
@@ -128,7 +127,7 @@ export function createAtlantisFleet(scene, options = {}) {
     resources.add(resource);
     return resource;
   };
-  const { commons, accents } = makeFleetMaterials(keep);
+  const assetOwners = [];
   const timeUniform = { value: 0 };
   const wakeMaterial = makeWakeMaterial(keep, timeUniform);
   const configs = [
@@ -202,14 +201,46 @@ export function createAtlantisFleet(scene, options = {}) {
         }),
       ),
     };
-    const materials = { ...commons, ...accents[config.kind] };
-    SHIP_BUILDERS[config.kind](root, ship, materials, keep);
+    initializeShipHull(ship);
+    const asset = acquireAtlantisFleetAsset(config.kind);
+    assetOwners.push(asset);
+    const body = new THREE.Mesh(asset.geometry, asset.material);
+    body.name = `${config.kind}_hf_surface`;
+    body.scale.setScalar(config.length);
+    root.add(body);
+    root.userData.artRevision = "atlantis-night-fleet-hf-20261021";
+    root.userData.shipArt = { body };
+    root.userData.prepareMaterials = asset.prepare;
+    // 正常进图即触发准备，失败时仍显示同源顶点色并可通过共享队列恢复。
+    asset.prepare();
+    // 暖光贴合已检查的灯笼玻璃；不新增点光或独立动画循环。
+    const lanterns =
+      config.kind === "fisher"
+        ? [[0.089, 0.103, 0.433]]
+        : config.kind === "ketch"
+          ? [[-0.019, 0.095, 0.478]]
+          : [[0.014, 0.102, 0.466]];
+    const lampGeometry = keep(new THREE.SphereGeometry(0.055, 6, 4));
+    const lampMaterial = keep(
+      new THREE.MeshBasicMaterial({ color: 0xffcb75, toneMapped: false }),
+    );
+    for (const anchor of lanterns) {
+      const lamp = new THREE.Mesh(lampGeometry, lampMaterial);
+      lamp.position.set(...anchor).multiplyScalar(config.length);
+      lamp.name = "night_lantern_glass";
+      const glow = new THREE.Sprite(ship.glowMaterial);
+      glow.scale.set(0.65, 0.65, 1);
+      lamp.add(glow);
+      root.add(lamp);
+    }
     // 每艘一盏真实点光，照亮甲板与船壳近岸一侧。
     const light = new THREE.PointLight(config.lightColor, 8, 30, 2);
-    light.position.set(...config.lightAnchor);
+    light.position.set(...lanterns[0]).multiplyScalar(config.length);
+    light.position.y += 0.15;
+    ship.lightAnchor = light.position.toArray();
     root.add(light);
     ship.lanternLight = light;
-    batchShipMeshes(root, keep);
+
     const wake = new THREE.Mesh(
       keep(makeWakeGeometry(config.length, config.width)),
       wakeMaterial,
@@ -301,6 +332,7 @@ export function createAtlantisFleet(scene, options = {}) {
       group.traverse((node) => {
         if (node.isInstancedMesh) node.dispose();
       });
+      for (const asset of assetOwners) asset.release();
       for (const resource of resources) resource.dispose();
     },
   };

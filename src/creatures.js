@@ -1,3 +1,4 @@
+import { buildPelicanHF } from "./creature_pelican_hf.js";
 import {
   ATLANTIS_HF_SMALL,
   buildAtlantisSmallHF,
@@ -119,7 +120,8 @@ export function createCreature(kind, length = 6, seed = 1) {
   let previousTime;
   let swimTime = phase;
 
-  if (["golden_manta", "seagull", "tropicbird"].includes(kind))
+  if (kind === "pelican") buildPelicanHF(root, motions);
+  else if (["golden_manta", "seagull", "tropicbird"].includes(kind))
     buildHawaiiBatch11HF(kind, root, motions);
   else if (ODYSSEY_CREATURE_KINDS.has(kind))
     buildOdysseyCreature(kind, root, motions);
