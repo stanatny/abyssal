@@ -43,6 +43,51 @@ for (const kind of kinds)
   test(`${kind}: continuous arms deform the rendered vertices without mutating shared buffers`, () => {
     const first = createCreature(kind, 12, 71),
       second = createCreature(kind, 12, 72);
+    // These two HF surfaces integrate all soft parts in one skinned mesh.
+    // Exercise their rendered skin instead of the retired procedural arm count.
+    if (kind === "cuttlefish" || kind === "pearl_nautilus") {
+      const mesh = first.userData.hfRig.mesh,
+        other = second.userData.hfRig.mesh;
+      assert.equal(mesh.geometry, other.geometry);
+      assert.notEqual(mesh.skeleton, other.skeleton);
+      const immutable = Float32Array.from(
+        mesh.geometry.attributes.position.array,
+      );
+      pose(first, 0);
+      pose(second, 0);
+      const before = vertices(mesh),
+        otherBefore = vertices(other);
+      let moved = 0;
+      for (let frame = 1; frame <= 720; frame++) {
+        pose(first, frame / 60, frame < 360 ? 1 : 3);
+        if (frame % 30 !== 0) continue;
+        const current = vertices(mesh);
+        for (let i = 0; i < current.length; i++) {
+          assert.ok(current[i].toArray().every(Number.isFinite));
+          assert.ok(mesh.boundingSphere.containsPoint(current[i]));
+          moved = Math.max(moved, current[i].distanceTo(before[i]));
+        }
+      }
+      assert.ok(moved > 0.001, `${kind} soft skin did not move`);
+      const frozen = vertices(mesh);
+      pose(first, 12, 3);
+      assert.deepEqual(vertices(mesh), frozen);
+      assert.deepEqual(vertices(other), otherBefore);
+      assert.deepEqual(mesh.geometry.attributes.position.array, immutable);
+      let released = 0,
+        geometries = 0;
+      mesh.skeleton.computeBoneTexture();
+      other.skeleton.computeBoneTexture();
+      mesh.skeleton.boneTexture.addEventListener("dispose", () => released++);
+      mesh.geometry.addEventListener("dispose", () => geometries++);
+      first.userData.disposeLocalMotion();
+      first.userData.disposeLocalMotion();
+      assert.equal(released, 1);
+      assert.equal(geometries, 0);
+      assert.ok(other.skeleton.boneTexture);
+      second.userData.disposeLocalMotion();
+      return;
+    }
     const a = arms(first),
       b = arms(second);
     assert.equal(

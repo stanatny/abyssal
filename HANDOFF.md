@@ -1,3 +1,27 @@
+# Spadefish swimming follow-up — 2026-10-21
+
+Accepted Atlantis second-batch checkpoint — 2026-10-21: the user says
+“提交吧，下一批”, accepting Spadefish (including its swimming follow-up),
+Seahorse, Cuttlefish and Pearl Nautilus and authorizing their local commit.
+All 1,116 delivered inputs match before these acceptance-only notes. The
+recorded 1,525-test/native/public checks retain their original evidence scope.
+The current agent continues independently with the next unredrawn Atlantis
+batch. No push/main publication is requested; new candidates require review.
+
+Spadefish swimming follow-up — 2026-10-21: the user rejects the second-batch
+motion. The current agent repairs pelvic/chest weight leakage and coordinates
+rear-body, tail and soft-fin motion, preserving the HF surface, gameplay and
+other species. Earlier tests do not imply visual acceptance. See the
+[follow-up](docs/atlantis_creatures_huggingface_redraw.md#spadefish-swimming-follow-up--2026-10-21).
+This remains uncommitted for review; keep other candidates and services intact.
+
+Atlantis second HF batch — 2026-10-21: accepted first-batch assets are locally
+committed as `267d4d0`. The current AI agent alone adds Spadefish, Seahorse,
+Cuttlefish and the regional Pearl Nautilus candidates. Preserve all accepted
+models, gameplay and existing services. This new batch awaits individual visual
+review, without commit/push or formal publication. See
+[the batch review](docs/atlantis_creatures_huggingface_redraw.md#batch-2-spadefish-seahorse-cuttlefish-and-pearl-nautilus--2026-10-21).
+
 # Accepted Atlantis first-batch checkpoint — 2026-10-21
 
 Accepted Atlantis first-batch checkpoint — 2026-10-21: the user says “可以，提交吧，下一批”, accepting Blue Shark, Swordfish, Helicoprion and Ichthyosaur and authorizing their local commit. All 1,103 delivered input hashes match before these acceptance notes. Recorded 1,513-test/native/public evidence retains its unchanged-input scope; no new test run is implied. The current AI agent continues independently with Spadefish, Seahorse, Cuttlefish and Pearl Nautilus. Preserve accepted assets, gameplay and services. New candidates require user review; no push or formal release is requested.

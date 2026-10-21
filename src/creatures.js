@@ -1,3 +1,7 @@
+import {
+  ATLANTIS_HF_SMALL,
+  buildAtlantisSmallHF,
+} from "./creature_atlantis_small_hf.js";
 import { buildHawaiiBatch11HF } from "./creature_hawaii_batch11_hf.js";
 import { buildHawaiiBatch10HF } from "./creature_hawaii_batch10_hf.js";
 import { buildHawaiiBatch8HF } from "./creature_hawaii_batch8_hf.js";
@@ -119,6 +123,8 @@ export function createCreature(kind, length = 6, seed = 1) {
     buildHawaiiBatch11HF(kind, root, motions);
   else if (ODYSSEY_CREATURE_KINDS.has(kind))
     buildOdysseyCreature(kind, root, motions);
+  else if (ATLANTIS_HF_SMALL.has(kind))
+    buildAtlantisSmallHF(kind, root, motions);
   else if (RARE_CREATURE_KINDS.has(kind))
     buildRegionalRare(kind, root, motions);
   else if (kind === "mechanical_shark") buildMechanicalShark(root, motions);
