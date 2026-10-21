@@ -9,6 +9,8 @@ Read [AGENTS.md](../../../AGENTS.md), [README.md](../../../README.md), the curre
 
 Keep appearance-only changes within appearance: preserve body length, movement physics, food/contact eligibility, ability costs, damage, rewards and source anchors. Retain existing services and unrelated work. Use English project documents and bilingual player copy. No personal Skill installation is required.
 
+This skill serves all ABYSSAL regions. Shared factory, Guide/world, loading and lifecycle contracts apply wherever the current code uses them. Hawaii reviews are scoped examples: their species, rigs, tuning and conversion recipes are not requirements for another region. Before applying a case-specific repair, verify that the affected creature uses the same implementation; before changing a shared implementation, trace consumers across regions.
+
 ## Diagnose the layer before editing
 
 Preserve the immediate baseline and record the requested visible difference, usual camera distance and affected consumers: player, companion, ordinary species, lord and Guide as applicable. Trace factories and animation inputs; sharing a builder does not mean every caller supplies the same steering or sprint state.
@@ -22,6 +24,8 @@ Preserve the immediate baseline and record the requested visible difference, usu
 | Motion or hardware flickers            | Coplanar surfaces, attachment transforms, normals, capture/render-loop ownership       | Diagnose the running scene and the recording separately before adding light or changing unrelated geometry. |
 
 For a new generated mesh or fitted mechanical parts, read [references/generated_mesh.md](references/generated_mesh.md). For a material-only or motion-only fix, use the existing asset and continue below.
+
+For a redraw batch, shared color-loading failure, or human/Octopus pose integration, also read [references/appearance_integration.md](references/appearance_integration.md). It maps these failures to ABYSSAL's actual loaders, factories and ordinary entry paths; use only the checks affected by the current change.
 
 ## Make motion anatomically coherent and readable
 

@@ -1,5 +1,7 @@
 # ABYSSAL
 
+Hawaii retrospective — 2026-10-21: [lessons and rejected approaches](docs/hawaii_redraw_retrospective.md), with focused integration guidance in the repository Creature Polish and Map Production Skills. This follow-up changes documentation only; runtime remains the released v0.11.14.
+
 Main publication authorized — 2026-10-21: the user requests committing and
 pushing the accepted changes to main. This supersedes the earlier local-only
 and pending labels for the accumulated Hawaii redraws, selected combat/lord

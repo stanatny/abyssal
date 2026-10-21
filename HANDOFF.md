@@ -1,5 +1,9 @@
 # Main publication v0.11.14 — 2026-10-21
 
+Documentation follow-up — 2026-10-21: the user requests lessons from the Hawaii optimization and then authorizes committing and pushing these documents to main. The [retrospective](docs/hawaii_redraw_retrospective.md) records observed failures and useful decisions; existing creature/map Skills link focused project-specific references. General methods are recorded in personal project knowledge, with no personal Skill modification. Runtime remains identical to released v0.11.14 / `ebdd86e`; this documentation publication requires no version bump. Existing services and historical work remain untouched. Historical game-test receipts below are not new tests for this documentation task; future changes return to the default authorization rule.
+
+Scope clarification: shared ABYSSAL methods remain available to subsequent maps; Hawaii's concrete factory/asset repairs are conditional examples, not map-wide mandates elsewhere. Both Skill entry points now require identifying the target region's implementation and checking actual shared consumers before reusing a case.
+
 Main publication authorized — 2026-10-21: the user requests committing and
 pushing the accepted changes to main. This supersedes the earlier local-only
 and pending labels for the accumulated Hawaii redraws, selected combat/lord
