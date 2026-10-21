@@ -1,3 +1,4 @@
+import { createEnvironmentCache } from "./graphics_recovery.js";
 import * as THREE from "three";
 import { MOON_DIRECTION } from "./atlantis_art_sky.js";
 import { EffectComposer } from "three/addons/postprocessing/EffectComposer.js";
@@ -14,10 +15,13 @@ import { OutputPass } from "three/addons/postprocessing/OutputPass.js";
  */
 export function createVisualPipeline(renderer, scene, camera) {
   renderer.info.autoReset = false;
-  const environment = createMarineEnvironment(renderer);
-  let nightEnvironment = null;
-  let iceEnvironment = null;
-  scene.environment = environment.texture;
+  const environments = createEnvironmentCache((kind) =>
+    createMarineEnvironment(renderer, {
+      night: kind === "night",
+      ice: kind === "ice",
+    }),
+  );
+  scene.environment = environments.select();
   scene.environmentIntensity = 0.38;
   const target = new THREE.WebGLRenderTarget(innerWidth, innerHeight, {
     type: THREE.HalfFloatType,
@@ -54,16 +58,9 @@ export function createVisualPipeline(renderer, scene, camera) {
       if (disposed) return;
       // 天空高度不是负水深，不能向辉光与颗粒着色器传入负强度。
       depth = aboveWater ? 0 : Math.max(0, Number.isFinite(depth) ? depth : 0);
-      // 首次进入夜海才预过滤月光环境，反复切图直接复用两套渲染目标。
-      if (night && !nightEnvironment)
-        nightEnvironment = createMarineEnvironment(renderer, { night: true });
-      if (ice && !iceEnvironment)
-        iceEnvironment = createMarineEnvironment(renderer, { ice: true });
-      const reflection = ice
-        ? iceEnvironment.texture
-        : night
-          ? nightEnvironment.texture
-          : environment.texture;
+      const reflection = environments.select(
+        ice ? "ice" : night ? "night" : "day",
+      );
       if (scene.environment !== reflection) scene.environment = reflection;
       particles.points.position.copy(position);
       particles.uniforms.time.value = reducedMotion ? 0 : time;
@@ -77,6 +74,31 @@ export function createVisualPipeline(renderer, scene, camera) {
           ? 0.52
           : Math.max(0.1, 0.38 - depth / 2100) * (1 - ink * 0.45)) *
         (ice ? 0.6 : night ? 0.72 : 1);
+    },
+    invalidate() {
+      // 仍处于lost状态时释放旧目标；恢复后删除旧上下文句柄会触发WebKit错误。
+      environments.invalidate();
+    },
+    restore() {
+      if (disposed) return;
+      renderer.setRenderTarget(null);
+      scene.environment = environments.restore();
+    },
+    async prepare() {
+      if (disposed) return;
+      // 编译必须使用实际 RenderPass 的目标色域；默认屏幕目标会生成另一套程序，
+      // 进入 HDR 后处理时仍需同步重编译。恢复目标后再等待，避免跨异步持有渲染状态。
+      const previous = renderer.getRenderTarget(),
+        face = renderer.getActiveCubeFace(),
+        mip = renderer.getActiveMipmapLevel();
+      let pending;
+      try {
+        renderer.setRenderTarget(highQuality ? composer.readBuffer : null);
+        pending = renderer.compileAsync(scene, camera);
+      } finally {
+        renderer.setRenderTarget(previous, face, mip);
+      }
+      await pending;
     },
     render() {
       if (disposed) return;
@@ -99,17 +121,8 @@ export function createVisualPipeline(renderer, scene, camera) {
       scene.remove(particles.points);
       particles.geometry.dispose();
       particles.material.dispose();
-      if (
-        scene.environment === environment.texture ||
-        scene.environment === nightEnvironment?.texture ||
-        scene.environment === iceEnvironment?.texture
-      )
-        scene.environment = null;
-      environment.dispose();
-      nightEnvironment?.dispose();
-      iceEnvironment?.dispose();
-      nightEnvironment = null;
-      iceEnvironment = null;
+      scene.environment = null;
+      environments.dispose();
       bloom.dispose();
       renderPass.dispose();
       output.dispose();

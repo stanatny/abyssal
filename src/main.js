@@ -1,3 +1,7 @@
+import {
+  createGraphicsRecovery,
+  releaseLostSceneResources,
+} from "./graphics_recovery.js";
 import { preyFeedingSound } from "./combat_audio_events.js";
 import { prepareSquidMaterials } from "./creature_squid.js";
 import { prepareOrcaMaterials } from "./creature_orca.js";
@@ -270,6 +274,7 @@ let ocean = attachDeepHazards(
 const terrainColliders = [...ocean.colliders];
 let loadedRegion = "hawaii";
 let regionLoading = false;
+let graphicsRecovery;
 let environmentContainer = null;
 const populationCache = new Map();
 function prepareEnvironmentShadows(
@@ -632,7 +637,13 @@ const atlantisPreparationProgress = {
   "city-ready": 50,
 };
 async function selectRegion(region) {
-  if (regionLoading || mode !== "menu" || loadedRegion === region.id) return;
+  if (
+    graphicsRecovery?.pending ||
+    regionLoading ||
+    mode !== "menu" ||
+    loadedRegion === region.id
+  )
+    return;
   regionLoading = true;
   setLanguageEnabled(false);
   resetInput();
@@ -796,7 +807,7 @@ async function selectRegion(region) {
     });
     regionLoader.stage("正在准备光影…", 82);
     await regionLoader.paint();
-    await renderer.compileAsync(scene, camera);
+    await visuals.prepare();
     visuals.render();
     regionLoader.stage("准备就绪", 100);
     previous.surface.dispose();
@@ -1669,7 +1680,7 @@ function resetExpedition(preserveWorld = false) {
   }
 }
 function startGame({ transition = false } = {}) {
-  if (regionLoading) return;
+  if (regionLoading || graphicsRecovery?.pending) return;
   const fromMenu = mode === "menu";
   resetExpedition(fromMenu);
   setLanguageEnabled(false);
@@ -1899,6 +1910,7 @@ function returnToMenu() {
   lastTime = performance.now();
 }
 function resumeGame() {
+  if (graphicsRecovery?.pending) return;
   if (mode === "paused") {
     mode = launchTransition ? "launching" : "playing";
     lastTime = performance.now();
@@ -3926,7 +3938,13 @@ function frame(now) {
   // 同帧排队的 RAF 时间戳可能早于刚完成的初始化，不能让时钟倒退。
   lastTime = Math.max(lastTime, now);
   // 图鉴打开时只渲染独立标本，避免两套海洋场景同时消耗图形资源。
-  if (guide.isOpen || runRecords.isOpen || regionLoading || document.hidden)
+  if (
+    graphicsRecovery?.pending ||
+    guide.isOpen ||
+    runRecords.isOpen ||
+    regionLoading ||
+    document.hidden
+  )
     return;
   // 暂停及结算是静止画面；进入、尺寸或画质变化才重绘，不持续提交 GPU 工作。
   const animatedWorld = ["menu", "launching", "playing", "epilogue"].includes(
@@ -4262,10 +4280,6 @@ window.addEventListener("resize", () => {
   renderer.setSize(innerWidth, innerHeight);
   visuals.resize();
 });
-canvas.addEventListener("webglcontextrestored", () => {
-  worldRenderDirty = true;
-  $("loading").hidden = true;
-});
 window.addEventListener("keydown", (e) => {
   if (regionLoading) {
     e.preventDefault();
@@ -4424,14 +4438,43 @@ for (const name of [
       event.preventDefault();
   });
 }
-canvas.addEventListener("webglcontextlost", (e) => {
-  e.preventDefault();
-  if (mode === "playing" || mode === "launching") showOverlay("paused");
-  $("loading").hidden = false;
-  $("loading").textContent = t(
-    "图形上下文已中断，正在尝试恢复。若未恢复，请刷新页面。",
-  );
+graphicsRecovery = createGraphicsRecovery(canvas, {
+  onLost() {
+    visuals.invalidate();
+    releaseLostSceneResources(renderer, [
+      scene,
+      ...avatarCache.values(),
+      ...[...populationCache.values()].flatMap((population) =>
+        population.map((entity) => entity.mesh),
+      ),
+    ]);
+    if (mode === "playing" || mode === "launching") showOverlay("paused");
+    $("resume").disabled = true;
+    $("loading").hidden = false;
+    $("loading").textContent = t(
+      "图形上下文已中断，正在尝试恢复。若未恢复，请刷新页面。",
+    );
+  },
+  async restore(isCurrent) {
+    visuals.restore();
+    await visuals.prepare();
+    if (!isCurrent()) return;
+    if (renderer.getContext().isContextLost())
+      throw Error("Graphics context lost during recovery");
+    // 用现有相机和冻结的世界重建可见纹理/几何及后处理，再开放继续按钮。
+    visuals.render();
+  },
+  onReady() {
+    worldRenderDirty = true;
+    $("resume").disabled = false;
+    $("loading").hidden = true;
+    lastTime = performance.now();
+  },
+  onError(error) {
+    console.error("Graphics recovery failed", error);
+  },
 });
+
 seedPopulation();
 seedPickups();
 updateRegionPresentation();
@@ -4443,7 +4486,7 @@ await waitForMaterials([
   prepareZombieSharkMaterials({ priority: 10 }),
   prepareMechanicalSharkMaterials({ priority: 10 }),
 ]);
-await renderer.compileAsync(scene, camera);
+await visuals.prepare();
 requestAnimationFrame(frame);
 await regionLoader.paint();
 regionLoader.end();

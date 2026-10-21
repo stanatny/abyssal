@@ -1,3 +1,4 @@
+import { decodePackedArray as decode } from "./packed_array.js";
 import { createMaterialPreparation } from "./material_loading.js";
 import * as THREE from "three";
 import packed from "./assets/models/mechanical_shark_cinematic_mesh.json" with { type: "json" };
@@ -63,10 +64,6 @@ export const prepareMechanicalSharkMaterials = createMaterialPreparation(
 );
 
 const smooth = (a, b, x) => THREE.MathUtils.smoothstep(x, a, b);
-function decode(value, Type) {
-  const bytes = Uint8Array.from(atob(value), (c) => c.charCodeAt(0));
-  return new Type(bytes.buffer);
-}
 
 function sharedGeometry() {
   if (geometry) return geometry;

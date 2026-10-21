@@ -1,3 +1,8 @@
+import {
+  createGraphicsRecovery,
+  createEnvironmentCache,
+  releaseLostSceneResources,
+} from "./graphics_recovery.js";
 import { deepHazardGuideEntries } from "./deep_hazard_catalog.js";
 import { penglaiSkyHazardGuideEntries } from "./penglai_sky_hazard_catalog.js";
 import { LORD_RECOVERY } from "./lord_recovery.js";
@@ -705,6 +710,7 @@ export function createOceanGuide(trigger) {
     visible = OCEAN_CATALOG,
     renderer,
     environment,
+    graphicsRecovery,
     previewLights,
     scene,
     camera,
@@ -935,8 +941,28 @@ export function createOceanGuide(trigger) {
       // 透明画布让CSS展台背景随系统主题切换，避免深色页内残留白色矩形。
       renderer.setClearColor(0x000000, 0);
       scene = new THREE.Scene();
-      environment = createMarineEnvironment(renderer);
-      scene.environment = environment.texture;
+      environment = createEnvironmentCache(() =>
+        createMarineEnvironment(renderer),
+      );
+      scene.environment = environment.select();
+      graphicsRecovery = createGraphicsRecovery(renderer.domElement, {
+        onLost() {
+          environment.invalidate();
+          releaseLostSceneResources(renderer, [scene, ...modelCache.values()]);
+        },
+        async restore(isCurrent) {
+          renderer.setRenderTarget(null);
+          scene.environment = environment.restore();
+          await renderer.compileAsync(scene, camera);
+          if (!isCurrent()) return;
+          if (renderer.getContext().isContextLost())
+            throw Error("Guide context lost during recovery");
+          if (dialog.open) renderer.render(scene, camera);
+        },
+        onError(error) {
+          console.error("Guide graphics recovery failed", error);
+        },
+      });
       previewLights = {
         fill: new THREE.HemisphereLight(),
         key: new THREE.DirectionalLight(),
@@ -1144,6 +1170,7 @@ export function createOceanGuide(trigger) {
     const dt = Math.min((now - lastTime) / 1000, 0.04);
     lastTime = now;
     if (
+      !graphicsRecovery?.pending &&
       model?.visible &&
       renderer &&
       !["reward", "hazard"].includes(selected.category)
@@ -1243,6 +1270,7 @@ export function createOceanGuide(trigger) {
     if (!event.persisted) {
       themeQuery.removeEventListener("change", syncTheme);
       touchQuery.removeEventListener("change", syncSearchInput);
+      graphicsRecovery?.dispose();
       environment?.dispose();
       for (const cachedModel of modelCache.values()) {
         cachedModel.userData.disposeLocalMotion?.();

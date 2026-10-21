@@ -1,12 +1,10 @@
+import { decodePackedArray } from "./packed_array.js";
 import { createMaterialPreparation } from "./material_loading.js";
 import * as THREE from "three";
 
 /** 解码离线量化的实体网格；绑定由各物种按实际解剖提供，避免共用错误转轴。 */
 export function decodeOrganicMesh(packed, bind, fallbackColor) {
-  const decode = (value, Type) => {
-    const bytes = Uint8Array.from(atob(value), (c) => c.charCodeAt(0));
-    return new Type(bytes.buffer);
-  };
+  const decode = decodePackedArray;
   const quantized = decode(packed.position, Uint16Array);
   const positions = new Float32Array(quantized.length);
   const ids = packed.skinIndex

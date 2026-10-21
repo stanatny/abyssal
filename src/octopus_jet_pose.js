@@ -1,3 +1,4 @@
+import { decodePackedArray as decode } from "./packed_array.js";
 import * as THREE from "three";
 
 /**
@@ -9,10 +10,6 @@ export function prepareOctopusJetPose(geometry, pose) {
   geometry.morphAttributes.position = [];
   geometry.morphAttributes.normal = [];
   for (const target of pose.targets) {
-    const decode = (encoded, Type) => {
-      const bytes = Uint8Array.from(atob(encoded), (c) => c.charCodeAt(0));
-      return new Type(bytes.buffer);
-    };
     const packed = decode(target.position, Uint16Array),
       position = new Float32Array(packed.length),
       packedNormal = decode(target.normal, Int16Array),

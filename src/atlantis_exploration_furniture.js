@@ -915,9 +915,28 @@ export function* createAtlantisExplorationFurnitureSteps(
 
     // 宿主快照索引不污染集成方稍后仍在追加的城市碰撞数组。
     const hostGrid = createStaticColliderGrid([...hostColliders]);
+    // 同批新增家具仍按原顺序检查，只提前排除包围盒完全分离的静态盒。
+    // 弧盖的小盒数量很多，不能让每件后续家具都逐棱扫掠全部远处弧盖。
+    let localBounds = new WeakMap();
     const queryHosts = (min, max) => [
       ...hostGrid.query(min, max),
-      ...colliders,
+      ...colliders.filter((host) => {
+        if (host.type !== "box") return true;
+        let bounds = localBounds.get(host);
+        if (!bounds) {
+          bounds = new THREE.Box3().setFromPoints(boxEdges(host).flat());
+          localBounds.set(host, bounds);
+        }
+        const padding = 1e-5;
+        return (
+          bounds.min.x <= max.x + padding &&
+          bounds.max.x >= min.x - padding &&
+          bounds.min.y <= max.y + padding &&
+          bounds.max.y >= min.y - padding &&
+          bounds.min.z <= max.z + padding &&
+          bounds.max.z >= min.z - padding
+        );
+      }),
     ];
     // 同步构造期间宿主形状不变；仅缓存宿主盒，原始/缩底候选仍独立计算。
     let hostEdges = new WeakMap();
@@ -1052,6 +1071,7 @@ export function* createAtlantisExplorationFurnitureSteps(
     });
     // 布置结束后主动解除临时缓存引用，不随 update/dispose 闭包保留。
     hostEdges = null;
+    localBounds = null;
     const scatterMeshes = scatterPieces(scatterTransforms, seed + 3);
 
     b.bucket.build(atlantisMaterials(), root, owned);

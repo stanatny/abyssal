@@ -1,5 +1,32 @@
 # ABYSSAL
 
+Accepted rendering checkpoint — 2026-10-22: the user requests committing the
+current performance and graphics-recovery candidate, then separately improving
+Kraken motion and camera clipping through large pursuers. All 1,167 delivered
+input hashes match before these acceptance-only notes. The recorded 1,552-test
+and native/public evidence keeps its original scope; the original physical-phone
+stall and complete black-surface incident remain unconfirmed on this host.
+This authorizes a local checkpoint only, without push or main publication.
+The following pending labels are historical for this checkpoint. New Kraken and
+camera changes require separate review and remain uncommitted by default.
+
+Graphics recovery candidate — 2026-10-22: the user reports dark, detail-free
+surfaces on a physical phone after a gate-entry stall and Continue. Forced context
+loss confirms missing regenerated environment pixels; repair recreates active
+lighting, retires stale renderer resources and blocks Continue until a first
+restored frame is ready. See [the recovery review](docs/graphics_context_recovery.md).
+The complete phone failure and original stall trigger remain unverified on this
+host; preserve the preceding performance candidate and do not claim acceptance.
+No new commit/push or formal release.
+
+Atlantis preparation optimization candidate — 2026-10-22: accepted civic/material
+work is locally committed as `5c70e44`. The current agent independently reduces
+redundant furniture collision queries, packed-byte decoding allocations and
+mismatched HDR shader precompilation. Appearance and gameplay remain unchanged.
+See [the measured review](docs/atlantis_runtime_optimization.md); host preparation
+improvements do not establish physical-phone FPS or thermal gains. This new
+candidate remains uncommitted/unpushed for review.
+
 Accepted Atlantis city checkpoint — 2026-10-22: the user says “可以先提交一版，
 看起来还不错”, accepting the civic components and material/wall-stability follow-up.
 All 1,160 delivered inputs match before these acceptance-only notes. The recorded

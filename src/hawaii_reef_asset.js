@@ -1,3 +1,4 @@
+import { decodePackedArray } from "./packed_array.js";
 import * as THREE from "three";
 import reef_branch from "./assets/models/reef_branch_hf_mesh.json" with { type: "json" };
 import reef_fan from "./assets/models/reef_fan_hf_mesh.json" with { type: "json" };
@@ -56,18 +57,12 @@ export function acquireHawaiiReefAsset(kind) {
     geometry.computeBoundingBox();
     geometry.computeBoundingSphere();
     const farGeometry = geometry.clone();
-    const farIndex = Uint8Array.from(atob(packed.farIndex), (c) =>
-      c.charCodeAt(0),
-    );
-    farGeometry.setIndex(
-      new THREE.BufferAttribute(new Uint16Array(farIndex.buffer), 1),
-    );
-    const farNormal = Uint8Array.from(atob(packed.farNormal), (c) =>
-      c.charCodeAt(0),
-    );
+    const farIndex = decodePackedArray(packed.farIndex, Uint16Array);
+    farGeometry.setIndex(new THREE.BufferAttribute(farIndex, 1));
+    const farNormal = decodePackedArray(packed.farNormal, Int16Array);
     farGeometry.setAttribute(
       "normal",
-      new THREE.BufferAttribute(new Int16Array(farNormal.buffer), 3, true),
+      new THREE.BufferAttribute(farNormal, 3, true),
     );
     const material = new THREE.MeshStandardMaterial({
       vertexColors: true,
