@@ -106,9 +106,12 @@ export function createMechanicalTorpedoFx(parent) {
     for (const p of shots) {
       if (!p.active) continue;
       for (let i = 0; i < 12; i++) {
+        const behind = (p.visualLength ?? 2.2) + 0.1 + i * 0.55;
+        // 气泡只出现在弹尾已经经过的区间，首帧不在鱼身下方补出整条尾迹。
+        if (behind > p.distance) break;
         dummy.position
           .copy(p.mesh.position)
-          .addScaledVector(p.direction, -1.3 - i * 0.55);
+          .addScaledVector(p.direction, -behind);
         dummy.position.y += Math.sin(i * 1.7 + p.distance * 0.4) * 0.08;
         dummy.scale.setScalar(0.6 + i * 0.025);
         dummy.updateMatrix();

@@ -336,7 +336,11 @@ test("共享装甲资源但独立关节和尾焰，真实口部/发射口朝前�
       assert.ok(Number.isFinite(value));
   });
   assert.ok(a.userData.getFeedingMouth(new THREE.Vector3()).z < -0.39);
-  assert.ok(a.userData.getTorpedoMuzzle(new THREE.Vector3()).z < -0.44);
+  const muzzle = a.userData.getTorpedoMuzzle(new THREE.Vector3());
+  assert.ok(muzzle.z > -0.3 && muzzle.z < -0.22 && muzzle.y < -0.1);
+  assert.ok(
+    a.userData.getFeedingMouth(new THREE.Vector3()).distanceTo(muzzle) > 0.15,
+  );
   const tail = a.getObjectByName("tail_servo");
   let min = Infinity,
     max = -Infinity;

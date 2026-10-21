@@ -1,3 +1,11 @@
+# v0.11.15 release verification — 2026-10-21
+
+All 1,086 accepted belly-rack inputs match before release-only metadata edits.
+The recorded 35 focused /1,503 full tests and native/public preview checks
+retain their actual candidate scope. Exact-main Node22 CI, production hashes
+and Pages native-flow receipts are recorded under `.local/release_v0_11_15/`;
+see [the release record](release_v0_11_15.md).
+
 # v0.11.14 release verification — 2026-10-21
 
 All 1,078 accepted inputs match the delivered CPU candidate before release-only

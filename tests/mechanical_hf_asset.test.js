@@ -190,7 +190,8 @@ test("3/15/30米极端动作表面和根部有界，口部随真实下颌、出�
           size.x < length * 0.65,
       );
       const exit = a.root.userData.getTorpedoMuzzle(new THREE.Vector3());
-      assert.ok(exit.z < -0.44 * length);
+      assert.ok(exit.z > -0.3 * length && exit.z < -0.22 * length);
+      assert.ok(exit.y < -0.1 * length);
     }
   }
 });

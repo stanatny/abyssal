@@ -1,5 +1,15 @@
 # ABYSSAL Development Rules
 
+Main publication authorized — 2026-10-21: the user accepts the Mechanical
+Shark belly-rack candidate, requests commit/push, then explicitly requests
+merging it into main. Release v0.11.15 follows v0.11.14 / `80839ba`. All 1,086
+reviewed input hashes match before release-only metadata changes. Preserve the
+single visible round, real belly origin, cooldown replenishment, feeding mouth
+and other gameplay. The current agent integrates alone, preserving services and
+historical work. Earlier pending/no-push labels are superseded for this scope;
+future changes return to default authorization. No tag or GitHub Release is
+requested. See [the release record](docs/release_v0_11_15.md).
+
 Main publication authorized — 2026-10-21: the user requests committing and
 pushing the accepted changes to main. This supersedes the earlier local-only
 and pending labels for the accumulated Hawaii redraws, selected combat/lord

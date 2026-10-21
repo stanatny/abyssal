@@ -1,3 +1,19 @@
+# Main publication v0.11.15 — 2026-10-21
+
+Main publication authorized — 2026-10-21: the user accepts the Mechanical
+Shark belly-rack candidate, requests commit/push, then explicitly requests
+merging it into main. Release v0.11.15 follows v0.11.14 / `80839ba`. All 1,086
+reviewed input hashes match before release-only metadata changes. Preserve the
+single visible round, real belly origin, cooldown replenishment, feeding mouth
+and other gameplay. The current agent integrates alone, preserving services and
+historical work. Earlier pending/no-push labels are superseded for this scope;
+future changes return to default authorization. No tag or GitHub Release is
+requested. See [the release record](docs/release_v0_11_15.md).
+
+# Mechanical launch presentation candidate — 2026-10-21
+
+The current agent independently addresses the user's missile-origin feedback on `fix/mechanical-launch-presentation`, based on `80839ba`. The user subsequently chooses one visible belly-mounted torpedo instead of the jaw bay. The round fires from the actual rack and replenishes through a downward deployment and clamp animation within the existing cooldown. The mouth stays dedicated to feeding; weapon costs, timing and damage are preserved. Current belly-rack evidence supersedes the preceding jaw-bay candidate. See [the review](docs/mechanical_launch_presentation_revision.md) and `.local/mechanical_belly_launcher_20261021/` for current evidence. This candidate awaits user visual review; no commit/push or formal release is authorized. Preserve other models, existing services and historical worktrees. Main/Pages remains v0.11.14.
+
 # Main publication v0.11.14 — 2026-10-21
 
 Documentation follow-up — 2026-10-21: the user requests lessons from the Hawaii optimization and then authorizes committing and pushing these documents to main. The [retrospective](docs/hawaii_redraw_retrospective.md) records observed failures and useful decisions; existing creature/map Skills link focused project-specific references. General methods are recorded in personal project knowledge, with no personal Skill modification. Runtime remains identical to released v0.11.14 / `ebdd86e`; this documentation publication requires no version bump. Existing services and historical work remain untouched. Historical game-test receipts below are not new tests for this documentation task; future changes return to the default authorization rule.

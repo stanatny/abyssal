@@ -1,5 +1,7 @@
 # ABYSSAL
 
+Mechanical Shark belly-rack release — 2026-10-21: the user accepts and authorizes [v0.11.15](docs/release_v0_11_15.md) for main. One visible hanging torpedo fires from the actual mount and replenishes within the existing cooldown; the mouth remains dedicated to feeding. Exact-main CI and Pages verification are recorded separately from the accepted preview.
+
 Hawaii retrospective — 2026-10-21: [lessons and rejected approaches](docs/hawaii_redraw_retrospective.md), with focused integration guidance in the repository Creature Polish and Map Production Skills. This follow-up changes documentation only; runtime remains the released v0.11.14.
 
 Main publication authorized — 2026-10-21: the user requests committing and

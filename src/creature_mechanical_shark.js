@@ -14,6 +14,7 @@ import {
   placeMechanicalPart,
 } from "./mechanical_shark_hardware.js";
 import { poseSharkPectorals } from "./shark_swim_motion.js";
+import { createMechanicalLauncher } from "./mechanical_launcher.js";
 
 /**
  * HF重建的钛甲鲨：独立尾部/颌/胸鳍骨架，既有出口与双推进器特效。
@@ -22,8 +23,6 @@ import { poseSharkPectorals } from "./shark_swim_motion.js";
  * @returns {void} 安装共享装甲、实例动作与口部/发射口接口。
  */
 export function buildMechanicalShark(root, motions) {
-  root.userData.prepareMaterials = prepareMechanicalSharkMaterials;
-  prepareMechanicalSharkMaterials({ priority: 10 });
   const { body, bones } = createMechanicalSharkRig(root),
     torso = bones[0],
     jaw = bones[4];
@@ -31,12 +30,27 @@ export function buildMechanicalShark(root, motions) {
   addFeedingMouth(root, jaw, [0, 0.021, -0.154]);
   const muzzle = new THREE.Object3D();
   muzzle.name = "ventral_torpedo_exit";
-  muzzle.position.set(0, -0.066, -0.465 - torso.position.z);
   torso.add(muzzle);
-  const housing = new THREE.Mesh(PORT, STEEL);
-  housing.name = "ventral_launcher_collar";
-  muzzle.add(housing);
-  root.userData.getTorpedoMuzzle = (out) => muzzle.getWorldPosition(out);
+  const launcher = createMechanicalLauncher(muzzle, root);
+  root.userData.getTorpedoMuzzle = (out) => {
+    launcher.update(0);
+    return muzzle.getWorldPosition(out);
+  };
+  root.userData.prepareMaterials = async (options) => {
+    const results = await Promise.all([
+      prepareMechanicalSharkMaterials(options),
+      launcher.prepareMaterials(options),
+    ]);
+    return results.every(Boolean);
+  };
+  Object.defineProperty(root.userData.prepareMaterials, "state", {
+    get: () =>
+      prepareMechanicalSharkMaterials.state === "ready" &&
+      launcher.prepareMaterials.state === "ready"
+        ? "ready"
+        : "pending",
+  });
+  root.userData.prepareMaterials({ priority: 10 });
   const detail = new THREE.Mesh(energyGeometry(), ENERGY);
   detail.name = "recessed_energy_apertures";
   detail.position.z = -torso.position.z;
@@ -54,7 +68,7 @@ export function buildMechanicalShark(root, motions) {
   const flash = new THREE.Mesh(
     FLASH,
     new THREE.MeshBasicMaterial({
-      color: 0xffdaa6,
+      color: 0xc3f6ff,
       transparent: true,
       opacity: 0,
       blending: THREE.AdditiveBlending,
@@ -70,11 +84,15 @@ export function buildMechanicalShark(root, motions) {
   let launch = 0,
     disposed = false;
   root.userData.triggerLaunch = () => {
-    if (!disposed) launch = 1;
+    if (!disposed) {
+      launch = 1;
+      launcher.fire();
+    }
   };
   const resetMotion = root.userData.resetMotion;
   root.userData.resetMotion = () => {
     launch = 0;
+    launcher.reset();
     resetMotion?.();
   };
   root.userData.normalizedLength = 1;
@@ -103,6 +121,7 @@ export function buildMechanicalShark(root, motions) {
     torso.rotation.z = -turn * 0.13;
     poseSharkPectorals(fins, phase, state, 0.9);
     launch *= Math.exp(-(state.dt || 0) * 11);
+    const chamber = launcher.update(state.dt || 0);
     jaw.rotation.x = -(state.feed || 0) * 0.16;
     for (const [i, flame] of flames.entries()) {
       flame.visible = boost > 0.015;
@@ -117,6 +136,9 @@ export function buildMechanicalShark(root, motions) {
       tailYaw: bones[1].rotation.y,
       boost,
       launch,
+      chamberOpen: chamber.open,
+      chamberLoaded: chamber.loaded,
+      reloadProgress: chamber.reload,
       plumes: boost > 0.015 ? 2 : 0,
     });
   });
@@ -129,37 +151,11 @@ export function buildMechanicalShark(root, motions) {
     });
     flash.visible = false;
     flash.material.dispose();
+    launcher.dispose();
     body.skeleton.dispose();
   };
 }
 
-const STEEL = new THREE.MeshStandardMaterial({
-  color: 0x696764,
-  metalness: 0.75,
-  roughness: 0.36,
-});
-// 短矩形喉口贴合下颌护甲，发射锚点保持原契约，不形成悬空长管。
-const opening = new THREE.Shape();
-opening.moveTo(-0.019, -0.008);
-opening.lineTo(0.019, -0.008);
-opening.lineTo(0.016, 0.008);
-opening.lineTo(-0.016, 0.008);
-opening.closePath();
-const throat = new THREE.Path();
-throat.moveTo(-0.012, -0.0045);
-throat.lineTo(-0.01, 0.0045);
-throat.lineTo(0.01, 0.0045);
-throat.lineTo(0.012, -0.0045);
-throat.closePath();
-opening.holes.push(throat);
-const PORT = new THREE.ExtrudeGeometry(opening, {
-  depth: 0.016,
-  bevelEnabled: true,
-  bevelThickness: 0.0015,
-  bevelSize: 0.0015,
-  bevelSegments: 1,
-  steps: 1,
-});
 const FLASH = new THREE.SphereGeometry(0.011, 12, 8);
 // 外层蓝焰与短白芯合并为同一个几何/绘制，喷口处半径仍贴合原出口。
 const plumeShells = [
@@ -196,9 +192,6 @@ function energyGeometry() {
       path.add(new THREE.LineCurve3(points[i - 1], points[i]));
     pieces.push(new THREE.TubeGeometry(path, 12, 0.0015, 4, false));
   }
-  const port = new THREE.BoxGeometry(0.021, 0.0015, 0.0015);
-  port.translate(0, -0.061, -0.467);
-  pieces.push(port);
   energy = mergeGeometries(pieces);
   pieces.forEach((g) => g.dispose());
   return energy;

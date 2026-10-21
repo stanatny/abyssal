@@ -2,6 +2,7 @@ import { createAreaBlast } from "./area_blast.js";
 import * as THREE from "three";
 import { createAttackTorpedoModel } from "./submarine_defense.js";
 import { createMechanicalTorpedoFx } from "./mechanical_torpedo_fx.js";
+import { mechanicalTorpedoVisualLength } from "./mechanical_launcher.js";
 import { sweptCaptureFraction } from "./prey_capture.js";
 import { createMechanicalAim } from "./mechanical_torpedo_aim.js";
 import {
@@ -36,6 +37,9 @@ export function createMechanicalTorpedoes(
     disposed = false;
   const projectiles = Array.from({ length: RULES.poolSize }, () => {
     const mesh = createAttackTorpedoModel(2.2);
+    // 物理根节点不动：只把本实例的弹鼻对齐挂架弹鼻，发射前后保持完整弹体连续。
+    // 潜艇共用的资源与发射方式保持原样。
+    for (const part of mesh.children) part.position.z += 0.5;
     mesh.visible = false;
     parent.add(mesh);
     return {
@@ -47,6 +51,7 @@ export function createMechanicalTorpedoes(
       aimCheckAt: 0,
       previous: new THREE.Vector3(),
       distance: 0,
+      visualLength: 2.2,
       expiresAt: 0,
     };
   });
@@ -91,6 +96,8 @@ export function createMechanicalTorpedoes(
     )
       return false;
     if (!activateTorpedo(state, player, underwater)) return false;
+    p.visualLength = mechanicalTorpedoVisualLength(player.length);
+    p.mesh.scale.setScalar(p.visualLength);
     p.mesh.position.copy(origin);
     p.previous.copy(origin);
     p.direction.copy(direction).normalize();
