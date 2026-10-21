@@ -7,6 +7,8 @@ import {
   loadAcceptedAtlantis,
   validateAcceptedAtlantisSnapshot,
 } from "./helpers/accepted_atlantis_oracle.js";
+import { cityArchitecture } from "../src/atlantis_architecture.js";
+import { atlantisMaterials } from "../src/atlantis_art_geometry.js";
 import { createAtlantisOceanAsync } from "../src/atlantis_ocean.js";
 
 test("分片古城保留已验收版本的全部实体、障碍及近景模型数据", async (context) => {
@@ -24,11 +26,34 @@ test("分片古城保留已验收版本的全部实体、障碍及近景模型�
   assert.equal(hash(ocean.colliders), hash(reference.colliders));
   assert.equal(hash(ocean.obstacles), hash(reference.obstacles));
   assert.equal(ocean.city.stats.colliders, 20964);
+  // The approved-layout oracle remains frozen. Only the two deliberately replaced
+  // render assets are exempt: Poseidon and non-emissive obelisk stone/bronze.
+  // Original obelisk light glyphs and every other city mesh remain byte-exact.
+  const geometryDigest = (g) => {
+    const h = createHash("sha256");
+    for (const key of Object.keys(g.attributes).sort()) {
+      h.update(key);
+      h.update(Buffer.from(g.attributes[key].array.buffer));
+    }
+    if (g.index) h.update(Buffer.from(g.index.array.buffer));
+    return h.digest("hex");
+  };
+  const replacedObelisk = new Set(
+    cityArchitecture("obelisk")
+      .parts.filter((p) => p.material !== atlantisMaterials().guideTeal)
+      .map((p) => geometryDigest(p.geometry)),
+  );
   const geometryHash = (root) => {
     const digest = createHash("sha256");
     root.traverse((node) => {
       if (!node.isMesh) return;
       const geometry = node.geometry;
+      if (
+        node.parent?.name === "poseidon_monument" ||
+        node.material.name === "atlantis_obelisk_hf_stone" ||
+        replacedObelisk.has(geometryDigest(geometry))
+      )
+        return;
       digest.update(
         JSON.stringify({
           name: node.name,

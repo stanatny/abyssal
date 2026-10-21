@@ -281,6 +281,11 @@ test("City disposal releases private geometry and instance buffers once, preserv
   const first = createAtlantisCity(parent, { heightAt: seabedHeight });
   const second = createAtlantisCity(parent, { heightAt: seabedHeight });
   const shared = new Set(GEOMETRIES.values());
+  // HF monuments use refcounted caches outside the procedural kit registry.
+  // A buffer still referenced by the second live city is not privately owned.
+  second.root.traverse((node) => {
+    if (node.geometry) shared.add(node.geometry);
+  });
   const sharedMaterials = new Set();
   second.root.traverse((node) => {
     if (node.material) sharedMaterials.add(node.material);

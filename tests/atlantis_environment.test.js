@@ -121,6 +121,11 @@ test("Region disposal releases owned buffers once while preserving shared city a
   const second = createAtlantisOcean(scene);
   const tracked = new Map();
   const shared = new Set(GEOMETRIES.values());
+  // HF monuments use refcounted caches outside the procedural kit registry.
+  // A buffer still referenced by the second live city is not privately owned.
+  second.root.traverse((node) => {
+    if (node.geometry) shared.add(node.geometry);
+  });
   first.root.traverse((node) => {
     if (node.geometry && !tracked.has(node.geometry)) {
       tracked.set(node.geometry, 0);

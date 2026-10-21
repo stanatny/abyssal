@@ -1,5 +1,22 @@
 # ABYSSAL Development Rules
 
+Accepted Atlantis monuments checkpoint — 2026-10-21: the user says
+“提交吧，亚特兰蒂斯古城，其他海底建筑也想办法重绘一下吧”, accepting
+Poseidon and the six inscribed obelisks and authorizing a local commit. All
+1,143 delivered inputs match before these acceptance-only notes; prior 1,538-test
+and native/public receipts retain their original scope. The current agent
+continues independently with other unredrawn city architecture through HF,
+preserving openings, interiors, grown-body routes and accepted assets. No push
+or main publication is requested; the next candidates require visual review.
+
+Atlantis monument candidates — 2026-10-21: accepted boats/Pelican are locally
+committed as `fc19861`, without push. The current agent independently adds actual
+HF Poseidon and six obelisk visuals, preserving all city collision/placement/
+landmark/light contracts and accepted assets. All 1,538 tests and native load,
+retry, disposal, grown-route and bilingual preview checks pass. New monuments
+await user visual acceptance; no new commit or publication. See
+[the monument review](docs/atlantis_monuments_huggingface_redraw.md).
+
 Accepted Atlantis surface checkpoint — 2026-10-21: the user says
 “提交，下一批”, authorizing a local commit of the three night boats and the
 missed Brown Pelican replacement. All 1,134 delivered inputs match before these

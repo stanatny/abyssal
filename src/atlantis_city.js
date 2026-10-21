@@ -11,6 +11,7 @@ import {
   paintStone,
   seededRandom,
 } from "./atlantis_art_geometry.js";
+import { acquireAtlantisMonumentAsset } from "./atlantis_monument_asset.js";
 import { buildPoseidon } from "./atlantis_art_poseidon.js";
 import {
   createAtlantisUnderwaysSteps,
@@ -60,6 +61,20 @@ export function* createAtlantisCitySteps(parent, { heightAt } = {}) {
   try {
     const random = seededRandom(9517);
     const records = [];
+    const monumentAssets = new Map();
+    function monumentAsset(kind) {
+      if (!monumentAssets.has(kind)) {
+        const asset = acquireAtlantisMonumentAsset(kind);
+        monumentAssets.set(kind, asset);
+        owned.add({ dispose: asset.release });
+        asset.prepare();
+      }
+      return monumentAssets.get(kind);
+    }
+    root.userData.prepareMaterials = (options) =>
+      Promise.all(
+        [...monumentAssets.values()].map((asset) => asset.prepare(options)),
+      );
     let disposed = false;
     // 特殊台基先保留空间，避免普通住宅在稍后放入的神殿、圆亭或塔楼中被掩埋。
     const residentialReservations = [
@@ -278,7 +293,17 @@ export function* createAtlantisCitySteps(parent, { heightAt } = {}) {
         });
       }
       if (footing) foundation(x, z, width, depth, y);
-      for (const part of kit.parts)
+      // 新纪念碑沿用原套件的尺寸、地基和碰撞；青色近距刻痕仍由原材质负责。
+      const parts =
+        kind === "obelisk"
+          ? [
+              monumentAsset("obelisk"),
+              ...kit.parts.filter(
+                (part) => part.material === materials.guideTeal,
+              ),
+            ]
+          : kit.parts;
+      for (const part of parts)
         instance(part.geometry, part.material, x, y, z, {
           scale: [scale, scale, scale],
           rotation,
@@ -467,26 +492,21 @@ export function* createAtlantisCitySteps(parent, { heightAt } = {}) {
     const statueScale = 1.55,
       origin = { x: 0, y: footprintHeights(0, -865, 42, 36).max + 1, z: -865 };
     foundation(0, -865, 42, 36, origin.y);
-    const statueBucket = new MergeBucket();
-    const statue = buildPoseidon(
-      {
-        add(geo, key, transform) {
-          statueBucket.add(geo, key, {
-            position: [
-              origin.x + (transform?.position?.[0] || 0) * statueScale,
-              origin.y + (transform?.position?.[1] || 0) * statueScale,
-              origin.z + (transform?.position?.[2] || 0) * statueScale,
-            ],
-            scale: statueScale,
-          });
-        },
-      },
-      { x: 0, y: 0, z: 0 },
-    );
+    // 原雕像只读取接触/地标契约，显示面由独立HF资产承载，避免破坏其图集。
+    const statue = buildPoseidon({ add() {} }, { x: 0, y: 0, z: 0 });
     const statueGroup = new THREE.Group();
     statueGroup.name = "poseidon_monument";
     root.add(statueGroup);
-    statueBucket.build(materials, statueGroup, owned);
+    const statueAsset = monumentAsset("poseidon");
+    const statueMesh = new THREE.Mesh(
+      statueAsset.geometry,
+      statueAsset.material,
+    );
+    statueMesh.name = "poseidon_hf_monument";
+    statueMesh.position.set(origin.x, origin.y, origin.z);
+    statueMesh.scale.setScalar(statueScale);
+    statueMesh.receiveShadow = true;
+    statueGroup.add(statueMesh);
     for (const c of statue.colliders)
       colliders.push(
         transformedCollider(c, origin.x, origin.y, origin.z, statueScale, 0),
