@@ -3,6 +3,7 @@ import assert from "node:assert/strict";
 import { createHash } from "node:crypto";
 import * as THREE from "three";
 import { createOcean } from "../src/ocean.js";
+import baseline from "./fixtures/hawaii_colliders_5cea32f.json" with { type: "json" };
 import { acquireHawaiiReefAsset } from "../src/hawaii_reef_asset.js";
 import { createHawaiiReefDecorations } from "../src/hawaii_reef_decorations.js";
 
@@ -56,13 +57,35 @@ test("normal reef construction loads all four colors without a debug prepare cal
   }
 });
 
-test("reef redraw retains pre-redraw colony anchors and static collision layout", () => {
+test("reef redraw retains pre-redraw colony anchors and static collision layout", (t) => {
   const ocean = createOcean(new THREE.Scene());
   try {
-    assert.equal(
-      hash(ocean.colliders),
-      "f6a0dd36770ededae83bff23c2956b743f84a65e55a47baf59452c1af26d70f2",
-    );
+    // 原始 double 字符串哈希会放大平台 sin/cos 的末位差异；逐项保留结构、顺序和纳米级坐标约束。
+    let maxDelta = 0;
+    function compare(actual, expected, path = "colliders") {
+      assert.equal(typeof actual, typeof expected, path);
+      if (typeof expected === "number") {
+        const delta = Math.abs(actual - expected);
+        assert.ok(
+          Number.isFinite(actual) && delta <= 1e-9,
+          `${path}: ${actual} != ${expected}`,
+        );
+        maxDelta = Math.max(maxDelta, delta);
+      } else if (expected !== null && typeof expected === "object") {
+        assert.ok(actual !== null, path);
+        assert.equal(Array.isArray(actual), Array.isArray(expected), path);
+        assert.deepEqual(Object.keys(actual), Object.keys(expected), path);
+        for (const key of Object.keys(expected))
+          compare(actual[key], expected[key], `${path}.${key}`);
+      } else assert.equal(actual, expected, path);
+    }
+    // 快照来源和数量不能跟着当前实现重新生成后静默接受。
+    assert.equal(hash(baseline.colliders), baseline.originalSha256);
+    assert.equal(baseline.colliders.length, 646);
+    compare(ocean.colliders, baseline.colliders);
+    t.diagnostic(`Collider snapshot maximum numeric delta: ${maxDelta}`);
+    assert.throws(() => compare([1.001], [1]), /colliders.0/);
+    assert.throws(() => compare([1, 1], [1]));
     assert.equal(ocean.obstacles.length, 401);
     // 锚点快照来自提交前的独立旧版工厂，按 GPU float32 精度比较。
     for (const [group, expected] of [

@@ -66,3 +66,16 @@ runtime archives and historical worktrees. The published payload contains only
 The preceding published checkpoint is v0.11.13 / `110494c`. A rollback should
 revert the integrated changes with matching version/footer metadata under the
 user's publication authorization, without destroying services or accepted work.
+
+## CI portability correction
+
+The first exact-main run `39538245123` fails one of 1,498 checks: a reef-layout
+assertion hashes raw floating-point JSON and obtains a different digest on
+Linux x64. No deployment occurs from that run. Both local Node22 and Node24
+reproduce the original accepted digest and retain exact old/new collider
+equality. Replace that fragile digest comparison with the preserved pre-reef
+646-collider snapshot: exact structure, order, types and nonnumeric fields,
+with a 1e-9 absolute bound on each finite numeric value. The fixture retains
+its original accepted digest; negative checks reject real movement and count
+changes. CI reports the actual maximum numeric deviation. No production code
+or built artifact changes in this correction; the failed receipt is preserved.
