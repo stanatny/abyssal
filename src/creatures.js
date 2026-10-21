@@ -49,6 +49,10 @@ import {
   ATLANTIS_CREATURE_KINDS,
   buildAtlantisCreature,
 } from "./creature_atlantis.js";
+import {
+  ATLANTIS_HF_PREDATORS,
+  buildAtlantisPredatorHF,
+} from "./creature_atlantis_hf.js";
 import { createPlayerMotion } from "./player_motion.js";
 import { SHOAL_CREATURE_KINDS, buildShoalCreature } from "./creature_shoal.js";
 import {
@@ -136,6 +140,8 @@ export function createCreature(kind, length = 6, seed = 1) {
     buildMarianaCreature(kind, root, motions);
   else if (BERMUDA_CREATURE_KINDS.has(kind))
     buildBermudaCreature(kind, root, motions);
+  else if (ATLANTIS_HF_PREDATORS.has(kind))
+    buildAtlantisPredatorHF(kind, root, motions);
   else if (ATLANTIS_CREATURE_KINDS.has(kind))
     buildAtlantisCreature(kind, root, motions);
   else if (kind === "archelon" || kind === "turtle")

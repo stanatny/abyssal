@@ -1,5 +1,15 @@
 # ABYSSAL
 
+Accepted Atlantis first-batch checkpoint — 2026-10-21: the user says “可以，提交吧，下一批”, accepting Blue Shark, Swordfish, Helicoprion and Ichthyosaur and authorizing their local commit. All 1,103 delivered input hashes match before these acceptance notes. Recorded 1,513-test/native/public evidence retains its unchanged-input scope; no new test run is implied. The current AI agent continues independently with Spadefish, Seahorse, Cuttlefish and Pearl Nautilus. Preserve accepted assets, gameplay and services. New candidates require user review; no push or formal release is requested.
+
+Atlantis first HF batch — 2026-10-21: the user requests bounded redraw batches
+and excludes already improved creatures/scenery. The current AI agent alone
+adds Blue Shark, Swordfish, Helicoprion and Ichthyosaur candidates on
+`art/atlantis-hf-redraw`, based on main `3aef21e` / v0.11.15. Shared accepted
+Hawaii creatures, Kraken, players, Atlantis layout and gameplay are preserved.
+See [the batch review](docs/atlantis_creatures_huggingface_redraw.md). These four
+candidates await individual user review; no commit/push or formal release.
+
 Mechanical Shark belly-rack release — 2026-10-21: the user accepts and authorizes [v0.11.15](docs/release_v0_11_15.md) for main. One visible hanging torpedo fires from the actual mount and replenishes within the existing cooldown; the mouth remains dedicated to feeding. Exact-main CI and Pages verification are recorded separately from the accepted preview.
 
 Hawaii retrospective — 2026-10-21: [lessons and rejected approaches](docs/hawaii_redraw_retrospective.md), with focused integration guidance in the repository Creature Polish and Map Production Skills. This follow-up changes documentation only; runtime remains the released v0.11.14.
