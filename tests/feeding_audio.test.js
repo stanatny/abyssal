@@ -53,10 +53,12 @@ test("鱼声可重复合成，旧合成人声入口和非法采样率明确拒�
 // Web Audio 调度替身只验证节点生命周期；实际输出音量由 verify_audio 离线浏览器验收。
 function fishBuffers() {
   return new Map(
-    [0.34, 0.36, 0.38].map((duration, variant) => [
-      String(variant),
-      { duration, variant },
-    ]),
+    Object.entries({
+      ordinary: 0.34,
+      yellow: 0.44,
+      hurt: 0.52,
+      lord: 0.64,
+    }).map(([kind, duration]) => [kind, { duration, kind }]),
   );
 }
 
@@ -65,7 +67,7 @@ function audioFixture({
   humanVoiceBank,
   zombieAudioBank,
   fishReady = false,
-  fishBiteBank = {
+  combatAudioBank = {
     preload: () => Promise.resolve(),
     load: () => Promise.resolve(fishBuffers()),
   },
@@ -163,7 +165,7 @@ function audioFixture({
   const audio = new OceanAudio({
     context,
     humanVoiceBank,
-    fishBiteBank,
+    combatAudioBank,
     zombieAudioBank,
   });
   audio.createGraph();
@@ -177,8 +179,8 @@ function audioFixture({
   }
   if (fishReady) {
     for (const [variant, buffer] of fishBuffers())
-      audio.feedingBuffers.set(`fish_${variant}`, buffer);
-    audio.fishSoundState = "ready";
+      audio.feedingBuffers.set(`combat_${variant}`, buffer);
+    audio.combatSoundState = "ready";
   }
   return { audio, context, nodes };
 }
@@ -468,34 +470,22 @@ test("开始游戏自动准备真人录音，重复start共用同一准备任务
   assert.equal(audio.feedingVoices.size, 0);
 });
 
-test("水声录音相邻不重复、复用三个缓存，冷却拒绝不消耗变体", () => {
+test("普通与黄标使用各自选定的固定样本、共用冷却且复用缓存", () => {
   const { audio, context } = audioFixture({ fishReady: true });
-  const cache = new Map(audio.feedingBuffers),
-    played = new Set();
-  let previous;
+  const cache = new Map(audio.feedingBuffers);
   for (let index = 0; index < 18; index++) {
     context.currentTime = index * 0.12;
-    audio.eatFish();
+    const kind = index % 2 ? "yellow" : "ordinary";
+    audio.eatFish(1, kind);
     const source = [...audio.feedingVoices.keys()].at(-1);
-    assert.ok(source, "Allowed event must create one source");
-    assert.equal(source.buffer, cache.get(`fish_${audio.lastFishVariant}`));
-    assert.notEqual(source.buffer, previous);
-    assert.ok(
-      source.playbackRate.value >= 0.97 && source.playbackRate.value <= 1.03,
-    );
+    assert.strictEqual(source.buffer, cache.get(`combat_${kind}`));
+    assert.equal(source.playbackRate.value, 1);
     assert.equal(source.loop, false);
-    played.add(source.buffer);
-    previous = source.buffer;
-    const variant = audio.lastFishVariant,
-      randomState = audio.randomState;
-    audio.eatFish();
+    audio.eatFish(1, kind === "yellow" ? "ordinary" : "yellow");
     assert.equal(audio.feedingVoices.size, 1);
-    assert.equal(audio.lastFishVariant, variant);
-    assert.equal(audio.randomState, randomState);
     source.finish();
     assert.equal(source.disconnected, true);
   }
-  assert.equal(played.size, 3);
   assert.deepEqual(audio.feedingBuffers, cache);
   assert.equal(audio.voices.size, 0);
 });
@@ -504,7 +494,7 @@ test("水声预取不创建音频图，准备期间即时兜底且完成不补�
   let preloads = 0,
     loads = 0,
     resolveLoad;
-  const fishBiteBank = {
+  const combatAudioBank = {
     preload: async () => {
       preloads++;
     },
@@ -515,15 +505,15 @@ test("水声预取不创建音频图，准备期间即时兜底且完成不补�
       });
     },
   };
-  const menuAudio = new OceanAudio({ fishBiteBank });
-  assert.equal(await menuAudio.preloadFishSounds(), true);
+  const menuAudio = new OceanAudio({ combatAudioBank });
+  assert.equal(await menuAudio.preloadCombatSounds(), true);
   assert.equal(preloads, 1);
   assert.equal(menuAudio.context, null);
   assert.equal(menuAudio.ready, false);
-  const { audio, context } = audioFixture({ fishBiteBank });
-  const preparation = audio.prepareFishSounds();
-  assert.strictEqual(audio.prepareFishSounds(), preparation);
-  assert.equal(audio.fishSoundState, "loading");
+  const { audio, context } = audioFixture({ combatAudioBank });
+  const preparation = audio.prepareCombatSounds();
+  assert.strictEqual(audio.prepareCombatSounds(), preparation);
+  assert.equal(audio.combatSoundState, "loading");
   audio.eatFish();
   const fallback = [...audio.feedingVoices.keys()][0];
   assert.equal(fallback.buffer.duration, 0.3);
@@ -532,22 +522,19 @@ test("水声预取不创建音频图，准备期间即时兜底且完成不补�
   resolveLoad(fishBuffers());
   assert.equal(await preparation, true);
   assert.equal(loads, 1);
-  assert.equal(audio.fishSoundState, "ready");
+  assert.equal(audio.combatSoundState, "ready");
   assert.deepEqual([...audio.feedingVoices.keys()], before);
   context.currentTime = 0.12;
   audio.eatFish();
   const recorded = [...audio.feedingVoices.keys()].at(-1);
-  assert.equal(
-    recorded.buffer,
-    audio.feedingBuffers.get(`fish_${audio.lastFishVariant}`),
-  );
+  assert.equal(recorded.buffer, audio.feedingBuffers.get("combat_ordinary"));
   assert.notEqual(recorded.buffer, fallback.buffer);
 });
 
 test("水声失败可重试且不影响已就绪人声，人声失败也不阻塞水声", async () => {
   let loads = 0;
   const { audio } = audioFixture({
-    fishBiteBank: {
+    combatAudioBank: {
       preload: () => Promise.reject(new Error("Offline")),
       load: () =>
         ++loads === 1
@@ -555,9 +542,9 @@ test("水声失败可重试且不影响已就绪人声，人声失败也不阻�
           : Promise.resolve(fishBuffers()),
     },
   });
-  assert.equal(await audio.preloadFishSounds(), false);
-  assert.equal(await audio.prepareFishSounds(), false);
-  assert.equal(audio.fishSoundState, "unavailable");
+  assert.equal(await audio.preloadCombatSounds(), false);
+  assert.equal(await audio.prepareCombatSounds(), false);
+  assert.equal(audio.combatSoundState, "unavailable");
   audio.eatHuman(1, "female");
   assert.equal(
     [...audio.feedingVoices.keys()][0].buffer,
@@ -566,8 +553,8 @@ test("水声失败可重试且不影响已就绪人声，人声失败也不阻�
   audio.eatFish();
   assert.equal([...audio.feedingVoices.keys()].at(-1).buffer.duration, 0.3);
   const before = [...audio.feedingVoices.keys()];
-  assert.equal(await audio.prepareFishSounds(), true);
-  assert.equal(audio.fishSoundState, "ready");
+  assert.equal(await audio.prepareCombatSounds(), true);
+  assert.equal(audio.combatSoundState, "ready");
   assert.equal(loads, 2);
   assert.deepEqual([...audio.feedingVoices.keys()], before);
   const second = audioFixture({
@@ -577,14 +564,14 @@ test("水声失败可重试且不影响已就绪人声，人声失败也不阻�
   assert.deepEqual(
     await Promise.all([
       second.prepareHumanVoices(),
-      second.prepareFishSounds(),
+      second.prepareCombatSounds(),
     ]),
     [false, true],
   );
   second.eatFish();
   assert.equal(
     [...second.feedingVoices.keys()][0].buffer,
-    second.feedingBuffers.get(`fish_${second.lastFishVariant}`),
+    second.feedingBuffers.get("combat_ordinary"),
   );
 });
 
@@ -592,14 +579,14 @@ test("水声加载跨越暂停或重开不补播，静音不创建声源", async
   for (const mode of ["pause", "reset", "mute"]) {
     let resolveLoad;
     const { audio } = audioFixture({
-      fishBiteBank: {
+      combatAudioBank: {
         load: () =>
           new Promise((resolve) => {
             resolveLoad = resolve;
           }),
       },
     });
-    const preparation = audio.prepareFishSounds();
+    const preparation = audio.prepareCombatSounds();
     audio.eatFish();
     if (mode === "pause") audio.setPaused(true);
     if (mode === "reset") audio.reset();
@@ -622,7 +609,7 @@ test("开始入口独立准备水声，重复开始不重解码且重开保留�
   let loads = 0;
   const { audio } = audioFixture({
     humanVoiceBank: { load: () => Promise.resolve(new Map()) },
-    fishBiteBank: {
+    combatAudioBank: {
       load: () => {
         loads++;
         return Promise.resolve(fishBuffers());
@@ -632,7 +619,7 @@ test("开始入口独立准备水声，重复开始不重解码且重开保留�
   audio.update = () => {};
   audio.start();
   audio.start();
-  assert.equal(await audio.prepareFishSounds(), true);
+  assert.equal(await audio.prepareCombatSounds(), true);
   assert.equal(loads, 1);
   audio.eatFish();
   const source = [...audio.feedingVoices.keys()][0],
@@ -806,4 +793,66 @@ test("低优先级进食声不能取消技能让位，原时限后恢复正常�
   audio.reset();
   assert.equal(audio.duckLevel, 1);
   assert.equal(audio.duckUntil, 0);
+});
+
+test("密集吞食不饿死受伤与领主音效，受伤让位不被随后吞食解除", () => {
+  const { audio, context } = audioFixture({ fishReady: true });
+  for (let i = 0; i < 3; i++) {
+    context.currentTime = i * 0.1;
+    audio.eatFish();
+  }
+  audio.bitten();
+  audio.biteLord();
+  assert.equal(audio.combatVoices.size, 2);
+  assert.equal(audio.feedingVoices.size, 3);
+  assert.deepEqual(
+    [...audio.combatVoices.keys()].map((v) => v.buffer.kind),
+    ["hurt", "lord"],
+  );
+  assert.equal(audio.duckLevel, 0.54);
+  const until = audio.duckUntil;
+  context.currentTime = 0.4;
+  audio.eatFish();
+  assert.equal(audio.duckLevel, 0.54);
+  assert.ok(audio.duckUntil >= until);
+  audio.bitten();
+  assert.equal(audio.combatVoices.size, 2);
+  for (const v of audio.combatVoices.keys()) {
+    assert.equal(v.playbackRate.value, 1);
+    assert.equal(v.loop, false);
+  }
+  audio.reset();
+  assert.equal(audio.combatVoices.size, 0);
+  assert.equal(audio.voices.size, 0);
+});
+
+test("新选四音色暂停静音后不会复播，恢复复用同一缓存和音频图", () => {
+  for (const mode of ["pause", "mute"]) {
+    const { audio, context } = audioFixture({ fishReady: true });
+    audio.eatFish();
+    audio.bitten();
+    audio.biteLord();
+    const voices = [...audio.voices],
+      buffers = new Map(audio.feedingBuffers),
+      master = audio.master;
+    context.currentTime = 0.05;
+    if (mode === "pause") audio.setPaused(true);
+    else audio.toggle();
+    assert.equal(audio.combatVoices.size, 0);
+    assert.equal(audio.feedingVoices.size, 0);
+    for (const v of voices) {
+      assert.ok(v.stoppedAt <= 0.071);
+      v.finish();
+      assert.equal(v.disconnected, true);
+    }
+    audio.eatFish();
+    audio.bitten();
+    audio.biteLord();
+    assert.equal(audio.voices.size, 0);
+    if (mode === "pause") audio.setPaused(false);
+    else audio.toggle();
+    assert.equal(audio.voices.size, 0);
+    assert.equal(audio.master, master);
+    assert.deepEqual(audio.feedingBuffers, buffers);
+  }
 });

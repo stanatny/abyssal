@@ -2,6 +2,7 @@ import * as THREE from "three";
 import {
   hawaiiBatch7Asset,
   octopusSwimAnatomy,
+  SUNFISH_LATERAL_SCALE,
 } from "./hawaii_batch7_asset.js";
 import { bindOrganicBody } from "./hf_organic_asset.js";
 import { chainWeights, lordEffortSmoother } from "./hawaii_lord_rig.js";
@@ -45,9 +46,12 @@ export function buildHawaiiBatch7HF(kind, root, motions) {
         { side },
       );
     for (const side of [-1, 1])
-      add(`pectoral_${side}`, "pectoral", [[side * 0.19, -0.015, -0.2]], {
-        side,
-      });
+      add(
+        `pectoral_${side}`,
+        "pectoral",
+        [[side * 0.19 * SUNFISH_LATERAL_SCALE, -0.015, -0.2]],
+        { side },
+      );
     add("clavus", "clavus", [[0, 0, 0.37]]);
   } else if (kind === "tuna") {
     add("spine", "tail", [

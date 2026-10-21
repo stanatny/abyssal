@@ -31,7 +31,7 @@ function fixture(t) {
     ocean = createBermudaOcean(scene),
     encounters = createEncounters(scene, {
       seabedHeight: ocean.heightAt,
-      audio: { hit: noop, eat: noop, bossAttack: noop },
+      audio: { bitten: noop, biteLord: noop, bossAttack: noop },
       notify: noop,
       onDamage: noop,
       onBite: noop,

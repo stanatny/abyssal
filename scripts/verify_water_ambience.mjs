@@ -127,7 +127,7 @@ try {
         audio.start();
         if (spec.music) {
           await audio.prepareZombieSounds();
-          await audio.prepareFishSounds();
+          await audio.prepareCombatSounds();
         }
         audio.reset();
         audio.setRegion(spec.region || "hawaii");

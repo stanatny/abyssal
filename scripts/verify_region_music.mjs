@@ -624,7 +624,7 @@ try {
         audio.setRegion(entry.region);
         audio.start();
         const prepared = await Promise.all([
-          audio.prepareFishSounds(),
+          audio.prepareCombatSounds(),
           audio.prepareHumanVoices(),
         ]);
         if (prepared.some((ready) => !ready))

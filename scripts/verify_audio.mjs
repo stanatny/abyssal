@@ -3,6 +3,7 @@ import { mkdir, writeFile } from "node:fs/promises";
 import { chromium } from "@playwright/test";
 
 // 通过真实浏览器离线渲染各层音乐、全部音效和生命周期场景，保存试听与测量数据。
+const out = process.env.ABYSSAL_AUDIO_REPORT_DIR || ".local";
 const browser = await chromium.launch({ channel: "chrome", headless: true });
 const page = await browser.newPage();
 const baseUrl = process.env.ABYSSAL_DEV_URL || "http://127.0.0.1:5178";
@@ -91,7 +92,7 @@ try {
       audio.start();
       if (!(await audio.prepareHumanVoices()))
         throw new Error("Recorded voices failed to load");
-      if (!(await audio.prepareFishSounds()))
+      if (!(await audio.prepareCombatSounds()))
         throw new Error("Fish recordings failed to load");
       audio.reset();
       configure(audio);
@@ -247,30 +248,29 @@ try {
     const fishPlayback = [],
       fishPreview = [],
       fishChecks = [];
-    const playFish = (audio, size = 1) => {
+    const playFish = (audio, size = 1, kind = "ordinary") => {
       const before = new Set(audio.feedingVoices.keys());
-      audio.eatFish(size);
+      audio.eatFish(size, kind);
       const source = [...audio.feedingVoices.keys()].find(
         (node) => !before.has(node),
       );
       if (source)
         fishPlayback.push({
-          variant: [0, 1, 2].find(
-            (i) => source.buffer === audio.feedingBuffers.get(`fish_${i}`),
+          variant: ["ordinary", "yellow"].find(
+            (i) => source.buffer === audio.feedingBuffers.get(`combat_${i}`),
           ),
           rate: source.playbackRate.value,
           duration: source.buffer.duration,
           voices: audio.feedingVoices.size,
         });
     };
-    for (let variant = 0; variant < 3; variant++) {
+    for (const variant of ["ordinary", "yellow"]) {
       const buffer = await render(1.5, {
         configure(audio) {
           silenceBed(audio);
-          audio.lastFishVariant = variant - 1;
           audio.random = () => 0;
         },
-        events: [{ at: 0.125, run: (audio) => playFish(audio) }],
+        events: [{ at: 0.125, run: (audio) => playFish(audio, 1, variant) }],
       });
       fishPreview.push(buffer);
       fishChecks.push({ name: `fish_variant_${variant}`, ...measure(buffer) });
@@ -507,8 +507,8 @@ try {
     `Voice count is unbounded: ${result.maximumVoices}`,
   );
   assert.deepEqual(
-    result.fishPlayback.slice(0, 3).map((e) => e.variant),
-    [0, 1, 2],
+    result.fishPlayback.slice(0, 2).map((e) => e.variant),
+    ["ordinary", "yellow"],
   );
   assert.ok(
     result.fishPlayback.length >= 18,
@@ -516,11 +516,15 @@ try {
   );
   for (const entry of result.fishPlayback) {
     assert.ok(
-      Number.isInteger(entry.variant),
+      ["ordinary", "yellow"].includes(entry.variant),
       "Fish voice must use a decoded recording",
     );
     assert.ok(entry.rate >= 0.97 && entry.rate <= 1.03);
-    assert.ok(entry.duration >= 0.34 && entry.duration <= 0.38);
+    assert.ok(
+      Math.abs(entry.duration - (entry.variant === "yellow" ? 0.44 : 0.34)) <=
+        1 / 22050 + 1e-7,
+      `Unexpected decoded duration: ${entry.duration}`,
+    );
     assert.ok(entry.voices <= 3);
   }
   const fish = result.effectChecks.find((entry) => entry.name === "eat_fish");
@@ -582,12 +586,12 @@ try {
     "Ink muffling does not reduce high-frequency energy",
   );
   assert.deepEqual(errors, []);
-  await mkdir(".local", { recursive: true });
+  await mkdir(out, { recursive: true });
   for (const file of result.files)
-    await writeFile(`.local/${file.name}`, Buffer.from(file.data, "base64"));
+    await writeFile(`${out}/${file.name}`, Buffer.from(file.data, "base64"));
   delete result.files;
   await writeFile(
-    ".local/audio_validation.json",
+    `${out}/audio_validation.json`,
     JSON.stringify(result, null, 2),
   );
   console.log(JSON.stringify(result, null, 2));

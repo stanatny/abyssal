@@ -171,3 +171,55 @@ Final `src/assets/audio/zombie_corpse_burst.wav`:0.72 seconds, mono32 kHz PCM16,
 The current AI agent authors original procedural ambience in `src/water_ambience.js` and the existing `OceanAudio` mix, after user feedback about intrusive constant noise. No external audio is copied or downloaded for this sound. A six-second mono loop uses an independent seeded sequence,600 Hz one-pole coloring,0.1-second filter warm-up,0.5-second cosine end/start overlap and DC removal. Runtime water/current branches use240→150 Hz low-pass and310→230 Hz band-pass targets underwater, lower gains and gentle slow variation. Exact code/hash and generated output are bound in `.local/underwater_ambience_revision_20261010/` receipts; `scripts/verify_water_ambience.mjs` reproduces actual game-path comparison clips. The original transient effect-noise sequence and accepted sound files are unchanged.
 
 The reference study by Rogers et al., [Utility of ocean wave parameters in ambient noise prediction](https://arxiv.org/abs/2403.18728v3), uses hydrophones at six locations and wind/wave data to study ocean ambient noise. It supports treating ambience as a variable broadband environment rather than one fixed tonal effect. The candidate is a quieter stylized interpretation for gameplay; its selected frequency/depth/gain values are design choices, not that study’s measured ocean spectrum, nor an authentic hydrophone recording. No scientific claim that real deep water is always quieter is made. Actual graph clips are supplied for listening review rather than declaring realism from PCM metrics.
+
+## Selected combat audio — 2026-10-20
+
+The user selected Stable B for ordinary feeding and MOSS B for yellow-marked
+prey, player bite damage and successful lord bites. These four exact edited
+audition WAVs replace the three older fish variants in the current runtime;
+the older files and CC0 provenance above remain historical. Human voices,
+zombie skills, weapons, general impacts and ambience retain their existing
+assets and implementations. No new inference was needed for integration.
+
+| Runtime asset         | Selected candidate  | Duration | Bytes | SHA-256                                                            |
+| --------------------- | ------------------- | -------- | ----- | ------------------------------------------------------------------ |
+| `combat_ordinary.wav` | `stable_ordinary_2` | 0.34 s   | 32684 | `bd96a3017b4967a5e2ea40ccc723b86a5ed7aad758f88b0bfaed1d328c6beafc` |
+| `combat_yellow.wav`   | `moss_yellow_2`     | 0.44 s   | 42284 | `968a415706293bce5fa26da682f5ee4f5c2d669f6da3b17b1ae478b060c342da` |
+| `combat_hurt.wav`     | `moss_hurt_2`       | 0.52 s   | 49964 | `ef6043909e94f8ba8b0ae82e38444989ca2bb0acec1476c9f06fc3b7e27384de` |
+| `combat_lord.wav`     | `moss_lord_2`       | 0.64 s   | 61484 | `97eeeece14a7e52ee2b6bd7b04f750991f0c56ae62de0ee53d4f1119e623607d` |
+
+All are mono 48 kHz PCM16, copied byte-for-byte from the audition edits. Raw
+generations, seeds and processing receipts remain in the ignored audition
+evidence. Model sources, license labels, generation settings and the exact
+editing recipe are recorded in [the audition review](combat_audio_huggingface_audition.md).
+The generated outputs are not CC0 field recordings. Playback rate is fixed
+at 1; per-event gain, the existing depth filter and master compressor remain
+part of the game mix. The four short cues bypass the legacy 2.6-second effects
+reverb to preserve distinct attacks and avoid stale tails after pause.
+
+## Lord attack releases — 2026-10-20
+
+Fourteen user-approved MOSS SoundEffect v2.0 cues cover all18 lord kinds /22
+ability combinations. These are generated Foley, not wildlife recordings.
+[Generation, license links, timing and evidence](lord_attack_audio_revision.md).
+All files below are mono48 kHz PCM16; the delivered variantA is retained under
+the user’s 2026-10-20 approval to apply this version,
+with B alternatives for breath, roar and sword retained in the audition archive.
+The earlier four user-selected combat files remain byte-identical.
+
+| File                 | Seconds | Bytes  | SHA-256                                                            |
+| -------------------- | ------- | ------ | ------------------------------------------------------------------ |
+| `lord_breath.wav`    | 0.58    | 55724  | `34991aa102f941df2c5fbf3eb18fb2dea4e81ee77c47291655ccced98b38b4fb` |
+| `lord_charge.wav`    | 1.2     | 115244 | `977d0707fa3542fce3dde038cae8fab8a9d0cbbd826245bc7ab731f54dec4ee2` |
+| `lord_claw.wav`      | 0.7     | 67244  | `db2f728c73e67eee5ecf51553a38d128138e25922a08cf6d5c8d43248136487a` |
+| `lord_crystal.wav`   | 0.9     | 86444  | `d4f3ada8bd8b20b7e4a96034e678d53d493621b21b60667b7bb481a9f91129bd` |
+| `lord_fault.wav`     | 0.8     | 76844  | `82fd57430fa0875a85c70776d7e8635cf6ba64ef140d60b1ade212f0b5f9e3ea` |
+| `lord_fire.wav`      | 0.55    | 52844  | `3cff98b7be8fdbbbf7fd0e72ebd8fac41e4814a5c4a4965879de773c68b5848b` |
+| `lord_lash.wav`      | 0.48    | 46124  | `6f393789ec1299f01cd90330ab064c11d7bf3ec7046f58e7b74d643c7caae30b` |
+| `lord_lightning.wav` | 0.48    | 46124  | `2d1bd4ada2dfb1e82c2dd0e519209d2adef29927fca32450dc1d8b9296a444af` |
+| `lord_loom.wav`      | 2.3     | 220844 | `84df30a66ea82051f905f836a379228f417c019893d51db8321085325785e99b` |
+| `lord_pulse.wav`     | 0.95    | 91244  | `9c78926f4d5570acdab8af280c306556202b1cdbde1b772eca9dbbc84cff3a92` |
+| `lord_roar.wav`      | 1.8     | 172844 | `dc16590b319b687dd46c918cae8fac24c2137654e03094bc7d7a7643897d4f38` |
+| `lord_sword.wav`     | 0.65    | 62444  | `2e4a08dd547ab358d4781309855cbbb59fcd7a75353a9ca65d08e18a7b270cd5` |
+| `lord_vortex.wav`    | 2.3     | 220844 | `52b4f634416e296886f27bec9c3b8cb564de9ba822ed43ab032f8349ade93ca5` |
+| `lord_water.wav`     | 1.5     | 144044 | `74ea9cc9a96577696101bd1d5608b507fdf4b3ed0ba729cdeeb3bc07550f6208` |

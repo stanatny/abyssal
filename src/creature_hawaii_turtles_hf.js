@@ -5,6 +5,29 @@ import { lordEffortSmoother } from "./hawaii_lord_rig.js";
 
 const smooth = (a, b, value) => THREE.MathUtils.smoothstep(value, a, b);
 
+// 前鳍划水是闭合的三维回路：短促下压/后扫、翻转鳍面、较慢回收。
+// 角度是适配现有实体鳍肢的动画重建，不照搬研究中的测量坐标。
+const STROKE = [
+  [0, 0.48, -0.13, -0.42],
+  [0.29, -0.67, 0.4, -0.42],
+  [0.43, -0.48, 0.61, 0.3],
+  [0.77, 0.46, 0.16, 0.36],
+  [1, 0.48, -0.13, -0.42],
+];
+function strokePose(cycle, out) {
+  const u = ((cycle % 1) + 1) % 1;
+  for (let i = 1; i < STROKE.length; i++) {
+    const a = STROKE[i - 1],
+      b = STROKE[i];
+    if (u > b[0]) continue;
+    const k = smooth(a[0], b[0], u);
+    for (let j = 0; j < 3; j++)
+      out[j] = THREE.MathUtils.lerp(a[j + 1], b[j + 1], k);
+    return out;
+  }
+  return out;
+}
+
 /** 海龟以前鳍作同步水翼推进，后鳍小幅调整；背甲不参与鱼类尾波。 */
 export function buildHawaiiTurtleHF(kind, root, motions) {
   const ancient = kind === "archelon";
@@ -84,22 +107,32 @@ export function buildHawaiiTurtleHF(kind, root, motions) {
     }
   };
   const effort = lordEffortSmoother();
+  const pose = [0, 0, 0];
   motions.push((phase, speed) => {
     const e = smooth(0.5, 3, effort(phase, speed)),
-      t = phase * (ancient ? 0.66 : 0.82);
+      t = phase * (ancient ? 0.44 : 0.54);
+    // createCreature 已连续积分速度；此处不再用速度直接乘相位，避免加速跳姿。
+    strokePose(t / (Math.PI * 2), pose);
     for (const fin of chains) {
       const b = bones[fin.ids[0]],
         s = fin.side;
       if (fin.rear) {
-        b.rotation.z = s * (0.025 + Math.sin(t * 0.7 - 0.5) * 0.075);
-        b.rotation.y = -s * (0.025 + e * 0.035 + Math.cos(t * 0.7) * 0.035);
-        b.rotation.x = Math.cos(t * 0.7) * 0.035;
+        // 后鳍朝后收置，只作低幅配平，不与前鳍一起扑动。
+        b.rotation.set(
+          0.04 + Math.sin(t - 0.6) * 0.018,
+          -s * (0.2 + e * 0.055 + Math.cos(t) * 0.025),
+          s * (-0.045 + Math.sin(t - 0.6) * 0.035),
+          "YZX",
+        );
       } else {
-        b.rotation.z = s * (0.015 + Math.sin(t) * (0.28 + e * 0.1));
-        b.rotation.y = -s * Math.cos(t) * (0.055 + e * 0.035);
-        b.rotation.x = Math.cos(t) * (0.09 + e * 0.03);
+        b.rotation.set(
+          pose[2],
+          -s * pose[1],
+          s * pose[0] * (0.87 + e * 0.13),
+          "YZX",
+        );
       }
     }
-    tail.rotation.y = Math.sin(t * 0.6) * 0.035;
+    tail.rotation.y = Math.sin(t * 0.6) * 0.018;
   });
 }

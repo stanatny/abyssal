@@ -22,7 +22,7 @@ function fixture(t, id = "atlantis") {
   const scene = new THREE.Scene();
   const encounters = createEncounters(scene, {
     seabedHeight: () => -3200,
-    audio: { hit: noop, eat: noop, bossAttack: noop },
+    audio: { bitten: noop, biteLord: noop, bossAttack: noop },
     notify: noop,
     onDamage: noop,
     onBite: noop,

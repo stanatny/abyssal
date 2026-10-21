@@ -4,3 +4,7 @@ dist/
 test-results/
 playwright-report/
 .DS_Store
+
+# Local Python verification bytecode
+__pycache__/
+*.pyc

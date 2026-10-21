@@ -15,6 +15,9 @@ const urls = {
 };
 const cache = new Map();
 
+// 翻车鱼保持高而短的侧影，只压薄左右轴；胸鳍支点使用同一个比例。
+export const SUNFISH_LATERAL_SCALE = 0.66;
+
 /** 返回独立的游进骨架支点；与离线蒙皮使用相同网格和配置。 */
 export function octopusSwimAnatomy() {
   return octopus.swimChains.map((chain) => ({
@@ -43,6 +46,7 @@ export function hawaiiBatch7Asset(kind, bind) {
       );
     },
   );
+  if (kind === "sunfish") geometry.scale(SUNFISH_LATERAL_SCALE, 1, 1);
   if (kind === "octopus") prepareOctopusJetPose(geometry, octopus.jetPose);
   const material = new THREE.MeshStandardMaterial({
     roughness: kind === "tuna" ? 0.5 : kind === "ray" ? 0.68 : 0.73,

@@ -1,3 +1,82 @@
+# Loading-cache checkpoint — 2026-10-21
+
+All current preview changes accepted — 2026-10-21: the user confirms that all
+current effects have passed review and authorizes committing them together.
+This includes Contact Mine, the four reef decorations, Sunfish/turtle refinements,
+selected combat/lord audio and versioned loading cache. This supersedes earlier
+pending and cache-only checkpoint labels for these delivered changes. Preserve
+gameplay and existing services. No push or main/Pages publication is requested.
+The current AI agent next audits runtime CPU/GPU costs independently.
+
+The user accepts the cache candidate and authorizes a local commit only.
+The preceding 1,494-test/public receipts describe the combined preview, not
+the narrower staged tree. Fresh independent-tree validation is recorded in
+[the loading review](runtime_loading_cache_revision.md). Other pending
+art/audio changes remain unstaged; no push or formal publication.
+
+# Versioned loading cache — 2026-10-20
+
+Fresh1,494 unit tests, four HTTP server cases and five native cache-lifecycle
+scenarios pass. Public native checks cover all eight maps,18 bilingual Guide
+entries and two same-address refreshes, with zero page errors or failed
+requests. Controlled loading and public-tunnel samples are separate from
+physical-phone measurements; see [the review](runtime_loading_cache_revision.md).
+The build/data packaging and restricted server change; gameplay/model/audio
+source inputs remain byte-identical. No commit/push or formal publication.
+
+# Lord attack sounds — 2026-10-20
+
+Application approval: the user says “可以，Apply 吧”. The delivered14 sounds
+remain active. Fresh hash checks match all1,067 inputs and85 build/runtime
+files; the live public index matches dist. No source/audio changes or test
+reruns were needed. The following results belong to the preceding delivery.
+This approval does not claim physical-phone testing; no commit/push.
+
+Fresh25/25 focused checks cover all18 lord kinds and22 ability combinations;
+1,492/1,492 full tests pass. The23-case real Web Audio harness verifies14
+sample routes, priority/deep mixes, bounded concurrency, distance, mute/pause,
+region/reset/interrupt cleanup and failed-load retry without late replay.
+Native Chrome recordings show real Hydra volleys, White Tiger roar/leap,
+Sword Sage blades/rush and Black Tortoise double pulse, with actual game audio.
+Staged adult/invulnerability/stationary target and observer camera are disclosed.
+The technical checks do not establish physical-phone performance or subjective
+quality; application approval is recorded separately above. See
+[the review](lord_attack_audio_revision.md) for provenance and release scope.
+
+# Octopus stationary/moving follow-up — 2026-10-20
+
+## Selected combat audio — 2026-10-20
+
+Fresh1,467/1,467 full tests,66 targeted checks, formatting and production build
+pass. Ten real Web Audio graph cases and the broader existing audio verifier
+pass; selected buffers trigger only after real feeding/damage/lord hit
+settlement, with correct yellow classification and no repeated rejected bite.
+Production English1440 / Chinese390 px emulation passes start, mute, pause,
+Home, second-round cache reuse and same-address reload. All71 resources match
+local/build/public;11 forbidden paths per origin stay denied; service PIDs
+and production-hook absence are verified. Evidence:
+`.local/combat_audio_integration_20261020/`. See the
+[review](combat_audio_huggingface_audition.md#user-selection-and-runtime-integration--2026-10-20).
+No subjective listening or physical-phone claim; no commit/push.
+
+Current Sunfish/Turtle refinement evidence: [review](hawaii_sunfish_turtle_revision.md). The combined working tree passes 1,461 tests; native actual-surface, world displacement, pause and shared-factory checks are fresh. All70 runtime files and six native public language/species flows match the rebuilt restricted preview; the review records a failed initial transport attempt and successful retry. No physical-phone claim.
+
+Fresh1,456 tests,16 focused checks, formatting/build, explicit idle/start/fast/stop skin transitions, real NPC travel-speed input/ink/pause and bilingual public native flows pass. Same70 runtime files match both preview origins, eleven private paths per origin remain denied, and same-address reload has no production hooks. Mesh/texture/bones/draw count and gameplay are retained; prior resource-lifecycle receipts keep their earlier scope. See [the motion follow-up](octopus_swimming_revision.md#idle-versus-swimming-follow-up--2026-10-20). Candidate remains uncommitted/unpushed for user review.
+
+---
+
+# Octopus swimming candidate — 2026-10-20
+
+Fresh1,454 tests,14 focused checks, formatting and production build pass. Real skinned arms, matched views, world travel/turning/ink/pause, failed-map recovery and48 world skeleton disposals after intentional cache eviction pass. Ray/Sunfish/Tuna retain exact geometry/material/240 poses. All70 runtime files match dist/local/public; eleven private paths per origin are denied. English desktop and Chinese390px native public flows, same-address reload and absent production hooks pass; this is not physical-phone evidence. See [the swimming review](octopus_swimming_revision.md) for source, costs, fixtures and limitations. New candidate awaits user review, uncommitted/unpushed; previous pending batches and formal v0.11.13 remain intact.
+
+---
+
+# Hawaii reef-decoration candidate — 2026-10-20
+
+Fresh formatting, 1,450 tests and production build pass. Four actual HF reef forms retain seeded anchors and collision contracts. Native populated views, pause/region transitions, failed-texture recovery and final-owner release pass. Both English desktop and Chinese 390px production native flows pass; all four colors load without debug preparation, same-address reload works, no production hooks or page errors are observed, and 70 runtime files match dist/local/public. Eleven private paths per origin remain denied. Short M6 observations are not physical-phone or thermal evidence; detailed cost and rejected iterations are in [the reef review](hawaii_reef_life_huggingface_redraw.md). New candidates await user review; main/Pages remains v0.11.13.
+
+---
+
 # Hawaii seabed landmark candidate — 2026-10-20
 
 Fresh local checks pass1,445 tests, formatting, production build, native 30m gate passage both directions, region/pause/lifecycle checks and66 byte-matched runtime files. English desktop and Chinese390px public native flows pass; this is not a phone/thermal measurement. Details and dated evidence scope are in [the landmark review](hawaii_landmarks_huggingface_redraw.md). Candidate only; main/Pages remains v0.11.13.
@@ -1551,14 +1630,6 @@ The final source passed 370 unit tests. Focused browser lighting, Atlantis integ
 # Atlantis living-city follow-up — development preview
 
 The current uncommitted feature adds city feeding stock, pearl-shell illumination, traversable multilevel ruins, Atlantis-specific music, and Home-only language switching. Returning Home clears the current expedition, input captures, effects, and music. See the current [Atlantis verification record](atlantis_verification.md), [ecology](atlantis_city_ecology.md), [underways](atlantis_underways.md), and [music](atlantis_music.md) for actual checks, staged-test assumptions, and listening/device limits. Main and official GitHub Pages are unchanged; user acceptance is still required before a feature merge.
-
-# Octopus stationary/moving follow-up — 2026-10-20
-
-Fresh1,456 tests,16 focused checks, formatting/build, explicit idle/start/fast/stop skin transitions, real NPC travel-speed input/ink/pause and bilingual public native flows pass. Same70 runtime files match both preview origins, eleven private paths per origin remain denied, and same-address reload has no production hooks. Mesh/texture/bones/draw count and gameplay are retained; prior resource-lifecycle receipts keep their earlier scope. See [the motion follow-up](octopus_swimming_revision.md#idle-versus-swimming-follow-up--2026-10-20). Candidate remains uncommitted/unpushed for user review.
-
-# Octopus swimming candidate — 2026-10-20
-
-Fresh1,454 tests,14 focused checks, formatting and production build pass. Real skinned arms, matched views, world travel/turning/ink/pause, failed-map recovery and48 world skeleton disposals after intentional cache eviction pass. Ray/Sunfish/Tuna retain exact geometry/material/240 poses. All70 runtime files match dist/local/public; eleven private paths per origin are denied. English desktop and Chinese390px native public flows, same-address reload and absent production hooks pass; this is not physical-phone evidence. See [the swimming review](octopus_swimming_revision.md) for source, costs, fixtures and limitations. New candidate awaits user review, uncommitted/unpushed; previous pending batches and formal v0.11.13 remain intact.
 
 ### Octopus natural-jet follow-up — 2026-10-20
 

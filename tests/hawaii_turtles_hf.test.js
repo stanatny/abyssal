@@ -113,11 +113,34 @@ for (const kind of kinds) {
     const excursion = (f) =>
       Math.max(...f.records.map((v) => v.y)) -
       Math.min(...f.records.map((v) => v.y));
-    for (const f of fins)
+    for (const f of fins) {
       assert.ok(
-        excursion(f) > (f.c.rear ? 0.005 : 0.08),
+        excursion(f) > (f.c.rear ? 0.0005 : 0.2),
         `${f.c.name} actual excursion ${excursion(f)}`,
       );
+      const aftRange =
+        Math.max(...f.records.map((v) => v.z)) -
+        Math.min(...f.records.map((v) => v.z));
+      if (f.c.rear) {
+        assert.ok(excursion(f) < 0.025, "hind flippers trim quietly");
+        assert.ok(
+          f.records.every((v) => v.z > 0.28),
+          "hind flippers remain trailing",
+        );
+      } else {
+        assert.ok(aftRange > 0.1, "power stroke sweeps aft, not just up/down");
+        let area = 0;
+        for (let i = 1; i < f.records.length; i++) {
+          const a = f.records[i - 1],
+            b = f.records[i];
+          area += a.y * b.z - b.y * a.z;
+        }
+        assert.ok(
+          Math.abs(area) > 0.015,
+          "surface tip follows a loop with a distinct recovery path",
+        );
+      }
+    }
     for (const s of [-1, 1])
       assert.ok(
         excursion(fins.find((f) => !f.c.rear && f.c.side === s)) >

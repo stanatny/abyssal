@@ -27,7 +27,7 @@ function fixture(kind, floor = -900) {
   const events = { hits: 0, bites: 0, warnings: [] };
   const encounters = createEncounters(scene, {
     seabedHeight: () => floor,
-    audio: { hit: noop, eat: noop, bossAttack: noop },
+    audio: { bitten: noop, biteLord: noop, bossAttack: noop },
     notify: (message) => events.warnings.push(t(message)),
     onDamage: () => {
       events.hits++;
@@ -109,7 +109,7 @@ test("默认夏威夷首页初始名单不包含独立地图的领主，首次�
     Math.random = () => 0;
     encounters = createEncounters(new THREE.Scene(), {
       seabedHeight: () => -900,
-      audio: { hit: noop, eat: noop, bossAttack: noop },
+      audio: { bitten: noop, biteLord: noop, bossAttack: noop },
       notify: noop,
       onDamage: noop,
       onBite: noop,
@@ -309,7 +309,7 @@ test("White Tiger patrol and warned charge respect the whole body beside a steep
   const encounters = createEncounters(new THREE.Scene(), {
     seabedHeight: h,
     groundHeightAt: h,
-    audio: { hit: noop, eat: noop, bossAttack: noop },
+    audio: { bitten: noop, biteLord: noop, bossAttack: noop },
     notify: noop,
     onDamage: noop,
     onBite: noop,

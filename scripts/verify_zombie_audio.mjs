@@ -134,7 +134,7 @@ try {
       audio.start();
       if (!(await audio.prepareZombieSounds()))
         throw new Error("Zombie sample decode failed");
-      if (!(await audio.prepareFishSounds()))
+      if (!(await audio.prepareCombatSounds()))
         throw new Error("Fish sample decode failed");
       audio.reset();
       const set = (node, x) => {

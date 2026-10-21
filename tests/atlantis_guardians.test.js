@@ -33,7 +33,7 @@ function fixture(t, character = "orca") {
   const events = { bites: 0, hits: 0, warnings: [] };
   const encounters = createEncounters(scene, {
     seabedHeight,
-    audio: { eat: noop, hit: noop, bossAttack: noop },
+    audio: { biteLord: noop, bitten: noop, bossAttack: noop },
     notify: (message) => events.warnings.push(message),
     onDamage: () => events.hits++,
     onBite: () => events.bites++,

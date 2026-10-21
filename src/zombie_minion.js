@@ -1,3 +1,4 @@
+import { preyFeedingSound } from "./combat_audio_events.js";
 import * as THREE from "three";
 import { createCreature } from "./creatures.js";
 import { createFeedingTransition } from "./feeding_transition.js";
@@ -540,6 +541,7 @@ export function createZombieMinion(
     if (player.length !== previousLength) oldMouth.copy(mouth);
     previousLength = player.length;
     if (target && available(target, true)) {
+      const feedingSound = preyFeedingSound(player, target.species);
       const range = preyCaptureRadius(visibleLength, target.species.length);
       const fraction = sweptCaptureFraction(
         oldMouth,
@@ -560,7 +562,7 @@ export function createZombieMinion(
         mesh.userData.triggerFeed?.();
         effects.bite(mouth, direction, visibleLength);
         feeding.start(target.mesh, target.species.length);
-        onMeal?.(target);
+        onMeal?.(target, feedingSound);
         target = null;
       }
     }

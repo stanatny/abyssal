@@ -46,10 +46,17 @@ export class RecordedAudioBank {
         const entries = await Promise.all(
           [...bytes].map(async ([key, data]) => {
             // decodeAudioData可能转移原buffer，保留原始副本供其他上下文及重试使用。
-            const buffer = await context.decodeAudioData(data.slice(0));
-            if (!Number.isFinite(buffer.duration) || buffer.duration <= 0)
-              throw new Error("Decoded audio asset has no duration");
-            return [key, buffer];
+            try {
+              const buffer = await context.decodeAudioData(data.slice(0));
+              if (!Number.isFinite(buffer.duration) || buffer.duration <= 0)
+                throw new Error("Decoded audio asset has no duration");
+              return [key, buffer];
+            } catch (error) {
+              // 下载成功不代表内容可解码；仅清掉损坏项，下次准备可重新请求。
+              this.bytes.delete(key);
+              this.pending = null;
+              throw error;
+            }
           }),
         );
         return new Map(entries);

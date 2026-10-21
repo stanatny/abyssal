@@ -4,7 +4,8 @@ import { AmazonMusic, AMAZON_SCORE } from "./music_amazon.js";
 import { EuropaMusic, EUROPA_SCORE } from "./music_europa.js";
 import { MarianaMusic, MARIANA_SCORE } from "./music_mariana.js";
 import { BermudaMusic, BERMUDA_SCORE } from "./music_bermuda.js";
-import { FishBiteBank } from "./fish_bite_assets.js";
+import { CombatAudioBank } from "./combat_audio_assets.js";
+import { LordAttackAudio } from "./lord_attack_audio.js";
 import { ZombieAudioBank } from "./zombie_audio_assets.js";
 import { HumanVoiceBank } from "./human_voice_assets.js";
 import { createFeedingSound } from "./feeding_audio.js";
@@ -20,22 +21,25 @@ export class OceanAudio {
   constructor({
     context = null,
     humanVoiceBank = new HumanVoiceBank(),
-    fishBiteBank = new FishBiteBank(),
+    combatAudioBank = new CombatAudioBank(),
     zombieAudioBank = new ZombieAudioBank(),
+    lordAttackAudio = new LordAttackAudio(),
   } = {}) {
     this.context = context;
     this.humanVoiceBank = humanVoiceBank;
-    this.fishBiteBank = fishBiteBank;
+    this.combatAudioBank = combatAudioBank;
     this.zombieAudioBank = zombieAudioBank;
+    this.lordAttackAudio = lordAttackAudio;
     this.zombieSoundState = "idle";
     this.zombieSoundPreparation = null;
     this.zombieBuffers = new Map();
     this.zombieVoices = new Map();
     this.duckUntil = 0;
     this.duckLevel = 1;
-    this.fishSoundState = "idle";
-    this.fishSoundPreparation = null;
-    this.lastFishVariant = -1;
+    this.combatSoundState = "idle";
+    this.combatSoundPreparation = null;
+    this.combatVoices = new Map();
+    this.combatFeedingGains = new WeakMap();
     this.humanVoiceState = "idle";
     this.humanVoicePreparation = null;
     this.enabled = true;
@@ -81,8 +85,9 @@ export class OceanAudio {
     if (this.context.state === "closed") return;
     if (!this.ready) this.createGraph();
     void this.prepareHumanVoices();
-    void this.prepareFishSounds();
+    void this.prepareCombatSounds();
     void this.prepareZombieSounds();
+    void this.lordAttackAudio.prepare(this.context);
     this.setPaused(false);
     this.update(0, this.lastDanger, {
       boss: this.boss,
@@ -133,6 +138,7 @@ export class OceanAudio {
     if (!this.ready) return next;
     const now = this.context.currentTime;
     this.stopMusic(now);
+    this.lordAttackAudio.stop();
     this.replaceMusicRoom(now);
     this.nextStep = now + 0.14;
     if (next === "atlantis") this.ensureAtlantisMusic().reset(now);
@@ -175,34 +181,34 @@ export class OceanAudio {
     return this.humanVoicePreparation;
   }
 
-  /** preloadFishSounds 在菜单预取水声，独立于人声，不开启音频上下文。 */
-  preloadFishSounds() {
-    return this.fishBiteBank
+  /** preloadCombatSounds 在菜单预取四类拟音，独立于人声，不开启音频上下文。 */
+  preloadCombatSounds() {
+    return this.combatAudioBank
       .preload()
       .then(() => true)
       .catch(() => false);
   }
 
-  /** prepareFishSounds 缓存三个吞食变体；失败或完成都不重放旧捕食事件。 */
-  prepareFishSounds() {
-    if (this.fishSoundPreparation) return this.fishSoundPreparation;
+  /** prepareCombatSounds 缓存四类选定拟音；失败或完成都不重放旧捕食事件。 */
+  prepareCombatSounds() {
+    if (this.combatSoundPreparation) return this.combatSoundPreparation;
     if (!this.context?.decodeAudioData || this.context.state === "closed")
       return Promise.resolve(false);
-    this.fishSoundState = "loading";
-    this.fishSoundPreparation = this.fishBiteBank
+    this.combatSoundState = "loading";
+    this.combatSoundPreparation = this.combatAudioBank
       .load(this.context)
       .then((buffers) => {
-        for (const [variant, buffer] of buffers)
-          this.feedingBuffers.set(`fish_${variant}`, buffer);
-        this.fishSoundState = "ready";
+        for (const [kind, buffer] of buffers)
+          this.feedingBuffers.set(`combat_${kind}`, buffer);
+        this.combatSoundState = "ready";
         return true;
       })
       .catch(() => {
-        this.fishSoundState = "unavailable";
-        this.fishSoundPreparation = null;
+        this.combatSoundState = "unavailable";
+        this.combatSoundPreparation = null;
         return false;
       });
-    return this.fishSoundPreparation;
+    return this.combatSoundPreparation;
   }
 
   /** 菜单预取两段技能拟音，不提前创建上下文或触发播放。 */
@@ -246,6 +252,7 @@ export class OceanAudio {
     }
     this.enabled = !this.enabled;
     if (!this.enabled) {
+      this.stopCombatVoices();
       this.stopMusic(this.context.currentTime);
       this.musicCombat = false;
       if (this.atlantisMusic) this.atlantisMusic.combatActive = false;
@@ -275,6 +282,7 @@ export class OceanAudio {
     this.paused = Boolean(paused);
     if (!this.context || !this.ready) return;
     const now = this.context.currentTime;
+    if (this.paused) this.stopCombatVoices();
     const gain = this.pauseGate.gain;
     if (typeof gain.cancelAndHoldAtTime === "function")
       gain.cancelAndHoldAtTime(now);
@@ -314,10 +322,12 @@ export class OceanAudio {
     this.cooldowns.clear();
     this.feedingVoices.clear();
     this.zombieVoices.clear();
+    this.combatVoices.clear();
     this.duckUntil = 0;
     this.duckLevel = 1;
     if (!this.ready) return;
     const now = this.context.currentTime;
+    this.lordAttackAudio.stop();
     this.stopMusic(now);
     for (const source of this.voices) {
       try {
@@ -424,6 +434,11 @@ export class OceanAudio {
       0.4,
     );
     this.effectsFilter.frequency.setTargetAtTime(
+      (this.aboveWater ? 8500 : 4300 - depthRatio * 1500) * muffling,
+      now,
+      0.18,
+    );
+    this.combatFilter.frequency.setTargetAtTime(
       (this.aboveWater ? 8500 : 4300 - depthRatio * 1500) * muffling,
       now,
       0.18,
@@ -563,13 +578,79 @@ export class OceanAudio {
   }
 
   /** eatFish 播放短湿咬合、水流与气泡；size 为 0.5–2 强度，无返回值。 */
-  eatFish(size = 1) {
-    this.playFeeding("fish", size);
+  eatFish(size = 1, kind = "ordinary") {
+    this.playFeeding("fish", size, "male", kind);
   }
 
   /** eatHuman 按sex播放成年男女惨叫；size为0.5–2强度，sex默认male，无返回值。 */
   eatHuman(size = 1, sex = "male") {
     this.playFeeding("human", size, sex === "female" ? "female" : "male");
+  }
+
+  /** 只由真实生物伤害结算调用；普通环境冲击继续使用 hit。 */
+  bitten(strength = 1) {
+    if (!this.canPlay()) return;
+    if (this.combatSoundState !== "ready") return this.hit(strength);
+    this.playCombatImpact("hurt", strength);
+  }
+
+  /** 领主咬击已扣除有效命中次数后调用，空咬或无敌阶段不播放。 */
+  biteLord() {
+    if (!this.canPlay()) return;
+    if (this.combatSoundState !== "ready") return this.eat();
+    this.playCombatImpact("lord", 1);
+  }
+
+  /** 受伤/领主命中各限一条并独立于密集吞食；保留选定样本原速。 */
+  playCombatImpact(kind, strength) {
+    const buffer = this.feedingBuffers.get(`combat_${kind}`);
+    if (
+      !buffer ||
+      !this.effectReady(`combat_${kind}`, kind === "hurt" ? 0.16 : 0.12)
+    )
+      return;
+    for (const [voice, entry] of this.combatVoices)
+      if (entry.kind === kind) {
+        voice.stop(this.context.currentTime);
+        this.combatVoices.delete(voice);
+      }
+    const source = this.context.createBufferSource();
+    source.buffer = buffer;
+    source.loop = false;
+    source.playbackRate.value = 1;
+    const gain = this.makeBus(
+      (kind === "hurt" ? 1.05 : 0.95) * Math.sqrt(clamp(strength, 0.5, 1.6)),
+    );
+    source.connect(gain).connect(this.combatEffects);
+    this.combatVoices.set(source, { kind, gain });
+    this.releaseWhenEnded(source, [source, gain], () =>
+      this.combatVoices.delete(source),
+    );
+    const at = this.context.currentTime + 0.004;
+    source.start(at);
+    source.stop(at + buffer.duration + 0.01);
+    this.duckMusic(
+      kind === "hurt" ? 0.54 : 0.72,
+      kind === "hurt" ? 0.42 : 0.24,
+    );
+  }
+
+  /** 暂停/静音后不恢复已发生的短命中；图与解码缓存继续复用。 */
+  stopCombatVoices() {
+    const now = this.context.currentTime;
+    this.lordAttackAudio.stop();
+    for (const [source, { gain }] of this.combatVoices) {
+      gain.gain.setTargetAtTime(0, now, 0.004);
+      source.stop(now + 0.02);
+    }
+    this.combatVoices.clear();
+    for (const source of this.feedingVoices.keys()) {
+      const gain = this.combatFeedingGains.get(source);
+      if (!gain) continue;
+      gain.gain.setTargetAtTime(0, now, 0.004);
+      source.stop(now + 0.02);
+      this.feedingVoices.delete(source);
+    }
   }
 
   /** hit 播放身体冲击、低频水压与震荡尾声；strength 为可选受击强度，无返回值。 */
@@ -969,6 +1050,33 @@ export class OceanAudio {
     this.duckMusic(0.48, 1.1);
   }
 
+  /** 真实出招与蓄力分离；样本迟到只供下一次使用，不补播过期攻击。 */
+  bossAbility(kind, ability, options = {}) {
+    if (!this.ready || !this.enabled || this.paused) return;
+    if (this.lordAttackAudio.play(this, kind, ability, options)) return;
+    if (
+      (options.distance ?? 0) >= 300 ||
+      !this.effectReady("lord_release_fallback", 0.16)
+    )
+      return;
+    // 下载失败仍保留短促动作反馈；不把回退合成声当成已验收的生成音色。
+    this.noise(
+      this.context.currentTime + 0.004,
+      0.16,
+      0.07,
+      this.combatEffects,
+      ability === "swords" ? 1800 : ability === "roar" ? 240 : 620,
+      "bandpass",
+      0.008,
+      { end: 180, q: 0.7 },
+    );
+  }
+
+  /** 中断、击败或销毁单个领主时，仅停止它的有限攻击音效。 */
+  stopBossAbility(owner) {
+    this.lordAttackAudio.stop(owner);
+  }
+
   /** victory 播放温暖而舒展的终局和声；无参数，无返回值。 */
   victory() {
     if (!this.effectReady("victory", 2)) return;
@@ -1059,6 +1167,13 @@ export class OceanAudio {
     this.effectsFilter.frequency.value = 4300;
     this.effectsFilter.Q.value = 0.45;
     this.effects.connect(this.effectsFilter).connect(this.mix);
+    // 选定短拟音已有水感，不叠两秒卷积尾音；独立滤波保留深度闷化和暂停清理。
+    this.combatEffects = this.makeBus(0.86);
+    this.combatFilter = context.createBiquadFilter();
+    this.combatFilter.type = "lowpass";
+    this.combatFilter.frequency.value = 4300;
+    this.combatFilter.Q.value = 0.45;
+    this.combatEffects.connect(this.combatFilter).connect(this.mix);
     this.calm = this.makeBus(0.86, this.music);
     this.chaseFilter = context.createBiquadFilter();
     this.chaseFilter.type = "lowpass";
@@ -1128,7 +1243,7 @@ export class OceanAudio {
     this.ready = true;
   }
 
-  playFeeding(kind, size, sex = "male") {
+  playFeeding(kind, size, sex = "male", preyKind = "ordinary") {
     if (!this.canPlay()) return;
     const human = kind === "human";
     let bufferKey = human ? `human_${sex}` : kind;
@@ -1149,12 +1264,9 @@ export class OceanAudio {
       oldest.stop(this.context.currentTime);
       this.feedingVoices.delete(oldest);
     }
-    // 只在准许播放后选择下一个样本，连续吃鱼不重复同一口；拒绝的事件不消耗变体。
-    if (!human && this.fishSoundState === "ready") {
-      this.lastFishVariant =
-        (this.lastFishVariant + 1 + Math.floor(this.random() * 2)) % 3;
-      bufferKey = `fish_${this.lastFishVariant}`;
-    }
+    // 固定使用用户选定音色；普通与黄标共用冷却，拒绝的事件不会改变样本。
+    if (!human && this.combatSoundState === "ready")
+      bufferKey = `combat_${preyKind === "yellow" ? "yellow" : "ordinary"}`;
     // 录音优先，鱼声未就绪时用短柔水流立即反馈，不沿用旧爆音和音高气泡。
     let buffer = this.feedingBuffers.get(bufferKey);
     if (!buffer) {
@@ -1170,9 +1282,12 @@ export class OceanAudio {
     const source = this.context.createBufferSource();
     source.buffer = buffer;
     source.loop = false;
-    source.playbackRate.value = human ? 1 : 0.97 + this.random() * 0.06;
+    source.playbackRate.value = 1;
     const level = clamp(size, 0.5, 2);
-    const gain = this.makeBus((human ? 0.38 : 0.32) * Math.sqrt(level));
+    const selected = !human && bufferKey.startsWith("combat_");
+    const gain = this.makeBus(
+      (human ? 0.38 : selected ? 0.85 : 0.32) * Math.sqrt(level),
+    );
     const nodes = [source, gain];
     const at = this.context.currentTime + 0.004;
     if (human) {
@@ -1189,8 +1304,14 @@ export class OceanAudio {
       source.connect(water).connect(gain);
       nodes.push(water);
     } else source.connect(gain);
-    this.connectVoice(gain, this.effects, (this.random() - 0.5) * 0.24, nodes);
+    this.connectVoice(
+      gain,
+      selected ? this.combatEffects : this.effects,
+      (this.random() - 0.5) * 0.24,
+      nodes,
+    );
     this.feedingVoices.set(source, kind);
+    if (selected) this.combatFeedingGains.set(source, gain);
     this.releaseWhenEnded(source, nodes, () =>
       this.feedingVoices.delete(source),
     );

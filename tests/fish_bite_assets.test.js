@@ -162,5 +162,5 @@ test("水声下载与解码失败可恢复，成功资源保留且没有空缓�
   await assert.rejects(bank.load(context), /no duration/);
   const buffers = await bank.load(context);
   assert.equal(buffers.size, 3);
-  assert.equal(calls.length, 4);
+  assert.equal(calls.length, 5);
 });

@@ -1,4 +1,76 @@
-# Accepted local vehicle checkpoint — 2026-10-20
+# Accepted loading-cache checkpoint — 2026-10-21
+
+All current preview changes accepted — 2026-10-21: the user confirms that all
+current effects have passed review and authorizes committing them together.
+This includes Contact Mine, the four reef decorations, Sunfish/turtle refinements,
+selected combat/lord audio and versioned loading cache. This supersedes earlier
+pending and cache-only checkpoint labels for these delivered changes. Preserve
+gameplay and existing services. No push or main/Pages publication is requested.
+The current AI agent next audits runtime CPU/GPU costs independently.
+
+The user accepts the delivered loading cache and authorizes its local commit.
+Only build packaging, restricted HTTP delivery and their checks/docs belong
+to this checkpoint; retain the other pending art/audio work. No push or formal
+release. See [the review](docs/runtime_loading_cache_revision.md).
+Next, independently measure the current combined preview for CPU/runtime
+optimization opportunities; historical checks are not current measurements.
+
+# Current loading-cache candidate — 2026-10-20
+
+Current loading-cache candidate — 2026-10-20: content-hashed model chunks,
+precompressed JavaScript/CSS and browser HTTP caching shorten repeated preview
+loads while fresh HTML selects updated assets. All model/audio/gameplay source
+files are preserved. Native browser restart, update, old-tab, rollback and
+cache-disabled checks pass; this is not a physical-phone measurement. See
+[the loading review](docs/runtime_loading_cache_revision.md). No commit/push.
+
+# Accepted lord-attack sounds — 2026-10-20
+
+Accepted lord-attack audio — 2026-10-20: the user approves applying the delivered
+first version. All18 lord kinds /22 ability combinations retain14 MOSS-generated
+release cues, including Hydra breath, White Tiger roar and Sword Sage blades/rush.
+Existing warnings, selected feeding/hurt/bite sounds and gameplay are preserved.
+The accepted version is active in the restricted preview and remains uncommitted;
+see [the review](docs/lord_attack_audio_revision.md).
+
+The delivery recorded25 focused /1,492 full tests,23 actual audio-graph cases and native
+Hydra/White Tiger/Sword Sage/Black Tortoise release recordings pass. Original
+HF files, receipts, graph renders and game audio/video remain under the ignored
+`.local/lord_attack_audio_20261020/` directory. No commit/push/version change.
+Application verification: all1,067 delivered inputs and85 build/runtime files still
+match, and the public index matches dist. Only acceptance records change; earlier
+tests were not rerun. Keep the earlier art candidates and formal v0.11.13/Pages unchanged.
+
+# Current selected combat-audio integration — 2026-10-20
+
+The user selected Stable B for ordinary feeding and MOSS B for yellow prey,
+player bitten and successful lord bites. These exact four files are integrated
+with pre-growth classification, bounded priority playback, immediate fallback,
+corrupt-cache recovery and pause/mute cleanup. Fresh1,467 tests, actual audio
+graph/native-event checks and71 public resource comparisons pass. See
+[the integration review](docs/combat_audio_huggingface_audition.md#user-selection-and-runtime-integration--2026-10-20).
+Game-mix listening remains user review; no commit/push. Pending art, existing
+services and formal main/Pages v0.11.13 are preserved.
+
+Earlier audition/pending-selection entries below describe their historical stage.
+
+# Current combat-audio audition — 2026-10-20
+
+The user authorizes the proposed MOSS/Stable comparison. Twelve actual HF
+generations are saved: MOSS four categories × two candidates, plus Stable
+ordinary/lord × two. A 52.6-second labeled audition and original/edited WAV
+package are ready for user listening; they are not integrated or accepted.
+Included GPU consumption is about94.36 seconds, over-quota0. No subjective
+listening winner is claimed. See [the audition review](docs/combat_audio_huggingface_audition.md)
+and ignored `.local/audio_feedback_samples_20261020/`. Existing1,040 source
+inputs, pending art, runtime, services and formal release were preserved;
+only this handoff and the new review are added to project documentation.
+No commit/push. Next: user sound selection, then actual event/mix/lifecycle
+integration checks.
+
+# Current Octopus swimming candidate
+
+Hawaii visual refinement — 2026-10-20: the current AI agent independently audits remaining visual elements, narrows Sunfish lateral thickness and refines Green Sea Turtle/Archelon power-stroke and recovery motion. Preserve gameplay, accepted Octopus, pending reef/Mine work and services. Fresh tests and real-NPC evidence are in [the review](docs/hawaii_sunfish_turtle_revision.md). This candidate awaits user review; no commit/push or formal release.
 
 Local Octopus checkpoint authorization — 2026-10-20: the user says “你先按照这个提交吧”, authorizing a local checkpoint of the current volumetric swimming repair. Preserve the open-rest/quiet-transit/compact-fast poses, unchanged gameplay and the recorded20 focused/1,460 full checks. This supersedes earlier pending/no-commit labels only for Octopus. Reef PP-Q042 and Contact Mine PP-Q039 remain separate uncommitted candidates. No push, version bump or main/Pages release is authorized. See [the review](docs/octopus_swimming_revision.md#local-checkpoint-authorization--2026-10-20).
 
@@ -8,13 +80,25 @@ Natural-jet Octopus follow-up — 2026-10-20: the user rejects the previous swim
 
 Current Octopus swimming candidate — 2026-10-20: the current AI agent alone replaces the radial display pose with an actual HF swim-ready surface, mantle-first travel, eight distinct arm supports, a relaxed stationary spread, trailing swimming waves and coordinated effort/ink poses. Preserve all gameplay and other species; the pending reef and Contact Mine candidates remain intact. Fresh targeted, real-world ink/pause, shared-asset and lifecycle checks are documented in [the swimming review](docs/octopus_swimming_revision.md). This candidate awaits user review, with no commit/push or formal release; HEAD remains `5cea32f`, main/Pages v0.11.13.
 
-Accepted local seabed-landmark checkpoint — 2026-10-20: the user says “提交吧，下一批”, accepting the delivered Wreck Remains, Whale Fall, Sunken Step Temple and Abyss Rift Gate and authorizing their local commit. All1,017 delivered source inputs still match; recorded1,445-test/native/public receipts retain their unchanged-input scope. Preserve the separate Contact Mine candidate. The current AI agent independently continues a bounded reef-decoration batch; new candidates require user review. No push/main release is requested; formal main/Pages remains v0.11.13.
+Current Hawaii reef-decoration candidate — 2026-10-20: accepted seabed landmarks are locally committed as `5cea32f`. The current AI agent alone completes four actual HF reef forms: branching coral, sea fan, brain coral and tube sponge. Preserve seeded colony anchors, terrain, collisions and gameplay; use clustered instancing and near/far geometry. Fresh 1,450-test, material lifecycle, populated native and 70-resource production checks pass, including normal-entry color loading. See [the production review](docs/hawaii_reef_life_huggingface_redraw.md). The reef batch and separate Contact Mine remain uncommitted for user review; no push/main release. Formal main/Pages remains v0.11.13.
 
-Current Hawaii seabed landmark candidate
+Earlier entries retain their historical scope. The user clarified the secondary model and the current Octopus candidate supersedes the earlier unstarted/model-clarification snapshot; the pending reef and Mine reviews are unchanged.
+
+---
+
+# Current Hawaii seabed landmark candidate
+
+Accepted local seabed-landmark checkpoint — 2026-10-20: the user says “提交吧，下一批”, accepting the delivered Wreck Remains, Whale Fall, Sunken Step Temple and Abyss Rift Gate and authorizing their local commit. All1,017 delivered source inputs still match; recorded1,445-test/native/public receipts retain their unchanged-input scope. Preserve the separate Contact Mine candidate. The current AI agent independently continues a bounded reef-decoration batch; new candidates require user review. No push/main release is requested; formal main/Pages remains v0.11.13.
 
 Current Hawaii seabed landmark candidate — 2026-10-20: accepted surface ships are locally committed as `96bcac6`. The current AI agent alone has completed four actual HF landmark candidates: Wreck Remains, Whale Fall, Sunken Step Temple and Abyss Rift Gate. Preserve the exact positions/collision contract, old large gate passage, other assets and gameplay. Fresh1,445-test, native/lifecycle and66-resource public checks pass; user visual acceptance remains pending. See [the production review](docs/hawaii_landmarks_huggingface_redraw.md). New landmarks and the separate Contact Mine remain uncommitted/unpushed; formal main/Pages remains v0.11.13.
 
 Accepted local surface-fleet checkpoint — 2026-10-20: the user says “提交吧，下一批”, accepting the three delivered HF surface ships and authorizing a local commit. All1,003 delivered source inputs match before these acceptance notes; recorded1,441-test/native/public receipts keep their unchanged-input scope. Preserve the separate uncommitted Contact Mine candidate. The current AI agent independently continues the four remaining Hawaii seabed landmarks, preserving gameplay and services. No push/main publication is authorized; formal main/Pages remains v0.11.13. See [the fleet review](docs/hawaii_surface_ships_huggingface_redraw.md).
+
+Current Hawaii surface-fleet candidate — 2026-10-20: the current AI agent alone continues the user-authorized three surface ships through actual Hugging Face exports. Preserve 64/29/21m lengths, 1.8m draft, routes, collision/impact rules, existing wakes and accepted assets. See [the fleet review](docs/hawaii_surface_ships_huggingface_redraw.md). These three candidates remain uncommitted/unpushed for individual review; preserve the preceding Contact Mine candidate, services, archives and formal main/Pages v0.11.13.
+
+Current Contact Mine candidate — 2026-10-20: accepted submarine/torpedo/ochre work is locally committed as `891e494`, without push. The current AI agent alone redraws the spherical Contact Mine through actual HF inference, preserving static placement, exact diameter, warning semantics and contact explosion rules. See [the production review](docs/contact_mine_huggingface_redraw.md). This new candidate remains uncommitted/unpushed for individual review; preserve accepted creatures, services, archives and formal main/Pages v0.11.13.
+
+# Accepted local vehicle checkpoint — 2026-10-20
 
 Accepted local vehicle checkpoint — 2026-10-20: the user requests “提交，下一批”, authorizing a local commit of the submarine, its straight-running torpedo and the ochre palette follow-up, then the Contact Mine redraw. All986 source inputs and58 runtime artifacts match the reviewed delivery before these acceptance notes. Prior checks retain their actual scope; no push/main release is requested. The current AI agent works alone; the next mine candidate requires separate visual acceptance and commit authorization. Preserve gameplay, services, archives and formal main/Pages v0.11.13.
 

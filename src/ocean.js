@@ -2,13 +2,11 @@ import * as THREE from "three";
 import {
   addSurfaceDetail,
   ribbonGeometry,
-  coralBranchGeometry,
-  seaFanGeometry,
-  moundCoralGeometry,
   smoothCoincidentNormals,
   clusterInstances,
   addLeafDetail,
 } from "./ocean_visuals.js";
+import { createHawaiiReefDecorations } from "./hawaii_reef_decorations.js";
 import { WORLD } from "./world_config.js";
 import { createBeachEnvironment, islandHeight } from "./beach_environment.js";
 import { createOceanExtra, LANDMARK_CLEARINGS } from "./ocean_extra.js";
@@ -303,117 +301,10 @@ export function createOcean(scene) {
   }
   root.add(clusterInstances(grass));
 
-  const coralColors = ["#ba7d70", "#d1aa81", "#9c7788", "#dac697", "#7f9e91"];
-  const coralMaterial = track(
-    new THREE.MeshStandardMaterial({
-      roughness: 0.72,
-      metalness: 0.03,
-      emissive: "#2a1410",
-      emissiveIntensity: 0.35,
-    }),
-  );
-  addSurfaceDetail(coralMaterial, "coral", 1.4);
-  const coralGeometry = track(coralBranchGeometry());
-  const coralCount = 880;
-  const coral = new THREE.InstancedMesh(
-    coralGeometry,
-    coralMaterial,
-    coralCount,
-  );
-  let branchIndex = 0;
-  const branchStart = new THREE.Vector3();
-  const branchEnd = new THREE.Vector3();
-  const up = new THREE.Vector3(0, 1, 0);
-  const branchDirection = new THREE.Vector3();
-  while (branchIndex < coralCount) {
-    const x = (rand() - 0.5) * 170;
-    const z = 126 - rand() * 243;
-    const y = seabedHeight(x, z);
-    const size = 0.8 + rand() * 2.3;
-    const coralColor = color
-      .set(coralColors[Math.floor(rand() * coralColors.length)])
-      .clone();
-    const branches = 6 + Math.floor(rand() * 5);
-    for (let j = 0; j < branches && branchIndex < coralCount; j += 1) {
-      const angle = rand() * Math.PI * 2;
-      const spread = j === 0 ? 0 : (0.35 + rand() * 0.65) * size;
-      branchStart.set(x, y + (j === 0 ? 0 : size * (0.25 + rand() * 0.5)), z);
-      branchEnd.set(
-        x + Math.cos(angle) * spread,
-        y + size * (0.9 + rand() * 0.8),
-        z + Math.sin(angle) * spread,
-      );
-      branchDirection.subVectors(branchEnd, branchStart);
-      dummy.position.copy(branchStart).add(branchEnd).multiplyScalar(0.5);
-      dummy.quaternion.setFromUnitVectors(
-        up,
-        branchDirection.clone().normalize(),
-      );
-      dummy.scale.set(
-        size * (j === 0 ? 0.7 : 0.45),
-        branchDirection.length(),
-        size * 0.5,
-      );
-      dummy.updateMatrix();
-      coral.setMatrixAt(branchIndex, dummy.matrix);
-      coral.setColorAt(branchIndex, coralColor);
-      branchIndex += 1;
-    }
-  }
-  root.add(clusterInstances(coral));
-
-  const fanMaterial = track(
-    new THREE.MeshStandardMaterial({
-      color: "#d87975",
-      roughness: 0.85,
-      side: THREE.DoubleSide,
-      transparent: false,
-    }),
-  );
-  const fanGeometry = track(seaFanGeometry());
-  const fans = new THREE.InstancedMesh(fanGeometry, fanMaterial, 100);
-  for (let i = 0; i < 100; i += 1) {
-    const x = (rand() - 0.5) * 175;
-    const z = 125 - rand() * 200;
-    const size = 1.0 + rand() * 1.9;
-    dummy.position.set(x, seabedHeight(x, z), z);
-    dummy.rotation.set(0, rand() * Math.PI, (rand() - 0.5) * 0.35);
-    dummy.scale.set(size, size, size);
-    dummy.updateMatrix();
-    fans.setMatrixAt(i, dummy.matrix);
-    color.set(coralColors[Math.floor(rand() * 4)]);
-    fans.setColorAt(i, color);
-  }
-  root.add(clusterInstances(fans));
-
-  // 海绵与海葵丘补足浅海底被的中层细节，实例化一次绘制。
-  const spongeGeometry = track(moundCoralGeometry());
-  const spongeMaterial = track(
-    new THREE.MeshStandardMaterial({
-      roughness: 0.86,
-      metalness: 0.02,
-      emissive: "#1d1410",
-      emissiveIntensity: 0.3,
-    }),
-  );
-  addSurfaceDetail(spongeMaterial, "coral", 1.1);
-  const spongeColors = ["#c9825a", "#b65f78", "#7f9a68", "#5f8f96", "#a97fb4"];
-  const sponges = new THREE.InstancedMesh(spongeGeometry, spongeMaterial, 150);
-  for (let i = 0; i < 150; i += 1) {
-    const x = (rand() - 0.5) * 180;
-    const z = 128 - rand() * 250;
-    const size = 0.5 + rand() * 1.6;
-    dummy.position.set(x, seabedHeight(x, z) + size * 0.32, z);
-    dummy.rotation.set(rand() * 0.4, rand() * Math.PI, rand() * 0.3);
-    dummy.scale.set(size, size * (0.55 + rand() * 0.5), size);
-    dummy.updateMatrix();
-    sponges.setMatrixAt(i, dummy.matrix);
-    color
-      .set(spongeColors[Math.floor(rand() * spongeColors.length)])
-      .multiplyScalar(0.8 + rand() * 0.4);
-    sponges.setColorAt(i, color);
-  }
-  root.add(clusterInstances(sponges));
+  const reef = createHawaiiReefDecorations(root, {
+    rand,
+    heightAt: seabedHeight,
+  });
 
   // 小幅长涌浪叠加经过像素足迹过滤的随机细波，避免远处整齐亮带与闪烁。
   const surfaceMaterial = track(
@@ -822,6 +713,7 @@ export function createOcean(scene) {
     colliders,
     landmarks: extra.landmarks,
     seabedLife,
+    reef,
     update(time, playerPosition) {
       worldUniforms.oceanTime.value = time;
       let nearest = -1,
@@ -854,6 +746,7 @@ export function createOcean(scene) {
       extra.update(time, playerPosition);
       beach.update(time);
       seabedLife.update(time, playerPosition);
+      reef.update(time, playerPosition);
       for (let i = 0; i < moteCount; i += 1) {
         const seed = i * 4;
         const point = i * 3;
@@ -903,6 +796,7 @@ export function createOcean(scene) {
       extra.dispose();
       beach.dispose();
       seabedLife.dispose();
+      reef.dispose();
       root.traverse((node) => {
         if (node.isInstancedMesh) node.dispose();
       });

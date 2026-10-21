@@ -146,7 +146,7 @@ test("All five real Penglai lord models start clear of actual scenery; full bodi
     seabedHeight: ocean.heightAt,
     groundHeightAt: ocean.groundHeightAt,
     navigationBlocked: blocked,
-    audio: { hit: noop, eat: noop, bossAttack: noop },
+    audio: { bitten: noop, biteLord: noop, bossAttack: noop },
     notify: noop,
     onDamage: noop,
     onBite: noop,
@@ -229,7 +229,7 @@ function combatFixture(name) {
   const e = createEncounters(scene, {
     seabedHeight: () => floor,
     groundHeightAt: () => floor,
-    audio: { hit: noop, eat: noop, bossAttack: noop },
+    audio: { bitten: noop, biteLord: noop, bossAttack: noop },
     notify: noop,
     onDamage: () => events.push({ time, health: p.health }),
     onBite: noop,

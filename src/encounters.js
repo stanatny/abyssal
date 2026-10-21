@@ -2,6 +2,7 @@ import {
   guardianPulseRadius,
   guardianRoarContact,
 } from "./penglai_guardian_rules.js";
+import { lordAttackBeats } from "./lord_attack_audio.js";
 import {
   createLordNavigation,
   lordMoveClear,
@@ -1323,6 +1324,8 @@ export function createEncounters(
     hasPlayerPosition = false;
     playerVelocity.set(0, 0, 0);
     bosses.forEach((entry) => {
+      audio.stopBossAbility?.(entry);
+      entry.audioAttackTime = -1;
       entry.state = createBossState(entry.state.species);
       entry.id = `${entry.state.species.kind}_${entry.poolIndex}`;
       entry.fixedHome = null;
@@ -1368,7 +1371,7 @@ export function createEncounters(
   }
   function damage(player, amount, message) {
     if (takeDamage(player, amount)) {
-      audio.hit();
+      audio.bitten();
       onDamage();
       notify(message, 2.2);
       return true;
@@ -1459,8 +1462,11 @@ export function createEncounters(
   }
   function enterPhase(entry, playerPosition) {
     const state = entry.state;
+    audio.stopBossAbility?.(entry);
+    entry.audioAttackTime = -1;
     entry.recovery.startedAt = -1;
     entry.recovery.hit = false;
+    entry.recovery.audioPlayed = false;
     if (state.phase === "recover") {
       // 按玩家所在侧选择绕位；正前方时逐轮换边，不额外消耗随机生态序列。
       const offset = entry.motion.offset
@@ -1568,6 +1574,12 @@ export function createEncounters(
   }
   function fireVolley(entry, headIndex) {
     const { state } = entry;
+    audio.bossAbility?.(state.species.kind, state.ability, {
+      owner: entry,
+      index: headIndex,
+      distance: entry.mesh.position.distanceTo(previousPlayerPosition),
+      duration: Math.max(0.06, state.phaseDuration - state.timer),
+    });
     const side = new THREE.Vector3(
       -entry.heading.z,
       0,
@@ -1834,6 +1846,7 @@ export function createEncounters(
       entry.disorientedUntil = Math.max(entry.disorientedUntil, now + duration);
       tickBoss(entry.state, 0, { inTerritory: true, disoriented: true });
       entry.previousPhase = "disoriented";
+      audio.stopBossAbility?.(entry);
       entry.recovery.startedAt = -1;
       entry.recovery.hit = false;
       entry.ring.visible = false;
@@ -1880,6 +1893,7 @@ export function createEncounters(
     return result;
   }
   function hideDefeated(entry) {
+    audio.stopBossAbility?.(entry);
     entry.recovery.startedAt = -1;
     entry.recovery.hit = false;
     entry.mesh.visible = entry.label.visible = entry.ring.visible = false;
@@ -1894,7 +1908,10 @@ export function createEncounters(
     bodyGeneration++;
     dt = Number.isFinite(dt) ? Math.max(0, dt) : 0;
     active = null;
-    if (player.dead || player.won || player.timedOut) return active;
+    if (player.dead || player.won || player.timedOut) {
+      for (const entry of bosses) audio.stopBossAbility?.(entry);
+      return active;
+    }
     if (hasPlayerPosition && dt > 0) {
       const measured = position
         .clone()
@@ -1961,6 +1978,16 @@ export function createEncounters(
       const attack = state.phase === "attack",
         windup = state.phase === "windup",
         recover = state.phase === "recover";
+      if (attack && dt > 0) {
+        for (const index of lordAttackBeats(state, entry.audioAttackTime ?? -1))
+          audio.bossAbility?.(state.species.kind, state.ability, {
+            owner: entry,
+            index,
+            distance,
+            duration: state.phaseDuration - state.timer,
+          });
+        entry.audioAttackTime = state.timer;
+      }
       if (state.phase === "hunt") {
         const intercept = position
           .clone()
@@ -2008,6 +2035,15 @@ export function createEncounters(
           );
         }
         const status = recoveryGuardStatus(guard.startedAt, state.timer);
+        if (status === "strike" && !guard.audioPlayed) {
+          guard.audioPlayed = true;
+          audio.bossAbility?.(state.species.kind, "charge", {
+            owner: entry,
+            distance,
+            duration: LORD_RECOVERY.strike,
+            strength: 0.45,
+          });
+        }
         if (status === "warning" || status === "strike") {
           // 方向与身体朝向在预警时锁定，沿标记小幅前移，不追踪已侧闪的玩家。
           entry.heading.copy(guard.direction);
@@ -2646,7 +2682,7 @@ export function createEncounters(
           contactArmed: state.contactArmed,
         };
         if (result.hit) {
-          audio.eat();
+          audio.biteLord();
           onBite?.(contact, state.species.length);
           notify(
             result.defeated
@@ -2782,6 +2818,7 @@ export function createEncounters(
     );
     const textures = new Set(Object.values(fxTextures));
     for (const entry of bosses) {
+      audio.stopBossAbility?.(entry);
       for (const fx of entry.fxVariants) resetAbilityFx(fx);
       entry.mesh.userData.disposeLocalMotion?.();
       disposeTentacleMotion(entry.mesh);

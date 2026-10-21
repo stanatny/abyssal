@@ -272,7 +272,7 @@ test("Natural patrol faces its actual forward travel without a second orientatio
   const e = createEncounters(new T.Scene(), {
     seabedHeight: () => -90,
     groundHeightAt: () => -90,
-    audio: { hit: noop, eat: noop, bossAttack: noop },
+    audio: { bitten: noop, biteLord: noop, bossAttack: noop },
     notify: noop,
     onDamage: noop,
     onBite: noop,

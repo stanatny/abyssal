@@ -20,7 +20,7 @@ try {
   await page.waitForFunction(
     () =>
       window.__ABYSSAL__.audio.humanVoiceState === "ready" &&
-      window.__ABYSSAL__.audio.fishSoundState === "ready",
+      window.__ABYSSAL__.audio.combatSoundState === "ready",
   );
   await installRecorder();
 
@@ -273,10 +273,10 @@ async function installRecorder() {
                   method === "eatHuman"
                     ? source.buffer ===
                       this.feedingBuffers.get(`human_${args[1]}`)
-                    : [0, 1, 2].some(
+                    : ["ordinary", "yellow"].some(
                         (i) =>
                           source.buffer ===
-                          this.feedingBuffers.get(`fish_${i}`),
+                          this.feedingBuffers.get(`combat_${i}`),
                       ),
                 duration: source.buffer.duration,
                 playbackRate: source.playbackRate.value,

@@ -91,7 +91,7 @@ test("真人下载失败可重试，不把HTTP错误当成有效音频缓存", a
   assert.ok(calls.length >= 2 && calls.length <= 3);
 });
 
-test("失败的解码Promise会移除，相同上下文可重新解码已下载字节", async () => {
+test("失败的解码Promise与坏字节会移除，仅重取失败项后可重新解码", async () => {
   const { fetcher, calls } = downloads(),
     bank = new HumanVoiceBank({ fetcher });
   let failed = false;
@@ -109,7 +109,7 @@ test("失败的解码Promise会移除，相同上下文可重新解码已下载�
   assert.equal(map.size, 2);
   assert.equal(map.get("male").marker, 1);
   assert.equal(map.get("female").marker, 2);
-  assert.equal(calls.length, 2);
+  assert.equal(calls.length, 3);
 });
 
 // 按RIFF区块读取实际PCM，允许编码器保留合法的元信息区块。

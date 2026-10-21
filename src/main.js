@@ -1,3 +1,4 @@
+import { preyFeedingSound } from "./combat_audio_events.js";
 import { prepareSquidMaterials } from "./creature_squid.js";
 import { prepareOrcaMaterials } from "./creature_orca.js";
 import { trackGroundProgress } from "./ground_creatures.js";
@@ -295,7 +296,7 @@ avatar.traverse((mesh) => {
 scene.add(avatar);
 const audio = new OceanAudio();
 void audio.preloadHumanVoices();
-void audio.preloadFishSounds();
+void audio.preloadCombatSounds();
 void audio.preloadZombieSounds();
 const effects = createCombatEffects(scene, {
   colors: rareMarkerPalette(),
@@ -444,11 +445,11 @@ minion = createZombieMinion(scene, {
       notify("仆从寿命已尽 · 就地尸爆", 2.8);
     }
   },
-  onMeal(entity) {
+  onMeal(entity, sound) {
     if (isRegionalRare(entity.species))
       effects.rareBlessing(entity.mesh.position, player.length);
     if (entity.sex) audio.eatHuman(entity.species.length, entity.sex);
-    else audio.eatFish(entity.species.length);
+    else audio.eatFish(entity.species.length, sound);
     notify(
       isRegionalRare(entity.species)
         ? "珍兽恩赐 · 三项补满，上限150（本局）"
@@ -2343,11 +2344,12 @@ function eatEntity(entity, mouth, previousPrey = entity.mesh.position, dt = 0) {
   if (
     (!direct && blockedBetween(captureStart, mouth)) ||
     blockedBetween(captureContact, preyContact) ||
-    blockedBetween(mouth, mesh.position) ||
-    !consumePrey(player, species)
+    blockedBetween(mouth, mesh.position)
   )
     return false;
-  audio.eatFish(species.length);
+  const feedingSound = preyFeedingSound(player, species);
+  if (!consumePrey(player, species)) return false;
+  audio.eatFish(species.length, feedingSound);
   avatar.userData.triggerFeed?.();
   effects.bite(captureContact, forward, player.length);
   if (isRegionalRare(species)) effects.rareBlessing(preyContact, player.length);
@@ -3092,7 +3094,7 @@ function updateEntities(dt) {
             hunter.damageMultiplier,
         )
       ) {
-        audio.hit();
+        audio.bitten();
         hitFlash = 0.85;
         effects.hurt(position, player.length);
         effects.bite(position, direction, species.length);
