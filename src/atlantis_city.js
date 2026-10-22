@@ -33,6 +33,7 @@ import {
 import { selectMarineFacades } from "./atlantis_marine_anchors.js";
 import { ATLANTIS_EXCAVATION_SITES } from "./atlantis_terrain.js";
 import { acquireAtlantisCivicKit } from "./atlantis_civic_asset.js";
+import { acquireAtlantisNeighborhoodKit } from "./atlantis_neighborhood_asset.js";
 import { cityArchitecture } from "./atlantis_architecture.js";
 import {
   ATLANTIS_CITY_BOUNDS,
@@ -85,12 +86,24 @@ export function* createAtlantisCitySteps(parent, { heightAt } = {}) {
       }
       return civicKits.get(kind);
     }
+    const neighborhoodKits = new Map();
+    function neighborhoodKit(kind) {
+      if (!neighborhoodKits.has(kind)) {
+        const kit = acquireAtlantisNeighborhoodKit(kind);
+        neighborhoodKits.set(kind, kit);
+        owned.add({ dispose: kit.release });
+        kit.prepare();
+      }
+      return neighborhoodKits.get(kind);
+    }
     root.userData.prepareMaterials = (options) =>
       Promise.all([
         prepareAtlantisSurfaces(options),
-        ...[...monumentAssets.values(), ...civicKits.values()].map((asset) =>
-          asset.prepare(options),
-        ),
+        ...[
+          ...monumentAssets.values(),
+          ...civicKits.values(),
+          ...neighborhoodKits.values(),
+        ].map((asset) => asset.prepare(options)),
       ]);
     let disposed = false;
     // 特殊台基先保留空间，避免普通住宅在稍后放入的神殿、圆亭或塔楼中被掩埋。
@@ -321,7 +334,9 @@ export function* createAtlantisCitySteps(parent, { heightAt } = {}) {
             ]
           : ["temple", "rotunda", "gateway"].includes(kind)
             ? civicKit(kind).parts
-            : kit.parts;
+            : ["courtyard", "villa", "stoa", "tower"].includes(kind)
+              ? neighborhoodKit(kind).parts
+              : kit.parts;
       for (const part of parts)
         instance(part.geometry, part.material, x, y, z, {
           scale: [scale, scale, scale],

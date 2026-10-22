@@ -142,7 +142,8 @@ let samples = 0,
   maxDistance = 0,
   sumDistance = 0;
 const distances = [];
-const outerProjection = d.kind.startsWith("furniture_");
+const outerProjection =
+  d.kind.startsWith("furniture_") || d.kind.startsWith("neighborhood_");
 const surfaceNormal = new T.Vector3(),
   sourceNormal = new T.Vector3(),
   projectionRay = new T.Ray();

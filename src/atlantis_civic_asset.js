@@ -22,6 +22,33 @@ const definitions = {
 };
 const kits = new Map();
 let components = null;
+let componentReferences = 0;
+
+function releaseUnusedComponents(shared) {
+  if (!kits.size && componentReferences === 0) {
+    shared.dispose();
+    if (components === shared) components = null;
+  }
+}
+
+/** 新街区复用已验收构件；直接持有者与旧公共建筑共享同一生命周期。 */
+export function acquireAtlantisCivicComponents() {
+  if (!components) components = createComponents();
+  const shared = components;
+  componentReferences++;
+  let released = false;
+  return {
+    materials: shared.materials,
+    create: (...args) => shared.create(...args),
+    prepare: (options) => shared.prepare(options),
+    release() {
+      if (released) return;
+      released = true;
+      componentReferences--;
+      releaseUnusedComponents(shared);
+    },
+  };
+}
 
 /** 同一城邦的柱、山花与拱石共用三份源材质；合并套件由实际城市持有者释放。 */
 function createComponents() {
@@ -130,10 +157,7 @@ export function acquireAtlantisCivicKit(kind) {
         entry.kit.parts.forEach((p) => p.geometry.dispose());
         kits.delete(kind);
       }
-      if (!kits.size) {
-        shared.dispose();
-        if (components === shared) components = null;
-      }
+      releaseUnusedComponents(shared);
     },
   };
 }

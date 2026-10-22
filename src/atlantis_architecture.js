@@ -42,6 +42,15 @@ export function createCityArchitectureVisual(kind, components) {
   return b.finish();
 }
 
+/** 街区外观沿用原模板的全部实体，只替换明确声明的装饰构件。 */
+export function createNeighborhoodArchitectureVisual(kind, components) {
+  if (!["courtyard", "villa", "stoa", "tower"].includes(kind))
+    throw Error(`Unsupported neighborhood visual: ${kind}`);
+  const b = new Builder(kind, components);
+  populateBuilder(b, kind);
+  return b.finish();
+}
+
 function populateBuilder(b, kind) {
   if (kind === "courtyard") courtyard(b);
   else if (kind === "villa") villa(b);
@@ -76,7 +85,7 @@ class Builder {
     this.suppressVisual = 0;
     if (components) {
       // 原方法仍完整产生同序碰撞，并推进旧色彩种子；仅替换指定构件的绘制表面。
-      for (const name of ["column", "pediment"]) {
+      for (const name of components.methods ?? ["column", "pediment"]) {
         const original = this[name].bind(this);
         this[name] = (...args) => {
           this.suppressVisual++;
@@ -95,6 +104,16 @@ class Builder {
     // HF 原 UV 与同源顶点色不经过世界投影或程序染色。
     this.bucket.add(part.geometry, part.key, part.transform);
     part.geometry.dispose();
+  }
+  substitute(name, args, original) {
+    if (!this.components?.supports?.(name)) return original();
+    this.suppressVisual++;
+    try {
+      original();
+    } finally {
+      this.suppressVisual--;
+    }
+    for (const placement of args) this.component(name, placement);
   }
   add(geometry, mat, position, euler = null, tint = null) {
     if (this.suppressVisual) {
@@ -257,8 +276,14 @@ class Builder {
   portal(x, y, z, w, h, d = 1.4, mat = "marble") {
     const r = w / 2,
       spring = h - r;
-    this.box(mat, 1.5, spring, d, x - r - 0.75, y + spring / 2, z, true);
-    this.box(mat, 1.5, spring, d, x + r + 0.75, y + spring / 2, z, true);
+    for (const side of [-1, 1]) {
+      const px = side < 0 ? x - r - 0.75 : x + r + 0.75;
+      this.substitute(
+        this.kind === "courtyard" ? "pilaster" : "legacy_jamb",
+        [[1.5, spring, d, px, y + spring / 2, z]],
+        () => this.box(mat, 1.5, spring, d, px, y + spring / 2, z, true),
+      );
+    }
     // 楔形拱石构成真实开口，无封住洞口的隐形整盒。
     for (let i = 0; i < 13; i++) {
       const a = ((i + 0.5) / 13) * Math.PI;
@@ -266,7 +291,10 @@ class Builder {
       const px = x + Math.cos(a) * mid,
         py = y + spring + Math.sin(a) * mid;
       const geo = new THREE.BoxGeometry(1.52, ((Math.PI * mid) / 13) * 1.02, d);
-      if (this.components) {
+      if (
+        this.components &&
+        (!this.components.supports || this.components.supports("archstone"))
+      ) {
         this.suppressVisual++;
         this.add(geo, mat, [px, py, z], [0, 0, a]);
         this.suppressVisual--;
@@ -382,7 +410,8 @@ class Builder {
     const parts = group.children.map((mesh, i) => {
       const key = `city_kit_v2_${this.kind}_${i}`;
       if (!this.components) GEOMETRIES.set(key, mesh.geometry);
-      else mesh.geometry.name = `civic_${this.kind}_${mesh.geometry.name}`;
+      else
+        mesh.geometry.name = `${this.components.prefix ?? "civic"}_${this.kind}_${mesh.geometry.name}`;
       mesh.geometry.computeBoundingSphere();
       return { geometry: mesh.geometry, material: mesh.material };
     });
@@ -429,7 +458,9 @@ function villa(b) {
   b.box("stone", 24, 13, 2, 0, 8.2, -10.5, true);
   for (const x of [-9, -3, 3, 9]) b.column(x, 1.7, 9, 13, 0.75);
   b.box("marble", 25, 1.3, 2.5, 0, 15.35, 9, true);
-  b.pediment(27, 5, 2.2, 16, 9);
+  b.substitute("gable", [[27, 5, 2.2, 0, 18.5, 9]], () =>
+    b.pediment(27, 5, 2.2, 16, 9),
+  );
   b.band(25, 22, 15.9, 0, 0, { solid: true });
   b.box("stone", 25, 1.1, 14, 0, 15, -3.5, true);
   for (const x of [-7, 7]) {
@@ -449,6 +480,17 @@ function stoa(b) {
   for (const x of [-19, -11.4, -3.8, 3.8, 11.4, 19]) b.column(x, 2, 8.8, 18, 1);
   for (const x of [-20, 20]) b.box("stone", 2, 15, 15, x, 9.5, -1, true);
   b.box("marble", 43, 1.6, 3.2, 0, 20.8, 8.8, true);
+  // 浅浮雕贴合原承重横梁；保持雕纹比例，避免拉成深槽或移走梁背实体。
+  if (b.components?.supports?.("frieze"))
+    for (let i = 0; i < 6; i++)
+      b.component("frieze", [
+        43 / 6,
+        1.6,
+        0.8,
+        ((i - 2.5) * 43) / 6,
+        20.8,
+        10.75,
+      ]);
   b.band(44, 23, 22.2, 0, 0, { solid: true });
   b.box("stone", 43, 1.2, 19, 0, 21.1, -1, true);
   for (const x of [-15, -5, 5, 15]) {
@@ -556,8 +598,10 @@ function tower(b) {
       b.portal(x, y - 2, 6.75, 2.1, 4, 0.45);
     }
   for (const x of [-6, 6]) for (const z of [-6, 6]) b.column(x, 32, z, 8, 0.7);
-  b.box("marble", 16, 1.2, 16, 0, 40.6, 0, true);
-  b.band(16, 16, 41.4);
+  b.substitute("crown", [[16.9, 1.91, 16.9, 0, 40.955, 0]], () => {
+    b.box("marble", 16, 1.2, 16, 0, 40.6, 0, true);
+    b.band(16, 16, 41.4);
+  });
   b.pearlNiche(0, 40.6, 0, 0.9);
 }
 function gateway(b) {

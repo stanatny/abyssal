@@ -1,5 +1,22 @@
 # ABYSSAL
 
+Accepted neighborhood checkpoint — 2026-10-23: the user accepts the delivered
+courtyard entrances, villa gables, market friezes and tower crowns and requests a
+local commit plus a read-only priority review. All 1,226 delivered inputs match
+before these acceptance-only notes; the recorded 1,582 tests and native/public
+checks retain their original scope. The pending labels below are historical for
+this accepted batch. No push or main publication is requested. The original
+physical-phone report remains open; acceptance does not establish phone
+performance parity. See the [neighborhood review](docs/atlantis_neighborhood_huggingface_redraw.md).
+
+Atlantis neighborhood candidates — 2026-10-23: after accepted checkpoint
+`f7fc33b`, the current agent independently uses four actual HF components for
+courtyard entrances, villa gables, market friezes and tower crowns. Existing
+layouts, openings, ordered colliders and gameplay remain intact. Close review
+rejects the first overly simplified conversion; the new candidate preserves more
+carving detail and remains uncommitted/unpushed for user review. See the
+[neighborhood review](docs/atlantis_neighborhood_huggingface_redraw.md).
+
 Accepted quest-prop and furnishing checkpoint — 2026-10-22: the user requests
 “提交吧，还有什么没完成的”, accepting the delivered key aura and four HF
 furnishings together with the previously accepted mechanisms/quest skins.

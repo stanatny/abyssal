@@ -43,7 +43,15 @@ test("分片古城保留已验收版本的全部实体、障碍及近景模型�
       .map((p) => geometryDigest(p.geometry)),
   );
   const replacedCivic = new Set(
-    ["temple", "rotunda", "gateway"].flatMap((kind) =>
+    [
+      "temple",
+      "rotunda",
+      "gateway",
+      "courtyard",
+      "villa",
+      "stoa",
+      "tower",
+    ].flatMap((kind) =>
       cityArchitecture(kind).parts.map((p) => geometryDigest(p.geometry)),
     ),
   );
@@ -78,6 +86,7 @@ test("分片古城保留已验收版本的全部实体、障碍及近景模型�
         node.material.name === "atlantis_obelisk_hf_stone" ||
         replacedObelisk.has(geometryDigest(geometry)) ||
         geometry.name.startsWith("civic_") ||
+        geometry.name.startsWith("neighborhood_") ||
         replacedCivic.has(geometryDigest(geometry))
       )
         return;

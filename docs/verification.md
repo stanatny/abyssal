@@ -1,5 +1,18 @@
 # v0.11.15 release verification — 2026-10-21
 
+Accepted neighborhood checkpoint — 2026-10-23: 1,226 delivered input fingerprints
+match before acceptance-only documentation edits. The recorded 1,582 tests and
+native/public evidence below retain their original scope. This commit introduces
+no later runtime changes, and does not close the physical-phone follow-up.
+
+Atlantis neighborhood component review — 2026-10-23: four HF stone components
+retain exact original templates, dimensions and city collision. The current
+candidate passes 1,582 tests, opening rays, native texture failure/retry and three
+region ownership cycles; matched populated-scene images/video are retained.
+See [the dated review](atlantis_neighborhood_huggingface_redraw.md) for cost,
+public delivery and scope. Physical-phone PP-Q055 remains open; no new commit,
+push or acceptance is implied.
+
 All 1,086 accepted belly-rack inputs match before release-only metadata edits.
 The recorded 35 focused /1,503 full tests and native/public preview checks
 retain their actual candidate scope. Exact-main Node22 CI, production hashes
