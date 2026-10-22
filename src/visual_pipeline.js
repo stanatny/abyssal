@@ -1,4 +1,6 @@
+import { createCreatureInterior } from "./creature_interior.js";
 import { createEnvironmentCache } from "./graphics_recovery.js";
+import { createPlayerSilhouette } from "./player_silhouette.js";
 import * as THREE from "three";
 import { MOON_DIRECTION } from "./atlantis_art_sky.js";
 import { EffectComposer } from "three/addons/postprocessing/EffectComposer.js";
@@ -44,6 +46,9 @@ export function createVisualPipeline(renderer, scene, camera) {
   scene.add(particles.points);
   let highQuality = true;
   let disposed = false;
+  let silhouetteSource;
+  const silhouette = createPlayerSilhouette();
+  const interior = createCreatureInterior();
   const reducedMotion = matchMedia("(prefers-reduced-motion: reduce)").matches;
   return {
     update({
@@ -78,6 +83,8 @@ export function createVisualPipeline(renderer, scene, camera) {
     invalidate() {
       // 仍处于lost状态时释放旧目标；恢复后删除旧上下文句柄会触发WebKit错误。
       environments.invalidate();
+      silhouette.invalidate();
+      interior.invalidate();
     },
     restore() {
       if (disposed) return;
@@ -105,6 +112,17 @@ export function createVisualPipeline(renderer, scene, camera) {
       renderer.info.reset();
       if (highQuality) composer.render();
       else renderer.render(scene, camera);
+      const cap = interior.render(renderer, camera, silhouetteSource);
+      silhouette.render(renderer, camera, silhouetteSource, cap);
+    },
+    setSilhouetteSource(source) {
+      silhouetteSource = source;
+    },
+    get interiorStats() {
+      return interior.stats;
+    },
+    get silhouetteStats() {
+      return silhouette.stats;
     },
     setQuality(high) {
       highQuality = high;
@@ -114,10 +132,15 @@ export function createVisualPipeline(renderer, scene, camera) {
     resize() {
       composer.setPixelRatio(renderer.getPixelRatio());
       composer.setSize(innerWidth, innerHeight);
+      silhouette.resize(innerWidth, innerHeight);
+      interior.resize(innerWidth, innerHeight);
     },
     dispose() {
       if (disposed) return;
       disposed = true;
+      silhouette.dispose();
+      interior.dispose();
+      silhouetteSource = null;
       scene.remove(particles.points);
       particles.geometry.dispose();
       particles.material.dispose();

@@ -1,5 +1,29 @@
 # ABYSSAL
 
+Accepted visual checkpoint — 2026-10-22: the user accepts the player outline
+and general large-pursuer interior fill and requests a local commit. All 1,183
+delivered input hashes match before acceptance-only notes. The recorded 1,563
+tests and native/public evidence retain their original scope. Earlier pending
+labels below are historical for this checkpoint. A new report of creature bodies
+passing through one another is a separate collision investigation, not proof
+that the render-only fill provides physical solidity. Preserve the stable follow
+camera; no push or main publication is requested.
+
+Large-pursuer interior candidate — 2026-10-22: the user accepts the player
+outline and requests a general hollow-body correction. The current agent
+independently adds camera-near body sections across the predator/large-creature
+census, including all 18 lords; the stable follow camera, opaque source skins and
+gameplay remain intact. Very close bodies still obscure terrain. The new fill
+awaits visual review and remains uncommitted/unpushed. See [the review](docs/creature_interior_revision.md).
+
+Player-silhouette candidate — 2026-10-22: the preceding Kraken motion/pressure
+and restored follow camera are locally committed as `04d16a2`, without push.
+The current agent independently adds an occluded-player silhouette, preserving
+the exact follow camera, opaque creatures, existing assets and gameplay. This
+new effect awaits user visual review and remains uncommitted. It helps locate
+the player; it does not reveal terrain behind a giant creature or solve clipping.
+See [the silhouette review](docs/player_silhouette_revision.md).
+
 Local checkpoint accepted — 2026-10-22: the user requests committing the
 current version, then reviewing a player-silhouette effect. This accepts the
 Kraken motion/pressure work with the original follow camera restored, not the

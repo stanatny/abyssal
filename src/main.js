@@ -463,6 +463,21 @@ minion = createZombieMinion(scene, {
     );
   },
 });
+visuals.setSilhouetteSource({
+  get enabled() {
+    return mode === "playing" || mode === "paused";
+  },
+  get avatar() {
+    return avatar;
+  },
+  get entities() {
+    return entities;
+  },
+  get bosses() {
+    return encounters.bosses;
+  },
+});
+
 const entities = [],
   pickups = [],
   bursts = [],
