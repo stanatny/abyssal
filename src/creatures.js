@@ -1,3 +1,4 @@
+import { prepareOrdinaryBody } from "./ordinary_body.js";
 import { buildPelicanHF } from "./creature_pelican_hf.js";
 import {
   ATLANTIS_HF_SMALL,
@@ -191,6 +192,7 @@ export function createCreature(kind, length = 6, seed = 1) {
   else buildFish(root, motions, random);
 
   prepareLordBody(root, kind);
+  if (length >= 8) prepareOrdinaryBody(root);
   mergeStaticParts(root, kind);
   // 新外观不改变已发布领主的触碰区域；隐藏代理保持原动作与归一化。
   if (kind === "mayan") {

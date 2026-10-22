@@ -1,3 +1,9 @@
+import { nearbyOrdinaryBodies, stopOrdinaryAtPlayer } from "./ordinary_body.js";
+import {
+  beginTailFollow,
+  steerTailFollow,
+  tailFollowReady,
+} from "./hunter_tail_follow.js";
 import {
   createGraphicsRecovery,
   releaseLostSceneResources,
@@ -1975,6 +1981,7 @@ function resolvePlayerMotion(previous, merge = false) {
       ...surface.colliders,
       ...humans.colliders,
       ...encounters.bodyColliders(position, player.length, previous),
+      ...nearbyOrdinaryBodies(entities, position, player.length, previous),
     ],
     radius,
     forward,
@@ -2450,8 +2457,15 @@ const mythicMovementContext = {
   heightAt: activeSeabedHeight,
   flash: (...args) => effects.flash(...args),
 };
+const hunterPlayerVelocity = new THREE.Vector3();
 function updateEntities(dt) {
   updateSchools();
+  // 只取本帧真实移动，墙体阻挡时不能把名义游速当成前进；不包含随后咬击的击退。
+  hunterPlayerVelocity
+    .copy(position)
+    .sub(playerMovementStart)
+    .divideScalar(Math.max(dt, 0.001));
+  hunterPlayerVelocity.clampLength(0, 60);
   const hasRocks = ocean.obstacles.length > 0;
   aerialSpacing.rebuild(entities);
   threat = null;
@@ -2578,6 +2592,17 @@ function updateEntities(dt) {
     )
       entity.chase = 4;
     else entity.chase = Math.max(0, entity.chase - dt);
+    const tailEligible =
+      predator &&
+      !edible &&
+      entity.chase > 0 &&
+      !species.groundbound &&
+      !species.benthic &&
+      !species.flying &&
+      mesh.userData.ordinaryBody &&
+      !player.dead &&
+      !player.won;
+    if (!tailEligible) entity.hunter.tailFollow = null;
     if (predator && entity.chase > 0 && distance < 115 + species.length) {
       direction.copy(position);
       // 近似体型的猎手迂回侧后方；技能爆发仍保留既有锁向前摇与可躲避速度。
@@ -2772,6 +2797,27 @@ function updateEntities(dt) {
       direction.copy(entity.attackHeading);
       if (Math.random() < dt * 18) burst(mesh.position, 1);
     }
+    // 咬中后追尾等待；新一轮特殊攻击仍保留锁向前摇与可躲避轨迹。
+    const tailFollowing = tailEligible && tailFollowReady(hunter);
+    if (tailFollowing) {
+      moveSpeed = steerTailFollow(
+        hunter.tailFollow,
+        dt,
+        {
+          predator: mesh.position,
+          predatorLength: species.length,
+          player: position,
+          playerLength: player.length,
+          forward: playerFacing
+            .set(0, 0, -1)
+            .applyQuaternion(avatar.quaternion),
+          velocity: hunterPlayerVelocity,
+          cooldown: entity.cooldown,
+          maxSpeed: moveSpeed,
+        },
+        direction,
+      );
+    }
     const schoolLayer = entity.school?.habitat;
     const layeredSchool = schoolLayer && schoolLayer !== species;
     const habitat =
@@ -2853,7 +2899,7 @@ function updateEntities(dt) {
     } else {
       entity.velocity.lerp(
         direction,
-        Math.min(1, dt * (species.elusive ? 4 : 2)),
+        Math.min(1, dt * (species.elusive ? 4 : tailFollowing ? 5 : 2)),
       );
       if (species.elusive) entity.velocity.normalize();
     }
@@ -3130,8 +3176,49 @@ function updateEntities(dt) {
         burst(position, 8);
         notify(message`${species.label} 咬伤！冲刺脱离攻击范围`, 2);
         position.addScaledVector(direction, 5);
+        if (tailEligible)
+          beginTailFollow(hunter, moveSpeed * entity.velocity.length());
       }
       entity.cooldown = 2.2;
+    }
+    // 咬击先按真实扫掠结算；随后躯干阻挡独立于伤害无敌和攻击冷却。
+    if (
+      stopOrdinaryAtPlayer(
+        entity,
+        previousPreyPosition,
+        position,
+        forward,
+        player.length,
+      )
+    ) {
+      const safe = resolveCreatureMotion(
+        previousPreyPosition,
+        mesh.position,
+        entity.velocity,
+        habitat,
+        {
+          colliders: navigationColliders || ocean.colliders,
+          heightAt: activeSeabedHeight,
+          territory,
+        },
+      );
+      const w = activeWorld();
+      const outside =
+        mesh.position.x < w.minX + 8 ||
+        mesh.position.x > w.maxX - 8 ||
+        mesh.position.z < w.minZ + 8 ||
+        mesh.position.z > w.maxZ - 8 ||
+        mesh.position.y <
+          floorAt(
+            mesh.position.x,
+            mesh.position.z,
+            species.groundClearance ?? species.length * 0.28 + 2,
+          ) ||
+        (!species.groundbound &&
+          !species.flying &&
+          mesh.position.y > -Math.max(4, species.length * 0.25));
+      if (safe?.blocked || outside) mesh.position.copy(previousPreyPosition);
+      else if (safe) mesh.position.copy(safe.position);
     }
     // 只在玩家已进入合法水层时补充附近猎手，远处生成点仍在可见半径之外。
     if (
@@ -4033,7 +4120,8 @@ function frame(now) {
     // 猎手击退与捕食成长也在本帧约束，不能等下一帧再把穿入实体的鱼推出。
     if (
       !position.equals(beforeEntities) ||
-      player.length !== beforeFeedingLength
+      player.length !== beforeFeedingLength ||
+      nearbyOrdinaryBodies(entities, position, player.length).length
     )
       resolvePlayerMotion(beforeEntities, true);
     updatePickups(dt);

@@ -1,5 +1,29 @@
 # ABYSSAL Development Rules
 
+Accepted body-contact and trailing checkpoint — 2026-10-22: the user accepts
+the delivered ordinary large-body collision and post-bite rear-follow candidate
+and requests a local commit. Delivered source hashes match before these
+acceptance notes; the recorded 1,572 tests and native/public checks retain their
+original scope. Earlier pending labels for this candidate are historical. No push
+or main release is requested. The next task is a read-only Atlantis gap audit,
+not authorization to redesign already accepted content.
+
+Post-bite trailing follow-up — 2026-10-22: the user requests that a hunter
+remain behind after landing a bite, preparing the next attack rather than sliding
+past the player. Ordinary large swimming hunters now aim for a rear waiting
+point, brake on approach, and close again near the existing bite cooldown end.
+A successful strike starts this behavior; sprint escape, world constraints and
+the stable camera remain intact. This supplements the uncommitted contact
+candidate, not a new commit or release. See [the contact review](docs/ordinary_body_contact_revision.md#post-bite-trailing-follow-up--2026-10-22).
+
+Ordinary large-body contact candidate — 2026-10-22: accepted silhouette and
+interior display is locally committed as `2f66234`, without push. A new report
+confirms that ordinary hunters have bite checks but no continuous trunk
+separation. The current agent independently adds player/large-creature body
+contact, preserving the stable follow camera, edible prey, damage and lord rules.
+This new candidate awaits review and remains uncommitted. See
+[the contact review](docs/ordinary_body_contact_revision.md).
+
 Accepted visual checkpoint — 2026-10-22: the user accepts the player outline
 and general large-pursuer interior fill and requests a local commit. All 1,183
 delivered input hashes match before acceptance-only notes. The recorded 1,563
