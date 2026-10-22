@@ -12,6 +12,7 @@ import {
 } from "./atlantis_art_geometry.js";
 import { ATLANTIS_EXCAVATION_SITES } from "./atlantis_terrain.js";
 import { castSegment, isPositionBlocked } from "./collision.js";
+import { createAtlantisFurnitureVisuals } from "./atlantis_furniture_asset.js";
 import { createStaticColliderGrid } from "./static_collider_grid.js";
 
 /**
@@ -291,12 +292,20 @@ function siteOrigin(site) {
  *********************************************/
 
 class FurnitureBuilder {
-  constructor(colliders) {
+  constructor(colliders, useHf = false) {
+    this.useHf = useHf;
+    this.suppressVisual = false;
+    this.hfPlacements = [];
     this.bucket = new MergeBucket();
     this.colliders = colliders;
     this.ordinal = 0;
   }
   add(geometry, material, x, y, z, options = {}) {
+    if (this.suppressVisual) {
+      this.ordinal++;
+      geometry.dispose();
+      return;
+    }
     const { quaternion = null, euler = null, tint = null } = options;
     paintStone(geometry, {
       base:
@@ -319,6 +328,7 @@ class FurnitureBuilder {
   }
   /** 并入已带顶点色的构件(贝嵌、瓶坯等),不再做石材着色。 */
   addRaw(geometry, materialKey, x, y, z, euler = null) {
+    if (this.suppressVisual) return;
     this.bucket.add(geometry, materialKey, { position: [x, y, z], euler });
   }
   box(material, w, h, d, x, y, z, options = {}) {
@@ -336,8 +346,34 @@ class FurnitureBuilder {
  * 单品构件:石凳、石桌、雕纹储物箱、双耳瓶群、散落器物
  *********************************************/
 
+/** 旧构件保留实体和避让尺寸；候选只替换可见表面，不复制碰撞。 */
+function recordHf(b, kind, x, floor, z, euler = [0, 0, 0]) {
+  const matrix = new THREE.Matrix4().compose(
+    new THREE.Vector3(x, floor, z),
+    new THREE.Quaternion().setFromEuler(new THREE.Euler(...euler)),
+    new THREE.Vector3(1, 1, 1),
+  );
+  b.hfPlacements.push({ kind, matrix });
+}
+function drawFittedFurniture(b, kind, build, x, floor, z, yaw = 0) {
+  if (!b.useHf) return build(b, x, floor, z, yaw);
+  recordHf(b, kind, x, floor, z, [0, yaw, 0]);
+  b.suppressVisual = true;
+  try {
+    build(b, x, floor, z, yaw);
+  } finally {
+    b.suppressVisual = false;
+  }
+}
+const stoneBench = (b, x, floor, z, yaw = 0) =>
+  drawFittedFurniture(b, "bench", buildStoneBench, x, floor, z, yaw);
+const stoneTable = (b, x, floor, z) =>
+  drawFittedFurniture(b, "table", buildStoneTable, x, floor, z);
+const storageChest = (b, x, floor, z, yaw = 0) =>
+  drawFittedFurniture(b, "chest", buildStorageChest, x, floor, z, yaw);
+
 /** 石凳:叠涩涡卷侧墩、带齿饰的座面前沿与铜质靠杆。 */
-function stoneBench(b, x, floor, z, yaw = 0) {
+function buildStoneBench(b, x, floor, z, yaw = 0) {
   const at = frame(x, floor, z, yaw);
   const q = yawQuaternion(yaw);
   for (const side of [-1, 1]) {
@@ -368,7 +404,7 @@ function stoneBench(b, x, floor, z, yaw = 0) {
 }
 
 /** 石桌:环纹柱础、圆盘面、铜缘与放射嵌条。 */
-function stoneTable(b, x, floor, z) {
+function buildStoneTable(b, x, floor, z) {
   b.add(
     new THREE.CylinderGeometry(1.05, 1.2, 0.3, 18),
     "stone",
@@ -431,7 +467,7 @@ function stoneTable(b, x, floor, z) {
 }
 
 /** 雕纹储物箱:嵌板箱体、拱盖、做旧铜带铆钉、贝嵌徽章与青金石锁孔。 */
-function storageChest(b, x, floor, z, yaw = 0) {
+function buildStorageChest(b, x, floor, z, yaw = 0) {
   const at = frame(x, floor, z, yaw);
   const q = yawQuaternion(yaw);
   // 四只矮足与箱体。
@@ -600,22 +636,30 @@ function amphoraCluster(b, x, floor, z, count, seed) {
     const pz = z + Math.sin(angle) * (0.35 + (i % 2) * 0.55);
     const tipped = i === count - 1 && count > 3;
     const yaw = random() * Math.PI * 2;
-    b.addRaw(
-      jar,
-      // 复用无石砖纹理的高粗糙度、低金属度材质，使陶器与铜箍明确区分。
-      "pearlReef",
-      px,
-      floor + 0.33 + (tipped ? 0.3 : 0),
-      pz,
-      tipped ? [0, yaw, 1.35] : [0, yaw, 0],
-    );
-    if (!tipped)
-      for (const side of [-1, 1])
-        b.addRaw(handle, "pearlReef", px, floor + 0.33, pz, [
-          0,
-          yaw + (side < 0 ? Math.PI : 0),
-          0,
-        ]);
+    if (b.useHf) {
+      recordHf(b, "amphora", px, floor + 0.33 + (tipped ? 0.3 : 0), pz, [
+        0,
+        yaw,
+        tipped ? 1.35 : 0,
+      ]);
+    } else {
+      b.addRaw(
+        jar,
+        // 复用无石砖纹理的高粗糙度、低金属度材质，使陶器与铜箍明确区分。
+        "pearlReef",
+        px,
+        floor + 0.33 + (tipped ? 0.3 : 0),
+        pz,
+        tipped ? [0, yaw, 1.35] : [0, yaw, 0],
+      );
+      if (!tipped)
+        for (const side of [-1, 1])
+          b.addRaw(handle, "pearlReef", px, floor + 0.33, pz, [
+            0,
+            yaw + (side < 0 ? Math.PI : 0),
+            0,
+          ]);
+    }
   }
   // 残片:半只瓶壳侧卧在瓶座边。
   const shard = cachedGeometry("exploration_amphora_shard_v2", () => {
@@ -645,13 +689,13 @@ function amphoraCluster(b, x, floor, z, count, seed) {
 }
 
 /** 缓存不可变成品；住宅批次只烘焙世界变换，不为每幢房屋重雕同一单品。 */
-function furniturePrototype(item) {
+function furniturePrototype(item, useHf = false) {
   const variant = (((item.seed ?? 9151) % 4) + 4) % 4;
   const count = item.kind === "amphora" ? (item.count ?? 3) : 0;
-  const key = `${item.kind}:${count}:${variant}`;
+  const key = `${useHf ? "hf" : "collision"}:${item.kind}:${count}:${variant}`;
   if (FURNITURE_PROTOTYPES.has(key)) return FURNITURE_PROTOTYPES.get(key);
   const colliders = [],
-    builder = new FurnitureBuilder(colliders);
+    builder = new FurnitureBuilder(colliders, useHf);
   if (item.kind === "bench") stoneBench(builder, 0, 0, 0);
   else if (item.kind === "table") stoneTable(builder, 0, 0, 0);
   else if (item.kind === "chest") storageChest(builder, 0, 0, 0);
@@ -671,7 +715,12 @@ function furniturePrototype(item) {
     part.geometry.computeBoundingBox();
     bounds.union(part.geometry.boundingBox);
   }
-  const prototype = { parts, colliders, bounds };
+  const prototype = {
+    parts,
+    colliders,
+    bounds,
+    hfPlacements: builder.hfPlacements,
+  };
   FURNITURE_PROTOTYPES.set(key, prototype);
   return prototype;
 }
@@ -684,11 +733,22 @@ function placePrototype(builder, prototype, item) {
     new THREE.Vector3(0, 1, 0),
     yaw,
   );
-  for (const part of prototype.parts)
+  const visual = builder.useHf ? furniturePrototype(item, true) : prototype;
+  for (const part of visual.parts)
     builder.bucket.add(part.geometry, part.material, {
       position: [item.x, item.floor, item.z],
       quaternion: quaternion.toArray(),
       scale,
+    });
+  const world = new THREE.Matrix4().compose(
+    new THREE.Vector3(item.x, item.floor, item.z),
+    quaternion,
+    new THREE.Vector3(scale, scale, scale),
+  );
+  for (const p of visual.hfPlacements)
+    builder.hfPlacements.push({
+      kind: p.kind,
+      matrix: world.clone().multiply(p.matrix),
     });
   for (const source of prototype.colliders) {
     const position = new THREE.Vector3(source.x, source.y, source.z)
@@ -908,7 +968,7 @@ export function* createAtlantisExplorationFurnitureSteps(
   try {
     const random = seededRandom(seed);
     const zones = SITE ? keepOuts(SITE) : [];
-    const b = new FurnitureBuilder(colliders);
+    const b = new FurnitureBuilder(colliders, true);
     const dropped = [];
     const placedGroups = [];
     const placed = { bench: 0, table: 0, chest: 0, amphora: 0 };
@@ -1075,6 +1135,9 @@ export function* createAtlantisExplorationFurnitureSteps(
     const scatterMeshes = scatterPieces(scatterTransforms, seed + 3);
 
     b.bucket.build(atlantisMaterials(), root, owned);
+    const hfVisuals = createAtlantisFurnitureVisuals(root, b.hfPlacements);
+    owned.add(hfVisuals);
+    root.userData.prepareMaterials = hfVisuals.prepare;
     for (const mesh of scatterMeshes) {
       root.add(mesh);
       owned.add({ dispose: () => mesh.dispose() });
@@ -1132,7 +1195,8 @@ export function* createAtlantisExplorationFurnitureSteps(
       placedGroups,
       scatter: scatterTransforms.length,
       colliders: colliders.length,
-      triangles: Math.round(triangles),
+      triangles: Math.round(triangles + hfVisuals.triangles),
+      hfInstances: hfVisuals.instances,
     };
     root.userData.furnitureStats = stats;
     const centerX = SITE ? (SITE.bounds.minX + SITE.bounds.maxX) / 2 : 0,

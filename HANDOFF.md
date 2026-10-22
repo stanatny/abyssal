@@ -1,5 +1,31 @@
 # Kraken motion and pursuer-camera candidate — 2026-10-22
 
+Accepted quest-prop and furnishing checkpoint — 2026-10-22: the user requests
+“提交吧，还有什么没完成的”, accepting the delivered key aura and four HF
+furnishings together with the previously accepted mechanisms/quest skins.
+All 1,213 delivered inputs match before these acceptance-only notes. The recorded
+1,579 tests and native/public checks retain their original scope. This authorizes
+a local commit only; earlier pending labels below are historical for these two
+batches. The read-only follow-up inventory is in
+[the remaining-content audit](docs/atlantis_remaining_content_20261022.md).
+
+
+Atlantis furnishings and key glow candidate — 2026-10-22: the user accepts the
+previous waterlock housings, inscriptions and quest chest, asks for a luminous
+key and authorizes the next HF batch. Four household skins (bench, table,
+decorative storage chest and amphora) use shared instanced assets while keeping
+original placements/colliders. The key receives a bounded soft aura. These new
+changes await visual acceptance and remain uncommitted/unpushed. The earlier
+quest-prop pending label below is historical for the three accepted items.
+See [the furnishing review](docs/atlantis_furniture_huggingface_redraw.md).
+
+Atlantis quest-prop candidate — 2026-10-22: following the accepted contact/
+trailing commit `1aef4c0`, the user authorizes the next HF batch. The current agent
+independently replaces the conch waterlock housings, key, three inscriptions and
+quest-chest skin. Original sites, collection centers, warning/damage timing,
+reward and accepted city/creature/camera work remain intact. The new candidate
+awaits visual review and is uncommitted/unpushed. See [the quest-prop review](docs/atlantis_quest_huggingface_redraw.md).
+
 Accepted body-contact and trailing checkpoint — 2026-10-22: the user accepts
 the delivered ordinary large-body collision and post-bite rear-follow candidate
 and requests a local commit. Delivered source hashes match before these

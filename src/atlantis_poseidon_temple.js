@@ -45,15 +45,17 @@ export function createAtlantisPoseidonTemple(
   for (const collider of furniture.colliders)
     collider.kind = "poseidon_ritual_furniture";
   colliders.push(...furniture.colliders);
-  // 家具原型仍由已验收的工厂生成；复制进主殿相同材质批次后释放中间批，
-  // 避免每件陈设另外增加绘制调用。仅剔除旧旋转陶器极点处的零面积三角形。
-  for (const mesh of furniture.root.children) {
+  // 旧石材构件仍合入主殿批次；HF 实例保留真实变换、贴图与引用所有权，
+  // 不能按旧材质名称重建为未着色的普通网格。
+  for (const mesh of [...furniture.root.children]) {
+    if (mesh.userData.artRevision === "trellis_atlantis_furniture_20261022")
+      continue;
     const clean = withoutZeroAreaTriangles(mesh.geometry);
     b.bucket.add(clean, mesh.name.slice("atlantis_".length));
     clean.dispose();
+    mesh.removeFromParent();
   }
   const furnitureStats = furniture.stats;
-  furniture.dispose();
   b.finishMasonry();
   b.bucket.build(poseidonTempleMaterials(), root, owned);
   root.traverse((mesh) => {
@@ -83,11 +85,16 @@ export function createAtlantisPoseidonTemple(
   const stats = {
     site: site.id,
     meshes: root.getObjectsByProperty("isMesh", true).length,
-    triangles: [...owned].reduce(
-      (sum, g) =>
-        sum + (g.index ? g.index.count : g.attributes.position.count) / 3,
-      0,
-    ),
+    triangles:
+      [...owned].reduce(
+        (sum, g) =>
+          sum + (g.index ? g.index.count : g.attributes.position.count) / 3,
+        0,
+      ) +
+      furniture.root.children.reduce(
+        (sum, mesh) => sum + (mesh.geometry.index.count / 3) * mesh.count,
+        0,
+      ),
     colliders: colliders.length,
     levels: site.levels.length,
     openings: 2,
@@ -120,6 +127,7 @@ export function createAtlantisPoseidonTemple(
       if (disposed) return;
       disposed = true;
       parent.remove(root);
+      furniture.dispose();
       for (const geometry of owned) geometry.dispose();
       owned.clear();
       root.clear();

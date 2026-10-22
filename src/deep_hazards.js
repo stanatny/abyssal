@@ -1,4 +1,5 @@
 import * as THREE from "three";
+import { acquireAtlantisQuestAsset } from "./atlantis_quest_asset.js";
 import { mergeGeometries } from "three/addons/utils/BufferGeometryUtils.js";
 import { addSurfaceDetail } from "./ocean_visuals.js";
 import { amazonChannels } from "./amazon_config.js";
@@ -197,6 +198,13 @@ export function attachDeepHazards(
   const owned = new Set(),
     keep = (r) => (owned.add(r), r);
   try {
+    const conch =
+      regionId === "atlantis" ? acquireAtlantisQuestAsset("sluice") : null;
+    if (conch) {
+      owned.add({ dispose: conch.release });
+      conch.prepare();
+      root.userData.prepareMaterials = conch.prepare;
+    }
     const clock = { value: 0 };
     const stone = keep(
       new THREE.MeshStandardMaterial({ color: profile.stone, roughness: 0.93 }),
@@ -309,15 +317,11 @@ export function attachDeepHazards(
                 -a,
               );
             }
-            if (profile.style === "ruin") {
-              // 放射壳瓣、短螺管与铜格栅呼应既有古城贝珠与水道语言。
-              for (let i = 0; i < 9; i++) {
-                const a = (i / 8 - 0.5) * 2.2;
-                const shell = new THREE.SphereGeometry(1, 10, 7);
-                shell.scale(0.55, 0.4, 2.1);
-                shell.rotateY(a);
-                part(shell, x + Math.sin(a) * 1.1, 0.55, Math.cos(a) * 1.1);
-              }
+            if (conch) {
+              const shell = conch.create();
+              shell.position.set(x, ground(x, 0) + 1.95, 0);
+              shell.rotation.y = (-side * Math.PI) / 2;
+              group.add(shell);
             }
           }
         } else {

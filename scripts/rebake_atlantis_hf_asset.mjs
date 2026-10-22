@@ -5,7 +5,12 @@ import { pathToFileURL } from "node:url";
 import { readFile, writeFile, mkdir } from "node:fs/promises";
 import { createHash } from "node:crypto";
 import { padTextureIslands } from "./lib/pad_texture_islands.mjs";
-const [rawPath, lowPath, baseTools, bakeTools, outPath] = process.argv.slice(2);
+const [rawPath, lowPath, baseTools, bakeTools, outPath, projectionLimitArg] =
+  process.argv.slice(2);
+const projectionLimit =
+  projectionLimitArg === undefined ? 0.05 : Number(projectionLimitArg);
+if (!(projectionLimit > 0 && projectionLimit <= 0.1))
+  throw Error("Invalid source projection limit");
 if (!outPath)
   throw Error("Usage: raw.glb low.json base-tools bake-tools out-dir");
 const req = createRequire(join(resolve(baseTools), "package.json")),
@@ -137,6 +142,11 @@ let samples = 0,
   maxDistance = 0,
   sumDistance = 0;
 const distances = [];
+const outerProjection = d.kind.startsWith("furniture_");
+const surfaceNormal = new T.Vector3(),
+  sourceNormal = new T.Vector3(),
+  projectionRay = new T.Ray();
+let normalProjected = 0;
 for (let t = 0; t < dstIndex.length; t += 3) {
   const ids = [dstIndex[t], dstIndex[t + 1], dstIndex[t + 2]],
     tri = ids.map((i) => [uv[2 * i] * size - 0.5, uv[2 * i + 1] * size - 0.5]),
@@ -163,7 +173,34 @@ for (let t = 0; t < dstIndex.length; t += 3) {
           v.fromArray(dstPositions, ids[k] * 3),
           [a, b, c][k],
         );
-      const h = bvh.closestPointToPoint(point, hit, 0, 0.05);
+      let h;
+      if (outerProjection) {
+        surfaceNormal.set(0, 0, 0);
+        for (let k = 0; k < 3; k++)
+          surfaceNormal.addScaledVector(
+            sourceNormal.fromArray(nq2, ids[k] * 3),
+            [a, b, c][k],
+          );
+        surfaceNormal.normalize();
+        projectionRay.origin
+          .copy(point)
+          .addScaledVector(surfaceNormal, projectionLimit);
+        projectionRay.direction.copy(surfaceNormal).negate();
+        const outer = bvh.raycastFirst(
+          projectionRay,
+          T.FrontSide,
+          0,
+          projectionLimit * 2,
+        );
+        if (outer) {
+          hit.point.copy(outer.point);
+          hit.distance = outer.point.distanceTo(point);
+          hit.faceIndex = outer.faceIndex;
+          h = hit;
+          normalProjected++;
+        }
+      }
+      h ??= bvh.closestPointToPoint(point, hit, 0, projectionLimit);
       if (!h) throw Error("Missing source surface");
       getTriangleHitPointInfo(hit.point, rawGeom, hit.faceIndex, info);
       const sx = Math.max(
@@ -218,7 +255,9 @@ const out = {
   index: b64(new Uint16Array(dstIndex)),
   uvChart: b64(chart),
   textureBake: {
-    method: "watlas UV unwrap + closest source surface albedo transfer",
+    method: outerProjection
+      ? "watlas UV unwrap + outward-normal source surface albedo transfer"
+      : "watlas UV unwrap + closest source surface albedo transfer",
     sourceSha256: createHash("sha256")
       .update(await readFile(rawPath))
       .digest("hex"),
@@ -245,6 +284,7 @@ const report = {
   removedSlivers,
   vertices: out.vertices,
   samples,
+  normalProjected,
   meanDistance: sumDistance / samples,
   maxDistance,
   p99Distance: distances[Math.floor(distances.length * 0.99)],

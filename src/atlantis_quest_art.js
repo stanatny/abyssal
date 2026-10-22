@@ -1,6 +1,7 @@
 import * as THREE from "three";
 import { resolveAtlantisKeySites } from "./atlantis_key_sites.js";
 import { addSurfaceDetail } from "./ocean_visuals.js";
+import { acquireAtlantisQuestAsset } from "./atlantis_quest_asset.js";
 
 /**
  * 在真实公共建筑下层悬挂钥匙与铭文，不使用幼体专用住宅或新碰撞。
@@ -24,30 +25,12 @@ export function createAtlantisKeyArt(parent, records = []) {
     }),
   );
   addSurfaceDetail(bronze, "stone", 0.04);
-  const stone = keep(
-    new THREE.MeshStandardMaterial({ color: 0x4e7777, roughness: 0.87 }),
-  );
-  addSurfaceDetail(stone, "stone", 0.12);
-  const glow = keep(new THREE.MeshBasicMaterial({ color: 0xffd897 }));
   function mesh(group, geometry, material, point = [0, 0, 0], name = "") {
     const m = new THREE.Mesh(keep(geometry), material);
     m.position.fromArray(point);
     m.name = name;
     group.add(m);
     return m;
-  }
-  function tube(group, points, radius, material) {
-    return mesh(
-      group,
-      new THREE.TubeGeometry(
-        new THREE.CatmullRomCurve3(points.map((p) => new THREE.Vector3(...p))),
-        points.length * 5,
-        radius,
-        6,
-        false,
-      ),
-      material,
-    );
   }
   const locations = resolveAtlantisKeySites(records).map((site) => ({
     ...site,
@@ -61,37 +44,54 @@ export function createAtlantisKeyArt(parent, records = []) {
   const key = new THREE.Group();
   key.name = "conch_key";
   root.add(key);
-  const bow = mesh(
-    key,
-    new THREE.TorusGeometry(0.9, 0.14, 8, 40),
-    bronze,
-    [0, 0, 0],
-    "key_bow",
-  );
-  const shaft = mesh(
-    key,
-    new THREE.CylinderGeometry(0.13, 0.13, 2.8, 10),
-    bronze,
-    [0, -2.2, 0],
-    "key_shaft",
-  );
-  for (let i = 0; i < 3; i++)
-    mesh(key, new THREE.BoxGeometry(0.7, 0.22, 0.3), bronze, [
-      0.25,
-      -2.7 - i * 0.35,
-      0,
-    ]);
-  tube(
-    key,
-    Array.from({ length: 49 }, (_, i) => {
-      const t = i / 48,
-        a = t * Math.PI * 4.5,
-        r = 0.06 + t * 0.52;
-      return [Math.cos(a) * r, Math.sin(a) * r, 0.13 + t * 0.06];
+  const keyAsset = acquireAtlantisQuestAsset("key"),
+    plaqueAsset = acquireAtlantisQuestAsset("plaque");
+  owned.add({ dispose: keyAsset.release });
+  owned.add({ dispose: plaqueAsset.release });
+  keyAsset.prepare();
+  plaqueAsset.prepare();
+  root.userData.prepareMaterials = async (options) =>
+    (
+      await Promise.all([
+        keyAsset.prepare(options),
+        plaqueAsset.prepare(options),
+      ])
+    ).every(Boolean);
+  const keyModel = keyAsset.create();
+  keyModel.position.y = -1.2;
+  key.add(keyModel);
+  // 程序化径向透明纹理没有矩形底；深度检测保留墙体遮挡，拾取后随钥匙一起消失。
+  const glowPixels = new Uint8Array(64 * 64 * 4);
+  for (let y = 0; y < 64; y++)
+    for (let x = 0; x < 64; x++) {
+      const radius = Math.hypot((x - 31.5) / 31.5, (y - 31.5) / 31.5);
+      const offset = (y * 64 + x) * 4;
+      glowPixels.set(
+        [255, 255, 255, Math.round(255 * Math.max(0, 1 - radius) ** 2.2)],
+        offset,
+      );
+    }
+  const glowTexture = keep(new THREE.DataTexture(glowPixels, 64, 64));
+  glowTexture.needsUpdate = true;
+  glowTexture.magFilter = glowTexture.minFilter = THREE.LinearFilter;
+  const glowMaterial = keep(
+    new THREE.SpriteMaterial({
+      map: glowTexture,
+      color: 0x83ffdc,
+      opacity: 0.12,
+      blending: THREE.AdditiveBlending,
+      transparent: false,
+      depthTest: true,
+      depthWrite: false,
+      toneMapped: false,
     }),
-    0.055,
-    glow,
   );
+  const glow = new THREE.Sprite(glowMaterial);
+  glow.name = "conch_key_soft_glow";
+  glow.renderOrder = -10;
+  glow.position.y = -1.2;
+  glow.scale.set(6.6, 7.5, 1);
+  key.add(glow);
   const chain = new THREE.Group();
   chain.name = "key_roof_suspension";
   root.add(chain);
@@ -104,39 +104,9 @@ export function createAtlantisKeyArt(parent, records = []) {
     const g = new THREE.Group();
     g.position.copy(site.point);
     root.add(g);
-    mesh(
-      g,
-      new THREE.BoxGeometry(4.8, 5.8, 0.65),
-      stone,
-      [0, 0, 0],
-      "conch_inscription",
-    );
-    for (const x of [-2.15, 2.15])
-      mesh(g, new THREE.BoxGeometry(0.11, 5.4, 0.1), bronze, [x, 0, 0.38]);
-    for (const y of [-2.5, 2.5])
-      mesh(g, new THREE.BoxGeometry(4.3, 0.11, 0.1), bronze, [0, y, 0.38]);
-    tube(
-      g,
-      Array.from({ length: 36 }, (_, i) => {
-        const t = i / 35,
-          a = t * Math.PI * 4,
-          r = 0.08 + t * 1.35;
-        return [Math.cos(a) * r, Math.sin(a) * r, 0.4];
-      }),
-      0.07,
-      glow,
-    );
-    for (let row = 0; row < 2; row++)
-      tube(
-        g,
-        Array.from({ length: 15 }, (_, i) => [
-          -1.8 + i * 0.26,
-          -1.85 - row * 0.45 + Math.sin(i * 0.9) * 0.08,
-          0.4,
-        ]),
-        0.025,
-        bronze,
-      );
+    const plaque = plaqueAsset.create();
+    plaque.name = "conch_inscription";
+    g.add(plaque);
     const hang = site.roofY - site.point.y - 2.9;
     if (hang > 0)
       mesh(g, new THREE.CylinderGeometry(0.06, 0.06, hang, 6), bronze, [
@@ -182,13 +152,15 @@ export function createAtlantisKeyArt(parent, records = []) {
       key.visible = visible;
       chain.visible = visible && suspended;
       // 接触点保持固定，只摆动饰纹与材质，不让钥匙游出建筑。
-      bow.rotation.z = reducedMotion ? 0 : Math.sin(time * 0.6) * 0.025;
+      keyModel.rotation.z = reducedMotion ? 0 : Math.sin(time * 0.6) * 0.025;
+      glowMaterial.opacity = reducedMotion
+        ? 0.18
+        : 0.17 + 0.025 * Math.sin(time * 1.3);
       bronze.emissiveIntensity =
         0.2 + (reducedMotion ? 0 : (Math.sin(time * 1.3) + 1) * 0.12);
       plaques.forEach((p) => {
         p.visible = p.position.distanceToSquared(position) < 180 ** 2;
       });
-      void shaft;
     },
     reset() {
       selected = null;
@@ -207,148 +179,43 @@ export function createAtlantisKeyArt(parent, records = []) {
 
 /** 真实宝箱的拱顶箱盖、铜箍、铆钉与钥孔，返回独立开盖关节。 */
 export function createAtlantisQuestChest(root, keep, stone, bronze) {
-  const dark = keep(
-    new THREE.MeshStandardMaterial({ color: 0x345352, roughness: 0.74 }),
+  const asset = acquireAtlantisQuestAsset("chest");
+  keep({ dispose: asset.release });
+  asset.prepare();
+  root.userData.prepareMaterials = asset.prepare;
+  root.add(asset.create(0));
+  const lining = keep(
+    new THREE.MeshStandardMaterial({ color: 0x4b605b, roughness: 0.85 }),
   );
-  addSurfaceDetail(dark, "stone", 0.09);
-  const box = (parent, geo, mat, x, y, z) => {
-    const m = new THREE.Mesh(keep(geo), mat);
-    m.position.set(x, y, z);
-    parent.add(m);
-    return m;
-  };
-  const bodyOutline = new THREE.Shape();
-  bodyOutline.moveTo(-3.5, -1.55);
-  bodyOutline.lineTo(3.5, -1.55);
-  bodyOutline.lineTo(3.5, 1.55);
-  bodyOutline.lineTo(-3.5, 1.55);
-  bodyOutline.closePath();
-  const bodyGeo = new THREE.ExtrudeGeometry(bodyOutline, {
-    depth: 4.7,
-    bevelEnabled: true,
-    bevelSize: 0.08,
-    bevelThickness: 0.08,
-    bevelSegments: 2,
-  });
-  bodyGeo.translate(0, 0, -2.35);
-  box(root, bodyGeo, dark, 0, 4, 0);
-  const engraving = (parent, points, mat, radius = 0.045) =>
-    box(
-      parent,
-      new THREE.TubeGeometry(
-        new THREE.CatmullRomCurve3(points.map((p) => new THREE.Vector3(...p))),
-        points.length * 5,
-        radius,
-        6,
-        false,
-      ),
-      mat,
-      0,
-      0,
-      0,
+  addSurfaceDetail(lining, "stone", 0.06);
+  function panel(parent, dimensions, point, material = lining) {
+    const mesh = new THREE.Mesh(
+      keep(new THREE.BoxGeometry(...dimensions)),
+      material,
     );
-  for (const side of [-1, 1]) {
-    const x = side * 1.4;
-    // 海神三叉与波浪铜嵌，保持盖子和箱体分离，开盖时不会穿帮。
-    engraving(
-      root,
-      [
-        [x, 2.9, -2.48],
-        [x, 4.9, -2.48],
-      ],
-      bronze,
-    );
-    for (const offset of [-0.43, 0, 0.43])
-      engraving(
-        root,
-        [
-          [x, 4.1, -2.48],
-          [x + offset, 4.5, -2.48],
-          [x + offset, 4.94, -2.48],
-        ],
-        bronze,
-        0.035,
-      );
-    for (const y of [3.15, 5.16])
-      engraving(
-        root,
-        Array.from({ length: 14 }, (_, i) => [
-          x - 0.82 + i * 0.126,
-          y + Math.sin(i * 0.8) * 0.055,
-          -2.48,
-        ]),
-        bronze,
-        0.025,
-      );
-    box(
-      root,
-      new THREE.BoxGeometry(0.25, 3.15, 0.25),
-      bronze,
-      side * 3.34,
-      4,
-      -2.22,
-    );
-    box(
-      root,
-      new THREE.BoxGeometry(0.25, 3.15, 0.25),
-      bronze,
-      side * 3.34,
-      4,
-      2.22,
-    );
+    mesh.position.fromArray(point);
+    parent.add(mesh);
+    return mesh;
   }
-  box(root, new THREE.BoxGeometry(6.6, 0.3, 4.4), stone, 0, 2.5, 0);
+  // 裁开 HF 外壳后补真实内衬与口沿，圣珠可见时不暴露背面空洞。
+  panel(root, [6.2, 0.18, 3.5], [0, 2.8, 0]);
+  for (const x of [-3.05, 3.05]) {
+    panel(root, [0.16, 2.72, 3.5], [x, 4.16, 0]);
+    panel(root, [0.23, 0.13, 3.65], [x, 5.55, 0], bronze);
+  }
+  for (const z of [-1.65, 1.65]) {
+    panel(root, [6.2, 2.72, 0.16], [0, 4.16, z]);
+    panel(root, [6.3, 0.13, 0.23], [0, 5.55, z], bronze);
+  }
   const lid = new THREE.Group();
   lid.name = "sacred_chest_lid";
   lid.position.set(0, 5.6, 2.35);
   root.add(lid);
-  const shape = new THREE.Shape();
-  shape.moveTo(-2.35, 0);
-  shape.lineTo(2.35, 0);
-  shape.absarc(0, 0, 2.35, 0, Math.PI, false);
-  shape.closePath();
-  const shell = new THREE.ExtrudeGeometry(shape, {
-    depth: 7,
-    bevelEnabled: true,
-    bevelSize: 0.08,
-    bevelThickness: 0.08,
-    bevelSegments: 2,
-    curveSegments: 32,
-  });
-  // 挤出轴为箱宽；拱顶横跨前后，后缘为真实开盖铰链。
-  shell.rotateY(Math.PI / 2);
-  shell.translate(-3.5, 0, -2.35);
-  box(lid, shell, dark, 0, 0, 0);
-  for (const side of [-1, 1])
-    for (let ray = 0; ray < 7; ray++) {
-      const a = (ray / 6) * Math.PI;
-      engraving(
-        lid,
-        [
-          [side * 3.59, 0.15, -2.35],
-          [side * 3.59, Math.sin(a) * 1.8 + 0.15, -2.35 + Math.cos(a) * 1.8],
-        ],
-        bronze,
-        0.03,
-      );
-    }
-  for (const x of [-2.6, 0, 2.6]) {
-    box(root, new THREE.BoxGeometry(0.19, 3.15, 4.82), bronze, x, 4, 0);
-    const band = new THREE.TorusGeometry(2.42, 0.08, 6, 48, Math.PI);
-    band.rotateY(Math.PI / 2);
-    box(lid, band, bronze, x, 0, -2.35);
-    for (const y of [2.8, 3.7, 4.6, 5.3])
-      box(root, new THREE.SphereGeometry(0.12, 8, 6), bronze, x, y, -2.43);
-  }
-  box(root, new THREE.BoxGeometry(0.8, 1.4, 0.18), bronze, 0, 4.5, -2.55);
-  box(
-    root,
-    new THREE.CylinderGeometry(0.2, 0.2, 0.2, 12),
-    dark,
-    0,
-    4.7,
-    -2.68,
-  ).rotation.x = Math.PI / 2;
-  box(root, new THREE.BoxGeometry(0.12, 0.45, 0.12), dark, 0, 4.4, -2.69);
+  lid.add(asset.create(1));
+  panel(lid, [6.2, 0.09, 3.65], [0, 0.04, -2.35]);
+  for (const x of [-3.05, 3.05])
+    panel(lid, [0.22, 0.12, 3.65], [x, 0.02, -2.35], bronze);
+  for (const z of [-4.05, -0.65])
+    panel(lid, [6.3, 0.12, 0.22], [0, 0.02, z], bronze);
   return lid;
 }

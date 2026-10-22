@@ -316,7 +316,11 @@ test("City disposal releases private geometry and instance buffers once, preserv
   for (const count of instances.values()) assert.equal(count, 1);
   // 动态海洋材质携带实例时钟，归单个城市所有；静态建筑材质继续共享。
   for (const [material, count] of materials)
-    assert.equal(count, sharedMaterials.has(material) ? 0 : 1);
+    assert.equal(
+      count,
+      sharedMaterials.has(material) ? 0 : 1,
+      material.name + " " + material.type,
+    );
   second.update(30, 1 / 60, new THREE.Vector3(0, -420, -730), false);
   second.root.traverse((node) => {
     if (node.geometry)

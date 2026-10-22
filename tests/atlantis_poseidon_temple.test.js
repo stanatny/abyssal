@@ -278,7 +278,7 @@ test("Poseidon accepted furnishings are placed on full supported footprints", (t
 test("Poseidon cached geometry remains finite, detailed, bounded and independently disposable", (t) => {
   const a = makeTemple(t),
     b = makeTemple(t);
-  assert.ok(a.stats.triangles > 100000 && a.stats.triangles < 180000);
+  assert.ok(a.stats.triangles > 100000 && a.stats.triangles < 190000);
   assert.ok(a.stats.colliders < 1000);
   assert.ok(a.stats.meshes <= 13);
   assert.equal(a.root.getObjectsByProperty("isPointLight", true).length, 0);
@@ -292,14 +292,32 @@ test("Poseidon cached geometry remains finite, detailed, bounded and independent
           Number.isFinite(p.getY(i)) &&
           Number.isFinite(p.getZ(i)),
       );
-    for (let i = 0; i < p.count; i += 3) {
-      const x = new THREE.Vector3().fromBufferAttribute(p, i),
-        y = new THREE.Vector3().fromBufferAttribute(p, i + 1),
-        z = new THREE.Vector3().fromBufferAttribute(p, i + 2);
+    for (let i = 0; i < (mesh.geometry.index?.count ?? p.count); i += 3) {
+      const index = (j) => mesh.geometry.index?.getX(j) ?? j;
+      const x = new THREE.Vector3().fromBufferAttribute(p, index(i)),
+        y = new THREE.Vector3().fromBufferAttribute(p, index(i + 1)),
+        z = new THREE.Vector3().fromBufferAttribute(p, index(i + 2));
       assert.ok(
         new THREE.Vector3().crossVectors(y.sub(x), z.sub(x)).lengthSq() > 1e-16,
       );
     }
+  }
+  const skins = a.root
+    .getObjectsByProperty("isInstancedMesh", true)
+    .filter(
+      (mesh) =>
+        mesh.userData.artRevision === "trellis_atlantis_furniture_20261022",
+    );
+  assert.equal(skins.length, 3);
+  for (const mesh of skins) {
+    assert.equal(mesh.material.isMeshStandardMaterial, true);
+    assert.ok(mesh.material.name.startsWith("atlantis_furniture_"));
+    const transform = new THREE.Matrix4();
+    mesh.getMatrixAt(0, transform);
+    assert.ok(
+      transform.elements[14] < -800,
+      "Keep temple world placement instead of remerging its local source at the origin",
+    );
   }
   let materialDisposals = 0;
   for (const material of materials)

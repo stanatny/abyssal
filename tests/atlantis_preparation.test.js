@@ -26,7 +26,7 @@ test("分片古城保留已验收版本的全部实体、障碍及近景模型�
   assert.equal(hash(ocean.colliders), hash(reference.colliders));
   assert.equal(hash(ocean.obstacles), hash(reference.obstacles));
   assert.equal(ocean.city.stats.colliders, 20964);
-  // 已验收布局快照保持冻结；仅豁免本次替换的三个建筑视觉套件及此前纪念碑。
+  // 已验收布局快照保持冻结；豁免已替换建筑/纪念碑以及本次任务道具外观。
   // 建筑碰撞逐字一致；未替换建筑与原方尖碑刻痕继续逐字比较。
   const geometryDigest = (g) => {
     const h = createHash("sha256");
@@ -51,6 +51,26 @@ test("分片古城保留已验收版本的全部实体、障碍及近景模型�
     const digest = createHash("sha256");
     root.traverse((node) => {
       if (!node.isMesh) return;
+      // 任务道具由独立几何/铰链/拾取测试覆盖；圣珠、封印和旧基座仍逐字比较。
+      let ancestor = node.parent;
+      while (ancestor) {
+        // 家具仅替换皮肤；完整实体仍与冻结基线逐字比较，独立射线/生命周期测试覆盖拟合。
+        if (ancestor.userData.furnitureStats) return;
+        if (ancestor.name === "atlantis_conch_key_and_inscriptions") return;
+        if (
+          ancestor.name === "poseidon_sacred_pearl" &&
+          ![
+            "carved_octagonal_dais",
+            "pearl_dais_upper",
+            "dais_bronze_inlay",
+            "sacred_pearl",
+            "guardian_seal",
+            "pearl_orbit",
+          ].includes(node.name)
+        )
+          return;
+        ancestor = ancestor.parent;
+      }
       const geometry = node.geometry;
       if (
         node.parent?.name === "poseidon_monument" ||
