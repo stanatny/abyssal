@@ -1,6 +1,7 @@
 import * as THREE from "three";
 import { hawaiiLordAsset } from "./hawaii_lord_asset.js";
 import { bindOrganicBody } from "./hf_organic_asset.js";
+import { createKrakenMotion } from "./kraken_motion.js";
 import { createKrakenIntake } from "./kraken_intake_visual.js";
 import {
   createLordBones,
@@ -66,7 +67,15 @@ function rigChains(kind) {
         type: "arm",
         side,
         index: i,
-        points: p.map(([x, y, z]) => [x * side, y, z]),
+        points: p
+          .flatMap((q, j) =>
+            j === p.length - 1
+              ? [q]
+              : [0, 1 / 3, 2 / 3].map((t) =>
+                  q.map((v, k) => v + (p[j + 1][k] - v) * t),
+                ),
+          )
+          .map(([x, y, z]) => [x * side, y, z]),
       })),
     );
   }
@@ -185,19 +194,36 @@ function bind(kind, chains, x, y, z, ids, weights, offset) {
   point.set(x, y, z);
   if (kind === "kraken") {
     // 先限定在前腕扇区，后方外套不随邻近的回卷腕一起拉扯。
-    let best = chains[0],
-      distance = Infinity;
-    for (const chain of chains) {
-      const d = nearestChain(point, chain).distance;
-      if (d < distance) {
-        distance = d;
-        best = chain;
-      }
-    }
+    const nearest = chains
+      .map((chain) => ({ chain, ...nearestChain(point, chain) }))
+      .sort((a, b) => a.distance - b.distance);
     const blend =
-      smooth(0.155, 0.24, Math.hypot(x, z + 0.02)) *
-      Math.max(smooth(0.2, 0.28, Math.abs(x)), 1 - smooth(-0.16, -0.07, z));
-    chainWeights(best, point, blend, ids, weights, offset);
+      smooth(0.11, 0.19, Math.hypot(x, z + 0.02)) *
+      Math.max(smooth(0.15, 0.22, Math.abs(x)), 1 - smooth(-0.16, -0.07, z)) *
+      (1 - smooth(0.24, 0.31, z) * (1 - smooth(0.18, 0.25, Math.abs(x))));
+    // The web between neighboring arms must not jump to a different chain at
+    // a Voronoi boundary. Blend both anatomical centerlines across that web.
+    const mix =
+      0.5 *
+      (1 -
+        smooth(
+          0,
+          0.045,
+          Math.sqrt(nearest[1].distance) - Math.sqrt(nearest[0].distance),
+        ));
+    const combined = new Map([[0, 1 - blend]]);
+    for (let n = 0; n < 2; n++) {
+      const hit = nearest[n],
+        amount = blend * (n ? mix : 1 - mix);
+      combined.set(hit.a, (combined.get(hit.a) || 0) + amount * (1 - hit.t));
+      combined.set(hit.b, (combined.get(hit.b) || 0) + amount * hit.t);
+    }
+    const selected = [...combined].sort((a, b) => b[1] - a[1]).slice(0, 4);
+    const total = selected.reduce((sum, pair) => sum + pair[1], 0);
+    for (let n = 0; n < 4; n++) {
+      ids[offset + n] = selected[n]?.[0] || 0;
+      weights[offset + n] = (selected[n]?.[1] || 0) / total;
+    }
     return;
   }
   if (kind === "hydra" && y > 0.115 && z < -0.13) {
@@ -335,6 +361,9 @@ export function buildHawaiiLordHF(kind, root, motions) {
       ]),
     ];
   if (kind === "mayan") addMajaEyes(root, mesh);
+  const krakenMotion = intake
+    ? createKrakenMotion(root, chains, bones, intake, mesh)
+    : null;
   let grip = 0,
     targetGrip = 0,
     previous;
@@ -344,6 +373,7 @@ export function buildHawaiiLordHF(kind, root, motions) {
   root.userData.resetKrakenGrip = () => {
     grip = targetGrip = 0;
     intake?.reset();
+    krakenMotion?.reset();
   };
   const smoothEffort = lordEffortSmoother();
   motions.push((phase, effort) => {
@@ -355,6 +385,10 @@ export function buildHawaiiLordHF(kind, root, motions) {
     previous = phase;
     grip += (targetGrip - grip) * (1 - Math.exp(-step * 3));
     intake?.idle(phase, grip);
+    if (krakenMotion) {
+      krakenMotion.update(phase, power, grip);
+      return;
+    }
     for (const chain of chains)
       for (let i = 0; i < chain.ids.length; i++) {
         const bone = bones[chain.ids[i]],
@@ -394,19 +428,6 @@ export function buildHawaiiLordHF(kind, root, motions) {
               ? -0.012 -
                 (0.013 + power * 0.003) * (0.5 + 0.5 * Math.sin(phase * 0.28))
               : 0;
-        else if (chain.type === "arm") {
-          const offset = chain.index * 1.2 + chain.side * 0.8;
-          bone.rotation.y =
-            chain.side *
-            (Math.sin(wave + offset) * (0.016 + power * 0.005) +
-              grip * (i === 0 ? 0.04 : i < 2 ? 0.038 : 0.17));
-          bone.rotation.x =
-            Math.sin(wave + offset - 0.7) * (0.025 + power * 0.006) +
-            grip * (chain.index - 1.5) * 0.015;
-          bone.rotation.z =
-            chain.side *
-            (Math.sin(wave * 0.7 + offset) * 0.025 + grip * (i < 2 ? 0 : 0.09));
-        }
       }
   });
 }

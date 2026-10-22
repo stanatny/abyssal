@@ -50,6 +50,8 @@ export function creatureGuideSkills(species, entry = {}) {
                           species.damage * KRAKEN_GRAPPLE.damageMultiplier,
                           timing?.recover ?? 3,
                           KRAKEN_GRAPPLE.biteDelay,
+                          KRAKEN_GRAPPLE.escapeCost.far,
+                          KRAKEN_GRAPPLE.escapeCost.near,
                         ]
                       : undefined,
         windup: timing?.windup ?? species.windupDuration,
@@ -150,9 +152,9 @@ const LORD_SKILLS = {
   },
   vortex: {
     description:
-      "预判路线凝聚漩涡，随后游向涡心。越靠近口器，牵引、触腕拉力和体力流失越强；向外拉开距离后逐渐减弱。被长腕缠住后有{2}秒挣脱窗口，未脱身便受到一次{0}点基础绞咬伤害。",
+      "预判路线凝聚漩涡，八腕向目标围拢。向外冲刺可挣脱：外圈额外消耗{3}体力，随口器距离平滑升至近处的{4}体力；普通冲刺消耗另计。缠腕后有{2}秒窗口，未脱身便受到一次{0}点基础绞咬伤害。",
     counter:
-      "看到预警就变向冲出涡心，不要等贴近巨口才加速；被缠住后持续向外冲刺，距离越远越容易脱身，也可借岩柱打断触腕。结束后有{1}秒侧翼反击窗口。",
+      "尽早脱离，避免等到体力不足才冲刺。珍兽恩赐的150上限有利于近处脱身；也可横向借岩柱断开触腕。成功挣脱只付一次费用，本轮不会再被缠住。结束后有{1}秒侧翼反击窗口。",
   },
   pulse: {
     description: "蓄力时锁定目标所在的水层，再释放高速扩散的脉冲环。",

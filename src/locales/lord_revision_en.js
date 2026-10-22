@@ -107,4 +107,17 @@ export const LORD_REVISION_EN = Object.freeze({
     "Forms a vortex on the predicted route and closes in. Pull, arm restraint and stamina loss grow stronger near its central maw, easing as you sprint away. Failure to escape triggers a delayed crushing bite; rock pillars can interrupt the arms.",
   "预警后尽早冲出涡心，避免贴近巨口；被缠住后向外持续冲刺，或绕岩柱阻断触腕。绞咬结束后有4秒恢复期，从侧翼咬击，再脱离接触范围。":
     "Sprint out at the warning and avoid approaching the maw. Keep sprinting outward if caught or use pillars to break the arms. Use its 4-second recovery to bite the flank, then disengage.",
+  "先在预计路线上聚起漩涡，再伸出八腕围捕目标。向外冲刺可一次性挣脱，越靠近巨口所需体力越多；未及时脱身会被延迟绞咬，岩柱可以阻断触腕。":
+    "Forms a vortex on the predicted route, then reaches with eight arms to surround its prey. An outward sprint pays for one escape; the closer the maw, the greater the stamina cost. Failure to escape triggers a delayed crushing bite. Pillars interrupt the arms.",
+  "预警时尽早离开；漩涡生效后，向外冲刺按距离额外消耗体力，口器附近需要超过普通上限的储备。先看战斗提示的费用，也可横向绕岩柱断开触腕。成功挣脱后本轮不再束缚；绞咬结束后从侧翼反击。":
+    "Leave during the warning. Once the vortex takes hold, an outward sprint costs extra stamina based on distance; near the maw it requires reserves above the ordinary cap. Check the displayed price or steer sideways around a pillar to break contact. A successful escape prevents recapture in that vortex. Counter at the flank after the bite.",
+  "预判路线凝聚漩涡，八腕向目标围拢。向外冲刺可挣脱：外圈额外消耗{3}体力，随口器距离平滑升至近处的{4}体力；普通冲刺消耗另计。缠腕后有{2}秒窗口，未脱身便受到一次{0}点基础绞咬伤害。":
+    "Forms a vortex ahead and reaches around its target with eight arms. An outward sprint breaks free for {3} extra stamina at the outer edge, rising smoothly to {4} near the maw; normal sprint drain still applies. A grip gives {2} seconds to escape before one {0}-point base crushing bite.",
+  "尽早脱离，避免等到体力不足才冲刺。珍兽恩赐的150上限有利于近处脱身；也可横向借岩柱断开触腕。成功挣脱只付一次费用，本轮不会再被缠住。结束后有{1}秒侧翼反击窗口。":
+    "Escape early rather than waiting until stamina is too low. The rare blessing's 150 cap helps at close range; steering sideways behind pillars also breaks the grip. Pay once for a successful escape with no recapture that vortex. Counter at the flank during its {1}-second recovery.",
+  "冲刺挣脱 · 本轮漩涡不再束缚你": "Sprint escape · Free of this vortex",
+  "触腕缠绕 · 向外冲刺需{0}体力，或借掩体！":
+    "Arms closing · Sprint outward for {0} stamina or use cover!",
+  "向外冲刺挣脱需{0}体力 · 越近越贵，可借掩体":
+    "Outward sprint: {0} extra stamina · Cost rises nearer the maw; cover also works",
 });

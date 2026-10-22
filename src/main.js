@@ -2048,6 +2048,7 @@ function feedingMouth(out) {
   return avatar.userData.getFeedingMouth?.(out) ?? capturePoint(out);
 }
 const playerMovementStart = new THREE.Vector3();
+let playerBoosting = false;
 const predatorFacing = new THREE.Vector3();
 const playerFacing = new THREE.Vector3();
 function updatePlayer(dt, roundDt) {
@@ -2069,6 +2070,7 @@ function updatePlayer(dt, roundDt) {
     depth: -position.y,
     hungerProfile: expedition.region.hungerProfile,
   }).boosting;
+  playerBoosting = boosting || jet;
   const movement = characterMovement(player.characterId, boosting || jet);
   if (wasAirborne || jet) groundRecovering = iceRecovering = false;
   if (!jet) {
@@ -3834,9 +3836,11 @@ function updateHud() {
     $("boss-tip").textContent = t(
       state.locked
         ? "四象护阵未解 · 先击败四神兽"
-        : player.length < state.species.minAttackLength
-          ? "体型不足 · 借地形与技能间隙撤出领地"
-          : tip,
+        : activeBoss.entry?.grapple.escapeCost > 0
+          ? tip
+          : player.length < state.species.minAttackLength
+            ? "体型不足 · 借地形与技能间隙撤出领地"
+            : tip,
     );
     $("boss-weakness").hidden =
       state.locked || player.length < state.species.minAttackLength;
@@ -4033,6 +4037,8 @@ function frame(now) {
       forward,
       {
         blockedBetween,
+        boosting: playerBoosting,
+        movementStart: playerMovementStart,
       },
     );
     ocean.updateProgress?.(player, position, encounters.bosses, notify);

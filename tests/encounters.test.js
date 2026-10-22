@@ -88,6 +88,7 @@ test("Restart clears an old Kraken grip even when that pooled lord is not select
     held: false,
     timer: 0,
     spent: false,
+    escapeCost: 0,
   });
   const resting = fixture("kraken");
   f.entry.mesh.userData.animate(1, 1, { gaitPhase: 0 });

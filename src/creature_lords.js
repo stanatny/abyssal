@@ -40,6 +40,14 @@ export function buildLordCreature(kind, root, motions) {
     "updateKrakenIntake",
   ])
     root.userData[key] = body.userData[key];
+  if (kind === "kraken")
+    for (const key of [
+      "setBossPhase",
+      "setSwimTravel",
+      "krakenMotion",
+      "setKrakenTarget",
+    ])
+      root.userData[key] = body.userData[key];
   if (body.userData.mouthAnchors)
     root.userData.mouthAnchors = body.userData.mouthAnchors;
   if (body.userData.combatAnchor)

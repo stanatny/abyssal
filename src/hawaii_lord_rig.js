@@ -154,6 +154,19 @@ export function prepareLordSkinChunks(mesh) {
             .expandByPoint(
               a.copy(v).applyMatrix4(mesh.skeleton.boneInverses[joint]),
             );
+          // Capture morphs must be inside the same broad-phase envelope as the
+          // bind pose, otherwise visible reaching arms can be skipped by contact.
+          for (const target of g.morphAttributes.position || []) {
+            a.fromBufferAttribute(target, i);
+            if (g.morphTargetsRelative) a.add(b.fromBufferAttribute(p, i));
+            influences
+              .get(joint)
+              .expandByPoint(
+                a
+                  .applyMatrix4(mesh.bindMatrix)
+                  .applyMatrix4(mesh.skeleton.boneInverses[joint]),
+              );
+          }
         }
       }
       chunks.push({ start, end, influences: [...influences] });

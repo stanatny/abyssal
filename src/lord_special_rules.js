@@ -8,6 +8,12 @@ export const KRAKEN_GRAPPLE = Object.freeze({
   pullSpeed: Object.freeze({ near: 24, far: 10 }),
   gripPullSpeed: Object.freeze({ near: 18, far: 6 }),
   staminaDrain: Object.freeze({ near: 9, far: 3 }),
+  escapeCost: Object.freeze({
+    near: 120,
+    far: 24,
+    nearDistance: 6,
+    farDistance: 42,
+  }),
   damageMultiplier: 1.5,
 });
 const KRAKEN_FORCE_KEYS = Object.freeze([
@@ -37,7 +43,43 @@ export function krakenGrappleForces(mouthDistance, out = {}) {
 
 /** 新一轮漩涡的状态；脱战、喷墨、击败与重开均丢弃旧束缚。 */
 export function createKrakenGrapple() {
-  return { exposure: 0, held: false, timer: 0, spent: false };
+  return { exposure: 0, held: false, timer: 0, spent: false, escapeCost: 0 };
+}
+
+/** One paid break per vortex, from the actual maw. Ordinary sprint drain remains separate. */
+export function krakenEscapeCost(distance) {
+  const c = KRAKEN_GRAPPLE.escapeCost;
+  if (!Number.isFinite(distance)) return c.far;
+  const t = Math.max(
+    0,
+    Math.min(1, (distance - c.nearDistance) / (c.farDistance - c.nearDistance)),
+  );
+  return Math.ceil(c.near + (c.far - c.near) * t * t * (3 - 2 * t));
+}
+
+/** A deliberate outward sprint buys one release; insufficient reserves are not charged again. */
+export function tryKrakenEscape(
+  state,
+  player,
+  { dt, distance, active, boosting, outward },
+) {
+  state.escapeCost = active && !state.spent ? krakenEscapeCost(distance) : 0;
+  if (
+    !(dt > 0) ||
+    !state.escapeCost ||
+    !boosting ||
+    outward < 0.25 ||
+    player.exhausted ||
+    player.dead
+  )
+    return false;
+  if (player.stamina + 1e-8 < state.escapeCost) return false;
+  player.stamina = Math.max(0, player.stamina - state.escapeCost);
+  if (player.stamina === 0) player.exhausted = true;
+  state.held = false;
+  state.spent = true;
+  state.escapeCost = 0;
+  return true;
 }
 
 /**

@@ -5,6 +5,8 @@ import mayan from "./assets/models/mayan_hf_mesh.json" with { type: "json" };
 import hydra from "./assets/models/hydra_hf_mesh.json" with { type: "json" };
 import leviathan from "./assets/models/leviathan_hf_mesh.json" with { type: "json" };
 import { decodeOrganicMesh } from "./hf_organic_asset.js";
+import krakenReach from "./assets/models/kraken_reach_pose.json" with { type: "json" };
+import { prepareOctopusJetPose } from "./octopus_jet_pose.js";
 import { openKrakenOralSocket } from "./kraken_intake_visual.js";
 
 const packed = { kraken, mayan, hydra, leviathan };
@@ -31,7 +33,10 @@ export function hawaiiLordAsset(kind, bind) {
   const geometry = decodeOrganicMesh(packed[kind], bind, (x, y, z, color) =>
     color.set(colors[kind]),
   );
-  if (kind === "kraken") openKrakenOralSocket(geometry);
+  if (kind === "kraken") {
+    openKrakenOralSocket(geometry);
+    prepareOctopusJetPose(geometry, krakenReach);
+  }
   const material = new THREE.MeshPhysicalMaterial({
     roughness: 0.64,
     metalness: 0,

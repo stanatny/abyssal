@@ -1,4 +1,47 @@
-# Accepted Atlantis monuments checkpoint — 2026-10-21
+# Kraken motion and pursuer-camera candidate — 2026-10-22
+
+Local checkpoint accepted — 2026-10-22: the user requests committing the
+current version, then reviewing a player-silhouette effect. This accepts the
+Kraken motion/pressure work with the original follow camera restored, not the
+rejected moving-camera/fading experiments. Previous verification retains its
+recorded scope. This authorizes a local commit only. The next silhouette candidate
+must preserve camera behavior, opaque creatures and gameplay and remain
+uncommitted until separately accepted.
+
+Stable follow camera restored — 2026-10-22: the user rejects the moving-camera
+candidate because its repeated corrections disrupt control. Restore the exact
+pre-experiment follow-camera functions and ordinary creature factory; retain
+world-wall collision and all pending Kraken changes. Both experimental camera
+avoidance and foreground fading are removed. Original close-body clipping is an
+explicitly accepted temporary trade-off, not a solved defect. Research supports
+player silhouettes and off-screen threat cues as future options, not a new
+implementation in this change. No commit/push. See [the rollback review](docs/kraken_motion_camera_revision.md#stable-follow-camera-restoration--2026-10-22).
+
+Pursuer-camera rework — 2026-10-22: the user rejects the foreground fade,
+including counterflow creatures disappearing behind the player. Remove the
+material/shader mask entirely. The new candidate shortens the follow arm and
+uses a bounded rear-shoulder/height correction around nearby visible geometry,
+then eases back. Creature appearance, movement and the pending Kraken changes
+remain intact. User/physical-phone review is pending; no commit or push.
+See [the replacement review](docs/kraken_motion_camera_revision.md#opaque-pursuer-camera-rework--2026-10-22).
+
+
+Kraken pressure follow-up — 2026-10-22: the user requests eight-arm reaching,
+a distance-priced sprint escape (up to 120 stamina), and a clear forward view
+when a giant pursuer crowds the lens. This supersedes the earlier unchanged-
+gameplay and physical-camera-avoidance candidate below. The current agent alone
+adds a bounded capture pose and render-only foreground occlusion relief. Native
+100/150-stamina cases and 1,559 tests pass; user review remains pending. No new
+commit/push, service replacement or formal release. See the [follow-up review](docs/kraken_motion_camera_revision.md#pressure-and-forward-view-follow-up--2026-10-22).
+
+
+Kraken/camera candidate — 2026-10-22: the preceding rendering and performance
+checkpoint is locally committed as `8e974d7`, without push. The current agent
+independently adds state-driven Kraken arm motion and follow-camera avoidance
+of visible large pursuers, keeping gameplay and source assets unchanged.
+See [the implementation and evidence](docs/kraken_motion_camera_revision.md).
+This new candidate remains uncommitted for user review. The original physical-
+phone black-screen incident retains its earlier verification limits.
 
 Accepted rendering checkpoint — 2026-10-22: the user requests committing the
 current performance and graphics-recovery candidate, then separately improving

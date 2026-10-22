@@ -77,6 +77,7 @@ import {
   krakenGrappleForces,
   createKrakenGrapple,
   tickKrakenGrapple,
+  tryKrakenEscape,
   inWaterBreath,
 } from "./lord_special_rules.js";
 
@@ -1903,7 +1904,14 @@ export function createEncounters(
     if (entry.fx.ability === "charge")
       for (const puff of entry.fx.trail) puff.sprite.visible = false;
   }
-  function update(dt, time, player, position, forward, { blockedBetween }) {
+  function update(
+    dt,
+    time,
+    player,
+    position,
+    forward,
+    { blockedBetween, boosting = false, movementStart = position },
+  ) {
     if (disposed) return null;
     bodyGeneration++;
     dt = Number.isFinite(dt) ? Math.max(0, dt) : 0;
@@ -2256,7 +2264,15 @@ export function createEncounters(
         entry.mesh.position.distanceTo(entry.motion.groundStart),
         dt,
       );
-      entry.mesh.userData.setBossPhase?.(state.phase);
+      entry.mesh.userData.setBossPhase?.(
+        attack &&
+          entry.grapple.spent &&
+          !entry.mesh.userData.krakenIntake?.state.biting
+          ? "recover"
+          : state.phase,
+      );
+      entry.mesh.userData.setKrakenTarget?.(position);
+      if (!attack || state.ability !== "vortex") entry.grapple.escapeCost = 0;
       entry.mesh.userData.setKarkinosCombat?.({
         phase: state.phase,
         ability: state.ability === "fault" ? "fissure" : state.ability,
@@ -2495,7 +2511,54 @@ export function createEncounters(
           const mouth = entry.mesh.userData.mouthAnchors?.[0];
           if (mouth) mouth.getWorldPosition(entry.motion.target);
           else entry.motion.target.copy(entry.mesh.position);
-          const mouthDistance = entry.motion.target.distanceTo(position);
+          let mouthDistance = entry.motion.target.distanceTo(position);
+          const coreDistanceBefore =
+            entry.attackOrigin.distanceTo(movementStart);
+          const beforeDistance = entry.motion.target.distanceTo(movementStart);
+          const clearMaw = !blockedBetween(entry.motion.target, position);
+          const restrained =
+            !entry.grapple.spent &&
+            clearMaw &&
+            (entry.grapple.held ||
+              Math.min(
+                coreDistanceBefore,
+                entry.attackOrigin.distanceTo(position),
+              ) < state.species.abilityRadius);
+          const outward = entry.motion.offset
+            .copy(position)
+            .sub(entry.motion.target)
+            .normalize()
+            .dot(forward);
+          const escaped = tryKrakenEscape(entry.grapple, player, {
+            dt,
+            distance: Math.min(beforeDistance, mouthDistance),
+            active: restrained,
+            boosting,
+            outward,
+          });
+          if (escaped) notify("冲刺挣脱 · 本轮漩涡不再束缚你", 1.8);
+          // Unpaid pressure opposes only outward swimming, preserving lateral steering
+          // and the ability to break the tether with real terrain. Never teleport to the maw.
+          if (
+            restrained &&
+            !escaped &&
+            dt > 0 &&
+            coreDistanceBefore < state.species.abilityRadius
+          ) {
+            const radial = entry.motion.offset
+              .copy(position)
+              .sub(entry.motion.target)
+              .normalize();
+            const outwardStep = Math.max(
+              0,
+              entry.motion.next.copy(position).sub(movementStart).dot(radial),
+            );
+            const next = entry.motion.next
+              .copy(position)
+              .addScaledVector(radial, -outwardStep);
+            if (!blockedBetween(position, next)) position.copy(next);
+            mouthDistance = entry.motion.target.distanceTo(position);
+          }
           const forces = krakenGrappleForces(
             mouthDistance,
             entry.grappleForces,
@@ -2532,7 +2595,7 @@ export function createEncounters(
           krakenBite = event === "bite";
           if (event === "grabbed")
             notify(
-              "触腕缠绕 · 越近越难脱身，向外冲刺或借岩柱！",
+              message`触腕缠绕 · 向外冲刺需${entry.grapple.escapeCost}体力，或借掩体！`,
               KRAKEN_GRAPPLE.biteDelay + 0.2,
             );
           if (event === "escaped") notify("挣脱触腕 · 绞咬已被打断", 1.5);
@@ -2726,7 +2789,8 @@ export function createEncounters(
       }
       // 口器只读取本帧真正的捕获/绞咬事件；不替换位移、伤害或逃脱规则。
       entry.mesh.userData.updateKrakenIntake?.(dt, {
-        active: attack && sight && state.ability === "vortex",
+        active:
+          attack && sight && state.ability === "vortex" && !entry.grapple.spent,
         held: entry.grapple.held,
         bite: krakenBite,
         target: position,
@@ -2752,8 +2816,10 @@ export function createEncounters(
                         ? state.openingSpent
                           ? "护甲重整 · 先躲下一轮技能"
                           : "收势绕位 · 追准身体反击，每轮一次"
-                        : (state.species.skillTips?.[state.ability] ??
-                          TIPS[state.ability]),
+                        : entry.grapple.escapeCost > 0
+                          ? message`向外冲刺挣脱需${entry.grapple.escapeCost}体力 · 越近越贵，可借掩体`
+                          : (state.species.skillTips?.[state.ability] ??
+                            TIPS[state.ability]),
           };
     }
     for (let i = projectiles.length - 1; i >= 0; i--) {
