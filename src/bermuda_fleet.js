@@ -1,9 +1,6 @@
+import { acquireBermudaFleetAsset } from "./bermuda_fleet_asset.js";
 import * as THREE from "three";
-import {
-  createBermudaBuilder,
-  bermudaMaterials,
-  hullStripGeometry,
-} from "./bermuda_geometry.js";
+import { createBermudaBuilder, bermudaMaterials } from "./bermuda_geometry.js";
 import { createSurfaceShipImpact } from "./surface_ship_impact.js";
 import { castSegment } from "./collision.js";
 import { stormWaveHeight } from "./bermuda_water.js";
@@ -337,72 +334,20 @@ export function createBermudaFleet(parent, options = {}) {
 function makeFreighter(name, length, width, m, keep) {
   const root = new THREE.Group();
   root.name = name;
-  const b = createBermudaBuilder(root, keep);
-  const hull = keep(m.steel.clone());
-  hull.name = name;
-  hull.side = THREE.DoubleSide;
-  for (const side of [-1, 1])
-    b.add(hullStripGeometry(length, width, 10, { side }), hull, [0, -7, 0]);
-  b.box(m.red, [0, -6.8, 0], [width * 0.6, 1, length * 0.88]);
-  b.box(m.steel, [0, 3, 0], [width, 1, length * 0.86]);
+  const asset = acquireBermudaFleetAsset(name);
+  // 缓存与场景资源分离：释放租约，不能直接销毁仍在另一场景使用的表面。
+  keep({ dispose: asset.release });
+  const body = new THREE.Mesh(asset.geometry, asset.material);
+  body.name = `${name}_hf_surface`;
+  body.scale.setScalar(length);
+  root.add(body);
+  root.userData.artRevision = "bermuda-storm-fleet-hf-20261023";
+  root.userData.shipArt = { body };
+  root.userData.prepareMaterials = asset.prepare;
+  asset.prepare();
   const localColliders = [
     { center: [0, -2, 0], size: [width, 10, length * 0.82] },
   ];
-  for (let level = 0; level < 3; level++) {
-    b.box(
-      m.pale,
-      [0, 6 + level * 3, length * 0.3],
-      [width * 0.8 - level, 3, 18],
-    );
-    for (const side of [-1, 1])
-      for (let z = -7; z < 8; z += 3)
-        b.box(
-          m.glass,
-          [
-            side * (width * 0.4 - level * 0.5 + 0.1),
-            6.3 + level * 3,
-            length * 0.3 + z,
-          ],
-          [0.18, 1.5, 1.7],
-        );
-  }
-  if (name.includes("tanker")) {
-    for (let z = -length * 0.33; z < length * 0.2; z += 12) {
-      const g = new THREE.CylinderGeometry(width * 0.26, width * 0.26, 10, 16);
-      g.rotateZ(Math.PI / 2);
-      b.add(g, m.rust, [0, 6, z]);
-    }
-    b.beam(
-      m.brass,
-      [-width * 0.35, 5, -length * 0.35],
-      [-width * 0.35, 5, length * 0.15],
-      0.6,
-    );
-  } else
-    for (let z = -length * 0.3; z < length * 0.2; z += 15)
-      for (const x of [-width * 0.22, width * 0.22]) {
-        b.box(m.rust, [x, 6, z], [width * 0.42, 5, 13]);
-        for (let k = -5; k <= 5; k += 2)
-          b.box(m.brass, [x + width * 0.22 + 0.04, 6, z + k], [0.1, 4.6, 0.18]);
-      }
-  for (const side of [-1, 1])
-    for (let z = -length * 0.42; z < length * 0.44; z += 5) {
-      b.beam(
-        m.brass,
-        [side * width * 0.48, 3.5, z],
-        [side * width * 0.48, 5, z],
-        0.1,
-      );
-      b.beam(
-        m.brass,
-        [side * width * 0.48, 5, z],
-        [side * width * 0.48, 5, z + 5],
-        0.1,
-      );
-    }
-  b.box(m.dark, [0, 15, length * 0.33], [5, 5, 7]);
-  b.beam(m.steel, [0, 14, length * 0.24], [0, 26, length * 0.24], 0.25);
-  b.finish();
   return { root, length, width, localColliders };
 }
 

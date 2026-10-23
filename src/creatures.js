@@ -1,3 +1,4 @@
+import { buildCrimsonSailHF } from "./creature_crimson_sail_hf.js";
 import { BERMUDA_HF_FISH, buildBermudaHF } from "./creature_bermuda_hf.js";
 import {
   BERMUDA_HF_PREDATORS,
@@ -133,6 +134,7 @@ export function createCreature(kind, length = 6, seed = 1) {
     buildOdysseyCreature(kind, root, motions);
   else if (ATLANTIS_HF_SMALL.has(kind))
     buildAtlantisSmallHF(kind, root, motions);
+  else if (kind === "crimson_sail") buildCrimsonSailHF(root, motions);
   else if (RARE_CREATURE_KINDS.has(kind))
     buildRegionalRare(kind, root, motions);
   else if (kind === "mechanical_shark") buildMechanicalShark(root, motions);

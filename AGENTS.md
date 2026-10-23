@@ -1,5 +1,19 @@
 # ABYSSAL Development Rules
 
+Accepted Bermuda rare/fleet checkpoint — 2026-10-23: the user accepts Crimson
+Sailfin, the Steel Cape freighter and storm tanker, and requests a local commit
+followed by the next HF batch. All 1,270 delivered input hashes match before
+these acceptance-only notes. Recorded 1,611 tests and native/public evidence
+retain their original scope. Earlier pending labels for this batch are historical.
+No push/main publication is requested; regional landmark work follows separately.
+
+Bermuda rare/fleet candidates — 2026-10-23: accepted predator and Cameroceras
+motion work is locally committed as `d454e7b`. The next HF batch replaces Crimson
+Sailfin and the two regional freighter/tanker skins, preserving routes, colliders,
+rare rules and accepted shared assets. The new batch awaits visual acceptance and
+remains uncommitted/unpushed. Oil rig, liner wreck, ghost ship and waterspouts
+remain separate future batches. See the [rare/fleet review](docs/bermuda_rare_fleet_huggingface_redraw.md).
+
 Accepted Bermuda predator checkpoint — 2026-10-23: the user accepts Tiger
 Shark, Cameroceras and Livyatan, including the researched Cameroceras motion
 follow-up, and requests a local commit followed by the next HF batch. All 1,256

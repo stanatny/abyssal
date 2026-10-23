@@ -1,5 +1,23 @@
 # Bermuda Hugging Face redraw — 2026-10-23
 
+Accepted Bermuda rare/fleet checkpoint — 2026-10-23: the user accepts Crimson
+Sailfin, the Steel Cape freighter and storm tanker, and requests a local commit
+followed by the next HF batch. All 1,270 delivered input hashes match before
+these acceptance-only notes. Recorded 1,611 tests and native/public evidence
+retain their original scope. Earlier pending labels for this batch are historical.
+No push/main publication is requested; regional landmark work follows separately.
+
+## Current inventory — batch 3 candidate
+
+All 24 ordinary Bermuda kinds now use accepted HF assets, including the three
+predators locally committed as `d454e7b`. Existing four lords, four players and
+shared birds remain accepted. The new uncommitted batch adds Crimson Sailfin and
+the two regional moving cargo ships; user review is pending. See the
+[rare/fleet review](bermuda_rare_fleet_huggingface_redraw.md). The dated baseline
+and earlier pending labels below remain historical, not the current inventory.
+Oil rig, explorable liner wreck, Flying Dutchman-inspired ghost ship, waterspouts
+and other regional scenery still require separate review/production batches.
+
 Accepted Bermuda predator checkpoint — 2026-10-23: the user accepts Tiger
 Shark, Cameroceras and Livyatan, including the researched Cameroceras motion
 follow-up, and requests a local commit followed by the next HF batch. All 1,256

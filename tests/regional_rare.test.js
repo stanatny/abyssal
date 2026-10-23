@@ -115,7 +115,9 @@ test("rare models have finite fully posed geometry, distinct silhouettes and ind
           ? "trellis_hawaii_batch11_20261019"
           : s.kind === "pearl_nautilus"
             ? "trellis_atlantis_small_20261021"
-            : "regional_rare_v1",
+            : s.kind === "crimson_sail"
+              ? "trellis_bermuda_crimson_20261023"
+              : "regional_rare_v1",
     );
     assert.ok(poses[0][2] > 0.8 && poses[0][2] < 1.2, s.kind);
   }
