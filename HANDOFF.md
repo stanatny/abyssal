@@ -1,5 +1,18 @@
 # ABYSSAL Bermuda redraw candidate — 2026-10-23
 
+Accepted Bermuda oil-rig checkpoint — 2026-10-23: the user accepts the delivered
+HF rig and requests a local commit followed by the next batch. All 1,278
+delivered inputs match before acceptance-only notes. The recorded 1,614 tests
+and native/public evidence retain their original scope. Earlier pending labels
+for this oil-rig batch are historical. No push or main publication is requested.
+The explorable liner wreck follows as a separately reviewed candidate.
+
+Bermuda oil-rig candidate — 2026-10-23: batch 3 is accepted and locally committed
+as `5fb9c7f`. A separate HF topside redraw now replaces the offshore rig's
+platform, drill tower, crane and quarters/helideck, preserving the ten original
+collision solids and all fleet/gameplay rules. The new appearance is pending
+user review and remains uncommitted/unpushed. See the [oil-rig review](docs/bermuda_oil_rig_huggingface_redraw.md).
+
 Accepted Bermuda rare/fleet checkpoint — 2026-10-23: the user accepts Crimson
 Sailfin, the Steel Cape freighter and storm tanker, and requests a local commit
 followed by the next HF batch. All 1,270 delivered input hashes match before

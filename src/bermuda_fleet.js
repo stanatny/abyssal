@@ -1,6 +1,7 @@
+import { createBermudaOilRig } from "./bermuda_oil_rig.js";
 import { acquireBermudaFleetAsset } from "./bermuda_fleet_asset.js";
 import * as THREE from "three";
-import { createBermudaBuilder, bermudaMaterials } from "./bermuda_geometry.js";
+import { bermudaMaterials } from "./bermuda_geometry.js";
 import { createSurfaceShipImpact } from "./surface_ship_impact.js";
 import { castSegment } from "./collision.js";
 import { stormWaveHeight } from "./bermuda_water.js";
@@ -52,7 +53,7 @@ export function createBermudaFleet(parent, options = {}) {
     }));
     colliders.push(...ship.colliders);
   }
-  const rig = makeRig(m, keep, options.heightAt);
+  const rig = createBermudaOilRig(m, keep, options.heightAt);
   root.add(rig.root);
   colliders.push(...rig.colliders);
   const impact = createSurfaceShipImpact(parent, ships, colliders, options);
@@ -349,83 +350,4 @@ function makeFreighter(name, length, width, m, keep) {
     { center: [0, -2, 0], size: [width, 10, length * 0.82] },
   ];
   return { root, length, width, localColliders };
-}
-
-function makeRig(m, keep, heightAt = () => -370) {
-  const root = new THREE.Group();
-  root.name = "bermuda_offshore_oil_rig";
-  const origin = new THREE.Vector3(210, 4, -450);
-  root.position.copy(origin);
-  const b = createBermudaBuilder(root, keep, origin);
-  for (const x of [-16, 16])
-    for (const z of [-20, 20]) {
-      const base = heightAt(origin.x + x, origin.z + z) - origin.y;
-      b.box(m.steel, [x, (base + 15) / 2, z], [4.5, 15 - base, 4.5], true);
-      b.box(m.rust, [x, base + 2, z], [10, 4, 10], true);
-      for (let y = base + 20; y < 13; y += 28) {
-        b.beam(m.rust, [x - 2, y, z], [x + 2, y + 24, z], 0.25);
-        b.beam(m.rust, [x + 2, y, z], [x - 2, y + 24, z], 0.25);
-      }
-    }
-  b.box(m.steel, [0, 15, 0], [48, 3, 55], true);
-  b.box(m.pale, [-13, 21, 5], [14, 10, 25], true);
-  for (let y = 17; y < 68; y += 8) {
-    const s = 8 * (1 - (y - 17) / 65);
-    for (const x of [-1, 1])
-      for (const z of [-1, 1])
-        b.beam(
-          m.red,
-          [x * s, y, z * s],
-          [x * (s - 1), y + 8, z * (s - 1)],
-          0.4,
-        );
-    for (const x of [-1, 1])
-      b.beam(m.brass, [x * s, y, -s], [-x * (s - 1), y + 8, s - 1], 0.17);
-  }
-  b.beam(m.rust, [17, 17, 15], [17, 35, 15], 0.8);
-  b.beam(m.rust, [17, 35, 15], [-18, 40, 28], 0.55);
-  b.beam(m.dark, [-18, 40, 28], [-18, 18, 28], 0.08);
-  for (let z = -18; z < 22; z += 4)
-    b.beam(m.brass, [8, 17, z], [16, 17, z], 0.5);
-  for (const x of [-20, 20])
-    for (const z of [-23, 23])
-      b.add(new THREE.SphereGeometry(0.5, 8, 6), m.pearl, [x, 18, z]);
-  for (const side of [-1, 1])
-    for (let z = -26; z <= 26; z += 4) {
-      b.beam(m.brass, [side * 23, 17, z], [side * 23, 19, z], 0.12);
-      b.beam(m.brass, [side * 23, 19, z], [side * 23, 19, z + 4], 0.12);
-    }
-  for (let z = -5; z <= 15; z += 4)
-    b.box(m.glass, [-20.1, 22, z], [0.2, 2.4, 2.2]);
-  b.box(m.dark, [-13, 20, -7.6], [3.2, 5, 0.22]);
-  for (let y = -4; y < 17; y += 0.7)
-    b.beam(m.brass, [-22, y, 20], [-19, y, 20], 0.09, 6);
-  for (const x of [-22, -19]) b.beam(m.brass, [x, -6, 20], [x, 20, 20], 0.14);
-  b.add(new THREE.CylinderGeometry(11, 11, 0.8, 32), m.steel, [-14, 28, 3]);
-  b.add(
-    new THREE.TorusGeometry(8, 0.22, 6, 40).rotateX(Math.PI / 2),
-    m.pale,
-    [-14, 28.45, 3],
-  );
-  for (const x of [-1, 1])
-    b.box(m.pale, [-14 + x * 2.5, 28.5, 3], [0.6, 0.08, 6]);
-  b.box(m.pale, [-14, 28.5, 3], [5, 0.08, 0.6]);
-  for (let i = 0; i < 7; i++) {
-    b.box(m.rust, [12, 18, -19 + i * 4], [7, 2, 2.6]);
-    b.beam(m.steel, [8.5, 19, -19 + i * 4], [15.5, 19, -19 + i * 4], 0.3);
-  }
-  for (let y = 18; y < 59; y += 8) {
-    const radius = 8 * (1 - (y - 17) / 65);
-    b.box(m.steel, [0, y, 0], [radius * 2, 0.3, radius * 2]);
-    for (let k = 0; k < 4; k++)
-      b.beam(
-        m.brass,
-        [radius, y + k * 1.7, -radius],
-        [radius, y + k * 1.7, radius],
-        0.1,
-        6,
-      );
-  }
-  const colliders = b.finish();
-  return { root, colliders };
 }
