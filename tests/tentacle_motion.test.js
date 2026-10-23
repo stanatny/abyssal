@@ -43,9 +43,9 @@ for (const kind of kinds)
   test(`${kind}: continuous arms deform the rendered vertices without mutating shared buffers`, () => {
     const first = createCreature(kind, 12, 71),
       second = createCreature(kind, 12, 72);
-    // These two HF surfaces integrate all soft parts in one skinned mesh.
+    // These HF surfaces integrate all soft parts in one skinned mesh.
     // Exercise their rendered skin instead of the retired procedural arm count.
-    if (kind === "cuttlefish" || kind === "pearl_nautilus") {
+    if (["cuttlefish", "pearl_nautilus", "cameroceras"].includes(kind)) {
       const mesh = first.userData.hfRig.mesh,
         other = second.userData.hfRig.mesh;
       assert.equal(mesh.geometry, other.geometry);

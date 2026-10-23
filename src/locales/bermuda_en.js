@@ -93,8 +93,8 @@ export const BERMUDA_EN = Object.freeze({
     "The offshore surface is dangerous too. Scout beyond the nursery and use a ship hull or a deep dive to escape.",
   "本作5.2米全长的大型个体；多数真实个体较小。":
     "A large 5.2 m game individual; most real animals are smaller.",
-  "长直锥壳连接宽端的头部与腕冠。硬壳缓慢摆动，腕部起伏；这是依据壳化石的幻想复苏，软体部位不能视为已知事实。":
-    "A long straight cone joins a head and arm crown at its broad aperture. The shell sways gently while the arms undulate. This revival draws on fossil shells; the soft anatomy is speculative.",
+  "长直锥壳连接宽端的头部与腕冠。悬浮时壳尖朝上，游进时壳尖先行、腕部轻收，捕食时转向腕冠。这是参考直壳头足类研究的游戏复原，并非已知的精确游姿。":
+    "A long, straight cone ends in a broad head and arm crown. It hovers apex-up, travels apex-first with gently gathered arms, and turns its arm crown toward prey. This game reconstruction draws on straight-shell cephalopod research; its exact gait is unknown.",
   "奥陶纪已灭绝头足类；腕数、眼睛、体色和游姿属于不确定的艺术复原。":
     "An extinct Ordovician cephalopod. Arm count, eyes, colors and swimming posture are uncertain artistic reconstructions.",
   "绕过腕冠，从侧翼接近；体型不足时利用沉船破口脱身。":

@@ -1,5 +1,14 @@
 # Bermuda Hugging Face redraw — 2026-10-23
 
+Accepted Bermuda predator checkpoint — 2026-10-23: the user accepts Tiger
+Shark, Cameroceras and Livyatan, including the researched Cameroceras motion
+follow-up, and requests a local commit followed by the next HF batch. All 1,256
+delivered input hashes match before these acceptance-only notes. The recorded
+1,606 tests and native/public evidence retain their original scope. Earlier
+pending labels below are historical for this accepted batch only. No push or
+main publication is requested; remaining regional content follows in separately
+reviewed batches.
+
 ## Batch 1 accepted checkpoint
 
 On 2026-10-23 the user accepts the delivered four fish and requests a local
@@ -183,3 +192,10 @@ Four first-attempt generations completed. The last export receipt reports
 2026-10-24 17:55:02.619 BJT. The batch used 139.369132 included seconds measured
 against the dated full-balance preflight. Check the live API before another
 batch; this receipt is not a permanent balance.
+
+## Predator batch 2 candidate — 2026-10-23
+
+Tiger Shark, Cameroceras and Livyatan now have separately reviewed actual HF
+assets and rigs. They remain uncommitted pending user acceptance; batch 1 is
+accepted in `95713f5`. See the [batch review](bermuda_predators_huggingface_redraw.md).
+Crimson Sailfin and the region-specific fleet/scenery remain subsequent work.

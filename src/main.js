@@ -3119,6 +3119,15 @@ function updateEntities(dt) {
       if (octopusMotion)
         octopusMotion.travelSpeed =
           mesh.position.distanceTo(previousPreyPosition) / Math.max(dt, 0.001);
+      const camerocerasMotion =
+        species.kind === "cameroceras"
+          ? (entity.camerocerasMotion ??= { travelSpeed: 0, hunting: false })
+          : undefined;
+      if (camerocerasMotion) {
+        camerocerasMotion.travelSpeed =
+          mesh.position.distanceTo(previousPreyPosition) / Math.max(dt, 0.001);
+        camerocerasMotion.hunting = predator && entity.chase > 0;
+      }
       mesh.userData.setHunterPhase?.(hunter.phase);
       mesh.userData.animate?.(
         elapsed + entity.seed,
@@ -3133,7 +3142,7 @@ function updateEntities(dt) {
               species.length,
               dt,
             )
-          : octopusMotion,
+          : (camerocerasMotion ?? octopusMotion),
       );
     }
     if (
@@ -3144,9 +3153,9 @@ function updateEntities(dt) {
       predatorBiteContact({
         previousPredator: previousPreyPosition,
         predator: mesh.position,
-        predatorForward: predatorFacing
-          .set(0, 0, -1)
-          .applyQuaternion(mesh.quaternion),
+        predatorForward: mesh.userData.getPredatorForward
+          ? mesh.userData.getPredatorForward(predatorFacing)
+          : predatorFacing.set(0, 0, -1).applyQuaternion(mesh.quaternion),
         predatorLength: species.length,
         previousPlayer: playerMovementStart,
         player: position,

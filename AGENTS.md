@@ -1,5 +1,31 @@
 # ABYSSAL Development Rules
 
+Accepted Bermuda predator checkpoint — 2026-10-23: the user accepts Tiger
+Shark, Cameroceras and Livyatan, including the researched Cameroceras motion
+follow-up, and requests a local commit followed by the next HF batch. All 1,256
+delivered input hashes match before these acceptance-only notes. The recorded
+1,606 tests and native/public evidence retain their original scope. Earlier
+pending labels below are historical for this accepted batch only. No push or
+main publication is requested; remaining regional content follows in separately
+reviewed batches.
+
+Cameroceras motion follow-up — 2026-10-23: the user authorizes applying the
+researched orthocone posture. The current agent independently adds apex-up
+low-travel posture, apex-first transit and arm-crown hunting orientation, with
+posed bite direction. Existing routes/speeds and other creatures stay unchanged;
+soft anatomy and the selected poses remain explicit artistic reconstruction.
+This supersedes the prior arms-first motion candidate only, with no commit/push.
+See [the motion review](docs/bermuda_predators_huggingface_redraw.md#cameroceras-motion-follow-up--2026-10-23).
+
+Bermuda predator candidates — 2026-10-23: accepted batch 1 is locally
+committed as `95713f5`. The current agent independently redraws Tiger Shark,
+Cameroceras and Livyatan with actual HF TRELLIS.2 meshes, preserving regional
+stock, dimensions, gameplay and accepted shared assets. These three new models
+remain uncommitted/unpushed for user review. Formal main/Pages stays v0.11.16.
+Oil rigs, the explorable liner wreck, waterspouts and the Flying Dutchman-inspired
+ghost ship are explicitly queued after creatures. See the
+[predator review](docs/bermuda_predators_huggingface_redraw.md).
+
 Accepted Bermuda batch 1 checkpoint — 2026-10-23: the user accepts the four
 HF fish and requests a local commit, then the next batch. All 1,243 delivered
 input hashes match before these acceptance-only notes; the recorded 1,594 tests
@@ -67,7 +93,6 @@ All 1,213 delivered inputs match before these acceptance-only notes. The recorde
 a local commit only; earlier pending labels below are historical for these two
 batches. The read-only follow-up inventory is in
 [the remaining-content audit](docs/atlantis_remaining_content_20261022.md).
-
 
 Atlantis furnishings and key glow candidate — 2026-10-22: the user accepts the
 previous waterlock housings, inscriptions and quest chest, asks for a luminous
