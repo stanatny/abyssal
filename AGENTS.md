@@ -1,5 +1,24 @@
 # ABYSSAL Development Rules
 
+Accepted Bermuda batch 1 checkpoint — 2026-10-23: the user accepts the four
+HF fish and requests a local commit, then the next batch. All 1,243 delivered
+input hashes match before these acceptance-only notes; the recorded 1,594 tests
+and native/public evidence retain their original scope. Earlier pending labels
+below are historical for batch 1. No push or main publication is requested.
+After the remaining creatures, redraw Bermuda-specific oil rigs, the explorable
+ocean-liner wreck (Titanic references), waterspouts and the Flying Dutchman-inspired
+ghost ship in separate reviewed batches, preserving their exploration/combat rules.
+See [the Bermuda inventory](docs/bermuda_huggingface_redraw.md).
+
+Bermuda batch 1 candidate — 2026-10-23: the current agent independently redraws
+Queen Angelfish, Gray Triggerfish, Atlantic Needlefish and Great Barracuda with
+actual Hugging Face TRELLIS.2 meshes. Already accepted shared creatures,
+characters/lords and gameplay are retained. Great Barracuda also receives a
+matching offline camera-interior proxy. The candidate is uncommitted/unpushed
+on `art/bermuda-hf-redraw`, based on `0dcb05f`; formal Pages stays v0.11.16.
+The user has not visually accepted this batch. See the
+[Bermuda inventory and review](docs/bermuda_huggingface_redraw.md).
+
 Release v0.11.16 — 2026-10-23: publish the accepted Atlantis redraw and
 combat/rendering work through `8f27834`, plus loading checkpoint `3c28a7d`,
 on main after v0.11.15 / `3aef21e`. This release preserves the restored stable

@@ -1,3 +1,4 @@
+import { BERMUDA_HF_FISH, buildBermudaHF } from "./creature_bermuda_hf.js";
 import { prepareOrdinaryBody } from "./ordinary_body.js";
 import { buildPelicanHF } from "./creature_pelican_hf.js";
 import {
@@ -147,6 +148,7 @@ export function createCreature(kind, length = 6, seed = 1) {
   else if (WILDLIFE_KINDS.has(kind)) buildWildlife(kind, root, motions);
   else if (MARIANA_CREATURE_KINDS.has(kind))
     buildMarianaCreature(kind, root, motions);
+  else if (BERMUDA_HF_FISH.has(kind)) buildBermudaHF(kind, root, motions);
   else if (BERMUDA_CREATURE_KINDS.has(kind))
     buildBermudaCreature(kind, root, motions);
   else if (ATLANTIS_HF_PREDATORS.has(kind))
