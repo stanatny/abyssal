@@ -65,6 +65,9 @@ export const UI_EN = Object.freeze({
   击败领主: "Lords defeated",
   "当前任务 · {0}": "Current task · {0}",
   "{0}：{1} 激活起冷却{2}秒。": "{0}: {1} Cooldown starts on activation: {2}s.",
+  "海域下载失败，原海域仍可继续。网络恢复后，请重新加载页面再试。":
+    "The destination could not be downloaded. You can keep exploring your current sea, or reload the page once your connection is restored.",
+  重新加载页面: "Reload page",
   下一段旅程: "Your next voyage",
   "正在准备海域…": "Preparing your destination…",
   "海域准备失败，已保留原海域。请稍后重试。":

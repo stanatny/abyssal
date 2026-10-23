@@ -23,7 +23,7 @@ test("precompressed JS/CSS preserve exact bytes and leave binary assets alone", 
   const emitted = [];
   const code = "export const model = [1,2,3];\n".repeat(100);
   const css = "body{color:#fff}\n".repeat(100);
-  compressedAssets().generateBundle.call(
+  compressedAssets().generateBundle.handler.call(
     { emitFile: (asset) => emitted.push(asset) },
     {},
     {
@@ -36,4 +36,46 @@ test("precompressed JS/CSS preserve exact bytes and leave binary assets alone", 
   assert.equal(gunzipSync(emitted[0].source).toString(), code);
   assert.equal(gunzipSync(emitted[1].source).toString(), css);
   assert.ok(emitted.every((item) => item.fileName.endsWith(".gz")));
+});
+
+test("真实动态导入构建的gzip包含最终预加载依赖，不保留Vite临时标记", async () => {
+  const { build } = await import("vite");
+  const { mkdtemp, writeFile, rm } = await import("node:fs/promises");
+  const { tmpdir } = await import("node:os");
+  const { join } = await import("node:path");
+  const root = await mkdtemp(join(tmpdir(), "abyssal-compression-"));
+  try {
+    await writeFile(
+      join(root, "index.html"),
+      '<script type="module" src="/main.js"></script>',
+    );
+    await writeFile(
+      join(root, "main.js"),
+      'document.body.onclick = () => import("./lazy.js").then(m => m.run());',
+    );
+    await writeFile(
+      join(root, "lazy.js"),
+      'export const run = () => console.log("lazy module");',
+    );
+    const result = await build({
+      root,
+      configFile: false,
+      logLevel: "silent",
+      plugins: [compressedAssets()],
+      build: { write: false },
+    });
+    const output = result.output;
+    const scripts = output.filter((item) => item.type === "chunk");
+    assert.ok(scripts.length >= 2);
+    for (const chunk of scripts) {
+      assert.doesNotMatch(chunk.code, /__VITE_PRELOAD__/);
+      const gzip = output.find(
+        (item) => item.fileName === `${chunk.fileName}.gz`,
+      );
+      if (gzip) assert.equal(gunzipSync(gzip.source).toString(), chunk.code);
+    }
+    assert.ok(output.some((item) => item.fileName.endsWith(".gz")));
+  } finally {
+    await rm(root, { recursive: true, force: true });
+  }
 });

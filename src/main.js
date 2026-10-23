@@ -1,3 +1,4 @@
+import { loadRegionEnvironment } from "./region_environment.js";
 import { nearbyOrdinaryBodies, stopOrdinaryAtPlayer } from "./ordinary_body.js";
 import {
   beginTailFollow,
@@ -12,7 +13,6 @@ import { preyFeedingSound } from "./combat_audio_events.js";
 import { prepareSquidMaterials } from "./creature_squid.js";
 import { prepareOrcaMaterials } from "./creature_orca.js";
 import { trackGroundProgress } from "./ground_creatures.js";
-import { createOdysseyOceanAsync } from "./odyssey_ocean.js";
 import {
   groundCreatureProfile,
   groundSpawnPose,
@@ -53,8 +53,6 @@ import {
   stepGroundHeading,
   groundGaitState,
 } from "./ground_creatures.js";
-import { createPenglaiOceanAsync } from "./penglai_ocean.js";
-import { createAmazonOceanAsync } from "./amazon_ocean.js";
 import { createAreaBlast } from "./area_blast.js";
 import { createMechanicalTorpedoes } from "./mechanical_torpedoes.js";
 import {
@@ -76,12 +74,9 @@ import {
   ATLANTIS_RELIC,
 } from "./expedition_objectives.js";
 import { createWorldBoundary, WORLD_EDGE_INSET } from "./world_boundary.js";
-import { createEuropaOceanAsync } from "./europa_ocean.js";
 import { needsIceRecovery, stepIceSteering } from "./ice_steering.js";
 import { stepSteering } from "./steering_rules.js";
-import { createMarianaOceanAsync } from "./mariana_ocean.js";
 import { MARIANA_GATES, MARIANA_REFUGE } from "./mariana_config.js";
-import { createBermudaOcean } from "./bermuda_ocean.js";
 import { initializeLanguage, setLanguageEnabled } from "./i18n.js";
 import { t, tr, message, setMarkup, onLanguageChange } from "./i18n.js";
 import * as THREE from "three";
@@ -99,7 +94,6 @@ import { createCreature } from "./creatures.js";
 import { createVisualPipeline } from "./visual_pipeline.js";
 import { createLaunchTransition } from "./launch_transition.js";
 import { createOcean, seabedHeight as baseSeabedHeight } from "./ocean.js";
-import { createAtlantisOceanAsync } from "./atlantis_ocean.js";
 import { MOON_DIRECTION } from "./atlantis_art_sky.js";
 import { getRegionSpecies } from "./region_ecology.js";
 import { regionZone, cityLightBlend } from "./region_appearance.js";
@@ -687,11 +681,12 @@ async function selectRegion(region) {
     await regionLoader.paint();
     regionLoader.stage("正在绘制海底与海岸…", 18);
     await regionLoader.paint();
+    const regional = await loadRegionEnvironment(region.id);
     // 新环境完整建成后才替换旧环境；失败时仍可回到原海域。
     let odysseyStep = 0;
     nextOcean =
       region.id === "odyssey"
-        ? await createOdysseyOceanAsync(container, {
+        ? await regional.createOdysseyOceanAsync(container, {
             onStep(label) {
               regionLoader.stage(
                 "正在绘制神话海路…",
@@ -700,25 +695,25 @@ async function selectRegion(region) {
             },
           })
         : region.id === "penglai"
-          ? await createPenglaiOceanAsync(container, {
+          ? await regional.createPenglaiOceanAsync(container, {
               onStep() {
                 regionLoader.stage("正在绘制云海与仙山…", 35);
               },
             })
           : region.id === "amazon"
-            ? await createAmazonOceanAsync(container, {
+            ? await regional.createAmazonOceanAsync(container, {
                 onStep() {
                   regionLoader.stage("正在绘制河道与雨林…", 35);
                 },
               })
             : region.id === "europa"
-              ? await createEuropaOceanAsync(container, {
+              ? await regional.createEuropaOceanAsync(container, {
                   onStep() {
                     regionLoader.stage("正在雕刻冰壳与盐脉…", 35);
                   },
                 })
               : region.id === "mariana"
-                ? await createMarianaOceanAsync(container, {
+                ? await regional.createMarianaOceanAsync(container, {
                     onStep(label) {
                       regionLoader.stage(
                         "正在绘制海底与海岸…",
@@ -738,7 +733,7 @@ async function selectRegion(region) {
                     },
                   })
                 : region.id === "atlantis"
-                  ? await createAtlantisOceanAsync(container, {
+                  ? await regional.createAtlantisOceanAsync(container, {
                       onStep(label) {
                         const progress = atlantisPreparationProgress[label];
                         if (progress)
@@ -746,7 +741,7 @@ async function selectRegion(region) {
                       },
                     })
                   : region.id === "bermuda"
-                    ? createBermudaOcean(container, {
+                    ? regional.createBermudaOcean(container, {
                         audio,
                         notify,
                         onDamage() {
@@ -860,7 +855,7 @@ async function selectRegion(region) {
     nextOcean?.dispose();
     container.removeFromParent();
     setup.setRegion(loadedRegion);
-    await regionLoader.fail();
+    await regionLoader.fail({ reload: error?.reloadRequired === true });
   } finally {
     // 首帧提交或回退后才淘汰；旧环境仍可回退时不得销毁其种群。
     populationCache.delete(loadedRegion);

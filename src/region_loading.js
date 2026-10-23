@@ -20,7 +20,16 @@ export function createRegionLoading() {
     event.stopPropagation();
     if (event.key === "Tab") {
       event.preventDefault();
-      (panel.querySelector("button") || panel).focus();
+      const buttons = [...panel.querySelectorAll("button")];
+      const current = buttons.indexOf(document.activeElement);
+      const next =
+        current < 0
+          ? event.shiftKey
+            ? buttons.length - 1
+            : 0
+          : (current + (event.shiftKey ? -1 : 1) + buttons.length) %
+            buttons.length;
+      (buttons[next] || panel).focus();
     }
   });
   return {
@@ -30,6 +39,8 @@ export function createRegionLoading() {
         .filter((node) => node !== panel && node instanceof HTMLElement)
         .map((node) => [node, node.inert]);
       for (const [node] of locked) node.inert = true;
+      // 上次失败会追加按钮并改写状态；同一目的地重试必须清掉旧DOM及markup缓存。
+      setMarkup(panel, "");
       setMarkup(
         panel,
         tr`<div class="region-loading-card"><span class="region-loading-sea" aria-hidden="true">≈</span><span class="region-loading-orbit" aria-hidden="true"></span><p class="region-loading-eyebrow">下一段旅程</p><h2 id="region-loading-title">${name}</h2><p role="status" aria-live="polite">正在准备海域…</p><span class="region-loading-track" aria-hidden="true"><i></i></span></div>`,
@@ -49,15 +60,26 @@ export function createRegionLoading() {
         requestAnimationFrame(() => requestAnimationFrame(resolve)),
       );
     },
-    async fail() {
+    async fail({ reload = false } = {}) {
       panel.removeAttribute("aria-busy");
       panel.querySelector('[role="status"]').textContent = t(
-        "海域准备失败，已保留原海域。请稍后重试。",
+        reload
+          ? "海域下载失败，原海域仍可继续。网络恢复后，请重新加载页面再试。"
+          : "海域准备失败，已保留原海域。请稍后重试。",
       );
       panel.querySelector(".region-loading-track").hidden = true;
       const button = document.createElement("button");
       button.textContent = t("返回主界面");
       panel.querySelector(".region-loading-card").append(button);
+      if (reload) {
+        const retry = document.createElement("button");
+        retry.textContent = t("重新加载页面");
+        retry.dataset.regionReload = "true";
+        retry.addEventListener("click", () => location.reload(), {
+          once: true,
+        });
+        panel.querySelector(".region-loading-card").append(retry);
+      }
       button.focus();
       await new Promise((resolve) =>
         button.addEventListener("click", resolve, { once: true }),

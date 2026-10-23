@@ -1,3 +1,14 @@
+# Region loading candidate — 2026-10-23
+
+See [the loading review](region_environment_loading_revision.md) for this candidate's fresh measurements and failure-path checks. Historical test counts below
+retain their original scope; physical-phone PP-Q055 remains open. No commit/push.
+
+Fresh 1,583 unit checks, 16 native region/character flows, explicit import retry,
+five cache scenarios, three release cycles, Atlantis/Guide graphics restoration
+and bilingual public flows pass. All 340 public artifacts and 113 gzip payloads
+match; 11 private paths per origin stay denied. The rejected distant-LOD trial
+is absent from this build. Entry `index-B2tOApXl.js`; no new acceptance is implied.
+
 # v0.11.15 release verification — 2026-10-21
 
 Accepted neighborhood checkpoint — 2026-10-23: 1,226 delivered input fingerprints

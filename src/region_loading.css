@@ -79,6 +79,9 @@
   color: #eff8f5;
   cursor: pointer;
 }
+#region-loading button + button {
+  margin-left: 10px;
+}
 @keyframes region-orbit {
   to {
     transform: rotate(360deg);

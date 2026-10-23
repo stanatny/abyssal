@@ -1,5 +1,21 @@
 # Kraken motion and pursuer-camera candidate — 2026-10-22
 
+Main publication authorized — 2026-10-23: the user accepts the delivered loading
+optimization and explicitly requests committing and pushing to main. All 1,229
+reviewed inputs match before acceptance/release metadata edits. Integrate the
+accepted Atlantis branch and loading work together; earlier candidate-only and
+no-push labels below are historical for this scope. The current agent integrates
+alone, preserving services and archives. Physical-phone PP-Q055 remains open;
+loading acceptance does not establish phone FPS, heat or full incident recovery.
+
+Region loading candidate — 2026-10-23: the user authorizes optimization after
+accepted checkpoint `8f27834`. The current agent defers unselected environment
+factories, fixes final-byte gzip generation and provides explicit failed-module
+recovery. The distant-detail trial is rejected for lack of repeatable frame/GPU
+gain; accepted city assets, gameplay and rendering remain unchanged. This new
+candidate is uncommitted/unpushed; physical-phone PP-Q055 stays open. See the
+[loading review](docs/region_environment_loading_revision.md).
+
 Accepted neighborhood checkpoint — 2026-10-23: the user accepts the delivered
 courtyard entrances, villa gables, market friezes and tower crowns and requests a
 local commit plus a read-only priority review. All 1,226 delivered inputs match

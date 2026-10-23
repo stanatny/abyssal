@@ -14,20 +14,24 @@ export function compressedAssets() {
     name: "abyssal-compressed-assets",
     apply: "build",
     enforce: "post",
-    generateBundle(_options, bundle) {
-      for (const [name, item] of Object.entries(bundle)) {
-        if (!/\.(js|css)$/.test(name)) continue;
-        const bytes = Buffer.from(
-          item.type === "chunk" ? item.code : item.source,
-        );
-        const compressed = gzipSync(bytes, { level: 9 });
-        if (compressed.length >= bytes.length) continue;
-        this.emitFile({
-          type: "asset",
-          fileName: `${name}.gz`,
-          source: compressed,
-        });
-      }
+    generateBundle: {
+      // Vite 在普通 generateBundle 中替换动态导入预加载标记；压缩必须取最终字节。
+      order: "post",
+      handler(_options, bundle) {
+        for (const [name, item] of Object.entries(bundle)) {
+          if (!/\.(js|css)$/.test(name)) continue;
+          const bytes = Buffer.from(
+            item.type === "chunk" ? item.code : item.source,
+          );
+          const compressed = gzipSync(bytes, { level: 9 });
+          if (compressed.length >= bytes.length) continue;
+          this.emitFile({
+            type: "asset",
+            fileName: `${name}.gz`,
+            source: compressed,
+          });
+        }
+      },
     },
   };
 }
