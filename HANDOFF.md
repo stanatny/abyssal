@@ -1,4 +1,11 @@
-# Kraken motion and pursuer-camera candidate — 2026-10-22
+# ABYSSAL v0.11.16 release handoff — 2026-10-23
+
+Release v0.11.16 — 2026-10-23: publish the accepted Atlantis redraw and
+combat/rendering work through `8f27834`, plus loading checkpoint `3c28a7d`,
+on main after v0.11.15 / `3aef21e`. This release preserves the restored stable
+follow camera and excludes the rejected fade, moving-camera and far-LOD trials.
+See [the release record](docs/release_v0_11_16.md) for scope and verification
+limits. New work returns to the default review-before-commit rule.
 
 Main publication authorized — 2026-10-23: the user accepts the delivered loading
 optimization and explicitly requests committing and pushing to main. All 1,229

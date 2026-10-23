@@ -1,3 +1,14 @@
+# v0.11.16 release verification — 2026-10-23
+
+All 1,229 delivered loading-candidate inputs match before acceptance/release
+metadata edits. The candidate has 1,583 passing tests, sixteen regional native
+cases and byte-matched public resources; those retain their original evidence
+scope. Fresh release formatting/build, exact-main Node 22 CI, Pages artifact
+hashes and native production flows are recorded in `.local/release_v0_11_16/`.
+A push or green build alone does not prove the deployed page is updated.
+See [the release record](release_v0_11_16.md). Physical-phone follow-up remains
+open; no phone FPS, thermal or complete black-surface recovery claim is made.
+
 # Region loading candidate — 2026-10-23
 
 See [the loading review](region_environment_loading_revision.md) for this candidate's fresh measurements and failure-path checks. Historical test counts below
