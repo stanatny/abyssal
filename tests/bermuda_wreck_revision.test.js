@@ -212,13 +212,13 @@ test("Distinct rooms expose useful world views and fitted furniture solids while
   wreck.dispose();
 });
 
-test("Layered wreck geometry stays finite and nondegenerate with unchanged material draw and lighting bounds", () => {
+test("Layered wreck geometry stays finite and nondegenerate with bounded HF component draws and unchanged lighting", () => {
   const wreck = create(),
     a = new THREE.Vector3(),
     b = new THREE.Vector3(),
     c = new THREE.Vector3();
-  assert.equal(wreck.stats.meshes, 10);
-  assert.ok(wreck.stats.triangles < 80000);
+  assert.equal(wreck.stats.meshes, 17);
+  assert.ok(wreck.stats.triangles < 310000);
   assert.equal(wreck.lightSources.length, 8);
   wreck.root.traverse((mesh) => {
     assert.ok(!mesh.isLight, "No new scene lights belong to the art factory");
@@ -256,7 +256,8 @@ test("Each wreck owns its merged resources and idempotent disposal preserves ano
     }
   for (const mesh of second.root.children) {
     assert.ok(!retired.has(mesh.geometry));
-    assert.ok(!retired.has(mesh.material));
+    if (!mesh.material.name.endsWith("_hf_surface"))
+      assert.ok(!retired.has(mesh.material));
   }
   const secondBounds = new THREE.Box3()
     .setFromObject(second.root)
@@ -266,8 +267,12 @@ test("Each wreck owns its merged resources and idempotent disposal preserves ano
   first.dispose();
   assert.equal(first.root.children.length, 0);
   assert.equal(first.colliders.length, 0);
-  assert.ok([...retired.values()].every((count) => count === 1));
-  assert.equal(second.root.children.length, 10);
+  for (const [resource, count] of retired)
+    assert.equal(
+      count,
+      resource.isMaterial && resource.name.endsWith("_hf_surface") ? 0 : 1,
+    );
+  assert.equal(second.root.children.length, 17);
   assert.deepEqual(
     new THREE.Box3()
       .setFromObject(second.root)
@@ -276,4 +281,5 @@ test("Each wreck owns its merged resources and idempotent disposal preserves ano
     secondBounds,
   );
   second.dispose();
+  assert.ok([...retired.values()].every((count) => count === 1));
 });

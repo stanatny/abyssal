@@ -1,5 +1,5 @@
 import * as THREE from "three";
-import { createFluidTexture } from "./effect_textures.js";
+import { createWaterspoutVisuals } from "./bermuda_waterspout_visuals.js";
 import { WORLD } from "./world_config.js";
 import {
   createWaterspoutState,
@@ -67,8 +67,9 @@ export function createBermudaWeather(parent, { audio, notify, onDamage } = {}) {
   const rain = new THREE.LineSegments(rainGeometry, rainMaterial);
   rain.frustumCulled = false;
   root.add(rain);
-  const mist = keep(createFluidTexture("mist")),
+  const spoutVisuals = createWaterspoutVisuals(time),
     spouts = [];
+  root.userData.prepareMaterials = spoutVisuals.prepare;
   for (const [i, anchor] of [
     [-235, -410],
     [115, -715],
@@ -78,65 +79,12 @@ export function createBermudaWeather(parent, { audio, notify, onDamage } = {}) {
     [-235, -885],
     [210, -1010],
   ].entries()) {
-    const group = new THREE.Group();
-    group.name = `bermuda_waterspout_${i}`;
+    const { group, funnel, clouds, skirt } = spoutVisuals.create(i);
     root.add(group);
-    const geo = keep(new THREE.CylinderGeometry(25, 7, 138, 48, 20, true));
-    const v = geo.attributes.position;
-    for (let j = 0; j < v.count; j++) {
-      const y = v.getY(j),
-        twist = (y + 69) * 0.016;
-      const x = v.getX(j),
-        z = v.getZ(j);
-      v.setXYZ(
-        j,
-        x * Math.cos(twist) - z * Math.sin(twist) + Math.sin(y * 0.035) * 5,
-        y + 69,
-        x * Math.sin(twist) + z * Math.cos(twist),
-      );
-    }
-    geo.computeVertexNormals();
-    const material = keep(
-      new THREE.MeshStandardMaterial({
-        color: 0x91a6aa,
-        map: mist,
-        transparent: true,
-        opacity: 0.5,
-        side: THREE.DoubleSide,
-        depthWrite: false,
-        roughness: 1,
-      }),
-    );
-    material.onBeforeCompile = (shader) => {
-      shader.uniforms.spoutTime = time;
-      shader.fragmentShader = shader.fragmentShader
-        .replace(
-          "#include <common>",
-          "#include <common>\nuniform float spoutTime;",
-        )
-        .replace(
-          "#include <map_fragment>",
-          `vec2 flow=vMapUv;float bands=sin(flow.x*60.0+flow.y*38.0-spoutTime*5.0)*.5+.5;vec4 tex=texture2D(map,vec2(fract(flow.x*3.0+spoutTime*.12),fract(flow.y*2.0-spoutTime*.10)));diffuseColor.rgb*=mix(.75,1.2,bands);diffuseColor.a*=.35+.5*tex.a+.15*bands;`,
-        );
-    };
-    material.customProgramCacheKey = () => "bermuda_swirl_v2";
-    const funnel = new THREE.Mesh(geo, material);
-    group.add(funnel);
-    const inner = new THREE.Mesh(geo, material);
-    inner.scale.set(0.72, 1.03, 0.72);
-    inner.rotation.y = 1.1;
-    group.add(inner);
-    const skirt = new THREE.Mesh(
-      keep(new THREE.TorusGeometry(11, 3.3, 8, 40)),
-      material,
-    );
-    skirt.rotation.x = Math.PI / 2;
-    skirt.position.y = 1;
-    group.add(skirt);
     spouts.push({
       group,
       funnel,
-      inner,
+      clouds,
       skirt,
       anchor,
       x: anchor[0],
@@ -197,13 +145,11 @@ export function createBermudaWeather(parent, { audio, notify, onDamage } = {}) {
       if (cameraPosition.y > -50)
         audio?.thunder?.(cameraPosition.y > 4 ? 1 : 0.35);
     }
+    spoutVisuals.update(highQuality, reducedMotion);
     for (const spout of spouts) {
       spout.x = spout.anchor[0] + Math.sin(elapsed * 0.014 + spout.phase) * 12;
       spout.z = spout.anchor[1] + Math.cos(elapsed * 0.017 + spout.phase) * 10;
       spout.group.position.set(spout.x, 4, spout.z);
-      spout.funnel.rotation.y = elapsed * 0.9;
-      spout.inner.rotation.y = -elapsed * 1.3;
-      spout.skirt.rotation.z = elapsed * 0.6;
       spout.group.visible =
         cameraPosition.y > -45 ||
         spout.group.position.distanceTo(position) < 140;
@@ -257,6 +203,7 @@ export function createBermudaWeather(parent, { audio, notify, onDamage } = {}) {
   return {
     root,
     spouts,
+    spoutVisuals,
     update,
     onMovement,
     reset,
@@ -270,6 +217,7 @@ export function createBermudaWeather(parent, { audio, notify, onDamage } = {}) {
       if (disposed) return;
       disposed = true;
       root.removeFromParent();
+      spoutVisuals.dispose();
       for (const r of resources) r.dispose();
       resources.clear();
       root.clear();

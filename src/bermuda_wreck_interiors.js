@@ -1,7 +1,7 @@
 import * as THREE from "three";
 
 /** 舱内所有大件保留自己的实体足迹；雕刻和五金附着于该实体而不另占主航道。 */
-export function addBermudaWreckInteriors(builder, materials, origin) {
+export function addBermudaWreckInteriors(builder, materials, origin, skins) {
   const b = builder,
     m = materials,
     rooms = [],
@@ -26,8 +26,8 @@ export function addBermudaWreckInteriors(builder, materials, origin) {
     collider.fixtureKind = kind;
     fixtures.push({ id: collider.id, roomId: currentRoom, kind, collider });
   }
-  function box(kind, material, center, size, rotation = 0) {
-    b.box(material, center, size, true, rotation);
+  function box(kind, material, center, size, rotation = 0, visible = true) {
+    b.box(material, center, size, true, rotation, visible);
     remember(kind, b.colliders.at(-1));
   }
   function reserve(kind, center, size, quaternion = new THREE.Quaternion()) {
@@ -106,7 +106,24 @@ export function addBermudaWreckInteriors(builder, materials, origin) {
     );
   }
   function cabinet(x, floor, z, width, height, depth, kind = "cabinet") {
-    box(kind, m.wood, [x, floor + height / 2, z], [width, height, depth]);
+    const wardrobe = kind === "cabin_wardrobe";
+    box(
+      kind,
+      m.wood,
+      [x, floor + height / 2, z],
+      [width, height, depth],
+      0,
+      !wardrobe,
+    );
+    if (wardrobe) {
+      skins.add(
+        "liner_wardrobe",
+        [x, floor + height / 2, z],
+        [depth, height, width],
+        [0, (-Math.sign(x) * Math.PI) / 2, 0],
+      );
+      return;
+    }
     const frontX = x - Math.sign(x) * (width / 2 + 0.035);
     for (const y of [height * 0.25, height * 0.62]) {
       b.box(
@@ -183,22 +200,37 @@ export function addBermudaWreckInteriors(builder, materials, origin) {
   }
   function sofa(side, floor, z) {
     const x = side * 19.65;
-    box("salon_sofa_plinth", m.wood, [x, floor + 0.8, z], [3.25, 1.6, 8.5]);
-    for (const dz of [-2.8, 0, 2.8])
-      b.add(roundBox(3.15, 0.65, 2.65, 0.28), m.red, [x, floor + 1.88, z + dz]);
+    skins.add(
+      "liner_sofa",
+      [x, floor + 2.225, z],
+      [8.6, 4.45, 3.3],
+      [0, (-side * Math.PI) / 2, 0],
+    );
+    box(
+      "salon_sofa_plinth",
+      m.wood,
+      [x, floor + 0.8, z],
+      [3.25, 1.6, 8.5],
+      0,
+      false,
+    );
     box(
       "salon_sofa_back",
       m.wood,
       [side * 21.1, floor + 2.6, z],
       [0.35, 3.7, 8.6],
+      0,
+      false,
     );
-    b.add(roundBox(0.18, 2.4, 7.8, 0.24), m.red, [
-      side * 20.83,
-      floor + 2.9,
-      z,
-    ]);
     for (const dz of [-4.1, 4.1])
-      box("salon_sofa_arm", m.wood, [x, floor + 2.3, z + dz], [3.3, 1.8, 0.4]);
+      box(
+        "salon_sofa_arm",
+        m.wood,
+        [x, floor + 2.3, z + dz],
+        [3.3, 1.8, 0.4],
+        0,
+        false,
+      );
     box(
       "salon_table_base",
       m.brass,
@@ -258,36 +290,28 @@ export function addBermudaWreckInteriors(builder, materials, origin) {
           );
         const bedX = side * 19.6,
           bedZ = z - 4.3;
+        skins.add(
+          "liner_bed",
+          [bedX, floor + 2.375, bedZ - 0.03],
+          [3.5, 4.75, 7.26],
+        );
         box(
           "cabin_bed_frame",
           m.wood,
           [bedX, floor + 0.8, bedZ],
           [3.3, 1.6, 7.2],
+          0,
+          false,
         );
-        b.add(roundBox(3.1, 0.65, 6.8, 0.28), m.pale, [
-          bedX,
-          floor + 1.9,
-          bedZ,
-        ]);
         reserve("cabin_mattress", [bedX, floor + 1.9, bedZ], [3.1, 0.65, 6.8]);
-        b.add(roundBox(2.55, 0.5, 1.4, 0.22), m.pale, [
-          bedX,
-          floor + 2.465,
-          bedZ - 2.3,
-        ]);
         box(
           "cabin_headboard",
           m.wood,
           [bedX, floor + 2.25, bedZ - 3.5],
           [3.5, 4.5, 0.32],
+          0,
+          false,
         );
-        for (const dx of [-1.58, 1.58])
-          b.beam(
-            m.brass,
-            [bedX + dx, floor + 0.2, bedZ - 3.5],
-            [bedX + dx, floor + 4.75, bedZ - 3.5],
-            0.11,
-          );
         cabinet(side * 17.15, floor, z - 5.5, 1.7, 2.6, 2.1, "cabin_drawers");
         cabinet(side * 19.55, floor, z + 6.0, 3.0, 7.5, 3.5, "cabin_wardrobe");
         for (const y of [floor + 1.1, floor + 6.0])
@@ -303,32 +327,15 @@ export function addBermudaWreckInteriors(builder, materials, origin) {
     );
   }
   function trunk(x, floor, z, width = 3.8, depth = 2.5, height = 2.4) {
-    b.add(roundBox(width, height, depth, 0.22), m.wood, [
-      x,
-      floor + height / 2,
-      z,
-    ]);
+    skins.add(
+      "liner_trunk",
+      [x, floor + height / 2, z],
+      [width, height, depth],
+    );
     reserve(
       "luggage_trunk",
       [x, floor + height / 2, z],
       [width, height, depth],
-    );
-    for (const dx of [-width * 0.3, width * 0.3])
-      b.box(
-        m.brass,
-        [x + dx, floor + height / 2, z],
-        [0.15, height + 0.04, depth + 0.04],
-      );
-    b.box(
-      m.brass,
-      [x, floor + height * 0.62, z + depth / 2 + 0.025],
-      [0.65, 0.5, 0.13],
-    );
-    b.beam(
-      m.brass,
-      [x - 0.5, floor + height * 0.7, z + depth / 2 + 0.11],
-      [x + 0.5, floor + height * 0.7, z + depth / 2 + 0.11],
-      0.1,
     );
   }
   function crate(x, floor, z, height) {
@@ -385,30 +392,11 @@ export function addBermudaWreckInteriors(builder, materials, origin) {
       length = 12;
     for (const dz of [-4, 4])
       box("boiler_saddle", m.steel, [x, floor + 0.8, z + dz], [5.3, 1.6, 2]);
-    b.add(
-      new THREE.CylinderGeometry(radius, radius, length, 20),
-      m.rust,
-      [x, y, z],
-      [Math.PI / 2, 0, 0],
-    );
+    skins.add("wreck_boiler", [x, y, z + 0.3], [6, 6, 12.6]);
     reserve("engine_boiler", [x, y, z], [radius * 2, radius * 2, length]);
-    for (const dz of [-5.8, -2, 2, 5.8])
-      ring(m.steel, [x, y, z + dz], radius + 0.025, 0.16, [0, 0, 0]);
-    b.add(
-      new THREE.CylinderGeometry(2.0, 2.0, 0.3, 16),
-      m.dark,
-      [x, y, z + 6.1],
-      [Math.PI / 2, 0, 0],
-    );
     reserve("engine_boiler_hatch", [x, y, z + 6.25], [4, 4, 0.7]);
-    ring(m.brass, [x, y, z + 6.32], 1.7, 0.13, [0, 0, 0]);
-    for (const dx of [-1.3, 1.3])
-      b.beam(
-        m.brass,
-        [x + dx, y - 0.7, z + 6.4],
-        [x + dx, y + 0.7, z + 6.4],
-        0.09,
-      );
+    // 接管深入腐蚀壳体，连接既有蒸汽立管；不增加通道碰撞。
+    b.beam(m.steel, [x, y + 1.5, z], [x, y + 3.2, z], 0.48, 10);
     pipe("engine_steam_pipe", m.steel, [x, y + 2.9, z], [x, 13.8, z], 0.38);
     pipe(
       "engine_steam_header",

@@ -1,0 +1,20 @@
+{
+  "triangles": 7928,
+  "removedDegenerateTriangles": 0,
+  "vertices": 8965,
+  "samples": 440257,
+  "meanDistance": 0.0032573374422882224,
+  "maxDistance": 0.036174900889096355,
+  "p99Distance": 0.013647891042483956,
+  "atlas": {
+    "width": 1397,
+    "height": 1392,
+    "charts": 1038,
+    "vertices": 8965
+  },
+  "padding": {
+    "covered": 439998,
+    "preserved": 439998,
+    "changed": 608578
+  }
+}

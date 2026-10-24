@@ -25,9 +25,17 @@ export function createBermudaBuilder(root, keep, origin = new THREE.Vector3()) {
     if (!buckets.has(material)) buckets.set(material, []);
     buckets.get(material).push(geometry);
   }
-  function box(material, center, size, solid = false, rotation = 0) {
+  function box(
+    material,
+    center,
+    size,
+    solid = false,
+    rotation = 0,
+    visible = true,
+  ) {
     const angles = Array.isArray(rotation) ? rotation : [0, rotation, 0];
-    add(new THREE.BoxGeometry(...size), material, center, angles);
+    // HF 外观替换仍保留原顺序和编号的实体；其他调用默认继续生成方体外观。
+    if (visible) add(new THREE.BoxGeometry(...size), material, center, angles);
     const q = new THREE.Quaternion().setFromEuler(new THREE.Euler(...angles));
     if (solid)
       colliders.push({

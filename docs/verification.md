@@ -1,3 +1,12 @@
+# v0.11.17 release verification — 2026-10-24
+
+All 1,369 delivered Bermuda input hashes match before release-only edits.
+The final candidate's 1,642 tests and native/public receipts retain their
+original scope. Fresh local formatting, 1,642 tests and build pass. Exact-main
+Node 22 CI, Pages artifact comparison and native production flows belong to
+`.local/release_v0_11_17/`; see [the release record](release_v0_11_17.md).
+Physical-phone follow-up remains open; no phone FPS or heat claim is made.
+
 # v0.11.16 release verification — 2026-10-23
 
 All 1,229 delivered loading-candidate inputs match before acceptance/release

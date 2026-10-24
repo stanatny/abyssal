@@ -7,7 +7,8 @@ import { createBermudaTerrainMesh } from "./bermuda_terrain_mesh.js";
 import { createBermudaWreck } from "./bermuda_wreck.js";
 import { createBermudaWeather } from "./bermuda_weather.js";
 import { addSurfaceDetail } from "./ocean_visuals.js";
-import { bermudaCoralColonyGeometry } from "./bermuda_reef.js";
+import { createBermudaGeology } from "./bermuda_geology.js";
+import { createBermudaColonies } from "./bermuda_colonies.js";
 
 /** 风暴海域独立海床、育幼礁与可进入的邮轮沉船。 */
 export function createBermudaOcean(parent, options = {}) {
@@ -41,65 +42,17 @@ export function createBermudaOcean(parent, options = {}) {
   floor.name = "bermuda_eroded_seabed";
   root.add(floor);
   const { material: waterMat } = createStormWater(root, keep, time);
-  const rockGeo = keep(new THREE.IcosahedronGeometry(1, 2)),
-    rv = rockGeo.attributes.position;
-  for (let i = 0; i < rv.count; i++) {
-    const k =
-      1 +
-      0.13 *
-        Math.sin(rv.getX(i) * 8 + rv.getZ(i) * 7) *
-        Math.cos(rv.getY(i) * 11);
-    rv.setXYZ(i, rv.getX(i) * k, rv.getY(i) * k, rv.getZ(i) * k);
-  }
-  rockGeo.computeVertexNormals();
-  const rockMat = keep(
-    new THREE.MeshStandardMaterial({ color: 0x48595c, roughness: 1 }),
-  );
-  addSurfaceDetail(rockMat, "stone", 1);
-  const rocks = new THREE.InstancedMesh(rockGeo, rockMat, 60),
-    dummy = new THREE.Object3D(),
-    colliders = [];
-  rocks.name = "bermuda_shelf_outcrops";
-  root.add(rocks);
-  for (let i = 0; i < 60; i++) {
-    const x = (i % 2 ? 1 : -1) * (90 + (i % 5) * 32),
-      z = 90 - Math.floor(i / 2) * 39,
-      size = 3 + (i % 4) * 2;
-    dummy.position.set(x, bermudaSeabedHeight(x, z) + size * 0.3, z);
-    dummy.scale.set(size, size * 0.7, size * 1.2);
-    dummy.rotation.y = i * 0.8;
-    dummy.updateMatrix();
-    rocks.setMatrixAt(i, dummy.matrix);
-    colliders.push({
-      type: "ellipsoid",
-      x: dummy.position.x,
-      y: dummy.position.y,
-      z: dummy.position.z,
-      axes: new THREE.Vector3(
-        size * 1.13,
-        size * 0.7 * 1.13,
-        size * 1.2 * 1.13,
-      ),
-      rotation: dummy.quaternion.clone(),
-      id: `bermuda_rock_${i}`,
-    });
-  }
-  const coralGeo = keep(bermudaCoralColonyGeometry()),
-    coralMat = keep(
-      new THREE.MeshStandardMaterial({ vertexColors: true, roughness: 0.9 }),
-    );
-  const corals = new THREE.InstancedMesh(coralGeo, coralMat, 64);
-  corals.name = "bermuda_nursery_coral";
-  root.add(corals);
-  for (let i = 0; i < 64; i++) {
-    const x = (i % 2 ? 1 : -1) * (28 + (i % 9) * 4),
-      z = 120 - Math.floor(i / 2) * 7;
-    dummy.position.set(x, bermudaSeabedHeight(x, z) + 0.1, z);
-    dummy.scale.setScalar(3.0 + (i % 3) * 1.2);
-    dummy.rotation.y = i;
-    dummy.updateMatrix();
-    corals.setMatrixAt(i, dummy.matrix);
-  }
+  const shelfArt = createBermudaGeology(root, {
+    heightAt: bermudaSeabedHeight,
+    shelf: true,
+  });
+  root.userData.shelfArt = shelfArt;
+  const colliders = [...shelfArt.colliders];
+  const nurseryArt = createBermudaColonies(root, {
+    heightAt: bermudaSeabedHeight,
+    nursery: true,
+  });
+  root.userData.nurseryArt = nurseryArt;
   const wreck = createBermudaWreck(root, { heightAt: bermudaSeabedHeight });
   colliders.push(...wreck.colliders);
   const biomes = createBermudaBiomes(root, { heightAt: bermudaSeabedHeight });
@@ -131,6 +84,8 @@ export function createBermudaOcean(parent, options = {}) {
       if (disposed) return;
       time.value = elapsed;
       biomes.update(elapsed, position, highQuality);
+      nurseryArt.update(elapsed, position);
+      shelfArt.update(elapsed, position);
       waterMat.opacity = cameraPosition.y > WORLD.surfaceY ? 0.94 : 0.62;
       weather.update(
         elapsed,
@@ -166,8 +121,8 @@ export function createBermudaOcean(parent, options = {}) {
       wreck.dispose();
       biomes.dispose();
       root.removeFromParent();
-      rocks.dispose();
-      corals.dispose();
+      shelfArt.dispose();
+      nurseryArt.dispose();
       for (const r of resources) r.dispose();
       resources.clear();
       colliders.length = 0;

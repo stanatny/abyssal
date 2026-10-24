@@ -1,12 +1,16 @@
 import * as THREE from "three";
-import {
-  createBermudaBuilder,
-  bermudaMaterials,
-  hullStripGeometry,
-} from "./bermuda_geometry.js";
+import { createBermudaBuilder, bermudaMaterials } from "./bermuda_geometry.js";
 
 import { BERMUDA_WRECK, wreckWorldPoint } from "./bermuda_sites.js";
 import { addBermudaWreckInteriors } from "./bermuda_wreck_interiors.js";
+import { createBermudaWreckSkins } from "./bermuda_wreck_skins.js";
+import { createBermudaWreckSurfaces } from "./bermuda_wreck_surfaces.js";
+import {
+  decayedWreckHull,
+  wreckWallMissing,
+  addWreckRusticles,
+  tornWreckBulkhead,
+} from "./bermuda_wreck_decay.js";
 export { BERMUDA_WRECK } from "./bermuda_sites.js";
 export const WRECK_ROUTES = Object.freeze(
   [
@@ -55,24 +59,28 @@ export function createBermudaWreck(parent, { heightAt } = {}) {
   parent.add(root);
   const m = bermudaMaterials(keep),
     b = createBermudaBuilder(root, keep, root.position);
+  const skins = createBermudaWreckSkins(b, root);
   let disposed = false;
   const doubleSteel = keep(m.steel.clone());
   doubleSteel.name = "double_hull";
   doubleSteel.side = THREE.DoubleSide;
+  const surfaces = createBermudaWreckSurfaces();
+  for (const material of [m.steel, doubleSteel])
+    surfaces.apply(material, "hull");
+  surfaces.apply(m.wood, "deck");
+  surfaces.apply(m.pale, "enamel");
+  const prepareSkins = root.userData.prepareMaterials;
+  root.userData.prepareMaterials = (options) =>
+    Promise.all([prepareSkins(options), surfaces.prepare(options)]);
+  root.userData.wreckSurfaces = surfaces;
+  surfaces.prepare().catch(() => {});
   for (const side of [-1, 1]) {
-    b.add(
-      hullStripGeometry(BERMUDA_WRECK.rawLength, BERMUDA_WRECK.rawWidth, 38, {
-        side,
-        broken: true,
-      }),
-      doubleSteel,
-    );
+    b.add(decayedWreckHull(side), doubleSteel);
     // 船侧薄壁按纵向分段，与可见艏艉的收窄轮廓对应；右舷中段留下大破口。
     for (let z = -108; z < 111; z += 12) {
       const width = 27 * Math.min(1, (120 - Math.abs(z)) / 28);
       for (let level = 0; level < 4; level++) {
-        if (side === 1 && z >= 30 && z <= 66 && (level === 1 || level === 2))
-          continue;
+        if (wreckWallMissing(side, z, level)) continue;
         const y0 = level * 9.5,
           y1 = y0 + 9.5;
         const x0 =
@@ -85,10 +93,12 @@ export function createBermudaWreck(parent, { heightAt } = {}) {
           [0.9, Math.hypot(y1 - y0, x1 - x0), 12],
           true,
           [0, 0, -Math.atan2(x1 - x0, y1 - y0)],
+          false, // 只保留薄壁碰撞；连续船壳已经提供外观，避免两层表面相互穿插。
         );
       }
       for (const y of [13, 27, 35]) {
-        if (side === 1 && z >= 30 && z <= 66 && y < 35) continue;
+        if (wreckWallMissing(side, z, Math.min(3, Math.floor(y / 9.5))))
+          continue;
         const ring = new THREE.TorusGeometry(0.64, 0.15, 6, 12);
         ring.rotateY(Math.PI / 2);
         b.add(ring, m.brass, [side * (width + 0.22), y, z]);
@@ -124,10 +134,29 @@ export function createBermudaWreck(parent, { heightAt } = {}) {
   }
   // 脱落的顶层板只覆盖真实侧舱，不跨越中庭。
   for (const side of [-1, 1]) {
-    b.box(m.pale, [side * 22, 53, 0], [1.1, 20, 190], true);
+    const gap = side === 1 ? [-55, -30] : [20, 45];
+    for (const [z0, z1, end] of [
+      [-95, gap[0], 1],
+      [gap[1], 95, -1],
+    ]) {
+      b.box(
+        m.pale,
+        [side * 22, 53, (z0 + z1) / 2],
+        [1.1, 20, z1 - z0],
+        true,
+        0,
+        false,
+      );
+      b.add(tornWreckBulkhead(side, z0, z1, end), m.pale);
+    }
     for (let z = -78; z < 80; z += 17) {
-      b.box(m.pale, [side * 22.7, 53, z], [0.3, 5, 7]);
-      b.box(m.dark, [side * 23, 53, z], [0.2, 3.5, 5]);
+      if (z > gap[0] - 3 && z < gap[1] + 3) continue;
+      skins.add(
+        "wreck_window",
+        [side * 22.95, 53, z],
+        [10, 8, 0.7],
+        [0, (side * Math.PI) / 2, 0],
+      );
       b.beam(m.brass, [side * 15, 45, z], [side * 15, 48, z], 0.11);
       b.beam(m.brass, [side * 15, 48, z - 7], [side * 15, 48, z + 7], 0.1);
     }
@@ -140,13 +169,7 @@ export function createBermudaWreck(parent, { heightAt } = {}) {
     const tilt = i === 2 ? 0.82 : 0.04;
     if (i === 1) b.box(m.steel, [0, 63, z], [36, 2, 10], true);
     else b.box(m.steel, [x, 63, z], [12, 2, 12], true);
-    const funnel = new THREE.CylinderGeometry(4.5, 5.7, 18, 20, 3, true);
-    funnel.rotateZ(tilt);
-    b.add(funnel, m.red, [x, y + 9, z]);
-    const rim = new THREE.TorusGeometry(4.55, 0.35, 8, 24);
-    rim.rotateX(Math.PI / 2);
-    rim.rotateZ(tilt);
-    b.add(rim, m.dark, [x - Math.sin(tilt) * 9, y + 9 + Math.cos(tilt) * 9, z]);
+    skins.add("wreck_funnel", [x, y + 9, z], [10.7, 18, 10.7], [0, 0, tilt]);
     b.box(m.dark, [x, y + 2, z], [10, 4, 12]);
   }
   // 中庭两边的雕刻柱、悬断楼梯和逐级台阶；主成人路线留在正中。
@@ -170,7 +193,7 @@ export function createBermudaWreck(parent, { heightAt } = {}) {
         );
     }
   }
-  const interiors = addBermudaWreckInteriors(b, m, root.position);
+  const interiors = addBermudaWreckInteriors(b, m, root.position, skins);
   // 艉舵与螺旋桨，破裂龙骨和掉落锚链。
   b.box(m.rust, [0, 3, 119], [0.9, 9, 8], true);
   for (const x of [-13, 13]) {
@@ -211,7 +234,9 @@ export function createBermudaWreck(parent, { heightAt } = {}) {
       });
     }
   }
+  addWreckRusticles(b, m);
   const colliders = b.finish();
+  surfaces.project(root);
   const scale = BERMUDA_WRECK.scale;
   root.scale.setScalar(scale);
   for (const c of colliders) {
@@ -283,6 +308,8 @@ export function createBermudaWreck(parent, { heightAt } = {}) {
       root.removeFromParent();
       for (const resource of resources) resource.dispose();
       resources.clear();
+      skins.dispose();
+      surfaces.dispose();
       root.clear();
       colliders.length = 0;
     },

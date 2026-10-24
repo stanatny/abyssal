@@ -197,8 +197,8 @@ test("Wreck walls and decks remain solid while central entrances remain open", (
     ),
     null,
   );
-  assert.ok(wreck.stats.triangles < 80000);
-  assert.ok(wreck.stats.meshes <= 12);
+  assert.ok(wreck.stats.triangles < 310000);
+  assert.ok(wreck.stats.meshes <= 17);
   assert.ok(wreck.stats.supported);
 });
 

@@ -1,5 +1,90 @@
 # ABYSSAL Development Rules
 
+Bermuda main publication — 2026-10-24: the user authorizes a final remaining-work
+review followed by commit and push to main. All 1,369 delivered input hashes
+match. No new release-blocking defect is identified in the completed batches;
+small vent fauna and broader seabed surface polish remain optional future work.
+The accepted Bermuda creatures, fleet, wrecks, weather and natural formations
+are included in v0.11.17. Earlier candidate/no-push labels below are historical
+for this scope. The current agent integrates alone, retaining services and
+historical worktrees. See the [release record](docs/release_v0_11_17.md).
+
+Bermuda geology candidate — 2026-10-24: the user accepts the natural-seabed
+batch and requests the next batch. Three actual HF prototypes now replace two
+arches, 28 spires and 60 shelf rocks. Fitted solids preserve adult arch traversal;
+the shallow arch and its marker move 65 m west off the old excavation cliff.
+All other landmarks and non-geology solids remain exact. The new appearance
+awaits review, with no commit/push. See the [geology review](docs/bermuda_geology_huggingface_redraw.md).
+
+
+Bermuda natural-seabed candidate — 2026-10-24: the user accepts the cargo
+wreck and requests the next batch. Reused accepted HF coral/fan/sponge assets
+now cover both shallow and deep placement paths; twelve mineral chimneys use
+one new actual TRELLIS.2 prototype. Slope seating, local fitted vent contacts
+and bounded near/far detail preserve surrounding routes and rules. This new
+appearance awaits review, without commit/push. Rocks, arches and small vent
+fauna remain possible later work. See the [natural-scenery review](docs/bermuda_natural_scenery_huggingface_redraw.md).
+
+Bermuda cargo-graveyard candidate — 2026-10-24: the user accepts the lost
+aircraft and requests the next batch. An actual HF open-hull wreck and reused
+cargo trunks replace the small procedural graveyard; fitted local contacts
+and slope placement preserve its landmark and the surrounding terrain. The
+new appearance awaits review, with no commit/push. Prior accepted work stays
+intact. See the [cargo review](docs/bermuda_cargo_huggingface_redraw.md).
+
+
+Bermuda lost-aircraft candidate — 2026-10-24: the user accepts the waterspout
+and requests the next batch. An actual TRELLIS.2 twin-engine wreck replaces the
+old aircraft; a nearby slope placement removes the old spire intersection and
+updates only its fitted contact shapes. Other assets, terrain and rules remain
+intact. The new candidate awaits visual review; no commit/push is requested.
+See the [aircraft review](docs/bermuda_aircraft_huggingface_redraw.md).
+
+Bermuda waterspout candidate — 2026-10-24: the user accepts the ghost ship
+and requests the next batch. Condensation, spray and foam now replace the old
+hard funnels, preserving all seven paths and hazard rules. Three TRELLIS.2 jobs
+failed; the delivered effect uses its successful background-removal image output,
+not a generated cloud mesh. The new weather appearance awaits review; prior
+accepted work remains intact and uncommitted, with no push. See the
+[waterspout review](docs/bermuda_waterspout_revision.md).
+
+Bermuda ghost-ship candidate — 2026-10-23: the user accepts the wreck decay
+pass and asks for the next batch. Two actual TRELLIS.2 assets replace the
+Flying Dutchman-inspired hull and seven sails; existing captain/rigging and
+all cannon/movement/collision rules are retained. This new appearance awaits
+visual review, with no commit/push. Accepted liner work remains uncommitted;
+waterspouts follow separately. See the [ghost-ship review](docs/bermuda_ghost_ship_huggingface_redraw.md).
+
+Bermuda wreck decay follow-up — 2026-10-23: the user asks for visible corrosion,
+broken structure and real holes. The existing HF surfaces now retain patchy rust;
+the hull has torn openings and the upper walls have two collapsed sections.
+Matching collision openings reduce 410 solids to 402; the four original routes,
+11 rooms and 204 interior fixtures remain intact. Three unsupported windows are
+removed (20 to 17 placements). This supersedes the earlier exact-collider claim
+for the surface candidate below. No new HF job, commit or push is performed.
+See the [surface review](docs/bermuda_liner_surfaces_huggingface_redraw.md#rust-and-open-breaches-follow-up--2026-10-23).
+
+Bermuda liner surface candidate — 2026-10-23: three actual HF surface samples
+now supply the existing hull, teak decks and bulkheads. Duplicate outer-wall
+rendering is removed while all 410 colliders and exploration routes remain exact.
+The new pass preserves preceding components/furnishings, adds six owned textures,
+and remains uncommitted for visual review. No push/main publication is requested.
+See the [surface review](docs/bermuda_liner_surfaces_huggingface_redraw.md).
+
+Bermuda liner furnishings candidate — 2026-10-23: the user asks to continue.
+Four actual HF assets replace 4 salon sofas, 4 passenger beds, 4 wardrobes and
+10 trunks in the existing liner. Exact colliders, rooms and routes are retained;
+the previous funnels/windows/boilers and all other assets are preserved. The
+new candidate is uncommitted and pending visual review; no push/main publication
+was requested. See the [furnishings review](docs/bermuda_liner_furnishings_huggingface_redraw.md).
+
+Bermuda liner component candidate — 2026-10-23: the accepted offshore rig is
+locally committed as `0ffd683`. Three actual HF assets now replace four funnels,
+twenty promenade window panels and four steam boilers in the existing explorable
+liner. Original colliders, rooms and routes remain exact; the hull and remaining
+furnishings are not claimed complete. This separate candidate is uncommitted and
+awaits visual review. See the [liner review](docs/bermuda_liner_components_huggingface_redraw.md).
+
 Accepted Bermuda oil-rig checkpoint — 2026-10-23: the user accepts the delivered
 HF rig and requests a local commit followed by the next batch. All 1,278
 delivered inputs match before acceptance-only notes. The recorded 1,614 tests
