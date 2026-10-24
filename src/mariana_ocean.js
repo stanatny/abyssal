@@ -9,12 +9,13 @@ import { addMarianaPassage } from "./mariana_passages.js";
 import { createMarianaCliff, marianaCliffFace } from "./mariana_cliffs.js";
 import * as THREE from "three";
 import { createBermudaBuilder } from "./bermuda_geometry.js";
-import { addSurfaceDetail, seaFanGeometry } from "./ocean_visuals.js";
-import { bermudaCoralColonyGeometry } from "./bermuda_reef.js";
+import { addSurfaceDetail } from "./ocean_visuals.js";
+import { createMarianaColonies } from "./mariana_colonies.js";
 import { createMarianaRefuge } from "./mariana_refuge.js";
 import { addMarianaLandmarksSteps } from "./mariana_landmarks.js";
 import { terrainMeshHeight } from "./terrain_mesh_height.js";
 import { addMarianaOutcrops } from "./mariana_outcrops.js";
+import { createMarianaRockSurfaces } from "./mariana_rock_surfaces.js";
 import {
   MARIANA_WORLD as W,
   MARIANA_GATES,
@@ -113,7 +114,10 @@ export function* createMarianaOceanSteps(parent) {
         roughness: 0.93,
       }),
     );
-    addSurfaceDetail(cliffMaterial, "stone", 0.42);
+    const rockSurfaces = keep(createMarianaRockSurfaces());
+    root.userData.marianaRockSurfaces = rockSurfaces;
+    rockSurfaces.apply(cliffMaterial, "wall");
+    void rockSurfaces.prepare();
     for (let section = 0; section < 16; section++) {
       const top = -section * 180,
         bottom = Math.max(-2780, top - 180),
@@ -207,7 +211,7 @@ export function* createMarianaOceanSteps(parent) {
       yield "gate";
     }
     yield* addMarianaMarineSteps({ root, keep, group, floor, time });
-    colliders.push(...addMarianaOutcrops({ root, keep, group }));
+    colliders.push(...addMarianaOutcrops({ root, keep, group, rockSurfaces }));
     yield "outcrops";
     const rockGeo = keep(new THREE.IcosahedronGeometry(1, 2));
     const rp = rockGeo.attributes.position;
@@ -220,46 +224,41 @@ export function* createMarianaOceanSteps(parent) {
       rp.setXYZ(i, rp.getX(i) * k, rp.getY(i) * k, rp.getZ(i) * k);
     }
     rockGeo.computeVertexNormals();
-    const coralGeo = keep(bermudaCoralColonyGeometry()),
-      coralMat = keep(
-        new THREE.MeshStandardMaterial({ vertexColors: true, roughness: 0.88 }),
-      ),
-      dummy = new THREE.Object3D();
-    // 浅滩珊瑚与深层管虫分开处理；装饰不占据主通道。
-    const nursery = new THREE.InstancedMesh(coralGeo, coralMat, 56);
-    nursery.name = "mariana_living_reef";
-    root.add(nursery);
+    const colonies = keep(createMarianaColonies()),
+      dummy = new THREE.Object3D(),
+      nursery = { reef_branch: [], reef_brain: [] };
+    root.userData.marianaColonies = colonies;
     for (let i = 0; i < 56; i++) {
-      const x = (i % 2 ? 1 : -1) * (32 + (i % 7) * 6),
-        z = 112 - Math.floor(i / 2) * 8;
-      dummy.position.set(x, marianaSeabedHeight(x, z) + 0.1, z);
-      dummy.scale.setScalar(2.1 + (i % 4) * 0.8);
-      dummy.rotation.y = i;
-      dummy.updateMatrix();
-      nursery.setMatrixAt(i, dummy.matrix);
+      const brain = i % 4 === 3;
+      nursery[brain ? "reef_brain" : "reef_branch"].push({
+        x: (i % 2 ? 1 : -1) * (32 + (i % 7) * 6),
+        // 三个旧落点已落到陡崖折线，向浅滩内退16米保留完整根座。
+        z: 112 - Math.floor(i / 2) * 8 + ([50, 52, 54].includes(i) ? 16 : 0),
+        originalZ: 112 - Math.floor(i / 2) * 8,
+        yaw: i,
+        scale: (2.1 + (i % 4) * 0.8) * (brain ? 0.55 : 0.75),
+      });
     }
-    nursery.computeBoundingSphere();
-    const fanGeo = keep(seaFanGeometry()),
-      fanMat = keep(
-        new THREE.MeshStandardMaterial({
-          color: 0xb1c2be,
-          emissive: 0x184960,
-          emissiveIntensity: 0.38,
-          roughness: 0.7,
-          side: THREE.DoubleSide,
-        }),
-      );
+    const shallowSupport = (_row, x, z) => ({
+      y: lowestGround(x, z),
+      normal: new THREE.Vector3(
+        -(lowestGround(x + 0.05, z) - lowestGround(x - 0.05, z)) / 0.1,
+        1,
+        -(lowestGround(x, z + 0.05) - lowestGround(x, z - 0.05)) / 0.1,
+      ).normalize(),
+    });
+    for (const [kind, rows] of Object.entries(nursery))
+      colonies.add(root, kind, rows, shallowSupport);
     for (let n = 0; n < 15; n++) {
       const y = -120 - n * 177,
         g = group(`trench_ecology_${n}`, y),
         rocks = new THREE.InstancedMesh(rockGeo, basalt, 12),
-        fans = new THREE.InstancedMesh(fanGeo, fanMat, 12),
         polyps = new THREE.InstancedMesh(
           keep(new THREE.SphereGeometry(1, 8, 6)),
           glow,
           32,
         );
-      g.add(rocks, fans, polyps);
+      g.add(rocks, polyps);
       const supports = [],
         probe = new THREE.Mesh(rockGeo, basalt);
       probe.matrixAutoUpdate = false;
@@ -304,13 +303,28 @@ export function* createMarianaOceanSteps(parent) {
           rotation: dummy.quaternion.clone(),
         });
       }
-      for (let i = 0; i < 12; i++) {
-        dummy.position.copy(attachment(i));
-        dummy.rotation.set(0, i * 0.71, (i % 2 ? -1 : 1) * 0.2);
-        dummy.scale.setScalar(2 + (i % 3));
-        dummy.updateMatrix();
-        fans.setMatrixAt(i, dummy.matrix);
-      }
+      const fanRows = supports.map((s, i) => ({
+        x: s.x,
+        z: s.z,
+        supportIndex: i,
+        yaw: i * 0.71,
+        scale: 2 + (i % 3),
+      }));
+      colonies.add(g, "reef_fan", fanRows, (row, x, z) => {
+        const s = supports[row.supportIndex];
+        probe.matrix.copy(s.matrix);
+        probe.matrixWorld.copy(s.matrix);
+        ray.set(new THREE.Vector3(x, s.y + 25, z), down);
+        const hit = ray.intersectObject(probe, false)[0];
+        return (
+          hit && {
+            y: hit.point.y,
+            normal: hit.face.normal
+              .clone()
+              .transformDirection(probe.matrixWorld),
+          }
+        );
+      });
       for (let i = 0; i < 32; i++) {
         dummy.position.copy(
           attachment(i, Math.sin(i * 2.3) * 3, Math.cos(i * 1.7) * 3),
@@ -321,7 +335,6 @@ export function* createMarianaOceanSteps(parent) {
         polyps.setMatrixAt(i, dummy.matrix);
       }
       rocks.computeBoundingSphere();
-      fans.computeBoundingSphere();
       polyps.computeBoundingSphere();
       lightSources.push({
         position: new THREE.Vector3(n % 2 ? 165 : -165, y + 13, -400),
@@ -454,6 +467,7 @@ export function* createMarianaOceanSteps(parent) {
         waterMat.opacity = cameraPosition.y > 4 ? 0.91 : 0.58;
         for (const { g, y } of chunks)
           g.visible = Math.abs(position.y - y) < (highQuality ? 430 : 330);
+        colonies.update(elapsed, position);
         const nearest = lightSources
           .map((s) => ({ s, d: s.position.distanceToSquared(position) }))
           .sort((a, b) => a.d - b.d);

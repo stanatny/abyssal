@@ -1,6 +1,7 @@
 import * as THREE from "three";
-import { createBermudaBuilder, hullStripGeometry } from "./bermuda_geometry.js";
+import { createBermudaBuilder } from "./bermuda_geometry.js";
 import { createSurfaceShipImpact } from "./surface_ship_impact.js";
+import { acquireMarianaFleetAsset } from "./mariana_fleet_asset.js";
 import { addSurfaceDetail } from "./ocean_visuals.js";
 
 /** 马里亚纳远洋科考船队：工作甲板、探测缆机与A形吊架；复用船体冲撞规则。 */
@@ -188,55 +189,24 @@ export function createMarianaFleet(parent, options = {}) {
 }
 
 /** 原创船体按材质合批，船首收尖、船尾工作区及上层驾驶室采用不同轮廓。 */
-function buildVessel(length, width, m, keep, tender) {
+function buildVessel(length, width, _materials, keep, tender) {
   const root = new THREE.Group();
   root.name = tender ? "survey_tender" : "research_vessel";
-  const b = createBermudaBuilder(root, keep),
-    h = tender ? 2.8 : 6,
+  const asset = acquireMarianaFleetAsset(tender ? "tender" : "research");
+  keep({ dispose: asset.release });
+  const body = new THREE.Mesh(asset.geometry, asset.material);
+  body.name = tender
+    ? "mariana_tender_hf_surface"
+    : "mariana_research_hf_surface";
+  body.scale.setScalar(length);
+  root.add(body);
+  root.userData.artRevision = "mariana-survey-fleet-hf-20261024";
+  root.userData.shipArt = { body };
+  root.userData.prepareMaterials = asset.prepare;
+  asset.prepare();
+  // 碰撞与冲撞契约沿用原船队；外观离线适配长宽、甲板和两米吃水。
+  const h = tender ? 2.8 : 6,
     deck = h - 2;
-  for (const side of [-1, 1])
-    b.add(hullStripGeometry(length, width, h, { side }), m.hull, [0, -2, 0]);
-  const shape = new THREE.Shape();
-  shape.moveTo(0, -length * 0.5);
-  shape.quadraticCurveTo(
-    width * 0.5,
-    -length * 0.45,
-    width * 0.5,
-    -length * 0.28,
-  );
-  shape.lineTo(width * 0.5, length * 0.37);
-  shape.quadraticCurveTo(width * 0.45, length * 0.49, 0, length * 0.5);
-  shape.quadraticCurveTo(
-    -width * 0.45,
-    length * 0.49,
-    -width * 0.5,
-    length * 0.37,
-  );
-  shape.lineTo(-width * 0.5, -length * 0.28);
-  shape.quadraticCurveTo(-width * 0.5, -length * 0.45, 0, -length * 0.5);
-  const deckGeo = new THREE.ShapeGeometry(shape, 20);
-  deckGeo.rotateX(-Math.PI / 2);
-  b.add(deckGeo, m.deck, [0, deck, 0]);
-  // 与两侧船壳逐截面闭合龙骨，水下观察时不出现空底。
-  const keelP = [],
-    keelI = [];
-  for (let row = 0; row <= 64; row++) {
-    const z = (row / 64 - 0.5) * length,
-      taper = Math.min(
-        1,
-        Math.max(0.03, (length / 2 - Math.abs(z)) / (length * 0.12)),
-      );
-    keelP.push(-width * 0.275 * taper, -2, z, width * 0.275 * taper, -2, z);
-    if (row < 64) {
-      const a = row * 2;
-      keelI.push(a, a + 1, a + 2, a + 1, a + 3, a + 2);
-    }
-  }
-  const keel = new THREE.BufferGeometry();
-  keel.setAttribute("position", new THREE.Float32BufferAttribute(keelP, 3));
-  keel.setIndex(keelI);
-  keel.computeVertexNormals();
-  b.add(keel, m.hull);
   const specs = [];
   for (let i = 0; i < 9; i++) {
     const z = (i / 8 - 0.5) * length * 0.9,
@@ -252,8 +222,6 @@ function buildVessel(length, width, m, keep, tender) {
   const cabinZ = -length * 0.14,
     cabinW = width * 0.7,
     cabinL = length * 0.27;
-  b.box(m.enamel, [0, deck + 2, cabinZ], [cabinW, 4, cabinL]);
-  b.box(m.enamel, [0, deck + 4.5, cabinZ - 1], [cabinW + 1, 1, cabinL + 1.5]);
   specs.push({
     kind: "ship_deck",
     center: [0, deck + 2, cabinZ],
@@ -265,179 +233,15 @@ function buildVessel(length, width, m, keep, tender) {
       center: [0, deck + 5.6, cabinZ - 2],
       size: [cabinW * 0.78, 1.25, cabinL * 0.6],
     });
-    b.box(
-      m.enamel,
-      [0, deck + 5.6, cabinZ - 2],
-      [cabinW * 0.78, 1.25, cabinL * 0.6],
-    );
-    b.box(
-      m.rubber,
-      [0, deck + 6.28, cabinZ - 2],
-      [cabinW * 0.81, 0.12, cabinL * 0.63],
-    );
-    for (const side of [-1, 1])
-      for (let j = 0; j < 5; j++)
-        b.box(
-          m.glass,
-          [
-            side * (cabinW * 0.39 + 0.015),
-            deck + 5.65,
-            cabinZ - cabinL * 0.25 + j * cabinL * 0.1,
-          ],
-          [0.045, 0.65, 1.0],
-        );
-    for (let step = 0; step < 6; step++)
-      b.box(
-        m.deck,
-        [
-          -cabinW * 0.5 + 0.9,
-          deck + 0.2 + step * 0.32,
-          cabinZ + cabinL * 0.5 + 3 - step * 0.45,
-        ],
-        [1.5, 0.3, 0.65],
-      );
-  }
-  for (const side of [-1, 1]) {
-    for (let i = 0; i < (tender ? 3 : 8); i++)
-      b.box(
-        m.glass,
-        [
-          side * (cabinW / 2 + 0.025),
-          deck + 2.8,
-          cabinZ - cabinL * 0.38 + (i * cabinL * 0.76) / ((tender ? 3 : 8) - 1),
-        ],
-        [0.06, 1.1, tender ? 1 : 1.4],
-      );
-    for (let j = 0; j < 16; j++) {
-      const z = -length * 0.4 + (j * length * 0.8) / 15,
-        taper = Math.min(1, (length / 2 - Math.abs(z)) / (length * 0.12)),
-        x = side * ((width / 2) * taper - 0.2);
-      b.beam(m.enamel, [x, deck, z], [x, deck + 1.15, z], 0.05);
-      if (j < 15) {
-        const nz = z + (length * 0.8) / 15,
-          nx =
-            side *
-            ((width / 2) *
-              Math.min(1, (length / 2 - Math.abs(nz)) / (length * 0.12)) -
-              0.2);
-        for (const y of [0.65, 1.15])
-          b.beam(m.enamel, [x, deck + y, z], [nx, deck + y, nz], 0.045);
-      }
-    }
-    for (let j = 0; j < 6; j++)
-      b.add(
-        new THREE.TorusGeometry(tender ? 0.3 : 0.65, 0.12, 6, 14),
-        m.rubber,
-        [side * width * 0.49, deck - 0.55, -length * 0.22 + j * length * 0.09],
-        [0, Math.PI / 2, 0],
-      );
-  }
-  for (let j = -2; j <= 2; j++)
-    b.box(
-      m.glass,
-      [j * cabinW * 0.17, deck + 2.8, cabinZ - cabinL / 2 - 0.03],
-      [cabinW * 0.14, 1.1, 0.06],
-    );
-  b.beam(
-    m.steel,
-    [0, deck + 5, cabinZ],
-    [0, deck + (tender ? 8 : 14), cabinZ],
-    0.15,
-  );
-  for (const y of [7, 9, 11])
-    if (!tender || y === 7)
-      b.beam(
-        m.enamel,
-        [-width * 0.28, deck + y, cabinZ],
-        [width * 0.28, deck + y, cabinZ],
-        0.09,
-      );
-  b.add(new THREE.SphereGeometry(tender ? 0.6 : 1.5, 20, 12), m.enamel, [
-    0,
-    deck + (tender ? 7 : 9),
-    cabinZ + 3,
-  ]);
-  b.box(m.rubber, [1.5, deck + 5.5, cabinZ + 2], [0.8, 2, 1.5]);
-  if (!tender) {
-    // A形吊架、拖曳缆绞车、取样瓶架与救生艇均有实体体积。
-    for (const side of [-1, 1]) {
-      b.beam(
-        m.orange,
-        [side * width * 0.39, deck, length * 0.38],
-        [side * width * 0.3, deck + 10, length * 0.43],
-        0.38,
-        12,
-      );
-      b.beam(
-        m.orange,
-        [side * width * 0.39, deck, length * 0.22],
-        [side * width * 0.3, deck + 10, length * 0.43],
-        0.25,
-        10,
-      );
-      b.beam(
-        m.cable,
-        [side * width * 0.3, deck + 9.5, length * 0.43],
-        [side * width * 0.3, deck + 2, length * 0.35],
-        0.065,
-      );
-    }
-    b.beam(
-      m.orange,
-      [-width * 0.3, deck + 10, length * 0.43],
-      [width * 0.3, deck + 10, length * 0.43],
-      0.42,
-      12,
-    );
-    b.add(
-      new THREE.CylinderGeometry(2, 2, 5, 24),
-      m.cable,
-      [0, deck + 2, length * 0.22],
-      [0, 0, Math.PI / 2],
-    );
-    for (const x of [-2.6, 2.6])
-      b.add(
-        new THREE.CylinderGeometry(2.3, 2.3, 0.22, 24),
-        m.orange,
-        [x, deck + 2, length * 0.22],
-        [0, 0, Math.PI / 2],
-      );
-    for (let k = 0; k < 12; k++) {
-      const a = (k * Math.PI) / 6;
-      b.add(new THREE.CylinderGeometry(0.18, 0.18, 2.8, 8), m.steel, [
-        Math.cos(a) * 1.4,
-        deck + 1.6,
-        length * 0.04 + Math.sin(a) * 1.4,
-      ]);
-    }
-    for (const y of [0.25, 3.1])
-      b.add(
-        new THREE.TorusGeometry(1.65, 0.12, 6, 20),
-        m.orange,
-        [0, deck + y, length * 0.04],
-        [Math.PI / 2, 0, 0],
-      );
-    const lifeboat = new THREE.SphereGeometry(1, 20, 12);
-    lifeboat.scale(1.3, 0.85, 3.4);
-    b.add(lifeboat, m.orange, [width * 0.38, deck + 5, cabinZ + 4]);
-    for (let j = 0; j < 11; j++)
-      b.beam(
-        m.steel,
-        [-width * 0.37, deck + j * 0.4, cabinZ + 5],
-        [-width * 0.37, deck + j * 0.4, cabinZ + 6],
-        0.06,
-      );
     specs.push({
       kind: "ship_deck",
       center: [0, deck + 2, length * 0.22],
       size: [6, 4, 4],
     });
   }
-  b.finish();
   return { root, length, width, specs, edible: false, collidable: true };
 }
 
-/** 冷色远洋层云与远处火山岛，水下隐藏天空，避免云层穿透水面。 */
 export function createMarianaSky(parent) {
   const root = new THREE.Group();
   root.name = "mariana_overcast_horizon";

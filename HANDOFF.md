@@ -1,4 +1,112 @@
-# ABYSSAL Bermuda release v0.11.17 — 2026-10-24
+# ABYSSAL Mariana release v0.11.18 — 2026-10-25
+
+Mariana main publication — 2026-10-25: the user authorizes the accepted
+regional redraw and loading wrap-up for main. Release v0.11.18 includes the
+creatures, colonies, guardian geology, pit finishes, refuge and surface fleet.
+All 1,475 delivered inputs match before release metadata edits. Earlier
+candidate/no-push labels below are historical for this scope. The current agent
+integrates alone, preserving services and historical worktrees. Phone performance
+remains unmeasured. See [the release record](docs/release_v0_11_18.md).
+
+Mariana loading wrap-up candidate — 2026-10-25: seven refuge textures now
+prepare during the final descent instead of shallow entry. Initial refuge image
+requests fall from seven to zero; appearance, 1,373 contacts and gameplay remain
+exact. All 1,691 tests and native loading/recovery/disposal checks pass. This
+reduces early preparation, without a measured phone-FPS or entry-time gain.
+No commit/push; see [the loading record](docs/mariana_refuge_loading_revision.md).
+
+Mariana resident acceptance / remaining review — 2026-10-25: the user accepts
+all three residents. Main visual coverage is complete; small buoys, support
+rocks and arch/apron finishing are optional. Native inspection confirms all
+seven hidden-refuge color textures load early (1.85 MiB); depth-aware preparation
+is the next useful experiment, not a measured phone-performance improvement.
+Documentation only; no new generation, runtime edit, commit or push. See
+[the remaining-scope review](docs/mariana_remaining_scope_review.md).
+
+Mariana resident candidate — 2026-10-25: three actual HF exports replace the
+bottom sponge, starfish and snail, with repaired surfaces and independent gentle
+idle motion. Refuge contacts, other meshes, lights and rules remain unchanged.
+All 1,685 tests and native loading/recovery/disposal checks pass. This appearance
+awaits review; no commit/push. See [the resident record](docs/mariana_residents_huggingface_redraw.md).
+
+Mariana surface-fleet candidate — 2026-10-24: the user accepts the refuge
+and selects the two surface boats next. Actual HF research-vessel/tender exports
+replace only their old renderers; 120 sampled poses, all 25 contacts and the three
+buoys match the prior implementation. Full tests pass 1,683; normal loading,
+online recovery and three disposal cycles pass. This appearance awaits review,
+with no commit/push. See [the fleet record](docs/mariana_fleet_huggingface_redraw.md).
+
+Mariana refuge candidate — 2026-10-24: the user authorizes the proposed four
+buildings and plaza. Four actual HF exports now replace the old building shapes;
+stone foundations and low terrace edges complete the warm street scene. Three
+residents, lights and gameplay remain exact. Full tests pass 1,679; native
+loading/recovery and three disposal cycles pass. This appearance awaits review;
+no commit/push. See [the refuge record](docs/mariana_refuge_huggingface_redraw.md).
+
+
+Mariana surface acceptance/review — 2026-10-24: the user accepts the pit-wall
+and suspended-rock finish. Current source and native views identify the original
+bottom refuge buildings/plaza as the next useful visual batch, with its residents
+and minor rock supports following separately. These are proposals only; no game
+code, new HF job, commit or push. See [the scope review](docs/mariana_rock_surfaces_huggingface_redraw.md#acceptance-and-remaining-scope-review--2026-10-24).
+
+Mariana wall/rock surface candidate — 2026-10-24: the four guardian bays are
+accepted. Two actual HF rock exports now supply color and geometric relief to
+connecting pit walls and eight suspended platforms. All geometry, collision,
+landmarks and routes remain exact; 1,680 tests and native recovery/disposal checks
+pass. Four textures add 100,252 input bytes, without extra draw calls. This new
+appearance awaits review; no commit/push. See [the surface record](docs/mariana_rock_surfaces_huggingface_redraw.md).
+
+Mariana guardian geology candidate — 2026-10-24: the preceding small-fossil
+batch is accepted. Four actual HF formations now distinguish the Hydra, Kraken,
+Gran Maja and Leviathan side bays; rear apron sectors expand while 32 m routes,
+gates and the warm bottom remain protected. All 82 Mariana tests and native
+loading/recovery/ownership checks pass. This new appearance awaits user review;
+no commit or push. See [the geology record](docs/mariana_layer_geology_huggingface_redraw.md).
+
+
+Mariana fossil candidate — 2026-10-24: fresh included HF quota was verified
+at 2400 seconds. A new actual export now replaces 35 small apron ornaments after
+solid-surface repair; large landmarks, routes and rules remain intact. Thirteen
+focused checks and native texture recovery/ownership checks pass. This new
+appearance awaits review, without commit or push. The earlier no-export trial
+below is historical; see [the completed candidate](docs/mariana_fossil_huggingface_redraw.md).
+
+Mariana fossil trial — 2026-10-24: the user authorizes trying one new HF
+asset despite limited included quota. A 512-resolution fossil relief is generated,
+but only 117.84 seconds remain against the export's 120-second reservation.
+The local budget check stops before export; no GLB or game integration exists,
+and the preceding preview is unchanged. No paid excess, commit or push. See
+[the trial record](docs/mariana_fossil_trial.md).
+
+Mariana scenery candidate — 2026-10-24: batch 3 is accepted without
+commit/push. Reused accepted HF branch/brain/fan prototypes now replace 56 shallow
+colonies and 180 ledge fans; three cliff sites retreat 16 m while all terrain,
+colliders and gameplay remain exact. No new HF quota is consumed. Full tests pass
+1,671 and native texture recovery/lifecycle checks pass; this separate appearance
+awaits review. See [the scenery record](docs/mariana_scenery_huggingface_redraw.md).
+
+Mariana batch 3 candidate — 2026-10-24: batch 2 is accepted without
+commit/push. Actual HF Shonisaurus and Glass Prawn now have fitted tail/flipper
+and segmented-appendage rigs, with local prawn antenna/swimmeret repairs.
+The final catalogue keeps 10 ancient reptiles and one rare; earlier accepted
+assets and gameplay remain intact. Full tests pass 1,667; the new appearance
+awaits user review. See [the Mariana record](docs/mariana_huggingface_redraw.md).
+
+Mariana batch 2 candidate — 2026-10-24: the user accepts batch 1 and asks
+for the next batch without commit/push. Actual HF Barreleye, Dragonfish and Mariana
+Snailfish now use separate fitted rigs; Barreleye has a translucent head shield
+and two real internal tubular eyes. The accepted first batch and other old assets
+remain intact. 1,661 tests, native recovery/lifecycle and six production flows
+pass; 445 public resources match. This new appearance awaits user review.
+See [the Mariana record](docs/mariana_huggingface_redraw.md).
+
+Mariana batch 1 candidate — 2026-10-24: live included HF quota permits three
+new actual meshes: Moorish Idol, Lanternfish and Goblin Shark. Shared accepted
+creatures, four guardians and all gameplay remain unchanged. The current agent
+works alone on `art/mariana-hf-redraw`; this new appearance awaits review and is
+not committed or pushed. Shonisaurus and the remaining regional creatures/scenery
+stay in the later inventory. See the [Mariana review](docs/mariana_huggingface_redraw.md).
 
 Bermuda main publication — 2026-10-24: the user authorizes a final remaining-work
 review followed by commit and push to main. All 1,369 delivered input hashes

@@ -282,7 +282,7 @@ test("Seven exclusive creatures have distinct finite geometry, independent anima
       if (n.isSkinnedMesh) skins.push(n);
     });
     assert.ok(
-      skins.length >= (s.kind === "shonisaurus" ? 1 : 3),
+      skins.length >= (s.kind === "shonisaurus" || a.userData.hfRig ? 1 : 3),
       `${s.kind}: continuous fins must be skinned`,
     );
     assert.ok(
@@ -290,7 +290,22 @@ test("Seven exclusive creatures have distinct finite geometry, independent anima
       `${s.kind}: body and attached fins share bones`,
     );
 
-    assert.ok(a.userData.marianaAnatomy || a.userData.ancientAnatomy);
+    assert.ok(
+      a.userData.marianaAnatomy ||
+        a.userData.ancientAnatomy ||
+        a.userData.hfRig,
+    );
+    if (a.userData.hfRig) {
+      for (const side of [-1, 1]) {
+        const c = a.userData.hfRig.chains.find(
+          (c) => c.name === `pectoral_${side}`,
+        );
+        assert.ok(
+          c && c.ids.length > 0,
+          `${s.kind}: continuous paired fins retain independent supports`,
+        );
+      }
+    }
     for (const key of [
       "label",
       "ability",

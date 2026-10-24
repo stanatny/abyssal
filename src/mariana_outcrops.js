@@ -172,7 +172,7 @@ function outcropGeometry(site) {
   return { geometry, colliders };
 }
 
-export function addMarianaOutcrops({ root, keep, group }) {
+export function addMarianaOutcrops({ root, keep, group, rockSurfaces }) {
   const material = keep(
     new THREE.MeshStandardMaterial({
       vertexColors: true,
@@ -181,7 +181,8 @@ export function addMarianaOutcrops({ root, keep, group }) {
     }),
   );
   material.name = "mariana_fractured_suspended_strata";
-  addSurfaceDetail(material, "stone", 0.42);
+  if (rockSurfaces) rockSurfaces.apply(material, "outcrop");
+  else addSurfaceDetail(material, "stone", 0.42);
   const batches = new Map(),
     colliders = [];
   for (const site of MARIANA_OUTCROPS) {

@@ -81,9 +81,14 @@ test("Five sculpted side bays remain bounded, closed and owned by regional culli
       new Set(MARIANA_LANDMARK_SITES.map((site) => site.shape)).size,
       5,
     );
-    assert.ok(f.stats.triangles <= 100000);
-    assert.ok(f.stats.meshes <= 16);
-    assert.ok(f.colliders.length <= 300);
+    assert.ok(f.stats.triangles <= 170000);
+    assert.ok(f.stats.meshes <= 20);
+    // 新 HF 表面的离线接触预算单列；原岩台、桥面与暖色底层仍受原预算约束。
+    const hfSolids = f.colliders.filter((c) =>
+      c.id?.startsWith("mariana_hf_strata_"),
+    );
+    assert.ok(hfSolids.length <= 650);
+    assert.ok(f.colliders.length - hfSolids.length <= 300);
     assert.equal(
       new Set(f.colliders.map((c) => c.id)).size,
       f.colliders.length,
@@ -96,8 +101,27 @@ test("Five sculpted side bays remain bounded, closed and owned by regional culli
       cross = new THREE.Vector3();
     for (const { g, y } of f.chunks) {
       assert.ok(Number.isFinite(y));
-      assert.equal(g.children.length, 3);
+      assert.ok(g.children.length >= 3 && g.children.length <= 4);
       for (const mesh of g.children) {
+        if (mesh.name.startsWith("mariana_hf_fossils_")) {
+          assert.equal(mesh.count, 7);
+          assert.equal(
+            mesh.geometry,
+            f.root.userData.marianaFossils.asset.geometry,
+          );
+          triangles += (mesh.geometry.index.count / 3) * mesh.count;
+          meshes++;
+          continue;
+        }
+        if (mesh.name.startsWith("mariana_hf_strata_")) {
+          assert.ok(f.owned.has(mesh.geometry));
+          assert.equal(mesh.material.side, THREE.FrontSide);
+          assert.equal(mesh.material.transparent, false);
+          assert.ok(mesh.geometry.index.count / 3 <= 10000);
+          triangles += mesh.geometry.index.count / 3;
+          meshes++;
+          continue;
+        }
         assert.ok(f.owned.has(mesh.geometry));
         assert.ok(f.owned.has(mesh.material));
         assert.equal(mesh.material.side, THREE.FrontSide);
@@ -147,8 +171,13 @@ test("Five sculpted side bays remain bounded, closed and owned by regional culli
       assert.ok(
         visible
           .flatMap(({ g }) => g.children)
-          .reduce((sum, mesh) => sum + mesh.geometry.index.count / 3, 0) <
-          35000,
+          .reduce(
+            (sum, mesh) =>
+              sum +
+              (mesh.geometry.index.count / 3) *
+                (mesh.isInstancedMesh ? mesh.count : 1),
+            0,
+          ) < 105000,
       );
     }
     assert.equal(
@@ -163,7 +192,7 @@ test("Five sculpted side bays remain bounded, closed and owned by regional culli
 test("Actual support roots and complete sculpture/fossil footprints sit on final rock triangles", () => {
   const f = fixture();
   try {
-    assert.ok(f.supportRecords.length >= 45);
+    assert.ok(f.supportRecords.length >= 41);
     const down = new THREE.Vector3(0, -1, 0),
       ray = new THREE.Raycaster();
     for (const record of f.supportRecords) {
@@ -191,7 +220,7 @@ test("Actual support roots and complete sculpture/fossil footprints sit on final
   }
 });
 
-test("Kraken spirals remain visible below the actual preceding terrace underside", () => {
+test("Kraken grotto remains visible below the actual preceding terrace underside", () => {
   const f = fixture(),
     ocean = createMarianaOcean(new THREE.Scene());
   try {
@@ -204,8 +233,7 @@ test("Kraken spirals remain visible below the actual preceding terrace underside
     let checked = 0;
     for (const solid of f.solidRecords.filter(
       (record) =>
-        record.site === "kraken_echo_gallery" &&
-        record.id.startsWith("spiral_"),
+        record.site === "kraken_echo_gallery" && record.id === "hf_kraken",
     )) {
       const mesh = f.root.getObjectByName(solid.host),
         positions = mesh.geometry.attributes.position,

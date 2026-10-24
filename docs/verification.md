@@ -1,3 +1,14 @@
+# v0.11.18 release verification — 2026-10-25
+
+All 1,475 delivered Mariana inputs match before acceptance/release metadata
+edits. The loading candidate's 1,691 tests, lifecycle checks, four native public
+flows and 498 byte-matched artifacts retain their original evidence scope.
+Release formatting/tests/build, exact-main Node 22 CI and the deployed Pages
+artifact/flow checks are recorded separately under `.local/release_v0_11_18/`.
+Confirm the deployment SHA and public bytes before declaring publication.
+See [the release record](release_v0_11_18.md). Physical-phone follow-up remains
+open; no FPS, heat or entry-time gain is claimed.
+
 # v0.11.17 release verification — 2026-10-24
 
 All 1,369 delivered Bermuda input hashes match before release-only edits.

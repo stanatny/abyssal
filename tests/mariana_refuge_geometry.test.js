@@ -21,7 +21,12 @@ const terrain = createMarianaOcean(new THREE.Scene());
 terrain.root.updateMatrixWorld(true);
 const ground = terrain.root.getObjectByName("mariana_lowest_ground");
 assert.ok(ground?.isMesh);
-after(() => terrain.dispose());
+const sharedDisposal = [];
+after(() => {
+  terrain.dispose();
+  for (const [resource, read] of sharedDisposal)
+    assert.equal(read(), 1, resource.name);
+});
 
 function fixture() {
   const owned = new Set(),
@@ -47,12 +52,12 @@ function vertices(root, material) {
   root.traverse((mesh) => {
     if (!mesh.isMesh || (material && mesh.material.name !== material)) return;
     const position = mesh.geometry.attributes.position;
-    for (let i = 0; i < position.count; i++)
-      result.push(
-        new THREE.Vector3()
-          .fromBufferAttribute(position, i)
-          .applyMatrix4(mesh.matrixWorld),
-      );
+    if (mesh.isSkinnedMesh) mesh.skeleton.update();
+    for (let i = 0; i < position.count; i++) {
+      const point = new THREE.Vector3().fromBufferAttribute(position, i);
+      if (mesh.isSkinnedMesh) mesh.applyBoneTransform(i, point);
+      result.push(point.applyMatrix4(mesh.matrixWorld));
+    }
   });
   return result;
 }
@@ -98,7 +103,7 @@ function supportAt(f, point, tolerance = 0.01) {
   return plane;
 }
 
-test("The whole plaza, foundations, arch feet and dome rim have rendered support", () => {
+test("The whole plaza, foundations, arch feet have rendered support", () => {
   const f = fixture();
   try {
     const plinth = f.colliders.find((c) => c.id === "refuge_plinth"),
@@ -151,17 +156,9 @@ test("The whole plaza, foundations, arch feet and dome rim have rendered support
           p.y < top + 1 &&
           p.z > f.root.position.z - 20 &&
           p.z < f.root.position.z + 45,
-      ),
-      rim = sand.filter(
-        (p) =>
-          p.x > -71 &&
-          p.x < -35 &&
-          p.z < f.root.position.z - 39 &&
-          Math.abs(p.y - top) < 0.0001,
       );
     assert.ok(feet.length >= 32, "both actual arch-end rings");
-    assert.ok(rim.length >= 32, "full rock-dome base rim");
-    for (const p of [...feet, ...rim]) supportAt(f, p);
+    for (const p of feet) supportAt(f, p);
     for (const side of [-1, 1])
       for (const end of [-1, 1]) {
         const ring = feet.filter(
@@ -186,34 +183,39 @@ test("The whole plaza, foundations, arch feet and dome rim have rendered support
   }
 });
 
-test("The scaled fruit base and every actual stair box meet their supporting surface", () => {
+test("All four HF buildings are uniformly fitted and their full low base is supported", () => {
   const f = fixture();
   try {
-    const pineapple = f.root.getObjectByName("refuge_pineapple_house"),
-      fruit = vertices(pineapple, "pineapple_ochre"),
-      bottom = Math.min(...fruit.map((p) => p.y)),
-      base = fruit.filter((p) => Math.abs(p.y - bottom) < 0.0001);
-    assert.ok(base.length >= 64);
-    for (const p of base) {
-      const y = rayHeight(architecture(f), p.x, p.z, bottom + 0.01);
-      assert.ok(Math.abs(y - bottom) < 0.001, `fruit base ${p.toArray()}`);
-    }
-    const stairs = vertices(pineapple, "refuge_sand"),
-      zFaces = [...new Set(stairs.map((p) => +p.z.toFixed(4)))].sort(
-        (a, b) => a - b,
+    const owner = f.root.userData.refugeBuildings;
+    assert.equal(owner.placements.length, 4);
+    for (const row of owner.placements) {
+      const mesh = f.root.getObjectByName(`refuge_${row.kind}_house_hf`);
+      assert.equal(mesh.scale.x, mesh.scale.y);
+      assert.equal(mesh.scale.x, mesh.scale.z);
+      const bounds = new THREE.Box3().setFromObject(mesh),
+        points = vertices(mesh);
+      const base = points.filter((p) => p.y < bounds.min.y + 0.5);
+      assert.ok(base.length > 10);
+      for (const p of base) {
+        const y = rayHeight(
+          architecture(f),
+          p.x,
+          p.z,
+          row.base + f.root.position.y + 0.01,
+        );
+        assert.ok(
+          Number.isFinite(y),
+          `${row.kind}: missing rendered base support`,
+        );
+        assert.ok(
+          p.y - y < 0.5 && p.y - y > -0.5,
+          `${row.kind}: floating/buried base ${p.y - y}`,
+        );
+      }
+      assert.ok(
+        bounds.min.x > 30 || bounds.max.x < -30,
+        "central adult corridor stays open",
       );
-    assert.ok(zFaces.length >= 8 && zFaces.length % 2 === 0);
-    let lastTop = Infinity;
-    for (let i = 0; i < zFaces.length; i += 2) {
-      const box = stairs.filter(
-          (p) => p.z >= zFaces[i] - 0.001 && p.z <= zFaces[i + 1] + 0.001,
-        ),
-        min = Math.min(...box.map((p) => p.y)),
-        max = Math.max(...box.map((p) => p.y));
-      assert.ok(max < lastTop, "steps descend continuously toward the street");
-      lastTop = max;
-      for (const p of box.filter((p) => Math.abs(p.y - min) < 0.0001))
-        assert.ok(Math.abs(p.y - supportAt(f, p)) < 0.001);
     }
   } finally {
     f.dispose();
@@ -227,13 +229,14 @@ test("Transformed resident feet remain planted throughout their complete idle cy
       f.update((i / 64) * 24, new THREE.Vector3(0, -2735, -430));
       f.scene.updateMatrixWorld(true);
       for (const [name, material] of [
-        ["yellow_sponge_easter_egg", "shoe_black"],
-        ["refuge_starfish_resident", "starfish_coral"],
-        ["refuge_snail_resident", "snail_mint"],
+        ["yellow_sponge_easter_egg", "refuge_sponge_hf"],
+        ["refuge_starfish_resident", "refuge_starfish_hf"],
+        ["refuge_snail_resident", "refuge_snail_hf"],
       ]) {
         const points = vertices(f.root.getObjectByName(name), material),
           bottom = Math.min(...points.map((p) => p.y)),
           feet = uniquePoints(points.filter((p) => p.y < bottom + 0.025));
+        assert.ok(feet.length > 0, "actual skinned feet were sampled");
         for (const p of feet)
           assert.ok(
             Math.abs(p.y - supportAt(f, p)) < 0.06,
@@ -246,122 +249,28 @@ test("Transformed resident feet remain planted throughout their complete idle cy
   }
 });
 
-test("The fruit door and window collars actually connect to the rendered curved shell", () => {
-  const f = fixture();
-  try {
-    const pineapple = f.root.getObjectByName("refuge_pineapple_house"),
-      shell = pineapple.children.find(
-        (mesh) => mesh.material?.name === "pineapple_ochre",
-      ),
-      blue = pineapple.children.find(
-        (mesh) => mesh.material?.name === "door_ocean_blue",
-      ),
-      door = f.colliders.find((c) => c.id === "refuge_pineapple_door"),
-      ray = new THREE.Raycaster(),
-      size = new THREE.Box3().setFromObject(shell),
-      actualDoor = new THREE.Box3().setFromPoints(
-        vertices(blue).filter((p) => p.y <= door.y + door.halfSize.y + 0.001),
-      );
-    assert.ok(
-      actualDoor
-        .getCenter(new THREE.Vector3())
-        .distanceTo(new THREE.Vector3(door.x, door.y, door.z)) < 0.001,
-    );
-    assert.ok(
-      actualDoor
-        .getSize(new THREE.Vector3())
-        .multiplyScalar(0.5)
-        .distanceTo(door.halfSize) < 0.001,
-    );
-    // 从正面投射果壳；真实门框的整个后沿（含底部两角）必须接上曲面。
-    for (const x of [-1, -0.5, 0, 0.5, 1])
-      for (const y of [-0.999, -0.5, 0, 0.999]) {
-        const point = new THREE.Vector3(
-          door.x + x * door.halfSize.x,
-          door.y + y * door.halfSize.y,
-          size.max.z + 1,
-        );
-        ray.set(point, new THREE.Vector3(0, 0, -1));
-        const shellHit = ray.intersectObject(shell)[0];
-        assert.ok(shellHit, `missing shell behind door ${point.toArray()}`);
-        const rear = actualDoor.min.z;
-        assert.ok(
-          rear - shellHit.point.z <= 0.1,
-          `detached door at ${point.toArray()}: gap ${rear - shellHit.point.z}`,
-        );
-      }
-    for (const side of [-1, 1]) {
-      const center = new THREE.Vector3(side * 4.3, 16, 4.72).applyMatrix4(
-          pineapple.matrixWorld,
-        ),
-        collarRear = vertices(blue).filter(
-          (p) =>
-            Math.abs(p.x - center.x) <= 2.26 &&
-            Math.abs(p.y - center.y) <= 2.26 &&
-            p.z < center.z - 2,
-        );
-      assert.ok(collarRear.length >= 24, "window has a real depth collar");
-      for (const p of collarRear) {
-        ray.set(
-          new THREE.Vector3(p.x, p.y, size.max.z + 1),
-          new THREE.Vector3(0, 0, -1),
-        );
-        const shellHit = ray.intersectObject(shell)[0];
-        assert.ok(shellHit);
-        assert.ok(p.z <= shellHit.point.z + 0.1, "collar connects to shell");
-      }
-    }
-  } finally {
-    f.dispose();
-  }
-});
-
-test("Substantial face fixtures and decorative residents have matching world-space contact", () => {
+test("HF building surfaces and replacement residents have registered contact", () => {
   const f = fixture();
   try {
     assert.equal(
       new Set(f.colliders.map((c) => c.id)).size,
       f.colliders.length,
     );
-    for (const id of [
-      "refuge_sponge",
-      "refuge_starfish",
-      "refuge_snail",
-      "refuge_stone_nose",
-      "refuge_stone_brow",
-      "refuge_stone_eye_-1",
-      "refuge_stone_eye_1",
-    ])
-      assert.ok(
-        f.colliders.some((c) => c.id === id),
-        id,
-      );
-    const fixtures = architecture(f)
-      .filter((mesh) =>
-        [
-          "door_ocean_blue",
-          "deep_recesses",
-          "warm_windows",
-          "pineapple_scales",
-        ].includes(mesh.material.name),
-      )
-      .flatMap((mesh) => vertices(mesh))
-      .filter(
-        (p) =>
-          p.x >= 44 &&
-          p.x <= 64 &&
-          p.y >= f.root.position.y + 17 &&
-          p.y <= f.root.position.y + 37 &&
-          p.z > f.root.position.z - 8.5 &&
-          p.z < f.root.position.z - 1,
-      );
-    assert.ok(fixtures.length > 500);
-    for (const point of fixtures)
-      assert.equal(
-        isPositionBlocked(point, { colliders: f.colliders, radius: 0.05 }),
-        true,
-        `rendered face fixture has no contact: ${point.toArray()}`,
-      );
+    for (const id of ["refuge_sponge", "refuge_starfish", "refuge_snail"])
+      assert.ok(f.colliders.some((c) => c.id === id));
+    for (const row of f.root.userData.refugeBuildings.placements) {
+      const mesh = f.root.getObjectByName(`refuge_${row.kind}_house_hf`),
+        points = vertices(mesh);
+      for (let i = 0; i < points.length; i += 7)
+        assert.equal(
+          isPositionBlocked(points[i], {
+            colliders: f.colliders,
+            radius: 0.03,
+          }),
+          true,
+          `${row.kind}: unprotected visible surface ${points[i].toArray()}`,
+        );
+    }
   } finally {
     f.dispose();
   }
@@ -473,8 +382,24 @@ test("Merged refuge resources stay finite, bounded and stable; the real ocean di
       meshes.push(mesh);
       geometries.add(mesh.geometry);
       materials.add(mesh.material);
-      assert.ok(f.owned.has(mesh.geometry));
-      assert.ok(f.owned.has(mesh.material));
+      assert.ok(
+        f.owned.has(mesh.geometry) ||
+          [
+            ...f.root.userData.refugeBuildings.assets.values(),
+            ...f.root.userData.refugeResidents.assets.values(),
+          ]
+            .flatMap((a) => [a, ...(a.details || [])])
+            .some((a) => a.geometry === mesh.geometry),
+      );
+      assert.ok(
+        f.owned.has(mesh.material) ||
+          [
+            ...f.root.userData.refugeBuildings.assets.values(),
+            ...f.root.userData.refugeResidents.assets.values(),
+          ]
+            .flatMap((a) => [a, ...(a.details || [])])
+            .some((a) => a.material === mesh.material),
+      );
       const pair = `${mesh.parent.uuid}:${mesh.material.uuid}`;
       assert.ok(
         !mergedPairs.has(pair),
@@ -501,9 +426,9 @@ test("Merged refuge resources stay finite, bounded and stable; the real ocean di
     });
     assert.ok(meshes.length <= 40);
     assert.ok(materials.size <= 24);
-    assert.ok(triangles <= 70000);
-    assert.ok(bytes <= 3 * 1024 * 1024);
-    assert.equal(f.owned.size, geometries.size + materials.size);
+    assert.ok(triangles <= 90000);
+    assert.ok(bytes <= 4 * 1024 * 1024);
+    assert.ok(f.owned.has(f.root.userData.refugeResidents));
     const children = [];
     f.root.traverse((node) => children.push(node));
     const resourceCount = f.owned.size;
@@ -590,7 +515,20 @@ test("Merged refuge resources stay finite, bounded and stable; the real ocean di
       disposedPoses,
       "disposed owner ignores future animation updates",
     );
-    assert.ok([...disposal.values()].every((count) => count === 1));
+    for (const [resource, count] of disposal) {
+      const shared = [
+        ...terrain.root
+          .getObjectByName("mariana_bottom_refuge")
+          .userData.refugeBuildings.assets.values(),
+        ...terrain.root
+          .getObjectByName("mariana_bottom_refuge")
+          .userData.refugeResidents.assets.values(),
+      ]
+        .flatMap((a) => [a, ...(a.details || [])])
+        .some((a) => a.geometry === resource || a.material === resource);
+      assert.equal(count, shared ? 0 : 1, resource.name);
+      if (shared) sharedDisposal.push([resource, () => disposal.get(resource)]);
+    }
     assert.equal(ocean.root.children.length, 0);
     assert.equal(ocean.colliders.length, 0);
     assert.equal(ocean.barriers.length, 0);

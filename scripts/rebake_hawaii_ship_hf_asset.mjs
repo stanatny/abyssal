@@ -5,9 +5,16 @@ import { pathToFileURL } from "node:url";
 import { readFile, writeFile, mkdir } from "node:fs/promises";
 import { createHash } from "node:crypto";
 import { padTextureIslands } from "./lib/pad_texture_islands.mjs";
-const [rawPath, lowPath, baseTools, bakeTools, outPath] = process.argv.slice(2);
+const [rawPath, lowPath, baseTools, bakeTools, outPath, distanceArg] =
+  process.argv.slice(2);
+const projectionDistance =
+  distanceArg === undefined ? 0.05 : Number(distanceArg);
+if (!(projectionDistance > 0 && projectionDistance <= 0.2))
+  throw Error("Invalid projection distance");
 if (!outPath)
-  throw Error("Usage: raw.glb low.json base-tools bake-tools out-dir");
+  throw Error(
+    "Usage: raw.glb low.json base-tools bake-tools out-dir [max-projection-distance]",
+  );
 const req = createRequire(join(resolve(baseTools), "package.json")),
   req2 = createRequire(join(resolve(bakeTools), "package.json")),
   load = (n) => import(pathToFileURL(req.resolve(n)).href),
@@ -166,7 +173,7 @@ for (let t = 0; t < dstIndex.length; t += 3) {
           v.fromArray(dstPositions, ids[k] * 3),
           [a, b, c][k],
         );
-      const h = bvh.closestPointToPoint(point, hit, 0, 0.05);
+      const h = bvh.closestPointToPoint(point, hit, 0, projectionDistance);
       if (!h) throw Error("Missing source surface");
       getTriangleHitPointInfo(hit.point, rawGeom, hit.faceIndex, info);
       const sx = Math.max(
@@ -246,6 +253,7 @@ const report = {
   vertices: out.vertices,
   samples,
   meanDistance: sumDistance / samples,
+  projectionDistance,
   maxDistance,
   p99Distance: distances[Math.floor(distances.length * 0.99)],
   atlas: atlasInfo,

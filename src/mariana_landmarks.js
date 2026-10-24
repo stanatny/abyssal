@@ -5,6 +5,10 @@ import { addSurfaceDetail } from "./ocean_visuals.js";
 import { MARIANA_GATES } from "./mariana_config.js";
 import { marianaCliffFace } from "./mariana_cliffs.js";
 
+import { createMarianaStrata, MARIANA_STRATA } from "./mariana_strata.js";
+
+import { createMarianaFossils } from "./mariana_fossils.js";
+
 import { MARIANA_MAZE_ROUTE } from "./mariana_outcrops.js";
 
 /** 岩台只是侧游的支撑实体，绝不替代最低海床或四道关卡。 */
@@ -129,6 +133,10 @@ export function* addMarianaLandmarksSteps({ root, keep, group, materials }) {
     }),
   );
   vein.name = "mariana_landmark_mineral_inlays";
+  const strata = keep(createMarianaStrata());
+  root.userData.marianaStrata = strata;
+  const fossils = keep(createMarianaFossils());
+  root.userData.marianaFossils = fossils;
   const colliders = [],
     landmarks = [],
     lightSources = [],
@@ -321,139 +329,141 @@ export function* addMarianaLandmarksSteps({ root, keep, group, materials }) {
         );
       }
     }
-    const bases =
-      site.shape === "fossil_ribs"
-        ? []
-        : [-24, 0, 24].map((x, i) =>
-            i === 1 && ["echo_shells", "warm_crown"].includes(site.shape)
-              ? null
-              : supportedPoint(
-                  cx + x,
-                  cz -
-                    (site.shape === "folded_buttresses" && i === 1 ? 49 : 43),
-                  `sculpture_foot_${i}`,
-                ),
+    const strataStats = MARIANA_STRATA[site.id]
+      ? strata.add(parent, site, {
+          keep,
+          support: (x, z) => supportedPoint(x, z, "strata_base", false),
+          siteColliders,
+          solidRecords,
+          supportRecords,
+          floorFaceCount: floor.geometry.index.count / 3,
+        })
+      : { meshes: 0, triangles: 0 };
+    if (!MARIANA_STRATA[site.id]) {
+      const bases =
+        site.shape === "fossil_ribs"
+          ? []
+          : [-24, 0, 24].map((x, i) =>
+              i === 1 && ["echo_shells", "warm_crown"].includes(site.shape)
+                ? null
+                : supportedPoint(
+                    cx + x,
+                    cz -
+                      (site.shape === "folded_buttresses" && i === 1 ? 49 : 43),
+                    `sculpture_foot_${i}`,
+                  ),
+            );
+      if (site.shape === "three_necks") {
+        for (let i = 0; i < 3; i++) {
+          const foot = bases[i];
+          const direction = i - 1;
+          column(
+            [
+              foot.toArray(),
+              [foot.x + direction * 4, cy + 3, cz - 43],
+              [foot.x + direction * 10, cy + 32, cz - 45],
+              [foot.x + direction * 2, cy + 46, cz - 37],
+              [foot.x + direction * 2, cy + 43, cz - 28],
+            ],
+            5.2,
+            8,
+            `serpent_${i}`,
           );
-    if (site.shape === "three_necks") {
-      for (let i = 0; i < 3; i++) {
-        const foot = bases[i];
-        const direction = i - 1;
-        column(
-          [
-            foot.toArray(),
-            [foot.x + direction * 4, cy + 3, cz - 43],
-            [foot.x + direction * 10, cy + 32, cz - 45],
-            [foot.x + direction * 2, cy + 46, cz - 37],
-            [foot.x + direction * 2, cy + 43, cz - 28],
-          ],
-          5.2,
-          8,
-          `serpent_${i}`,
-        );
-      }
-    } else if (site.shape === "echo_shells") {
-      for (const side of [-1, 1]) {
-        const foot = bases[side < 0 ? 0 : 2];
-        column(
-          [
-            foot.toArray(),
-            // 卷曲石雕完整留在上方旧台地的真实底面以下。
-            [cx + side * 27, cy - 18, cz - 51],
-            [cx + side * 29, cy - 4, cz - 52],
-            [cx + side * 15, cy + 4, cz - 51],
-            [cx + side * 5, cy - 4, cz - 50],
-            [cx + side * 11, cy - 12, cz - 50],
-          ],
-          4.7,
-          10,
-          `spiral_${side}`,
-          pale,
-        );
-      }
-    } else if (site.shape === "fossil_ribs") {
-      for (let i = 0; i < 4; i++) {
-        const x = cx - 22 + i * 14.5,
-          foot = supportedPoint(x, cz - 43, `fossil_foot_${i}`);
-        column(
-          [
-            foot.toArray(),
-            [x, cy + 7, cz - 43],
-            [x - 7, cy + 27 + i * 3, cz - 40],
-            [x - 18, cy + 34 + i * 3, cz - 37],
-          ],
-          3.5,
-          6,
-          `fossil_${i}`,
-          pale,
-        );
-      }
-    } else if (site.shape === "folded_buttresses") {
-      for (let i = 0; i < 3; i++) {
-        const foot = bases[i];
-        column(
-          [
-            foot.toArray(),
-            [foot.x, cy + 5, cz - (i === 1 ? 49 : 43)],
-            [foot.x + (i - 1) * 5, cy + 36 + i * 5, cz - (i === 1 ? 49 : 45)],
-            [cx + (i - 1) * 14, cy + 65 - i * 4, cz - (i === 1 ? 49 : 43)],
-          ],
-          5.6,
-          8,
-          `buttress_${i}`,
-        );
-      }
-    } else {
-      for (const side of [-1, 1]) {
-        const foot = bases[side < 0 ? 0 : 2];
-        column(
-          [
-            foot.toArray(),
-            [cx + side * 28, cy + 7, cz - 43],
-            [cx + side * 20, cy + 34, cz - 43],
-            [cx + side * 5, cy + 44, cz - 42],
-          ],
-          3.8,
-          6,
-          `crown_${side}`,
-          pale,
-        );
+        }
+      } else if (site.shape === "echo_shells") {
+        for (const side of [-1, 1]) {
+          const foot = bases[side < 0 ? 0 : 2];
+          column(
+            [
+              foot.toArray(),
+              // 卷曲石雕完整留在上方旧台地的真实底面以下。
+              [cx + side * 27, cy - 18, cz - 51],
+              [cx + side * 29, cy - 4, cz - 52],
+              [cx + side * 15, cy + 4, cz - 51],
+              [cx + side * 5, cy - 4, cz - 50],
+              [cx + side * 11, cy - 12, cz - 50],
+            ],
+            4.7,
+            10,
+            `spiral_${side}`,
+            pale,
+          );
+        }
+      } else if (site.shape === "fossil_ribs") {
+        for (let i = 0; i < 4; i++) {
+          const x = cx - 22 + i * 14.5,
+            foot = supportedPoint(x, cz - 43, `fossil_foot_${i}`);
+          column(
+            [
+              foot.toArray(),
+              [x, cy + 7, cz - 43],
+              [x - 7, cy + 27 + i * 3, cz - 40],
+              [x - 18, cy + 34 + i * 3, cz - 37],
+            ],
+            3.5,
+            6,
+            `fossil_${i}`,
+            pale,
+          );
+        }
+      } else if (site.shape === "folded_buttresses") {
+        for (let i = 0; i < 3; i++) {
+          const foot = bases[i];
+          column(
+            [
+              foot.toArray(),
+              [foot.x, cy + 5, cz - (i === 1 ? 49 : 43)],
+              [foot.x + (i - 1) * 5, cy + 36 + i * 5, cz - (i === 1 ? 49 : 45)],
+              [cx + (i - 1) * 14, cy + 65 - i * 4, cz - (i === 1 ? 49 : 43)],
+            ],
+            5.6,
+            8,
+            `buttress_${i}`,
+          );
+        }
+      } else {
+        for (const side of [-1, 1]) {
+          const foot = bases[side < 0 ? 0 : 2];
+          column(
+            [
+              foot.toArray(),
+              [cx + side * 28, cy + 7, cz - 43],
+              [cx + side * 20, cy + 34, cz - 43],
+              [cx + side * 5, cy + 44, cz - 42],
+            ],
+            3.8,
+            6,
+            `crown_${side}`,
+            pale,
+          );
+        }
       }
     }
 
-    // 矿脉与扇形沉积在岩台上形成可读路标，不铺满成年鱼的主视野。
+    // 仅保留底层暖冠的矿脉；旧小浮雕的亮色中脊不穿出新化石石板。
+    const fossilRows = [];
     for (let i = 0; i < 7; i++) {
       const x = cx + (i - 3) * 6,
         z = cz - 13 + Math.sin(i * 1.8) * 6,
         foot = supportedPoint(x, z, `sediment_mark_${i}`);
-      const curve = new THREE.CatmullRomCurve3([
-        foot.clone().add(new THREE.Vector3(-3, 0.05, -1.5)),
-        foot.clone().add(new THREE.Vector3(0, 0.2, 0)),
-        foot.clone().add(new THREE.Vector3(3.5, 0.08, 1.7)),
-      ]);
-      add(
-        sculptedTube(curve, () => 0.13, 10, 5),
-        vein,
-        site.glow,
-      );
-      const shell = reliefFan(foot, 2.6 + (i % 3) * 0.6, i * 0.6);
-      const vertices = shell.attributes.position;
-      const footprint = [];
-      for (let j = 0; j < vertices.count; j++) {
-        const support = supportedPoint(
-          vertices.getX(j),
-          vertices.getZ(j),
-          "relief",
-          false,
-        );
-        vertices.setY(j, vertices.getY(j) + support.y - foot.y);
-        footprint.push(support.toArray());
-      }
-      supportRecords[supportRecords.length - 1].footprint = footprint;
-      shell.computeVertexNormals();
-      add(shell, pale, site.pale);
+      const record = supportRecords[supportRecords.length - 1];
+      fossilRows.push({
+        site: site.id,
+        index: i,
+        x,
+        y: foot.y,
+        z,
+        scale: 4.2 + (i % 3) * 0.65,
+        yaw: i * 0.6,
+        normal: record.normal,
+        record,
+      });
     }
-    let triangles = 0,
-      meshes = 0;
+    const fossilStats = fossils.add(parent, fossilRows, (x, z) =>
+      supportedPoint(x, z, "fossil_base", false),
+    );
+    let triangles = fossilStats.triangles + strataStats.triangles,
+      meshes = fossilStats.meshes + strataStats.meshes;
     for (const [material, geometries] of buckets) {
       const geometry = keep(mergeGeometries(geometries));
       for (const temporary of geometries) temporary.dispose();
@@ -513,7 +523,7 @@ export function* addMarianaLandmarksSteps({ root, keep, group, materials }) {
     supportRecords,
     stats,
     provenance:
-      "Original procedural fantasy geology and weathered guardian reliefs",
+      "HF TRELLIS.2 layer geology and ammonite reliefs; original connected aprons and warm approach",
   };
   return {
     colliders,
@@ -550,6 +560,9 @@ function apronGeometry(site) {
           r =
             (ring / RADIAL_STEPS) *
             FLOOR_RADIUS *
+            (1 +
+              (MARIANA_STRATA[site.id]?.rearExpansion || 0) *
+                THREE.MathUtils.smoothstep(-Math.sin(a), 0.45, 0.95)) *
             (0.99 +
               Math.sin(a * 3 + y * 0.01) * 0.04 +
               Math.cos(a * 7 - site.side * 0.2) * 0.025),
@@ -659,60 +672,6 @@ function sculptedTube(curve, radiusAt, segments, sides) {
 }
 
 /** 薄而有起伏的扇状矿物化石，外缘卷起而根部嵌入最终岩台。 */
-function reliefFan(root, radius, angle) {
-  const p = [],
-    idx = [];
-  const radial = 4,
-    sectors = 14;
-  for (let layer = 0; layer < 2; layer++)
-    for (let ring = 0; ring <= radial; ring++)
-      for (let i = 0; i <= sectors; i++) {
-        const a = angle + (i / sectors - 0.5) * Math.PI * 1.25,
-          r = radius * (0.13 + (ring / radial) * 0.87),
-          y =
-            0.035 +
-            0.09 * (ring / radial) +
-            Math.pow(ring / radial, 2) * (0.3 + Math.cos(i * 2.2) * 0.12) -
-            layer * 0.055;
-        p.push(root.x + Math.cos(a) * r, root.y + y, root.z + Math.sin(a) * r);
-      }
-  const row = sectors + 1,
-    stride = (radial + 1) * row;
-  for (let ring = 0; ring < radial; ring++)
-    for (let i = 0; i < sectors; i++) {
-      const a = ring * row + i,
-        b = a + row;
-      idx.push(a, a + 1, b, b, a + 1, b + 1);
-      idx.push(
-        a + stride,
-        b + stride,
-        a + 1 + stride,
-        b + stride,
-        b + 1 + stride,
-        a + 1 + stride,
-      );
-    }
-  for (const ring of [0, radial])
-    for (let i = 0; i < sectors; i++) {
-      const a = ring * row + i,
-        b = a + 1;
-      if (ring === 0) idx.push(a, a + stride, b, b, a + stride, b + stride);
-      else idx.push(a, b, a + stride, b, b + stride, a + stride);
-    }
-  for (const i of [0, sectors])
-    for (let ring = 0; ring < radial; ring++) {
-      const a = ring * row + i,
-        b = a + row;
-      if (i === 0) idx.push(a, b, a + stride, b, b + stride, a + stride);
-      else idx.push(a, a + stride, b, b, a + stride, b + stride);
-    }
-  const geometry = new THREE.BufferGeometry();
-  geometry.setAttribute("position", new THREE.Float32BufferAttribute(p, 3));
-  geometry.setIndex(idx);
-  geometry.computeVertexNormals();
-  return geometry;
-}
-
 export function addMarianaLandmarks(options) {
   return finishScenePreparation(addMarianaLandmarksSteps(options));
 }

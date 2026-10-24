@@ -1,3 +1,9 @@
+import { buildMarianaFinalHF } from "./creature_mariana_final_hf.js";
+import {
+  MARIANA_DEEP_HF_FISH,
+  buildMarianaDeepHF,
+} from "./creature_mariana_deep_hf.js";
+import { MARIANA_HF_FISH, buildMarianaHF } from "./creature_mariana_hf.js";
 import { buildCrimsonSailHF } from "./creature_crimson_sail_hf.js";
 import { BERMUDA_HF_FISH, buildBermudaHF } from "./creature_bermuda_hf.js";
 import {
@@ -127,7 +133,9 @@ export function createCreature(kind, length = 6, seed = 1) {
   let previousTime;
   let swimTime = phase;
 
-  if (kind === "pelican") buildPelicanHF(root, motions);
+  if (kind === "shonisaurus" || kind === "glass_prawn")
+    buildMarianaFinalHF(kind, root, motions);
+  else if (kind === "pelican") buildPelicanHF(root, motions);
   else if (["golden_manta", "seagull", "tropicbird"].includes(kind))
     buildHawaiiBatch11HF(kind, root, motions);
   else if (ODYSSEY_CREATURE_KINDS.has(kind))
@@ -152,6 +160,9 @@ export function createCreature(kind, length = 6, seed = 1) {
   else if (["herring", "anchovy", "moon_jelly", "spiny_lobster"].includes(kind))
     buildHawaiiBatch10HF(kind, root, motions);
   else if (WILDLIFE_KINDS.has(kind)) buildWildlife(kind, root, motions);
+  else if (MARIANA_DEEP_HF_FISH.has(kind))
+    buildMarianaDeepHF(kind, root, motions);
+  else if (MARIANA_HF_FISH.has(kind)) buildMarianaHF(kind, root, motions);
   else if (MARIANA_CREATURE_KINDS.has(kind))
     buildMarianaCreature(kind, root, motions);
   else if (BERMUDA_HF_FISH.has(kind)) buildBermudaHF(kind, root, motions);

@@ -63,6 +63,8 @@ test("HF interior proxies are closed oriented surfaces and do not change or disp
     "sperm_whale",
     "megalodon",
     "barracuda",
+    "goblin_shark",
+    "shonisaurus",
     "tiger_shark",
     "cameroceras",
     "livyatan",
