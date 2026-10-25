@@ -1,3 +1,11 @@
+# v0.11.19 release verification — 2026-10-26
+
+All 1,604 delivered Amazon/charge inputs match before release metadata edits.
+Candidate checks retain their dated scope; fresh local checks, exact-main Node
+22 CI, Pages artifact hashes and native formal flows are retained separately
+under `.local/release_v0_11_19/`. See [the release record](release_v0_11_19.md).
+Physical-phone follow-up remains open; no phone performance claim is made.
+
 # v0.11.18 release verification — 2026-10-25
 
 All 1,475 delivered Mariana inputs match before acceptance/release metadata

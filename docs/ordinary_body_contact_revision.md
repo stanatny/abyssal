@@ -181,3 +181,12 @@ page errors and no production debug hook. System proxy settings are not changed.
 The failure and successful direct run are both retained (`public_smoke.json`,
 `public_direct.json`); the direct check is not proof that every external network
 will behave identically. This candidate remains uncommitted and awaits review.
+
+## Yellow-hunter follow-up — 2026-10-26
+
+The user's Ichthyotitan charge report reveals that the old `!edible` condition
+also excluded yellow-marked large hunters that still retaliate. The current
+[charge repair](predator_charge_revision.md) extends post-hit rear-follow to
+these hunters while retaining ordinary-body eligibility and feeding priority.
+This supersedes the historical statement that becoming edible alone clears
+follow intent; losing threat eligibility or pursuit still clears it.

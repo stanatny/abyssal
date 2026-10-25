@@ -1,5 +1,20 @@
 # ABYSSAL
 
+Amazon and ordinary-predator main publication — 2026-10-26: the user accepts
+the delivered charge repair and authorizes committing and pushing the completed
+Amazon work to main as v0.11.19. Earlier candidate/no-push labels below are dated
+history for this accepted scope. Runtime inputs match the delivered fingerprints
+before release metadata edits. The next Europa redraw remains a separate task;
+its existing creature descriptions and gameplay must be preserved. See
+[the release record](docs/release_v0_11_19.md).
+
+Ordinary predator charge candidate — 2026-10-26: accepted Amazon work is
+committed locally as `b1dc929`. A separate correction bounds yellow-hunter flank
+aim by existing mouth reach, includes still-dangerous yellow hunters in post-hit
+rear-follow, and validates swept contact at its actual time/posed headings.
+Original damage, timing, dodge, feeding and camera rules remain. This candidate
+awaits player review; no commit/push. See [the charge review](docs/predator_charge_revision.md).
+
 Amazon redraw accepted for local commit — 2026-10-26: the user authorizes
 committing the completed Amazon batches and bank/water finish before a separate
 large-predator charge investigation. Earlier candidate/no-commit labels below

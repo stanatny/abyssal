@@ -66,6 +66,7 @@ import { attachDeepHazards } from "./deep_hazards.js";
 import {
   canPredatorRetaliate,
   predatorBiteContact,
+  aimPredatorFlank,
 } from "./predator_combat.js";
 import {
   createExpeditionObjective,
@@ -2066,11 +2067,14 @@ function feedingMouth(out) {
   return avatar.userData.getFeedingMouth?.(out) ?? capturePoint(out);
 }
 const playerMovementStart = new THREE.Vector3();
+const playerMovementFacing = new THREE.Vector3();
+const previousPredatorFacing = new THREE.Vector3();
 let playerBoosting = false;
 const predatorFacing = new THREE.Vector3();
 const playerFacing = new THREE.Vector3();
 function updatePlayer(dt, roundDt) {
   playerMovementStart.copy(position);
+  playerMovementFacing.set(0, 0, -1).applyQuaternion(avatar.quaternion);
   capturePoint(captureStart);
   const inputX =
     pointer.x + (keys.has("KeyD") ? 1 : 0) - (keys.has("KeyA") ? 1 : 0);
@@ -2469,6 +2473,12 @@ function updateEntities(dt) {
   const mouth = capturePoint(entityMouth);
   for (const entity of entities) {
     previousPreyPosition.copy(entity.mesh.position);
+    if (entity.mesh.userData.getPredatorForward)
+      entity.mesh.userData.getPredatorForward(previousPredatorFacing);
+    else
+      previousPredatorFacing
+        .set(0, 0, -1)
+        .applyQuaternion(entity.mesh.quaternion);
     if (entity.hiddenFor > 0 && entity.hiddenFor <= dt)
       restoreMythicForm(entity);
     const { species, mesh } = entity;
@@ -2591,7 +2601,6 @@ function updateEntities(dt) {
     else entity.chase = Math.max(0, entity.chase - dt);
     const tailEligible =
       predator &&
-      !edible &&
       entity.chase > 0 &&
       !species.groundbound &&
       !species.benthic &&
@@ -2606,9 +2615,13 @@ function updateEntities(dt) {
       if (edible && distance < 80) {
         playerFacing.set(0, 0, -1).applyQuaternion(avatar.quaternion);
         const flank = entity.seed % 2 < 1 ? -1 : 1;
-        direction.addScaledVector(playerFacing, -player.length * 0.28);
-        direction.x += playerFacing.z * player.length * 0.24 * flank;
-        direction.z -= playerFacing.x * player.length * 0.24 * flank;
+        aimPredatorFlank(
+          direction,
+          playerFacing,
+          species.length,
+          player.length,
+          flank,
+        );
       }
       direction.sub(mesh.position).normalize();
       moveSpeed =
@@ -3159,12 +3172,14 @@ function updateEntities(dt) {
       entity.cooldown <= 0 &&
       predatorBiteContact({
         previousPredator: previousPreyPosition,
+        previousPredatorForward: previousPredatorFacing,
         predator: mesh.position,
         predatorForward: mesh.userData.getPredatorForward
           ? mesh.userData.getPredatorForward(predatorFacing)
           : predatorFacing.set(0, 0, -1).applyQuaternion(mesh.quaternion),
         predatorLength: species.length,
         previousPlayer: playerMovementStart,
+        previousPlayerForward: playerMovementFacing,
         player: position,
         playerForward: playerFacing
           .set(0, 0, -1)
