@@ -1,4 +1,5 @@
 import * as THREE from "three";
+import { createAmazonWaterlilies } from "./amazon_waterlilies.js";
 import {
   amazonSeabedHeight,
   amazonSurfaceHeight,
@@ -10,7 +11,9 @@ import {
 import { createAmazonForestSteps, broadLeafGeometry } from "./amazon_forest.js";
 import { createAmazonIslandSteps } from "./amazon_island.js";
 import { createAmazonRiverbedSteps } from "./amazon_riverbed.js";
-import { addSurfaceDetail } from "./ocean_visuals.js";
+import { createAmazonSurfaceWood } from "./amazon_surface_wood.js";
+import { addAmazonEarthFinish } from "./amazon_surface_finish.js";
+import { createAmazonWaterSurface } from "./amazon_water_surface.js";
 import {
   finishScenePreparation,
   prepareScene,
@@ -37,7 +40,7 @@ export function* createAmazonOceanSteps(parent) {
   const floorMaterial = keep(
     new THREE.MeshStandardMaterial({ vertexColors: true, roughness: 0.98 }),
   );
-  addSurfaceDetail(floorMaterial, "stone", 0.25);
+  addAmazonEarthFinish(floorMaterial);
   try {
     for (let z = W.minZ; z < W.maxZ; z += 65) {
       const size = Math.min(65, W.maxZ - z),
@@ -112,6 +115,8 @@ export function* createAmazonOceanSteps(parent) {
       resources,
       colliders,
     );
+    const floatingWood = createAmazonSurfaceWood(root, resources);
+    yield "surface-driftwood";
     const plantMat = keep(
       new THREE.MeshStandardMaterial({
         color: "#587b39",
@@ -119,52 +124,10 @@ export function* createAmazonOceanSteps(parent) {
         side: THREE.DoubleSide,
       }),
     );
-    const waterMat = keep(
-      new THREE.MeshStandardMaterial({
-        color: "#547258",
-        transparent: true,
-        opacity: 0.53,
-        roughness: 0.34,
-        metalness: 0.06,
-        side: THREE.DoubleSide,
-        depthWrite: false,
-      }),
-    );
-    waterMat.onBeforeCompile = (shader) => {
-      shader.uniforms.riverTime = time;
-      shader.vertexShader = shader.vertexShader
-        .replace(
-          "#include <common>",
-          "#include <common>\nuniform float riverTime;",
-        )
-        .replace(
-          "#include <begin_vertex>",
-          "#include <begin_vertex>\ntransformed.z += sin(position.x * 0.09 + riverTime * 1.4) * 0.15;",
-        );
-      shader.fragmentShader = shader.fragmentShader
-        .replace(
-          "#include <common>",
-          "#include <common>\nuniform float riverTime;",
-        )
-        .replace(
-          "#include <normal_fragment_begin>",
-          "#include <normal_fragment_begin>\nnormal.x += sin(vViewPosition.x * 0.24 + riverTime * 1.2) * 0.09; normal.z += cos(vViewPosition.z * 0.21 + riverTime) * 0.06; normal = normalize(normal);",
-        );
-    };
-    waterMat.customProgramCacheKey = () => "amazon_river_water_v1";
-    const water = new THREE.Mesh(
-      keep(new THREE.PlaneGeometry(940, W.maxZ - W.minZ + 80, 32, 48)),
-      waterMat,
-    );
-    water.rotation.x = -Math.PI / 2;
-    water.position.set(0, W.surfaceY, (W.minZ + W.maxZ) * 0.5);
-    root.add(water);
+    const waterSurface = createAmazonWaterSurface(root, resources, time);
     const dummy = new THREE.Object3D(),
-      leaf = keep(broadLeafGeometry(1, 0.26)),
-      lilies = keep(new THREE.CircleGeometry(1, 22, 0.14, Math.PI * 2 - 0.3));
-    const grasses = new THREE.InstancedMesh(leaf, plantMat, 900),
-      pads = new THREE.InstancedMesh(lilies, plantMat, 230);
-    let count = 0;
+      leaf = keep(broadLeafGeometry(1, 0.26));
+    const grasses = new THREE.InstancedMesh(leaf, plantMat, 900);
     for (let i = 0; i < 900; i++) {
       const z = 115 - ((i * 73.97) % 1380),
         channel = amazonChannels(z)[i % 2],
@@ -177,18 +140,10 @@ export function* createAmazonOceanSteps(parent) {
       dummy.scale.set(1.5, 1, 3 + (i % 5));
       dummy.updateMatrix();
       grasses.setMatrixAt(i, dummy.matrix);
-      if (count < 230 && y > -80) {
-        dummy.position.y = 4.06;
-        dummy.rotation.set(-Math.PI / 2, 0, i * 2.399);
-        dummy.scale.setScalar(0.9 + (i % 5) * 0.25);
-        dummy.updateMatrix();
-        pads.setMatrixAt(count++, dummy.matrix);
-      }
     }
-    pads.count = count;
     grasses.computeBoundingSphere();
-    pads.computeBoundingSphere();
-    root.add(grasses, pads);
+    root.add(grasses);
+    const waterlilies = createAmazonWaterlilies(root, resources);
     yield "river-plants";
     const sediment = keep(new THREE.BufferGeometry()),
       points = [];
@@ -246,7 +201,7 @@ export function* createAmazonOceanSteps(parent) {
       },
       colliders,
       navigationColliders: colliders,
-      barriers: [],
+      barriers: floatingWood.colliders,
       obstacles: [],
       heightAt: amazonSeabedHeight,
       landmarks: AMAZON_BIOMES.map((b) => ({
@@ -254,10 +209,13 @@ export function* createAmazonOceanSteps(parent) {
         position: new THREE.Vector3(...b.anchor),
       })),
       radarPaths,
-      update(t, position) {
-        time.value = t;
-        forest.update(t, position);
+      update(t, position, _dt, _quality, _camera, reducedMotion = false) {
+        time.value = reducedMotion ? 0 : t;
+        waterSurface.update(position);
+        forest.update(t, position, reducedMotion);
         riverbed.update(t, position);
+        floatingWood.update(t, position, reducedMotion);
+        waterlilies.update(t, position, reducedMotion);
         motes.position.copy(position);
       },
       dispose() {
@@ -270,6 +228,7 @@ export function* createAmazonOceanSteps(parent) {
         for (const r of resources) r.dispose();
         resources.clear();
         colliders.length = 0;
+        floatingWood.colliders.length = 0;
         root.clear();
       },
     });

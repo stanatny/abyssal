@@ -5,7 +5,7 @@ import {
   amazonSurfaceHeight,
   amazonSeabedHeight,
 } from "./amazon_config.js";
-import { addSurfaceDetail } from "./ocean_visuals.js";
+import { addAmazonEarthFinish } from "./amazon_surface_finish.js";
 
 /** 保留连续雨林顶盖；底部沉积顶棚单独渲染和碰撞，不再堵死整个水柱。 */
 export function* createAmazonIslandSteps(parent, resources, colliders) {
@@ -13,7 +13,7 @@ export function* createAmazonIslandSteps(parent, resources, colliders) {
     material = keep(
       new THREE.MeshStandardMaterial({ vertexColors: true, roughness: 0.97 }),
     );
-  addSurfaceDetail(material, "stone", 0.4);
+  addAmazonEarthFinish(material);
   const root = new THREE.Group();
   root.name = "hollow_rainforest_island";
   parent.add(root);

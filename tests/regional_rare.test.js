@@ -119,7 +119,9 @@ test("rare models have finite fully posed geometry, distinct silhouettes and ind
               ? "trellis_bermuda_crimson_20261023"
               : s.kind === "glass_prawn"
                 ? "trellis_mariana_final_20261024"
-                : "regional_rare_v1",
+                : s.kind === "jade_arowana"
+                  ? "trellis_amazon_rare_20261025"
+                  : "regional_rare_v1",
     );
     assert.ok(poses[0][2] > 0.8 && poses[0][2] < 1.2, s.kind);
   }
@@ -203,12 +205,11 @@ test("crocodilian shoulders remain stable while the posterior body and tail defo
     "saltwater_crocodile",
     "purussaurus",
     "rootback_colossus",
-    "rootjaw",
   ]) {
     const model = createCreature(kind, 1),
       skin = [];
     model.traverse((o) => {
-      if (o.isSkinnedMesh && o.userData.crocodilianRig) skin.push(o);
+      if (o.isSkinnedMesh && o === model.userData.hfRig?.mesh) skin.push(o);
     });
     assert.ok(skin.length, kind);
     const body = skin[0],
@@ -216,10 +217,13 @@ test("crocodilian shoulders remain stable while the posterior body and tail defo
       rigid = [],
       tail = [];
     for (let i = 0; i < p.count; i += 7) {
-      if (p.getZ(i) < 0.1 && body.geometry.attributes.skinIndex.getX(i) < 7)
-        rigid.push(i);
-      if (p.getZ(i) > 0.7) tail.push(i);
+      if (p.getZ(i) < -0.15 && p.getY(i) > 0.035) rigid.push(i);
+      if (p.getZ(i) > 0.35) tail.push(i);
     }
+    assert.ok(
+      rigid.length > 8 && tail.length > 8,
+      kind + " actual skin regions",
+    );
     model.userData.animate(0, 1);
     model.updateMatrixWorld(true);
     body.skeleton.update();

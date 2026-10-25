@@ -92,6 +92,17 @@ export function castSegment(start, end, colliders, radius = 0) {
   };
 }
 
+/** 以移动求解器相同的完整身体做扫掠查询，不移动或恢复玩家位置。 */
+export function castBodySegment(start, end, options = {}) {
+  return sweepBody(
+    start,
+    end,
+    options.colliders || [],
+    options.radius || 0,
+    bodyOffsets(options),
+  );
+}
+
 /** 判断线段是否遮挡，兼容旧 {x,y,z,radius} 球形 obstacles。 */
 export function segmentBlocked(start, end, colliders, radius = 0) {
   return castSegment(start, end, colliders, radius) !== null;

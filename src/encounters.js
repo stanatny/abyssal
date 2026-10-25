@@ -47,6 +47,7 @@ import {
 } from "./tentacle_motion.js";
 import { createCreature } from "./creatures.js";
 import { updateLordBody, insideLordCore } from "./lord_body.js";
+import { bodyRadius, castBodySegment } from "./collision.js";
 import {
   BOSS_SPECIES,
   BOSS_DEFAULT_TERRITORY_RADIUS,
@@ -2144,6 +2145,7 @@ export function createEncounters(
           entry.mesh.position,
         ).closestPointToPoint(position, true, new THREE.Vector3());
         if (
+          !state.species.chargeBodyContact &&
           !entry.phaseHit &&
           sight &&
           sweep.distanceTo(position) <
@@ -2230,7 +2232,13 @@ export function createEncounters(
                 entry.heading,
               );
       // 地面与限俯仰游姿的移动朝向已平滑；再次滞后会让躯体横滑并偏离已验证的占地。
-      if (
+      if (Number.isFinite(entry.mesh.userData.aquaticTurnRate))
+        // 锁定瞬间可能换向；有界转动避免长躯一帧翻身，随后仍检查实际完整姿态。
+        entry.mesh.quaternion.rotateTowards(
+          orientation,
+          entry.mesh.userData.aquaticTurnRate * dt,
+        );
+      else if (
         state.species.groundbound ||
         Number.isFinite(entry.mesh.userData.aquaticPitchLimit)
       )
@@ -2295,6 +2303,36 @@ export function createEncounters(
           time,
           attack ? 2.5 : recover ? 0.35 : state.phase === "dormant" ? 0.7 : 1.2,
         );
+      if (
+        attack &&
+        state.ability === "charge" &&
+        state.species.chargeBodyContact &&
+        dt > 0 &&
+        !entry.phaseHit &&
+        sight
+      ) {
+        // 在玩家碰撞分离前，使用已通过地形检查的实际姿态实体。
+        // 相对位移覆盖高速交错，不扩大不可见攻击半径。
+        const colliders = updateLordBody(entry.mesh);
+        entry.bodyGeneration = bodyGeneration;
+        entry.motion.target
+          .copy(movementStart)
+          .add(entry.mesh.position)
+          .sub(entry.motion.groundStart);
+        if (
+          castBodySegment(entry.motion.target, position, {
+            colliders,
+            radius: bodyRadius(player.length),
+            length: player.length,
+            forward,
+          })
+        )
+          entry.phaseHit = damage(
+            player,
+            state.species.damage,
+            "毁灭冲锋命中 · 锁定后向侧面闪避",
+          );
+      }
       if (
         state.species.seabedCrawler &&
         entry.mesh.userData.fitKarkinosTerrain

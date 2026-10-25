@@ -1,10 +1,9 @@
+import { createAmazonArboreal } from "./amazon_arboreal.js";
+import { createAmazonCanopySteps } from "./amazon_canopy.js";
+import { acquireAmazonRoot, bendAmazonRoot } from "./amazon_root_asset.js";
 import * as THREE from "three";
 import { mergeGeometries } from "three/addons/utils/BufferGeometryUtils.js";
-import {
-  amazonChannels,
-  amazonSurfaceHeight,
-  AMAZON_WORLD as W,
-} from "./amazon_config.js";
+import { amazonChannels, amazonSurfaceHeight } from "./amazon_config.js";
 import { addSurfaceDetail } from "./ocean_visuals.js";
 
 /** 分块雨林、板根和淹没木材；资源归地图所有，动画仅更新共享时间。 */
@@ -13,9 +12,6 @@ export function* createAmazonForestSteps(parent, resources, colliders) {
   const root = new THREE.Group();
   root.name = "amazon_rainforest";
   parent.add(root);
-  const wood = keep(
-    new THREE.MeshStandardMaterial({ color: "#685a39", roughness: 0.94 }),
-  );
   const leaf = keep(
     new THREE.MeshStandardMaterial({
       color: "#427633",
@@ -23,7 +19,6 @@ export function* createAmazonForestSteps(parent, resources, colliders) {
       side: THREE.DoubleSide,
     }),
   );
-  addSurfaceDetail(wood, "wood", 0.4);
   const time = { value: 0 };
   const baseCompile = leaf.onBeforeCompile;
   leaf.onBeforeCompile = (shader) => {
@@ -40,58 +35,6 @@ export function* createAmazonForestSteps(parent, resources, colliders) {
       );
   };
   leaf.customProgramCacheKey = () => "amazon_canopy_v2";
-  const trunkParts = [],
-    foliage = [];
-  const segment = (a, b, ra, rb) => {
-    const from = new THREE.Vector3(...a),
-      to = new THREE.Vector3(...b),
-      direction = to.clone().sub(from);
-    const g = new THREE.CylinderGeometry(rb, ra, direction.length(), 8, 3);
-    g.applyQuaternion(
-      new THREE.Quaternion().setFromUnitVectors(
-        new THREE.Vector3(0, 1, 0),
-        direction.normalize(),
-      ),
-    );
-    g.translate(...from.add(to).multiplyScalar(0.5).toArray());
-    trunkParts.push(g);
-  };
-  segment([0, 0, 0], [0.6, 22, 0.4], 1.6, 0.55);
-  for (let i = 0; i < 7; i++) {
-    const angle = i * 2.399,
-      dx = Math.cos(angle),
-      dz = Math.sin(angle);
-    segment([dx * 6, 0.1, dz * 6], [dx * 0.8, 7.5, dz * 0.8], 0.15, 0.58);
-    segment(
-      [0.4, 16 + (i % 3), 0.2],
-      [dx * 10, 22 + (i % 3) * 2, dz * 10],
-      0.65,
-      0.14,
-    );
-    for (let j = 0; j < 18; j++) {
-      const a = angle + j * 0.8,
-        r = 3 + (j % 5) * 2;
-      const g = broadLeafGeometry(7.5, 2.5);
-      g.rotateZ(((j % 3) - 1) * 0.16);
-      g.rotateY(a);
-      g.translate(
-        dx * 4 + Math.cos(a) * r,
-        19 + Math.sin(j * 2) * 5 + (j % 3) * 2,
-        dz * 4 + Math.sin(a) * r,
-      );
-      foliage.push(g);
-    }
-  }
-  // 绳状藤蔓从分枝垂落；同树干合并，避免为每条藤增加绘制。
-  for (let i = 0; i < 5; i++) {
-    const a = i * 2.4;
-    const vine = new THREE.CatmullRomCurve3([
-      new THREE.Vector3(Math.cos(a) * 6, 23, Math.sin(a) * 6),
-      new THREE.Vector3(Math.cos(a) * 7, 14, Math.sin(a) * 7),
-      new THREE.Vector3(Math.cos(a) * 5, 4 + (i % 3), Math.sin(a) * 5),
-    ]);
-    trunkParts.push(new THREE.TubeGeometry(vine, 10, 0.09, 4, false));
-  }
   const underParts = [];
   for (let i = 0; i < 26; i++) {
     const g = broadLeafGeometry(4.8, 1.15);
@@ -106,65 +49,21 @@ export function* createAmazonForestSteps(parent, resources, colliders) {
   }
   const understory = keep(mergeGeometries(underParts));
   underParts.forEach((g) => g.dispose());
-  const trunk = keep(mergeGeometries(trunkParts)),
-    crown = keep(mergeGeometries(foliage));
-  trunkParts.forEach((g) => g.dispose());
-  foliage.forEach((g) => g.dispose());
-  const chunks = [],
-    dummy = new THREE.Object3D();
-  let seed = 74523;
-  const rand = () => (seed = (1664525 * seed + 1013904223) >>> 0) / 4294967296;
-  for (let z = W.minZ; z < W.maxZ; z += 100) {
-    for (let x = W.minX - 30; x < W.maxX + 30; x += 100) {
-      const placements = [];
-      for (let i = 0; i < 20; i++) {
-        const px = x + rand() * 100,
-          pz = z + rand() * 100,
-          y = amazonSurfaceHeight(px, pz);
-        if (y < 6) continue;
-        placements.push([
-          px,
-          y - 0.2,
-          pz,
-          0.65 + rand() * 1.2,
-          rand() * Math.PI * 2,
-        ]);
-      }
-      if (!placements.length) continue;
-      const group = new THREE.Group();
-      group.name = "rainforest_chunk";
-      root.add(group);
-      for (const [geo, mat] of [
-        [trunk, wood],
-        [crown, leaf],
-        [understory, leaf],
-      ]) {
-        const instances = new THREE.InstancedMesh(geo, mat, placements.length);
-        placements.forEach(([px, y, pz, size, yaw], i) => {
-          dummy.position.set(px, y, pz);
-          dummy.rotation.set(0, yaw, 0);
-          dummy.scale.set(size * 0.9, size, size * 0.9);
-          dummy.updateMatrix();
-          instances.setMatrixAt(i, dummy.matrix);
-          instances.setColorAt(
-            i,
-            new THREE.Color().setHSL(
-              mat === leaf ? 0.27 + rand() * 0.055 : 0.095,
-              mat === leaf ? 0.36 : 0.22,
-              0.5 + rand() * 0.2,
-            ),
-          );
-        });
-        instances.computeBoundingSphere();
-        group.add(instances);
-      }
-      chunks.push({ root: group, x: x + 50, z: z + 50 });
-    }
-    yield "rainforest-canopy";
-  }
+  const { chunks, trees, assets } = yield* createAmazonCanopySteps(
+    root,
+    resources,
+    time,
+    understory,
+    leaf,
+  );
+  const arboreal = createAmazonArboreal(root, trees, assets, resources);
   const submerged = new THREE.Group();
   submerged.name = "flooded_buttress_roots";
   root.add(submerged);
+  const roots = acquireAmazonRoot("buttress");
+  keep({ dispose: roots.release });
+  submerged.userData.prepareMaterials = roots.prepare;
+  void roots.prepare();
   const rootParts = [],
     rockParts = [];
   const rockMaterial = keep(
@@ -192,13 +91,7 @@ export function* createAmazonForestSteps(parent, resources, colliders) {
         ),
       ];
       const curve = new THREE.CatmullRomCurve3(points);
-      const g = new THREE.TubeGeometry(
-        curve,
-        14,
-        0.9 + (index % 3) * 0.3,
-        7,
-        false,
-      );
+      const g = bendAmazonRoot(roots.geometry, curve, 0.9 + (index % 3) * 0.3);
       rootParts.push(keep(g));
       let previous = curve.getPoint(0);
       for (let i = 1; i <= 8; i++) {
@@ -228,7 +121,7 @@ export function* createAmazonForestSteps(parent, resources, colliders) {
     if (index % 4 === 3) yield "flooded-roots";
   }
   for (const [parts, mat] of [
-    [rootParts, wood],
+    [rootParts, roots.material],
     [rockParts, rockMaterial],
   ]) {
     const geometry = keep(mergeGeometries(parts));
@@ -236,18 +129,31 @@ export function* createAmazonForestSteps(parent, resources, colliders) {
       g.dispose();
       resources.delete(g);
     });
-    submerged.add(new THREE.Mesh(geometry, mat));
+    const mesh = new THREE.Mesh(geometry, mat);
+    mesh.name =
+      parts === rootParts ? "riverbank_roots_hf" : "riverbank_root_rocks";
+    submerged.add(mesh);
   }
   return {
     root,
-    update(t, position) {
-      time.value = t;
+    update(t, position, reducedMotion = false) {
+      time.value = reducedMotion ? 0 : t;
+      arboreal.update(t, position, reducedMotion);
       const distance = position.y > -8 ? 560 : 220;
-      for (const chunk of chunks)
-        chunk.root.visible =
-          Math.hypot(chunk.x - position.x, chunk.z - position.z) < distance;
+      for (const chunk of chunks) {
+        const range = Math.hypot(chunk.x - position.x, chunk.z - position.z);
+        chunk.root.visible = range < distance;
+        // 区块级远近实体共用落点；滞回防止边界反复切换，不新增逐帧矩阵上传。
+        chunk.near = range < (chunk.near ? 190 : 160);
+        if (chunk.levels.kapok) chunk.levels.kapok.visible = chunk.near;
+        if (chunk.levels.kapokFar) chunk.levels.kapokFar.visible = !chunk.near;
+      }
     },
-    stats: { chunks: chunks.length },
+    stats: {
+      chunks: chunks.length,
+      trees: trees.length,
+      monkeys: arboreal.actors.length,
+    },
   };
 }
 

@@ -30,14 +30,34 @@ for path in sorted(paths):
     closed = nd.binary_closing(surface, iterations=1)
     solid = nd.binary_fill_holes(closed)
     inset = nd.binary_erosion(solid, iterations=1)
+    # Thin HF whiskers/claws can erode into disconnected islands. For this
+    # optional core-only proxy, retain the connected load-bearing solid.
+    if "--largest-solid" in sys.argv[2:]:
+        labels, count = nd.label(inset)
+        sizes = np.bincount(labels.ravel())
+        sizes[0] = 0
+        assert count and sizes.max() > 0
+        inset = labels == sizes.argmax()
+    field = inset.astype(np.float32)
+    if "--largest-solid" in sys.argv[2:]:
+        # Round voxel corner pinches before simplification; this is only the
+        # invisible interior seal, not the visible skin or collision surface.
+        field = nd.gaussian_filter(field, sigma=0.65)
     vv, ff, nn, _ = marching_cubes(
-        inset.astype(np.float32), 0.5, spacing=(pitch,) * 3, gradient_direction="ascent"
+        field, 0.5, spacing=(pitch,) * 3, gradient_direction="ascent",
+        # A coarse watertight marching surface avoids decimator pinches in
+        # thin appendages. This optional seal only renders when inside a body.
+        step_size=3 if "--largest-solid" in sys.argv[2:] else 1,
+        allow_degenerate="--largest-solid" not in sys.argv[2:]
     )
     vv += vox.transform[:3, 3] - 3 * pitch
     # 只平滑辅助内部表面，不移动可见源皮肤。
     result = trimesh.Trimesh(vv, ff, process=False)
     trimesh.smoothing.filter_laplacian(result, iterations=2, volume_constraint=False)
-    result = result.simplify_quadric_decimation(face_count=4000)
+    if "--largest-solid" not in sys.argv[2:] or len(result.faces) > 4000:
+        result = result.simplify_quadric_decimation(face_count=4000)
+    if "--largest-solid" in sys.argv[2:]:
+        assert result.is_watertight, "Interior seal must remain closed"
     vv = result.vertices
     ff = result.faces
     _, nearest = cKDTree(v).query(vv)

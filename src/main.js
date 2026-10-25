@@ -1530,6 +1530,7 @@ function seedPopulation() {
     entity.velocity.set(0, 0, 0);
     entity.school = null;
     entity.hunter = createHunterState(entity.species, entity.seed);
+    entity.mesh.userData.electricCharge?.setPhase("idle");
     entity.disorientedUntil = 0;
     entity.flight = null;
     entity.flightReadyAt = 0;
@@ -2474,6 +2475,7 @@ function updateEntities(dt) {
     entity.cooldown = Math.max(0, entity.cooldown - dt);
     if (entity.telegraph) entity.telegraph.visible = false;
     if (entity.hiddenFor > 0) {
+      mesh.userData.electricCharge?.setPhase("idle");
       if (!feeding.has(mesh) && !minion.feeding.has(mesh)) mesh.visible = false;
       entity.hiddenFor -= dt;
       if (entity.hiddenFor <= 0) {
@@ -3128,7 +3130,12 @@ function updateEntities(dt) {
           mesh.position.distanceTo(previousPreyPosition) / Math.max(dt, 0.001);
         camerocerasMotion.hunting = predator && entity.chase > 0;
       }
-      mesh.userData.setHunterPhase?.(hunter.phase);
+      mesh.userData.setHunterPhase?.(
+        hunter.phase,
+        hunter.timer,
+        hunter.phaseDuration,
+        reducedMotionQuery.matches,
+      );
       mesh.userData.animate?.(
         elapsed + entity.seed,
         moveSpeed / 6,

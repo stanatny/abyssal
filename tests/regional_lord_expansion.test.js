@@ -130,8 +130,10 @@ for (const [region, kind, makeOcean] of additions) {
       kind === "brine_regent"
         ? "embedded_amber_sensor"
         : "barbel_conductive_seam";
-    const glowA = a.getObjectByName(glowName).material;
-    const glowB = b.getObjectByName(glowName).material;
+    const glowA =
+      a.userData.hfRig?.charged ?? a.getObjectByName(glowName).material;
+    const glowB =
+      b.userData.hfRig?.charged ?? b.getObjectByName(glowName).material;
     assert.notEqual(glowA, glowB, "Charge brightness belongs to each instance");
     assert.ok(glowA.emissiveIntensity > glowB.emissiveIntensity);
     let disposed = 0,
@@ -143,7 +145,7 @@ for (const [region, kind, makeOcean] of additions) {
       n.skeleton.computeBoneTexture();
       n.skeleton.boneTexture.addEventListener("dispose", () => disposed++);
     });
-    assert.equal(skeletons, kind === "thunderbarbel" ? 4 : 0);
+    assert.equal(skeletons, kind === "thunderbarbel" ? 1 : 0);
     a.userData.disposeLocalMotion();
     a.userData.disposeLocalMotion();
     assert.equal(

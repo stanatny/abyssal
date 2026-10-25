@@ -401,10 +401,11 @@ test("Electric arcs are pooled, finite, expire on active time and dispose withou
     fx.update(0.01);
   }
   assert.equal(parent.children.length, 4);
-  for (const m of parent.children)
-    assert.ok(
-      Array.from(m.geometry.attributes.position.array).every(Number.isFinite),
-    );
+  parent.traverse((m) => {
+    if (!m.isInstancedMesh) return;
+    assert.ok(Array.from(m.instanceMatrix.array).every(Number.isFinite));
+    assert.ok(m.count <= 88);
+  });
   fx.update(1);
   assert.ok(parent.children.every((m) => !m.visible));
   fx.emit(new THREE.Vector3());

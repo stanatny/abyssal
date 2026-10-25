@@ -14,6 +14,7 @@ export function disposePopulation(population) {
         skeletons.add(part.userData.tentacleSkeleton);
     });
     entity.mesh.userData.disposeRareShimmer?.();
+    entity.mesh.userData.electricCharge?.dispose();
     if (entity.telegraph) {
       entity.telegraph.removeFromParent();
       entity.telegraph.geometry.dispose();

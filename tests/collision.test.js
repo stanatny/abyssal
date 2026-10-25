@@ -3,6 +3,7 @@ import assert from "node:assert/strict";
 import {
   resolveMotion,
   castSegment,
+  castBodySegment,
   segmentBlocked,
   isPositionBlocked,
   bodyRadius,
@@ -278,4 +279,25 @@ test("actual scene keeps the default spawn clear at 6, 20 and 30 m", async () =>
     ocean.dispose();
   }
   assert.equal(scene.children.length, 0);
+});
+
+test("charge contact query uses the same capsule as movement, including fast crossings and empty space", () => {
+  const obstacle = box(0, 0, -12, 1, 1, 1);
+  const options = {
+    colliders: [obstacle],
+    radius: bodyRadius(30),
+    length: 30,
+    forward: point(0, 0, -1),
+  };
+  const start = point(-30),
+    end = point(30),
+    a = { ...start },
+    b = { ...end };
+  assert.equal(castSegment(start, end, [obstacle], options.radius), null);
+  assert.ok(castBodySegment(start, end, options));
+  assert.ok(resolveMotion(start, end, options).blocked);
+  assert.equal(castBodySegment(point(-30, 12), point(30, 12), options), null);
+  assert.ok(castBodySegment(point(0), point(0), options));
+  assert.deepEqual(start, a);
+  assert.deepEqual(end, b);
 });

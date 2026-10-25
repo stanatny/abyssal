@@ -1,5 +1,7 @@
+import { acquireAmazonRoot } from "./amazon_root_asset.js";
+import { fitAmazonDriftwood } from "./amazon_driftwood_placement.js";
+import { acquireAmazonDriftwood } from "./amazon_driftwood_asset.js";
 import * as THREE from "three";
-import { mergeGeometries } from "three/addons/utils/BufferGeometryUtils.js";
 import {
   amazonChannels,
   amazonSeabedHeight,
@@ -18,9 +20,6 @@ export function* createAmazonRiverbedSteps(parent, resources, colliders) {
   const stone = keep(
       new THREE.MeshStandardMaterial({ color: "#918066", roughness: 0.99 }),
     ),
-    wood = keep(
-      new THREE.MeshStandardMaterial({ color: "#69503a", roughness: 0.93 }),
-    ),
     leaf = keep(
       new THREE.MeshStandardMaterial({
         color: "#70874a",
@@ -32,7 +31,15 @@ export function* createAmazonRiverbedSteps(parent, resources, colliders) {
       new THREE.MeshStandardMaterial({ color: "#8d8068", roughness: 0.69 }),
     );
   addSurfaceDetail(stone, "stone", 0.65);
-  addSurfaceDetail(wood, "wood", 0.48);
+  const driftwood = acquireAmazonDriftwood();
+  // 回收入口纳入既有构造事务；取消建图也释放引用，悬根仍使用原网格。
+  keep({ dispose: driftwood.release });
+  const hanging = acquireAmazonRoot("hanging");
+  keep({ dispose: hanging.release });
+  root.userData.prepareMaterials = async (options) =>
+    Promise.all([driftwood.prepare(options), hanging.prepare(options)]);
+  void hanging.prepare();
+  void driftwood.prepare();
   const clock = { value: 0 };
   leaf.onBeforeCompile = (shader) => {
     shader.uniforms.riverPlantTime = clock;
@@ -57,42 +64,15 @@ export function* createAmazonRiverbedSteps(parent, resources, colliders) {
     rp.setXYZ(i, x * n, y * n * 0.65, z * n);
   }
   rock.computeVertexNormals();
-  const logParts = [];
-  const makeBranch = (points, radius) =>
-    logParts.push(
-      new THREE.TubeGeometry(
-        new THREE.CatmullRomCurve3(points.map((p) => new THREE.Vector3(...p))),
-        14,
-        radius,
-        7,
-        false,
-      ),
-    );
-  makeBranch(
-    [
-      [0, 0, -7],
-      [0.4, 0.5, -2],
-      [-0.3, 0.4, 3],
-      [0.5, 1, 7],
-    ],
-    0.8,
-  );
-  for (let i = 0; i < 5; i++) {
-    const z = -5 + i * 2.4;
-    makeBranch(
-      [
-        [0, 0.4, z],
-        [i % 2 ? 2 : -2, 1, z + 1],
-        [i % 2 ? 3.2 : -3.2, 1.4, z + 2],
-      ],
-      0.22,
-    );
-  }
-  const log = keep(mergeGeometries(logParts));
-  logParts.forEach((g) => g.dispose());
+  const hangingGeometry = keep(hanging.geometry.clone());
+  // 将根束主体拟合在原胶囊下半段；上端埋入顶棚，避免只有末梢露出。
+  hangingGeometry.scale(14, 14, 7);
+  hangingGeometry.translate(0, 0, 2.4);
   const blade = keep(broadLeafGeometry(1, 0.18)),
     mussel = keep(new THREE.SphereGeometry(1, 12, 8));
   mussel.scale(0.8, 0.3, 1.2);
+  const allRocks = [],
+    logGroups = [];
   const chunks = [],
     dummy = new THREE.Object3D();
   let seed = 527196;
@@ -159,13 +139,15 @@ export function* createAmazonRiverbedSteps(parent, resources, colliders) {
               y + 1,
               Math.cos(yaw) * 6 * scale + pz,
             );
-          colliders.push({
+          const contact = {
             type: "capsule",
             kind: "submerged_driftwood",
             a,
             b,
             radius: scale * 0.9,
-          });
+          };
+          colliders.push(contact);
+          items.logs.at(-1).collider = contact;
         }
       }
       for (let k = 0; k < 7; k++) {
@@ -190,12 +172,13 @@ export function* createAmazonRiverbedSteps(parent, resources, colliders) {
           });
         }
     }
+    allRocks.push(...items.rocks);
     const group = new THREE.Group();
     group.name = "riverbed_ecology_chunk";
     root.add(group);
     for (const [key, geometry, material] of [
       ["rocks", rock, stone],
-      ["logs", log, wood],
+      ["logs", driftwood.geometry, driftwood.material],
       ["leaves", blade, leaf],
       ["shells", mussel, shell],
     ]) {
@@ -206,13 +189,22 @@ export function* createAmazonRiverbedSteps(parent, resources, colliders) {
       values.forEach((v, i) => {
         dummy.position.fromArray(v.p);
         dummy.scale.fromArray(v.s);
-        dummy.rotation.set(key === "leaves" ? -0.65 : 0, v.yaw, 0);
+        dummy.rotation.set(
+          key === "leaves" ? -0.65 : v.pitch || 0,
+          v.yaw,
+          0,
+          key === "logs" ? "YXZ" : "XYZ",
+        );
         dummy.updateMatrix();
         mesh.setMatrixAt(i, dummy.matrix);
-        mesh.setColorAt(i, new THREE.Color(v.tint));
+        mesh.setColorAt(
+          i,
+          new THREE.Color(key === "logs" ? "#ffffff" : v.tint),
+        );
       });
       mesh.computeBoundingSphere();
       group.add(mesh);
+      if (key === "logs") logGroups.push({ mesh, items: values });
     }
     // 顶棚的根束垂入水中，避免在开口下堆成挡住成年通道的整片栅栏。
     const bounds = amazonIslandBounds(z + 35);
@@ -223,7 +215,8 @@ export function* createAmazonRiverbedSteps(parent, resources, colliders) {
           pz = z + 32,
           y = amazonIslandCeiling(x, pz),
           scale = 0.8;
-        const mesh = new THREE.Mesh(log, wood);
+        const mesh = new THREE.Mesh(hangingGeometry, hanging.material);
+        mesh.name = "island_hanging_root_hf";
         mesh.position.set(x, y + 1, pz);
         mesh.rotation.set(0.8, side * 0.7, 0.3);
         mesh.scale.set(0.6, scale, 0.8);
@@ -241,6 +234,19 @@ export function* createAmazonRiverbedSteps(parent, resources, colliders) {
       }
     chunks.push({ group, z: z + 35 });
     yield "riverbed-ecology";
+  }
+  // 全部河石生成后再摆放，避免跨分块边缘时漏检相邻石块。
+  for (const { mesh, items } of logGroups) {
+    items.forEach((item, i) => {
+      fitAmazonDriftwood(item, allRocks);
+      dummy.position.fromArray(item.p);
+      dummy.scale.fromArray(item.s);
+      dummy.rotation.set(item.pitch || 0, item.yaw, 0, "YXZ");
+      dummy.updateMatrix();
+      mesh.setMatrixAt(i, dummy.matrix);
+    });
+    mesh.instanceMatrix.needsUpdate = true;
+    mesh.computeBoundingSphere();
   }
   return {
     root,

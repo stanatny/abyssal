@@ -1,5 +1,130 @@
 # ABYSSAL
 
+Amazon redraw accepted for local commit — 2026-10-26: the user authorizes
+committing the completed Amazon batches and bank/water finish before a separate
+large-predator charge investigation. Earlier candidate/no-commit labels below
+are dated history for this scope. Delivered inputs remain byte-identical before
+this status update; physical-phone performance is still unmeasured. This is a
+local commit only, with no push or main publication authorized.
+
+Amazon bank/water integration candidate — 2026-10-25: the user authorizes
+riverbank/bed/island material finish and water/floating-scenery integration.
+World-space sediment, a stable physical waterline and subtle instanced leaf
+contacts preserve all terrain topology, 2,162 static and 13 floating contacts.
+Previous models and gameplay remain. This appearance awaits review; no
+commit/push. See [the integration record](docs/amazon_huggingface_redraw.md#bank-and-water-integration--2026-10-25).
+
+Amazon batch 10 candidate — 2026-10-25: following the user's request for the
+next group, two actual HF exports replace plain water pads with Victoria-inspired
+leaves and separate cream/pink flowers. All 230 leaves remain; bounded local
+spacing, waterline fitting, shared loading and spatial instancing are checked.
+Previous monkeys and gameplay are preserved. This new appearance awaits review;
+no commit/push. See [the batch record](docs/amazon_huggingface_redraw.md#batch-10-victoria-waterlilies--2026-10-25).
+
+Amazon monkey motion reference follow-up — 2026-10-25: the user requests real
+locomotion reference after the shoreline/pace revision. Source-reviewed Ateles
+accounts and inspected captive footage now inform forward-facing suspended
+hand transfers, coordinated torso/legs and tail balance. Six shoreline routes
+remain, with only the two lowest supports raised for turning-body clearance.
+This candidate awaits visual review; no commit/push. See
+[the motion follow-up](docs/amazon_huggingface_redraw.md#monkey-motion-reference-follow-up--2026-10-25).
+
+Amazon waterside-monkey follow-up — 2026-10-25: the user finds the first
+monkeys too slow and too far inside the rainforest. All six routes now occupy
+low, river-facing branches; travel and hand exchanges run 2.6 times faster.
+Ordinary surface follow views, continuous grips and terrain clearance are
+checked. This revision awaits visual review; no commit/push. See
+[the follow-up](docs/amazon_huggingface_redraw.md#waterside-monkey-follow-up--2026-10-25).
+
+Amazon batch 9 candidate — 2026-10-25: the user accepts batch 8 and requests
+surface driftwood, a distinctive rainforest canopy and arboreal wildlife. Actual
+HF kapok-inspired trees, acai palms and fitted spider monkeys now enrich the
+river margins; 13 floating logs reuse accepted HF timber with moving contacts.
+Tree roots are fitted to rendered land, and canopy LOD limits repeated detail.
+All 1,779 tests pass; this new appearance awaits review, without commit/push.
+See [the batch record](docs/amazon_huggingface_redraw.md#batch-9-rainforest-canopy-surface-timber-and-spider-monkeys--2026-10-25).
+
+Amazon batch 8 candidate — 2026-10-25: the user accepts batch 7 and requests
+the next scenery group. Two actual HF exports replace 56 riverbank roots and
+30 island hanging roots while preserving all 2,162 contacts and prior content.
+Bark relief, atlas fitting and shared loading/disposal are checked; this new
+appearance awaits review, with no commit/push. See
+[the batch record](docs/amazon_huggingface_redraw.md#batch-8-flooded-bank-roots-and-island-hanging-roots--2026-10-25).
+
+Amazon batch 7 candidate — 2026-10-25: the user accepts batch 6 and requests
+the next group. Actual HF exports replace Jade Arowana and riverbed driftwood.
+The rare keeps its original rules; 112 instanced logs gain bark/splinter detail
+and bounded terrain/rock fitting, with matching capsules and other colliders
+unchanged. All 1,767 tests pass. The user accepts the shown appearances and requests the next scene batch; no commit/push.
+See [the batch record](docs/amazon_huggingface_redraw.md#batch-7-jade-arowana-and-riverbed-driftwood--2026-10-25).
+
+Amazon batch 6 candidate — 2026-10-25: the user accepts the four crocodilians
+and authorizes the next group. Actual HF exports now replace Green Anaconda,
+Titanoboa, Stupendemys and Flood Arapaima, with continuous serpent motion,
+rigid-shell freshwater strokes and fitted fish fins. All 58 animals keep their
+original gameplay. These four appearances await review; no commit/push. See
+[the batch record](docs/amazon_huggingface_redraw.md#batch-6-serpents-stupendemys-and-flood-arapaima--2026-10-25).
+
+Amazon batch 5 candidate — 2026-10-25: the user accepts the Electric Eel
+discharge and requests the next group. Four actual HF exports replace Black
+Caiman, Saltwater Crocodile, Purussaurus and Rootback Colossus, with fitted
+tail-driven motion and trailing limbs. Twenty animals retain their original
+gameplay; previous art and eel effects are preserved. All 1,754 tests pass.
+These new appearances await review; no commit/push. See
+[the batch record](docs/amazon_huggingface_redraw.md#batch-5-four-crocodilians--2026-10-25).
+
+Electric Eel effect candidate — 2026-10-25: the user requests clearer discharge
+feedback. Body charge arcs, a branching spatial release and a fading residual now
+follow the actual hunter phases, preserving damage/range/cooldown, fitted swim
+poses and shared colors. Pause/cancellation/reset/eviction are checked; no new
+HF generation, commit or push. See [the effect record](docs/amazon_huggingface_redraw.md#electric-eel-discharge-follow-up--2026-10-25).
+
+Amazon batch 4 candidate — 2026-10-25: the user accepts batch 3 and requests
+the next group. Four actual HF exports replace Red Piranha, Electric Eel, River
+Stingray and Amazon River Turtle, with separate fitted tail/ribbon/disc/foot
+motion. Original stock, combat and eel discharge remain intact; near-camera
+interior compatibility is preserved. This appearance awaits review, with no
+commit/push. See [the batch record](docs/amazon_huggingface_redraw.md#batch-4-piranha-eel-ray-and-river-turtle--2026-10-25).
+
+Amazon batch 3 candidate — 2026-10-25: the user accepts the preceding
+small-fish/verified-charge work and authorizes the next batch. Actual HF exports
+now replace Amazon Pacu, Silver Arowana, Arapaima and Redtail Catfish, with fitted
+independent motion and the original 140 individuals/gameplay. The first Arowana
+export is rejected for dorsal geometry defects; its replacement is reviewed in
+color and clay. All 1,726 tests and native loading/recovery/ownership checks pass.
+These four appearances await review; no commit/push. See
+[the batch record](docs/amazon_huggingface_redraw.md#batch-3-larger-river-fish--2026-10-25).
+
+Amazon batch 2 / verified charge — 2026-10-25: the user accepts Rootjaw's
+terrain correction conditional on working attacks. A fresh contact repair now
+registers its original 42-damage charge against the same solid player/lord
+bodies, with sidestep and occlusion checks. Four actual HF small-fish candidates
+replace Neon Tetra, Amazon Discus, Silver Hatchetfish and Armored Cory, keeping
+148 individuals and original gameplay. The new appearances await review;
+no commit/push. See [the batch record](docs/amazon_huggingface_redraw.md#batch-2-small-river-fish--2026-10-25).
+
+Rootjaw terrain/pitch follow-up — 2026-10-25: the user flags a head entering
+the riverbank in the preceding swimming video. Rootjaw now uses complete-body
+terrain clearance and gradual dorsal-up pitch/turns, rather than centre-only
+height correction. Ascent, descent and charge are checked in the actual river
+scene; combat values and the other two lord rigs remain unchanged. This new
+candidate awaits user review; no commit/push. See
+[the terrain follow-up](docs/amazon_huggingface_redraw.md#rootjaw-terrain-and-pitch-follow-up--2026-10-25).
+
+Rootjaw swimming follow-up — 2026-10-25: the user rejects the first HF
+candidate's splayed, crawling-looking limbs. A new swimming-neutral HF export
+preserves the root-armored crocodilian design, with backward-folded limbs and
+tail-driven cruising/acceleration. The other two lord rigs and all gameplay
+remain unchanged. This replacement awaits user review; no commit/push. See
+[the follow-up evidence](docs/amazon_huggingface_redraw.md#rootjaw-swimming-follow-up--2026-10-25).
+
+Amazon lord redraw candidate — 2026-10-25: three actual HF exports now replace
+Thunderbarbel, Yacumama and Rootjaw, with fitted independent swim/attack poses.
+Accepted players, twenty ordinary Amazon kinds and gameplay rules remain intact.
+The current agent works alone on `art/amazon-hf-redraw`; this new appearance
+awaits user review, with no commit/push. Work artifacts stay in the Developer
+repository. See [the Amazon redraw record](docs/amazon_huggingface_redraw.md).
+
 Mariana main publication — 2026-10-25: the user authorizes the accepted
 regional redraw and loading wrap-up for main. Release v0.11.18 includes the
 creatures, colonies, guardian geology, pit finishes, refuge and surface fleet.

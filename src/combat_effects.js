@@ -43,7 +43,7 @@ export function createCombatEffects(scene, options = {}) {
       velocity: new THREE.Vector3(),
     };
   });
-  const discharge = createElectricDischarge(group);
+  const discharge = createElectricDischarge(group, options);
   const clouds = [];
   const rings = Array.from({ length: 8 }, () => {
     const mesh = new THREE.Mesh(

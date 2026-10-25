@@ -79,18 +79,17 @@ test("青龙、云龙和长蛇躯节沿前后传播侧波，头部接触锚点�
       );
   }
 });
-test("森蚺、泰坦巨蟒和水母蛇连续蒙皮变形，首部稳定、几何缓存及其他实例不被改写", () => {
-  for (const kind of ["green_anaconda", "titanoboa", "yacumama"]) {
+test("森蚺和泰坦巨蟒连续蒙皮变形，首部稳定、几何缓存及其他实例不被改写", () => {
+  for (const kind of ["green_anaconda", "titanoboa"]) {
     const m = createCreature(kind, 1, 17),
       other = createCreature(kind, 1, 17);
-    const skin = m.getObjectByName("long_continuous_serpent");
+    const skin = m.userData.hfRig.mesh;
     assert.ok(skin.isSkinnedMesh);
-    assert.equal(skin.skeleton.bones.length, 16);
+    assert.equal(skin.skeleton.bones.length, 22);
     const raw = Array.from(skin.geometry.attributes.position.array),
       values = [];
-    const initialOther = other
-      .getObjectByName("long_continuous_serpent")
-      .skeleton.bones[7].quaternion.clone();
+    const initialOther =
+      other.userData.hfRig.mesh.skeleton.bones[7].quaternion.clone();
     for (let i = 0; i < 240; i++) {
       step(m, i / 60);
       values.push(sample(skin, 0.2).x);
@@ -100,20 +99,20 @@ test("森蚺、泰坦巨蟒和水母蛇连续蒙皮变形，首部稳定、几�
     assert.ok(Math.max(...values) - Math.min(...values) > 0.06, kind);
     assert.deepEqual(Array.from(skin.geometry.attributes.position.array), raw);
     assert.ok(
-      other
-        .getObjectByName("long_continuous_serpent")
-        .skeleton.bones[7].quaternion.equals(initialOther),
+      other.userData.hfRig.mesh.skeleton.bones[7].quaternion.equals(
+        initialOther,
+      ),
     );
   }
 });
-test("电鳗腹部鳍带与躯干同相游曳，木卫二蛇形猎手的尾甲跟随连续骨架", () => {
-  for (const kind of ["electric_eel", "rift_reaver"]) {
+test("木卫二蛇形猎手的尾甲跟随连续骨架", () => {
+  for (const kind of ["rift_reaver"]) {
     const m = createCreature(kind, 1, 17),
       skins = [];
     m.traverse((n) => {
       if (n.isSkinnedMesh && n.userData.serpentine) skins.push(n);
     });
-    assert.ok(skins.length >= (kind === "electric_eel" ? 2 : 1), kind);
+    assert.ok(skins.length >= 1, kind);
     step(m, 0);
     for (let i = 1; i < 90; i++) step(m, i / 60);
     for (let i = 1; i < skins.length; i++)

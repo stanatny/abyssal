@@ -1,3 +1,24 @@
+import { buildAmazonRareHF } from "./creature_amazon_rare_hf.js";
+import {
+  AMAZON_HF_FINAL,
+  buildAmazonFinalHF,
+} from "./creature_amazon_final_hf.js";
+import {
+  AMAZON_HF_CROCS,
+  buildAmazonCrocHF,
+} from "./creature_amazon_crocs_hf.js";
+import {
+  AMAZON_HF_VARIED,
+  buildAmazonVariedHF,
+} from "./creature_amazon_varied_hf.js";
+import {
+  AMAZON_HF_RIVER,
+  buildAmazonRiverHF,
+} from "./creature_amazon_river_hf.js";
+import {
+  AMAZON_HF_SMALL,
+  buildAmazonSmallHF,
+} from "./creature_amazon_small_hf.js";
 import { buildMarianaFinalHF } from "./creature_mariana_final_hf.js";
 import {
   MARIANA_DEEP_HF_FISH,
@@ -29,7 +50,10 @@ import { buildHawaiiGiantHF } from "./creature_hawaii_giants_hf.js";
 import { buildHawaiiSharkHF } from "./creature_hawaii_sharks_hf.js";
 import { buildOrca } from "./creature_orca.js";
 import { buildBrineRegent } from "./creature_brine_regent.js";
-import { buildThunderbarbel } from "./creature_thunderbarbel.js";
+import {
+  AMAZON_HF_LORDS,
+  buildAmazonLordHF,
+} from "./creature_amazon_lords_hf.js";
 import {
   ODYSSEY_CREATURE_KINDS,
   buildOdysseyCreature,
@@ -143,16 +167,22 @@ export function createCreature(kind, length = 6, seed = 1) {
   else if (ATLANTIS_HF_SMALL.has(kind))
     buildAtlantisSmallHF(kind, root, motions);
   else if (kind === "crimson_sail") buildCrimsonSailHF(root, motions);
+  else if (kind === "jade_arowana") buildAmazonRareHF(kind, root, motions);
   else if (RARE_CREATURE_KINDS.has(kind))
     buildRegionalRare(kind, root, motions);
   else if (kind === "mechanical_shark") buildMechanicalShark(root, motions);
   else if (kind === "zombie_shark") buildZombieShark(root, motions);
   else if (kind === "brine_regent") buildBrineRegent(root, motions);
-  else if (kind === "thunderbarbel") buildThunderbarbel(root, motions);
+  else if (AMAZON_HF_LORDS.has(kind)) buildAmazonLordHF(kind, root, motions);
   else if (kind === "abyss_weaver") buildAbyssWeaver(root, motions);
   else if (kind === "lumen_stalker") buildLumenStalker(root, motions);
   else if (PENGLAI_CREATURE_KINDS.has(kind))
     buildPenglaiCreature(kind, root, motions);
+  else if (AMAZON_HF_FINAL.has(kind)) buildAmazonFinalHF(kind, root, motions);
+  else if (AMAZON_HF_CROCS.has(kind)) buildAmazonCrocHF(kind, root, motions);
+  else if (AMAZON_HF_VARIED.has(kind)) buildAmazonVariedHF(kind, root, motions);
+  else if (AMAZON_HF_RIVER.has(kind)) buildAmazonRiverHF(kind, root, motions);
+  else if (AMAZON_HF_SMALL.has(kind)) buildAmazonSmallHF(kind, root, motions);
   else if (AMAZON_CREATURE_KINDS.has(kind))
     buildAmazonCreature(kind, root, motions);
   else if (EUROPA_CREATURE_KINDS.has(kind))

@@ -1,19 +1,30 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 import * as THREE from "three";
-import { createCreature } from "../src/creatures.js";
-import {
-  aquaticHeading,
-  disposeCrocodilianMotion,
-} from "../src/aquatic_reptile_motion.js";
-import { findBossContact } from "../src/encounters.js";
+import { buildAmazonCreature } from "../src/creature_amazon.js";
+// 旧解剖构造器仍保留低层几何回归；当前运行时 HF 覆盖在 amazon_crocs_hf.test.js。
+function createCreature(kind, length) {
+  const root = new THREE.Group(),
+    motions = [];
+  buildAmazonCreature(kind, root, motions);
+  root.scale.setScalar(length);
+  let previous,
+    phase = 0;
+  root.userData.animate = (time, effort) => {
+    const dt =
+      previous === undefined ? 0 : Math.max(0, Math.min(0.12, time - previous));
+    previous = time;
+    phase += dt * (1.7 + effort * 1.1);
+    motions.forEach((motion) => motion(phase, effort));
+  };
+  return root;
+}
 
 const KINDS = [
   "black_caiman",
   "saltwater_crocodile",
   "purussaurus",
   "rootback_colossus",
-  "rootjaw",
 ];
 function rig(root) {
   let result;
@@ -164,63 +175,8 @@ test("species retain distinct normalized silhouettes; fast-swimming feet stay al
   assert.ok(
     heads.get("saltwater_crocodile").z > heads.get("purussaurus").z * 1.1,
   );
-  assert.ok(heads.get("rootjaw").x > heads.get("saltwater_crocodile").x * 1.6);
 });
-test("independent skeletons do not mutate shared buffers; retiring a lord releases only its texture", () => {
-  const first = createCreature("rootjaw", 49, 71),
-    second = createCreature("rootjaw", 49, 72),
-    a = rig(first),
-    b = rig(second);
-  assert.equal(a.geometry, b.geometry);
-  assert.equal(a.material, b.material);
-  assert.notEqual(a.skeleton, b.skeleton);
-  const immutable = Float32Array.from(a.geometry.attributes.position.array);
-  pose(second, 0);
-  const frozen = Float32Array.from(b.skeleton.boneMatrices);
-  for (let frame = 0; frame < 180; frame++) pose(first, frame / 60, 3);
-  assert.deepEqual(a.geometry.attributes.position.array, immutable);
-  assert.deepEqual(b.skeleton.boneMatrices, frozen);
-  let retired = 0,
-    shared = 0;
-  a.skeleton.computeBoneTexture();
-  b.skeleton.computeBoneTexture();
-  a.skeleton.boneTexture.addEventListener("dispose", () => retired++);
-  a.geometry.addEventListener("dispose", () => shared++);
-  disposeCrocodilianMotion(first);
-  disposeCrocodilianMotion(first);
-  assert.equal(retired, 1);
-  assert.equal(shared, 0);
-  assert.ok(b.skeleton.boneTexture);
-  disposeCrocodilianMotion(second);
-});
-test("posed lord tail and feet retain actual contact; empty water stays empty", () => {
-  const root = createCreature("rootjaw", 49, 17),
-    body = rig(root),
-    p = body.geometry.attributes.position,
-    ids = body.geometry.attributes.skinIndex;
-  root.position.set(40, -320, -800);
-  aquaticHeading(root.quaternion, new THREE.Vector3(0.9, 0.3, -0.4));
-  for (const time of [0, 1, 2]) {
-    pose(root, time, 2);
-    for (const condition of [
-      (i) => p.getZ(i) > 0.78 && ids.getX(i) < 7,
-      (i) => ids.getX(i) === 14,
-    ]) {
-      let index = 0;
-      while (index < p.count && !condition(index)) index++;
-      assert.ok(index < p.count, "Contact sample exists on the posed surface");
-      const live = body
-        .getVertexPosition(index, new THREE.Vector3())
-        .applyMatrix4(body.matrixWorld);
-      assert.ok(findBossContact(root, live, 0.005));
-    }
-    assert.equal(
-      findBossContact(root, new THREE.Vector3(80, -270, -740), 0.05),
-      null,
-    );
-  }
-});
-
+// HF Rootjaw ownership and actual contact are covered in amazon_lords_hf.test.js.
 test("every crocodilian limb has a continuous load-bearing surface across the bending joint", () => {
   for (const kind of KINDS) {
     const body = rig(createCreature(kind, 1, 71)),
