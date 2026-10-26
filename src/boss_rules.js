@@ -476,6 +476,7 @@ export const BOSS_SPECIES = Object.freeze(
       kind: "lumen_stalker",
       label: "辉渊主宰 · 辉渊巡狩者",
       alien: true,
+      worldNavigation: true,
       length: 62,
       health: 210,
       minAttackLength: 25,

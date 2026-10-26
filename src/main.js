@@ -27,6 +27,7 @@ import {
 } from "./mythic_transformations.js";
 import { steerElusiveRare } from "./regional_rare_pursuit.js";
 import { aquaticHeading } from "./aquatic_reptile_motion.js";
+import { createSwimmingSpacing, turnSwimmingBody } from "./swimming_spacing.js";
 import {
   getRegionalRare,
   chooseRareHabitat,
@@ -113,6 +114,7 @@ import {
   hungerDrainRate,
 } from "./simulation.js";
 import { OceanAudio } from "./audio.js";
+import { swimmingFloorHeight } from "./swimming_clearance.js";
 import { steerWithinHabitat, resolveCreatureMotion } from "./navigation.js";
 import {
   overlapsStaticSpheres,
@@ -188,6 +190,7 @@ initializeLanguage();
 
 const aerialTangent = new THREE.Vector3();
 const aerialSpacing = createAerialSpacing();
+const swimmingSpacing = createSwimmingSpacing();
 const $ = (id) => document.getElementById(id);
 const Clamp = THREE.MathUtils.clamp;
 const canvas = $("ocean");
@@ -1368,11 +1371,25 @@ function floorAt(x, z, margin = 4) {
 function speciesList() {
   return getRegionSpecies(expedition.region.id);
 }
+// 只在生成/迁移时建立占位列表，不为普通游动增加全种群逐帧碰撞扫描。
+function occupiedPopulationPositions(species, populationIndex, excludedSchool) {
+  if (!(species.populationSpacing > 0)) return [];
+  return entities
+    .filter(
+      (entity) =>
+        entity.species.kind === species.kind &&
+        entity.populationIndex !== populationIndex &&
+        entity.hiddenFor <= 0 &&
+        (!excludedSchool || entity.school !== excludedSchool),
+    )
+    .map((entity) => entity.mesh.position);
+}
 function spawnPosition(
   species,
   near = false,
   anchor = null,
   populationIndex = 0,
+  { separate = true, allowFailure = false } = {},
 ) {
   const context = {
     heightAt: species.groundbound ? activeGroundHeight : activeSeabedHeight,
@@ -1381,6 +1398,9 @@ function spawnPosition(
     forward,
     highQuality,
     populationIndex,
+    occupied: separate
+      ? occupiedPopulationPositions(species, populationIndex)
+      : [],
   };
   const point = habitatPosition(species, {
     ...context,
@@ -1393,7 +1413,7 @@ function spawnPosition(
     ...context,
     anchor: initialSpeciesAnchor(species, populationIndex),
   });
-  if (!fallback)
+  if (!fallback && !allowFailure)
     throw new Error(tr`No valid habitat position for ${species.kind}`);
   return fallback;
 }
@@ -1489,6 +1509,7 @@ function seedPopulation() {
       entity.species = entity.transformation.sourceSpecies;
   }
   aerialSpacing.clear();
+  swimmingSpacing.clear();
   // 切图失败可能留下已生成的一部分缓存；重试补齐缺失个体，不复制已有模型。
   const existing = new Map();
   for (const entity of entities)
@@ -1507,6 +1528,9 @@ function seedPopulation() {
       addEntity(species, null, i);
   }
   schools.length = 0;
+  // Reset placement considers only neighbours already placed in this run;
+  // positions left over from the previous run must not occupy new spawn slots.
+  for (const entity of entities) entity.hiddenFor = Infinity;
   const speciesIndices = new Map();
   for (const entity of entities) {
     const index = speciesIndices.get(entity.species.kind) || 0;
@@ -1533,6 +1557,8 @@ function seedPopulation() {
     entity.hunter = createHunterState(entity.species, entity.seed);
     entity.mesh.userData.electricCharge?.setPhase("idle");
     entity.disorientedUntil = 0;
+    entity.swimAvoidUntil = 0;
+    if (entity.swimmingMotion) entity.swimmingMotion.travelSpeed = 0;
     entity.flight = null;
     entity.flightReadyAt = 0;
     entity.groundState = null;
@@ -1559,6 +1585,8 @@ function seedPopulation() {
         habitat,
         false,
         initialSchoolAnchor(species, group.index),
+        0,
+        { separate: false },
       );
       const school = {
         center,
@@ -1577,7 +1605,14 @@ function seedPopulation() {
         if (species.formation && species.flying && habitat.depthMin < 0) {
           aerialFormationPose(school, entity.slot, 0, preferred, aerialTangent);
         } else preferred.add(entity.slot);
-        entity.mesh.position.copy(spawnPosition(habitat, false, preferred));
+        entity.mesh.position.copy(
+          spawnPosition(
+            habitat,
+            false,
+            preferred,
+            species.populationSpacing > 0 ? entity.populationIndex : 0,
+          ),
+        );
         if (!species.formation || !species.flying)
           entity.slot.copy(entity.mesh.position).sub(center);
       });
@@ -2435,13 +2470,17 @@ function updateSchools() {
       padding: 5,
     });
     if (!next) continue;
-    const placements = school.members.map((entity) =>
-      habitatPosition(school.habitat, {
+    const occupied = occupiedPopulationPositions(school.species, -1, school);
+    const placements = school.members.map((entity) => {
+      const point = habitatPosition(school.habitat, {
         heightAt: activeSeabedHeight,
         colliders: ocean.colliders,
         anchor: next.clone().add(entity.slot),
-      }),
-    );
+        occupied,
+      });
+      if (point) occupied.push(point);
+      return point;
+    });
     if (placements.some((point) => !point)) continue;
     school.center.copy(next);
     school.members.forEach((entity, index) => {
@@ -2468,6 +2507,7 @@ function updateEntities(dt) {
   hunterPlayerVelocity.clampLength(0, 60);
   const hasRocks = ocean.obstacles.length > 0;
   aerialSpacing.rebuild(entities);
+  swimmingSpacing.rebuild(entities);
   threat = null;
   let bestThreat = Infinity;
   const mouth = capturePoint(entityMouth);
@@ -2502,19 +2542,27 @@ function updateEntities(dt) {
               )
             : entityTarget.copy(entity.school.center).add(entity.slot)
           : null;
-        mesh.position.copy(
-          entity.school
-            ? spawnPosition(
-                entity.school.habitat,
-                false,
-                replacementAnchor,
-                entity.populationIndex,
-              )
-            : spawnPosition(species, true, null, entity.populationIndex),
-        );
+        const replacement = entity.school
+          ? spawnPosition(
+              entity.school.habitat,
+              false,
+              replacementAnchor,
+              entity.populationIndex,
+              { allowFailure: species.populationSpacing > 0 },
+            )
+          : spawnPosition(species, true, null, entity.populationIndex, {
+              allowFailure: species.populationSpacing > 0,
+            });
+        if (!replacement) {
+          // 栖地暂时被占满就等待，不强行叠放，也不让一次补充失败中断游戏。
+          entity.hiddenFor = 0.25;
+          continue;
+        }
+        mesh.position.copy(replacement);
         resetTorpedoTarget(entity);
         mesh.visible = true;
         entity.hunter = createHunterState(species, entity.seed + elapsed);
+        entity.swimAvoidUntil = 0;
         entity.groundState = null;
         resetGroundNavigation(entity);
       }
@@ -2842,6 +2890,7 @@ function updateEntities(dt) {
       entity.populationIndex,
       mesh.position,
       direction,
+      predator && entity.chase > 0,
     );
     direction.set(
       residentDirection.x,
@@ -2866,6 +2915,9 @@ function updateEntities(dt) {
       );
     direction.normalize();
     if (species.flying) aerialSpacing.steer(entity, direction);
+    if (species.swimClearance > 0 && entity.swimAvoidUntil > elapsed)
+      direction.copy(entity.swimAvoidHeading);
+    moveSpeed = swimmingSpacing.steer(entity, direction, moveSpeed);
     previousHabitatPosition.copy(mesh.position);
     if (species.benthic || species.groundbound) direction.y = 0;
     let groundMotion = null;
@@ -2906,6 +2958,8 @@ function updateEntities(dt) {
         effects.flash(mesh.position, 0xd9aa65, Math.min(18, species.length));
         if (distance < 100) notify("走兽蓄势跃击 · 上升或侧向避开", 2);
       }
+    } else if (species.swimClearance > 0) {
+      turnSwimmingBody(entity, direction, dt);
     } else {
       entity.velocity.lerp(
         direction,
@@ -2919,12 +2973,17 @@ function updateEntities(dt) {
       moveSpeed * dt * (groundMotion?.speed ?? 1),
     );
     if (layeredSchool) pushFromRocks(mesh.position, species.length * 0.12);
-    let floor = floorAt(
+    let floor = swimmingFloorHeight(
       mesh.position.x,
       mesh.position.z,
+      species,
+      activeSeabedHeight,
       species.benthic
         ? species.floorOffset
-        : (species.groundClearance ?? species.length * 0.28 + 2),
+        : Math.max(
+            species.groundClearance ?? species.length * 0.28 + 2,
+            species.length * (species.swimClearance || 0) + 0.15,
+          ),
     );
     mesh.position.x = Clamp(
       mesh.position.x,
@@ -2943,9 +3002,11 @@ function updateEntities(dt) {
       !species.groundbound
     ) {
       mesh.position.copy(previousHabitatPosition);
-      floor = floorAt(
+      floor = swimmingFloorHeight(
         mesh.position.x,
         mesh.position.z,
+        species,
+        activeSeabedHeight,
         species.length * 0.28 + 2,
       );
       entity.heading += Math.PI * 0.6;
@@ -3051,6 +3112,11 @@ function updateEntities(dt) {
             entity.groundBlocked,
           );
         if (contact.blocked) {
+          if (species.swimClearance > 0 && !(entity.swimAvoidUntil > elapsed)) {
+            entity.swimAvoidHeading ??= new THREE.Vector3();
+            entity.swimAvoidHeading.copy(contact.direction);
+            entity.swimAvoidUntil = elapsed + 0.8;
+          }
           if (species.groundbound) {
             // 碰墙后的下一步逐渐绕行，不能覆盖已锁定的跃击朝向使身体瞬间反转。
             entity.groundState.terrainBlocked = true;
@@ -3062,6 +3128,23 @@ function updateEntities(dt) {
             contact.direction.x,
             -contact.direction.z,
           );
+        }
+      }
+    }
+    swimmingSpacing.constrain(entity, previousHabitatPosition, mesh.position);
+    if (species.swimClearance > 0) {
+      entityUnitVelocity.subVectors(mesh.position, previousHabitatPosition);
+      if (entityUnitVelocity.lengthSq() > 1e-8) {
+        predatorFacing.set(0, 0, -1).applyQuaternion(mesh.quaternion);
+        // Rock resolution may slide backwards/sideways. Wait and turn toward
+        // the safe tangent instead of rendering a fish travelling tail-first.
+        if (entityUnitVelocity.normalize().dot(predatorFacing) < 0.94) {
+          if (!(entity.swimAvoidUntil > elapsed)) {
+            entity.swimAvoidHeading ??= new THREE.Vector3();
+            entity.swimAvoidHeading.copy(entityUnitVelocity);
+            entity.swimAvoidUntil = elapsed + 0.8;
+          }
+          mesh.position.copy(previousHabitatPosition);
         }
       }
     }
@@ -3104,7 +3187,7 @@ function updateEntities(dt) {
           mesh.rotation.y,
         ),
       );
-    } else
+    } else if (!(species.swimClearance > 0))
       mesh.quaternion.slerp(
         species.flying
           ? aerialHeadingQuaternion(entityOrientation, entity.velocity)
@@ -3125,7 +3208,7 @@ function updateEntities(dt) {
       distance,
       reducedMotionQuery.matches,
     );
-    if (mesh.visible) {
+    if (mesh.visible && !(species.swimClearance > 0)) {
       // 只有章鱼以实际位移判断停留/游进；碰撞减速不能仍使用名义巡游速度。
       const octopusMotion =
         species.kind === "octopus"
@@ -3235,9 +3318,11 @@ function updateEntities(dt) {
         mesh.position.z < w.minZ + 8 ||
         mesh.position.z > w.maxZ - 8 ||
         mesh.position.y <
-          floorAt(
+          swimmingFloorHeight(
             mesh.position.x,
             mesh.position.z,
+            species,
+            activeSeabedHeight,
             species.groundClearance ?? species.length * 0.28 + 2,
           ) ||
         (!species.groundbound &&
@@ -3245,6 +3330,23 @@ function updateEntities(dt) {
           mesh.position.y > -Math.max(4, species.length * 0.25));
       if (safe?.blocked || outside) mesh.position.copy(previousPreyPosition);
       else if (safe) mesh.position.copy(safe.position);
+    }
+    swimmingSpacing.constrain(entity, previousPreyPosition, mesh.position);
+    if (mesh.visible && species.swimClearance > 0) {
+      const motion = (entity.swimmingMotion ??= {
+        dt: 0,
+        travelSpeed: 0,
+        cruiseSpeed: species.speed,
+      });
+      motion.dt = dt;
+      motion.travelSpeed =
+        mesh.position.distanceTo(previousPreyPosition) / Math.max(dt, 0.001);
+      mesh.userData.setHunterPhase?.(
+        hunter.phase,
+        hunter.timer,
+        hunter.phaseDuration,
+      );
+      mesh.userData.animate?.(elapsed + entity.seed, moveSpeed / 6, motion);
     }
     // 只在玩家已进入合法水层时补充附近猎手，远处生成点仍在可见半径之外。
     if (

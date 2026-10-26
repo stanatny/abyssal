@@ -1,3 +1,21 @@
+import { buildEuropaRareHF } from "./creature_europa_rare_hf.js";
+import {
+  EUROPA_HF_GIANTS,
+  buildEuropaGiantHF,
+} from "./creature_europa_giants_hf.js";
+import {
+  EUROPA_HF_HUNTERS,
+  buildEuropaHunterHF,
+} from "./creature_europa_hunters_hf.js";
+import { EUROPA_HF_MID, buildEuropaMidHF } from "./creature_europa_mid_hf.js";
+import {
+  EUROPA_HF_SMALL,
+  buildEuropaSmallHF,
+} from "./creature_europa_small_hf.js";
+import {
+  EUROPA_HF_LORDS,
+  buildEuropaLordHF,
+} from "./creature_europa_lords_hf.js";
 import { buildAmazonRareHF } from "./creature_amazon_rare_hf.js";
 import {
   AMAZON_HF_FINAL,
@@ -49,7 +67,6 @@ import { buildHawaiiAncientHF } from "./creature_hawaii_ancients_hf.js";
 import { buildHawaiiGiantHF } from "./creature_hawaii_giants_hf.js";
 import { buildHawaiiSharkHF } from "./creature_hawaii_sharks_hf.js";
 import { buildOrca } from "./creature_orca.js";
-import { buildBrineRegent } from "./creature_brine_regent.js";
 import {
   AMAZON_HF_LORDS,
   buildAmazonLordHF,
@@ -70,10 +87,8 @@ import {
   AMAZON_CREATURE_KINDS,
   buildAmazonCreature,
 } from "./creature_amazon.js";
-import { buildAbyssWeaver } from "./creature_abyss_weaver.js";
 import { buildMechanicalShark } from "./creature_mechanical_shark.js";
 import { buildZombieShark } from "./creature_zombie_shark.js";
-import { buildLumenStalker } from "./creature_lumen_stalker.js";
 import {
   EUROPA_CREATURE_KINDS,
   buildEuropaCreature,
@@ -157,7 +172,12 @@ export function createCreature(kind, length = 6, seed = 1) {
   let previousTime;
   let swimTime = phase;
 
-  if (kind === "shonisaurus" || kind === "glass_prawn")
+  if (EUROPA_HF_GIANTS.has(kind)) buildEuropaGiantHF(kind, root, motions);
+  else if (EUROPA_HF_HUNTERS.has(kind))
+    buildEuropaHunterHF(kind, root, motions);
+  else if (EUROPA_HF_MID.has(kind)) buildEuropaMidHF(kind, root, motions);
+  else if (EUROPA_HF_SMALL.has(kind)) buildEuropaSmallHF(kind, root, motions);
+  else if (kind === "shonisaurus" || kind === "glass_prawn")
     buildMarianaFinalHF(kind, root, motions);
   else if (kind === "pelican") buildPelicanHF(root, motions);
   else if (["golden_manta", "seagull", "tropicbird"].includes(kind))
@@ -168,14 +188,13 @@ export function createCreature(kind, length = 6, seed = 1) {
     buildAtlantisSmallHF(kind, root, motions);
   else if (kind === "crimson_sail") buildCrimsonSailHF(root, motions);
   else if (kind === "jade_arowana") buildAmazonRareHF(kind, root, motions);
+  else if (kind === "crystal_seraph") buildEuropaRareHF(root, motions);
   else if (RARE_CREATURE_KINDS.has(kind))
     buildRegionalRare(kind, root, motions);
   else if (kind === "mechanical_shark") buildMechanicalShark(root, motions);
   else if (kind === "zombie_shark") buildZombieShark(root, motions);
-  else if (kind === "brine_regent") buildBrineRegent(root, motions);
+  else if (EUROPA_HF_LORDS.has(kind)) buildEuropaLordHF(kind, root, motions);
   else if (AMAZON_HF_LORDS.has(kind)) buildAmazonLordHF(kind, root, motions);
-  else if (kind === "abyss_weaver") buildAbyssWeaver(root, motions);
-  else if (kind === "lumen_stalker") buildLumenStalker(root, motions);
   else if (PENGLAI_CREATURE_KINDS.has(kind))
     buildPenglaiCreature(kind, root, motions);
   else if (AMAZON_HF_FINAL.has(kind)) buildAmazonFinalHF(kind, root, motions);
@@ -252,6 +271,16 @@ export function createCreature(kind, length = 6, seed = 1) {
     root.userData.contactRoot.visible = false;
   }
   root.scale.setScalar(length);
+  // HF 整体蒙皮在首次包围盒查询前同步缩放后的绑定逆矩阵。
+  if (
+    EUROPA_HF_LORDS.has(kind) ||
+    EUROPA_HF_SMALL.has(kind) ||
+    EUROPA_HF_MID.has(kind) ||
+    EUROPA_HF_HUNTERS.has(kind) ||
+    EUROPA_HF_GIANTS.has(kind) ||
+    kind === "crystal_seraph"
+  )
+    root.updateMatrixWorld(true);
   root.userData.kind = kind;
   root.userData.length = length;
   root.userData.animate = (time, speed = 1, motionState) => {

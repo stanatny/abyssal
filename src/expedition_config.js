@@ -4,7 +4,11 @@ import { PENGLAI_WORLD, PENGLAI_BOSS_INSTANCES } from "./penglai_config.js";
 import { penglaiText as pt } from "./penglai_species.js";
 import { AMAZON_WORLD } from "./amazon_config.js";
 import { AMAZON_BOSS_INSTANCES } from "./amazon_lords.js";
-import { EUROPA_WORLD } from "./europa_config.js";
+import {
+  EUROPA_WORLD,
+  europaWorldPoint,
+  europaWorldY,
+} from "./europa_config.js";
 import { REGION_OBJECTIVES } from "./expedition_objectives.js";
 import {
   MARIANA_WORLD,
@@ -190,25 +194,26 @@ export const REGIONS = Object.freeze(
         {
           id: "europa_brine",
           kind: "brine_regent",
-          home: [125, -255, -360],
+          home: europaWorldPoint([125, -255, -360]),
           radius: 85,
-          maxCenterY: -180,
+          maxCenterY: europaWorldY(-180),
           persistentDefeat: true,
         },
         {
           id: "europa_lumen",
           kind: "lumen_stalker",
-          home: [-90, -465, -570],
-          radius: 105,
-          maxCenterY: -360,
+          // 船首外的开阔水域；既守入口，也给玩家绕行与反击的空间。
+          home: europaWorldPoint([-145, -390, -465]),
+          radius: 135,
+          maxCenterY: europaWorldY(-360),
           persistentDefeat: true,
         },
         {
           id: "europa_weaver",
           kind: "abyss_weaver",
-          home: [0, -730, -745],
+          home: europaWorldPoint([0, -730, -745]),
           radius: 140,
-          maxCenterY: -650,
+          maxCenterY: europaWorldY(-650),
           persistentDefeat: true,
         },
       ],
@@ -219,7 +224,7 @@ export const REGIONS = Object.freeze(
         submarines: false,
         mines: false,
       },
-      spawn: [0, -18, 75],
+      spawn: europaWorldPoint([0, -18, 75]),
     },
     {
       id: "penglai",

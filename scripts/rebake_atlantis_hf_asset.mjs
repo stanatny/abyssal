@@ -112,7 +112,9 @@ const rawDoc = await new NodeIO()
   rawI = prim.getIndices().getArray(),
   rawGeom = new T.BufferGeometry(),
   p = new Float32Array(rawP.length),
-  rot = new T.Matrix4().makeRotationY(d.yaw),
+  rot = d.sourceRotation
+    ? new T.Matrix4().fromArray(d.sourceRotation)
+    : new T.Matrix4().makeRotationY(d.yaw),
   v = new T.Vector3();
 for (let i = 0; i < p.length; i += 3)
   v.fromArray(rawP, i).applyMatrix4(rot).toArray(p, i);
@@ -143,7 +145,9 @@ let samples = 0,
   sumDistance = 0;
 const distances = [];
 const outerProjection =
-  d.kind.startsWith("furniture_") || d.kind.startsWith("neighborhood_");
+  d.kind === "bell_carrier" ||
+  d.kind.startsWith("furniture_") ||
+  d.kind.startsWith("neighborhood_");
 const surfaceNormal = new T.Vector3(),
   sourceNormal = new T.Vector3(),
   projectionRay = new T.Ray();

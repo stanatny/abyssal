@@ -1,3 +1,4 @@
+import { swimmingFloorHeight } from "./swimming_clearance.js";
 import { groundSpawnPose } from "./ground_navigation.js";
 import * as THREE from "three";
 import { WORLD } from "./world_config.js";
@@ -182,6 +183,7 @@ export function initialSpeciesAnchor(species, index = 0) {
  * @param {number} populationIndex 个体在同种居民中的稳定序号。
  * @param {object} position 当前世界位置。
  * @param {object} direction 当前巡游或逃逸方向。
+ * @param {boolean} pursuing 已通过领地许可的水中捕食追击；不让巡游返巢覆盖攻击方向。
  * @returns {object} 靠近活动区边缘时柔和回转；其他物种直接返回原方向。
  */
 export function steerResidentHabitat(
@@ -189,7 +191,10 @@ export function steerResidentHabitat(
   populationIndex,
   position,
   direction,
+  pursuing = false,
 ) {
+  if (pursuing && species.predator && !species.groundbound && !species.flying)
+    return direction;
   const radius = species.residentRadius;
   const anchors = species.spawnAnchors;
   if (!(radius > 0) || !anchors?.length) return direction;
@@ -255,10 +260,12 @@ export function schoolSlot(species, index) {
       Math.floor(index / 3) * spacing,
     );
   }
-  const spacing =
+  const spacing = Math.max(
+    species.populationSpacing || 0,
     species.length < 1
       ? Math.max(1, species.length * 1.3)
-      : 2.5 + species.length * 0.4;
+      : 2.5 + species.length * 0.4,
+  );
   return new THREE.Vector3(
     ((index % 4) - 1.5) * spacing,
     Math.sin(index * 2) *
@@ -270,7 +277,7 @@ export function schoolSlot(species, index) {
 /**
  * 选择真实水层、海床和实体均允许的生成点；near候选必须远离玩家且不可在视野内突现。
  * @param {object} species 生物配置。
- * @param {object} options heightAt、colliders、anchor、playerPosition、populationIndex、near、random、isVisible。
+ * @param {object} options heightAt、colliders、anchor、playerPosition、populationIndex、near、random、isVisible、occupied（同种在场个体/已预定位置）。
  * @returns {THREE.Vector3|null} 合法位置；局部水域不可容纳时返回null，由调用方保留旧位置。
  */
 export function habitatPosition(
@@ -287,6 +294,7 @@ export function habitatPosition(
     isVisible = () => false,
     highQuality = true,
     padding = 0,
+    occupied = [],
   } = {},
 ) {
   const residentHome =
@@ -326,8 +334,11 @@ export function habitatPosition(
     );
   // 城区出生保留整条鱼的转向空间，避免中心合法而头尾嵌进墙面。
   const radius =
-    Math.max(0.45, species.length * (species.cityHabitat ? 0.55 : 0.18)) +
-    padding;
+    Math.max(
+      0.45,
+      species.length *
+        (species.swimClearance ?? (species.cityHabitat ? 0.55 : 0.18)),
+    ) + padding;
   const floorMargin = species.groundbound
     ? (species.groundClearance ?? species.length * 0.28 + 2)
     : species.benthic
@@ -347,7 +358,16 @@ export function habitatPosition(
           }),
         })
     : undefined;
-  for (let attempt = 0; attempt < (species.groundbound ? 512 : 48); attempt++) {
+  const volumeSearch =
+    species.populationSpacing > 0 &&
+    residentHome &&
+    !species.benthic &&
+    !species.groundbound;
+  for (
+    let attempt = 0;
+    attempt < (species.groundbound ? 512 : volumeSearch ? 192 : 48);
+    attempt++
+  ) {
     if (near) {
       // 优先在行进方向远处补生态，失败后允许侧后方；永不贴身生成。
       const angle =
@@ -373,6 +393,19 @@ export function habitatPosition(
             : 3 + attempt * 1.7;
         point.x += Math.cos(angle) * spread;
         point.z += Math.sin(angle) * spread;
+        if (volumeSearch && attempt >= 48) {
+          // Preserve the original planar candidates, then search the full
+          // resident volume when nearby bodies or rocks fill that plane.
+          const i = attempt - 48,
+            vertical = 1 - (2 * ((i % 48) + 0.5)) / 48;
+          const radius =
+            species.residentRadius * [0.45, 0.7, 0.95][Math.floor(i / 48)];
+          const horizontal = Math.sqrt(1 - vertical * vertical) * radius;
+          point.copy(residentHome);
+          point.x += Math.cos(angle) * horizontal;
+          point.z += Math.sin(angle) * horizontal;
+          point.y += vertical * radius;
+        }
       }
     }
     point.x = THREE.MathUtils.clamp(point.x, world.minX + 18, world.maxX - 18);
@@ -389,7 +422,10 @@ export function habitatPosition(
       ? groundSpawnPose(point, species, heightAt, groundBlocked)
       : null;
     if (species.groundbound && !groundPose) continue;
-    const bottom = Math.max(-maximum, heightAt(point.x, point.z) + floorMargin);
+    const bottom = Math.max(
+      -maximum,
+      swimmingFloorHeight(point.x, point.z, species, heightAt, floorMargin),
+    );
     const top = -minimum;
     if (bottom > top) continue;
     point.y =
@@ -398,6 +434,14 @@ export function habitatPosition(
         : THREE.MathUtils.clamp(point.y, bottom, top);
     if (groundPose && species.groundFootprint) point.y = groundPose.y;
     if (point.y < -maximum || point.y > top) continue;
+    // 只对显式配置间距的种类启用；检查地形校正后的点，防止合法点回退再次叠放。
+    if (
+      species.populationSpacing > 0 &&
+      occupied.some(
+        (other) => point.distanceTo(other) < species.populationSpacing - 1e-8,
+      )
+    )
+      continue;
     // 新地图的海床或边界校正也不能把居民挤出独立活动区；无合法空间应明确失败。
     if (
       residentHome &&

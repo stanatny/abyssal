@@ -2,6 +2,7 @@ import test from "node:test";
 import assert from "node:assert/strict";
 import * as THREE from "three";
 import { getRegionSpecies } from "../src/region_ecology.js";
+import { canPredatorHunt } from "../src/nursery_rules.js";
 import {
   habitatPosition,
   initialSpeciesAnchor,
@@ -29,6 +30,44 @@ const futureResident = Object.freeze({
 });
 const profiles = [...residents, futureResident];
 const heightAt = () => -60;
+
+test("水中猎手追击不被巡游返巢掉头打断，脱离领地后恢复返巢", () => {
+  for (const s of getRegionSpecies("europa").filter((s) => s.predator)) {
+    const origin = initialSpeciesAnchor(s, 0);
+    const position = origin
+      .clone()
+      .add(new THREE.Vector3(0, 0, -s.residentRadius));
+    const target = position.clone().add(new THREE.Vector3(0, 0, -20));
+    const forward = { x: 0, y: 0, z: -1 };
+    assert.equal(canPredatorHunt(s, 0, position, target), true, s.kind);
+    assert.equal(steerResidentHabitat(s, 0, position, forward, true), forward);
+    assert.ok(steerResidentHabitat(s, 0, position, forward).z > 0.99, s.kind);
+    const nursery = new THREE.Vector3(0, -20, 70);
+    const permitted = canPredatorHunt(s, 0, position, nursery);
+    assert.equal(permitted, false);
+    assert.ok(
+      steerResidentHabitat(s, 0, position, forward, permitted).z > 0.99,
+    );
+  }
+});
+
+test("追击例外不改变非猎手及陆地、飞行居民的活动区", () => {
+  const forward = { x: 1, y: 0, z: 0 };
+  for (const extra of [
+    {},
+    { predator: true, groundbound: true },
+    { predator: true, flying: true },
+  ]) {
+    const s = { ...futureResident, ...extra };
+    const edge = initialSpeciesAnchor(s, 0).add(
+      new THREE.Vector3(s.residentRadius, 0, 0),
+    );
+    assert.deepEqual(
+      steerResidentHabitat(s, 0, edge, forward, true),
+      steerResidentHabitat(s, 0, edge, forward),
+    );
+  }
+});
 
 test("散居居民保持真实尺寸和独立个体，近前方水层可找到两种居民", () => {
   assert.deepEqual(

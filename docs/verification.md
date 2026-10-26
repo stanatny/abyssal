@@ -1,3 +1,14 @@
+# v0.11.20 release verification — 2026-10-26
+
+All 1,715 delivered Europa input hashes match before release metadata edits.
+The final candidate's 1,873 tests, adult traversal, guard damage, limited food
+and shared-resource receipts keep their original scope. Fresh release checks,
+exact-main Node 22 CI, downloaded Pages artifact hashes and native formal-page
+flows belong to `.local/release_v0_11_20/`; see
+[the release record](release_v0_11_20.md). Physical-phone performance and natural
+whole-round pacing remain unmeasured, rather than being inferred from desktop
+fixtures or meal calculations.
+
 # v0.11.19 release verification — 2026-10-26
 
 All 1,604 delivered Amazon/charge inputs match before release metadata edits.

@@ -45,7 +45,18 @@ for (const kind of kinds)
       second = createCreature(kind, 12, 72);
     // These HF surfaces integrate all soft parts in one skinned mesh.
     // Exercise their rendered skin instead of the retired procedural arm count.
-    if (["cuttlefish", "pearl_nautilus", "cameroceras"].includes(kind)) {
+    if (
+      [
+        "cuttlefish",
+        "pearl_nautilus",
+        "cameroceras",
+        "lumen_stalker",
+        "abyss_weaver",
+        "crown_filterer",
+        "bell_carrier",
+        "spiral_grazer",
+      ].includes(kind)
+    ) {
       const mesh = first.userData.hfRig.mesh,
         other = second.userData.hfRig.mesh;
       assert.equal(mesh.geometry, other.geometry);
@@ -237,8 +248,12 @@ test("Tentacle chunk filtering preserves brute-force surface and interior contac
 });
 
 test("Lumen lance poses reach the real locked point, retain shared surfaces and reset to swimming", () => {
-  const root = createCreature("lumen_stalker", 62, 71);
+  const root = createCreature("lumen_stalker", 62, 71),
+    swimming = createCreature("lumen_stalker", 62, 71);
+  root.userData.setBossPhase("attack");
+  swimming.userData.setBossPhase("attack");
   pose(root, 0);
+  pose(swimming, 0);
   const arms = root.userData.lashArms;
   const target = new THREE.Vector3(0, 0, -70),
     targets = [
@@ -246,34 +261,31 @@ test("Lumen lance poses reach the real locked point, retain shared surfaces and 
       target.clone().add(new THREE.Vector3(5, 0, 0)),
       target.clone().add(new THREE.Vector3(-5, 0, 0)),
     ];
-  const surface = arms[0].userData.tentacle.meshes[0],
+  const surface = root.userData.hfRig.mesh,
     immutable = Float32Array.from(surface.geometry.attributes.position.array);
-  const before = arms[0].userData.tentacle.bones
-    .at(-1)
-    .getWorldPosition(new THREE.Vector3());
   for (let i = 0; i <= 60; i++) {
     pose(root, i / 60);
+    pose(swimming, i / 60);
     root.userData.poseLumenLash(
       targets,
       Array.from({ length: 3 }, () => ({ amount: i / 60 })),
     );
     root.updateMatrixWorld(true);
-    for (const arm of arms)
-      for (const mesh of arm.userData.tentacle.meshes) {
-        for (let v = 0; v < mesh.geometry.attributes.position.count; v += 47) {
-          const point = mesh
+    for (const chunk of surface.userData.tentacleChunks) {
+      const bounds = tentacleChunkBounds(surface, chunk, new THREE.Box3());
+      for (let j = chunk.start; j < chunk.end; j += 47) {
+        const v = surface.geometry.index.getX(j),
+          point = surface
             .getVertexPosition(v, new THREE.Vector3())
-            .applyMatrix4(mesh.matrixWorld);
-          assert.ok(
-            tentacleChunkBounds(
-              mesh,
-              mesh.userData.tentacleChunks[Math.floor(v / 192)],
-              new THREE.Box3(),
-            ).containsPoint(point),
-          );
-        }
+            .applyMatrix4(surface.matrixWorld);
+        assert.ok(
+          bounds.containsPoint(point),
+          "Indexed HF triangle chunk encloses its posed skin",
+        );
       }
+    }
   }
+
   const tip = arms[0].userData.tentacle.bones
     .at(-1)
     .getWorldPosition(new THREE.Vector3());
@@ -286,13 +298,20 @@ test("Lumen lance poses reach the real locked point, retain shared surfaces and 
     "Visible skin is at the attack point",
   );
   assert.deepEqual(surface.geometry.attributes.position.array, immutable);
+  root.userData.setBossPhase("recover");
+  swimming.userData.setBossPhase("recover");
   pose(root, 1.05);
+  pose(swimming, 1.05);
+  const before = swimming.userData.lashArms[0].userData.tentacle.bones
+    .at(-1)
+    .getWorldPosition(new THREE.Vector3());
   const reset = arms[0].userData.tentacle.bones
     .at(-1)
     .getWorldPosition(new THREE.Vector3());
   assert.ok(
-    reset.distanceTo(before) < 12,
-    "Next normal pose restores rest translations",
+    reset.distanceTo(before) < 1e-7,
+    "Next normal pose rejoins the same live swimming pose without residual attack",
   );
-  disposeTentacleMotion(root);
+  root.userData.disposeLocalMotion();
+  swimming.userData.disposeLocalMotion();
 });

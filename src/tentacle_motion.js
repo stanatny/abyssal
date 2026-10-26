@@ -305,6 +305,8 @@ export function tentacleChunkBounds(mesh, chunk, out) {
   for (const [joint, local] of chunk.influences)
     out.union(CHUNK_BOUNDS.copy(local).applyMatrix4(bones[joint].matrixWorld));
   // 包含矩阵乘法的舍入误差，不改变可感知的接触口径。
-  return out.expandByScalar(1e-6);
+  return out.expandByScalar(
+    1e-6 * Math.max(1, mesh.matrixWorld.getMaxScaleOnAxis()),
+  );
 }
 const CHUNK_BOUNDS = new THREE.Box3();

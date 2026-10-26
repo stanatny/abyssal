@@ -3,6 +3,7 @@ import assert from "node:assert/strict";
 import * as THREE from "three";
 import {
   EUROPA_WORLD,
+  europaWorldPoint,
   EUROPA_HABITATS,
   europaSeabedHeight,
 } from "../src/europa_config.js";
@@ -242,11 +243,12 @@ test("staged preparation matches the synchronous floor/solids and cleans a cance
     root.traverse((m) => {
       if (m.name !== "europa_lowest_ground") return;
       const p = m.geometry.attributes.position;
-      for (let i = 0; i < p.count; i += 137)
-        assert.ok(
-          Math.abs(p.getY(i) - europaSeabedHeight(p.getX(i), p.getZ(i))) <
-            0.001,
-        );
+      for (let i = 0; i < p.count; i += 137) {
+        const q = new THREE.Vector3()
+          .fromBufferAttribute(p, i)
+          .applyMatrix4(m.matrixWorld);
+        assert.ok(Math.abs(q.y - europaSeabedHeight(q.x, q.z)) < 0.001);
+      }
     });
   assert.equal(EUROPA_HABITATS.length, 5);
   const cancel = new THREE.Group();
@@ -349,19 +351,26 @@ test("Tidal Loom sectors match rotating warning geometry and leave radial/vertic
 test("authored main descent and both arch loops admit adult full bodies in both directions", () => {
   const ocean = createEuropaOcean(new THREE.Group());
   const routes = [
-    EUROPA_HABITATS.map((h) => h.anchor),
+    // 扩建后的真实船体占据原先直线插值的一段；主下潜路线从西端外绕过。
+    [
+      ...EUROPA_HABITATS.slice(0, 3).map((h) => h.anchor),
+      [70, -500, -740],
+      [-260, -584, -797],
+      [-260, -800, -909],
+      ...EUROPA_HABITATS.slice(3).map((h) => h.anchor),
+    ],
     [
       [-115, -105, -120],
       [-115, -105, -215],
-    ],
+    ].map(europaWorldPoint),
     [
       [115, -292, -350],
       [115, -310, -430],
-    ],
+    ].map(europaWorldPoint),
     [
       [-110, -530, -540],
       [-110, -540, -650],
-    ],
+    ].map(europaWorldPoint),
   ];
   for (const route of routes)
     for (const reverse of [false, true])

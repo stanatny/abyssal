@@ -1,3 +1,4 @@
+import { europaWorldPoint } from "./europa_config.js";
 import * as THREE from "three";
 import { acquireAtlantisQuestAsset } from "./atlantis_quest_asset.js";
 import { mergeGeometries } from "three/addons/utils/BufferGeometryUtils.js";
@@ -143,7 +144,10 @@ export function deepHazardAnchors(ocean, regionId) {
       ],
     }[regionId] || [];
   if (regionId !== "mariana")
-    return sites.map(([x, z, yaw], i) => ({ id: `side_site_${i}`, x, z, yaw }));
+    return sites.map(([x, z, yaw], i) => {
+      const p = regionId === "europa" ? europaWorldPoint([x, 0, z]) : [x, 0, z];
+      return { id: `side_site_${i}`, x: p[0], z: p[2], yaw };
+    });
   ocean.root.updateMatrixWorld(true);
   const meshes = [];
   ocean.root.traverse((n) => {

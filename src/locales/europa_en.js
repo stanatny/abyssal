@@ -1,4 +1,6 @@
 export const EUROPA_EN = {
+  "烟囱是实体，羽流是没有额外伤害的景观。三个领主外围各有少量分散的中大型滤食者，可在战斗间隙觅食；它们按正常节奏补充，不会贴身供应。裂谷掠夺者守在前两处外围，虚渊吞吸者巡游织母深窟，30米时仍需提防。科考船舱内没有补给。":
+    "The towers are solid; their plumes add no damage. A few dispersed medium and large filter feeders live on each lord’s outskirts. Forage between attacks; normal replenishment does not deliver food to you. Rift Reavers guard the first two approaches, while a Void Siphon patrols Weaver’s Hollow. They remain dangerous at 30 m. The research ship has no food inside.",
   "盐晶震层命中 · 上浮或下潜避开锁定水层":
     "Brine wave hit · rise or dive out of the locked layer",
   盐晶君王: "Brine Regent",
@@ -149,16 +151,16 @@ export const EUROPA_EN = {
     "A fictional alien monster, not evidence of large life on Europa.",
   坠毁科考船: "Crashed Research Lander",
   悬生花园与热泉盆地之间: "Between the Suspended Garden and Thermal Basin",
-  四个独立舱室与检修回路: "Four compartments and a service loop",
-  "{0}米长的科考船主舱坠落在冰下斜坡。指挥舱、采样实验舱、生活舱与工程舱由隔舱墙和宽门洞分开。中央通道贯通四舱，小体型可沿高位检修支路绕行。两端与侧面破口提供出入口。破损的承压外壳、散热翼与天线留在海床。":
-    "The {0} m main hull rests on an icy undersea slope. Bulkheads and wide doorways separate command, sampling laboratory, living quarters and engineering. A central passage joins all four compartments; smaller bodies can take an elevated service loop. Both ends and a side breach provide entrances. Damaged pressure panels, radiators and antenna hardware remain on the seabed.",
-  "从两端或侧面破口进入，可逐舱查看失效控制台、采样设备、床铺与压力罐。大体型走中央宽门，小体型可转入检修支路；废弃科考船没有船员、食物或通关宝物。微光来自舱底的幻想附生群落。":
-    "Enter at either end or the side breach and explore dead consoles, sampling equipment, berths and pressure tanks room by room. Large bodies use the central doorways; smaller bodies can take the service branch. The abandoned craft has no crew, food or completion treasure. Faint floor glow comes from fictional attached colonies.",
+  六个独立舱室与检修回路: "Six compartments and a service loop",
+  "{0}米长的科考船主舱横卧在冰下岩阶。扩宽的双层大厅覆盖耐压壁板、隔热内衬与沿顶管束。样品档案舱、指挥舱、湿实验舱、生活舱、工程舱与探测器机库由五道隔舱墙分开。五道宽门左右错开，需穿过舱室转弯探索；高位检修支路连接首尾。分析机、岩芯罐、卧铺、压力泵与维修吊架展示它曾经的科研用途，剥落装甲和失效仪器留下坠毁痕迹。":
+    "The {0} m pressure gallery rests on an under-ice rock terrace. A wider two-level hall has pressure panels, thermal lining and overhead service pipes. Five bulkheads divide a sample archive, command room, wet laboratory, living quarters, engineering room and probe hangar. Five broad doors alternate between the sides, requiring turns through the rooms; a high service loop links both ends. Analyzers, core canisters, bunks, pressure pumps and maintenance hoists recall its scientific mission; stripped armor and dead instruments bear crash damage.",
+  "从两端或侧面破口进入，可逐舱探索样品档案、失效控制台、分析设备、生活区及无人探测器。大体型沿错位宽门逐舱穿行，小体型可绕行高位检修支路。辉渊巡狩者在船首外的开阔水域守卫，接近时留意它的触腕攻击；废弃船没有船员、食物或通关宝物，微光来自舱底附生群落。":
+    "Enter through either end or the side breach to explore sample archives, dead consoles, analysis equipment, living spaces and unmanned probes. Large bodies turn through the staggered broad doors; smaller bodies can circle through the high service route. The Lumen Stalker guards the open water outside the bow: watch for its arm strikes when approaching. There are no crew, food or victory items; attached organisms supply the faint light.",
   化学能源栖地: "Chemical-Energy Habitat",
   热泉盆地及冰下侧坡: "Thermal Basin and under-ice slopes",
   "矿物沉积 · 温和羽流": "Mineral deposits \u00b7 gentle plumes",
-  "层叠矿物烟囱与缓慢升起的羽流描绘一种可能的水岩反应环境。科学家认为木卫二海底可能提供化学能源，但热泉和生命尚未被证实。":
-    "Layered mineral chimneys and slow rising plumes imagine a possible water-rock reaction environment. Scientists consider chemical energy beneath Europa possible; vents and life remain unconfirmed.",
+  "层叠的浅色矿塔与温和羽流描绘可能的低温渗流环境。水与岩石反应可能产生氢，为化学能食物链提供原料；这里的沉积地貌与生物仍是幻想，尚非木卫二的实测发现。":
+    "Pale layered towers and gentle plumes imagine low-temperature seeps. Water-rock reactions may produce hydrogen to support chemical-energy food chains. These deposits and organisms are speculative, not observed discoveries on Europa.",
   "烟囱是实体，羽流是没有额外伤害的景观。群落微光属于游戏幻想，营养仍来自原有分层生物。":
     "Chimneys are solid; the plumes are scenery and cause no additional damage. Colonial glow is fictional, and food still comes from the existing layered ecosystem.",
   盐矿晶簇: "Salt-Mineral Clusters",

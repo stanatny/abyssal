@@ -1,5 +1,150 @@
 # ABYSSAL Development Rules
 
+Europa main-publication scope — 2026-10-26: the user requests a finishing
+review and main publication if no blocking work remains. The audit finds no
+known release blocker; all 1,715 delivered source hashes match before release
+metadata edits. v0.11.20 includes the complete Europa roster, expanded basin,
+six-compartment research wreck, navigation/render repairs and bounded lord-area
+food/threat redistribution. Earlier candidate/no-push labels below are dated
+history for this scope. The current AI agent completes release checks and exact
+Pages verification independently; physical-phone performance and natural
+whole-round pacing remain unmeasured. See [the release record](docs/release_v0_11_20.md).
+
+Europa battle-ecology finish — 2026-10-26: the user requests adult threats
+and limited combat food after expansion. Existing stocks are redistributed:
+each lord has three separate medium/large feeding homes and one nearby 29/32 m
+hunter able to threaten a 30 m player. Five Prism homes enclosed by the enlarged
+ship move outside. Total population, rewards, combat values and other maps stay
+unchanged. Fresh placement, actual damage, feeding and replenishment checks are
+recorded in [the ecology review](docs/europa_ecology_finish.md). This candidate
+awaits review; no commit/push.
+
+Europa compartment exploration / wall repair — 2026-10-26: the user rejects
+flickering walls and the straight-through gallery. Five staggered pressure doors
+now connect six rooms inside the same 489.6 m hull; grown bodies turn through
+53.1 m openings, with a side breach and upper return loop. Coplanar frame faces
+are removed. The existing Lumen Stalker guards the bow approach with body-sized
+navigation; three-lord victory rules and attack values remain. Native traversal
+and actual lash damage are checked; this candidate awaits review, without
+commit/push. See [the exploration follow-up](docs/europa_cabins_revision.md#staggered-compartments-wall-joints-and-bow-guardian--2026-10-26).
+
+Europa wider-hall / travel-hitch follow-up — 2026-10-26: following the user's
+feedback that the six-room ship remains narrow and plain, its pressure gallery
+now measures 489.6 × 188.25 × 119.25 m, with 131.7 m central doors, layered wall
+cassettes, pressure frames and overhead services. A native trace also reproduced
+a light-count shader-compilation stall during travel; the three-light pool now
+changes intensity without changing visibility. Full-body routes, external arches
+and 1,868 tests pass. Physical-phone performance is unmeasured; this candidate
+awaits review, without commit/push. See [the cabin follow-up](docs/europa_cabins_revision.md#wider-pressure-halls-and-travel-hitch-repair--2026-10-26).
+
+Europa six-room ship candidate — 2026-10-26: the user finds the earlier
+research ship too small and sparsely furnished. Its gallery grows from 184.8 m
+to 353.6 m, adding sample archive and probe hangar compartments plus an actual
+HF analyzer and fitted equipment throughout. Full-body routes, ground support,
+rock exclusion and shared resource cleanup are checked. Earlier Europa models
+and gameplay are preserved. No commit/push; see [the cabin review](docs/europa_cabins_revision.md).
+
+Europa terrain / research-wreck candidate — 2026-10-26: the Europa creature
+inventory is complete; a larger 960×1,824 world-metre basin now has layered side
+terraces, ice/mineral surfaces and HF seep towers. A damaged HF command module
+and segmented armor update the four-room research wreck on a fitted rock bench.
+Creature sizes/combat remain; homes, depth bands, territories and hazards move
+with the terrain. Science is qualified as speculation. This new appearance awaits
+review, without commit/push. See [the terrain record](docs/europa_terrain_wreck_revision.md).
+
+Europa movement/render repair candidate — 2026-10-26: the user reports black
+blocks and missed predator attacks. Invalid normals in three Europa assets are
+repaired offline; a 48-view Lantern reproduction changes from five bad HDR
+frames to zero. Legal swimming pursuit no longer receives patrol-home steering;
+terrain/nursery limits and attack values remain. Prior batch work is preserved,
+with no commit/push. See [the defect review](docs/europa_huggingface_redraw.md#movement-black-blocks-and-missed-predator-attacks--2026-10-26).
+
+Europa batch 6 candidate — 2026-10-26: following acceptance to continue after
+the Crown arm repair, actual HF exports redraw Six-wing Crystal Seraph and the
+rooted siphon/fan colonies. Six independent membranes, upright fans, bounded
+near/far detail and shared color recovery preserve the existing gameplay and
+585 scene contacts. New appearances await review; no commit/push. See
+[the batch record](docs/europa_huggingface_redraw.md#batch-6--exclusive-rare-and-rooted-colonies--2026-10-26).
+
+Crown Filterer arm-motion follow-up candidate — 2026-10-26: the user finds the
+trailing arms visually motionless. A stronger travelling bend and a continuous
+axial binding now make their soft movement readable without collapsing the web.
+The existing HF shape/colors, terrain fix and other species remain unchanged.
+This focused correction awaits review, without commit/push. See
+[the follow-up](docs/europa_huggingface_redraw.md#crown-filterer-arm-motion-follow-up--2026-10-26).
+
+Europa batch 5 swimming/terrain repair candidate — 2026-10-26: the user
+rejects Crown Filterer swimming and terrain penetration. A new actual HF source
+has rearward arms, with mantle-led jet/glide posing. Eight opted-in swimmers now
+use their full posed envelope for birth/rock sweeps and footprint-aware seabed
+clearance. Earlier batch-5 checks did not cover this defect. Other appearances,
+descriptions and combat are preserved. This repair awaits review, without
+commit/push. See [the repair](docs/europa_huggingface_redraw.md#batch-5-swimming-and-terrain-repair--2026-10-26).
+
+Europa batch 5 candidate — 2026-10-26: following the user's acceptance to
+continue after the hunter-motion repair, four ordinary giants receive actual HF
+exports and fitted soft-body movement. The work also covers continuous spacing
+and a repeated-round birth-slot correction. Existing descriptions, ecology and
+combat remain. No commit/push; new appearances await review. See
+[the batch record](docs/europa_huggingface_redraw.md#ordinary-creature-batch-5--2026-10-26).
+
+Europa batch 4 motion repair candidate — 2026-10-26: the user rejects continued
+crowding and incorrect swimming. Four hunters now use continuous neighbour
+clearance, gradual forward-facing turns and resolved-travel-driven tail motion;
+rock contacts wait/turn instead of sliding backwards. Actual bites still work.
+Earlier batch-4 checks are historical, not acceptance of this revision. No
+commit/push; see [the repair](docs/europa_huggingface_redraw.md#batch-4-hunter-spacing-and-swimming-repair--2026-10-26).
+
+Europa hunter batch 4 candidate — 2026-10-26: following acceptance to continue,
+four actual HF exports replace Forkjaw Stalker, Prism Hunter, Rift Reaver and
+Void Siphon, with fitted attack mouthparts, tail motion and shared colors.
+Forkjaw/Prism also reuse the existing birth-spacing checks after native footage
+revealed overlapping/too-close starts; counts, homes and combat remain.
+These appearances await review, without commit/push. See
+[the batch record](docs/europa_huggingface_redraw.md#ordinary-creature-batch-4--2026-10-26).
+
+Europa population-spacing correction candidate — 2026-10-26: the user authorizes
+repairing the batch-3 overlap finding. Four kinds opt into terrain-valid occupied
+position checks for birth, reset, replenishment and school migration. Pod/Glider
+slots use posed-body clearance; temporary lack of room defers replenishment.
+Population, layers, resident homes, models and combat remain. Native starts,
+respawns and migration pass; this revision awaits review, without commit/push.
+See [the repair](docs/europa_huggingface_redraw.md#batch-3-population-spacing-repair--2026-10-26).
+
+Europa ordinary-creature batch 3 candidate — 2026-10-26: the user accepts
+continuing after the Ribbon Spore motion follow-up. Brine Rosette, Hinge Walker,
+Lantern Pod and Veil Glider now have actual HF appearances and fitted shell,
+leg, skirt and wing motion. Written descriptions, ecology and gameplay remain.
+New appearances await review; no commit/push. See [the batch review](docs/europa_huggingface_redraw.md#ordinary-creature-batch-3--2026-10-26).
+
+Europa batch 2 accepted / Ribbon Spore motion follow-up — 2026-10-26:
+the user accepts this batch's appearances and requests more supple Ribbon Spore
+motion. The same mesh, colors and 13-bone rig now carry a stronger travelling
+curvature wave with a steady leading end and delayed filament movement. Future
+redraws derive their visual design from the existing written descriptions and
+plausible anatomy; legacy meshes/colors are not design constraints. The new
+motion awaits review. No commit/push. See [the Europa follow-up](docs/europa_huggingface_redraw.md#ribbon-spore-soft-motion-follow-up--2026-10-26).
+
+Europa ordinary-creature batch 2 candidate — 2026-10-26: the user accepts
+continuing after the Lumen swimming correction. Four new HF appearances replace
+Glass Seed, Ribbon Spore, Tripod Bloom and Sail Crawler, with fitted independent
+motion and shared color recovery. Existing descriptions, ecology and combat are
+unchanged. This batch awaits visual review; neither this batch nor the prior
+Europa candidates are committed/pushed. See [the Europa review](docs/europa_huggingface_redraw.md#ordinary-creature-batch-2--2026-10-26).
+
+Lumen locomotion follow-up candidate — 2026-10-26: the user rejects the
+permanently spread cruising arms. Eight length-preserving chains now gather
+behind a mantle-leading body during actual travel, open on stopping, and present
+the crown during wind-up. Existing three lashes and gameplay are retained.
+This revision awaits visual review; no commit/push. See [the Europa review](docs/europa_huggingface_redraw.md#lumen-locomotion-follow-up--2026-10-26).
+
+Europa three-lord redraw candidate — 2026-10-26: Amazon and the accepted
+predator charge correction are published on main as `72ce40d` / v0.11.19.
+The separate `art/europa-hf-redraw` branch replaces Brine Regent, Lumen Stalker
+and Abyss Weaver with actual HF exports and fitted continuous motion. Existing
+creature descriptions and combat/ecology remain unchanged. New appearances
+await user review; no candidate commit/push. See [the Europa review](docs/europa_huggingface_redraw.md).
+
 Amazon and ordinary-predator main publication — 2026-10-26: the user accepts
 the delivered charge repair and authorizes committing and pushing the completed
 Amazon work to main as v0.11.19. Earlier candidate/no-push labels below are dated
@@ -7,7 +152,6 @@ history for this accepted scope. Runtime inputs match the delivered fingerprints
 before release metadata edits. The next Europa redraw remains a separate task;
 its existing creature descriptions and gameplay must be preserved. See
 [the release record](docs/release_v0_11_19.md).
-
 
 Ordinary predator charge candidate — 2026-10-26: accepted Amazon work is
 committed locally as `b1dc929`. A separate correction bounds yellow-hunter flank
@@ -889,6 +1033,13 @@ Current release scope: the user authorizes the accepted English localization fix
 Read [README.md](README.md) and [HANDOFF.md](HANDOFF.md) first, then the documents relevant to the task. Historical states in the handoff do not override current rules.
 
 ## Quality bar for new content
+
+For user-authorized creature redraws, derive a fresh silhouette, anatomy and palette
+from the existing written description and a coherent interpretation of the lifeform.
+Legacy appearances are comparison/regression evidence, not mandatory design templates.
+Preserve explicitly accepted features only where the user asks to retain them; retain
+existing descriptions and gameplay unless the user separately authorizes changes.
+This direction does not require regenerating appearances the user has already accepted.
 
 Before adding or redrawing fish, playable characters, people, ships, environments, rewards, abilities, or their audio and effects, read and follow the [asset quality standard](docs/asset_quality_standard.md). Comparable polished assets in released **v0.6.10 / `5a3248e`** are the minimum reference; later accepted improvements in the same category become the new reference. Do not regress to placeholder models, recolored primitive shapes, poor synthetic voices, or crude particle piles.
 

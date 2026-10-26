@@ -33,7 +33,34 @@ export function createSiphonColonyGeometry() {
     );
   }
   g.computeVertexNormals();
+  repairLathePoleNormals(g);
   return g;
+}
+
+/** 旋转面极点的 UV 接缝可只有退化邻面；借用同一实体点的有效法线，形体与索引不变。 */
+export function repairLathePoleNormals(geometry) {
+  const p = geometry.attributes.position,
+    n = geometry.attributes.normal;
+  const sum = new THREE.Vector3();
+  for (let i = 0; i < n.count; i++) {
+    const length2 = n.getX(i) ** 2 + n.getY(i) ** 2 + n.getZ(i) ** 2;
+    if (Number.isFinite(length2) && length2 > 1e-12) continue;
+    sum.set(0, 0, 0);
+    for (let j = 0; j < n.count; j++) {
+      const d =
+        (p.getX(i) - p.getX(j)) ** 2 +
+        (p.getY(i) - p.getY(j)) ** 2 +
+        (p.getZ(i) - p.getZ(j)) ** 2;
+      const l = n.getX(j) ** 2 + n.getY(j) ** 2 + n.getZ(j) ** 2;
+      if (d < 1e-10 && Number.isFinite(l) && l > 1e-12)
+        sum.add(new THREE.Vector3(n.getX(j), n.getY(j), n.getZ(j)));
+    }
+    if (sum.lengthSq() < 1e-12)
+      throw new Error("Lathe pole has no valid neighbouring normal");
+    sum.normalize();
+    n.setXYZ(i, sum.x, sum.y, sum.z);
+  }
+  return geometry;
 }
 
 /** 多层折扇生物用一份闭合曲面供实例共享，薄边与根部有明显厚度差。 */

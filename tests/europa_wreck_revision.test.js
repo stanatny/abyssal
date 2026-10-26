@@ -5,7 +5,7 @@ import {
   createEuropaResearchWreckSteps,
   EUROPA_WRECK_SITE,
 } from "../src/europa_research_wreck.js";
-import { europaSeabedHeight } from "../src/europa_config.js";
+import { europaSeabedHeight, EUROPA_WORLD } from "../src/europa_config.js";
 import { createEuropaOcean } from "../src/europa_ocean.js";
 import {
   bodyRadius,
@@ -39,17 +39,17 @@ function wreck() {
   };
 }
 
-test("Enlarged research wreck preserves staged ownership and four differentiated unpowered rooms", () => {
+test("Enlarged research wreck preserves staged ownership and six differentiated unpowered rooms", () => {
   const w = wreck();
   try {
-    assert.equal(EUROPA_WRECK_SITE.scale, 2.2);
+    assert.equal(EUROPA_WRECK_SITE.scale, 3);
     assert.deepEqual(EUROPA_WRECK_SITE.gallery, {
-      width: 79.2,
-      height: 66,
-      length: 184.8,
+      width: 188.25,
+      height: 119.25,
+      length: 489.6,
     });
-    assert.deepEqual(w.root.scale.toArray(), [2.2, 2.2, 2.2]);
-    assert.equal(w.root.position.x, 145);
+    assert.deepEqual(w.root.scale.toArray(), [3, 3, 3]);
+    assert.equal(w.root.position.x, EUROPA_WRECK_SITE.x);
     assert.deepEqual(w.labels, [
       "research-pressure-hull",
       "research-gallery",
@@ -58,9 +58,18 @@ test("Enlarged research wreck preserves staged ownership and four differentiated
     ]);
     assert.deepEqual(
       w.rooms.map((room) => room.id),
-      ["command", "wet_laboratory", "living_quarters", "engineering"],
+      [
+        "sample_archive",
+        "command",
+        "wet_laboratory",
+        "living_quarters",
+        "engineering",
+        "probe_hangar",
+      ],
     );
     for (const name of [
+      "wreck_sample_archive",
+      "wreck_unmanned_probe_hangar",
       "wreck_damaged_command_and_communications",
       "wreck_wet_sampling_laboratory",
       "wreck_empty_living_quarters",
@@ -76,8 +85,10 @@ test("Enlarged research wreck preserves staged ownership and four differentiated
     );
     w.parent.traverse((node) => {
       if (!node.isMesh) return;
-      assert.ok(w.resources.has(node.geometry));
-      assert.ok(w.resources.has(node.material));
+      if (!node.userData.sharedEuropaScenery) {
+        assert.ok(w.resources.has(node.geometry));
+        assert.ok(w.resources.has(node.material));
+      }
       assert.equal(node.material.transparent, false);
       if (
         node.material.emissiveIntensity > 0 &&
@@ -90,7 +101,7 @@ test("Enlarged research wreck preserves staged ownership and four differentiated
     });
     assert.equal(w.lightSources.length, 1);
     assert.equal(w.lightSources[0].intensity, 38);
-    assert.ok(Math.abs(w.root.userData.centralClearWidth - 39.38) < 1e-8);
+    assert.ok(Math.abs(w.root.userData.centralClearWidth - 53.1) < 1e-8);
   } finally {
     w.dispose();
   }
@@ -170,7 +181,7 @@ test("Every local structural solid uses the same full scaled transform as the vi
             solid.b.clone().applyMatrix4(w.root.matrixWorld),
           ) < 1e-8,
         );
-        assert.ok(Math.abs(collider.radius - solid.radius * 2.2) < 1e-8);
+        assert.ok(Math.abs(collider.radius - solid.radius * 3) < 1e-8);
       } else {
         const collider = boxes[boxIndex++];
         const center = new THREE.Vector3(...solid.p).applyMatrix4(
@@ -183,7 +194,7 @@ test("Every local structural solid uses the same full scaled transform as the vi
         );
         assert.ok(
           collider.halfSize.distanceTo(
-            new THREE.Vector3(...solid.sizes).multiplyScalar(1.1),
+            new THREE.Vector3(...solid.sizes).multiplyScalar(1.5),
           ) < 1e-8,
         );
         assert.ok(
@@ -196,7 +207,7 @@ test("Every local structural solid uses the same full scaled transform as the vi
     assert.ok(
       w.colliders
         .find((solid) => solid.id === "europa_wreck_dish")
-        .axes.distanceTo(new THREE.Vector3(17.6, 2.64, 17.6)) < 1e-8,
+        .axes.distanceTo(new THREE.Vector3(24, 3.6, 24)) < 1e-8,
     );
   } finally {
     w.dispose();
@@ -263,27 +274,30 @@ test("Both open ends and side breach admit 32 m full bodies with actual regional
   }
 });
 
-test("Four compartments have physical bulkheads and a separate service loop with valid turns", () => {
+test("Six compartments have physical bulkheads and a separate service loop with valid turns", () => {
   const ocean = createEuropaOcean(new THREE.Group());
   const w = ocean.researchWreck;
   const at = (x, y, z) =>
     new THREE.Vector3(x, y, z).applyMatrix4(w.root.matrixWorld);
   try {
-    assert.deepEqual(w.root.userData.bulkheadZ, [-20, 2, 23]);
-    for (const z of w.root.userData.bulkheadZ) {
-      for (const x of [-13.7, 9.7])
+    assert.deepEqual(
+      w.root.userData.bulkheadZ,
+      [-42, -20, 2, 23, 42].map((z) => z * 1.2),
+    );
+    for (const [index, z] of w.root.userData.bulkheadZ.entries()) {
+      for (const x of [-26.7, 22.7])
         assert.equal(
-          isPositionBlocked(at(x, 20.8, z), {
+          isPositionBlocked(at(x, 30.5, z), {
             colliders: w.colliders,
             radius: 0.65,
           }),
           true,
         );
-      for (const x of [0, 14])
+      for (const x of [w.root.userData.doorwayX[index], 27])
         assert.equal(
-          isPositionBlocked(at(x, x ? 22.5 : 21, z), {
+          isPositionBlocked(at(x, x === 27 ? 30.5 : 21, z), {
             colliders: w.colliders,
-            radius: bodyRadius(x ? 16 : 32),
+            radius: bodyRadius(x === 27 ? 16 : 32),
           }),
           false,
         );
@@ -291,15 +305,15 @@ test("Four compartments have physical bulkheads and a separate service loop with
     // 侧道隔墙真实阻挡横穿；仅首尾舱的两个门洞可以进入侧道。
     for (const z of [-12, 12])
       assert.equal(
-        isPositionBlocked(at(9.4, 22.5, z), {
+        isPositionBlocked(at(22.4, 30.5, z), {
           colliders: w.colliders,
           radius: 0.65,
         }),
         true,
       );
-    for (const z of [-31, 33])
+    for (const z of [-66, 66])
       assert.equal(
-        isPositionBlocked(at(9.4, 22.5, z), {
+        isPositionBlocked(at(22.4, 30.5, z), {
           colliders: w.colliders,
           radius: bodyRadius(16),
         }),
@@ -324,11 +338,13 @@ test("Four compartments have physical bulkheads and a separate service loop with
             `${length} m side-loop turn at ${point.toArray()}`,
           );
     const bounds = new THREE.Box3().setFromObject(w.root);
-    assert.ok(bounds.min.x >= -300 && bounds.max.x <= 300);
+    assert.ok(
+      bounds.min.x >= EUROPA_WORLD.minX && bounds.max.x <= EUROPA_WORLD.maxX,
+    );
     const hullBounds = new THREE.Box3().setFromObject(
       w.root.getObjectByName("wreck_pressure_hull"),
     );
-    assert.ok(Math.abs(hullBounds.max.x - hullBounds.min.x - 184.8) < 0.1);
+    assert.ok(Math.abs(hullBounds.max.x - hullBounds.min.x - 489.6) < 0.1);
   } finally {
     ocean.dispose();
   }
@@ -340,7 +356,7 @@ test("Adult breach approach bends continuously into the laboratory turning bay",
     const wreck = ocean.researchWreck;
     const route = wreck.routes.find((route) => route.id === "starboard_breach");
     const localEnd = wreck.root.worldToLocal(route.points.at(-1).clone());
-    assert.ok(localEnd.distanceTo(new THREE.Vector3(0, 21, -9)) < 1e-8);
+    assert.ok(localEnd.distanceTo(new THREE.Vector3(0, 21, -10.8)) < 1e-8);
     // 连续曲线保留进入破口后转向上方中央舱室的弯道，不能靠分段瞬移航向证明通行。
     for (const reverse of [false, true]) {
       const points = reverse ? [...route.points].reverse() : route.points;
@@ -431,10 +447,159 @@ test("Raised service deck leaves adult pitch-recovery space above the low breach
           );
         }
     const deck = w.root.userData.localSolids.find(
-      (solid) => solid.p?.[0] === 13.9 && solid.sizes?.[1] === 0.7,
+      (solid) => solid.p?.[0] === 26.9 && solid.sizes?.[1] === 0.7,
     );
-    assert.equal(deck.p[1], 18.5);
-    assert.equal(w.root.userData.serviceLoopRoute.length, 7);
+    assert.equal(deck.p[1], 26.5);
+    assert.ok(w.root.userData.serviceLoopRoute.length > 7);
+  } finally {
+    w.dispose();
+  }
+});
+
+test("The extended rooms remain free of external ledges across their whole interior", () => {
+  const ocean = createEuropaOcean(new THREE.Group());
+  try {
+    const w = ocean.researchWreck;
+    const own = new Set(w.colliders);
+    const external = ocean.colliders.filter((c) => !own.has(c));
+    for (let x = -30; x <= 30; x += 4)
+      for (let y = 7; y <= 39; y += 4)
+        for (let z = -80; z <= 80; z += 5) {
+          const p = w.root.localToWorld(new THREE.Vector3(x, y, z));
+          assert.equal(
+            isPositionBlocked(p, { colliders: external, radius: 0.25 }),
+            false,
+            `outside rock inside cabin at ${x},${y},${z}`,
+          );
+        }
+  } finally {
+    ocean.dispose();
+  }
+});
+
+test("Europa local illumination crosses source ranges without changing the shader light count", () => {
+  const ocean = createEuropaOcean(new THREE.Group());
+  try {
+    const lamps = [];
+    ocean.root.traverse((n) => {
+      if (n.isPointLight) lamps.push(n);
+    });
+    assert.equal(lamps.length, 3);
+    const identities = lamps.map((n) => n.uuid);
+    const locations = [
+      new THREE.Vector3(0, 10000, 0),
+      ...ocean.lightSources.flatMap((source) => [
+        source.position.clone().add(new THREE.Vector3(101, 0, 0)),
+        source.position.clone(),
+        source.position.clone().add(new THREE.Vector3(-101, 0, 0)),
+      ]),
+      new THREE.Vector3(0, 10000, 0),
+    ];
+    for (const [i, p] of locations.entries()) {
+      ocean.update(i / 60, p, 1 / 60, i % 2 === 0);
+      assert.deepEqual(
+        lamps.map((n) => n.uuid),
+        identities,
+      );
+      assert.ok(
+        lamps.every((n) => n.visible),
+        "visible light count must remain fixed",
+      );
+      const nearest = [...ocean.lightSources].sort(
+        (a, b) =>
+          a.position.distanceToSquared(p) - b.position.distanceToSquared(p),
+      );
+      for (const [k, lamp] of lamps.entries()) {
+        assert.equal(
+          lamp.intensity,
+          nearest[k]?.position.distanceTo(p) < 100 ? nearest[k].intensity : 0,
+        );
+      }
+    }
+  } finally {
+    ocean.dispose();
+  }
+});
+
+test("Staggered pressure doors block end-to-end views while adults follow continuous bends", () => {
+  const ocean = createEuropaOcean(new THREE.Group());
+  try {
+    const w = ocean.researchWreck;
+    w.root.updateWorldMatrix(true, true);
+    for (const reverse of [false, true]) {
+      const points = reverse ? [...w.route].reverse() : w.route;
+      const curve = new THREE.CatmullRomCurve3(points, false, "centripetal");
+      let previous = curve.getPoint(0);
+      for (let i = 1; i <= 1200; i++) {
+        const desired = curve.getPoint(i / 1200);
+        const result = resolveMotion(previous, desired, {
+          colliders: ocean.colliders,
+          radius: bodyRadius(32),
+          length: 32,
+          forward: curve.getTangent(i / 1200),
+          floorHeight: (x, z) => ocean.heightAt(x, z) + bodyRadius(32) + 0.4,
+        });
+        assert.equal(result.contacts.length, 0, `continuous ${reverse}:${i}`);
+        assert.equal(result.stuck, false);
+        previous = result.position;
+      }
+      for (const x of [-15, 0, 15])
+        for (const y of [10, 20, 30]) {
+          const a = w.root.localToWorld(
+            new THREE.Vector3(x, y, reverse ? -74 : 74),
+          );
+          const b = w.root.localToWorld(
+            new THREE.Vector3(-x, y, reverse ? 74 : -74),
+          );
+          const ray = new THREE.Raycaster(
+            a,
+            b.clone().sub(a).normalize(),
+            0,
+            a.distanceTo(b),
+          );
+          const hit = ray.intersectObject(
+            w.root.getObjectByName("wreck_room_bulkheads"),
+            true,
+          )[0];
+          assert.ok(
+            hit && hit.distance < a.distanceTo(b) * 0.55,
+            "real opaque walls interrupt the view",
+          );
+        }
+    }
+  } finally {
+    ocean.dispose();
+  }
+});
+
+test("Pressure-frame joints have a single visible surface rather than coplanar overlapping faces", () => {
+  const w = wreck();
+  try {
+    const ray = new THREE.Raycaster();
+    for (const [i, z] of w.root.userData.bulkheadZ.entries()) {
+      const door = w.root.userData.doorwayX[i];
+      const samples = [
+        ...[-30.57, 30.57].map((x) => [[x, 14, z - 4], [0, 0, 1], 15]),
+        ...[-0.4, 0, 0.4].flatMap((dz) =>
+          [-1, 1].map((side) => [[door, 14, z + dz], [side, 0, 0], 40]),
+        ),
+      ];
+      for (const [p, d, far] of samples) {
+        ray.set(
+          w.root.localToWorld(new THREE.Vector3(...p)),
+          new THREE.Vector3(...d).applyQuaternion(w.root.quaternion),
+        );
+        ray.far = far;
+        const hits = ray.intersectObject(w.root, true);
+        assert.ok(hits.length);
+        for (let j = 1; j < hits.length; j++)
+          if (hits[j - 1].face.normal.dot(hits[j].face.normal) > 0.99)
+            assert.ok(
+              Math.abs(hits[j - 1].distance - hits[j].distance) > 1e-5,
+              `coplanar pressure face ${i}:${p}`,
+            );
+      }
+    }
   } finally {
     w.dispose();
   }

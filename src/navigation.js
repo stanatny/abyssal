@@ -3,6 +3,7 @@
  * 提前观察边界与海床，输出连续回转的单位方向，位置约束仍由游戏循环负责。
  */
 
+import { swimmingFloorHeight } from "./swimming_clearance.js";
 import { WORLD } from "./world_config.js";
 import { resolveMotion } from "./collision.js";
 import {
@@ -49,10 +50,17 @@ export function steerWithinHabitat(position, direction, species, seabedHeight) {
     avoid(0, 1, 1 - (position.z - world.minZ) / lookAhead);
   }
 
-  const margin = species.length * 0.28 + 2;
+  const margin = Math.max(
+    species.length * 0.28 + 2,
+    species.length * (species.swimClearance || 0) + 0.15,
+  );
   const requiredDepth = species.depthMin + margin;
-  const predictedSeabed = seabedHeight(predictedX, predictedZ);
-  const currentSeabed = seabedHeight(position.x, position.z);
+  const predictedSeabed =
+    swimmingFloorHeight(predictedX, predictedZ, species, seabedHeight, margin) -
+    margin;
+  const currentSeabed =
+    swimmingFloorHeight(position.x, position.z, species, seabedHeight, margin) -
+    margin;
   if (
     species.groundbound &&
     predictedSeabed < (species.minimumGroundHeight ?? world.surfaceY)
@@ -154,7 +162,12 @@ export function resolveCreatureMotion(
       direction: steerWithinHabitat(previous, direction, habitat, heightAt),
       contacts: [],
     };
-  const radius = Math.max(0.45, habitat.length * 0.18);
+  // Opted-in wide swimmers use the measured posed envelope for rock contact
+  // too. The legacy narrow fish capsule cannot protect bells, arms or wings.
+  const radius = Math.max(
+    0.45,
+    habitat.length * (habitat.swimClearance ?? 0.18),
+  );
   if (!colliders?.length) return null;
   const extent = Math.max(0, habitat.length * 0.42 - radius);
   const bounds = {
@@ -195,7 +208,13 @@ export function resolveCreatureMotion(
     desired.z < bounds.minZ ||
     desired.z > bounds.maxZ;
   const floorHeight = (x, z) =>
-    heightAt(x, z) + (habitat.groundClearance ?? habitat.length * 0.28 + 2);
+    swimmingFloorHeight(
+      x,
+      z,
+      habitat,
+      heightAt,
+      habitat.groundClearance ?? habitat.length * 0.28 + 2,
+    );
   const candidates = outside
     ? colliders
     : cached.grid.query(previous, desired, {

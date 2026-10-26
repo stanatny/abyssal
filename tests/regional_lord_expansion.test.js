@@ -115,27 +115,24 @@ for (const [region, kind, makeOcean] of additions) {
       }
     });
     assert.ok(meshes < 35 && triangles < 40000);
-    if (kind === "brine_regent") {
-      let sensors = 0;
-      a.traverse((n) => {
-        if (n.name === "embedded_amber_sensor") sensors++;
-      });
-      assert.equal(
-        sensors,
-        2,
-        "Both nested sensors must survive static batching",
-      );
-    }
-    const glowName =
-      kind === "brine_regent"
-        ? "embedded_amber_sensor"
-        : "barbel_conductive_seam";
+    const glowName = "barbel_conductive_seam";
     const glowA =
-      a.userData.hfRig?.charged ?? a.getObjectByName(glowName).material;
+      a.userData.hfRig?.charged ??
+      a.userData.hfRig?.material ??
+      a.getObjectByName(glowName).material;
     const glowB =
-      b.userData.hfRig?.charged ?? b.getObjectByName(glowName).material;
+      b.userData.hfRig?.charged ??
+      b.userData.hfRig?.material ??
+      b.getObjectByName(glowName).material;
     assert.notEqual(glowA, glowB, "Charge brightness belongs to each instance");
-    assert.ok(glowA.emissiveIntensity > glowB.emissiveIntensity);
+    if (kind === "brine_regent") {
+      // 新模型的两侧感压器已经在同一 HF 表面，独立亮度由着色器 uniform 驱动。
+      assert.ok(a.userData.hfRig.charge.value > b.userData.hfRig.charge.value);
+      assert.equal(
+        a.userData.hfRig.chains.filter((c) => c.type === "jaw").length,
+        6,
+      );
+    } else assert.ok(glowA.emissiveIntensity > glowB.emissiveIntensity);
     let disposed = 0,
       skeletons = 0;
     glowA.addEventListener("dispose", () => disposed++);
@@ -145,7 +142,7 @@ for (const [region, kind, makeOcean] of additions) {
       n.skeleton.computeBoneTexture();
       n.skeleton.boneTexture.addEventListener("dispose", () => disposed++);
     });
-    assert.equal(skeletons, kind === "thunderbarbel" ? 1 : 0);
+    assert.equal(skeletons, 1);
     a.userData.disposeLocalMotion();
     a.userData.disposeLocalMotion();
     assert.equal(

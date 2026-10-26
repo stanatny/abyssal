@@ -1,3 +1,7 @@
+import { addPressureLining } from "./europa_wreck_lining.js";
+import { addResearchInterior } from "./europa_wreck_interior.js";
+import { acquireEuropaSceneryAsset } from "./europa_scenery_asset.js";
+import { europaWorldPoint } from "./europa_config.js";
 import * as THREE from "three";
 import { RoundedBoxGeometry } from "three/addons/geometries/RoundedBoxGeometry.js";
 import { mergeGeometries } from "three/addons/utils/BufferGeometryUtils.js";
@@ -8,11 +12,11 @@ import {
 } from "./europa_environment_geometry.js";
 
 export const EUROPA_WRECK_SITE = Object.freeze({
-  x: 145,
-  z: -470,
+  x: europaWorldPoint([60, 0, -470])[0],
+  z: europaWorldPoint([60, 0, -470])[2],
   yaw: Math.PI / 2,
-  scale: 2.2,
-  gallery: Object.freeze({ width: 79.2, height: 66, length: 184.8 }),
+  scale: 3,
+  gallery: Object.freeze({ width: 188.25, height: 119.25, length: 489.6 }),
 });
 
 /** 坠毁科考登陆舱：真实空心通舱、贴坡支撑和分片建模，资源归属外层地图。 */
@@ -41,10 +45,10 @@ export function* createEuropaResearchWreckSteps(
   // 实际底板完整足迹采样确定标高，不能只把中心放在斜坡上。
   let supportedY = -Infinity;
   const supportSamples = [];
-  for (let x = -19; x <= 19; x += 1)
-    for (let z = -42; z <= 42; z += 1) {
+  for (let x = -32; x <= 32; x += 1)
+    for (let z = -81.6; z <= 81.6; z += 1) {
       const bottom =
-        Math.abs(x) <= 13 ? -0.625 : Math.abs(x) - 13 - Math.SQRT2 * 0.625;
+        Math.abs(x) <= 26 ? -0.625 : Math.abs(x) - 26 - Math.SQRT2 * 0.625;
       const p = new THREE.Vector3(x, bottom, z)
         .multiplyScalar(scale)
         .applyQuaternion(root.quaternion);
@@ -54,6 +58,9 @@ export function* createEuropaResearchWreckSteps(
     }
   root.position.y = supportedY + 0.25 * scale;
   root.updateMatrixWorld(true);
+  const bowAsset = acquireEuropaSceneryAsset("bow");
+  keep({ dispose: bowAsset.release });
+  void bowAsset.prepare();
   const colliders = [],
     batches = new Map(),
     localSolids = [],
@@ -70,14 +77,14 @@ export function* createEuropaResearchWreckSteps(
     m.onBeforeCompile = (shader, renderer) => {
       previous.call(m, shader, renderer);
       shader.fragmentShader = shader.fragmentShader.replace(
-        "#include <dithering_fragment>",
-        `float wear = detailNoise(vSurfaceDetail * .22);
-         float scratch = smoothstep(.986, .999, abs(sin(vSurfaceDetail.z * 5.4 + vSurfaceDetail.x * .7)));
-         gl_FragColor.rgb *= .9 + wear * .1 - scratch * .16;
-         #include <dithering_fragment>`,
+        "#include <color_fragment>",
+        `#include <color_fragment>
+         float wear = detailNoise(vSurfaceDetail * .22);
+         diffuseColor.rgb *= .88 + wear * .16;
+         diffuseColor.rgb = mix(diffuseColor.rgb, diffuseColor.rgb * vec3(.85, .78, .64), smoothstep(.66, .84, wear) * .3);`,
       );
     };
-    m.customProgramCacheKey = () => `${key}_crashed_lander_wear`;
+    m.customProgramCacheKey = () => `${key}_crashed_lander_wear_v2`;
     return m;
   };
   const hull = makeMaterial("wreck_ceramic_panels", "#a7aaa2", 0.28),
@@ -87,6 +94,7 @@ export function* createEuropaResearchWreckSteps(
     orange = makeMaterial("wreck_mission_markings", "#a76845", 0.2),
     blue = makeMaterial("wreck_radiator_cells", "#31495d", 0.45, 0.5);
   const boxGeometry = keep(new RoundedBoxGeometry(1, 1, 1, 1, 0.035)),
+    panelGeometry = keep(new THREE.BoxGeometry(1, 1, 1)),
     rodGeometry = keep(new THREE.CylinderGeometry(1, 1, 1, 12)),
     sphereGeometry = keep(new THREE.SphereGeometry(1, 16, 10)),
     ringGeometry = keep(new THREE.TorusGeometry(1, 0.09, 6, 20));
@@ -98,23 +106,40 @@ export function* createEuropaResearchWreckSteps(
   };
   const dummy = new THREE.Object3D();
   let fittingOffsetZ = 0;
+  let fittingsMode = false;
+  // 家具移到扩建后的两翼，设备不随船宽横向拉伸。
+  const fittingPoint = (p) => [
+    p[0] + (Math.abs(p[0]) >= 8 ? Math.sign(p[0]) * 13 : 0),
+    p[1],
+    p[2] * 1.2,
+  ];
+  const placedPoint = (p) => {
+    const point = [p[0], p[1], p[2] + fittingOffsetZ];
+    return fittingsMode ? fittingPoint(point) : point;
+  };
   function box(p, sizes, material, rotationZ = 0, solid = true) {
-    dummy.position.set(p[0], p[1], p[2] + fittingOffsetZ);
+    dummy.position.fromArray(placedPoint(p));
     if (Array.isArray(rotationZ)) dummy.rotation.set(...rotationZ);
     else dummy.rotation.set(0, 0, rotationZ);
-    dummy.scale.fromArray(sizes);
+    const extent = fittingsMode ? [sizes[0], sizes[1], sizes[2] * 1.2] : sizes;
+    dummy.scale.fromArray(extent);
     dummy.updateMatrix();
-    add(boxGeometry, material, dummy.matrix);
+    // 薄板、格栅和缝条保留锐边；无需为看不见的微小倒角复制数百个三角形。
+    add(
+      Math.min(...sizes) < 0.3 ? panelGeometry : boxGeometry,
+      material,
+      dummy.matrix,
+    );
     if (solid)
       localSolids.push({
-        p: [p[0], p[1], p[2] + fittingOffsetZ],
-        sizes,
+        p: dummy.position.toArray(),
+        sizes: extent,
         q: dummy.quaternion.clone(),
       });
   }
   function rod(a, b, radius, material, solid = false) {
-    const start = new THREE.Vector3(a[0], a[1], a[2] + fittingOffsetZ),
-      end = new THREE.Vector3(b[0], b[1], b[2] + fittingOffsetZ),
+    const start = new THREE.Vector3(...placedPoint(a)),
+      end = new THREE.Vector3(...placedPoint(b)),
       direction = end.clone().sub(start);
     dummy.position.copy(start).add(end).multiplyScalar(0.5);
     dummy.quaternion.setFromUnitVectors(
@@ -142,14 +167,14 @@ export function* createEuropaResearchWreckSteps(
   try {
     // 八角承压舱切去两端门盖，右舷破口留在两段外壳之间。
     const outline = [
-      [-13, 0],
-      [13, 0],
-      [19, 6],
-      [19, 26],
-      [12, 33],
-      [-12, 33],
-      [-19, 26],
-      [-19, 6],
+      [-26, 0],
+      [26, 0],
+      [32, 6],
+      [32, 34],
+      [25, 41],
+      [-25, 41],
+      [-32, 34],
+      [-32, 6],
     ];
     for (let edge = 0; edge < outline.length; edge++) {
       const a = outline[edge],
@@ -159,10 +184,10 @@ export function* createEuropaResearchWreckSteps(
       const sections =
         edge === 2
           ? [
-              [-26, 32],
-              [29.5, 25],
+              [-46.8, 69.6],
+              [51, 61.2],
             ]
-          : [[0, 84]];
+          : [[0, 163.2]];
       for (const [z, length] of sections) {
         box(
           [(a[0] + b[0]) / 2, (a[1] + b[1]) / 2, z],
@@ -179,17 +204,75 @@ export function* createEuropaResearchWreckSteps(
         );
       }
     }
+    // 外部模块化陶瓷瓦留有真实缝隙；分布沿承压壳外侧，不侵占舱内路线。
+    for (let edge = 1; edge < 8; edge++) {
+      const a = outline[edge],
+        b = outline[(edge + 1) % 8],
+        width = Math.hypot(b[0] - a[0], b[1] - a[1]),
+        angle = Math.atan2(b[1] - a[1], b[0] - a[0]);
+      const cx = (a[0] + b[0]) / 2,
+        cy = (a[1] + b[1]) / 2,
+        dx = Math.sin(angle),
+        dy = -Math.cos(angle);
+      for (let panel = 0; panel < 16; panel++) {
+        const z = -76.5 + panel * 10.2;
+        if (edge === 2 && z > -15.6 && z < 24) continue;
+        const torn = (panel + edge) % 9 === 0;
+        box(
+          [cx + dx * 0.88, cy + dy * 0.88, z],
+          [width * 0.92, 0.46, torn ? 7 : 9.5],
+          (panel + edge) % 7 === 0 ? orange : hull,
+          angle,
+          false,
+        );
+        for (const offset of [-0.31, 0.31])
+          box(
+            [
+              cx + dx * 1.13 + Math.cos(angle) * width * offset,
+              cy + dy * 1.13 + Math.sin(angle) * width * offset,
+              z,
+            ],
+            [0.18, 0.1, 8.2],
+            frame,
+            angle,
+            false,
+          );
+      }
+    }
+    const bow = new THREE.Mesh(bowAsset.geometry, bowAsset.material);
+    bow.name = "wreck_damaged_command_module_hf";
+    bow.userData.sharedEuropaScenery = true;
+    bow.scale.setScalar(31);
+    bow.position.set(0, 48.4, -63);
+    root.add(bow);
+    // 指挥模块固定在上甲板，保留两端正门和右舷破口。
+    bowAsset.geometry.computeBoundingBox();
+    const bowBox = bowAsset.geometry.boundingBox
+      .clone()
+      .applyMatrix4(new THREE.Matrix4().makeScale(31, 31, 31))
+      .translate(bow.position);
+    localSolids.push({
+      p: bowBox.getCenter(new THREE.Vector3()).toArray(),
+      sizes: bowBox.getSize(new THREE.Vector3()).toArray(),
+      q: new THREE.Quaternion(),
+    });
+    for (const side of [-1, 1])
+      for (const z of [-73, -57])
+        box([side * 5, 42.3, z], [1.8, 2.2, 2.8], frame);
+
     // 承力环、铆钉和分块覆板让大轮廓在普通相机距离就能被辨认。
-    for (const z of [-41, -30, -20, -8, 2, 14, 23, 32, 41])
+    for (const z of [
+      -67, -55, -42, -30, -20, -8, 2, 14, 23, 32, 42, 55, 67,
+    ].map((z) => z * 1.2))
       for (let edge = 0; edge < outline.length; edge++) {
         const a = outline[edge],
           b = outline[(edge + 1) % 8];
-        if (!(edge === 2 && z >= -10 && z <= 17))
+        if (!(edge === 2 && z >= -12 && z <= 20.4))
           rod([a[0], a[1], z], [b[0], b[1], z], 0.42, frame);
         for (const y of [8, 15, 22])
           if (
             (edge === 2 || edge === 6) &&
-            !(edge === 2 && z >= -10 && z <= 17)
+            !(edge === 2 && z >= -12 && z <= 20.4)
           )
             box(
               [a[0] + (edge === 2 ? 0.1 : -0.1), y, z],
@@ -199,19 +282,20 @@ export function* createEuropaResearchWreckSteps(
               false,
             );
       }
-    box([-18.6, 20, -6], [0.28, 3.5, 27], orange, 0, false);
-    box([-18.7, 15, -8], [0.3, 0.65, 24], frame, 0, false);
-    box([0, 33.6, 0], [16, 0.4, 70], foil, 0, false);
-    for (let z = -34; z < 36; z += 3)
-      box([0, 34, z], [16.2, 0.18, 0.22], frame, 0, false);
+    box([0, 41.8, 0], [43, 0.4, 158], foil, 0, false);
+    for (let z = -77; z < 80; z += 4)
+      box([0, 42.15, z], [43.2, 0.18, 0.22], frame, 0, false);
     flush("wreck_pressure_hull");
     yield "research-pressure-hull";
 
     // 家具限定在侧翼，原始坐标 |x|<9 保留为成年人贯通及转身空间。
     const floorAt = (x) => 0.625 + Math.max(0, Math.abs(x) - 13);
     function shape(geometry, p, sizes, material, rotation = [0, 0, 0]) {
-      dummy.position.set(p[0], p[1], p[2] + fittingOffsetZ);
-      dummy.scale.fromArray(sizes);
+      dummy.position.fromArray(placedPoint(p));
+      const extent = fittingsMode
+        ? [sizes[0], sizes[1], sizes[2] * 1.2]
+        : sizes;
+      dummy.scale.fromArray(extent);
       dummy.rotation.set(...rotation);
       dummy.updateMatrix();
       add(geometry, material, dummy.matrix);
@@ -248,6 +332,7 @@ export function* createEuropaResearchWreckSteps(
           foil,
         );
     }
+    fittingsMode = true;
     fittingOffsetZ = -11;
     // 指挥/通信舱：倾斜操作台、停电屏幕、仪表座和空置约束座椅。
     for (const side of [-1, 1]) {
@@ -305,7 +390,7 @@ export function* createEuropaResearchWreckSteps(
 
     fittingOffsetZ = -9;
     // 湿实验舱：圆端样品罐、取样工作台和机械夹具；右舷破口只留低矮台面。
-    for (const side of [-1, 1]) {
+    for (const side of [1]) {
       supportedBench(side, -0.5, 11, 6.1);
       box([side * 13.5, 6.6, -0.5], [4.4, 0.32, 10.5], hull);
       for (let n = 0; n < (side < 0 ? 3 : 2); n++) {
@@ -327,14 +412,10 @@ export function* createEuropaResearchWreckSteps(
         );
       }
     }
-    rod([-15.5, 6.8, 4], [-15.5, 11.8, 4], 0.3, frame, true);
-    rod([-15.5, 11.8, 4], [-12, 13.1, 3], 0.24, hull, true);
-    rod([-12, 13.1, 3], [-11.6, 10.5, 1.2], 0.18, frame, true);
-    ring([-11.6, 10.5, 1.2], 0.65, frame, [Math.PI / 2, 0, 0]);
     fittingOffsetZ = 0;
     // 破口边保留可见的断口和弯折内衬，不能用承力肋横封通道。
     for (const z of [-10.1, 17.1]) {
-      box([18.6, 16, z], [1.2, 19.5, 0.8], frame);
+      box([18.6, 20, z], [1.2, 27.5, 0.8], frame);
       for (const y of [8, 12, 20, 24])
         rod(
           [18.4, y, z],
@@ -447,73 +528,157 @@ export function* createEuropaResearchWreckSteps(
     flush("wreck_pressure_engineering_service");
     fittingOffsetZ = 0;
 
-    // 三道完整隔舱墙把设备分成四个空间；中门供成体贯通，右侧另设检修舱门。
-    const bulkheadZ = [-20, 2, 23];
-    for (const z of bulkheadZ) {
-      box([-13.7, 16, z], [9.1, 20, 1.2], hull);
-      box([-11.1, 3.3, z], [3.9, 5.35, 1.2], hull);
-      box([11.1, 3.3, z], [3.9, 5.35, 1.2], hull);
-      box([13.7, 12.4, z], [9.1, 12.8, 1.2], hull);
-      box([9.7, 22.5, z], [1.1, 7.6, 1.2], hull);
-      box([18, 22.5, z], [0.5, 7.6, 1.2], hull);
-      box([13.7, 26.45, z], [9.1, 0.3, 1.2], hull);
-      box([0, 29.6, z], [24, 5.6, 1.2], hull);
-      // 斜角封板逐条贴合八角舱壳，避免隔墙上缘留下可穿越的空洞。
-      for (let y = 26.5; y < 32; y += 1) {
-        const edge = 44.1 - (y + 0.5);
-        if (edge <= 12) continue;
-        for (const side of [-1, 1])
-          box([(side * (12 + edge)) / 2, y, z], [edge - 12, 1, 1.2], hull);
+    const interior = addResearchInterior({
+      root,
+      keep,
+      box,
+      rod,
+      shape,
+      ring,
+      flush,
+      localSolids,
+      fittingPoint,
+      materials: { hull, frame, foil, black, orange, blue },
+      geometries: { sphere: sphereGeometry, ring: ringGeometry },
+    });
+    fittings.push(...interior.rooms);
+    fittings.sort((a, b) => a.localCenter[2] - b.localCenter[2]);
+    // 五道隔舱墙形成六个独立空间，中门保留成体通行和高位支路。
+
+    fittingsMode = false;
+    const bulkheadZ = [-42, -20, 2, 23, 42].map((z) => z * 1.2);
+    const doorwayX = [12, -12, 12, -12, 12];
+    for (const [index, z] of bulkheadZ.entries()) {
+      // 错位门洞让玩家进入各舱后重新寻找下一扇门；入口无法望穿全船。
+      const doorX = doorwayX[index];
+      for (const [left, right] of [
+        [-21.95, doorX - 9],
+        [doorX + 9, 21.95],
+      ]) {
+        if (right - left < 0.01) continue;
+        box(
+          [(left + right) / 2, 17.3625, z],
+          [right - left, 33.475, 1.2],
+          hull,
+        );
+        if (right - left > 8) {
+          for (const face of [-1, 1]) {
+            // 面板整体高出隔墙；不在同一个深度平面重复绘制。
+            box(
+              [(left + right) / 2, 19, z + face * 0.9],
+              [right - left - 2, 23, 0.35],
+              black,
+              0,
+              false,
+            );
+            box(
+              [(left + right) / 2, 19, z + face * 1.16],
+              [right - left - 2.8, 21.8, 0.3],
+              hull,
+              0,
+              false,
+            );
+            box(
+              [(left + right) / 2, 8.9, z + face * 1.4],
+              [right - left - 3, 1.3, 0.22],
+              index % 2 ? blue : orange,
+              0,
+              false,
+            );
+            for (let seam = left + 4; seam < right - 2; seam += 6)
+              box(
+                [seam, 19, z + face * 1.38],
+                [0.18, 20, 0.2],
+                frame,
+                0,
+                false,
+              );
+          }
+        }
       }
-      for (let y = 1.5; y < 6; y += 1) {
-        const edge = 12.1 + (y - 0.5);
-        for (const side of [-1, 1])
+      for (const x of [doorX - 9.15, doorX + 9.15])
+        box([x, 17.36, z], [0.6, 33.47, 1.8], frame);
+      for (const face of [-1, 1])
+        box(
+          [doorX, 34.6, z + face * 1],
+          [19.2, 0.7, 0.35],
+          index % 2 ? blue : orange,
+          0,
+          false,
+        );
+      box([-26.7, 20, z], [9.1, 28, 1.2], hull);
+      box([26.7, 16.4, z], [9.1, 20.8, 1.2], hull);
+      for (const side of [-1, 1]) {
+        box([side * 24.1, 3.3, z], [3.9, 5.35, 1.2], hull);
+        box([side * 22.2, 17.5, z], [0.5, 33.75, 1.55], frame);
+        for (let y = 1.5; y < 6; y += 1) {
+          const edge = 25.1 + y - 0.5;
           box(
-            [(side * (13 + edge)) / 2, y, z],
-            [Math.max(0.1, edge - 13), 1, 1.2],
+            [(side * (26 + edge)) / 2, y, z],
+            [Math.max(0.1, edge - 26), 1, 1.2],
             hull,
           );
+        }
+        for (let y = 34.5; y < 40; y += 1) {
+          const edge = 65.1 - y - 0.5;
+          if (edge > 25)
+            box([(side * (25 + edge)) / 2, y, z], [edge - 25, 1, 1.2], hull);
+        }
       }
-      // 门框贴合墙体，颜色用来辨识舱门，没有工作灯或新增交互。
-      for (const x of [-9.2, 9.2]) box([x, 13.5, z], [0.5, 25.75, 1.55], frame);
-      box([0, 26.45, z], [18.9, 0.7, 1.55], orange);
-      for (const x of [10.25, 17.75])
-        box([x, 22.5, z], [0.25, 7.6, 1.55], frame);
-      for (const y of [18.8, 26.3]) box([14, y, z], [7.75, 0.25, 1.55], orange);
-      for (const x of [-15.5, -11.5])
-        box([x, 17, z + 0.66], [0.14, 13, 0.1], frame, 0, false);
-      box([-13.7, 22.5, z + 0.69], [3.4, 0.8, 0.12], blue, 0, false);
+      box([22.7, 30.5, z], [1.1, 7.6, 1.2], hull);
+      box([31, 30.5, z], [0.5, 7.6, 1.2], hull);
+      box([26.7, 34.45, z], [9.1, 0.3, 1.2], hull);
+      box([0, 37.6, z], [50, 5.6, 1.2], hull);
+      box([0, 34.45, z], [44.9, 0.7, 1.55], orange);
+      for (const x of [23.25, 30.75])
+        box([x, 30.5, z], [0.25, 7.6, 1.55], frame);
+      for (const y of [26.8, 34.3]) box([27, y, z], [7.75, 0.25, 1.55], orange);
+      // 装配层、检修盖板和锁销沿两面门框布置，接近时也有真实厚度。
+      for (const face of [-1, 1]) {
+        for (const x of [-24, 24]) {
+          box([x, 18, z + face * 0.8], [1.4, 26, 0.25], black, 0, false);
+          for (const y of [8, 15, 22, 29])
+            box([x, y, z + face * 1.02], [2, 0.45, 0.3], frame, 0, false);
+        }
+        box([0, 37, z + face * 0.8], [20, 2, 0.25], frame, 0, false);
+      }
     }
     flush("wreck_room_bulkheads");
 
-    // 高位右舷检修道与主通道形成闭环，两个横向入口分别位于首尾舱。
-    box([13.9, 18.5, 0], [8.5, 0.7, 82], frame);
-    box([13.9, 26.9, 0], [8.5, 0.5, 82], hull);
-    for (const [z, length] of [
-      [-38, 6],
-      [1, 56],
-      [39, 4],
-    ])
-      box([9.4, 22.75, z], [0.6, 7.8, length], hull);
-    for (const z of [-31, 33]) {
-      box([9.4, 18.9, z], [0.6, 0.1, 8], hull);
-      box([9.4, 26.5, z], [0.6, 0.3, 8], hull);
-      for (const dz of [-4, 4])
-        box([9.4, 22.75, z + dz], [0.85, 7.8, 0.35], orange);
+    box([26.9, 26.5, 0], [8.5, 0.7, 160.8], frame);
+    box([26.9, 34.9, 0], [8.5, 0.5, 160.8], hull);
+    for (const [start, end] of [
+      [-80.4, -70.8],
+      [-61.2, 61.2],
+      [70.8, 80.4],
+    ]) {
+      let cursor = start;
+      for (const z of bulkheadZ.filter((z) => z > start && z < end)) {
+        box(
+          [22.4, 30.75, (cursor + z - 0.8) / 2],
+          [0.6, 7.8, z - 0.8 - cursor],
+          hull,
+        );
+        cursor = z + 0.8;
+      }
+      box([22.4, 30.75, (cursor + end) / 2], [0.6, 7.8, end - cursor], hull);
     }
-    for (const z of [-37, -14, 11, 33])
-      rod([18, 14.5, z], [9.65, 18.15, z], 0.22, frame, true);
-    for (const z of [-36, -25, -14, -3, 8, 19, 30, 39]) {
-      box([18.05, 22.5, z], [0.18, 5.5, 0.3], frame, 0, false);
-      box([14, 18.88, z], [6.7, 0.06, 0.3], orange, 0, false);
+    for (const z of [-66, 66]) {
+      box([22.4, 26.9, z], [0.6, 0.1, 9.6], hull);
+      box([22.4, 34.5, z], [0.6, 0.3, 9.6], hull);
+      for (const dz of [-4.8, 4.8])
+        box([22.4, 30.75, z + dz], [0.85, 7.8, 0.35], orange);
     }
+    for (const z of [-44.4, -16.8, 13.2, 39.6])
+      rod([31, 22.5, z], [22.65, 26.15, z], 0.22, frame, true);
     flush("wreck_starboard_service_loop");
+    addPressureLining({
+      box,
+      rod,
+      flush,
+      materials: { hull, frame, foil, black, orange, blue },
+    });
 
-    // 断裂隔舱只保留上方曲肋，不是堵住出入口的一块整面玻璃。
-    for (const z of [-40, 40]) {
-      rod([-13, 29, z], [0, 33, z], 0.55, frame);
-      rod([0, 33, z], [13, 29, z], 0.55, frame);
-    }
     // 舱底裂隙的附生杯群提供自然微光，废弃仪器不通电。
     const colony = keep(
       new THREE.MeshStandardMaterial({
@@ -528,7 +693,7 @@ export function* createEuropaResearchWreckSteps(
     const cup = keep(createSiphonColonyGeometry());
     for (let n = 0; n < 9; n++) {
       dummy.position.set(
-        8.5 + (n % 3) * 0.48,
+        21.5 + (n % 3) * 0.48,
         0.68,
         -6 + Math.floor(n / 3) * 1.2,
       );
@@ -546,9 +711,13 @@ export function* createEuropaResearchWreckSteps(
       new THREE.CylinderGeometry(3.2 * scale, 3.6 * scale, 0.65 * scale, 24),
     );
     for (const side of [-1, 1])
-      for (const z of [-33, 33]) {
-        const mount = new THREE.Vector3(side * 16, 6, z),
-          localFoot = new THREE.Vector3(side * 28, -8, z + (z < 0 ? -9 : 9)),
+      for (const z of [-57, 57]) {
+        const mount = new THREE.Vector3(side * 29, 6, z * 1.2),
+          localFoot = new THREE.Vector3(
+            side * 41,
+            -8,
+            (z + (z < 0 ? -9 : 9)) * 1.2,
+          ),
           worldFoot = localFoot.clone().applyMatrix4(root.matrixWorld);
         // 每块地脚盘按自己的坡面定向，再采样整圈底面防止放大后穿坡。
         const normal = new THREE.Vector3(
@@ -602,12 +771,12 @@ export function* createEuropaResearchWreckSteps(
       }
     // 横向断开的蓝灰散热翼保留网格与金属边框，区别于水面船帆。
     for (const side of [-1, 1]) {
-      box([side * 25, 22, 9], [12, 0.85, 23], frame, side * 0.25);
+      box([side * 38, 30, 10.8], [12, 0.85, 23], frame, side * 0.25);
       for (let n = 0; n < 7; n++)
         box(
           [
-            side * 25 - Math.sin(side * 0.25) * 0.55,
-            22 + Math.cos(0.25) * 0.55,
+            side * 38 - Math.sin(side * 0.25) * 0.55,
+            30 + Math.cos(0.25) * 0.55,
             n * 2.7,
           ],
           [10.5, 0.16, 2.3],
@@ -615,7 +784,7 @@ export function* createEuropaResearchWreckSteps(
           side * 0.25,
           false,
         );
-      rod([side * 17, 23, -1], [side * 26, 23, 10], 0.25, frame);
+      rod([side * 30, 31, -1.2], [side * 39, 31, 12], 0.25, frame);
     }
     // 高增益天线是有凹面的反射器及三根馈源支撑，不用球代替。
     const dish = keep(
@@ -637,7 +806,7 @@ export function* createEuropaResearchWreckSteps(
         32,
       ),
     );
-    dummy.position.set(-6, 36, 16);
+    dummy.position.set(-6, 44, 19.2);
     dummy.rotation.set(0.28, 0.2, -0.3);
     dummy.scale.setScalar(1);
     dummy.updateMatrix();
@@ -656,7 +825,7 @@ export function* createEuropaResearchWreckSteps(
       axes: new THREE.Vector3(8, 1.2, 8).multiplyScalar(scale),
       rotation: root.quaternion.clone().multiply(dummy.quaternion),
     });
-    rod([-6, 30, 16], [-6, 36, 16], 0.45, frame, true);
+    rod([-6, 38, 19.2], [-6, 44, 19.2], 0.45, frame, true);
     const feed = new THREE.Vector3(0, 6, 0).applyMatrix4(dishMatrix);
     for (const angle of [0, (Math.PI * 2) / 3, (Math.PI * 4) / 3]) {
       const rim = new THREE.Vector3(
@@ -701,39 +870,66 @@ export function* createEuropaResearchWreckSteps(
         });
       }
     }
-    const route = [-54, -31, -9, 12, 33, 54].map((z) =>
-      new THREE.Vector3(0, 21, z).applyMatrix4(root.matrixWorld),
+    const routeLocal = [
+      [0, 21, -98.4],
+      [0, 21, -66],
+    ];
+    for (let i = 0; i < bulkheadZ.length; i++) {
+      routeLocal.push(
+        [doorwayX[i], 21, bulkheadZ[i] - 5],
+        [doorwayX[i], 21, bulkheadZ[i] + 5],
+      );
+      if (i < bulkheadZ.length - 1)
+        routeLocal.push([0, 21, (bulkheadZ[i] + bulkheadZ[i + 1]) / 2]);
+    }
+    routeLocal.push([0, 21, 66], [0, 21, 98.4]);
+    const route = routeLocal.map((p) =>
+      new THREE.Vector3(...p).applyMatrix4(root.matrixWorld),
     );
     const sideRoute = [
-      [38, 10.5, -0.8],
-      [22, 10.5, -0.8],
-      [6, 10.5, -0.8],
-      [0, 10.5, -0.8],
-      [0, 15, -4],
-      [0, 21, -9],
+      [51, 18, -7.5],
+      [35, 18, -7.5],
+      [19, 18, -7.5],
+      [7, 19, -9],
+      [0, 21, -10.8],
     ].map((p) => new THREE.Vector3(...p).applyMatrix4(root.matrixWorld));
     const serviceRoute = [
-      [0, 22.5, -31],
-      [14, 22.5, -31],
-      [14, 22.5, -9],
-      [14, 22.5, 12],
-      [14, 22.5, 33],
-      [0, 22.5, 33],
-      [0, 22.5, -31],
+      [0, 30.5, -66],
+      [27, 30.5, -66],
+      [27, 30.5, -10.8],
+      [27, 30.5, 14.4],
+      [27, 30.5, 66],
+      [0, 30.5, 66],
+      ...routeLocal
+        .slice(1, -1)
+        .reverse()
+        .map((p) => [p[0], 30.5, p[2]]),
     ].map((p) => new THREE.Vector3(...p).applyMatrix4(root.matrixWorld));
-    const rooms = fittings.map((room) => ({
-      ...room,
-      position: new THREE.Vector3(...room.localCenter).applyMatrix4(
-        root.matrixWorld,
-      ),
-      lookAt: new THREE.Vector3(...room.localLookAt).applyMatrix4(
-        root.matrixWorld,
-      ),
-    }));
+    const rooms = fittings.map((room) => {
+      const localCenter = fittingPoint(room.localCenter);
+      const localLookAt = fittingPoint(room.localLookAt);
+      return {
+        ...room,
+        localCenter,
+        localLookAt,
+        localBounds: room.localBounds.map((z) => z * 1.2),
+        localFootprint: room.localFootprint.map((v, i) =>
+          i < 2 ? v + 13 : v * 1.2,
+        ),
+        position: new THREE.Vector3(...localCenter).applyMatrix4(
+          root.matrixWorld,
+        ),
+        lookAt: new THREE.Vector3(...localLookAt).applyMatrix4(
+          root.matrixWorld,
+        ),
+      };
+    });
     root.userData.galleryRoute = route;
     root.userData.sideBreachRoute = sideRoute;
     root.userData.rooms = rooms;
     root.userData.bulkheadZ = bulkheadZ;
+    root.userData.doorwayX = doorwayX;
+    root.userData.galleryRouteLocal = routeLocal;
     root.userData.serviceLoopRoute = serviceRoute;
     root.userData.serviceClearance = {
       width: 7.25 * scale,
@@ -741,8 +937,8 @@ export function* createEuropaResearchWreckSteps(
       bodyLengths: [10, 16],
     };
     root.userData.supportSamples = supportSamples;
-    root.userData.centralClearWidth = 17.9 * scale;
-    root.userData.breachBounds = { x: 19, y: [6, 26], z: [-10, 17] };
+    root.userData.centralClearWidth = 17.7 * scale;
+    root.userData.breachBounds = { x: 32, y: [6, 34], z: [-12, 20.4] };
     root.userData.localSolids = localSolids;
     root.userData.supportFeet = feet;
     // 残骸碎片按各自海床法线落地，避免把斜坡上的散落物悬在空中。
@@ -779,6 +975,8 @@ export function* createEuropaResearchWreckSteps(
     yield "research-debris";
     return {
       root,
+      prepareMaterials: () =>
+        Promise.all([bowAsset.prepare(), interior.prepareMaterials()]),
       colliders,
       feet,
       route,
@@ -798,7 +996,7 @@ export function* createEuropaResearchWreckSteps(
       },
       lightSources: [
         {
-          position: new THREE.Vector3(8.5, 3, -4).applyMatrix4(
+          position: new THREE.Vector3(21.5, 3, -4).applyMatrix4(
             root.matrixWorld,
           ),
           color: 0x77acaf,

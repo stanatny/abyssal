@@ -1,5 +1,5 @@
 import { AMAZON_BIOMES, amazonIslandBounds } from "./amazon_config.js";
-import { EUROPA_HABITATS } from "./europa_config.js";
+import { EUROPA_HABITATS, europaWorldY } from "./europa_config.js";
 import * as THREE from "three";
 import { getZone } from "./simulation.js";
 import { atlantisDistrict } from "./atlantis_city_plan.js";
@@ -123,7 +123,15 @@ export function regionZone(regionId, depth, position = null) {
   }
   if (regionId === "europa") {
     const index =
-      depth < 60 ? 0 : depth < 180 ? 1 : depth < 400 ? 2 : depth < 650 ? 3 : 4;
+      depth < -europaWorldY(-60)
+        ? 0
+        : depth < -europaWorldY(-180)
+          ? 1
+          : depth < -europaWorldY(-400)
+            ? 2
+            : depth < -europaWorldY(-650)
+              ? 3
+              : 4;
     return {
       ...zone,
       name: EUROPA_HABITATS[index].name,

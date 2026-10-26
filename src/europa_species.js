@@ -1,4 +1,10 @@
-import { EUROPA_WORLD } from "./europa_config.js";
+import {
+  EUROPA_WORLD,
+  EUROPA_EXPANSE_SCALE,
+  europaWorldZ,
+  europaWorldPoint,
+  europaWorldY,
+} from "./europa_config.js";
 
 /** 原创外星生命数据，图鉴分类和实际营养/猎手属性独立。 */
 export const EUROPA_SPECIES = Object.freeze(
@@ -129,6 +135,7 @@ export const EUROPA_SPECIES = Object.freeze(
     },
     {
       kind: "lantern_pod",
+      populationSpacing: 6.3,
       label: "灯荚游体",
       latin: "EUROPA LIFEFORM E-05",
       length: 4.8,
@@ -159,6 +166,7 @@ export const EUROPA_SPECIES = Object.freeze(
     },
     {
       kind: "veil_glider",
+      populationSpacing: 9.5,
       label: "帷翼滑翔者",
       latin: "EUROPA LIFEFORM E-06",
       length: 6.5,
@@ -189,6 +197,8 @@ export const EUROPA_SPECIES = Object.freeze(
     },
     {
       kind: "forkjaw_stalker",
+      swimClearance: 0.54,
+      populationSpacing: 9.5,
       label: "裂颌潜猎者",
       latin: "EUROPA LIFEFORM E-07",
       length: 8.5,
@@ -229,6 +239,8 @@ export const EUROPA_SPECIES = Object.freeze(
     },
     {
       kind: "crown_filterer",
+      populationSpacing: 16,
+      swimClearance: 0.64,
       label: "冠环滤食者",
       latin: "EUROPA LIFEFORM E-08",
       length: 11.5,
@@ -261,6 +273,8 @@ export const EUROPA_SPECIES = Object.freeze(
     },
     {
       kind: "prism_hunter",
+      swimClearance: 0.56,
+      populationSpacing: 16.4,
       label: "棱冠猎手",
       latin: "EUROPA LIFEFORM E-09",
       length: 14.5,
@@ -302,6 +316,8 @@ export const EUROPA_SPECIES = Object.freeze(
     },
     {
       kind: "bell_carrier",
+      populationSpacing: 29,
+      swimClearance: 0.76,
       label: "浮钟巨载",
       latin: "EUROPA LIFEFORM E-10",
       length: 18,
@@ -334,6 +350,8 @@ export const EUROPA_SPECIES = Object.freeze(
     },
     {
       kind: "siphon_colossus",
+      populationSpacing: 26,
+      swimClearance: 0.6,
       label: "虹吸巨腹",
       latin: "EUROPA LIFEFORM E-11",
       length: 21,
@@ -366,6 +384,8 @@ export const EUROPA_SPECIES = Object.freeze(
     },
     {
       kind: "spiral_grazer",
+      populationSpacing: 31,
+      swimClearance: 0.63,
       label: "螺冠巨游",
       latin: "EUROPA LIFEFORM E-12",
       length: 24,
@@ -398,6 +418,7 @@ export const EUROPA_SPECIES = Object.freeze(
     },
     {
       kind: "rift_reaver",
+      swimClearance: 0.54,
       label: "裂谷掠夺者",
       latin: "EUROPA LIFEFORM E-13",
       length: 29,
@@ -405,7 +426,7 @@ export const EUROPA_SPECIES = Object.freeze(
       speed: 24,
       trophicRole: "hunter",
       tier: 2,
-      depthMin: 490,
+      depthMin: 230,
       depthMax: 810,
       nutrition: 94,
       growth: 3.2,
@@ -420,9 +441,9 @@ export const EUROPA_SPECIES = Object.freeze(
       counter: "观察体长；成长后才向更深的栖地探索，利用岩拱和冲刺避开猎手。",
       realSize: "幻想物种，非已发现的外星生命；尺寸与行为属于游戏设定。",
       spawnAnchors: [
+        [75, -255, -365],
+        [-195, -390, -465],
         [-170, -525, -610],
-        [-185, -685, -760],
-        [175, -760, -900],
       ],
       residentRadius: 35,
       hunterTerritory: {
@@ -439,6 +460,7 @@ export const EUROPA_SPECIES = Object.freeze(
     },
     {
       kind: "void_siphon",
+      swimClearance: 0.54,
       label: "虚渊吞吸者",
       latin: "EUROPA LIFEFORM E-14",
       length: 32,
@@ -461,7 +483,7 @@ export const EUROPA_SPECIES = Object.freeze(
       counter: "观察体长；成长后才向更深的栖地探索，利用岩拱和冲刺避开猎手。",
       realSize: "幻想物种，非已发现的外星生命；尺寸与行为属于游戏设定。",
       spawnAnchors: [
-        [-135, -745, -790],
+        [55, -730, -765],
         [140, -735, -795],
       ],
       residentRadius: 35,
@@ -479,6 +501,7 @@ export const EUROPA_SPECIES = Object.freeze(
     },
     {
       kind: "brine_rosette",
+      populationSpacing: 1.05,
       label: "盐泉旋花",
       latin: "EUROPA LIFEFORM E-15",
       length: 0.8,
@@ -510,6 +533,7 @@ export const EUROPA_SPECIES = Object.freeze(
     },
     {
       kind: "hinge_walker",
+      populationSpacing: 2.5,
       label: "铰壳行者",
       latin: "EUROPA LIFEFORM E-16",
       length: 2,
@@ -542,6 +566,29 @@ export const EUROPA_SPECIES = Object.freeze(
   ].map((entry) =>
     Object.freeze({
       ...entry,
+      depthMin: -europaWorldY(-entry.depthMin),
+      depthMax: -europaWorldY(-entry.depthMax),
+      ...(entry.hunterTerritory
+        ? {
+            hunterTerritory: Object.freeze({
+              ...entry.hunterTerritory,
+              minX: entry.hunterTerritory.minX * EUROPA_EXPANSE_SCALE,
+              maxX: entry.hunterTerritory.maxX * EUROPA_EXPANSE_SCALE,
+              minZ: europaWorldZ(entry.hunterTerritory.minZ),
+              maxZ: europaWorldZ(entry.hunterTerritory.maxZ),
+              center: Object.freeze(
+                Object.fromEntries(
+                  ["x", "y", "z"].map((axis, i) => [
+                    axis,
+                    europaWorldPoint(
+                      Object.values(entry.hunterTerritory.center),
+                    )[i],
+                  ]),
+                ),
+              ),
+            }),
+          }
+        : {}),
       ...(entry.predator
         ? {
             hunterAbility: "shark",
@@ -549,10 +596,14 @@ export const EUROPA_SPECIES = Object.freeze(
           }
         : {}),
       schoolAnchors: entry.schoolAnchors
-        ? Object.freeze(entry.schoolAnchors.map((a) => Object.freeze(a)))
+        ? Object.freeze(
+            entry.schoolAnchors.map((a) => Object.freeze(europaWorldPoint(a))),
+          )
         : undefined,
       spawnAnchors: entry.spawnAnchors
-        ? Object.freeze(entry.spawnAnchors.map((a) => Object.freeze(a)))
+        ? Object.freeze(
+            entry.spawnAnchors.map((a) => Object.freeze(europaWorldPoint(a))),
+          )
         : undefined,
       worldBounds: EUROPA_WORLD,
       cityHabitat: true,

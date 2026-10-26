@@ -9,6 +9,7 @@ import {
 } from "./feeding_distribution.js";
 import { hawaiiEcology } from "./hawaii_ecology.js";
 import { EUROPA_SPECIES } from "./europa_species.js";
+import { fitEuropaEcology } from "./europa_ecology.js";
 import { NONFISH_SPECIES, nonfishEcology } from "./nonfish_ecology.js";
 import { WORLD } from "./world_config.js";
 import { MARIANA_WORLD } from "./mariana_config.js";
@@ -194,12 +195,15 @@ const BASE_REGION_SPECIES = Object.freeze({
 // 各地图共用分布与增密流程；大型水生食物再分散，保留固定补给和独特品种。
 const REGION_SPECIES = Object.freeze(
   Object.fromEntries(
-    Object.entries(BASE_REGION_SPECIES).map(([id, species]) => [
-      id,
-      separateNurserySchools(
+    Object.entries(BASE_REGION_SPECIES).map(([id, species]) => {
+      const distributed = separateNurserySchools(
         disperseLargePrey(densifyFeedingSchools(spreadFeedingSchools(species))),
-      ),
-    ]),
+      );
+      return [
+        id,
+        id === "europa" ? fitEuropaEcology(distributed) : distributed,
+      ];
+    }),
   ),
 );
 

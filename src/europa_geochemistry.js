@@ -1,6 +1,10 @@
+import { europaWorldPoint } from "./europa_config.js";
 import * as THREE from "three";
 import { addSurfaceDetail } from "./ocean_visuals.js";
-import { addEuropaColonySurface } from "./europa_environment_geometry.js";
+import {
+  addEuropaColonySurface,
+  repairLathePoleNormals,
+} from "./europa_environment_geometry.js";
 
 /** 盐矿结晶与附生薄膜：原位附着、实例共享、远距离消隐微光，固体只覆盖大晶柱。 */
 export function* createEuropaGeochemistrySteps(
@@ -20,6 +24,7 @@ export function* createEuropaGeochemistrySteps(
     ),
   );
   crystal.computeVertexNormals();
+  repairLathePoleNormals(crystal);
   const crust = keep(new THREE.SphereGeometry(1, 12, 8));
   const mineral = keep(
     new THREE.MeshStandardMaterial({
@@ -55,7 +60,7 @@ export function* createEuropaGeochemistrySteps(
     sources = [],
     clusters = [],
     dummy = new THREE.Object3D();
-  for (const [index, [x, z]] of [
+  for (const [index, [lx, lz]] of [
     [170, -95],
     [160, -240],
     [-175, -365],
@@ -65,6 +70,7 @@ export function* createEuropaGeochemistrySteps(
     [160, -810],
     [-140, -870],
   ].entries()) {
+    const [x, , z] = europaWorldPoint([lx, 0, lz]);
     const y = heightAt(x, z),
       group = new THREE.Group();
     group.name = `europa_mineral_habitat_${index}`;
@@ -171,7 +177,14 @@ export function* createEuropaGeochemistrySteps(
     clusters,
     landmark: {
       name: "化学能源与矿物结晶",
-      position: new THREE.Vector3(-100, heightAt(-100, -590) + 35, -590),
+      position: new THREE.Vector3(...europaWorldPoint([-100, 0, -590])).setY(
+        heightAt(
+          ...[
+            europaWorldPoint([-100, 0, -590])[0],
+            europaWorldPoint([-100, 0, -590])[2],
+          ],
+        ) + 35,
+      ),
     },
   };
 }

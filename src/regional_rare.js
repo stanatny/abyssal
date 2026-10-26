@@ -1,6 +1,6 @@
 import { WORLD } from "./world_config.js";
 import { AMAZON_WORLD } from "./amazon_config.js";
-import { EUROPA_WORLD } from "./europa_config.js";
+import { EUROPA_WORLD, europaWorldPoint } from "./europa_config.js";
 import { MARIANA_WORLD } from "./mariana_config.js";
 import { PENGLAI_WORLD } from "./penglai_config.js";
 import { RARE_PURSUIT_RULES } from "./regional_rare_pursuit.js";
@@ -79,7 +79,7 @@ const definitions = [
     "crystal_seraph",
     copy("六翼晶冠体", "Six-wing Crystal Seraph"),
     "#c3a9e0",
-    [135, -122, -195],
+    europaWorldPoint([135, -122, -195]),
     copy(
       "盐脉拱廊与深处的晶体凹地",
       "Crystal hollows near brine arches and deeper shelves",
@@ -132,7 +132,7 @@ const searchAreas = {
     [135, -122, -195],
     [-110, -190, -290],
     [165, -245, -360],
-  ],
+  ].map(europaWorldPoint),
   penglai: [
     [-370, 155, -345],
     [320, 195, -390],
