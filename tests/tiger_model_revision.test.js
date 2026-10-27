@@ -204,8 +204,15 @@ test("Tiger limb skin bends continuously and retirement frees only its private b
   disposePenglaiTigerMotion(second.root);
 });
 
-test("Tiger measured 44 m/s travel plants stance feet, lengthens its trot, freezes when blocked and resets", () => {
-  const model = createCreature("white_tiger", 48);
+test("Legacy Tiger measured 44 m/s travel plants stance feet, lengthens its trot, freezes when blocked and resets", () => {
+  const { root: model, body, animate } = tiger();
+  model.userData.animate = animate;
+  model.updateMatrixWorld(true);
+  const length = new THREE.Box3()
+    .setFromObject(model, true)
+    .getSize(new THREE.Vector3()).z;
+  body.scale.setScalar(1 / length);
+  model.scale.setScalar(48);
   const paws = named(model, "level_feline_paw");
   const previous = paws.map(() => new THREE.Vector3());
   const point = new THREE.Vector3();

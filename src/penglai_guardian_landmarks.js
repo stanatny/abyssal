@@ -1,3 +1,4 @@
+import { createPenglaiLandmarkAsset } from "./penglai_landmark_asset.js";
 import * as THREE from "three";
 import { RoundedBoxGeometry } from "three/addons/geometries/RoundedBoxGeometry.js";
 import { mergeGeometries } from "three/addons/utils/BufferGeometryUtils.js";
@@ -33,6 +34,7 @@ export function createPenglaiGuardianLandmarks(
       return [key, m];
     }),
   );
+  const assets = new Map();
   const roots = [],
     landmarks = [];
   for (const [index, site] of PENGLAI_LANDMARK_SITES.entries()) {
@@ -115,6 +117,33 @@ export function createPenglaiGuardianLandmarks(
           ? { halfSize: { x: size[0] / 2, y: size[1] / 2, z: size[2] / 2 } }
           : { axes: { x: size[0], y: size[1], z: size[2] } }),
       });
+    }
+    function sculpture(kind, p, dimensions, reverse = false) {
+      if (!assets.has(kind))
+        assets.set(kind, createPenglaiLandmarkAsset(kind, keep));
+      const asset = assets.get(kind),
+        mesh = new THREE.Mesh(asset.geometry, asset.material);
+      mesh.name = site.id + "_hf_" + kind;
+      mesh.position.set(...p);
+      const scale = dimensions.map(
+        (v, a) => v / (asset.packed.max[a] - asset.packed.min[a]),
+      );
+      mesh.scale.set(...scale);
+      if (reverse) mesh.rotation.y = Math.PI;
+      mesh.userData.prepareMaterials = asset.prepare;
+      mesh.userData.hfLandmarkKind = kind;
+      root.add(mesh);
+      for (const cell of asset.packed.contacts) {
+        const center = cell.min.map(
+          (v, a) =>
+            (v + cell.max[a]) * 0.5 * scale[a] * (reverse && a !== 1 ? -1 : 1) +
+            p[a],
+        );
+        const size = cell.min.map((v, a) =>
+          Math.max(0.15, (cell.max[a] - v) * scale[a]),
+        );
+        solid(kind, center, size);
+      }
     }
     function diskSolid(kind, x, y, z, r, h) {
       for (let i = 0; i < 16; i++) {
@@ -304,89 +333,22 @@ export function createPenglaiGuardianLandmarks(
         [1, 1],
       ]) {
         const x = side * 43,
-          y = pads[k],
-          height = lintel - y;
-        box("dark", [x, y + 2, 0], [16, 4, 20]);
-        part(new THREE.CylinderGeometry(4.8, 6.4, height, 16, 1), "jade", [
-          x,
-          y + height / 2,
-          0,
-        ]);
-        solid("dragon_column", [x, y + height / 2, 0], [12, height, 14]);
-        for (const yy of [y + 7, lintel - 6]) {
-          box("bronze", [x, yy, 0], [13, 1.5, 15]);
-          box("stone", [x, yy + 2, 0], [14, 2, 17]);
-        }
-        const pts = [];
-        for (let j = 0; j <= 36; j++) {
-          const t = j / 36,
-            a = t * Math.PI * 3.2 + side;
-          pts.push([
-            x + Math.cos(a) * 6.1,
-            y + 10 + t * (height - 22),
-            Math.sin(a) * 6.1,
-          ]);
-        }
-        tube("stone", pts, 1.9, 56);
-        for (let j = 3; j < 34; j += 3) {
-          const p = pts[j];
-          ball("bronze", [p[0], p[1] + 0.8, p[2]], [2.1, 0.48, 2.1]);
-        }
-        const hx = x - side * 3,
-          hy = lintel - 10;
-        tube("stone", [pts.at(-1), [x, hy, -3], [hx, hy, -6]], 2.1, 12);
-        ball("stone", [hx, hy, -6], [4.1, 3.4, 5]);
-        for (const j of [10, 24]) {
-          const p = pts[j];
-          for (const s of [-1, 1]) {
-            const arm = [
-              [p[0], p[1], p[2]],
-              [p[0] + s * 4, p[1] - 2, p[2] - 1],
-              [p[0] + s * 5, p[1] - 4, p[2] - 2],
-            ];
-            tube("stone", arm, 0.75, 12);
-            for (let c = 0; c < 3; c++)
-              tube(
-                "bronze",
-                [
-                  arm[2],
-                  [
-                    arm[2][0] + s * (1 + c * 0.5),
-                    arm[2][1] - 1,
-                    arm[2][2] - 1 - c,
-                  ],
-                ],
-                0.25,
-                6,
-              );
-          }
-        }
-
-        box("stone", [hx, hy - 1, -10], [6, 3, 6], 0.8);
-        box("dark", [hx, hy - 1.2, -13.05], [4.4, 0.65, 0.45], 0.1);
-        for (const s of [-1, 1]) {
-          ball("dark", [hx + s * 2.8, hy + 1, -9.7], [0.6, 0.45, 0.7]);
-          tube(
-            "bronze",
-            [
-              [hx + s * 2, hy + 2, -5],
-              [hx + s * 3, hy + 5, -3],
-              [hx + s * 4.5, hy + 6, -2],
-            ],
-            0.65,
-            12,
-          );
-          tube(
-            "stone",
-            [
-              [hx + s * 2, hy - 1, -12],
-              [hx + s * 5, hy - 2, -11],
-              [hx + s * 6, hy, -7],
-            ],
-            0.5,
-            12,
-          );
-        }
+          y = pads[k];
+        const carvingHeight = 72,
+          carvingBottom = lintel - 1 - carvingHeight;
+        const supportHeight = carvingBottom - y;
+        box("dark", [x, y + supportHeight / 2, 0], [16, supportHeight, 18]);
+        solid(
+          "column_support",
+          [x, y + supportHeight / 2, 0],
+          [16, supportHeight, 18],
+        );
+        sculpture(
+          "dragon_column",
+          [x, carvingBottom + carvingHeight / 2, 0],
+          [17.5, carvingHeight, 17.5],
+          true,
+        );
         roof(x, lintel + 7, 0, 25, 29, 5);
         solid("capital", [x, lintel + 3, 0], [19, 8, 22]);
         box("stone", [x, lintel + 3, 0], [19, 8, 22]);
@@ -415,124 +377,7 @@ export function createPenglaiGuardianLandmarks(
       for (const side of [-1, 1]) {
         const x = side * 35,
           y = foundation(x, 0, 22, 24);
-        box("stone", [x, y + 3, 0], [19, 6, 21]);
-        solid("que_base", [x, y + 3, 0], [19, 6, 21]);
-        box("ivory", [x, y + 23, 0], [13, 34, 15], 0.6);
-        solid("que_shaft", [x, y + 23, 0], [13, 34, 15]);
-        for (let j = 0; j < 3; j++) {
-          box(
-            j === 1 ? "dark" : "stone",
-            [x, y + 40 + j * 2, 0],
-            [17 + j * 2, 2, 19 + j * 2],
-          );
-          solid(
-            "que_bracket",
-            [x, y + 40 + j * 2, 0],
-            [17 + j * 2, 2, 19 + j * 2],
-          );
-        }
-        roof(x, y + 46, 0, 28, 28, 6, "dark");
-        // 阙身虎面采用实体浮雕，白石额骨和深口区保持厚度。
-        box("stone", [x, y + 26, -8], [10.8, 9, 4], 1.4);
-        for (const side of [-1, 1]) {
-          tube(
-            "dark",
-            [
-              [x + side * 4.9, y + 26, -10],
-              [x + side * 3.7, y + 25, -10.4],
-              [x + side * 4.2, y + 23.5, -10.4],
-            ],
-            0.34,
-            8,
-          );
-          tube(
-            "bronze",
-            [
-              [x + side * 5.5, y + 11, 8],
-              [x + side * 5.5, y + 32, 8],
-              [x + side * 3.5, y + 35, 8],
-            ],
-            0.45,
-            12,
-          );
-        }
-        for (const yy of [y + 10, y + 35])
-          box("dark", [x, yy, 0], [13.4, 0.7, 15.4], 0.1);
-        for (let j = 0; j < 4; j++) {
-          const yy = y + 13 + j * 5;
-          for (const side of [-1, 1])
-            tube(
-              "bronze",
-              [
-                [x + side * 6.8, yy, -5],
-                [x + side * 6.8, yy + 2, 0],
-                [x + side * 6.8, yy, 5],
-              ],
-              0.25,
-              8,
-            );
-        }
-
-        box("dark", [x, y + 23, -10.2], [5.4, 3.8, 1.1], 0.8);
-        for (const s of [-1, 1]) {
-          part(
-            new THREE.ConeGeometry(2, 4.6, 4),
-            "ivory",
-            [x + s * 3.6, y + 31, -8],
-            [1, 1, 0.65],
-            [0, Math.PI / 4, s * -0.18],
-          );
-          tube(
-            "dark",
-            [
-              [x + s * 4, y + 28, -10],
-              [x + s * 2.5, y + 29, -10.5],
-              [x + s * 0.8, y + 27.8, -10.7],
-            ],
-            0.65,
-            12,
-          );
-          part(
-            new THREE.ConeGeometry(0.65, 2, 8),
-            "ivory",
-            [x + s * 1.7, y + 23.4, -11],
-            [1, 1, 1],
-            [Math.PI, 0, 0],
-          );
-        }
-        ball("dark", [x, y + 25.5, -11], [1.2, 0.8, 0.7]);
-        for (const s of [-1, 1])
-          tube(
-            "bronze",
-            [
-              [x + s * 3, y + 9, -7.9],
-              [x + s * 3, y + 18, -7.9],
-              [x + s * 4, y + 20, -7.9],
-            ],
-            0.35,
-            10,
-          );
-        // 顶部剑脊象征西方金气，不使用发光危险特效。
-        const shape = new THREE.Shape();
-        shape.moveTo(-1.4, 0);
-        shape.lineTo(-1, 10);
-        shape.lineTo(0, 14);
-        shape.lineTo(1, 10);
-        shape.lineTo(1.4, 0);
-        shape.closePath();
-        part(
-          new THREE.ExtrudeGeometry(shape, {
-            depth: 1.3,
-            bevelEnabled: true,
-            bevelSize: 0.2,
-            bevelThickness: 0.2,
-            bevelSegments: 1,
-            steps: 1,
-          }),
-          "bronze",
-          [x, y + 52, -0.65],
-        );
-        solid("finial", [x, y + 59, 0], [3, 14, 2]);
+        sculpture("tiger_que", [x, y + 33, 0], [28, 66, 26]);
       }
       root.userData.focus = [0, Math.max(floor(-35, 0), floor(35, 0)) + 29, 0];
     } else {
@@ -546,19 +391,7 @@ export function createPenglaiGuardianLandmarks(
         );
         diskSolid("altar_tier", 0, y + 1 + i * 2, 0, 29.5 - i * 3, 2);
       }
-      // 翼冠是厚实铜雕，羽片为有体积的渐尖弧面，太阳环保留真实空隙。
-      part(new THREE.CylinderGeometry(7, 10, 8, 16), "red", [0, y + 10, 0]);
-      diskSolid("altar_drum", 0, y + 10, 0, 8.5, 8);
-      for (let i = 0; i < 16; i++) {
-        const a = (i / 16) * Math.PI * 2;
-        part(
-          new THREE.SphereGeometry(1, 12, 8),
-          "bronze",
-          [Math.cos(a) * 8, y + 9, Math.sin(a) * 8],
-          [1, 3, 1],
-          [0, 0, 0.2],
-        );
-      }
+      sculpture("vermilion_statue", [0, y + 29, 0], [72, 46, 31.7]);
       for (let i = 0; i < 8; i++) {
         const z = -31 - i * 3,
           heights = [];
@@ -572,221 +405,18 @@ export function createPenglaiGuardianLandmarks(
         box("stone", [0, (top + low) / 2, z], [16, top - low, 4.5]);
         solid("altar_steps", [0, (top + low) / 2, z], [16, top - low, 4.5]);
       }
-      ball("bronze", [0, y + 24, 0], [5.5, 12, 4]);
-      solid("bird_body", [0, y + 24, 0], [5.5, 12, 4], "ellipsoid");
-      for (const face of [-1, 1])
-        for (let j = 0; j < 7; j++) {
-          const yy = y + 17 + j * 2.3,
-            zz =
-              face *
-              (4 * Math.sqrt(Math.max(0, 1 - ((yy - y - 24) / 12) ** 2)) +
-                0.18);
-          tube(
-            "red",
-            [
-              [-3, yy + 0.8, zz * 0.85],
-              [0, yy - 0.5, zz],
-              [3, yy + 0.8, zz * 0.85],
-            ],
-            0.2,
-            12,
-          );
-        }
-
-      tube(
-        "bronze",
-        [
-          [0, y + 30, 0],
-          [0, y + 39, 0],
-          [0, y + 42, -3],
-        ],
-        2,
-        22,
-      );
-      ball("bronze", [0, y + 42, -3], [3, 3, 4]);
-      for (const s of [-1, 1]) {
-        ball("dark", [s * 2.6, y + 43, -4.4], [0.45, 0.6, 0.65]);
-        tube(
-          "bronze",
-          [
-            [s * 2, y + 44, -5],
-            [s * 3, y + 45, -3],
-            [s * 2, y + 44, 0],
-          ],
-          0.6,
-          10,
-        );
-      }
-      for (let j = 0; j < 5; j++)
-        tube(
-          "red",
-          [
-            [0, y + 17, 1],
-            [j * 2 - 4, y + 13, -2],
-            [j * 3 - 6, y + 9, -9],
-            [j * 3 - 6, y + 7, -15],
-          ],
-          0.8,
-          18,
-        );
-
-      part(
-        new THREE.ConeGeometry(1.5, 6, 10),
-        "bronze",
-        [0, y + 41, -8],
-        [1, 1, 1],
-        [-Math.PI / 2, 0, 0],
-      );
-      for (const s of [-1, 1]) {
-        const wing = new THREE.Shape();
-        wing.moveTo(s * 3, y + 26);
-        wing.bezierCurveTo(s * 12, y + 29, s * 24, y + 41, s * 34, y + 47);
-        wing.quadraticCurveTo(s * 29, y + 33, s * 17, y + 26);
-        wing.quadraticCurveTo(s * 8, y + 21, s * 3, y + 26);
-        wing.closePath();
-        part(
-          new THREE.ExtrudeGeometry(wing, {
-            depth: 2.5,
-            bevelEnabled: true,
-            bevelThickness: 0.7,
-            bevelSize: 0.6,
-            bevelSegments: 2,
-            curveSegments: 12,
-            steps: 1,
-          }),
-          "red",
-          [0, 0, -1.25],
-        );
-        tube(
-          "red",
-          [
-            [s * 3, y + 28, 0],
-            [s * 12, y + 32, 0],
-            [s * 22, y + 38, 0],
-            [s * 32, y + 43, 0],
-          ],
-          2.5,
-          30,
-        );
-        for (let j = 0; j < 9; j++) {
-          const start = new THREE.Vector3(
-              s * (6 + j * 2.5),
-              y + 29 + j * 1.4,
-              0,
-            ),
-            end = new THREE.Vector3(s * (18 + j * 2.6), y + 20 + j * 3.7, 0),
-            mid = start
-              .clone()
-              .lerp(end, 0.5)
-              .add(new THREE.Vector3(0, 3, 0));
-          const curve = new THREE.QuadraticBezierCurve3(start, mid, end),
-            pos = [],
-            idx = [],
-            steps = 12;
-          for (let k = 0; k <= steps; k++) {
-            const t = k / steps,
-              p = curve.getPoint(t),
-              tan = curve.getTangent(t),
-              width = 2.3 * Math.sin(Math.PI * (0.08 + 0.92 * t)) + 0.08;
-            for (const [a, b] of [
-              [-1, -1],
-              [1, -1],
-              [1, 1],
-              [-1, 1],
-            ])
-              pos.push(
-                p.x - tan.y * width * a,
-                p.y + tan.x * width * a,
-                p.z + b * 0.65 * Math.sin(Math.PI * (0.12 + 0.84 * t)),
-              );
-            if (k < steps) {
-              const a = k * 4;
-              for (let f = 0; f < 4; f++) {
-                const n = (f + 1) % 4;
-                idx.push(a + f, a + n, a + 4 + f, a + n, a + 4 + n, a + 4 + f);
-              }
-            }
-          }
-          idx.push(
-            0,
-            2,
-            1,
-            0,
-            3,
-            2,
-            steps * 4,
-            steps * 4 + 1,
-            steps * 4 + 2,
-            steps * 4,
-            steps * 4 + 2,
-            steps * 4 + 3,
-          );
-          const g = new THREE.BufferGeometry();
-          g.setAttribute("position", new THREE.Float32BufferAttribute(pos, 3));
-          g.setIndex(idx);
-          g.computeVertexNormals();
-          part(g, j % 3 === 0 ? "bronze" : "red");
-          for (let k = 0; k < 3; k++) {
-            const a = world(curve.getPoint(k / 3).toArray()),
-              b = world(curve.getPoint((k + 1) / 3).toArray());
-            colliders.push({
-              type: "capsule",
-              kind: "guardian_landmark_feather",
-              a,
-              b,
-              radius: 1,
-            });
-          }
-          tube(
-            "bronze",
-            [start.toArray(), mid.toArray(), end.toArray()].map((p) => [
-              p[0],
-              p[1],
-              -2.15,
-            ]),
-            0.2,
-            14,
-          );
-        }
-        // 双翼用窄的分段实体覆盖羽冠，不用包住整片天空的方盒。
-        for (let j = 0; j < 4; j++)
-          solid("wing", [s * (10 + j * 8), y + 29 + j * 4, 0], [7, 7, 1.6]);
-      }
-      for (let j = -2; j <= 2; j++)
-        tube(
-          j % 2 ? "bronze" : "red",
-          [
-            [j * 1.8, y + 19, 1],
-            [j * 4, y + 13, 3],
-            [j * 5.5, y + 8, 5],
-          ],
-          1.2,
-          20,
-        );
-      part(new THREE.TorusGeometry(19, 0.85, 8, 64), "bronze", [0, y + 37, 3]);
+      part(new THREE.TorusGeometry(19, 0.85, 8, 64), "bronze", [0, y + 37, 16]);
       for (let i = 0; i < 32; i++) {
         const a = (i / 32) * Math.PI * 2,
           b = ((i + 1) / 32) * Math.PI * 2;
         colliders.push({
           type: "capsule",
           kind: "guardian_landmark_sun_ring",
-          a: world([Math.cos(a) * 19, y + 37 + Math.sin(a) * 19, 3]),
-          b: world([Math.cos(b) * 19, y + 37 + Math.sin(b) * 19, 3]),
+          a: world([Math.cos(a) * 19, y + 37 + Math.sin(a) * 19, 16]),
+          b: world([Math.cos(b) * 19, y + 37 + Math.sin(b) * 19, 16]),
           radius: 0.85,
         });
       }
-      for (const s of [-1, 1])
-        for (let j = 0; j < 4; j++)
-          tube(
-            "bronze",
-            [
-              [s * (1 + j * 0.5), y + 44, -2],
-              [s * (3 + j), y + 47 + j, -1],
-              [s * (4 + j * 1.2), y + 49 + j, 1],
-            ],
-            0.3,
-            12,
-          );
       root.userData.focus = [0, y + 30, 0];
     }
     for (const [key, parts] of buckets) {

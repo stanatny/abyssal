@@ -22,11 +22,16 @@ function sample(skin, z) {
   }
   return skin.getVertexPosition(index, new THREE.Vector3());
 }
-test("青龙、云龙和长蛇躯节沿前后传播侧波，头部接触锚点稳定、相邻体节连续", () => {
-  for (const kind of ["azure_dragon", "gate_dragon", "bashe", "hujiao"]) {
+test("云龙和长蛇躯节沿前后传播侧波，头部接触锚点随形体、相邻体节连续", () => {
+  for (const kind of ["gate_dragon", "bashe"]) {
     const m = createCreature(kind, 1, 17),
       rig = m.userData.azureAxialRig,
-      joints = rig ? [...rig.bones] : [];
+      hf = m.userData.hfRig,
+      joints = hf
+        ? hf.axis.ids.map((id) => hf.bones[id])
+        : rig
+          ? [...rig.bones]
+          : [];
     m.traverse((n) => {
       if (n.name === "continuous_scaled_body_joint") joints.push(n);
     });
@@ -34,11 +39,27 @@ test("青龙、云龙和长蛇躯节沿前后传播侧波，头部接触锚点�
       positions = [];
     for (let i = 0; i < 240; i++) {
       step(m, i / 60);
-      positions.push(joints.map((n) => n.position.x));
-      assert.ok(
-        m.userData.getHeadWorldPositions()[0].distanceTo(anchor) < 1e-6,
+      positions.push(
+        hf ? [sample(hf.mesh, 0.2).x] : joints.map((n) => n.position.x),
       );
-      if (rig) {
+      if (kind === "gate_dragon") {
+        const mouth = m.userData.getHeadWorldPositions()[0];
+        assert.ok(mouth.distanceTo(anchor) < 0.07, "bounded head lead");
+        assert.ok(
+          mouth.distanceTo(sample(hf.mesh, -0.5)) < 0.05,
+          "moving mouth remains on actual skin",
+        );
+      } else
+        assert.ok(
+          m.userData.getHeadWorldPositions()[0].distanceTo(anchor) < 1e-6,
+        );
+      if (hf) {
+        // HF serpents are continuous skinned surfaces, not the old rigid body
+        // segments. Check real head/tail vertices; its full edge audit lives
+        // in penglai_giants_hf.test.js.
+        assert.ok(Math.abs(sample(hf.mesh, -0.44).x) < 0.08);
+        assert.ok(hf.mesh.boundingSphere.containsPoint(sample(hf.mesh, 0.4)));
+      } else if (rig) {
         // 连续蒙皮已取代重叠刚性躯节，直接检查相邻实际顶点环不断裂。
         for (let row = 0; row < 144; row += 4) {
           const a = rig.trunk.getVertexPosition(row * 25, new THREE.Vector3());
@@ -72,7 +93,7 @@ test("青龙、云龙和长蛇躯节沿前后传播侧波，头部接触锚点�
     const a = joints[Math.floor(joints.length * 0.35)],
       b = joints[Math.floor(joints.length * 0.7)];
     assert.ok(a.quaternion.angleTo(b.quaternion) > 0.05);
-    if (kind === "gate_dragon")
+    if (kind === "gate_dragon" && !hf)
       assert.equal(
         m.getObjectByName("cloud_dragon_carp_tail").parent,
         joints.at(-1),

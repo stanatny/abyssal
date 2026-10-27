@@ -298,6 +298,20 @@ const rows = [
     1,
     true,
   ],
+  [
+    "taotie",
+    "饕餮",
+    "Taotie",
+    32,
+    7.8,
+    "#647c70",
+    "兽",
+    "双角、宽阔巨口与兽面纹般的骨甲包覆厚重四足身躯。它沿偏远山肩巡猎，压低前躯后扑向靠近的猎物；30米的旅人仍需提防它的利齿。",
+    "Curved horns, a cavernous jaw and mask-like bony ridges frame a heavy four-legged body. It patrols remote mountain shoulders, lowering its forequarters before a pounce. Even a 30 m traveler must respect its teeth.",
+    [land(-350, -700, 32), land(-160, -500, 32)],
+    1,
+    true,
+  ],
 ];
 const formationBird = (kind) =>
   ["cloud_crane", "bifang", "gudiao"].includes(kind);
@@ -481,7 +495,9 @@ export const PENGLAI_SPECIES = Object.freeze(
                     )
                   : points,
               residentRadius: groundbound
-                ? Math.max(38, length * 2.1)
+                ? kind === "taotie"
+                  ? 42
+                  : Math.max(38, length * 2.1)
                 : flying
                   ? Math.max(80, length * 3)
                   : 45,

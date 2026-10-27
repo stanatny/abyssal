@@ -9,7 +9,7 @@ Read [AGENTS.md](../../../AGENTS.md), [README.md](../../../README.md), the curre
 
 Keep appearance-only changes within appearance: preserve body length, movement physics, food/contact eligibility, ability costs, damage, rewards and source anchors. Retain existing services and unrelated work. Use English project documents and bilingual player copy. No personal Skill installation is required.
 
-This skill serves all ABYSSAL regions. Shared factory, Guide/world, loading and lifecycle contracts apply wherever the current code uses them. Hawaii reviews are scoped examples: their species, rigs, tuning and conversion recipes are not requirements for another region. Before applying a case-specific repair, verify that the affected creature uses the same implementation; before changing a shared implementation, trace consumers across regions.
+This skill serves all ABYSSAL regions. Shared factory, Guide/world, loading and lifecycle contracts apply wherever the current code uses them. Regional reviews are scoped examples: their species, rigs, tuning and conversion recipes are not requirements for another region. Before applying a case-specific repair, verify that the affected creature uses the same implementation; before changing a shared implementation, trace consumers across regions.
 
 ## Diagnose the layer before editing
 
@@ -26,6 +26,8 @@ Preserve the immediate baseline and record the requested visible difference, usu
 For a new generated mesh or fitted mechanical parts, read [references/generated_mesh.md](references/generated_mesh.md). For a material-only or motion-only fix, use the existing asset and continue below.
 
 For a redraw batch, shared color-loading failure, or human/Octopus pose integration, also read [references/appearance_integration.md](references/appearance_integration.md). It maps these failures to ABYSSAL's actual loaders, factories and ordinary entry paths; use only the checks affected by the current change.
+
+For torn or dented animated skin, crowded limb/tail attachments, conversion damage, stiff travel or effects that hide their own models, read [references/surface_motion_validation.md](references/surface_motion_validation.md). It covers anatomical ownership, final packed surfaces and coordinated world/skin/effect review across maps; a simple color edit does not require that entire workflow.
 
 ## Make motion anatomically coherent and readable
 

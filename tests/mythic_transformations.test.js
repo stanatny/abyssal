@@ -218,3 +218,25 @@ test("both real Dragon Gate paths fit between actual pillars without crossing te
     ocean.dispose();
   }
 });
+
+test("Peng preserves the fitted regional Kun habitat and view distance, then restores the same resident", () => {
+  const e = specimen("kun");
+  e.species = getRegionSpecies("penglai").find((s) => s.kind === "kun");
+  e.mesh.position.fromArray(e.species.spawnAnchors[0]);
+  const source = e.species;
+  prepareMythicTransformations([e]);
+  finishRise(e);
+  assert.equal(e.species.kind, "peng");
+  for (const key of [
+    "spawnAnchors",
+    "depthMin",
+    "depthMax",
+    "residentRadius",
+    "hunterTerritory",
+    "visibilityDistance",
+    "smoothVisibilityDistance",
+  ])
+    assert.deepEqual(e.species[key], source[key], key);
+  restoreMythicForm(e);
+  assert.equal(e.species, source);
+});

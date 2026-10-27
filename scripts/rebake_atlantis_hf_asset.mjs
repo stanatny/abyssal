@@ -145,6 +145,7 @@ let samples = 0,
   sumDistance = 0;
 const distances = [];
 const outerProjection =
+  d.albedoProjection === "normal" ||
   d.kind === "bell_carrier" ||
   d.kind.startsWith("furniture_") ||
   d.kind.startsWith("neighborhood_");

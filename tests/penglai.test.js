@@ -111,10 +111,10 @@ test("Northern basin has adult underwater turning and vertical escape space on i
 test("Penglai is the seventh isolated mythic destination with real ordinary and guardian registries", () => {
   assert.equal(REGIONS[6].id, "penglai");
   assert.equal(REGIONS[5].id, "europa");
-  assert.equal(roster.length, 19);
+  assert.equal(roster.length, 20);
   assert.equal(
     roster.reduce((n, s) => n + s.population, 0),
-    400,
+    393,
   );
   assert.ok(
     roster.every(
@@ -355,7 +355,7 @@ test("Penglai formations preserve physical separation and woodland LOD preserves
   });
   assert.equal(
     levels.near,
-    (ocean.root.userData.peachTrees + ocean.root.userData.skyPeachTrees) * 2,
+    ocean.root.userData.peachTrees + ocean.root.userData.skyPeachTrees,
   );
   assert.equal(ocean.root.userData.skyPeachTrees, 30);
   assert.equal(levels.far, levels.near);
@@ -383,7 +383,7 @@ test("Aether preserves whole-body air ceiling and solid roof collision without a
   assert.equal(surface.move().airborne, false);
   const parent = new THREE.Group(),
     o = createPenglaiOcean(parent),
-    roof = o.colliders.find((c) => c.kind === "curved_tiled_roof");
+    roof = o.colliders.find((c) => c.kind === "penglai_hf_temple_roof");
   const r = resolveMotion(
     new THREE.Vector3(roof.x, roof.y + 15, roof.z),
     new THREE.Vector3(roof.x, roof.y - 15, roof.z),
@@ -480,13 +480,18 @@ test("Four real guardian defeats unlock the sage; 25 m and five recovery counter
   assert.equal(p.bossesDefeated, count);
 });
 
-test("All 24 mythic assets have finite independent articulated geometry through complete motion cycles", () => {
+test("All 25 ordinary and lord mythic assets have finite independent articulated geometry through complete motion cycles", () => {
   for (const kind of [...roster, ...PENGLAI_LORDS].map((s) => s.kind)) {
     const a = createCreature(kind, 10),
       b = createCreature(kind, 10);
     a.updateMatrixWorld(true);
     const bounds = new THREE.Box3().setFromObject(a, true);
-    assert.ok(Math.abs(bounds.getSize(new THREE.Vector3()).z - 10) < 0.1, kind);
+    // 贝灵按双壳的最大直径保持标称尺寸，翼兽仍按前后长度。
+    const size = bounds.getSize(new THREE.Vector3());
+    assert.ok(
+      Math.abs((kind === "lotus_sprite" ? size.x : size.z) - 10) < 0.1,
+      kind,
+    );
     const fixed = b.matrixWorld.clone();
     for (let time = 0; time < 12; time += 0.75) {
       a.userData.animate(time, 1);
@@ -520,7 +525,7 @@ test("Mythic Guide membership, fields and flight/radar information remain biling
     }
     const all = buildOceanCatalog("penglai"),
       selected = filterOceanCatalog(all, { regionId: "penglai" });
-    assert.equal(selected.filter((e) => e.category === "mythic").length, 21);
+    assert.equal(selected.filter((e) => e.category === "mythic").length, 22);
     assert.equal(selected.filter((e) => e.category === "lord").length, 5);
     assert.ok(
       selected.every(

@@ -31,7 +31,9 @@ export function groundCreatureProfile(mesh, length) {
         inverse,
         part.matrixWorld,
       );
-      for (let i = 0; i < vertices.count; i++) {
+      const rigid = part.geometry.userData.terrainRigidVertexIndices;
+      for (let j = 0; j < (rigid?.length ?? vertices.count); j++) {
+        const i = rigid ? rigid[j] : j;
         point
           .fromBufferAttribute(vertices, i)
           .applyMatrix4(matrix)

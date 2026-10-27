@@ -26,7 +26,10 @@ test("Bixi's complete foundation is supported by the rendered shore and faces th
           `foundation ${x},${z}: ${floor}`,
         );
       }
-    const own = ocean.colliders.filter((c) => c.kind.startsWith("bixi_"));
+    const own = ocean.colliders.filter(
+      (c) =>
+        c.kind.startsWith("bixi_") || c.kind.startsWith("penglai_hf_bixi_"),
+    );
     assert.ok(own.length >= 10);
     assert.ok(
       own.every(

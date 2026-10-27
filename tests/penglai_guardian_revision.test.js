@@ -112,25 +112,29 @@ test("Northern Hujiao is a single ordinary pool resident and still retaliates at
   assert.equal(canPredatorRetaliate(34, s.length), false);
 });
 
-test("Mature Hujiao crests follow their continuous body joints through full swimming extremes", () => {
-  const mesh = createCreature("pool_hujiao", 29),
-    crests = [];
-  mesh.traverse((p) => {
-    if (p.name === "northern_hujiao_jointed_crest") crests.push(p);
-  });
-  assert.equal(crests.length, 7);
-  for (const crest of crests)
-    assert.equal(crest.parent.name, "continuous_scaled_body_joint");
-  for (const time of [0, 1.7, 4.4, 8.6]) {
-    mesh.userData.animate(time, 3);
-    mesh.updateMatrixWorld(true);
-    for (const crest of crests) {
-      const p = crest.getWorldPosition(new T.Vector3()),
-        base = crest.parent.getWorldPosition(new T.Vector3());
-      assert.ok(p.distanceTo(base) < 2);
-      assert.ok(p.toArray().every(Number.isFinite));
-    }
+test("Mature Hujiao HF crown remains attached to the continuous axial surface", () => {
+  const root = createCreature("pool_hujiao", 29),
+    { mesh } = root.userData.hfRig;
+  const p = mesh.geometry.attributes.position,
+    crown = [];
+  for (let i = 0; i < p.count; i++)
+    if (p.getY(i) > 0.09 && p.getZ(i) < -0.1) crown.push(i);
+  assert.ok(crown.length > 50);
+  const neutral = crown.map((i) => new T.Vector3().fromBufferAttribute(p, i));
+  for (let f = 0; f < 180; f++) {
+    root.userData.animate(f / 60, 3);
+    root.updateMatrixWorld(true);
+    mesh.skeleton.update();
+    crown.forEach((id, i) => {
+      const v = mesh.getVertexPosition(id, new T.Vector3());
+      assert.ok(v.toArray().every(Number.isFinite));
+      assert.ok(
+        v.distanceTo(neutral[i]) < 0.04,
+        "crown remains on anterior trunk",
+      );
+    });
   }
+  root.userData.disposeLocalMotion();
 });
 
 test("All five real Penglai lord models start clear of actual scenery; full bodies reject blocked turns and shifts", () => {

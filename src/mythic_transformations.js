@@ -42,6 +42,20 @@ export function prepareMythicTransformations(entities) {
       };
     }
     state.sourceSpecies = entity.species;
+    // 鲲鹏是同一居民，化形后沿用本关最终栖地，不能回到图鉴原始坐标。
+    state.formedSpecies =
+      entity.species.kind === "kun"
+        ? {
+            ...transformationForm(rule.form),
+            spawnAnchors: entity.species.spawnAnchors,
+            depthMin: entity.species.depthMin,
+            depthMax: entity.species.depthMax,
+            residentRadius: entity.species.residentRadius,
+            hunterTerritory: entity.species.hunterTerritory,
+            visibilityDistance: entity.species.visibilityDistance,
+            smoothVisibilityDistance: entity.species.smoothVisibilityDistance,
+          }
+        : transformationForm(rule.form);
     // 两尾金鲤在真实龙门的开口前蓄势，余下鱼群保持原有航带。
     if (entity.species.kind === "dragon_carp") {
       const x = entity.populationIndex === 0 ? -9 : 9;
@@ -176,7 +190,7 @@ export function stepMythicTransformation(
     if (p === 1) {
       if (s.phase === "return") restoreMythicForm(entity);
       else {
-        entity.species = transformationForm(s.rule.form);
+        entity.species = s.formedSpecies;
         s.phase = "formed";
         s.timer = 0;
         entity.hunter = createHunterState(entity.species, entity.seed);

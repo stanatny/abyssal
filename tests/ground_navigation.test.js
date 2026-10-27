@@ -25,7 +25,9 @@ function bodyDepth(mesh, heightAt) {
       if (node.userData.terrainFlexible) return;
     const vertices = part.geometry?.attributes.position;
     if (!vertices) return;
-    for (let i = 0; i < vertices.count; i++) {
+    const rigid = part.geometry.userData.terrainRigidVertexIndices;
+    for (let j = 0; j < (rigid?.length ?? vertices.count); j++) {
+      const i = rigid ? rigid[j] : j;
       point.fromBufferAttribute(vertices, i).applyMatrix4(part.matrixWorld);
       worst = Math.min(worst, point.y - heightAt(point.x, point.z));
     }
@@ -33,7 +35,7 @@ function bodyDepth(mesh, heightAt) {
   return worst;
 }
 
-test("All 38 ground residents spawn with their actual rigid anatomy above real mountains", () => {
+test("All 40 ground residents spawn with their actual rigid anatomy above real mountains", () => {
   const ocean = createPenglaiOcean(new THREE.Group());
   const heightAt = ocean.groundHeightAt;
   let count = 0;
@@ -45,7 +47,13 @@ test("All 38 ground residents spawn with their actual rigid anatomy above real m
       ...configured,
       ...groundCreatureProfile(mesh, configured.length),
     };
-    assert.ok(species.groundFootprint.length <= 100);
+    // Broad generated torsos span more existing 0.1-unit probe cells.
+    // Keep all rigid skin samples rather than excluding its belly to meet the
+    // legacy 100-probe budget: four Kui and two Taotie are populated.
+    assert.ok(
+      species.groundFootprint.length <=
+        ({ kui: 160, taotie: 180 }[species.kind] ?? 100),
+    );
     for (let i = 0; i < species.population; i++) {
       const position = habitatPosition(species, {
         populationIndex: i,
@@ -75,7 +83,7 @@ test("All 38 ground residents spawn with their actual rigid anatomy above real m
       count++;
     }
   }
-  assert.equal(count, 38);
+  assert.equal(count, 40);
   // 同时核对烘焙后三角面和条带接缝，导航不能另造一张近似的隐形山体。
   ocean.root.updateMatrixWorld(true);
   const floors = ocean.root.children.filter(

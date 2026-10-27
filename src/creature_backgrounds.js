@@ -551,6 +551,11 @@ const original = [
 for (const [kind, zh, en] of original) add(kind, "背景故事", zh, en);
 const legends = [
   [
+    "taotie",
+    "饕餮的贪食传说与古器兽面纹，为这只四足凶兽提供了灵感。双角、大口与回旋骨甲是蓬莱的幻想演绎，并非古籍中唯一确定的整兽形象。",
+    "Stories of Taotie's ravenous hunger and ancient beast-mask motifs inspire this four-legged beast. Its horns, vast jaw and curling bony ridges are Penglai's fantasy interpretation, not a single definitive historical anatomy.",
+  ],
+  [
     "kraken",
     "克拉肯是北欧传说中潜伏深海的巨型头足海怪。它的长腕能从船底探出，吸盘逐个贴住船板；海面看似平静时，漩涡下往往已经张开了巨大的腕冠。",
     "Kraken is the colossal tentacled sea monster of northern European legend. Its long arms reach beneath ships, attaching suckers to their planks; a calm surface can conceal an immense crown of arms beneath a whirlpool.",

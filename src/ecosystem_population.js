@@ -219,6 +219,10 @@ export function steerResidentHabitat(
 
 /** 可见半径考虑中型动物与群体辨识，不再把海龟、蝠鲼与微小单鱼一律裁到85米。 */
 export function speciesVisibilityDistance(species, highQuality = true) {
+  const custom = highQuality
+    ? species.visibilityDistance
+    : species.smoothVisibilityDistance;
+  if (Number.isFinite(custom) && custom > 0) return custom;
   return species.length < 1
     ? highQuality
       ? 115

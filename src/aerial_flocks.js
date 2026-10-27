@@ -3,7 +3,7 @@ import * as THREE from "three";
 /** 连续巡航队列同时给出位置和切线，队员不再追上静止槽位后减速悬停。 */
 export function aerialFormationPose(school, slot, time, position, tangent) {
   const species = school.species,
-    radius = species.flightRadius ?? 55,
+    radius = school.habitat?.flightRadius ?? species.flightRadius ?? 55,
     speed = species.speed * 0.85,
     phase = school.seed + (time * speed) / radius,
     sin = Math.sin(phase),

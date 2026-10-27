@@ -2,6 +2,11 @@ import { ODYSSEY_LORE } from "./odyssey_lore.js";
 /** 图鉴背景故事；出处与美术改编记录保留在内部来源文档。 */
 export const CREATURE_LORE = [
   [
+    "taotie",
+    "山肩的雾散开时，饕餮才露出沉重的双角。它的骨甲像古器上的兽面，腹中却似乎永远空着。旅人听见石子被爪掌碾碎，便知道不该再靠近那张巨口。它不镇守道观，也不听命于四象，只循着自己的饥饿在山径上徘徊。",
+    "When the mountain mist thins, Taotie's heavy horns emerge. Its bony ridges recall the faces on ancient vessels, yet its belly never seems full. Pebbles crunch beneath its paws, warning travelers away from the vast jaw. It guards no monastery and serves none of the Four Symbols; hunger alone guides its mountain patrol.",
+  ],
+  [
     "pool_hujiao",
     "沉水石之间总有一条较深的阴影沿池岸移动。寒潭虎蛟不与小鱼争食，它等待较大的身影穿过莲根，才扭动长尾，从侧后方逼近。北池的旅人即使已经长成，也仍需留意甲阵之外的暗流。",
     "A deeper shadow moves along the submerged stones. The Northern Hujiao waits for a larger silhouette among the lotus roots, then coils its long tail to approach from the flank. Even a grown traveler must watch the water outside the tortoise's ward.",

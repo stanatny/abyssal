@@ -1,3 +1,21 @@
+import {
+  createPenglaiGardenAsset,
+  createPenglaiLotusLeaf,
+} from "./penglai_garden_asset.js";
+import {
+  addPenglaiSwordMonument,
+  addPenglaiSectGate,
+} from "./penglai_sword_sect.js";
+import {
+  addPenglaiTempleCourtyard,
+  refineTemplePlaster,
+} from "./penglai_temple_courtyard.js";
+import { addPenglaiTempleDetails } from "./penglai_temple_details.js";
+import { createPenglaiTemplePlaque } from "./penglai_calligraphy.js";
+import {
+  createPenglaiTempleAsset,
+  createPenglaiTempleCarvings,
+} from "./penglai_temple_asset.js";
 import { createPenglaiGuardianLandmarks } from "./penglai_guardian_landmarks.js";
 import { guardianLandmarkReserved } from "./penglai_landmark_sites.js";
 import { createPenglaiBixi } from "./penglai_bixi.js";
@@ -15,7 +33,11 @@ import {
   penglaiRewardAnchor,
 } from "./penglai_rewards.js";
 import * as THREE from "three";
-import { mergeGeometries } from "three/addons/utils/BufferGeometryUtils.js";
+import { RoundedBoxGeometry } from "three/addons/geometries/RoundedBoxGeometry.js";
+import {
+  createPenglaiGroundMaterials,
+  applyPenglaiGroundSurface,
+} from "./penglai_ground_materials.js";
 import {
   PENGLAI_WORLD as W,
   PENGLAI_PEAKS,
@@ -57,7 +79,8 @@ export function* createPenglaiOceanSteps(parent) {
     ward,
     skyIslands,
     skyHazards,
-    bixi;
+    bixi,
+    templePlaque;
   const material = (key, color, extra = {}) =>
     mats[key] ??
     (mats[key] = keep(
@@ -114,94 +137,130 @@ export function* createPenglaiOceanSteps(parent) {
       halfSize: { x: sx / 2, y: sy / 2, z: sz / 2 },
     });
   }
-  const roofHeight = (x, z, h) => {
-    const e = Math.max(Math.abs(x), Math.max(0, (Math.abs(z) - 0.45) / 0.55));
-    return (
-      h * (1 - e ** 0.75) +
-      Math.pow(e, 7) * h * 0.38 +
-      Math.pow(Math.abs(x * z), 5) * h * 0.45
+  const templeCarving = createPenglaiTempleCarvings(keep);
+  const groundMaterials = createPenglaiGroundMaterials(keep);
+  root.userData.prepareMaterials = groundMaterials.prepare;
+  const dressedStone = material("pavilion_dressed_stone", "#a9aa9b", {
+    roughness: 0.97,
+  });
+  applyPenglaiGroundSurface(dressedStone, groundMaterials, "masonry");
+  const exposedRock = material("mountain_exposed_rock", "#96998b", {
+    roughness: 1,
+  });
+  applyPenglaiGroundSurface(exposedRock, groundMaterials, "outcrop");
+  const pavilionWood = material("pavilion_old_timber", "#624a35", {
+    roughness: 0.85,
+  });
+  addSurfaceDetail(pavilionWood, "wood", 0.4);
+  const dressedBlock = geometry(
+    "pavilion_dressed_block",
+    () => new RoundedBoxGeometry(1, 1, 1, 1, 0.018),
+  );
+  // 柱头承托到最终瓦顶的真实下表面；仅构建时采样，不改动每帧逻辑。
+  function roofSupport(
+    roofMesh,
+    x,
+    y,
+    z,
+    width,
+    kind = "monastery_roof_support",
+  ) {
+    const side = roofMesh.material.side;
+    roofMesh.material.side = THREE.DoubleSide;
+    const hit = new THREE.Raycaster(
+      new THREE.Vector3(x, y, z),
+      new THREE.Vector3(0, 1, 0),
+      0,
+      15,
+    ).intersectObject(roofMesh)[0];
+    roofMesh.material.side = side;
+    if (!hit || hit.distance < 0.15) return;
+    const height = hit.distance + 0.12;
+    emit(box, wood, x, y + height / 2, z, width, height, width);
+    solidBox(kind, x, y + height / 2, z, width, height, width);
+  }
+  function renderedGround(x, z) {
+    const i = Math.max(
+      0,
+      Math.min(groundStrips.length - 1, Math.floor((z - W.minZ) / 80)),
     );
-  };
-  function solidRoof(x, y, z, w, d, h) {
-    for (let i = 0; i < 12; i++)
-      for (let j = 0; j < 12; j++) {
-        const xa = (i / 12) * 2 - 1,
-          xb = ((i + 1) / 12) * 2 - 1,
-          za = (j / 12) * 2 - 1,
-          zb = ((j + 1) / 12) * 2 - 1;
-        const ys = [
-            roofHeight(xa, za, h),
-            roofHeight(xb, za, h),
-            roofHeight(xa, zb, h),
-            roofHeight(xb, zb, h),
-          ],
-          low = -0.4,
-          high = Math.max(...ys) + 0.3;
-        solidBox(
-          "curved_tiled_roof",
-          x + ((xa + xb) * w) / 4,
-          y + (low + high) / 2,
-          z + ((za + zb) * d) / 4,
-          w / 12 + 0.1,
-          high - low,
-          d / 12 + 0.1,
-        );
-      }
+    return groundStrips[i]?.(x, z) ?? penglaiHeightAt(x, z);
   }
-  function roof(w, d, h) {
-    return geometry(`roof_${w}_${d}_${h}`, () => {
-      const g = new THREE.PlaneGeometry(w, d, 32, 24);
-      g.rotateX(-Math.PI / 2);
-      const p = g.attributes.position;
-      for (let i = 0; i < p.count; i++)
-        p.setY(i, roofHeight(p.getX(i) / (w / 2), p.getZ(i) / (d / 2), h));
-      const points = Array.from(p.array),
-        indices = Array.from(g.index.array),
-        boundary = [];
-      for (let i = 0; i <= 32; i++) boundary.push(i);
-      for (let j = 1; j <= 24; j++) boundary.push(j * 33 + 32);
-      for (let i = 31; i >= 0; i--) boundary.push(24 * 33 + i);
-      for (let j = 23; j > 0; j--) boundary.push(j * 33);
-      // 曲面四周连接到瓦顶底板，形成封闭实体；不是在薄面下面另摆悬空平板。
-      const lower = points.length / 3;
-      for (const i of boundary) points.push(p.getX(i), 0, p.getZ(i));
-      for (let j = 0; j < boundary.length; j++) {
-        const k = (j + 1) % boundary.length;
-        indices.push(
-          boundary[j],
-          lower + j,
-          boundary[k],
-          boundary[k],
-          lower + j,
-          lower + k,
-        );
-      }
-      const center = points.length / 3;
-      points.push(0, 0, 0);
-      for (let j = 0; j < boundary.length; j++)
-        indices.push(center, lower + ((j + 1) % boundary.length), lower + j);
-      g.dispose();
-      const closed = new THREE.BufferGeometry();
-      closed.setAttribute(
-        "position",
-        new THREE.Float32BufferAttribute(points, 3),
-      );
-      closed.setIndex(indices);
-      closed.computeVertexNormals();
-      return closed;
-    });
-  }
+  let pavilionPillars;
   function pavilion(x, z, scale = 1, main = false) {
-    const y = penglaiHeightAt(x, z),
-      w = (main ? 88 : 25) * scale,
+    const w = (main ? 88 : 25) * scale,
       d = (main ? 92 : 25) * scale,
       h = (main ? 27 : 17) * scale;
-    emit(box, stone, x, y + 2, z, w + 9, 4, d + 9);
+    let y = penglaiHeightAt(x, z);
+    if (!main) {
+      // 老的坡面亭址保留 XZ；平台抬到整个脚印的山面之上，石台逐格向坡面收脚。
+      let highest = -Infinity;
+      for (let i = 0; i <= 12; i++)
+        for (let j = 0; j <= 12; j++)
+          highest = Math.max(
+            highest,
+            renderedGround(
+              x + (i / 12 - 0.5) * (w + 9),
+              z + (j / 12 - 0.5) * (d + 9),
+            ),
+          );
+      y = Math.max(y, highest - 2.8);
+    }
+    if (!main) {
+      // 实体石台分块排砌，顶面保持完整水平，不叠加共面的装饰薄片。
+      const sx = (w + 9) / 6,
+        sz = (d + 9) / 6;
+      for (let i = 0; i < 6; i++)
+        for (let j = 0; j < 6; j++) {
+          const xx = x + (i - 2.5) * sx,
+            zz = z + (j - 2.5) * sz;
+          let low = Infinity;
+          for (const dx of [-sx / 2, 0, sx / 2])
+            for (const dz of [-sz / 2, 0, sz / 2])
+              low = Math.min(low, renderedGround(xx + dx, zz + dz));
+          const bottom = Math.min(y, low - 0.25),
+            height = y + 4 - bottom;
+          // 外缘石墙分层露缝，内部只保留一块承重体；不把整面山墙做成无细节长柱。
+          const courses =
+            i === 0 || i === 5 || j === 0 || j === 5
+              ? Math.ceil(height / 2.2)
+              : 1;
+          const courseHeight = height / courses;
+          for (let k = 0; k < courses; k++)
+            emit(
+              dressedBlock,
+              dressedStone,
+              xx,
+              bottom + (k + 0.5) * courseHeight,
+              zz,
+              sx - 0.035,
+              courseHeight - 0.025,
+              sz - 0.035,
+            );
+          if (bottom < y)
+            solidBox(
+              "pavilion_fitted_foundation",
+              xx,
+              (bottom + y) / 2,
+              zz,
+              sx,
+              y - bottom,
+              sz,
+            );
+        }
+      if (!pavilionPillars) {
+        pavilionPillars = createPenglaiTempleAsset("temple_pillar", keep);
+        pavilionPillars.geometry.userData.prepareMaterials =
+          pavilionPillars.prepare;
+        pavilionPillars.geometry.userData.hfGardenKind = "pavilion_pillar";
+      }
+    }
     solidBox("monastery_platform", x, y + 2, z, w + 9, 4, d + 9);
     if (main) {
       const plaster = material("warm_plaster", "#bcb89d"),
-        door = material("lacquer_door", "#67493c"),
-        lattice = material("lattice_shadow", "#34403a");
+        door = material("lacquer_door", "#67493c");
+      addSurfaceDetail(plaster, "stone", 0.85);
+      refineTemplePlaster(plaster, y);
       const panel = (kind, m, xp, yp, zp, sx, sy, sz) => {
         emit(box, m, xp, yp, zp, sx, sy, sz);
         solidBox(kind, xp, yp, zp, sx, sy, sz);
@@ -218,39 +277,6 @@ export function* createPenglaiOceanSteps(parent) {
           h * 0.92,
           d - 20,
         );
-        for (let j = -2; j <= 2; j++) {
-          emit(
-            box,
-            wood,
-            x + side * (w / 2 - 7.7),
-            y + 18,
-            z + j * 14,
-            1,
-            12,
-            11,
-          );
-          emit(
-            box,
-            lattice,
-            x + side * (w / 2 - 7.1),
-            y + 18,
-            z + j * 14,
-            0.2,
-            9,
-            8,
-          );
-          for (let k = -2; k <= 2; k++)
-            emit(
-              box,
-              gold,
-              x + side * (w / 2 - 6.9),
-              y + 18,
-              z + j * 14 + k * 1.6,
-              0.22,
-              9,
-              0.23,
-            );
-        }
         for (const sz of [-1, 1])
           panel(
             "monastery_facade_wall",
@@ -283,19 +309,6 @@ export function* createPenglaiOceanSteps(parent) {
         24,
         2.6,
       );
-      for (let j = -7; j <= 7; j++)
-        emit(box, wood, x + j * 2, y + 16, z + d / 2 - 8.6, 0.4, 24, 0.6);
-      for (const side of [-1, 1])
-        emit(
-          sphere,
-          gold,
-          x + side * 2,
-          y + 15,
-          z + d / 2 - 7.9,
-          0.6,
-          0.6,
-          0.24,
-        );
       panel(
         "monastery_upper_chamber",
         plaster,
@@ -306,58 +319,34 @@ export function* createPenglaiOceanSteps(parent) {
         17,
         d * 0.45,
       );
-      for (const side of [-1, 1]) {
-        emit(box, wood, x, y + h + 19, z + side * d * 0.23, w * 0.5, 12, 0.7);
-        emit(
-          box,
-          lattice,
-          x,
-          y + h + 19,
-          z + side * (d * 0.23 + 0.4),
-          w * 0.44,
-          8,
-          0.15,
-        );
-        for (let j = -8; j <= 8; j++)
-          emit(
-            box,
-            gold,
-            x + j * 2.4,
-            y + h + 19,
-            z + side * (d * 0.23 + 0.55),
-            0.3,
-            8,
-            0.2,
-          );
-      }
-      // 两层瓦顶下面用深色封板封口，消除穿透屋面的空洞；上层房体遮住层间空隙。
-      panel(
-        "monastery_eave_soffit",
-        wood,
-        x,
-        y + h + 5,
-        z,
-        w + 12,
-        1.8,
-        d + 12,
-      );
+      // 封板收在实体斗拱内侧，保留内殿顶面，不向曲檐外伸成平板。
+      panel("monastery_eave_soffit", wood, x, y + h + 5, z, w - 4, 1.8, d - 4);
       panel(
         "monastery_upper_soffit",
         wood,
         x,
         y + h + 23,
         z,
-        w * 0.7,
+        w * 0.5,
         1.8,
-        d * 0.65,
+        d * 0.47,
       );
     } else {
       // 峰顶亭台落在最高点，四角向实际山坡延伸石墩，避免悬空基座。
       for (const dx of [-w * 0.42, w * 0.42])
         for (const dz of [-d * 0.42, d * 0.42]) {
-          const ground = penglaiHeightAt(x + dx, z + dz),
+          const ground = renderedGround(x + dx, z + dz),
             height = Math.max(1, y + 1 - ground);
-          emit(box, stone, x + dx, ground + height / 2, z + dz, 3, height, 3);
+          emit(
+            box,
+            dressedStone,
+            x + dx,
+            ground + height / 2,
+            z + dz,
+            3,
+            height,
+            3,
+          );
           solidBox(
             "summit_pavilion_support",
             x + dx,
@@ -375,7 +364,20 @@ export function* createPenglaiOceanSteps(parent) {
       for (const side of [-1, 1]) {
         const xx = x + (i / (columns - 1) - 0.5) * (w - 5),
           zz = z + side * (d / 2 - 3);
-        emit(column, red, xx, y + 4 + h / 2, zz, 1.4 * scale, h, 1.4 * scale);
+        if (!main) {
+          const a = pavilionPillars,
+            dims = a.packed.max.map((v, i) => v - a.packed.min[i]);
+          emit(
+            a.geometry,
+            a.material,
+            xx,
+            y + 4 + h / 2,
+            zz,
+            (2.8 * scale) / dims[0],
+            h / dims[1],
+            (2.8 * scale) / dims[2],
+          );
+        }
         solidBox(
           "vermilion_pillar",
           xx,
@@ -385,100 +387,106 @@ export function* createPenglaiOceanSteps(parent) {
           h,
           2.8 * scale,
         );
-        emit(column, stone, xx, y + 4.6, zz, 2.2 * scale, 1.2, 2.2 * scale);
+      }
+    for (const side of [-1, 1])
+      emit(
+        box,
+        main ? wood : pavilionWood,
+        x,
+        y + 4 + h,
+        z + side * (d / 2 - 3),
+        w + 2,
+        2,
+        2,
+      );
+    if (!main) {
+      // 侧梁补齐承重框，斗口垫木留在柱头附近，柱间原通行净空不变。
+      for (const side of [-1, 1]) {
         emit(
-          column,
-          gold,
-          xx,
-          y + 4 + h - 0.4,
-          zz,
-          1.6 * scale,
-          0.8,
-          1.6 * scale,
+          box,
+          pavilionWood,
+          x + (side * (w - 5)) / 2,
+          y + 4 + h,
+          z,
+          2,
+          2,
+          d - 6,
         );
+        for (const end of [-1, 1]) {
+          const xx = x + (side * (w - 5)) / 2,
+            zz = z + end * (d / 2 - 3);
+          emit(
+            dressedBlock,
+            pavilionWood,
+            xx,
+            y + 3 + h,
+            zz,
+            4.4 * scale,
+            0.7,
+            4.4 * scale,
+          );
+        }
       }
-    for (const side of [-1, 1])
-      emit(box, wood, x, y + 4 + h, z + side * (d / 2 - 3), w + 2, 2, 2);
-    emit(roof(w + 14, d + 14, main ? 14 : 7), roofmat, x, y + h + 6, z);
-    solidRoof(x, y + h + 6, z, w + 14, d + 14, main ? 14 : 7);
-    emit(box, gold, x, y + h + (main ? 20 : 13), z, 1.0, 1.0, d * 0.44);
-    // 瓦当贴着真实檐口而非悬浮在其上；连续横向瓦纹强化中式屋面。
-    for (const side of [-1, 1])
-      for (let j = 0; j < 18; j++) {
-        const xx = x + (j / 17 - 0.5) * (w + 10),
-          zz = z + side * (d / 2 + 6),
-          yy =
-            y +
-            h +
-            6 +
-            roofHeight(
-              (xx - x) / ((w + 14) / 2),
-              (zz - z) / ((d + 14) / 2),
-              main ? 14 : 7,
-            );
-        emit(column, roofmat, xx, yy, zz, 0.48, 1.8, 0.48, Math.PI / 2);
-        emit(sphere, gold, xx, yy, zz + side * 0.8, 0.28, 0.28, 0.16);
-      }
+    }
     if (main) {
-      emit(roof(w * 0.7, d * 0.65, 12), roofmat, x, y + h + 24, z);
-      solidRoof(x, y + h + 24, z, w * 0.7, d * 0.65, 12);
+      const lowerRoof = templeCarving(
+        "temple_roof",
+        root,
+        [x, y + h + 9, z],
+        [w + 14, 18, d + 14],
+        colliders,
+      );
+      for (let i = 0; i < columns; i++)
+        for (const side of [-1, 1])
+          roofSupport(
+            lowerRoof,
+            x + (i / (columns - 1) - 0.5) * (w - 5),
+            y + 4 + h,
+            z + side * (d / 2 - 3),
+            2.6,
+          );
+    } else {
+      const r = templeCarving(
+        "temple_roof",
+        root,
+        [x, y + h + 8.5, z],
+        [w + 14, 9, d + 14],
+        colliders,
+      );
+      r.userData.smallPavilion = true;
+      r.name = "penglai_hf_pavilion_roof";
+      for (const side of [-1, 1])
+        for (const i of [0, 1])
+          roofSupport(
+            r,
+            x + (i - 0.5) * (w - 5),
+            y + 4 + h,
+            z + side * (d / 2 - 3),
+            2.6 * scale,
+            "pavilion_roof_support",
+          );
+    }
+    if (main) {
+      const upperRoof = templeCarving(
+        "temple_roof",
+        root,
+        [x, y + h + 30.6, z],
+        [w * 0.7, 16.8, d * 0.65],
+        colliders,
+      );
       for (const side of [-1, 1])
         for (const a of [-1, 1]) {
           const xx = x + side * w * 0.26,
             zz = z + a * d * 0.24;
-          emit(column, red, xx, y + h + 18, zz, 1.1, 18, 1.1);
+
+          roofSupport(upperRoof, xx, y + h + 27, zz, 2.1);
           solidBox("upper_pillar", xx, y + h + 18, zz, 2.2, 18, 2.2);
         }
-      for (const side of [-1, 1]) {
-        emit(box, red, x + side * w * 0.26, y + h + 20, z, 1, 13, d * 0.48);
-        emit(box, wood, x, y + h + 25, z + side * d * 0.24, w * 0.52, 1.3, 1.3);
-        for (let j = -4; j <= 4; j++) {
-          emit(
-            box,
-            wood,
-            x + side * (w * 0.26 + 0.55),
-            y + h + 20,
-            z + j * 4.2,
-            0.35,
-            9.8,
-            0.4,
-          );
-          emit(
-            box,
-            gold,
-            x + side * (w * 0.26 + 0.8),
-            y + h + 20,
-            z + j * 4.2,
-            0.24,
-            4.2,
-            3.1,
-            side * 0.6,
-            0,
-            0,
-          );
-        }
-        for (const row of [-4.5, 0, 4.5])
-          emit(
-            box,
-            wood,
-            x + side * (w * 0.26 + 0.65),
-            y + h + 20 + row,
-            z,
-            0.4,
-            0.55,
-            d * 0.46,
-          );
-      }
-      emit(box, gold, x, y + h + 36, z, 1, 1, d * 0.65 * 0.44);
       // 神像与屏风作为内殿细节，外院与柱廊仍留有完整通路。
       emit(box, red, x, y + 11, z - 31, 54, 14, 2);
       solidBox("temple_screen", x, y + 11, z - 31, 54, 14, 2);
       for (let j = -3; j <= 3; j++)
         emit(box, gold, x + j * 6, y + 12, z - 29.8, 0.35, 9, 0.3);
-      for (const s of [-1, 1]) {
-        emit(sphere, stone, x + s * 31, y + 8, z + 48, 4, 3, 6);
-        emit(column, gold, x + s * 31, y + 12, z + 47, 1.2, 8, 1.2);
-      }
       // 台阶从平台前缘向外排布，踏面高于山体并逐级下降，不能与平台共面重叠。
       for (let j = 0; j < 8; j++) {
         const top = y + 3.65 - j * 0.4,
@@ -486,17 +494,9 @@ export function* createPenglaiOceanSteps(parent) {
           height = top - bottom,
           centerY = (top + bottom) / 2,
           centerZ = z + 52.5 + j * 4;
-        emit(box, stone, x, centerY, centerZ, 65, height, 4);
+
         solidBox("monastery_entrance_step", x, centerY, centerZ, 65, height, 4);
       }
-      for (const side of [-1, 1])
-        for (let j = 0; j < 12; j++) {
-          const zz = z - 41 + j * 7;
-          emit(column, stone, x + side * 43, y + 7, zz, 0.65, 6, 0.65);
-          emit(sphere, stone, x + side * 43, y + 10.3, zz, 0.95, 0.95, 0.95);
-          if (j < 11)
-            emit(box, stone, x + side * 43, y + 8.5, zz + 3.5, 1, 1.3, 7);
-        }
       for (const side of [-1, 1]) {
         emit(sphere, gold, x + side * 26, y + 8, z + 22, 4.5, 2.2, 4.5);
         emit(column, gold, x + side * 26, y + 6, z + 22, 2.7, 4, 2.7);
@@ -515,188 +515,34 @@ export function* createPenglaiOceanSteps(parent) {
       for (let j = -4; j <= 4; j++)
         for (let k = 0; k < 5; k++)
           emit(box, gold, x + j * 5, y + 7 + k * 2.2, z - 29.6, 0.3, 2.0, 0.3);
-      for (const side of [-1, 1])
-        for (let j = 0; j < 5; j++) {
-          const xx = x + side * 40,
-            zz = z - 32 + j * 16;
-          emit(box, red, xx, y + h - 1, zz, 4.2, 1.2, 4.2);
-          emit(box, gold, xx, y + h - 2, zz, 3, 1.0, 3);
-        }
     }
+    if (main)
+      addPenglaiTempleDetails({
+        root,
+        keep,
+        emit,
+        geometry,
+        material,
+        box,
+        column,
+        x,
+        y,
+        z,
+      });
+    if (main)
+      addPenglaiTempleCourtyard({
+        root,
+        keep,
+        emit,
+        geometry,
+        material,
+        colliders,
+        groundMaterials,
+        x,
+        y,
+        z,
+      });
     return { x, y: y + 10, z };
-  }
-  function treeKit() {
-    const branchParts = [],
-      blooms = [],
-      farBlooms = [];
-    function part(g, p, scale, rot = [0, 0, 0]) {
-      const c = g.clone();
-      transform.position.set(...p);
-      transform.scale.set(...scale);
-      transform.rotation.set(...rot);
-      transform.updateMatrix();
-      c.applyMatrix4(transform.matrix);
-      return c;
-    }
-    const trunk = new THREE.TubeGeometry(
-      new THREE.CatmullRomCurve3([
-        new THREE.Vector3(0, 0, 0),
-        new THREE.Vector3(0.3, 5, 0.2),
-        new THREE.Vector3(-0.7, 9, 0),
-        new THREE.Vector3(0.2, 13, 0.4),
-      ]),
-      18,
-      0.6,
-      7,
-      false,
-    );
-    branchParts.push(trunk);
-    for (let j = 0; j < 9; j++) {
-      const a = j * 2.399,
-        h = 7 + j * 0.55,
-        r = 4 + j * 0.16;
-      const tip = new THREE.Vector3(Math.cos(a) * r, h + 3, Math.sin(a) * r);
-      branchParts.push(
-        new THREE.TubeGeometry(
-          new THREE.CatmullRomCurve3([
-            new THREE.Vector3(0, h, 0),
-            new THREE.Vector3(tip.x * 0.65, h + 1, tip.z * 0.65),
-            tip,
-          ]),
-          8,
-          0.17,
-          5,
-        ),
-      );
-      const floralCore = geometry("organic_bloom_core", () => {
-        const g = new THREE.IcosahedronGeometry(1, 1),
-          p = g.attributes.position;
-        for (let i = 0; i < p.count; i++) {
-          const x = p.getX(i),
-            y = p.getY(i),
-            z = p.getZ(i),
-            r = 1 + 0.1 * Math.sin(x * 11 + z * 17) * Math.cos(y * 9);
-          p.setXYZ(i, x * r, y * r, z * r);
-        }
-        g.computeVertexNormals();
-        return g;
-      });
-      const farCore = geometry(
-        "far_bloom_core",
-        () => new THREE.IcosahedronGeometry(1, 0),
-      );
-      for (let k = 0; k < 6; k++) {
-        const p = [
-            tip.x + Math.sin(k * 2.399 + j) * 1.5,
-            tip.y + Math.cos(k * 1.7) * 0.75,
-            tip.z + Math.cos(k * 2.399 + j) * 1.5,
-          ],
-          scale = [1.9, 1.35, 1.65],
-          rotation = [0, k, 0];
-        blooms.push(part(floralCore, p, scale, rotation));
-        farBlooms.push(part(farCore, p, scale, rotation));
-      }
-      for (let k = 0; k < 10; k++) {
-        const phase = k * 2.399 + j,
-          radius = 1.1 + ((k * 7 + j) % 9) * 0.14;
-        const center = [
-          tip.x + Math.sin(phase) * radius,
-          tip.y + Math.cos(k * 1.7) * 1.2,
-          tip.z + Math.cos(phase) * radius,
-        ];
-        const twig = new THREE.TubeGeometry(
-          new THREE.CatmullRomCurve3([tip, new THREE.Vector3(...center)]),
-          3,
-          0.045,
-          4,
-          false,
-        );
-        branchParts.push(twig);
-        for (let flower = 0; flower < 4; flower++) {
-          const fx = center[0] + Math.sin(flower * 2.4 + j) * 0.52,
-            fy = center[1] + Math.cos(flower * 2.7) * 0.35,
-            fz = center[2] + Math.cos(flower * 2.4 + j) * 0.52;
-          for (let petal = 0; petal < 5; petal++) {
-            const a = (petal / 5) * Math.PI * 2;
-            const g = new THREE.PlaneGeometry(0.54, 0.62, 1, 2);
-            g.translate(0, 0.24, 0);
-            blooms.push(
-              part(
-                g,
-                [fx + Math.cos(a) * 0.1, fy, fz + Math.sin(a) * 0.1],
-                [1, 1, 1],
-                [0.55, a, 0],
-              ),
-            );
-            g.dispose();
-          }
-        }
-      }
-    }
-    const colorBlooms = (g) => {
-      const p = g.attributes.position,
-        colors = [],
-        base = new THREE.Color("#bb6288"),
-        light = new THREE.Color("#f3c5cb"),
-        color = new THREE.Color();
-      for (let i = 0; i < p.count; i++) {
-        color
-          .copy(base)
-          .lerp(
-            light,
-            0.45 +
-              0.22 * Math.sin(p.getX(i) * 2.3 + p.getZ(i) * 1.7) +
-              0.12 * Math.sin(p.getY(i) * 4),
-          );
-        color.toArray(colors, colors.length);
-      }
-      g.setAttribute("color", new THREE.Float32BufferAttribute(colors, 3));
-      return g;
-    };
-    // 远树保留同一枝冠体积与色彩，只移除无法分辨的花瓣、细枝；碰撞始终使用真实树干。
-    const farBranches = geometry("peach_far_branches", () =>
-        mergeGeometries(branchParts.filter((_, i) => i === 0 || i % 11 === 1)),
-      ),
-      farFlowers = geometry("peach_far_flowers", () =>
-        mergeGeometries(farBlooms),
-      );
-    colorBlooms(farFlowers);
-    farBranches.userData.penglaiDetailLevel = "far";
-    farFlowers.userData.penglaiDetailLevel = "far";
-    const branches = geometry("peach_branches", () =>
-        mergeGeometries(branchParts),
-      ),
-      flowers = geometry("peach_flowers", () => {
-        const parts = blooms.map((g) => (g.index ? g.toNonIndexed() : g)),
-          g = mergeGeometries(parts),
-          p = g.attributes.position,
-          colors = [];
-        parts.forEach((g, i) => {
-          if (g !== blooms[i]) g.dispose();
-        });
-        const base = new THREE.Color("#bb6288"),
-          light = new THREE.Color("#f3c5cb"),
-          color = new THREE.Color();
-        for (let i = 0; i < p.count; i++) {
-          color
-            .copy(base)
-            .lerp(
-              light,
-              0.45 +
-                0.22 * Math.sin(p.getX(i) * 2.3 + p.getZ(i) * 1.7) +
-                0.12 * Math.sin(p.getY(i) * 4),
-            );
-          color.toArray(colors, colors.length);
-        }
-        g.setAttribute("color", new THREE.Float32BufferAttribute(colors, 3));
-        return g;
-      });
-    branchParts.forEach((g) => g.dispose());
-    blooms.forEach((g) => g.dispose());
-    farBlooms.forEach((g) => g.dispose());
-    branches.userData.penglaiDetailLevel = "near";
-    flowers.userData.penglaiDetailLevel = "near";
-    return { branches, flowers, farBranches, farFlowers };
   }
   try {
     const skyMaterial = keep(
@@ -719,11 +565,9 @@ export function* createPenglaiOceanSteps(parent) {
     sky.frustumCulled = false;
     skyMaterial.depthTest = false;
     root.add(sky);
-    const terrain = keep(
-      new THREE.MeshStandardMaterial({ vertexColors: true, roughness: 0.96 }),
-    );
-    addSurfaceDetail(terrain, "stone", 0.2);
-    applyPenglaiSummitPaths(terrain, keep);
+    const terrain = keep(new THREE.MeshStandardMaterial({ roughness: 0.96 }));
+    applyPenglaiGroundSurface(terrain, groundMaterials);
+    applyPenglaiSummitPaths(terrain, keep, groundMaterials.rock);
     const colors = {
         water: new THREE.Color("#547c75"),
         rock: new THREE.Color("#697f68"),
@@ -822,25 +666,19 @@ export function* createPenglaiOceanSteps(parent) {
     underside.name = "lotus_water_underside";
     root.add(underside);
     const temple = pavilion(0, -650, 1, true);
-    const plaqueMap =
-      typeof document === "undefined"
-        ? null
-        : keep(
-            new THREE.TextureLoader().load(
-              new URL("./assets/penglai/sword_plaque.png", import.meta.url)
-                .href,
-            ),
-          );
-    if (plaqueMap) plaqueMap.colorSpace = THREE.SRGBColorSpace;
+    addPenglaiSwordMonument({
+      root,
+      keep,
+      carve: templeCarving,
+      colliders,
+      x: 0,
+      y: penglaiHeightAt(0, -650),
+      z: -650,
+    });
+    templePlaque = createPenglaiTemplePlaque(keep);
     const plaque = new THREE.Mesh(
       keep(new THREE.PlaneGeometry(46, 14)),
-      keep(
-        new THREE.MeshStandardMaterial({
-          map: plaqueMap,
-          color: plaqueMap ? "#ffffff" : "#37463d",
-          roughness: 0.9,
-        }),
-      ),
+      templePlaque.material,
     );
     plaque.name = "brush_calligraphy_yi_qi_yu_jian";
     plaque.position.set(0, penglaiHeightAt(0, -650) + 28, -601.3);
@@ -874,25 +712,28 @@ export function* createPenglaiOceanSteps(parent) {
     const gateY = penglaiHeightAt(0, -235),
       gateZ = -235;
     for (const s of [-1, 1]) {
-      emit(column, red, s * 28, gateY + 31, gateZ, 2.5, 64, 2.5);
       solidBox("dragon_gate_column", s * 28, gateY + 31, gateZ, 5, 64, 5);
-      emit(sphere, gold, s * 28, gateY + 63, gateZ, 3, 3, 3);
     }
     emit(box, red, 0, gateY + 58, gateZ, 63, 4, 5);
-    emit(roof(70, 19, 7), roofmat, 0, gateY + 60, gateZ);
+    addPenglaiSectGate({
+      root,
+      carve: templeCarving,
+      colliders,
+      y: gateY,
+      z: gateZ,
+    });
     solidBox("dragon_gate_lintel", 0, gateY + 59, gateZ, 63, 6, 8);
     pink.side = THREE.DoubleSide;
     pink.color.set("#ffffff");
     pink.vertexColors = true;
-    const tk = treeKit();
+    const treeNear = createPenglaiGardenAsset("peach_tree", keep),
+      treeFar = createPenglaiGardenAsset("peach_tree_far", keep);
+    const plantTree = (x, y, z, s, a = 0) => {
+      for (const t of [treeNear, treeFar])
+        emit(t.geometry, t.material, x, y, z, s, s, s, 0, a);
+    };
     for (const a of skyIslands.treeAnchors) {
-      for (const [g, m] of [
-        [tk.branches, wood],
-        [tk.flowers, pink],
-        [tk.farBranches, wood],
-        [tk.farFlowers, pink],
-      ])
-        emit(g, m, a.x, a.y, a.z, 0.62, 0.62, 0.62);
+      plantTree(a.x, a.y, a.z, 0.62);
       solidBox("sky_peach_trunk", a.x, a.y + 3.8, a.z, 1, 7.6, 1);
     }
     let peachTrees = 0;
@@ -917,16 +758,23 @@ export function* createPenglaiOceanSteps(parent) {
         continue;
       const s = 0.8 + (j % 7) * 0.065,
         a = j * 2.399;
-      emit(tk.branches, wood, x, y, z, s, s, s, 0, a);
-      emit(tk.flowers, pink, x, y, z, s, s, s, 0, a);
-      emit(tk.farBranches, wood, x, y, z, s, s, s, 0, a);
-      emit(tk.farFlowers, pink, x, y, z, s, s, s, 0, a);
+      let base = renderedGround(x, z);
+      for (let k = 0; k < 12; k++)
+        base = Math.min(
+          base,
+          renderedGround(
+            x + Math.cos((k * Math.PI) / 6) * 0.9 * s,
+            z + Math.sin((k * Math.PI) / 6) * 0.9 * s,
+          ),
+        );
+      base -= 0.12;
+      plantTree(x, base, z, s, a);
       peachTrees++;
       colliders.push({
         type: "box",
         kind: "peach_trunk",
         x,
-        y: y + 5 * s,
+        y: base + 5 * s,
         z,
         halfSize: { x: 0.8 * s, y: 5 * s, z: 0.8 * s },
       });
@@ -934,37 +782,54 @@ export function* createPenglaiOceanSteps(parent) {
     }
     root.userData.peachTrees = peachTrees;
     root.userData.skyPeachTrees = skyIslands.treeAnchors.length;
-    const lotusLeaf = geometry("lotus_leaf", () => {
-        const g = new THREE.CircleGeometry(1, 14);
-        g.rotateX(-Math.PI / 2);
-        return g;
+    const lotusLeaf = geometry("lotus_leaf", createPenglaiLotusLeaf),
+      lotusLeafMaterial = material("veined_lotus_leaf", "#ffffff", {
+        vertexColors: true,
+        side: THREE.DoubleSide,
       }),
-      petal = geometry("lotus_petal", () => new THREE.SphereGeometry(1, 10, 6));
+      lotusBloom = createPenglaiGardenAsset("lotus_bloom", keep);
+    let leaves = 0,
+      blooms = 0;
     for (let j = 0; j < 150; j++) {
       const x = Math.sin(j * 2.4) * 120,
-        z = 115 - ((j * 17) % 320);
-      if (penglaiHeightAt(x, z) > -8) continue;
-      emit(lotusLeaf, leaf, x, 4.12, z, 2.0, 1, 2.0, 0, j);
-      emit(column, leaf, x, -8, z, 0.13, 24, 0.13);
+        z = 115 - ((j * 17) % 320),
+        bottom = penglaiHeightAt(x, z);
+      if (bottom > -8) continue;
+      const top = 4.35 + (j % 4) * 0.18;
+      emit(lotusLeaf, lotusLeafMaterial, x, top, z, 2, 1.8, 2, 0, j);
+      emit(column, leaf, x, (bottom + top) / 2, z, 0.1, top - bottom, 0.1);
+      leaves++;
       if (j % 3 === 0) {
-        emit(sphere, gold, x, 4.8, z, 0.6, 0.4, 0.6);
-        for (let p = 0; p < 8; p++) {
-          const a = (p / 8) * Math.PI * 2;
-          emit(
-            petal,
-            pink,
-            x + Math.cos(a) * 0.8,
-            4.65,
-            z + Math.sin(a) * 0.8,
-            0.6,
-            0.22,
-            1.0,
-            0,
-            -a + Math.PI / 2,
-          );
-        }
+        // 同一莲床的花梗略偏离叶柄，花瓣高过叶面，长柄接回水底。
+        const bx = x + 1.6 * Math.sin(j),
+          bz = z + 1.6 * Math.cos(j),
+          ground = penglaiHeightAt(bx, bz);
+        emit(
+          lotusBloom.geometry,
+          lotusBloom.material,
+          bx,
+          4.25,
+          bz,
+          1,
+          1,
+          1,
+          0,
+          j * 0.7,
+        );
+        emit(
+          column,
+          leaf,
+          bx,
+          (ground + 4.35) / 2,
+          bz,
+          0.1,
+          4.35 - ground,
+          0.1,
+        );
+        blooms++;
       }
     }
+    root.userData.lotusBeds = { leaves, blooms };
     // 山脚沉石、水草与贝壳属于浅水生态，不套用别处海底的发光矿柱。
     for (let j = 0; j < 170; j++) {
       const x = Math.sin(j * 5.8) * 560,
@@ -973,7 +838,7 @@ export function* createPenglaiOceanSteps(parent) {
       if (y > 0) continue;
       emit(
         sphere,
-        stone,
+        exposedRock,
         x,
         y + 2,
         z,
@@ -1033,7 +898,7 @@ export function* createPenglaiOceanSteps(parent) {
         });
         emit(
           crag,
-          stone,
+          exposedRock,
           x,
           y - 4,
           z,
@@ -1173,6 +1038,10 @@ export function* createPenglaiOceanSteps(parent) {
         bucket.cz * 120 + 60,
       );
       m.userData.detailLevel = bucket.g.userData.penglaiDetailLevel;
+      if (bucket.g.userData.prepareMaterials)
+        m.userData.prepareMaterials = bucket.g.userData.prepareMaterials;
+      if (bucket.g.userData.hfGardenKind)
+        m.userData.hfGardenKind = bucket.g.userData.hfGardenKind;
       m.userData.anchor.y =
         bucket.matrices.reduce((sum, matrix) => sum + matrix.elements[13], 0) /
           bucket.matrices.length +
@@ -1294,6 +1163,7 @@ export function* createPenglaiOceanSteps(parent) {
         time.value = t;
         ward.update(t, position);
         bixi.update();
+        templePlaque.update();
         skyHazards.update(t, position, reducedMotion, highQuality);
         skyMaterial.uniforms.underwater.value = Math.max(
           0,
@@ -1308,11 +1178,14 @@ export function* createPenglaiOceanSteps(parent) {
             a.y - position.y,
             a.z - position.z,
           );
-          // 同一块近远树共享切换半径，保证任何距离都有完整树冠；不减生态、碰撞或可见范围。
+          const detailDistance = highQuality ? 170 : 120;
+          // 同一块近远树共享半径；流畅档较早切到同源远景，保留树冠和可见范围。
           m.visible =
             d < (highQuality ? 900 : 700) &&
             (!level ||
-              (level === "near" ? treeDistance < 170 : treeDistance >= 170));
+              (level === "near"
+                ? treeDistance < detailDistance
+                : treeDistance >= detailDistance));
         }
       },
       dispose,

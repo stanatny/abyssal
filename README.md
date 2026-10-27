@@ -1,5 +1,215 @@
 # ABYSSAL
 
+Penglai accepted for main release — 2026-10-27: the user explicitly accepts
+all current map changes and requests committing and pushing them to main.
+All 1,893 delivered input hashes match before release-only edits. This approval
+supersedes earlier pending/uncommitted labels for these delivered Penglai
+changes, including the repository Skill, ecology, landmark navigation and Kun
+visibility fixes. Earlier entries retain their dated evidence and rejected
+iterations. The release is v0.11.21; see [the release record](docs/release_v0_11_21.md).
+Fresh release CI and deployed-page checks are recorded separately from candidate
+validation. Preserve existing services and historical worktrees.
+
+Penglai navigation / Kun follow-up — 2026-10-27: the user reports Azure
+Dragon and Sword Sage stuck at the eastern dragon columns and no visible Kun.
+The landmark deadlock is reproduced with real body sweeps; bounded retreat and
+actual-attitude recovery restore movement without removing collisions. Two of
+four Kun move to the monastery's north cloud route; Peng keeps the fitted
+habitat and view distance. This correction supersedes the earlier limited
+finishing assessment and awaits player review, uncommitted/unpushed. See
+[the repair and evidence](docs/penglai_navigation_revision.md).
+
+Penglai ecology follow-up — 2026-10-27: the user requests plausible species
+habitats, one ordinary 30 m threat and limited supplies near every lord.
+Three existing Bashe and three Lushu are relocated; selected aerial/deep-pool
+food groups are fitted to accessible routes. Ordinary stock falls from 402 to
+393 with every species retained. Native adult retaliation and feeding/respawn
+checks accompany the [ecology review](docs/penglai_ecology_revision.md).
+This candidate remains uncommitted/unpushed, pending player balance review.
+
+Sword Sage monument clearance — 2026-10-27: the user flags the giant temple
+sword piercing the Sage. Actual scene inspection confirms that the old terrain
+probes covered only head/chest, omitting the lower robe and riding blade.
+Fitted additional terrain sections now clear both; damage/contact anatomy and
+other lords remain unchanged. Native patrol, both attacks, pause and restart
+are checked. This correction is ready for review; Penglai remains uncommitted
+and unpushed. See [the correction](docs/penglai_huggingface_redraw.md#sword-sage-monument-clearance--2026-10-27).
+
+Terrain, grass and pavilion finish — 2026-10-27: the user requests further
+refinement of mountain surfaces, grass, pavilions and stairs. Slope-based rock /
+meadow materials, paved summit paths, dressed pavilion stone and timber frames,
+and textured stair faces now refine the existing geometry. All 4910 colliders,
+terrain shape, routes, garden sites and creature assets remain unchanged. This
+candidate awaits review, without commit/push. See
+[the surface review](docs/penglai_huggingface_redraw.md#terrain-grass-and-pavilion-finish--2026-10-27).
+
+Garden scenery refinement — 2026-10-27: the user accepts the sword-sect
+landmarks and requests the next batch. Actual HF peach trees and lotus blooms,
+cupped leaves and ten small pavilions now refine the existing scenery. Tree
+population, XZ sites and paths remain; roots and pavilion foundations fit the
+rendered ground. Existing accepted creature/temple/sword assets remain exact.
+This garden candidate awaits review, without commit/push. See
+[the garden review](docs/penglai_huggingface_redraw.md#garden-scenery-refinement--2026-10-27).
+
+Sword-sect landmark refinement — 2026-10-27: the user requests a giant
+sword on the temple and complementary scenery. An upright monument reuses the
+accepted straight HF jian on a new fitted lotus pedestal; paired bronze censers
+and a carved Dragon Gate complete this batch. Existing lore remains Skybearer
+Sword Sect / 承霄剑宗, with unchanged routes and gameplay. This candidate awaits
+review, without commit/push. See [the refinement](docs/penglai_huggingface_redraw.md#sword-sect-landmark-refinement--2026-10-27).
+
+Temple courtyard refinement — 2026-10-27: the user accepts the brush
+lettering and requests richer walls, pillars, stairs and surrounding trees.
+Actual HF carved pillars and stone rails, fitted paving/stair blocks and four
+courtyard pines now refine the existing summit footprint. Accepted lettering,
+roofs, Bixi and creature sources remain. This refinement awaits review, with
+no commit or push. See [the courtyard review](docs/penglai_huggingface_redraw.md#temple-courtyard-refinement--2026-10-27).
+
+Temple walls and brush inscriptions — 2026-10-27: following the user's
+request, the stele and plaque use a bundled brush/cursive font. A new actual
+HF lattice module, staggered masonry, timber frames and column bases refine
+the main temple shell. Existing roofs, Bixi carvings, layout, routes and gameplay
+remain. This refinement awaits review, with no commit or push. See
+[the follow-up](docs/penglai_huggingface_redraw.md#temple-wall-detail-and-brush-inscriptions--2026-10-27).
+
+Summit temple and Bixi carvings — 2026-10-27: the user accepts the three
+guardian landmarks and requests the next batch. Three actual HF assets now
+replace the main temple's two roof tiers and the Bixi bearer / carved crown.
+The closed hall, exterior approaches, foundations, bilingual stele and original
+orientation remain. Fitted roof supports connect to the final mesh underside.
+These new architectural candidates await review; no commit or push.
+See [the batch](docs/penglai_huggingface_redraw.md#summit-temple-and-bixi-carvings--2026-10-27).
+
+Guardian landmark carvings — 2026-10-27: the user accepts the corrected
+Taotie walking and requests the next batch. Three actual HF scenery assets
+now replace the dragon columns, tiger Que towers and Vermilion Bird statue.
+Original sites, gate openings, foundations, guardian gameplay and all creature
+sources remain. The landmark candidates await review; no commit or push.
+See [the batch](docs/penglai_huggingface_redraw.md#guardian-landmark-carvings--2026-10-27).
+
+Taotie walking-footage correction — 2026-10-27: the user correctly reports
+frozen legs in the delivered ground-travel clip despite the working isolated
+animation. The recording forced a distant, animation-culled NPC visible.
+That clip is withdrawn as motion evidence. Fresh ordinary updates at normal
+visibility distances confirm four moving paws during walk in High and Smooth;
+corrected side-view footage uses no target visibility or animation override.
+No runtime/model change, commit or push. See [the correction](docs/penglai_huggingface_redraw.md#taotie-walking-footage-correction--2026-10-27).
+
+Dragon head and Taotie stride repair — 2026-10-27: the user rejects the
+last delivery's stiff dragon head and barely moving Taotie legs. The fitted
+four-leg ownership and planted/recovery stride are repaired; the dragon now
+has a bounded head/neck lead through its continuous axial wave. Appearance
+sources and gameplay stay unchanged. This revised motion awaits user review;
+no commit or push. See [the repair](docs/penglai_huggingface_redraw.md#dragon-head-and-taotie-stride-repair--2026-10-27).
+
+Final creature forms and Taotie — 2026-10-27: the user accepts the Lushu
+repair and giant batch, requests the next group and adds Taotie. Dragon-Gate
+Cloud Dragon, Peng and Gilded Cloud Carp now have actual HF meshes; two 32 m
+Taotie ground hunters add a new bilingual mythic entry. Existing forms, rare
+blessing, five-lord objective and other accepted models remain. These four
+appearances await review, with all Penglai work still uncommitted/unpushed.
+See [the review](docs/penglai_huggingface_redraw.md#final-creature-forms-and-taotie--2026-10-27).
+
+Lushu repair and mythic giants — 2026-10-27: the user reports Lushu defects
+and requests the next batch alongside the repair. Lushu keeps its source design
+with continuous leg/belly binding and repaired tail surface. Bashe, Kui and Kun
+now have actual HF meshes and fitted serpent, monopod and fin motion. Existing
+terrain, population, contact/gameplay rules and prior accepted models remain.
+These four appearances await review, without commit/push. See
+[the review](docs/penglai_huggingface_redraw.md#lushu-repair-and-mythic-giants--2026-10-27).
+
+Creature-production knowledge capture — 2026-10-27: after reporting that the
+Fox/Zheng repair looks much better, the user requests reusable lessons before
+another batch. The [Creature Polish Skill](.agents/skills/abyssal-creature-polish/SKILL.md)
+now adds conditional surface/binding/conversion/motion guidance for all maps.
+The [case record](docs/penglai_huggingface_redraw.md#reusable-lessons-and-user-follow-up--2026-10-27)
+preserves the rejection, repair and feedback. This is a documentation update;
+existing runtime candidates remain unchanged and uncommitted. No next batch,
+commit, push or personal Skill modification was performed.
+
+Penglai terrestrial-beast batch — 2026-10-27: the user accepts the prior
+waterbird batch and requests the next group. Lushu, Gudiao, Nine-tailed Fox
+and Zheng now use four actual HF exports, fitted limbs/wings and independent
+tails. Continuous skin supplies explicit rigid-body terrain probes so ordinary
+mountain placement remains legal. Gameplay, population and prior accepted
+models are preserved. These four candidates await review without commit/push.
+See [the batch](docs/penglai_huggingface_redraw.md#terrestrial-beasts-and-gudiao--2026-10-27).
+
+Penglai waterbird batch — 2026-10-27: the user accepts Lotus Sprite, Wenyao,
+Luo Skyfish and Cloud Crane and requests the next batch. Xuangui, Bifang,
+Hujiao and Northern Hujiao now use four actual HF exports with fitted paddle,
+wing and continuous tail motion. Historical illustrations/text guide original
+interpretations. Existing contacts, population and combat remain; earlier
+accepted models are preserved. These four new appearances await user review,
+without commit/push. See [the batch](docs/penglai_huggingface_redraw.md#waterbird-batch--2026-10-27).
+
+Penglai winged/shell batch — 2026-10-27: the user accepts the preceding four
+fish and requests the next batch with historical illustrated references. Lotus
+Sprite, Wenyao, Luo Skyfish and Cloud Crane now have actual HF surfaces and
+fitted shell/feeler/wing motion. Existing gameplay, population and earlier
+accepted appearances remain. These four candidates await review, without
+commit/push. See [the batch](docs/penglai_huggingface_redraw.md#winged-and-shell-batch--2026-10-27).
+
+Penglai fish batch 1 — 2026-10-27: the user accepts the Sword Sage's straight
+riding blade and readable volleys, then requests the next batch. Jade Minnow,
+Chiru, Spirit Carp and Dragon Carp receive actual HF meshes with fitted tail
+and fin motion. Existing ecology, contact anchors and Dragon Gate transformation
+rules are retained. Five earlier lords remain accepted and uncommitted; these
+four new appearances await review, without commit/push. See
+[the fish batch](docs/penglai_huggingface_redraw.md#fish-batch-1--2026-10-27).
+
+Sword Sage straight blade and readable volleys — 2026-10-27: the user reports
+a bent riding sword and asks whether attacks actually launch swords. The fitted
+blade now has a continuous straight face; the real HF projectile exposes its
+blade instead of hiding inside a large glow. Existing human/hair, ward and
+combat rules stay unchanged. This repair awaits visual review without
+commit/push; see [the repair](docs/penglai_huggingface_redraw.md#straight-riding-blade-and-readable-sword-volleys--2026-10-27).
+
+Sword Sage hair and swords — 2026-10-27: the user accepts the figure and
+requests white hair and a more refined riding/orbiting sword set. The same
+human mesh and rig now use a scoped silver-hair material; a new actual HF jian
+also appears in fired volleys. Fitted blade support and original combat anchors,
+attack values and prior guardians are preserved. This refinement awaits review,
+without commit/push; see [the follow-up](docs/penglai_huggingface_redraw.md#sword-sage-white-hair-and-cloud-jian--2026-10-27).
+
+Sword Sage HF redraw — 2026-10-27: the user accepts the repaired Azure
+Dragon and requests the next batch. The remaining lord now has an actual HF
+human mesh with continuous sleeves, layered robes, supported boots and separate
+sword-casting / charge poses. Existing orbiting swords, ward, attack values and
+unlock rules remain. Earlier guardians are preserved. This appearance awaits
+review without commit/push; see [the batch record](docs/penglai_huggingface_redraw.md#sword-sage-batch--2026-10-27).
+
+Azure Dragon undulation repair — 2026-10-27: the user rejects stiff whole-body
+translation as well as weak skin motion. A travelling axial wave now follows
+actual travel, while bounded cruising/pursuit weave and eased acceleration give
+the flight path continuity. Locked attacks retain their aim and timing. Other
+guardians and source meshes/colors remain. This correction awaits review,
+without commit/push; see [the movement follow-up](docs/penglai_huggingface_redraw.md#azure-dragon-undulation-and-flight-path-repair--2026-10-27).
+
+Penglai guardian batch 2 — 2026-10-27: the user accepts the repaired Tiger and
+Bird and requests the next batch. Azure Dragon and Black Tortoise receive actual
+HF exports with fitted continuous axial motion, paired paddle strokes and an
+articulated free serpent neck. Accepted flying attitude and gameplay remain.
+This new appearance awaits review, without commit/push; see
+[the batch review](docs/penglai_huggingface_redraw.md#guardian-batch-2-azure-dragon-and-black-tortoise--2026-10-27).
+
+Penglai guardian repair — 2026-10-27: the user rejects the Tiger's mane and
+unnatural tail, and accepts the Bird's shape but rejects inverted flight. A new
+short-furred HF Tiger, isolated tail binding and fitted grounded limbs replace
+the rejected candidate. Bird and Azure Dragon now steer with bounded pitch and
+bank instead of shortest-arc flips. Bird mesh/colors and combat values remain.
+Normal world entry also prepares the new textures without first opening Guide.
+This correction awaits review, without commit/push; see
+[the repair record](docs/penglai_huggingface_redraw.md#guardian-shape-tail-and-flight-repair--2026-10-27).
+
+Penglai HF redraw, first batch — 2026-10-27: the user starts the next map with
+Eastern mythology and historical illustrated references. Actual HF White Tiger
+and Vermilion Bird exports now use fitted continuous motion in Guide and world;
+other guardians, local ecology and scenery remain subsequent batches. Existing
+players, combat values and map layout are preserved. Current AI agent only;
+these appearances await review, with no commit/push. See
+[the inventory and review](docs/penglai_huggingface_redraw.md).
+
 Europa main-publication scope — 2026-10-26: the user requests a finishing
 review and main publication if no blocking work remains. The audit finds no
 known release blocker; all 1,715 delivered source hashes match before release

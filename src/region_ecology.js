@@ -9,6 +9,7 @@ import {
 } from "./feeding_distribution.js";
 import { hawaiiEcology } from "./hawaii_ecology.js";
 import { EUROPA_SPECIES } from "./europa_species.js";
+import { fitPenglaiEcology } from "./penglai_ecology.js";
 import { fitEuropaEcology } from "./europa_ecology.js";
 import { NONFISH_SPECIES, nonfishEcology } from "./nonfish_ecology.js";
 import { WORLD } from "./world_config.js";
@@ -201,7 +202,11 @@ const REGION_SPECIES = Object.freeze(
       );
       return [
         id,
-        id === "europa" ? fitEuropaEcology(distributed) : distributed,
+        id === "europa"
+          ? fitEuropaEcology(distributed)
+          : id === "penglai"
+            ? fitPenglaiEcology(distributed)
+            : distributed,
       ];
     }),
   ),

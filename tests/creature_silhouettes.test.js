@@ -44,8 +44,16 @@ test("mythic pond fish keep visibly different physical silhouettes", () => {
     mask = middleOutline("chiru"),
     koi = middleOutline("spirit_carp"),
     gold = middleOutline("dragon_carp");
-  assert.ok(mask.y > jade.y * 2);
-  assert.ok(koi.y > jade.y * 1.5);
-  assert.ok(gold.x > koi.x * 1.25);
-  assert.ok(mask.y > gold.y * 1.2);
+  // The new koi's broad veiled fins are part of its silhouette, not trunk width.
+  // Gold carp is the deep, broad-bodied fish; Chiru keeps a narrower copper body.
+  assert.ok(mask.y > jade.y * 1.8);
+  assert.ok(koi.y > jade.y * 1.8);
+  assert.ok(koi.x > gold.x * 1.8);
+  assert.ok(
+    middleOutline("dragon_carp", true).x >
+      middleOutline("spirit_carp", true).x * 1.5,
+  );
+  assert.ok(
+    middleOutline("dragon_carp", true).y > middleOutline("chiru", true).y * 1.4,
+  );
 });

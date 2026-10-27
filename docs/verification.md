@@ -1,3 +1,15 @@
+# v0.11.21 release verification — 2026-10-27
+
+All 1,893 delivered Penglai input hashes match before release metadata edits.
+The accepted candidate passed 1,992 tests, with dated native guardian pursuit,
+attacks, limited food/respawn, Kun transformation, motion and resource receipts.
+Fresh release tests/build, exact-main Node 22 CI, downloaded Pages artifact
+comparison and native formal-page flows are recorded separately under
+`.local/release_v0_11_21/`; see [the release record](release_v0_11_21.md).
+Desktop touch emulation does not establish physical-phone performance or
+natural whole-round balance. Historical pending labels below retain their
+original scope and are superseded only for the accepted Penglai changes.
+
 # v0.11.20 release verification — 2026-10-26
 
 All 1,715 delivered Europa input hashes match before release metadata edits.

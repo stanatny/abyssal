@@ -59,6 +59,21 @@ test("all registered predators, large animals and all eighteen lords have prepar
 
 test("HF interior proxies are closed oriented surfaces and do not change or dispose source skin", () => {
   for (const kind of [
+    "bashe",
+    "kui",
+    "kun",
+    "gudiao",
+    "nine_tail_fox",
+    "zheng",
+    "bifang",
+    "hujiao",
+    "pool_hujiao",
+    "dragon_carp",
+    "sword_sage",
+    "azure_dragon",
+    "black_tortoise",
+    "white_tiger",
+    "vermilion_bird",
     "ichthyotitan",
     "sperm_whale",
     "megalodon",
@@ -84,7 +99,11 @@ test("HF interior proxies are closed oriented surfaces and do not change or disp
     const root = createCreature(kind, 28);
     let source;
     root.traverse((m) => {
-      if (m.isSkinnedMesh && m.name.includes("_hf_")) source = m.geometry;
+      if (
+        m.isSkinnedMesh &&
+        (m.name.includes("_hf_") || m.name.endsWith("_continuous_hf"))
+      )
+        source = m.geometry;
     });
     const saved = Array.from(source.index.array),
       pos = Array.from(source.attributes.position.array);

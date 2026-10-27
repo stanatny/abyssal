@@ -1,3 +1,36 @@
+import {
+  PENGLAI_HF_FINAL,
+  buildPenglaiFinalHF,
+} from "./creature_penglai_final_hf.js";
+import {
+  PENGLAI_HF_GIANTS,
+  buildPenglaiGiantHF,
+} from "./creature_penglai_giant_hf.js";
+import {
+  PENGLAI_HF_BEASTS,
+  buildPenglaiBeastHF,
+} from "./creature_penglai_beast_hf.js";
+import {
+  PENGLAI_HF_WATERBIRD,
+  buildPenglaiWaterbirdHF,
+} from "./creature_penglai_waterbird_hf.js";
+import {
+  PENGLAI_HF_WINGED,
+  buildPenglaiWingedHF,
+} from "./creature_penglai_winged_hf.js";
+import {
+  PENGLAI_HF_FISH,
+  buildPenglaiFishHF,
+} from "./creature_penglai_fish_hf.js";
+import { buildPenglaiSageHF } from "./creature_penglai_sage_hf.js";
+import {
+  PENGLAI_HF_GUARDIANS_BATCH2,
+  buildPenglaiGuardianBatch2HF,
+} from "./creature_penglai_guardians_batch2_hf.js";
+import {
+  PENGLAI_HF_GUARDIANS,
+  buildPenglaiGuardianHF,
+} from "./creature_penglai_guardians_hf.js";
 import { buildEuropaRareHF } from "./creature_europa_rare_hf.js";
 import {
   EUROPA_HF_GIANTS,
@@ -189,12 +222,27 @@ export function createCreature(kind, length = 6, seed = 1) {
   else if (kind === "crimson_sail") buildCrimsonSailHF(root, motions);
   else if (kind === "jade_arowana") buildAmazonRareHF(kind, root, motions);
   else if (kind === "crystal_seraph") buildEuropaRareHF(root, motions);
+  else if (PENGLAI_HF_FINAL.has(kind)) buildPenglaiFinalHF(kind, root, motions);
   else if (RARE_CREATURE_KINDS.has(kind))
     buildRegionalRare(kind, root, motions);
   else if (kind === "mechanical_shark") buildMechanicalShark(root, motions);
   else if (kind === "zombie_shark") buildZombieShark(root, motions);
   else if (EUROPA_HF_LORDS.has(kind)) buildEuropaLordHF(kind, root, motions);
   else if (AMAZON_HF_LORDS.has(kind)) buildAmazonLordHF(kind, root, motions);
+  else if (kind === "sword_sage") buildPenglaiSageHF(root, motions);
+  else if (PENGLAI_HF_GUARDIANS_BATCH2.has(kind))
+    buildPenglaiGuardianBatch2HF(kind, root, motions);
+  else if (PENGLAI_HF_GUARDIANS.has(kind))
+    buildPenglaiGuardianHF(kind, root, motions);
+  else if (PENGLAI_HF_GIANTS.has(kind))
+    buildPenglaiGiantHF(kind, root, motions);
+  else if (PENGLAI_HF_BEASTS.has(kind))
+    buildPenglaiBeastHF(kind, root, motions);
+  else if (PENGLAI_HF_WATERBIRD.has(kind))
+    buildPenglaiWaterbirdHF(kind, root, motions);
+  else if (PENGLAI_HF_WINGED.has(kind))
+    buildPenglaiWingedHF(kind, root, motions);
+  else if (PENGLAI_HF_FISH.has(kind)) buildPenglaiFishHF(kind, root, motions);
   else if (PENGLAI_CREATURE_KINDS.has(kind))
     buildPenglaiCreature(kind, root, motions);
   else if (AMAZON_HF_FINAL.has(kind)) buildAmazonFinalHF(kind, root, motions);
@@ -273,12 +321,21 @@ export function createCreature(kind, length = 6, seed = 1) {
   root.scale.setScalar(length);
   // HF 整体蒙皮在首次包围盒查询前同步缩放后的绑定逆矩阵。
   if (
+    PENGLAI_HF_FINAL.has(kind) ||
+    PENGLAI_HF_GIANTS.has(kind) ||
+    PENGLAI_HF_BEASTS.has(kind) ||
+    PENGLAI_HF_WATERBIRD.has(kind) ||
+    PENGLAI_HF_WINGED.has(kind) ||
+    PENGLAI_HF_FISH.has(kind) ||
+    PENGLAI_HF_GUARDIANS_BATCH2.has(kind) ||
+    PENGLAI_HF_GUARDIANS.has(kind) ||
     EUROPA_HF_LORDS.has(kind) ||
     EUROPA_HF_SMALL.has(kind) ||
     EUROPA_HF_MID.has(kind) ||
     EUROPA_HF_HUNTERS.has(kind) ||
     EUROPA_HF_GIANTS.has(kind) ||
-    kind === "crystal_seraph"
+    kind === "crystal_seraph" ||
+    kind === "sword_sage"
   )
     root.updateMatrixWorld(true);
   root.userData.kind = kind;

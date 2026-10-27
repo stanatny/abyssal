@@ -1,3 +1,10 @@
+import { recoverFlyingLordMotion } from "./lord_navigation_recovery.js";
+import {
+  isPenglaiFlyingGuardian,
+  steerPenglaiFlight,
+  updatePenglaiFlightAttitude,
+} from "./penglai_flight_attitude.js";
+import { azureFlightRequest } from "./azure_flight_motion.js";
 import {
   guardianPulseRadius,
   guardianRoarContact,
@@ -29,7 +36,7 @@ import {
   groundCreatureClearance,
   uprightHeadingQuaternion,
 } from "./ground_creatures.js";
-import { pgSword } from "./creature_penglai_art.js";
+import { createSageJian } from "./sage_jian.js";
 import {
   TIDAL_LOOM,
   loomAngle,
@@ -1207,6 +1214,8 @@ export function createEncounters(
     }
     if (entry.navigation) {
       const nav = entry.navigation;
+      if (nav.recovery) nav.recovery.remaining = 0;
+      nav.recoveredThisFrame = false;
       let found = false;
       const original = entry.mesh.position.clone();
       for (let lift = 0; lift <= 84 && !found; lift += 7) {
@@ -1603,8 +1612,10 @@ export function createEncounters(
                 : fxMat,
           );
     if (state.ability === "swords") {
-      const blade = pgSword(mesh, [0, 0, 0], 6);
+      const blade = createSageJian(mesh, [0, 0, 0], 6);
       blade.rotation.x = -Math.PI / 2;
+      // 仅绕剑自身长轴倾斜剑面，侧视能看清实体剑刃，剑尖仍沿弹道前进。
+      blade.rotateY(Math.PI / 4);
     }
     mesh.name =
       state.ability === "swords"
@@ -1629,8 +1640,16 @@ export function createEncounters(
     const projectileColor =
       state.species.abilityColors?.[state.ability] ??
       (state.ability === "swords" ? COLORS.swords : COLORS.volley);
-    const glow = fxSprite(fxTextures.dot, projectileColor, 0.75);
-    glow.scale.setScalar(9);
+    const isSword = state.ability === "swords";
+    const glow = fxSprite(
+      fxTextures.dot,
+      projectileColor,
+      isSword ? 0.18 : 0.75,
+    );
+    glow.name = isSword ? "sage_sword_hilt_glow" : "projectile_glow";
+    glow.scale.setScalar(isSword ? 0.6 : 9);
+    // 飞剑只在剑柄后留小幅辉光，避免九米光团乘弹体缩放后遮住整把剑。
+    if (isSword) glow.position.z = 1.4;
     mesh.add(glow);
     scene.add(mesh);
     const trail = [];
@@ -1678,6 +1697,46 @@ export function createEncounters(
     turnRate = entry.state.species.pursuitTurnRate,
   ) {
     if (dt <= 0 || speed <= 0) return;
+    if (entry.navigation) {
+      const request = (entry.navigation.request ??= {
+        direction: new THREE.Vector3(),
+      });
+      request.direction.copy(direction);
+      request.speed = speed;
+      request.turnRate = turnRate;
+      request.active = true;
+    }
+    if (entry.state.species.kind === "azure_dragon") {
+      const swim = entry.mesh.userData.azureUndulation;
+      if (swim) {
+        const request = (entry.motion.azureRequest ??= new THREE.Vector3());
+        speed = azureFlightRequest(
+          request,
+          direction,
+          swim.phase,
+          speed,
+          swim.speed,
+          dt,
+          entry.state.phase === "dormant" ||
+            entry.state.phase === "hunt" ||
+            entry.state.phase === "return",
+        );
+        direction = request;
+      }
+    }
+    if (
+      entry.navigation?.recovery?.remaining > 0 &&
+      recoverFlyingLordMotion(
+        entry,
+        direction,
+        speed,
+        dt,
+        groundHeightAt,
+        blockedBetween,
+        turnRate,
+      )
+    )
+      return;
     const step = speed * dt;
     const origin = entry.mesh.position;
     const { side, candidate, lookahead, next } = entry.motion;
@@ -1746,8 +1805,27 @@ export function createEncounters(
         break;
       }
     }
-    if (!clear) return;
-    if (turnRate !== undefined)
+    if (!clear) {
+      recoverFlyingLordMotion(
+        entry,
+        direction,
+        speed,
+        dt,
+        groundHeightAt,
+        blockedBetween,
+        turnRate,
+      );
+      return;
+    }
+    if (isPenglaiFlyingGuardian(entry.state.species.kind))
+      steerPenglaiFlight(
+        candidate,
+        entry.mesh.quaternion,
+        candidate,
+        dt,
+        turnRate,
+      );
+    else if (turnRate !== undefined)
       steerBossPursuit(
         entry.heading,
         candidate,
@@ -1805,6 +1883,16 @@ export function createEncounters(
       )
         entry.heading.copy(candidate);
       origin.copy(next);
+    } else {
+      recoverFlyingLordMotion(
+        entry,
+        direction,
+        speed,
+        dt,
+        groundHeightAt,
+        blockedBetween,
+        turnRate,
+      );
     }
   }
   /** 未发现玩家时沿领域内部的缓慢椭圆巡游；所有位置连续积分，返巢后不瞬移。 */
@@ -1951,7 +2039,11 @@ export function createEncounters(
       );
       entry.mesh.userData.setLocked?.(state.locked);
       entry.motion.groundStart.copy(entry.mesh.position);
-      if (entry.navigation) entry.navigation.saved.copy(entry.mesh.quaternion);
+      if (entry.navigation) {
+        entry.navigation.saved.copy(entry.mesh.quaternion);
+        entry.navigation.recoveredThisFrame = false;
+        if (entry.navigation.request) entry.navigation.request.active = false;
+      }
       const distance = entry.mesh.position.distanceTo(position),
         homeDistance = entry.home.distanceTo(position),
         atHome = homeDistance < entry.radius;
@@ -2232,7 +2324,11 @@ export function createEncounters(
                 entry.heading,
               );
       // 地面与限俯仰游姿的移动朝向已平滑；再次滞后会让躯体横滑并偏离已验证的占地。
-      if (Number.isFinite(entry.mesh.userData.aquaticTurnRate))
+      if (entry.navigation?.recoveredThisFrame) {
+        // 恢复分支已检查并设置本帧完整姿态，不能再转一次而扫进障碍。
+      } else if (isPenglaiFlyingGuardian(state.species.kind))
+        updatePenglaiFlightAttitude(entry.mesh.quaternion, entry.heading, dt);
+      else if (Number.isFinite(entry.mesh.userData.aquaticTurnRate))
         // 锁定瞬间可能换向；有界转动避免长躯一帧翻身，随后仍检查实际完整姿态。
         entry.mesh.quaternion.rotateTowards(
           orientation,
@@ -2259,6 +2355,17 @@ export function createEncounters(
         entry.mesh.position.copy(entry.motion.groundStart);
         entry.mesh.quaternion.copy(entry.navigation.saved);
         entry.heading.copy(FORWARD_AXIS).applyQuaternion(entry.mesh.quaternion);
+        const request = entry.navigation.request;
+        if (request?.active)
+          recoverFlyingLordMotion(
+            entry,
+            request.direction,
+            request.speed,
+            dt,
+            groundHeightAt,
+            blockedBetween,
+            request.turnRate,
+          );
       }
       // 用实际通过地形和碰撞检查后的位移驱动步态；被阻挡时不能原地迈腿。
       entry.mesh.userData.setGroundTravel?.(
@@ -2278,6 +2385,7 @@ export function createEncounters(
           !entry.mesh.userData.krakenIntake?.state.biting
           ? "recover"
           : state.phase,
+        state.ability,
       );
       entry.mesh.userData.setKrakenTarget?.(position);
       if (!attack || state.ability !== "vortex") entry.grapple.escapeCost = 0;
@@ -2873,6 +2981,8 @@ export function createEncounters(
           const ghost = p.trail.reduce((a, b) => (a.age > b.age ? a : b));
           ghost.age = 0;
           ghost.sprite.position.copy(p.mesh.position);
+          if (p.ability === "swords")
+            ghost.sprite.position.addScaledVector(p.velocity, -0.04);
           ghost.sprite.visible = true;
         }
         for (const ghost of p.trail) {
@@ -2880,8 +2990,12 @@ export function createEncounters(
           ghost.age += dt;
           const t = ghost.age / 0.6;
           ghost.sprite.visible = t < 1;
-          ghost.sprite.scale.setScalar(5.5 * (1 - t) + 1);
-          ghost.sprite.material.opacity = 0.5 * Math.max(0, 1 - t);
+          const sword = p.ability === "swords";
+          ghost.sprite.scale.setScalar(
+            (sword ? 0.9 : 5.5) * (1 - t) + (sword ? 0.2 : 1),
+          );
+          ghost.sprite.material.opacity =
+            (sword ? 0.22 : 0.5) * Math.max(0, 1 - t);
         }
       }
       if (blockedBetween(old, p.mesh.position)) p.life = 0;

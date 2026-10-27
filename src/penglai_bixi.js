@@ -1,3 +1,9 @@
+import {
+  loadPenglaiBrushFont,
+  penglaiBrushReady,
+  PENGLAI_BRUSH_FAMILY,
+} from "./penglai_calligraphy.js";
+import { createPenglaiTempleCarvings } from "./penglai_temple_asset.js";
 import * as THREE from "three";
 import { RoundedBoxGeometry } from "three/addons/geometries/RoundedBoxGeometry.js";
 import { mergeGeometries } from "three/addons/utils/BufferGeometryUtils.js";
@@ -15,36 +21,21 @@ export function createPenglaiBixi(parent, keep, colliders) {
   parent.add(root);
   const stone = keep(
       new THREE.MeshStandardMaterial({
-        color: "#a5aea0",
+        color: "#aaa797",
         roughness: 0.96,
         vertexColors: true,
       }),
     ),
     relief = keep(
       new THREE.MeshStandardMaterial({
-        color: "#bec3b0",
+        color: "#b6b1a0",
         roughness: 0.9,
-        vertexColors: true,
-      }),
-    ),
-    recess = keep(
-      new THREE.MeshStandardMaterial({
-        color: "#505e54",
-        roughness: 1,
-        vertexColors: true,
-      }),
-    ),
-    moss = keep(
-      new THREE.MeshStandardMaterial({
-        color: "#61725a",
-        roughness: 1,
         vertexColors: true,
       }),
     ),
     buckets = new Map(),
     transform = new THREE.Object3D();
-  for (const m of [stone, relief, recess, moss])
-    addSurfaceDetail(m, "stone", 0.11);
+  for (const m of [stone, relief]) addSurfaceDetail(m, "stone", 0.11);
   function part(g, m, p, scale = [1, 1, 1], rotation = [0, 0, 0]) {
     transform.position.set(...p);
     transform.scale.set(...scale);
@@ -69,24 +60,8 @@ export function createPenglaiBixi(parent, keep, colliders) {
     if (!buckets.has(m)) buckets.set(m, []);
     buckets.get(m).push(mesh);
   }
-  const ellipsoid = (m, p, s, r) =>
-      part(new THREE.SphereGeometry(1, 24, 12), m, p, s, r),
-    block = (m, p, s, radius = 0.5) =>
-      part(new RoundedBoxGeometry(...s, 2, radius), m, p),
-    curve = (m, points, radius = 0.3, segments = 28) =>
-      part(
-        new THREE.TubeGeometry(
-          new THREE.CatmullRomCurve3(
-            points.map((p) => new THREE.Vector3(...p)),
-          ),
-          segments,
-          radius,
-          6,
-          false,
-        ),
-        m,
-        [0, 0, 0],
-      );
+  const block = (m, p, size, radius = 0.5) =>
+    part(new RoundedBoxGeometry(...size, 2, radius), m, p);
   const rotation = new THREE.Quaternion().setFromAxisAngle(
     new THREE.Vector3(0, 1, 0),
     site.yaw || 0,
@@ -108,18 +83,6 @@ export function createPenglaiBixi(parent, keep, colliders) {
       halfSize: { x: sx / 2, y: sy / 2, z: sz / 2 },
     });
   }
-  function roundCollider(kind, x, y, z, rx, ry, rz) {
-    const p = worldPoint(x, y, z);
-    colliders.push({
-      type: "ellipsoid",
-      kind,
-      x: p.x,
-      y: p.y,
-      z: p.z,
-      rotation,
-      axes: { x: rx, y: ry, z: rz },
-    });
-  }
   // 三层石台的底面埋入同源地形，圆角只削边，不制造不可见大墙。
   block(stone, [0, -1.5, 0], [52, 7, 70], 1.2);
   block(relief, [0, 2.2, 0], [49, 1.2, 67], 0.4);
@@ -131,140 +94,8 @@ export function createPenglaiBixi(parent, keep, colliders) {
     block(stone, [0, (top - 5) / 2, z], [18, top + 5, 5.6], 0.3);
     boxCollider("bixi_step", 0, (top - 5) / 2, z, 18, top + 5, 5.6);
   }
-  // 蹲伏龟身与四肢共同承重，厚壳下保留腹部和颈根，不使用空心薄壳。
-  ellipsoid(stone, [0, 10, 1], [15, 6.2, 21]);
-  ellipsoid(recess, [0, 13, 1], [16.2, 7.8, 22]);
-  ellipsoid(stone, [0, 13.6, 1], [15.9, 7.7, 21.6]);
-  roundCollider("bixi_shell", 0, 13.2, 1, 16, 8, 21.8);
-  const shellHeight = (x, z) =>
-    13.6 +
-    7.7 * Math.sqrt(Math.max(0, 1 - (x / 15.9) ** 2 - ((z - 1) / 21.6) ** 2));
-  // 龟甲六角刻纹贴合弧面；接缝与壳面有实际高差，避免共面闪烁。
-  for (let row = -3; row <= 3; row++)
-    for (let col = -2; col <= 2; col++) {
-      const cx = col * 5.8 + (Math.abs(row) % 2) * 2.9,
-        cz = 1 + row * 4.9,
-        points = [];
-      for (let n = 0; n <= 6; n++) {
-        const a = (Math.PI * n) / 3,
-          x = cx + Math.cos(a) * 3.2,
-          z = cz + Math.sin(a) * 3.2;
-        if ((x / 15.9) ** 2 + ((z - 1) / 21.6) ** 2 > 0.91) break;
-        points.push([x, shellHeight(x, z) + 0.1, z]);
-      }
-      if (points.length === 7) curve(recess, points, 0.14, 18);
-    }
-  for (const side of [-1, 1])
-    for (const z of [-12, 14]) {
-      ellipsoid(
-        stone,
-        [side * 13.8, 8.5, z],
-        [5.2, 4.1, 6],
-        [0, side * 0.3, side * 0.3],
-      );
-      ellipsoid(stone, [side * 17.1, 5.8, z - 2], [4.7, 2.2, 5.3]);
-      roundCollider("bixi_foot", side * 17, 6.2, z - 2, 4.8, 2.8, 5.4);
-      for (let k = 0; k < 4; k++) {
-        const x = side * (14.3 + k * 1.5);
-        ellipsoid(
-          relief,
-          [x, 5.1, z - 6.1],
-          [0.65, 0.65, 2.0],
-          [0.07, side * 0.16, 0],
-        );
-        curve(
-          recess,
-          [
-            [x, 7.6, z - 1.7],
-            [x, 7.2, z - 3.2],
-            [x, 6.2, z - 4.7],
-          ],
-          0.12,
-          8,
-        );
-      }
-    }
-  curve(
-    stone,
-    [
-      [0, 9, 19],
-      [0, 8, 24],
-      [4, 7, 27],
-      [7, 7.6, 25],
-    ],
-    1.9,
-    20,
-  );
-  ellipsoid(stone, [0, 12.2, -19.2], [6.5, 6, 8]);
-  // 龙首宽额、压低眉脊、外翻鼻翼和石刻须髯，眼窝不做发光卡通眼。
-  ellipsoid(stone, [0, 14.7, -25.5], [7, 6.2, 7.8]);
-  block(stone, [0, 11.9, -30], [12.7, 6.5, 8.5], 2.2);
-  block(relief, [0, 9.1, -28.5], [12.4, 2.9, 11], 1.1);
-  roundCollider("bixi_head", 0, 13.2, -27.5, 7.1, 7.1, 8.1);
-  curve(
-    recess,
-    [
-      [-6, 11, -29],
-      [-5.5, 10.6, -33.9],
-      [0, 10.2, -34.3],
-      [5.5, 10.6, -33.9],
-      [6, 11, -29],
-    ],
-    0.19,
-    28,
-  );
-  for (const side of [-1, 1]) {
-    ellipsoid(
-      recess,
-      [side * 5.8, 16, -28.9],
-      [1.1, 0.82, 1.5],
-      [0, side * -0.5, 0],
-    );
-    curve(
-      relief,
-      [
-        [side * 6.2, 15.9, -27.6],
-        [side * 5.8, 17.3, -29],
-        [side * 3.2, 17.8, -29.9],
-      ],
-      0.65,
-      16,
-    );
-    ellipsoid(stone, [side * 3.5, 15.2, -32.7], [2.5, 2, 2.1]);
-    ellipsoid(recess, [side * 3.6, 15.5, -34.3], [0.75, 0.6, 0.24]);
-    curve(
-      stone,
-      [
-        [side * 5, 18.2, -23],
-        [side * 6.9, 20.4, -21.2],
-        [side * 6.5, 23, -18.6],
-      ],
-      0.95,
-      20,
-    );
-    curve(
-      relief,
-      [
-        [side * 5.5, 12.2, -32.2],
-        [side * 8, 12.8, -28.8],
-        [side * 8.4, 14.2, -24.4],
-        [side * 6.2, 16.6, -22.2],
-      ],
-      0.55,
-      26,
-    );
-    for (let k = 0; k < 4; k++)
-      curve(
-        relief,
-        [
-          [side * (2.3 + k), 8.9, -33.4],
-          [side * (2.8 + k), 7.6, -31.8],
-          [side * (2.6 + k), 7.5, -29.5],
-        ],
-        0.22,
-        10,
-      );
-  }
+  const sculpture = createPenglaiTempleCarvings(keep);
+  sculpture("bixi_bearer", root, [0, 13.65, -3], [42, 18.5, 62], colliders);
   // 碑座压入龟背，碑身、双重边框与螭龙碑额有厚度，正背均可辨认。
   block(relief, [0, 20.2, 3], [23, 4.5, 11], 0.65);
   // 四周实体框围住真正凹入的碑面，中央不再堆叠近乎共面的石片和透明字片。
@@ -277,44 +108,7 @@ export function createPenglaiBixi(parent, keep, colliders) {
     for (const y of [22.8, 53.2])
       block(relief, [0, y, face], [18.8, 1.25, 0.7], 0.24);
   }
-  block(stone, [0, 60, 3], [23, 11, 8], 2.5);
-  boxCollider("bixi_crown", 0, 60, 3, 23, 11, 8);
-  for (const face of [-1, 1])
-    for (const side of [-1, 1]) {
-      const z = 3 + face * 4;
-      curve(
-        relief,
-        [
-          [side * 1.2, 63.5, z],
-          [side * 5.4, 65.4, z],
-          [side * 9.4, 63.1, z],
-          [side * 8.6, 59.8, z],
-          [side * 4.8, 58.5, z],
-          [side * 4.6, 55.8, z],
-        ],
-        0.85,
-        28,
-      );
-      ellipsoid(relief, [side * 2.9, 62.4, z], [1.9, 1.4, 1.1]);
-      for (let k = 0; k < 3; k++)
-        curve(
-          relief,
-          [
-            [side * (6.5 + k * 0.8), 60.4 + k, z],
-            [side * (7.3 + k * 0.8), 61.2 + k, z + face * 0.3],
-            [side * (7 + k * 0.7), 62 + k, z],
-          ],
-          0.17,
-          8,
-        );
-    }
-  // 少量苔色落在基座和甲缘，保留整座石雕的材质统一。
-  for (let k = 0; k < 13; k++) {
-    const a = k * 2.399,
-      x = 15.5 * Math.cos(a),
-      z = 1 + 21 * Math.sin(a);
-    ellipsoid(moss, [x, 13.1, z], [1.8, 0.45, 0.7], [0, -a, 0]);
-  }
+  sculpture("bixi_crown", root, [0, 60.5, 3], [24, 12, 8.5], colliders);
   for (const [material, parts] of buckets) {
     const merged = keep(mergeGeometries(parts, false));
     parts.forEach((p) => p.dispose());
@@ -322,7 +116,8 @@ export function createPenglaiBixi(parent, keep, colliders) {
     mesh.name = "bixi_carved_stone";
     root.add(mesh);
   }
-  let paintedLanguage, texture, context;
+  let paintedLanguage, paintedBrush, texture, context;
+  loadPenglaiBrushFont();
   if (typeof document !== "undefined") {
     const canvas = document.createElement("canvas");
     canvas.width = 512;
@@ -335,11 +130,12 @@ export function createPenglaiBixi(parent, keep, colliders) {
   }
   const faceMaterial = keep(
     new THREE.MeshStandardMaterial({
-      color: "#a5aea0",
+      color: "#aaa797",
       map: texture || null,
       roughness: 1,
     }),
   );
+  faceMaterial.userData.prepareMaterials = loadPenglaiBrushFont;
   addSurfaceDetail(faceMaterial, "stone", 0.11);
   const faces = [];
   for (const side of [-1, 1]) {
@@ -355,7 +151,9 @@ export function createPenglaiBixi(parent, keep, colliders) {
   root.add(inscription);
   function update() {
     const language = getLanguage();
-    if (language === paintedLanguage) return;
+    const brush = penglaiBrushReady();
+    if (language === paintedLanguage && brush === paintedBrush) return;
+    paintedBrush = brush;
     paintedLanguage = language;
     root.userData.language = language;
     root.userData.inscription =
@@ -376,11 +174,11 @@ export function createPenglaiBixi(parent, keep, colliders) {
       context.font = "32px Georgia, serif";
       context.fillText("GUARDS THE DEPTHS", 256, 840, 450);
     } else {
-      context.font = '600 148px "Songti SC", "STSong", serif';
+      context.font = `176px ${PENGLAI_BRUSH_FAMILY}`;
       [..."玄冥深潭"].forEach((char, i) =>
         context.fillText(char, 256, 225 + i * 190),
       );
-      context.font = '42px "Songti SC", "STSong", serif';
+      context.font = `48px ${PENGLAI_BRUSH_FAMILY}`;
       context.fillText("玄武镇渊", 256, 955, 400);
     }
     texture.needsUpdate = true;

@@ -37,7 +37,7 @@ export function besideSummitPath(x, z, margin = 7) {
   );
 }
 /** 石路直接铺进真实山体材质，避免独立薄片与地形穿插或争夺深度。 */
-export function applyPenglaiSummitPaths(material, keep) {
+export function applyPenglaiSummitPaths(material, keep, rockTexture) {
   const size = 1024,
     pixels = new Uint8Array(size * size),
     spanX = W.maxX - W.minX,
@@ -108,6 +108,7 @@ export function applyPenglaiSummitPaths(material, keep) {
     previous.call(material, shader, renderer);
     shader.uniforms.summitPathMask = { value: texture };
     shader.uniforms.summitPathColor = { value: new THREE.Color("#b3b5a3") };
+    if (rockTexture) shader.uniforms.summitStoneMap = rockTexture;
     shader.vertexShader = shader.vertexShader
       .replace(
         "#include <common>",
@@ -121,16 +122,33 @@ vSummitPathUv = (position.xz - vec2(${W.minX.toFixed(1)}, ${W.minZ.toFixed(1)}))
     shader.fragmentShader = shader.fragmentShader
       .replace(
         "#include <common>",
-        "#include <common>\nvarying vec2 vSummitPathUv;\nuniform sampler2D summitPathMask;\nuniform vec3 summitPathColor;",
+        "#include <common>\nvarying vec2 vSummitPathUv;\nuniform sampler2D summitPathMask;\nuniform vec3 summitPathColor;" +
+          (rockTexture ? "\nuniform sampler2D summitStoneMap;" : ""),
       )
       .replace(
         "#include <color_fragment>",
         `#include <color_fragment>
 float summitPathCoverage = texture2D(summitPathMask, vSummitPathUv).r;
-diffuseColor.rgb = mix(diffuseColor.rgb, summitPathColor, summitPathCoverage);`,
+${
+  rockTexture
+    ? `
+vec2 pathMeters=vSummitPathUv*vec2(${spanX.toFixed(1)},${spanZ.toFixed(1)});
+float pathRow=floor(pathMeters.y/2.6);
+vec2 pathTiles=vec2(pathMeters.x/3.7+mod(pathRow,2.0)*.5,pathMeters.y/2.6);
+vec2 pathEdge=min(fract(pathTiles),1.0-fract(pathTiles));
+vec2 pathAA=max(fwidth(pathTiles),vec2(.001));
+float pathJoint=1.0-smoothstep(.012,.012+pathAA.x,pathEdge.x)*smoothstep(.018,.018+pathAA.y,pathEdge.y);
+vec3 pathStone=texture2D(summitStoneMap,pathMeters*.25).rgb;
+vec3 pathColor=summitPathColor*(.68+pathStone*.9);
+pathColor*=1.0-pathJoint*.34;
+diffuseColor.rgb=mix(diffuseColor.rgb,pathColor,summitPathCoverage);
+`
+    : "diffuseColor.rgb = mix(diffuseColor.rgb, summitPathColor, summitPathCoverage);"
+}`,
       );
   };
-  material.customProgramCacheKey = () => `${previousKey()}_summit_path_v1`;
+  material.customProgramCacheKey = () =>
+    `${previousKey()}_summit_path_${rockTexture ? "paved_v2" : "v1"}`;
   material.userData.summitPathTexture = texture;
   return texture;
 }

@@ -162,6 +162,68 @@ test("海德拉吐息从当前摆动吻端发射，三次射击保留原间隔",
   }
 });
 
+test("Sage volleys launch three tip-first physical swords with a small hilt glow", async () => {
+  const { sageJianAsset } = await import("../src/sage_jian.js");
+  const f = fixture("sword_sage"),
+    kit = sageJianAsset();
+  f.entry.requiresGuardians = [];
+  f.entry.state.phase = "attack";
+  f.entry.state.ability = "swords";
+  f.entry.state.phaseDuration = 1.6;
+  f.entry.previousPhase = "attack";
+  f.entry.volleyShots = 0;
+  f.entry.lockTarget.copy(f.position);
+  f.entry.lockedVelocity.set(0, 0, 0);
+  const anchors = [],
+    getHeads = f.entry.mesh.userData.getHeadWorldPositions;
+  f.entry.mesh.userData.getHeadWorldPositions = () => {
+    const heads = getHeads();
+    anchors.push(...heads.map((p) => p.clone()));
+    return heads;
+  };
+  let last;
+  for (const [timer, count] of [
+    [0, 1],
+    [0.44, 1],
+    [0.45, 2],
+    [0.89, 2],
+    [0.9, 3],
+  ]) {
+    f.entry.state.timer = timer;
+    f.encounters.update(0, timer, f.player, f.position, f.forward, {
+      blockedBetween: () => false,
+    });
+    const shots = f.scene.children.filter(
+      (n) => n.name === "sage_sword_projectile",
+    );
+    assert.equal(shots.length, count);
+    last = shots.at(-1);
+    last.updateMatrixWorld(true);
+    assert.ok(
+      anchors.some((origin) => last.position.distanceTo(origin) < 1e-5),
+    );
+    const blade = last.getObjectByName("sword_blade");
+    assert.equal(blade.geometry, kit.geometry);
+    assert.equal(blade.material, kit.material);
+    const tip = blade.localToWorld(
+      new THREE.Vector3(0, kit.geometry.boundingBox.max.y, 0),
+    );
+    const aim = f.entry.lockTarget.clone().sub(last.position).normalize();
+    assert.ok(tip.sub(last.position).normalize().dot(aim) > 0.99999);
+    const glow = last.getObjectByName("sage_sword_hilt_glow");
+    assert.ok(glow.getWorldScale(new THREE.Vector3()).x < 2);
+    assert.ok(glow.material.opacity <= 0.2);
+  }
+  const at = last.position.clone();
+  f.entry.state.timer = 1;
+  f.encounters.update(0.05, 1.05, f.player, f.position, f.forward, {
+    blockedBetween: () => false,
+  });
+  assert.ok(Math.abs(last.position.distanceTo(at) - 85 * 0.05) < 1e-6);
+  f.encounters.dispose();
+  assert.ok(!f.scene.children.some((n) => n.name === "sage_sword_projectile"));
+});
+
 for (const kind of ["kraken", "mayan", "hydra", "leviathan"]) {
   test(`${kind} 进入领地后的首轮技能可以命中停留玩家，锁定后变向能够躲开`, () => {
     const standing = fixture(kind);

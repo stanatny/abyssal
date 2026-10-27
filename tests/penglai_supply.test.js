@@ -68,35 +68,32 @@ test("Monastery stair treads clear rendered terrain and the platform with matchi
     assert.ok(
       steps[0].y + steps[0].halfSize.y < platform.y + platform.halfSize.y,
     );
-    const matrix = new THREE.Matrix4(),
-      position = new THREE.Vector3(),
-      scale = new THREE.Vector3(),
-      q = new THREE.Quaternion();
+    ocean.root.updateMatrixWorld(true);
+    const stoneMeshes = [];
+    ocean.root.traverse((m) => {
+      if (m.isInstancedMesh) stoneMeshes.push(m);
+    });
     for (const step of steps) {
       const top = step.y + step.halfSize.y;
-      let visibleMatch = false;
-      ocean.root.traverse((mesh) => {
-        if (!mesh.isInstancedMesh) return;
-        for (let i = 0; i < mesh.count; i++) {
-          mesh.getMatrixAt(i, matrix);
-          matrix.decompose(position, q, scale);
-          if (
-            position.distanceTo(new THREE.Vector3(step.x, step.y, step.z)) >
-            0.001
-          )
-            continue;
-          if (
-            Math.abs(scale.x - step.halfSize.x * 2) < 0.001 &&
-            Math.abs(scale.y - step.halfSize.y * 2) < 0.001 &&
-            Math.abs(scale.z - step.halfSize.z * 2) < 0.001
-          )
-            visibleMatch = true;
+      // 石阶可由多块石板和浅缝组成；检查实际三角面高度，不要求一个盒子等同整级台阶。
+      for (const dx of [-31.5, 0, 31.5])
+        for (const dz of [-1.5, 0, 1.5]) {
+          const ray = new THREE.Raycaster(
+            new THREE.Vector3(step.x + dx, top + 0.25, step.z + dz),
+            new THREE.Vector3(0, -1, 0),
+            0,
+            0.43,
+          );
+          const hit = ray.intersectObjects(stoneMeshes)[0];
+          assert.ok(
+            hit,
+            "solid step must have a rendered tread or recessed joint",
+          );
+          assert.ok(
+            Math.abs(hit.point.y - top) < 0.18,
+            "rendered tread must agree with the solid walking surface",
+          );
         }
-      });
-      assert.ok(
-        visibleMatch,
-        "solid step must match a rendered stone instance",
-      );
       // 沿整个踏面射向最终地形网格，不只检查解析高度或踏面中心。
       for (
         let x = step.x - step.halfSize.x;

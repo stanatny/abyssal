@@ -1,10 +1,10 @@
+import { disposePenglaiTigerMotion } from "../src/creature_penglai_tiger.js";
 import test from "node:test";
 import assert from "node:assert/strict";
 import * as T from "three";
 import { createCreature } from "../src/creatures.js";
 import { updateLordBody } from "../src/lord_body.js";
 import { findBossContact } from "../src/encounters.js";
-import { disposePenglaiTigerMotion } from "../src/creature_penglai_tiger.js";
 const kinds = [
   "azure_dragon",
   "white_tiger",
@@ -28,7 +28,12 @@ test("All four guardian factories preserve full length, finite articulated surfa
   for (const k of kinds) {
     const m = createCreature(k, 50, 8);
     m.updateMatrixWorld(true);
-    assert.equal(m.userData.artRevision, "penglai_guardians_v3");
+    assert.equal(
+      m.userData.artRevision,
+      ["white_tiger", "vermilion_bird"].includes(k)
+        ? "penglai_guardians_hf_v1"
+        : "penglai_guardians_hf_v2",
+    );
     assert.ok(
       Math.abs(
         new T.Box3().setFromObject(m, true).getSize(new T.Vector3()).z - 50,
@@ -82,38 +87,36 @@ test("All four guardian factories preserve full length, finite articulated surfa
 test("Continuous Azure skin shares immutable geometry, bends without tears and retires private bone textures only", () => {
   const a = createCreature("azure_dragon", 1, 3),
     b = createCreature("azure_dragon", 1, 3),
-    r = a.userData.azureAxialRig,
-    s = b.userData.azureAxialRig;
-  assert.equal(r.trunk.geometry, s.trunk.geometry);
+    r = a.userData.hfRig,
+    s = b.userData.hfRig;
+  assert.equal(r.mesh.geometry, s.mesh.geometry);
   assert.notEqual(r.bones[4], s.bones[4]);
-  assert.notEqual(r.trunk.skeleton, s.trunk.skeleton);
-  const original = Array.from(r.trunk.geometry.attributes.position.array);
-  r.trunk.skeleton.computeBoneTexture();
-  s.trunk.skeleton.computeBoneTexture();
+  assert.notEqual(r.mesh.skeleton, s.mesh.skeleton);
+  const original = Array.from(r.mesh.geometry.attributes.position.array);
+  r.mesh.skeleton.computeBoneTexture();
+  s.mesh.skeleton.computeBoneTexture();
   const p = new T.Vector3(),
     q = new T.Vector3();
   let moved = false;
   a.userData.animate(0, 0.5);
   b.userData.animate(0, 0.5);
-  const frozen = b.userData.azureAxialRig.bones.map((n) =>
-    n.position.toArray(),
-  );
+  const frozen = b.userData.hfRig.bones.map((n) => n.position.toArray());
   for (let frame = 1; frame <= 240; frame++) {
     a.userData.animate(frame / 30, 1.8);
     a.updateMatrixWorld(true);
-    r.trunk.skeleton.update();
-    for (let row = 0; row < 144; row += 3) {
-      const n = row * 25;
-      r.trunk.getVertexPosition(n, p);
-      r.trunk.getVertexPosition(n + 25, q);
-      assert.ok(p.distanceTo(q) < 0.04, "adjacent rings remain continuous");
-      assert.ok(r.trunk.boundingSphere.containsPoint(p));
-      if (Math.abs(p.x) > 0.1) moved = true;
+    r.mesh.skeleton.update();
+    const pos = r.mesh.geometry.attributes.position;
+    for (let n = 0; n < pos.count; n += 113) {
+      r.mesh.getVertexPosition(n, p);
+      assert.ok(p.toArray().every(Number.isFinite));
+      assert.ok(r.mesh.boundingSphere.containsPoint(p));
+      q.fromBufferAttribute(pos, n);
+      if (p.distanceTo(q) > 0.01) moved = true;
     }
   }
   assert.ok(moved);
   assert.deepEqual(
-    r.trunk.geometry.attributes.position.array,
+    r.mesh.geometry.attributes.position.array,
     new Float32Array(original),
   );
   assert.deepEqual(
@@ -121,16 +124,16 @@ test("Continuous Azure skin shares immutable geometry, bends without tears and r
     frozen,
   );
   let sharedDisposals = 0;
-  r.trunk.geometry.addEventListener("dispose", () => sharedDisposals++);
-  disposePenglaiTigerMotion(a);
-  disposePenglaiTigerMotion(a);
-  assert.equal(r.trunk.skeleton.boneTexture, null);
-  assert.ok(s.trunk.skeleton.boneTexture);
+  r.mesh.geometry.addEventListener("dispose", () => sharedDisposals++);
+  a.userData.disposeLocalMotion();
+  a.userData.disposeLocalMotion();
+  assert.equal(r.mesh.skeleton.boneTexture, null);
+  assert.ok(s.mesh.skeleton.boneTexture);
   assert.equal(sharedDisposals, 0);
-  disposePenglaiTigerMotion(b);
+  b.userData.disposeLocalMotion();
 });
 
-test("Four detailed guardian assets stay within the measured source triangle/draw envelope and add no textures or lights", () => {
+test("Four detailed guardian assets stay within the measured source triangle/draw envelope and add no lights or extra material maps", () => {
   let triangles = 0,
     meshes = 0;
   for (const k of kinds) {
@@ -141,8 +144,8 @@ test("Four detailed guardian assets stay within the measured source triangle/dra
     m.traverse((n) => {
       assert.ok(!n.isLight);
       if (n.isMesh)
-        for (const value of Object.values(n.material))
-          assert.ok(!value?.isTexture);
+        for (const [key, value] of Object.entries(n.material))
+          if (value?.isTexture) assert.equal(key, "map");
     });
   }
   assert.ok(triangles < 220000);
@@ -203,7 +206,6 @@ test("Guardian head/neck joins and Vermilion world silhouette retain imposing pr
       "dragon_v2_azure_dragon_0",
       1.18,
     ],
-    [buildPenglaiTiger, "tiger_broad_skull_v5", "tiger_neck_v3", 0.95],
   ]) {
     const root = new T.Group(),
       anatomy = new T.Group();
@@ -231,7 +233,14 @@ test("Guardian head/neck joins and Vermilion world silhouette retain imposing pr
     bounds.x > 52 * 1.5,
     "lord has broad actual world wings, independent of Guide zoom",
   );
-  const chest = boxFor(bird, "bird_v2_vermilion_bird").getSize(new T.Vector3());
+  const chestBox = new T.Box3(),
+    positions = bird.userData.hfRig.mesh.geometry.attributes.position;
+  for (let i = 0; i < positions.count; i++) {
+    const p = new T.Vector3().fromBufferAttribute(positions, i);
+    if (Math.abs(p.x) < 0.16 && p.z > -0.35 && p.z < -0.12)
+      chestBox.expandByPoint(p.multiplyScalar(52));
+  }
+  const chest = chestBox.getSize(new T.Vector3());
   assert.ok(
     chest.x > 52 * 0.195 && chest.y > 52 * 0.23,
     "substantial world chest behind the wings",

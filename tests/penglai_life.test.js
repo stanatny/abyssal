@@ -117,7 +117,7 @@ test("Northern pool provides real medium food school profiles and large hunters 
   );
   assert.equal(
     northern.reduce((n, g) => n + g.count, 0),
-    9,
+    6,
   );
   assert.equal(h.spawnAnchors.filter((p) => p[2] < -995).length, 4);
   assert.ok(
@@ -167,13 +167,10 @@ test("Tiger poses have connected independent limb joints and leave gameplay root
   const poses = [];
   for (const phase of ["dormant", "windup", "attack", "recover"]) {
     a.userData.setBossPhase(phase);
-    a.userData.animate(1, 1.5);
+    for (let i = 0; i < 20; i++) a.userData.animate(poses.length + i / 30, 1.5);
     a.updateMatrixWorld(true);
-    poses.push(
-      a.children[0].children[0].children
-        .find((n) => n.isGroup && n.position.x > 0.1)
-        .matrixWorld.clone(),
-    );
+    const rig = a.userData.hfRig;
+    poses.push(rig.bones[rig.legs[0].ids[0]].matrixWorld.clone());
     assert.deepEqual(a.quaternion.toArray(), [0, 0, 0, 1]);
   }
   assert.notDeepEqual(poses[1].elements, poses[2].elements);
