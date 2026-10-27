@@ -13,6 +13,8 @@ For creature redraws, generated meshes, material revisions or swimming defects w
 
 For replacing existing Hawaii landmarks, reef clusters or surface ships, read [references/hawaii_scenery_replacement.md](references/hawaii_scenery_replacement.md). It covers the current UV/batching, placement, normal-entry loading and resource contracts without requiring a new-map production brief.
 
+For obstacle deadlocks, equipment clearance, hard-to-find residents, habitat-changing forms or lord-area supplies, read [references/navigation_and_encounters.md](references/navigation_and_encounters.md). It separates navigation from combat anatomy and checks moving access, final habitat configuration and obtainable resources through the actual game callers.
+
 Scope precedents by implementation. This skill's regional production and validation methods serve every ABYSSAL map; the Hawaii reference describes Hawaii's existing factories only. For another map, identify its own terrain sampler, batching, asset owners, collision baseline and consumers first. Reuse the validation method where relevant, not Hawaii's object counts, placements, budgets or prescribed factory changes. Shared code changes still require checks of affected consumers outside the originating map.
 
 For an agent without automatic skill discovery, include this instruction in its assignment: `Read .agents/skills/abyssal-map-production/SKILL.md and the filled map brief before editing. Work only in the listed worktree and files.` No private Skill, personal registry, or absolute developer path is needed.

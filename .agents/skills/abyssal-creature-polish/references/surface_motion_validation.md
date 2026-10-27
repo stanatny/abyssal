@@ -34,6 +34,14 @@ Choose orientation behavior for the lifeform. The [upright guardian repair](../.
 
 For a model accompanied by glow/trails, compare their final world dimensions after every parent scale. Trigger the real ability, inspect its launch/impact anchors and confirm that the intended object remains visible at the normal camera distance. The [Sword Sage repair](../../../../docs/penglai_huggingface_redraw.md#straight-riding-blade-and-readable-sword-volleys--2026-10-27) corrected an oversized glow masking a valid sword projectile; regenerating the sword was unnecessary. Keep damage, range and timing separate from visual legibility.
 
+## Validate the observer and test fixture
+
+Before changing runtime motion to match a recording, compare the ordinary caller with the capture setup. Record the simulation player position separately from an observer camera: distance-based visibility and animation eligibility may follow the player, not the recording camera. Check both quality modes where those bands differ. Forcing a culled mesh visible without its normal animation update can manufacture a sliding creature; adding an extra animation call can conceal a real caller omission.
+
+Use a naturally eligible near case and an unmodified far control to locate this mismatch. Controlled pose/position tests remain useful for isolated skin checks, but label their intervention and do not present them as natural travel or battle. Inspect actual resolved displacement and deformed skin over a full cycle, including fractional times; integer-second samples can alias a repeating gait. Reset encounter prerequisites between subjects and confirm genuine active states instead of assuming a staged lord can attack.
+
+The [Taotie recording correction](../../../../docs/penglai_huggingface_redraw.md#taotie-walking-footage-correction--2026-10-27) required a corrected capture setup rather than another runtime gait change. If the ordinary near case also fails, continue tracing runtime inputs instead of dismissing the user's report as a fixture issue. Navigation/access defects belong to the [map integration checks](../../abyssal-map-production/references/navigation_and_encounters.md).
+
 ## Review defects early and report the right evidence
 
 Before expanding a new rig family, inspect one usable model through neutral views, full motion and ordinary scene entry. Include underside/root/rear views when those regions can fail. Review matched before/after frames and the final encoded clip; retain a visible environment reference for claims about world movement. An observer recording blocked by scenery does not demonstrate the hidden animation. Re-record a useful view or explicitly narrow the delivered evidence.

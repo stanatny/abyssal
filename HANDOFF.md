@@ -1,5 +1,16 @@
 # ABYSSAL Penglai HF redraw — 2026-10-27
 
+Knowledge follow-up — 2026-10-27: the user authorizes a local commit of
+repository experience, with no ABYSSAL push. Updated map-production and
+creature-polish references distinguish capture artifacts, navigation/contact
+envelopes, dynamic recovery, final habitat discoverability and reachable
+encounter resources. Start at [the integration reference](.agents/skills/abyssal-map-production/references/navigation_and_encounters.md).
+This is documentation-only; runtime release v0.11.21 remains unchanged.
+Penglai was released at `29c2543432b71d264e73ce0e5cf55e4a5847bdb6`;
+earlier candidate labels below are historical. General teaching material is
+maintained separately in the personal knowledge repository; personal Skills
+and running preview services are unchanged.
+
 Penglai accepted for main release — 2026-10-27: the user explicitly accepts
 all current map changes and requests committing and pushing them to main.
 All 1,893 delivered input hashes match before release-only edits. This approval

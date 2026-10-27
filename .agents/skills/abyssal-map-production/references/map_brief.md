@@ -46,6 +46,8 @@ Record food budgets at the representative body lengths required by AGENTS, using
 
 ## Module contracts and working checkpoints
 
+For affected navigation or ecology work, also record the visible body/attachment envelope, terrain-navigation sections and independent damage/contact anatomy; the obstruction/turn/retreat cases; final fitted habitats and discovery routes in both quality modes; and fields preserved or changed by transformations. For each lord-area revision, name the adult-retaliating hunter, accessible food/nutrition and replenishment route. Derive values from current project rules rather than historical examples. Use [navigation and encounter checks](navigation_and_encounters.md) only where these contracts change.
+
 | Assigned file / author    | Caller and exported API                                                  | Units, axes, anchors and outputs                                                           | Update/resource/disposal contract                                                |
 | ------------------------- | ------------------------------------------------------------------------ | ------------------------------------------------------------------------------------------ | -------------------------------------------------------------------------------- |
 | Fill exact path and owner | Include signatures, argument/return shapes and caller example if needed. | Include normalized length, terrain/collider transforms and contact anchors where relevant. | Existing loop inputs, quality inputs, caches versus owned resources and cleanup. |

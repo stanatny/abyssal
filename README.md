@@ -1,5 +1,12 @@
 # ABYSSAL
 
+Cross-map knowledge follow-up — 2026-10-27: repository Skills now cover
+[navigation, discoverability and usable encounter supplies](.agents/skills/abyssal-map-production/references/navigation_and_encounters.md)
+and [recording-fixture validity](.agents/skills/abyssal-creature-polish/references/surface_motion_validation.md#validate-the-observer-and-test-fixture).
+The user authorizes a local documentation commit only. These methods use the
+released Penglai cases without turning their numbers into other maps' rules.
+Runtime remains v0.11.21; no game or device tests are rerun for this documentation change.
+
 Penglai accepted for main release — 2026-10-27: the user explicitly accepts
 all current map changes and requests committing and pushing them to main.
 All 1,893 delivered input hashes match before release-only edits. This approval
