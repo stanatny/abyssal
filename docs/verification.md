@@ -1,3 +1,16 @@
+# v0.11.22 release verification — 2026-10-28
+
+The user authorizes main publication of the accepted Odyssey redraw and Amazon
+pit-lord repair. All 2,048 delivered input hashes and 929 build artifact hashes
+match before acceptance documentation changes; the accepted runtime passed
+2,075 tests. The recorded native/public encounter, environment, resource and
+bilingual-flow checks retain their original scope. Release formatting/build,
+exact-main Node 22 CI, Pages artifact checks and native formal-page flows are
+recorded separately under `.local/release_v0_11_22/`; see
+[the release record](release_v0_11_22.md). No physical-phone performance or
+natural whole-round balance claim is made. Earlier candidate/branch-only labels
+are superseded only for this accepted release.
+
 # v0.11.21 release verification — 2026-10-27
 
 All 1,893 delivered Penglai input hashes match before release metadata edits.

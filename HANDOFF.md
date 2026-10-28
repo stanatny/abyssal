@@ -1,5 +1,15 @@
 # ABYSSAL Penglai HF redraw — 2026-10-27
 
+Main publication v0.11.22 — 2026-10-28: the user explicitly authorizes
+merging and pushing the accepted Odyssey work and Amazon pit-lord repair to main.
+This integrates project-knowledge checkpoint `54877d1`, Odyssey checkpoint
+`10b8688` and Amazon repair `0f3244d`, following published v0.11.21 / `29c2543`.
+Release edits are limited to version/footer metadata and documentation. Earlier
+branch-only or candidate-only labels below retain their historical scope and
+are superseded for this accepted release. No tag or separate GitHub Release is
+requested. See [the release record](docs/release_v0_11_22.md) for evidence and
+verification limits. Future changes return to the default authorization rule.
+
 Amazon deep-pit repair accepted for branch delivery — 2026-10-28: the user
 accepts the delivered Rootjaw/Yacumama repair and authorizes committing and
 pushing the current `art/odyssey-hf-redraw` branch. All 2,048 delivered input
