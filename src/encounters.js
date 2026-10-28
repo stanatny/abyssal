@@ -3,7 +3,7 @@ import {
   steerScyllaSwim,
   updateScyllaSwimAttitude,
 } from "./scylla_swim.js";
-import { recoverFlyingLordMotion } from "./lord_navigation_recovery.js";
+import { recoverLordMotion } from "./lord_navigation_recovery.js";
 import {
   isPenglaiFlyingGuardian,
   steerPenglaiFlight,
@@ -1731,7 +1731,7 @@ export function createEncounters(
     }
     if (
       entry.navigation?.recovery?.remaining > 0 &&
-      recoverFlyingLordMotion(
+      recoverLordMotion(
         entry,
         direction,
         speed,
@@ -1822,7 +1822,7 @@ export function createEncounters(
       }
     }
     if (!clear) {
-      recoverFlyingLordMotion(
+      recoverLordMotion(
         entry,
         direction,
         speed,
@@ -1902,7 +1902,7 @@ export function createEncounters(
         entry.heading.copy(candidate);
       origin.copy(next);
     } else {
-      recoverFlyingLordMotion(
+      recoverLordMotion(
         entry,
         direction,
         speed,
@@ -2391,7 +2391,7 @@ export function createEncounters(
         entry.heading.copy(FORWARD_AXIS).applyQuaternion(entry.mesh.quaternion);
         const request = entry.navigation.request;
         if (request?.active)
-          recoverFlyingLordMotion(
+          recoverLordMotion(
             entry,
             request.direction,
             request.speed,

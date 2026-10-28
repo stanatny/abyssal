@@ -1,5 +1,17 @@
 # ABYSSAL Penglai HF redraw — 2026-10-27
 
+Amazon deep-pit repair accepted for branch delivery — 2026-10-28: the user
+accepts the delivered Rootjaw/Yacumama repair and authorizes committing and
+pushing the current `art/odyssey-hf-redraw` branch. All 2,048 delivered input
+hashes and 929 build artifact hashes match before acceptance-only documentation
+updates. The recorded 2,075 tests and native/public evidence apply to these
+unchanged runtime inputs; no new runtime test run is claimed. This branch also
+contains the preceding accepted Odyssey checkpoint `10b8688` and project
+knowledge checkpoint `54877d1`. Main/Pages publication is a separate step;
+there is no version bump in this branch delivery. Earlier candidate-only labels
+retain their historical meaning and are superseded for this accepted scope.
+See [the navigation review](docs/amazon_lord_navigation_revision.md).
+
 Odyssey accepted local checkpoint — 2026-10-28: the user accepts the current
 result and requests a local commit. All 2,046 delivered input hashes and 929
 build artifacts match before acceptance notes and formatting normalization. This checkpoint

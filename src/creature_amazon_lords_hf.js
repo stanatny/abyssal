@@ -281,9 +281,9 @@ export function buildAmazonLordHF(kind, root, motions) {
   root.userData.normalizedLength = 1;
   root.userData.artRevision = "trellis_amazon_lords_20261025";
   root.userData.aquaticUpright = true;
-  // 根颚君王在深潭里俯冲或抬头上游，导航提案与实际姿态共用俯仰范围。
-  if (kind === "rootjaw") {
-    root.userData.aquaticPitchLimit = 1.05;
+  // 深潭守卫的导航与实际游姿共用俯仰/转速，不能先检查另一套朝向。
+  if (kind === "rootjaw" || snake) {
+    root.userData.aquaticPitchLimit = snake ? 0.65 : 1.05;
     root.userData.aquaticTurnRate = 2.4;
   }
   root.userData.amazonAnatomy = kind;
