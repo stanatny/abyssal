@@ -1,3 +1,8 @@
+import {
+  scyllaCanAim,
+  steerScyllaSwim,
+  updateScyllaSwimAttitude,
+} from "./scylla_swim.js";
 import { recoverFlyingLordMotion } from "./lord_navigation_recovery.js";
 import {
   isPenglaiFlyingGuardian,
@@ -1758,6 +1763,17 @@ export function createEncounters(
         candidate.y = 0;
         candidate.normalize();
       }
+      // 斯库拉先生成实际可执行的弧线方向，再检查完整身体净空。
+      if (entry.state.species.kind === "scylla")
+        steerScyllaSwim(
+          candidate,
+          entry.mesh.quaternion,
+          candidate,
+          dt,
+          turnRate,
+          step,
+          entry.state.species.length,
+        );
       lookahead.copy(origin).addScaledVector(candidate, Math.max(7, step + 4));
       if (entry.state.species.seabedCrawler)
         lookahead.y =
@@ -1817,7 +1833,9 @@ export function createEncounters(
       );
       return;
     }
-    if (isPenglaiFlyingGuardian(entry.state.species.kind))
+    if (entry.state.species.kind === "scylla") {
+      // 上面的候选已按本帧实际姿态限速，不能再次插值而造成身体横滑。
+    } else if (isPenglaiFlyingGuardian(entry.state.species.kind))
       steerPenglaiFlight(
         candidate,
         entry.mesh.quaternion,
@@ -2063,7 +2081,14 @@ export function createEncounters(
       tickBoss(state, dt, {
         inTerritory: inTerritory && !state.locked,
         distance,
-        lineOfSight: sight,
+        lineOfSight:
+          sight &&
+          (state.species.kind !== "scylla" ||
+            state.phase !== "hunt" ||
+            scyllaCanAim(
+              entry.mesh.quaternion,
+              entry.motion.target.copy(position).sub(entry.mesh.position),
+            )),
         playerAlive: !player.dead && !player.won && !player.timedOut,
         disoriented: time < entry.disorientedUntil,
       });
@@ -2326,7 +2351,16 @@ export function createEncounters(
       // 地面与限俯仰游姿的移动朝向已平滑；再次滞后会让躯体横滑并偏离已验证的占地。
       if (entry.navigation?.recoveredThisFrame) {
         // 恢复分支已检查并设置本帧完整姿态，不能再转一次而扫进障碍。
-      } else if (isPenglaiFlyingGuardian(state.species.kind))
+      } else if (state.species.kind === "scylla")
+        updateScyllaSwimAttitude(
+          entry.mesh.quaternion,
+          entry.motion.target
+            .copy(entry.mesh.position)
+            .sub(entry.motion.groundStart),
+          dt,
+          state.species.length,
+        );
+      else if (isPenglaiFlyingGuardian(state.species.kind))
         updatePenglaiFlightAttitude(entry.mesh.quaternion, entry.heading, dt);
       else if (Number.isFinite(entry.mesh.userData.aquaticTurnRate))
         // 锁定瞬间可能换向；有界转动避免长躯一帧翻身，随后仍检查实际完整姿态。

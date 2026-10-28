@@ -83,7 +83,7 @@ test("Only five ordinary instances are added and the other seven regional invent
     amazon: 409,
     europa: 352,
     penglai: 393,
-    odyssey: 269,
+    odyssey: 323,
   }))
     assert.equal(
       getRegionSpecies(region).reduce((n, s) => n + s.population, 0),

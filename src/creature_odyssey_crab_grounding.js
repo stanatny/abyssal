@@ -77,7 +77,8 @@ export function bindKarkinosGrounding(body, shell, legs) {
       distance = THREE.MathUtils.clamp(requestedDistance, shortest, longest);
     if (requestedDistance < 0.000001) direction.set(leg.side, -1, 0);
     direction.normalize();
-    pole.copy(UP).addScaledVector(direction, -direction.y);
+    pole.copy(leg.restPole || UP);
+    pole.addScaledVector(direction, -pole.dot(direction));
     if (pole.lengthSq() < 0.000001) pole.set(leg.side, 0, 0);
     pole.normalize();
     const along =

@@ -73,7 +73,7 @@ test("annular lord and tentacled lord keep hollow/appendage gaps open", () => {
   const ring = createCreature("charybdis", 50);
   const colliders = updateLordBody(ring);
   const source = ring.userData.lordBody.sections[0];
-  const center = new THREE.Vector3(0, 0, 0.05).applyMatrix4(
+  const center = new THREE.Vector3(0, 0, -0.34).applyMatrix4(
     source.parent.matrixWorld,
   );
   assert.equal(isPositionBlocked(center, { colliders, radius: 1 }), false);

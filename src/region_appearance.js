@@ -35,11 +35,11 @@ export function regionZone(regionId, depth, position = null) {
     const row =
       depth < 60
         ? ["伊萨卡浅湾", "ITHACAN SHALLOWS"]
-        : depth < 200
+        : depth < 275
           ? ["海妖花园", "NEREID GARDENS"]
-          : depth < 330
+          : depth < 530
             ? ["断桅遗迹", "BROKEN-MAST RUINS"]
-            : depth < 490
+            : depth < 745
               ? ["六首峡口", "SIX-HEADED STRAIT"]
               : ["吞潮深潭", "TIDE-SWALLOWING BASIN"];
     return {

@@ -1,14 +1,42 @@
 import {
+  ODYSSEY_HF_FINAL,
+  buildOdysseyFinalHF,
+} from "./creature_odyssey_final_hf.js";
+import {
+  ODYSSEY_HF_PEOPLE,
+  buildOdysseyPeopleHF,
+} from "./creature_odyssey_people_hf.js";
+import {
+  ODYSSEY_HF_DEEP,
+  buildOdysseyDeepHF,
+} from "./creature_odyssey_deep_hf.js";
+import {
+  ODYSSEY_HF_LARGE,
+  buildOdysseyLargeHF,
+} from "./creature_odyssey_large_hf.js";
+import {
+  ODYSSEY_HF_GARDEN,
+  buildOdysseyGardenHF,
+} from "./creature_odyssey_garden_hf.js";
+import {
   ODYSSEY_EXTRA_KINDS,
   buildOdysseyExtra,
 } from "./creature_odyssey_extra.js";
 import * as THREE from "three";
+import {
+  ODYSSEY_HF_SHALLOWS,
+  buildOdysseyShallowHF,
+} from "./creature_odyssey_shallow_hf.js";
 import { createRestPoseNormalizer } from "./rest_pose_normalization.js";
 import { buildOdysseyShallows } from "./creature_odyssey_shallows.js";
 import { buildOdysseyPeople } from "./creature_odyssey_people.js";
 import { buildOdysseyHunters } from "./creature_odyssey_hunters.js";
 import { buildOdysseyLord } from "./creature_odyssey_lords.js";
 import { buildKarkinos } from "./creature_odyssey_crab.js";
+import {
+  ODYSSEY_HF_LORDS,
+  buildOdysseyLordHF,
+} from "./creature_odyssey_lords_hf.js";
 
 /** 新海域所有生物共用真实世界与图鉴工厂；普通种、三领主及独有珍兽互不借用旧轮廓。 */
 export const ODYSSEY_CREATURE_KINDS = new Set([
@@ -55,6 +83,19 @@ const SHALLOWS = new Set([
  * @returns {void} 附加共享几何、独立骨架和随真实头部移动的嘴锚点。
  */
 export function buildOdysseyCreature(kind, root, motions) {
+  if (ODYSSEY_HF_FINAL.has(kind))
+    return buildOdysseyFinalHF(kind, root, motions);
+  if (ODYSSEY_HF_PEOPLE.has(kind))
+    return buildOdysseyPeopleHF(kind, root, motions);
+  if (ODYSSEY_HF_DEEP.has(kind)) return buildOdysseyDeepHF(kind, root, motions);
+  if (ODYSSEY_HF_LARGE.has(kind))
+    return buildOdysseyLargeHF(kind, root, motions);
+  if (ODYSSEY_HF_GARDEN.has(kind))
+    return buildOdysseyGardenHF(kind, root, motions);
+  if (ODYSSEY_HF_SHALLOWS.has(kind))
+    return buildOdysseyShallowHF(kind, root, motions);
+  if (ODYSSEY_HF_LORDS.has(kind))
+    return buildOdysseyLordHF(kind, root, motions);
   if (!ODYSSEY_CREATURE_KINDS.has(kind))
     throw new Error(`Unknown Odyssean creature: ${kind}`);
   const body = new THREE.Group();

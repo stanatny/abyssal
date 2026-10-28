@@ -1,3 +1,4 @@
+import { fitOdysseyEcology } from "./odyssey_ecology.js";
 import { ODYSSEY_SPECIES } from "./odyssey_species.js";
 import { PENGLAI_SPECIES } from "./penglai_species.js";
 import { disperseLargePrey } from "./large_prey_distribution.js";
@@ -202,11 +203,13 @@ const REGION_SPECIES = Object.freeze(
       );
       return [
         id,
-        id === "europa"
-          ? fitEuropaEcology(distributed)
-          : id === "penglai"
-            ? fitPenglaiEcology(distributed)
-            : distributed,
+        id === "odyssey"
+          ? fitOdysseyEcology(distributed)
+          : id === "europa"
+            ? fitEuropaEcology(distributed)
+            : id === "penglai"
+              ? fitPenglaiEcology(distributed)
+              : distributed,
       ];
     }),
   ),

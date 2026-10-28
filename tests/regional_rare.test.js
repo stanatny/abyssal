@@ -110,7 +110,7 @@ test("rare models have finite fully posed geometry, distinct silhouettes and ind
     assert.equal(
       b.userData.artRevision ?? b.userData.odysseyAnatomy,
       s.regionId === "odyssey"
-        ? "golden_argonaut"
+        ? "trellis_odyssey_final_20261028"
         : s.kind === "golden_manta"
           ? "trellis_hawaii_batch11_20261019"
           : s.kind === "pearl_nautilus"

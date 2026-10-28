@@ -95,6 +95,19 @@ test("HF interior proxies are closed oriented surfaces and do not change or disp
     "bell_carrier",
     "siphon_colossus",
     "spiral_grazer",
+    "scylla",
+    "charybdis",
+    "karkinos",
+    "aegis_sturgeon",
+    "thalassa_manta",
+    "cerulean_hound",
+    "bronze_turtle",
+    "ketos",
+    "abyss_lamprey",
+    "oracle_whale",
+    "ceto_serpent",
+    "triton_guard",
+    "siren_eel",
   ]) {
     const root = createCreature(kind, 28);
     let source;

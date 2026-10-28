@@ -1,3 +1,9 @@
+import { ODYSSEY_HF_FINAL } from "./creature_odyssey_final_hf.js";
+import { ODYSSEY_HF_PEOPLE } from "./creature_odyssey_people_hf.js";
+import { ODYSSEY_HF_DEEP } from "./creature_odyssey_deep_hf.js";
+import { ODYSSEY_HF_LARGE } from "./creature_odyssey_large_hf.js";
+import { ODYSSEY_HF_GARDEN } from "./creature_odyssey_garden_hf.js";
+import { ODYSSEY_HF_SHALLOWS } from "./creature_odyssey_shallow_hf.js";
 import {
   PENGLAI_HF_FINAL,
   buildPenglaiFinalHF,
@@ -321,6 +327,12 @@ export function createCreature(kind, length = 6, seed = 1) {
   root.scale.setScalar(length);
   // HF 整体蒙皮在首次包围盒查询前同步缩放后的绑定逆矩阵。
   if (
+    ODYSSEY_HF_FINAL.has(kind) ||
+    ODYSSEY_HF_PEOPLE.has(kind) ||
+    ODYSSEY_HF_DEEP.has(kind) ||
+    ODYSSEY_HF_LARGE.has(kind) ||
+    ODYSSEY_HF_GARDEN.has(kind) ||
+    ODYSSEY_HF_SHALLOWS.has(kind) ||
     PENGLAI_HF_FINAL.has(kind) ||
     PENGLAI_HF_GIANTS.has(kind) ||
     PENGLAI_HF_BEASTS.has(kind) ||

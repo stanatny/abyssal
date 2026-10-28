@@ -1,4 +1,4 @@
-import { odysseySeabedHeight } from "./odyssey_config.js";
+import { odysseySeabedHeight, ODYSSEY_SITES } from "./odyssey_config.js";
 import { odysseyText as t } from "./odyssey_species.js";
 
 /** 西方神话三守卫；25米与三次独立命中沿用共享规则。 */
@@ -33,8 +33,8 @@ export const ODYSSEY_LORDS = Object.freeze(
           "Six heads breathe in sequence · Keep sidestepping and use reef pillars as cover",
         ),
       },
-      depthMin: 300,
-      depthMax: 465,
+      depthMin: 570,
+      depthMax: 800,
       nutrition: 100,
       growth: 30,
       tier: 3,
@@ -76,8 +76,8 @@ export const ODYSSEY_LORDS = Object.freeze(
           "A tidewall is about to advance · Leave the locked lane sideways, above or below",
         ),
       },
-      depthMin: 490,
-      depthMax: 690,
+      depthMin: 690,
+      depthMax: 940,
       nutrition: 100,
       growth: 30,
       tier: 3,
@@ -121,8 +121,8 @@ export const ODYSSEY_LORDS = Object.freeze(
           "Three reef lanes are about to rupture · Rise away from the bottom or take the gaps",
         ),
       },
-      depthMin: 190,
-      depthMax: 350,
+      depthMin: 250,
+      depthMax: 440,
       nutrition: 100,
       growth: 30,
       tier: 3,
@@ -139,25 +139,37 @@ export const ODYSSEY_BOSS_INSTANCES = Object.freeze([
   Object.freeze({
     id: "odyssey_karkinos",
     kind: "karkinos",
-    home: Object.freeze([120, odysseySeabedHeight(120, -405) + 16, -405]),
+    home: Object.freeze([
+      190,
+      odysseySeabedHeight(...ODYSSEY_SITES.karkinos) + 16,
+      -625,
+    ]),
     radius: 110,
-    maxCenterY: -140,
+    maxCenterY: -250,
     persistentDefeat: true,
   }),
   Object.freeze({
     id: "odyssey_scylla",
     kind: "scylla",
-    home: Object.freeze([-110, -380, -690]),
+    home: Object.freeze([
+      -200,
+      odysseySeabedHeight(...ODYSSEY_SITES.scylla) + 24,
+      -1170,
+    ]),
     radius: 125,
-    maxCenterY: -280,
+    maxCenterY: -550,
     persistentDefeat: true,
   }),
   Object.freeze({
     id: "odyssey_charybdis",
     kind: "charybdis",
-    home: Object.freeze([115, -575, -1010]),
+    home: Object.freeze([
+      190,
+      odysseySeabedHeight(...ODYSSEY_SITES.charybdis) + 70,
+      -1430,
+    ]),
     radius: 135,
-    maxCenterY: -460,
+    maxCenterY: -650,
     persistentDefeat: true,
   }),
 ]);

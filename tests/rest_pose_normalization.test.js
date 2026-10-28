@@ -50,9 +50,41 @@ for (const [kinds, build, accepted] of [
   [AMAZON_CREATURE_KINDS, buildAmazonCreature, acceptedAmazon],
   [ODYSSEY_CREATURE_KINDS, buildOdysseyCreature, acceptedOdyssey],
 ]) {
-  test(`${kinds === AMAZON_CREATURE_KINDS ? "Amazon" : "Odyssey"} cached factories preserve accepted bounds, anchors and posed surfaces for every kind`, () => {
+  test(`${kinds === AMAZON_CREATURE_KINDS ? "Amazon" : "Odyssey"} cached factories preserve accepted bounds, anchors and posed surfaces for unchanged kinds`, () => {
     for (const kind of kinds) {
       if (kind === "armored_cory") continue;
+      // HF replacements have independent anatomy/motion checks in the lord, shallow, garden, large and deep HF suites.
+      if (
+        kinds === ODYSSEY_CREATURE_KINDS &&
+        [
+          "scylla",
+          "charybdis",
+          "karkinos",
+          "ambrosia_sprat",
+          "moon_scallop",
+          "lyre_ray",
+          "pearl_seahorse",
+          "iris_cuttlefish",
+          "amphora_hermit",
+          "aegean_jelly",
+          "silver_pipefish",
+          "aegis_sturgeon",
+          "thalassa_manta",
+          "cerulean_hound",
+          "bronze_turtle",
+          "ketos",
+          "abyss_lamprey",
+          "oracle_whale",
+          "ceto_serpent",
+          "nereid",
+          "hippocampus",
+          "triton_guard",
+          "siren_eel",
+          "naga_huntress",
+          "golden_argonaut",
+        ].includes(kind)
+      )
+        continue;
       const reference = create(accepted, kind),
         cold = create(build, kind),
         warm = create(build, kind);

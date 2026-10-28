@@ -43,6 +43,7 @@ function fixture(t, id = "atlantis") {
     });
   };
   return {
+    scene,
     encounters,
     reset,
     player,
@@ -142,4 +143,62 @@ test("返巢计时结束接入巡游不重置位置，重开复用模型并重�
     f.entries.map((entry) => entry.mesh.position.toArray()),
     first,
   );
+});
+
+test("Scylla turns while advancing, then holds its torso through volleys even for rear/near targets", (t) => {
+  const f = fixture(t, "odyssey"),
+    b = f.entries.find((entry) => entry.state.species.kind === "scylla");
+  f.player.invulnerable = 999;
+  f.player.length = 30;
+  const shots = new Set(),
+    add = f.scene.add;
+  f.scene.add = function (...items) {
+    for (const item of items)
+      if (item.name === "scylla_water_projectile") shots.add(item.uuid);
+    return add.apply(this, items);
+  };
+  for (const offset of [
+    [0, 0, 65],
+    [0, 0, 15],
+    [50, 30, -35],
+  ]) {
+    f.reset();
+    b.mesh.quaternion.identity();
+    b.heading.set(0, 0, -1);
+    f.position.copy(b.home).add(new THREE.Vector3(...offset));
+    shots.clear();
+    let stationaryFrames = 0;
+    for (let frame = 0; frame < 900; frame++) {
+      const p = b.mesh.position.clone(),
+        q = b.mesh.quaternion.clone();
+      f.step();
+      if (b.mesh.position.distanceTo(p) < 1e-7) {
+        assert.ok(
+          b.mesh.quaternion.angleTo(q) < 1e-7,
+          `${b.state.phase} pivoted while stationary`,
+        );
+        if (["windup", "attack"].includes(b.state.phase)) stationaryFrames++;
+      }
+    }
+    assert.ok(
+      shots.size >= 12,
+      `${offset}: ${shots.size} projectiles; phase=${b.state.phase}, attacks=${b.state.attackCount}, distance=${b.mesh.position.distanceTo(f.position)}`,
+    );
+    assert.ok(stationaryFrames > 120);
+  }
+});
+
+test("Blocked Scylla never rotates its torso toward an unreachable rear target", (t) => {
+  const f = fixture(t, "odyssey"),
+    b = f.entries.find((entry) => entry.state.species.kind === "scylla");
+  b.mesh.quaternion.identity();
+  b.heading.set(0, 0, -1);
+  f.position.copy(b.home).add(new THREE.Vector3(0, 0, 65));
+  b.state.phase = b.previousPhase = "hunt";
+  b.state.phaseDuration = 1;
+  const p = b.mesh.position.clone(),
+    q = b.mesh.quaternion.clone();
+  for (let i = 0; i < 120; i++) f.step(1 / 30, () => true);
+  assert.deepEqual(b.mesh.position, p);
+  assert.deepEqual(b.mesh.quaternion.toArray(), q.toArray());
 });

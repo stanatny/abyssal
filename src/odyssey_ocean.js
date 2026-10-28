@@ -3,6 +3,8 @@ import {
   ODYSSEY_WORLD as W,
   ODYSSEY_LANDMARKS,
   odysseySeabedHeight,
+  odysseyRouteXZ,
+  ODYSSEY_SITES,
 } from "./odyssey_config.js";
 import { addSurfaceDetail, clusterInstances } from "./ocean_visuals.js";
 import {
@@ -10,6 +12,14 @@ import {
   createOdysseyMergeBucket,
 } from "./odyssey_environment_geometry.js";
 import { createOdysseyLandmarksSteps } from "./odyssey_environment_landmarks.js";
+import {
+  createOdysseyShallows,
+  finishOdysseyShallows,
+  odysseySeagrassGeometry,
+} from "./odyssey_shallows.js";
+import { finishTroyStone } from "./odyssey_coast_finish.js";
+import { createOdysseyAbyssSteps } from "./odyssey_abyss.js";
+import { createOdysseyCoastSteps } from "./odyssey_coast.js";
 import {
   constructionScope,
   finishScenePreparation,
@@ -51,36 +61,51 @@ export function* createOdysseyOceanSteps(parent) {
     );
     floorMaterial.name = "sand_limestone_and_abyss_strata";
     addSurfaceDetail(floorMaterial, "stone", 0.37);
+    finishTroyStone(floorMaterial, { terrain: true });
+    finishOdysseyShallows(floorMaterial);
     const sand = new THREE.Color("#c9bda3"),
       stone = new THREE.Color("#819798"),
       deep = new THREE.Color("#3d556a"),
       color = new THREE.Color();
     // 四米网格的高程与最终渲染三角形误差单独验证，条带避免首次构造长任务。
     for (let z = W.minZ; z < W.maxZ; z += 80) {
+      const xs = [];
+      for (let x = W.minX; x <= W.maxX; x += z >= -230 && x < -72 ? 2 : 4)
+        xs.push(x);
+      if (z >= -230)
+        for (const center of [-293, -229, -180, -131])
+          for (let x = center - 5; x <= center + 5; x += 0.5) xs.push(x);
+      const columns = [...new Set(xs)].sort((a, b) => a - b);
       const width = W.maxX - W.minX,
         size = Math.min(80, W.maxZ - z);
       const g = keep(
         new THREE.PlaneGeometry(
           width,
           size,
-          Math.ceil(width / 4),
-          Math.ceil(size / 4),
+          columns.length - 1,
+          Math.ceil(size / (z >= -230 ? 1 : 4)),
         ),
       );
       g.rotateX(-Math.PI / 2);
       g.translate((W.minX + W.maxX) * 0.5, 0, z + size * 0.5);
       const p = g.attributes.position,
-        colors = new Float32Array(p.count * 3);
+        colors = new Float32Array(p.count * 3),
+        coastWeights = new Float32Array(p.count);
       for (let i = 0; i < p.count; i++) {
-        const x = p.getX(i),
+        const x = columns[i % columns.length],
           zz = p.getZ(i),
           y = odysseySeabedHeight(x, zz);
-        p.setY(i, y);
+        p.setXYZ(i, x, y, zz);
+        coastWeights[i] =
+          (1 - THREE.MathUtils.smoothstep(x, -85, -68)) *
+          THREE.MathUtils.smoothstep(zz, -198, -175) *
+          (1 - THREE.MathUtils.smoothstep(zz, 75, 98));
         const descent = THREE.MathUtils.smoothstep(-zz, 100, 870);
         color
           .copy(sand)
           .lerp(stone, Math.min(1, descent * 2.2))
           .lerp(deep, Math.max(0, (descent - 0.36) / 0.64));
+        if (y > 2) color.set(y < 14 ? 0x9b916d : 0xa28f69);
         color.multiplyScalar(
           0.88 +
             0.09 * Math.sin(x * 0.065 + zz * 0.043) +
@@ -89,6 +114,10 @@ export function* createOdysseyOceanSteps(parent) {
         color.toArray(colors, i * 3);
       }
       g.setAttribute("color", new THREE.BufferAttribute(colors, 3));
+      g.setAttribute(
+        "troyCoastWeight",
+        new THREE.BufferAttribute(coastWeights, 1),
+      );
       g.computeVertexNormals();
       const mesh = new THREE.Mesh(g, floorMaterial);
       mesh.name = "odyssey_authoritative_seabed";
@@ -96,16 +125,58 @@ export function* createOdysseyOceanSteps(parent) {
       root.add(mesh);
       yield "seabed-strip";
     }
+    // 背景岸地沿可见岸坡设为不可登陆区；覆盖触及干岸的网格，确保空中接触后落回水中。
+    for (let x = -292; x < -68; x += 8)
+      for (let z = -188; z < 100; z += 8) {
+        const top = Math.max(
+          ...[
+            [-4, -4],
+            [-4, 4],
+            [4, -4],
+            [4, 4],
+            [0, 0],
+          ].map(([dx, dz]) => odysseySeabedHeight(x + dx, z + dz)),
+        );
+        if (top < 2) continue;
+        const bottom = -90,
+          ceiling = W.maxDepth;
+        colliders.push({
+          type: "box",
+          kind: "troy_coastal_boundary",
+          id: `troy_land_${x}_${z}`,
+          x,
+          y: (ceiling + bottom) / 2,
+          z,
+          halfSize: new THREE.Vector3(4, (ceiling - bottom) / 2, 4),
+        });
+      }
+    for (let i = colliders.length - 1; i > 0; i--) {
+      const a = colliders[i - 1],
+        b = colliders[i];
+      if (
+        a.x === b.x &&
+        a.halfSize.y === b.halfSize.y &&
+        a.y === b.y &&
+        Math.abs(a.z + a.halfSize.z - (b.z - b.halfSize.z)) < 1e-6
+      ) {
+        const lo = a.z - a.halfSize.z,
+          hi = b.z + b.halfSize.z;
+        a.z = (lo + hi) / 2;
+        a.halfSize.z = (hi - lo) / 2;
+        colliders.splice(i, 1);
+      }
+    }
     const kit = createOdysseyEnvironmentKit(keep, time);
     yield "shared-environment-kit";
     // 横向边缘从海床生长出石灰岩断壁，主航道宽度始终超过四百米。
-    for (let strip = 0; strip < 15; strip++) {
-      const z = 95 - strip * 84,
+    for (let strip = 0; strip < 21; strip++) {
+      const z = 105 - strip * 86,
         b = createOdysseyMergeBucket(keep, resources);
       for (const side of [-1, 1]) {
-        const x = side * (285 + Math.sin(strip * 1.7) * 5),
+        const x = side * (465 + Math.sin(strip * 1.7) * 5),
           floor = odysseySeabedHeight(x, z),
           h = 38 + (strip % 4) * 11;
+        if (side < 0 && z > -200) continue;
         b.emit(
           kit.rock,
           kit.materials.limestone,
@@ -137,6 +208,14 @@ export function* createOdysseyOceanSteps(parent) {
     }
     // 真正海底生态按深度递减，每种只上传静态实例矩阵，摆动在 GPU 完成。
     const dummy = new THREE.Object3D();
+    const shallowRows = {
+        reef_branch: [],
+        reef_fan: [],
+        reef_sponge: [],
+        aegean_amphora: [],
+      },
+      shallowFallbacks = [];
+    const shallowGrass = keep(odysseySeagrassGeometry());
     const groups = [
       {
         name: "red_branch_coral",
@@ -179,11 +258,20 @@ export function* createOdysseyOceanSteps(parent) {
       );
       source.name = `odyssey_${spec.name}`;
       // 约两百米宽的左右生态带留出主航路，育幼浅湾不由巨大装饰挤占。
+      let placed = 0,
+        shallowPlaced = 0;
+      const fallback = new THREE.InstancedMesh(
+        spec.geometry === kit.grass ? shallowGrass : spec.geometry,
+        spec.material,
+        spec.count,
+      );
+      fallback.name = `odyssey_${spec.name}_shallow_fallback`;
       for (let i = 0; i < spec.count; i++) {
-        const z = 115 - ((i * 73.97 + spec.scale * 27) % spec.extent),
+        const oldZ = 115 - ((i * 73.97 + spec.scale * 27) % spec.extent),
           side = i % 2 ? 1 : -1;
-        const x = side * (35 + ((i * 31.73) % 205)),
+        const [x, z] = odysseyRouteXZ(side * (35 + ((i * 31.73) % 205)), oldZ),
           y = odysseySeabedHeight(x, z);
+        if (y > W.surfaceY - 4) continue;
         const scale = spec.scale * (0.55 + (i % 7) * 0.12);
         dummy.position.set(
           x,
@@ -201,8 +289,34 @@ export function* createOdysseyOceanSteps(parent) {
           scale,
         );
         dummy.updateMatrix();
-        source.setMatrixAt(i, dummy.matrix);
+        if (z > -530) {
+          fallback.setMatrixAt(shallowPlaced++, dummy.matrix);
+          const kind =
+            spec.geometry === kit.coral
+              ? "reef_branch"
+              : spec.geometry === kit.fan
+                ? "reef_fan"
+                : spec.geometry === kit.sponge
+                  ? "reef_sponge"
+                  : null;
+          if (kind)
+            shallowRows[kind].push({
+              x,
+              z,
+              size:
+                scale *
+                (kind === "reef_branch" ? 2 : kind === "reef_fan" ? 1.3 : 1),
+              yaw: i * 2.399,
+              seed: i,
+            });
+        } else source.setMatrixAt(placed++, dummy.matrix);
       }
+      fallback.count = shallowPlaced;
+      fallback.computeBoundingBox();
+      fallback.computeBoundingSphere();
+      root.add(fallback);
+      if (spec.geometry !== kit.grass) shallowFallbacks.push(fallback);
+      source.count = placed;
       source.instanceMatrix.needsUpdate = true;
       source.computeBoundingSphere();
       const group = clusterInstances(source, 80);
@@ -222,16 +336,20 @@ export function* createOdysseyOceanSteps(parent) {
       56,
     );
     stones.name = "odyssey_real_reef_cover";
+    let stoneCount = 0;
     for (let i = 0; i < 56; i++) {
-      const z = 70 - i * 21.2,
-        x = (i % 2 ? 1 : -1) * (120 + (i % 6) * 18),
+      const [x, z] = odysseyRouteXZ(
+          (i % 2 ? 1 : -1) * (120 + (i % 6) * 18),
+          70 - i * 21.2,
+        ),
         y = odysseySeabedHeight(x, z),
         s = 3.5 + (i % 4) * 1.8;
+      if (y > W.surfaceY - 4) continue;
       dummy.position.set(x, y + s * 0.3, z);
       dummy.rotation.set(0, i * 0.83, 0);
       dummy.scale.set(s, s * 0.7, s * 1.2);
       dummy.updateMatrix();
-      stones.setMatrixAt(i, dummy.matrix);
+      stones.setMatrixAt(stoneCount++, dummy.matrix);
       colliders.push({
         type: "ellipsoid",
         kind: "reef_cover",
@@ -243,6 +361,7 @@ export function* createOdysseyOceanSteps(parent) {
         rotation: dummy.quaternion.clone(),
       });
     }
+    stones.count = stoneCount;
     stones.computeBoundingSphere();
     root.add(clusterInstances(stones, 80));
     yield "physical-cover";
@@ -252,10 +371,26 @@ export function* createOdysseyOceanSteps(parent) {
       kit,
       heightAt: odysseySeabedHeight,
       colliders,
+      shallowRows,
+      shallowFallbacks,
+    });
+    const abyss = yield* createOdysseyAbyssSteps(
+      root,
+      keep,
+      odysseySeabedHeight,
+      colliders,
+    );
+    yield "abyss-crags-and-memorials";
+    const shallows = createOdysseyShallows(root, keep, {
+      rows: shallowRows,
+      fallbacks: shallowFallbacks,
+      heightAt: odysseySeabedHeight,
     });
     const surface = createSurface(root, keep, time);
     yield "warm_sea_surface";
     const skyline = yield* createSkylineSteps(root, keep, kit);
+    const coast = yield* createOdysseyCoastSteps(root, keep);
+    yield "troy-coast-shell";
     const landmarks = ODYSSEY_LANDMARKS.map((l) => ({
       id: l.id,
       name: l.id,
@@ -271,17 +406,21 @@ export function* createOdysseyOceanSteps(parent) {
       groundHeightAt: odysseySeabedHeight,
       waterHeightAt: odysseyWaterHeight,
       landmarks,
+      ruins: landmarkKit,
+      abyss,
       wreck: landmarkKit.wreck,
       wreckEntrance: landmarkKit.wreckEntrance,
+      coast,
+      shallows,
       radarPaths: [
         [
           [0, 75],
           [-15, -140],
-          [-55, -275],
-          [40, -510],
-          [-90, -650],
-          [100, -940],
-          [0, -1090],
+          ODYSSEY_SITES.garden,
+          ODYSSEY_SITES.passage,
+          [-170, -1110],
+          [145, -1370],
+          [0, -1650],
         ],
       ],
       lightSources: [],
@@ -294,6 +433,9 @@ export function* createOdysseyOceanSteps(parent) {
       ) {
         if (disposed) return;
         time.value = t;
+        shallows.update(t, position, highQuality);
+        landmarkKit.update(t, cameraPosition, highQuality);
+        abyss.update(cameraPosition, highQuality);
         skyline.sky.position.copy(cameraPosition);
         // 相机尚在波面下时不能先画天空与远岛，否则会像从镂空地形中透视。
         const showSky =
@@ -301,6 +443,7 @@ export function* createOdysseyOceanSteps(parent) {
           odysseyWaterHeight(cameraPosition.x, cameraPosition.z, t);
         skyline.sky.visible = showSky;
         for (const island of skyline.islands) island.visible = showSky;
+        coast.update(t, position, cameraPosition, highQuality, showSky);
         skyline.sky.material.uniforms.underwater.value = THREE.MathUtils.clamp(
           (W.surfaceY - cameraPosition.y) / 28,
           0,
@@ -374,7 +517,7 @@ function createSurface(parent, keep, time) {
     }),
   );
   material.name = "amber_mediterranean_reflection";
-  const g = keep(new THREE.PlaneGeometry(1400, 2300, 50, 90));
+  const g = keep(new THREE.PlaneGeometry(1850, 2900, 50, 90));
   g.rotateX(-Math.PI / 2);
   g.translate(0, W.surfaceY, (W.minZ + W.maxZ) * 0.5);
   const surface = new THREE.Mesh(g, material);
@@ -418,9 +561,8 @@ function* createSkylineSteps(parent, keep, kit) {
   );
   addSurfaceDetail(islandMaterial, "stone", 0.23);
   for (const [i, cx, cz, rx, rz, height] of [
-    [0, -440, 45, 110, 150, 64],
-    [1, 450, -280, 125, 140, 86],
-    [2, -460, -740, 130, 190, 98],
+    [1, 650, -280, 125, 140, 86],
+    [2, -660, -740, 130, 190, 98],
     [3, 90, 340, 175, 95, 51],
   ]) {
     const g = keep(new THREE.PlaneGeometry(rx * 2, rz * 2, 60, 60));

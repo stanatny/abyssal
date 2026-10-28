@@ -67,10 +67,12 @@ for (const kind of expected)
       b = build(kind),
       am = meshes(a.root),
       bm = meshes(b.root);
-    const box = new THREE.Box3().setFromObject(a.root),
+    const box = new THREE.Box3().setFromObject(
+        a.root.userData.visualWeapon ? a.root.userData.hfRig.mesh : a.root,
+      ),
       size = box.getSize(new THREE.Vector3());
     assert.ok(
-      Math.abs(size.z - 1) < 1e-5,
+      Math.abs(size[a.root.userData.lengthAxis || "z"] - 1) < 1e-5,
       `${kind} longitudinal length ${size.z}`,
     );
     assert.ok(size.x > 0.01 && size.y > 0.01);
@@ -95,12 +97,48 @@ for (const kind of expected)
     assert.ok(triangles < 115000, `${kind} model budget ${triangles}`);
     const skin = am.find((m) => m.isSkinnedMesh),
       secondSkin = bm.find((m) => m.isSkinnedMesh);
-    const initial = skin?.getVertexPosition(
-      Math.floor(skin.geometry.attributes.position.count * 0.92),
-      new THREE.Vector3(),
-    );
+    // HF 索引顺序不代表解剖位置：选择实际尾端／后足，避免抽到不应摆动的躯干。
+    const sampleIndex =
+      skin && a.root.userData.hfRig
+        ? Array.from(
+            { length: skin.geometry.attributes.position.count },
+            (_, i) => i,
+          ).reduce(
+            (best, i) =>
+              skin.geometry.attributes.position[
+                kind === "moon_scallop"
+                  ? "getY"
+                  : [
+                        "amphora_hermit",
+                        "iris_cuttlefish",
+                        "thalassa_manta",
+                        "bronze_turtle",
+                      ].includes(kind)
+                    ? "getX"
+                    : "getZ"
+              ](i) *
+                (kind === "golden_argonaut" ? -1 : 1) >
+              skin.geometry.attributes.position[
+                kind === "moon_scallop"
+                  ? "getY"
+                  : [
+                        "amphora_hermit",
+                        "iris_cuttlefish",
+                        "thalassa_manta",
+                        "bronze_turtle",
+                      ].includes(kind)
+                    ? "getX"
+                    : "getZ"
+              ](best) *
+                (kind === "golden_argonaut" ? -1 : 1)
+                ? i
+                : best,
+            0,
+          )
+        : Math.floor((skin?.geometry.attributes.position.count || 0) * 0.92);
+    const initial = skin?.getVertexPosition(sampleIndex, new THREE.Vector3());
     const second = secondSkin?.getVertexPosition(
-      Math.floor(secondSkin.geometry.attributes.position.count * 0.92),
+      sampleIndex,
       new THREE.Vector3(),
     );
     let moved = 0;
@@ -115,19 +153,16 @@ for (const kind of expected)
               .every(Number.isFinite),
           );
         if (skin) {
-          const v = skin.getVertexPosition(
-            Math.floor(skin.geometry.attributes.position.count * 0.92),
-            new THREE.Vector3(),
-          );
+          const v = skin.getVertexPosition(sampleIndex, new THREE.Vector3());
           moved = Math.max(moved, v.distanceTo(initial));
           const world = v.clone().applyMatrix4(skin.matrixWorld),
-            chunk =
-              skin.userData.tentacleChunks?.[
-                Math.floor(
-                  Math.floor(skin.geometry.attributes.position.count * 0.92) /
-                    192,
-                )
-              ];
+            vertexIndex = sampleIndex,
+            indexOffset = skin.geometry.index
+              ? skin.geometry.index.array.indexOf(vertexIndex)
+              : vertexIndex,
+            chunk = skin.userData.tentacleChunks?.find(
+              (c) => indexOffset >= c.start && indexOffset < c.end,
+            );
           if (chunk)
             assert.ok(
               tentacleChunkBounds(skin, chunk, new THREE.Box3()).containsPoint(
@@ -142,10 +177,7 @@ for (const kind of expected)
       assert.ok(moved > 0.001, "Actual deformed surface must move");
       assert.notEqual(skin.skeleton, secondSkin.skeleton);
       assert.deepEqual(
-        secondSkin.getVertexPosition(
-          Math.floor(secondSkin.geometry.attributes.position.count * 0.92),
-          new THREE.Vector3(),
-        ),
+        secondSkin.getVertexPosition(sampleIndex, new THREE.Vector3()),
         second,
       );
     }
@@ -160,31 +192,32 @@ for (const kind of expected)
   });
 test("Six Scylla mouths are attached to independently curved neck ends", () => {
   const s = build("scylla"),
-    necks = [];
-  s.root.traverse((p) => {
-    if (p.name.match(/^scylla_neck\d$/)) necks.push(p);
-  });
-  assert.equal(necks.length, 6);
+    { heads, bones } = s.root.userData.hfRig;
+  assert.equal(heads.length, 6);
   for (let i = 0; i < 6; i++) {
     const mouth = s.root.userData.mouthAnchors[i];
     assert.ok(mouth.name.includes(`head${i}`));
-    assert.ok(mouth.parent.parent === necks[i].userData.tentacle.bones.at(-1));
+    assert.equal(mouth.parent, bones[heads[i].ids.at(-1)]);
   }
   pose(s, 3);
   assert.equal(new Set(s.root.userData.mouthAnchors).size, 6);
 });
-test("Charybdis has an actual open annular hull and no borrowed arms", () => {
+test("Charybdis has a deep physical mouth cavity rather than a painted aperture", () => {
   const c = build("charybdis");
   assert.equal(c.root.userData.anatomy.arms, 0);
   assert.equal(c.root.userData.combatAnchor, c.root.userData.mouthAnchors[0]);
-  const hull = meshes(c.root).find((p) => p.name.includes("annular_armored"));
-  let smallest = Infinity;
-  const pos = hull.geometry.attributes.position;
-  for (let i = 0; i < pos.count; i++)
-    smallest = Math.min(smallest, Math.hypot(pos.getX(i), pos.getY(i)));
+  const ray = new THREE.Raycaster();
+  const depth = (x) => {
+    ray.set(new THREE.Vector3(x, 0, -1), new THREE.Vector3(0, 0, 1));
+    return ray.intersectObject(c.root, true)[0]?.point.z;
+  };
+  const center = depth(0),
+    left = depth(-0.2),
+    right = depth(0.2);
+  assert.ok([center, left, right].every(Number.isFinite));
   assert.ok(
-    smallest > 0.14,
-    "Hull must retain a real aperture rather than a painted closed sphere",
+    center - left > 0.2 && center - right > 0.2,
+    "Central mouth surface must lie behind both physical rims",
   );
 });
 test("Upright Pearl Seahorse keeps a bounded observation height", () => {

@@ -1,4 +1,4 @@
-import { odysseySeabedHeight as floor } from "./odyssey_config.js";
+import { odysseyLegacySeabedHeight as floor } from "./odyssey_config.js";
 const homes = (points, clearance) =>
   points.map(([x, z]) => [x, floor(x, z) + clearance, z]);
 
@@ -80,7 +80,7 @@ export const ODYSSEY_EXTRA_ROWS = [
     "A tubular snout joins a small head above a slender, ring-armored body with leaflike lobes. It sways in the direction of seagrass, its gently undulating tail often mistaken for a drifting silver leaf.",
     homes(
       [
-        [-85, -175],
+        [-60, -175],
         [115, -250],
         [-115, -340],
         [135, -450],

@@ -23,7 +23,7 @@ test("Odyssey floor agrees with actual rendered triangle samples and preserves b
     onStep: (s) => stages.push(s),
   });
   assert.ok(stages.filter((s) => s === "seabed-strip").length >= 16);
-  assert.ok(stages.includes("galley-ribs"));
+  assert.ok(stages.includes("galley-hf-shell"));
   assert.ok(stages.includes("reef-ecology-batch"));
   const floors = [];
   ocean.root.traverse((n) => {
@@ -32,8 +32,13 @@ test("Odyssey floor agrees with actual rendered triangle samples and preserves b
   const ray = new THREE.Raycaster();
   parent.updateMatrixWorld(true);
   let maxError = 0;
-  for (const x of [-295, -252, -211, -125, -5, 72, 199, 248, 292])
-    for (const z of [135, 99, -3, -149, -277, -444, -647, -799, -947, -1140]) {
+  for (const x of [
+    -474, -405, -295, -252, -211, -125, -5, 72, 199, 248, 292, 370, 474,
+  ])
+    for (const z of [
+      175, 135, 99, -3, -149, -277, -444, -647, -799, -947, -1140, -1363, -1549,
+      -1715,
+    ]) {
       const expected = odysseySeabedHeight(x, z);
       ray.set(
         new THREE.Vector3(x, expected + 30, z),
@@ -71,7 +76,7 @@ test("fully grown bodies traverse the primary passage and both open gateway appr
   const radius = bodyRadius(30),
     points = [];
   const route = ocean.radarPaths[0];
-  for (let z = 75; z > -1090; z -= 12) {
+  for (let z = 75; z > -1640; z -= 12) {
     const segment = route.findIndex(
       (p, i) => i < route.length - 1 && z <= p[1] && z >= route[i + 1][1],
     );
@@ -148,7 +153,7 @@ test("surface sampler and shared active time preserve terrain and resource owner
   const material = surface.material;
   assert.equal(material.fog, true);
   const sky = o2.root.getObjectByName("odyssey_amber_sky"),
-    island = o2.root.getObjectByName("odyssey_offshore_white_cliff_0");
+    island = o2.root.getObjectByName("odyssey_offshore_white_cliff_1");
   o1.dispose();
   o2.update(12, new THREE.Vector3(0, -30, 75));
   assert.equal(sky.visible, false);

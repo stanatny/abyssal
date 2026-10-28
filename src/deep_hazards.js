@@ -131,7 +131,8 @@ export function deepHazardAnchors(ocean, regionId) {
         [150, -890, -0.4],
       ],
       odyssey: [
-        [-155, -620, 0],
+        // 新古桨船占用原侧路锚点；机关移到船尾外侧，保留完整预警足迹。
+        [-250, -650, 0],
         [-125, -1030, 0],
       ],
       penglai: [

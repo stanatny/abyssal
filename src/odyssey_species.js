@@ -1,5 +1,10 @@
+import { odysseySeabedHeight as actualFloor } from "./odyssey_config.js";
 import { ODYSSEY_EXTRA_ROWS } from "./odyssey_species_extra.js";
-import { ODYSSEY_WORLD as W, odysseySeabedHeight } from "./odyssey_config.js";
+import {
+  ODYSSEY_WORLD as W,
+  odysseyLegacySeabedHeight as odysseySeabedHeight,
+  odysseyWorldPoint,
+} from "./odyssey_config.js";
 
 export const ODYSSEY_EN = {};
 export function odysseyText(zh, en) {
@@ -250,10 +255,11 @@ export const ODYSSEY_SPECIES = Object.freeze(
       color,
       desc,
       edesc,
-      anchors,
+      sourceAnchors,
       count,
       predator,
     ]) => {
+      const anchors = sourceAnchors.map(odysseyWorldPoint);
       const schoolSize =
         predator ||
         length >= 18 ||
@@ -305,11 +311,7 @@ export const ODYSSEY_SPECIES = Object.freeze(
             const radius = Math.min(26, length * 1.7);
             const x = a[0] + Math.sin(i * 2.399) * radius;
             const z = a[2] + Math.cos(i * 2.399) * radius;
-            return [
-              x,
-              Math.max(a[1], odysseySeabedHeight(x, z) + length * 0.2 + 1),
-              z,
-            ];
+            return [x, Math.max(a[1], actualFloor(x, z) + length * 0.2 + 1), z];
           }),
         ),
         schoolAnchors: anchors,

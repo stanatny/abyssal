@@ -1,5 +1,177 @@
 # ABYSSAL Development Rules
 
+Odyssey accepted local checkpoint — 2026-10-28: the user accepts the current
+result and requests a local commit. All 2,046 delivered input hashes and 929
+build artifacts match before acceptance notes and formatting normalization. This checkpoint
+includes the Odyssey creature redraws and motion/weapon corrections, the Troy
+coast, expanded habitats, submerged ruins, deep-strait scenery and preparation
+optimization. Earlier pending/uncommitted labels below retain their historical
+scope and are superseded for this accepted checkpoint. The recorded 2,074 tests
+and native/public checks remain the delivered candidate's evidence. Formatting
+preserves all 23 normalized JSON values; a fresh build reproduces all 929
+delivered artifact hashes exactly. No repeated runtime tests are claimed. No push,
+version bump or official release is requested. See the [latest review](docs/odyssey_performance_revision.md).
+
+Odyssey preparation optimization — 2026-10-28: the user authorizes the
+performance follow-up. Troy masonry and deep-water scenery now construct in
+smaller tasks; near/far geometry shares immutable data with per-map ownership.
+Native alternating comparisons reduce the median longest construction step
+from 80.8 to 11.7 ms, with about 2.92 MiB less CPU geometry data. Exact geometry
+and collision comparisons, cancellation/retry and repeated native map switches
+preserve the delivered scene. This is a loading-responsiveness result, not a
+phone/FPS claim. Uncommitted/unpushed; see [the performance review](docs/odyssey_performance_revision.md).
+
+Odyssey deep-strait scenery — 2026-10-28: the user accepts the preceding
+gates/galley and requests the next batch. Actual HF eroded crags and sea-worn
+memorials refine the Scylla strait / Charybdis basin, with repaired solid
+surfaces, fitted collisions and local resource ownership. Existing creatures,
+terrain heights, ecology, combat and coast remain. The candidate is delivered for visual
+review after native/runtime checks, uncommitted/unpushed. See [the abyss review](docs/odyssey_abyss_revision.md).
+
+Odyssey submerged gates and galley — 2026-10-28: the user accepts the expanded
+sea for continuation and requests the next batch. Actual HF columns and a broken
+90 m rowing galley replace the existing landmarks, with fitted physical surfaces,
+source-colour loading fallback and local resource ownership. The first pressure
+hazard moves outside the new hull; creature/ecology/combat/coast changes are
+excluded. This candidate awaits visual review, uncommitted/unpushed. See
+[the ruin review](docs/odyssey_ruins_revision.md).
+
+Odyssey expansion and shallow habitats — 2026-10-28: the user accepts the
+coastal refinement and requests a larger sea with a mythology-led layout and
+more evenly distributed wildlife. The map grows to 960 × 1,900 world units,
+with separate garden, wreck, crab terrace, Scylla strait and whirlpool basin.
+All 25 regional creature kinds remain; 323 ordinary animals include one existing
+30 m-capable hunter and limited adult food near each lord. A new HF amphora,
+reused accepted coral and seagrass refine the shallow route. Native encounters,
+feeding, respawn, adult clearance and lifecycle checks pass. The user subsequently
+accepts it for continuation; it remains uncommitted/unpushed. See
+[the expansion review](docs/odyssey_expansion_revision.md).
+
+Odyssey coastal landscape refinement — 2026-10-28: the user accepts the
+in-map coast and requests more terrain polish. Eroded side coves, varied shore
+edges, limestone/damp-sand shading, weathered stone courses and reused HF rock
+outcrops refine the existing western bay. City foundations, the main route, creatures and gameplay are preserved;
+shoreline exclusion volumes follow the revised terrain. The user subsequently
+accepts this refinement and requests the expansion below; it remains uncommitted/unpushed. See
+[the coastal refinement](docs/odyssey_coast_design.md#coastal-landscape-refinement).
+
+Odyssey inshore coast correction — 2026-10-28: the user asks for Troy's
+beach inside the map, with the city visible but unavailable for land exploration.
+The accepted HF buildings now occupy the western nursery bay, supported by the
+same terrain sampler used for movement. A shoreline play-area boundary covers
+breaching as well as swimming; the main sea route stays open. One Silverleaf
+Pipefish home moves 25 m toward water, with populations and combat unchanged.
+The user subsequently accepts this placement and requests terrain refinement.
+It remains uncommitted/unpushed. See
+[the inshore correction](docs/odyssey_coast_design.md#inshore-placement-correction).
+
+Earlier offshore Troy coast implementation — 2026-10-28: the user approved the coastal
+concept. Actual HF wooden horse, gatehouse, ruined houses and quay now form a
+northwest offshore tableau with bounded embers/smoke and supported foundations.
+Existing playable terrain, collisions, ecology and lore remain unchanged. Native
+input-driven breaching and labelled observer shots are available; this scenery
+candidate awaits review, uncommitted/unpushed. See
+[the implementation and research](docs/odyssey_coast_design.md). Underwater
+terrain/ruins remain later batches. Current topic Fast is off; machine default
+service tier remains default.
+
+Triton Guard centred swimming — 2026-10-28: the user rejects the
+one-sided tail motion. The HF neutral mesh was already bent left; a scoped
+offline centreline correction and refitted tail bones restore balanced lateral
+propulsion. Upper caudal-fin vertices now follow the tail instead of retaining
+partial torso ownership. Head, hands, weapons, other species and gameplay remain.
+This correction awaits user review; no commit or push. See
+[the swimming review](docs/odyssey_huggingface_redraw.md#triton-guard-centred-swimming--2026-10-28).
+
+Odyssey ocean weapons — 2026-10-28: the user rejects the simple Triton
+trident and requests a spear for Naga with ocean-specific structure/materials.
+Actual HF shell-bronze trident and mother-of-pearl spear candidates now follow
+the existing hands through Guide/world motion. Body skin, lore, ecology and
+combat values remain unchanged. Prior batch history is retained; these weapons
+await user review, uncommitted/unpushed. See
+[the weapon review](docs/odyssey_huggingface_redraw.md#ocean-weapon-refinement--2026-10-28).
+
+Odyssey final-creature / weapon batch — 2026-10-28: the user requests a
+weapon for Triton Guard and the next group. A fitted bronze trident follows the
+existing hand without adding collision or damage; actual HF Naga Huntress and
+Golden Argonaut candidates complete the map's creature redraw roster. Snake-body
+propulsion and soft arms around a rigid eggcase use independent fitted rigs.
+Lore, ecology and gameplay remain. These changes await player review; no commit
+or push. See [the batch review](docs/odyssey_huggingface_redraw.md#final-creature-and-weapon-batch--2026-10-28).
+
+Odyssey sea-people batch — 2026-10-28: the user accepts the preceding
+deep-creature group and requests the next batch. Actual HF Mermaid, Hippocampus,
+Triton Guard and Sirenfin Eel candidates now share fitted Guide/world skin and
+species-specific propulsion. A twisted Mermaid source is rejected and replaced;
+continuous shoulder ownership avoids pulling the nearby waist fins. Existing
+lore, ecology, sizes and combat remain. This group awaits user review; no commit
+or push. See [the sea-people review](docs/odyssey_huggingface_redraw.md#sea-people-batch--2026-10-28).
+
+Odyssey deep-creature batch — 2026-10-28: the user accepts the preceding
+large-creature motion video and requests the next batch. Actual HF candidates
+replace Ketos, Styx Ringmaw, Oracle Whale and Ceto Serpent, with fitted paddle,
+axial-wave and vertical-fluke propulsion. Existing lore, populations and combat
+values remain. Contact integration and near-camera interior fills are checked
+alongside visible motion. The user subsequently accepts this group and requests the next batch; all
+Odyssey work remains uncommitted/unpushed. See [the deep-creature review](docs/odyssey_huggingface_redraw.md#deep-creature-batch--2026-10-28).
+
+Odyssey large-creature batch — 2026-10-28: the user accepts the preceding
+garden group and requests the next batch. Actual HF candidates replace Aegis
+Sturgeon, Thalassa Manta, Cerulean Sea Hound and Bronze Giant Turtle, with fitted
+tail, wing, rear-body and paddle propulsion. Existing lore, populations and
+gameplay remain unchanged. The user subsequently accepts the motion video and requests the next group;
+all Odyssey candidates remain uncommitted/unpushed. See [the large-creature review](docs/odyssey_huggingface_redraw.md#large-creature-batch--2026-10-28).
+
+Odyssey garden-creature batch — 2026-10-28: the user accepts the preceding
+shallow group and requests another batch. Actual HF meshes now replace Iris
+Cuttlefish, Amphora Hermit, Aegean Lamp Jelly and Silverleaf Pipefish, with
+fitted fin waves, articulated limbs, bell/arm motion and small propulsion fins.
+Existing gameplay, population, lore and other models remain. This new group
+awaits player review; all Odyssey work remains uncommitted/unpushed. See
+[the garden review](docs/odyssey_huggingface_redraw.md#garden-creature-batch--2026-10-28).
+
+Odyssey shallow-creature batch — 2026-10-28: the user requests the next batch
+following Scylla's turning review. Actual HF candidates replace Ambrosia Sprat,
+Moon Scallop, Lyre Ray and Pearl-crowned Seahorse, with fitted species-specific
+motion and shared Guide/world materials. The scallop's thin shell required a
+border-preserving conversion; seahorse scale is fitted uniformly crown-to-tail.
+All other creatures, lore, ecology and gameplay remain. This batch awaits player
+review, uncommitted/unpushed. See [the shallow review](docs/odyssey_huggingface_redraw.md#shallow-creature-batch--2026-10-28).
+
+Scylla travel-coupled turning — 2026-10-28: the user finds the revised
+appendage motion better but rejects whole-body spinning in place for this
+foot-driven silhouette. Slow turns now have a body-sized arc; only resolved
+travel changes torso attitude. Rear targets are approached through a turn before
+stationary volley preparation. Accepted mesh, binding and local animation remain.
+This follow-up awaits player review, without commit/push. See
+[the turning review](docs/odyssey_huggingface_redraw.md#scylla-travel-coupled-turning--2026-10-28).
+
+Scylla visible propulsion repair — 2026-10-28: the user rejects the previous
+motion video because the feet, heads and tail still appear static. Low-speed
+skin excursions were too small despite nonzero bone data. Readable rowing,
+neck motion and tail propulsion now accompany actual travel, with fitted
+continuous foot-root weights baked offline. The accepted rest shape and color,
+upright steering and combat values remain. This new motion is pending user
+review, without commit or push. See [the follow-up](docs/odyssey_huggingface_redraw.md#scylla-visible-propulsion-repair--2026-10-28).
+
+Scylla movement follow-up — 2026-10-28: the user accepts the first Odyssey
+lord appearances but rejects Scylla's movement. The whole-body shortest-arc
+turn was reproduced rolling its back downward. Species-scoped upright arc
+steering now keeps travel and body heading aligned, with bounded ascent and
+descent. Actual travel drives the twelve fin-feet independently of attack
+effort. Accepted geometry/color and ability values remain unchanged; the new
+motion awaits user review, with no commit or push. See
+[the correction](docs/odyssey_huggingface_redraw.md#scylla-movement-follow-up--2026-10-28).
+
+Odyssey first lord batch — 2026-10-28: the user requests starting the final
+map and using authoritative illustrated mythology references. Three actual HF
+candidates replace Scylla, Charybdis and Karkinos through the shared Guide/world
+factory. Six necks/twelve fin-feet, a recessed tidal maw and eight-legged crab
+anatomy receive fitted motion, contact sections and interior seals. Existing
+lore, ability values, ecology and other species remain. These appearances await
+user review; no commit or push is authorized. See [the production and reference
+record](docs/odyssey_huggingface_redraw.md).
+
 Penglai accepted for main release — 2026-10-27: the user explicitly accepts
 all current map changes and requests committing and pushing them to main.
 All 1,893 delivered input hashes match before release-only edits. This approval
