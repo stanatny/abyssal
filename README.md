@@ -1,5 +1,173 @@
 # ABYSSAL
 
+Main publication v0.11.23 — 2026-10-29: the user accepts all eight regional
+music groups and explicitly requests a commit and push to main after the playable
+preview. Integrate the accepted Hawaii theme extension, 22 selected recordings,
+separate Sword Sage cue, runtime transitions and repository audio rules. All 2,078
+delivered input hashes match before release-only metadata, documentation,
+formatting and comment edits. Gameplay and accepted audio bytes are preserved.
+Earlier candidate-only/no-push notes retain their historical scope and are
+superseded for this release. See [the release record](docs/release_v0_11_23.md).
+No tag or separate GitHub Release is requested.
+
+Regional music playable integration — 2026-10-29: the user accepts all eight
+regional groups, including the corrected Atlantis entrance and separate Sword
+Sage, and requests a playable link. Twenty-two selected recordings are now bundled
+for seven maps; Hawaii retains its accepted 192-second procedural theme. Genuine
+pursuit/lord events control playback, with separate Sage routing, bounded current-map
+decoding, loop overlaps and existing pause/mute/output safety. This is a local
+preview integration, not a main/Pages release. See
+[the runtime review](docs/regional_music_huggingface_revision.md#playable-integration--2026-10-29).
+
+Atlantis lord entrance correction — 2026-10-29: Odyssey is accepted. The user
+reopens the Atlantis lord entrance as too slow. Its existing 10 ms attack already
+cuts quickly, so the new audition skips the source's approximately 25-second
+introduction. The same 2:00 transition timing, exploration/pursuit and source gain
+remain; the first 72 and final 16 seconds are PCM-identical. Final encoded/source
+checks pass. This entrance awaits listening review; no new HF call, runtime
+change, commit or push.
+See [the Atlantis entrance review](docs/regional_music_huggingface_revision.md#atlantis-lord-entrance-correction--2026-10-29).
+
+Odyssey music audition — 2026-10-29: the user accepts the revised Sword Sage,
+completing selection of the first seven regional groups and the separate Sage cue.
+Three new selected HF recordings provide Odyssey exploration, pursuit and sudden
+lord combat in a 2:24 continuous offline audition. A weaker first lord source is
+retained and replaced. Encoding/source checks pass; the user subsequently accepts
+this group. Earlier accepted audio and game code remain unchanged. No commit or push.
+See [the Odyssey music review](docs/regional_music_huggingface_revision.md#odyssey-mythic-voyage-three-state-audition--2026-10-29).
+
+Sword Sage tension revision — 2026-10-29: the three Chinese-style Penglai
+regional cues are accepted and preserved. A new HF Sage battle recording replaces
+the rejected relaxed cue, using the same prepared loudness and 1:28 transition
+timing. Encoding and source-preservation checks pass; the new Sage candidate
+is subsequently accepted for continuation. Odyssey is the next audition batch;
+production loops and integration remain pending. No commit or push change.
+See [the Sage revision](docs/regional_music_huggingface_revision.md#sword-sage-sustained-tension-revision--2026-10-29).
+
+Penglai Chinese-style music revision — 2026-10-29: the user rejects the
+previous regional style and requests a separate Sword Sage battle cue. Four
+new HF recordings supply replacement exploration/pursuit/divine-beast music
+and an individual duel cue, presented in 2:24 and 1:28 offline transition edits.
+Encoding and source-preservation checks pass. The user subsequently accepts
+exploration, pursuit and divine-beast music, but rejects the separate Sword Sage
+cue for insufficient tension; that cue alone is being revised. Earlier recordings are retained, game code is unchanged,
+and no commit or push occurs.
+See [the Chinese-style revision](docs/regional_music_huggingface_revision.md#penglai-chinese-style-revision-and-separate-sword-sage-cue--2026-10-29).
+
+Penglai music audition — 2026-10-29: Europa is accepted for continuation,
+bringing six regional groups to acceptance. Three selected HF Penglai cues use
+an Eastern immortal-realm direction in a 2:24 continuous audition. A weaker
+first lord source is retained and replaced; the new edit includes a quick
+attack entrance and continuous battle passage. Encoded checks pass. The user subsequently rejects its Japanese-feeling
+style and requests Chinese-style replacement plus a separate Sword Sage cue.
+Production loops and runtime integration remain pending. All earlier
+audio and game code are preserved; no commit or push.
+See [the Penglai review](docs/regional_music_huggingface_revision.md#penglai-immortal-realm-three-state-audition--2026-10-29).
+
+Europa music audition — 2026-10-29: the user accepts Amazon, bringing the first
+five regional transition groups to listening acceptance. Three new HF Europa
+cues use an ice-ocean/electronic direction in a 2:24 continuous audition, with
+light pursuit, abrupt lord entry and return transitions. File/encoding checks
+pass. The user subsequently accepts this group for continuation; production
+loops and runtime integration remain pending. Earlier audio and game code are
+preserved; no commit or push.
+See [the Europa review](docs/regional_music_huggingface_revision.md#europa-ice-ocean-three-state-audition--2026-10-29).
+
+Amazon music audition — 2026-10-29: the user accepts the complete Hawaii,
+Atlantis, Bermuda and Mariana transition groups. Their delivered recordings are
+preserved. The next batch supplies three HF Amazon cues and a 2:24 continuous
+exploration → pursuit → sudden lord-attack audition, including return transitions.
+A weak first lord candidate is retained and replaced. Final encoding and source
+checks pass. The user subsequently accepts this complete Amazon group and
+requests Europa next; production loops and runtime integration remain pending.
+No game code change, commit or push.
+See [the Amazon review](docs/regional_music_huggingface_revision.md#amazon-river-three-state-audition--2026-10-29).
+
+Audio production rules and transition review — 2026-10-29: Mariana's
+revision 06 lord composition is accepted alongside its selected exploration and
+pursuit. New [repository audio rules](docs/audio_production_rules.md) apply across
+all regions. The existing Hawaii transition is replayed unchanged; Atlantis and
+Bermuda receive continuous review edits from their existing accepted recordings.
+These new transitions await listening review. No new HF request, runtime edit,
+commit or push. See [the review](docs/regional_music_huggingface_revision.md#repository-rules-and-three-region-transition-review--2026-10-29).
+
+Mariana ambush composition — 2026-10-29: the user rejects the previous
+lord arrangement as too slow, even with a fast entry. A new 90-second HF lord
+recording supplies an immediate-action excerpt in a two-minute continuous audition.
+Accepted exploration/light pursuit remain PCM-identical through 01:06. The user
+subsequently accepts the new lord composition. Production loops and runtime
+integration remain pending; no commit or push.
+See [the ambush review](docs/regional_music_huggingface_revision.md#mariana-sudden-ambush-lord-composition--2026-10-29).
+
+Mariana lord-entry refinement — 2026-10-29: exploration and light pursuit
+are accepted. The lord entry now uses the existing source's opening transient
+with a fast handoff, replacing the rejected five-second fade. The accepted first
+66 seconds are PCM-identical. The user subsequently rejects the underlying lord
+composition as too slow; this entry-only edit is superseded above. No runtime
+edit, HF request, commit or push occurred in that revision.
+See [the entry review](docs/regional_music_huggingface_revision.md#mariana-attack-triggered-lord-entry--2026-10-29).
+
+Mariana three-state music revision — 2026-10-29: the user rejects revision 03
+as too subtle. A new 90-second HF pursuit arrangement replaces its quiet plucks;
+a two-minute audition connects retained exploration, new pursuit and retained
+lord music. Exploration/light pursuit are subsequently accepted; the gradual lord
+entry is rejected. No runtime change, commit or push.
+See [the revision](docs/regional_music_huggingface_revision.md#mariana-pursuit-contrast-and-lord-transition--2026-10-29).
+
+Mariana pitched-pursuit revision — 2026-10-29: the user rejects the brush/shaker
+layer as noise. A new offline candidate keeps the exact HF exploration recording
+and adds locally arranged pitched plucks; no rejected percussion is reused.
+The 110-second comparison is subsequently rejected for insufficient pursuit contrast. No new HF request, runtime
+change, commit or push. See [the revision](docs/regional_music_huggingface_revision.md#mariana-pitched-pursuit-revision--2026-10-29).
+
+Mariana music revision — 2026-10-29: the user rejects tense exploration and
+abrupt, sparse pursuit. A new HF exploration source continues uninterrupted while
+a quietly rearranged HF rhythm layer fades in/out across two encounters. The
+110-second offline study is subsequently rejected for its noisy pursuit layer; the prior lord source stays
+unchanged. No runtime integration, commit or push. See [the revision](docs/regional_music_huggingface_revision.md#mariana-calm-base-revision--2026-10-29).
+
+Mariana music audition — 2026-10-29: the user accepts the Bermuda styles
+and requests the next batch. Three new 60-second HF Medium recordings use sparse
+glass/piano colors for descent, gentle pulses for ordinary pursuit and a weightier
+lord arrangement. Original audio, live quota and encoded delivery evidence are
+retained. Listening selection, longer loops and game integration remain pending.
+No runtime change, commit or push. See [the music review](docs/regional_music_huggingface_revision.md#mariana-style-audition--2026-10-29).
+
+Bermuda music audition — 2026-10-29: the user accepts all three Atlantis
+styles and requests the next batch. Three new 60-second HF Medium recordings
+explore maritime cello/woodwind colors, restrained pursuit and a heavier
+spectral lord arrangement. Original audio, live quota and final encoding evidence
+are retained. The user accepts all three styles and requests Mariana next;
+longer loops and runtime integration remain pending.
+No runtime change, commit or push in this batch. See [the music review](docs/regional_music_huggingface_revision.md#bermuda-style-audition--2026-10-29).
+
+Atlantis music audition — 2026-10-29: the user accepts the Hawaii correction
+for continuation and requests the next batch. Three new 60-second HF Stable
+Audio 3 Medium recordings cover exploration, light pursuit and lord combat.
+The pursuit brief retains exploration colors with gentler rhythmic activity;
+lord combat carries the larger orchestral contrast. Original files, quota and
+encoding evidence are retained. The user accepts all three styles and requests
+Bermuda next. Long loops and in-game integration remain pending; existing runtime
+music is unchanged by this batch.
+No commit or push. See [the music review](docs/regional_music_huggingface_revision.md#atlantis-style-audition--2026-10-29).
+
+Hawaii music refinement — 2026-10-29: the user prefers the existing
+exploration theme, a longer cycle and gentler ordinary pursuit. A 192-second
+procedural arrangement preserves the opening and adds variations; pursuit eases
+in on the same musical clock without entry hits. The separate heavy lord layer
+remains. The preceding Hawaii A/B replacement request is superseded; no unselected
+HF track is integrated. The user accepts this correction for continuation; it remains without commit
+or push. See [the music review](docs/regional_music_huggingface_revision.md#hawaii-direction-correction--2026-10-29).
+
+Regional music production — 2026-10-28: the user approves the proposed
+Hugging Face soundtrack plan. The first step is a Hawaii exploration/pursuit/lord
+A/B audition, followed by listening selection and scoped runtime integration.
+Six 36-second candidates are ready: Small Music (A) versus Medium (B), with
+three paired listening videos. ACE-Step aborted twice and supplied no candidate.
+The user's listening choices are pending; numerical checks are not musical acceptance.
+Existing released music and gameplay remain unchanged. No commit or push is
+requested. See [the music production record](docs/regional_music_huggingface_revision.md).
+
 Main publication v0.11.22 — 2026-10-28: the user explicitly authorizes
 merging and pushing the accepted Odyssey work and Amazon pit-lord repair to main.
 This integrates project-knowledge checkpoint `54877d1`, Odyssey checkpoint

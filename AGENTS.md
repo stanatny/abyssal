@@ -1,5 +1,15 @@
 # ABYSSAL Development Rules
 
+Main publication v0.11.23 — 2026-10-29: the user accepts all eight regional
+music groups and explicitly requests a commit and push to main after the playable
+preview. Integrate the accepted Hawaii theme extension, 22 selected recordings,
+separate Sword Sage cue, runtime transitions and repository audio rules. All 2,078
+delivered input hashes match before release-only metadata, documentation,
+formatting and comment edits. Gameplay and accepted audio bytes are preserved.
+Earlier candidate-only/no-push notes retain their historical scope and are
+superseded for this release. See [the release record](docs/release_v0_11_23.md).
+No tag or separate GitHub Release is requested.
+
 Main publication v0.11.22 — 2026-10-28: the user explicitly authorizes
 merging and pushing the accepted Odyssey work and Amazon pit-lord repair to main.
 This integrates project-knowledge checkpoint `54877d1`, Odyssey checkpoint
@@ -1446,6 +1456,8 @@ existing descriptions and gameplay unless the user separately authorizes changes
 This direction does not require regenerating appearances the user has already accepted.
 
 Before adding or redrawing fish, playable characters, people, ships, environments, rewards, abilities, or their audio and effects, read and follow the [asset quality standard](docs/asset_quality_standard.md). Comparable polished assets in released **v0.6.10 / `5a3248e`** are the minimum reference; later accepted improvements in the same category become the new reference. Do not regress to placeholder models, recolored primitive shapes, poor synthetic voices, or crude particle piles.
+
+For generated music or sound effects, also follow the repository-wide [audio production rules](docs/audio_production_rules.md): preserve accepted cues, distinguish frequent pursuit from sudden lord combat, keep generation and edits traceable, deliver continuous transition auditions, and separate listening acceptance from runtime integration. These rules apply across all regions; map-specific timings and instrumentation remain examples.
 
 For creature redraws, generated-mesh integration, material revisions or swimming defects, use the repository-local [Creature Polish Skill](.agents/skills/abyssal-creature-polish/SKILL.md). It adds rest-shape/rig diagnosis, actual-vertex motion checks, fitted mechanical structure and matched Guide/follow-camera review. Its conditional generated-mesh reference applies only when that work is needed; HUD-only changes continue to use the quality standard directly.
 

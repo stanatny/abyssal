@@ -44,6 +44,8 @@ Keep structural correction separate from surface polish: embedded eyes, smooth j
 
 ## Audio production and listening quality
 
+For music and generated effects, also follow the cross-region [audio production rules](audio_production_rules.md). They define event briefs, exploration/pursuit/lord contrast, provider and quota evidence, accepted-source preservation, transition auditions and runtime boundaries.
+
 Voices must sound like real performances. Simple oscillators, formants, or a heavily pitch-shifted copy of one recording are not acceptable finished male and female screams. The current reference uses separately licensed human performances at their original pitch, routed by the actual person's identity. For different character voices, select suitable performances first, then apply scene processing.
 
 Underwater feeding sounds need a short intake, contact, and ending. The current fish sound uses three water-Foley variants without consecutive repeats. Do not restore abrupt fixed-pitch bubbles or rely only on volume to convey force. Synthesis is suitable for music, science-fiction abilities, or flowing water, but actual listening must determine suitability; procedural generation is not proof of quality.

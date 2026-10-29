@@ -223,3 +223,16 @@ The earlier four user-selected combat files remain byte-identical.
 | `lord_sword.wav`     | 0.65    | 62444  | `2e4a08dd547ab358d4781309855cbbb59fcd7a75353a9ca65d08e18a7b270cd5` |
 | `lord_vortex.wav`    | 2.3     | 220844 | `52b4f634416e296886f27bec9c3b8cb564de9ba822ed43ab032f8349ade93ca5` |
 | `lord_water.wav`     | 1.5     | 144044 | `74ea9cc9a96577696101bd1d5608b507fdf4b3ed0ba729cdeeb3bc07550f6208` |
+
+## 2026-10-29 selected regional music
+
+Seven regions now use 22 user-selected HF recordings, including a separate Sword
+Sage cue; Hawaii keeps the accepted expanded procedural theme. The exact prepared
+sources, source hashes, AAC assets, gains and entry offsets are recorded in
+[the regional asset ledger](regional_music_assets.json), with generation receipts,
+source/model terms, acceptance history and runtime limitations in
+[the regional production review](regional_music_huggingface_revision.md).
+These generated recordings are not labeled CC0. The source workflow used Stable
+Audio 3 Medium and its recorded provider/model terms; no new generation or license
+reclassification occurs during this integration. Runtime files are bundled locally,
+content-hashed and fetched only for the selected map, not streamed from HF.

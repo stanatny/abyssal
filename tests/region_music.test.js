@@ -299,7 +299,7 @@ test("已暂停的原生时钟在重置时立即结束旧音乐，重入不等�
   assert.equal(audio.voices.size, 0);
 });
 
-for (const region of ["atlantis", "hawaii"]) {
+for (const region of ["atlantis"]) {
   test(`${region}真实追击标志在探索落点之间立即起拍，低危险值也有明确战斗声部`, () => {
     const { audio, context } = fixture();
     audio.setRegion(region);
@@ -359,4 +359,90 @@ test("独立追击时钟跳过掉帧、静音不补拍，重复update不重入�
   audio.toggle();
   audio.update(180, 1, { pursuing: true });
   assert.equal(calls, mutedCalls + 1);
+});
+
+test("Hawaii repeated pursuit eases a shared pulse without entry hits or phrase restarts", () => {
+  const { audio, context } = fixture();
+  audio.update(0, 0, { pursuing: false });
+  audio.nextStep = 2;
+  audio.step = 53;
+  const calls = [];
+  audio.note = (...args) => {
+    if (audio.musicDestinations.has(args[4])) calls.push(args);
+  };
+  audio.drum = (...args) => calls.push(args);
+  for (const [time, pursuing] of [
+    [1, true],
+    [1.1, false],
+    [1.2, true],
+    [1.3, false],
+  ]) {
+    context.currentTime = time;
+    audio.update(time, 0.8, { pursuing });
+    assert.equal(audio.step, 53);
+    assert.equal(audio.nextStep, 2);
+    assert.equal(calls.length, 0);
+    assert.ok(audio.calm.gain.value >= 0.75);
+    assert.ok(audio.chase.gain.value > 0 && audio.chase.gain.value < 0.8);
+    assert.ok(audio.chase.gain.events.at(-1).constant >= 1);
+  }
+  context.currentTime = 4;
+  audio.nextStep = 5;
+  audio.update(4, 1, { pursuing: false });
+  assert.equal(audio.chase.gain.value, 0);
+  assert.equal(audio.step, 53);
+  assert.equal(calls.length, 0);
+  audio.update(4, 0, { pursuing: false, boss: true });
+  assert.ok(calls.length > 0);
+  assert.ok(audio.bossLayer.gain.value >= 0.85);
+  assert.ok(audio.chase.gain.value > 1);
+  const entryCalls = calls.length;
+  audio.update(4, 0, { pursuing: false, boss: true });
+  assert.equal(calls.length, entryCalls);
+});
+
+test("Hawaii pursuit release cannot survive reset, mute or map changes", () => {
+  const { audio, context } = fixture();
+  for (const action of [
+    () => audio.reset(),
+    () => {
+      audio.toggle();
+      audio.toggle();
+    },
+    () => {
+      audio.setRegion("atlantis");
+      audio.setRegion("hawaii");
+    },
+  ]) {
+    context.currentTime += 1;
+    audio.update(0, 1, { pursuing: true });
+    assert.ok(audio.hawaiiPursuitUntil > context.currentTime);
+    action();
+    audio.update(0, 0, { pursuing: false });
+    assert.equal(audio.chase.gain.value, 0);
+    assert.equal(audio.hawaiiPursuitUntil, -Infinity);
+  }
+});
+
+test("Hawaii expands the melody beyond the original 24-second repeat without stacking voices", () => {
+  const { audio } = fixture();
+  const phrases = [];
+  for (let phrase = 0; phrase < 33; phrase++) {
+    const calls = [];
+    audio.note = (...args) => calls.push(args);
+    audio.noise = () => {};
+    audio.pad = () => {};
+    for (let step = 0; step < 16; step++)
+      audio.scheduleMusicStep((phrase * 16 + step) * 0.375, phrase * 16 + step);
+    assert.ok(calls.length <= 3);
+    phrases.push(calls.map((call) => call[0]));
+  }
+  assert.deepEqual(phrases[0], phrases[32]);
+  assert.notDeepEqual(phrases[0], phrases[4]);
+  assert.notDeepEqual(phrases[4], phrases[8]);
+  assert.ok(phrases.slice(12, 16).every((p) => p.length === 2));
+  assert.equal(
+    new Set(phrases.slice(0, 32).map(JSON.stringify)).size >= 24,
+    true,
+  );
 });

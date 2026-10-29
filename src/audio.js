@@ -1,3 +1,5 @@
+import { RecordedMusic } from "./recorded_music.js";
+import { HAWAII_SCORE, hawaiiPhrase, hawaiiMix } from "./music_hawaii.js";
 import { OdysseyMusic, ODYSSEY_SCORE } from "./music_odyssey.js";
 import { PenglaiMusic, PENGLAI_SCORE } from "./music_penglai.js";
 import { AmazonMusic, AMAZON_SCORE } from "./music_amazon.js";
@@ -51,7 +53,10 @@ export class OceanAudio {
     this.lastDanger = 0;
     this.pursuing = false;
     this.musicCombat = false;
+    this.musicBoss = false;
+    this.hawaiiPursuitUntil = -Infinity;
     this.boss = false;
+    this.bossKind = null;
     this.depth = 0;
     this.aboveWater = false;
     this.ink = 0;
@@ -71,7 +76,7 @@ export class OceanAudio {
     this.feedingVoices = new Map();
     this.feedingBuffers = new Map();
     this.cooldowns = new Map();
-    this.beat = 60 / 80;
+    this.beat = HAWAII_SCORE.beat;
     this.randomState = 82197;
   }
 
@@ -88,9 +93,11 @@ export class OceanAudio {
     void this.prepareCombatSounds();
     void this.prepareZombieSounds();
     void this.lordAttackAudio.prepare(this.context);
+    void this.recordedMusic.setRegion(this.regionId);
     this.setPaused(false);
     this.update(0, this.lastDanger, {
       boss: this.boss,
+      bossKind: this.bossKind,
       pursuing: this.pursuing,
       depth: this.depth,
       aboveWater: this.aboveWater,
@@ -117,6 +124,7 @@ export class OceanAudio {
       : "hawaii";
     if (next === this.regionId) return next;
     this.regionId = next;
+    if (this.recordedMusic) void this.recordedMusic.setRegion(next);
     this.beat =
       next === "odyssey"
         ? ODYSSEY_SCORE.beat
@@ -132,9 +140,11 @@ export class OceanAudio {
                   ? ATLANTIS_SCORE.beat
                   : next === "bermuda"
                     ? BERMUDA_SCORE.beat
-                    : 60 / 80;
+                    : HAWAII_SCORE.beat;
     this.step = 0;
     this.musicCombat = false;
+    this.musicBoss = false;
+    this.hawaiiPursuitUntil = -Infinity;
     if (!this.ready) return next;
     const now = this.context.currentTime;
     this.stopMusic(now);
@@ -254,7 +264,10 @@ export class OceanAudio {
     if (!this.enabled) {
       this.stopCombatVoices();
       this.stopMusic(this.context.currentTime);
+      this.recordedMusic?.stop();
       this.musicCombat = false;
+      this.musicBoss = false;
+      this.hawaiiPursuitUntil = -Infinity;
       if (this.atlantisMusic) this.atlantisMusic.combatActive = false;
       if (this.bermudaMusic) this.bermudaMusic.combatActive = false;
       if (this.marianaMusic) this.marianaMusic.combatActive = false;
@@ -314,7 +327,10 @@ export class OceanAudio {
     this.lastDanger = 0;
     this.pursuing = false;
     this.musicCombat = false;
+    this.musicBoss = false;
+    this.hawaiiPursuitUntil = -Infinity;
     this.boss = false;
+    this.bossKind = null;
     this.depth = 0;
     this.aboveWater = false;
     this.ink = 0;
@@ -328,6 +344,7 @@ export class OceanAudio {
     if (!this.ready) return;
     const now = this.context.currentTime;
     this.lordAttackAudio.stop();
+    this.recordedMusic?.stop();
     this.stopMusic(now);
     for (const source of this.voices) {
       try {
@@ -372,6 +389,7 @@ export class OceanAudio {
     danger,
     {
       boss = false,
+      bossKind = null,
       pursuing = null,
       depth = 0,
       aboveWater = false,
@@ -382,19 +400,32 @@ export class OceanAudio {
     this.lastDanger = clamp(danger, 0, 1);
     this.pursuing = pursuing === null ? this.lastDanger > 0 : Boolean(pursuing);
     this.boss = Boolean(boss);
+    this.bossKind = bossKind;
     this.depth = Math.max(0, Number.isFinite(depth) ? depth : 0);
     this.aboveWater = Boolean(aboveWater);
     this.ink = clamp(ink, 0, 1);
     if (!this.ready || this.paused) return;
     const now = this.context.currentTime;
+    const recorded = this.recordedMusic?.ready && this.enabled;
+    if (recorded) {
+      if (!this.usingRecordings) this.stopMusic(now);
+      this.recordedMusic.update({
+        boss: this.boss,
+        bossKind: this.bossKind,
+        pursuing: this.pursuing,
+      });
+    }
+    this.usingRecordings = recorded;
     this.cleanMusicRooms(now);
-    if (this.regionId === "atlantis") this.ensureAtlantisMusic().update(now);
-    if (this.regionId === "bermuda") this.ensureBermudaMusic().update(now);
-    if (this.regionId === "mariana") this.ensureMarianaMusic().update(now);
-    if (this.regionId === "europa") this.ensureEuropaMusic().update(now);
-    if (this.regionId === "amazon") this.ensureAmazonMusic().update(now);
-    if (this.regionId === "odyssey") this.ensureOdysseyMusic().update(now);
-    if (this.regionId === "penglai") this.ensurePenglaiMusic().update(now);
+    if (!recorded) {
+      if (this.regionId === "atlantis") this.ensureAtlantisMusic().update(now);
+      if (this.regionId === "bermuda") this.ensureBermudaMusic().update(now);
+      if (this.regionId === "mariana") this.ensureMarianaMusic().update(now);
+      if (this.regionId === "europa") this.ensureEuropaMusic().update(now);
+      if (this.regionId === "amazon") this.ensureAmazonMusic().update(now);
+      if (this.regionId === "odyssey") this.ensureOdysseyMusic().update(now);
+      if (this.regionId === "penglai") this.ensurePenglaiMusic().update(now);
+    }
     const intensity = Math.sqrt(this.lastDanger);
     const depthRatio = clamp(this.depth / 740, 0, 1);
     const muffling = 1 - this.ink * 0.67;
@@ -403,33 +434,62 @@ export class OceanAudio {
     const amazon = this.regionId === "amazon";
     const odyssey = this.regionId === "odyssey";
     const combat = this.pursuing || this.boss;
-    this.calm.gain.setTargetAtTime(
-      this.boss ? 0.22 : combat ? 0.34 : 0.86,
-      now,
-      combat ? 0.18 : 0.8,
-    );
-    this.chase.gain.setTargetAtTime(
-      this.boss ? 1.05 : combat ? 1.12 + intensity * 0.28 : 0,
-      now,
-      combat ? 0.08 : 0.85,
-    );
-    this.chaseFast.gain.setTargetAtTime(
-      combat ? (this.boss ? 0.9 : Math.max(0.58, this.lastDanger ** 2)) : 0,
-      now,
-      combat ? 0.1 : 0.85,
-    );
-    this.bossLayer.gain.setTargetAtTime(
-      this.boss ? Math.max(0.85, intensity) : 0,
-      now,
-      this.boss ? 0.15 : 0.9,
-    );
-    this.chaseFilter.frequency.setTargetAtTime(
-      combat ? 1550 + this.lastDanger * 500 : 520,
-      now,
-      combat ? 0.12 : 0.6,
-    );
+    if (this.regionId === "hawaii") {
+      if (this.boss || !this.enabled) this.hawaiiPursuitUntil = -Infinity;
+      else if (this.pursuing)
+        this.hawaiiPursuitUntil = now + HAWAII_SCORE.pursuitReleaseHold;
+      const mix = hawaiiMix(
+        this.lastDanger,
+        this.enabled && now < this.hawaiiPursuitUntil,
+        this.boss,
+      );
+      const response =
+        !this.boss && this.hawaiiPursuitUntil === -Infinity
+          ? 0.8
+          : mix.response;
+      for (const [bus, value] of [
+        [this.calm, mix.calm],
+        [this.chase, mix.chase],
+        [this.chaseFast, mix.fast],
+        [this.bossLayer, mix.guardian],
+      ])
+        bus.gain.setTargetAtTime(value, now, response);
+      this.chaseFilter.frequency.setTargetAtTime(mix.cutoff, now, response);
+    } else {
+      this.calm.gain.setTargetAtTime(
+        this.boss ? 0.22 : combat ? 0.34 : 0.86,
+        now,
+        combat ? 0.18 : 0.8,
+      );
+      this.chase.gain.setTargetAtTime(
+        this.boss ? 1.05 : combat ? 1.12 + intensity * 0.28 : 0,
+        now,
+        combat ? 0.08 : 0.85,
+      );
+      this.chaseFast.gain.setTargetAtTime(
+        combat ? (this.boss ? 0.9 : Math.max(0.58, this.lastDanger ** 2)) : 0,
+        now,
+        combat ? 0.1 : 0.85,
+      );
+      this.bossLayer.gain.setTargetAtTime(
+        this.boss ? Math.max(0.85, intensity) : 0,
+        now,
+        this.boss ? 0.15 : 0.9,
+      );
+      this.chaseFilter.frequency.setTargetAtTime(
+        combat ? 1550 + this.lastDanger * 500 : 520,
+        now,
+        combat ? 0.12 : 0.6,
+      );
+    }
     this.musicFilter.frequency.setTargetAtTime(
-      (this.aboveWater ? 7800 : 3500 - depthRatio * 1600) * muffling,
+      (recorded
+        ? this.aboveWater
+          ? 16000
+          : 12000 - depthRatio * 3500
+        : this.aboveWater
+          ? 7800
+          : 3500 - depthRatio * 1600) * muffling,
       now,
       0.4,
     );
@@ -490,13 +550,13 @@ export class OceanAudio {
     );
     // 木卫二的短尾混音避免玻璃音型被长混响涂抹，其余地图保持既有湿度。
     this.musicWet.gain.setTargetAtTime(
-      europa ? 0.11 : penglai ? 0.17 : 0.26,
+      recorded ? 0 : europa ? 0.11 : penglai ? 0.17 : 0.26,
       now,
       0.4,
     );
     if (!this.enabled) return;
-    if (this.regionId === "hawaii" && combat && !this.musicCombat) {
-      // 夏威夷保留既有音型，追击开始时立即给出短重拍，不等待当前探索拍点。
+    if (this.regionId === "hawaii" && this.boss && !this.musicBoss) {
+      // 仅领主进入时给出重拍；普通追击不插入突兀的开场音。
       this.drum(now + 0.012, 0.2, this.chase, 0.9);
       this.note(midi(62), now + 0.012, 0.34, 0.13, this.chase, {
         type: "felt",
@@ -505,6 +565,7 @@ export class OceanAudio {
       });
     }
     this.musicCombat = combat;
+    this.musicBoss = this.boss;
 
     // 跳过掉帧期间错过的拍点，避免恢复画面时堆叠大量音符。
     const subdivision = this.beat / 2;
@@ -513,7 +574,7 @@ export class OceanAudio {
       this.step += skipped;
       this.nextStep += skipped * subdivision;
     }
-    while (this.nextStep < now + 0.23) {
+    while (!recorded && this.nextStep < now + 0.23) {
       if (this.regionId === "atlantis")
         this.ensureAtlantisMusic().schedule(this.nextStep, this.step);
       else if (this.regionId === "bermuda")
@@ -1161,6 +1222,9 @@ export class OceanAudio {
       .connect(this.musicDuck)
       .connect(this.musicFilter)
       .connect(this.mix);
+    // Recorded arrangements keep their accepted balance and share ducking/output safety.
+    this.recordedBus = this.makeBus(1, this.musicDuck);
+    this.recordedMusic = new RecordedMusic(context, this.recordedBus);
     this.effects = this.makeBus(0.86);
     this.effectsFilter = context.createBiquadFilter();
     this.effectsFilter.type = "lowpass";
@@ -1325,14 +1389,8 @@ export class OceanAudio {
 
   scheduleMusicStep(at, step) {
     const subdivision = this.beat / 2;
-    const bar = Math.floor(step / 16) % 4;
-    const inPhrase = step % 16;
-    const harmony = [
-      [50, 57, 60, 65],
-      [46, 53, 57, 62],
-      [53, 60, 64, 69],
-      [48, 55, 62, 65],
-    ][bar];
+    const inPhrase = step % HAWAII_SCORE.stepsPerPhrase;
+    const { harmony, melody } = hawaiiPhrase(step);
     const bass = harmony[0] - 12;
 
     // 舒缓层以长起音的双振荡和声铺底，旋律只在留白处出现。
@@ -1354,13 +1412,9 @@ export class OceanAudio {
         cutoff: 680,
       });
     }
-    if (inPhrase === 5 || inPhrase === 13) {
-      const pitch = [
-        [69, 74],
-        [65, 69],
-        [72, 76],
-        [67, 74],
-      ][bar][inPhrase === 5 ? 0 : 1];
+    const pitch =
+      inPhrase === 5 ? melody[0] : inPhrase === 13 ? melody[1] : null;
+    if (pitch !== null) {
       this.note(midi(pitch), at, 2.6, 0.1, this.calm, {
         type: "felt",
         attack: 0.17,
@@ -1374,7 +1428,38 @@ export class OceanAudio {
       });
     }
 
-    if (this.pursuing || this.boss) {
+    // 轻追击与探索共用节拍及和声，不重置乐句、不引入半音警报型。
+    // 释放阶段继续排低成本拨弦，让已淡出的总线自然归零。
+    if (!this.boss && at < this.hawaiiPursuitUntil + 7.2) {
+      const chord = harmony[[1, 2, 3, 2, 1, 3, 2, 1][step % 8]];
+      if (step % 4 === 0)
+        this.note(midi(bass), at, 0.65, 0.13, this.chase, {
+          type: "warm",
+          attack: 0.07,
+          hold: 0.08,
+          cutoff: 800,
+        });
+      this.note(
+        midi(chord + 12),
+        at,
+        0.35,
+        step % 2 ? 0.045 : 0.085,
+        this.chase,
+        {
+          type: "felt",
+          attack: 0.05,
+          hold: 0.025,
+          cutoff: 1450,
+          pan: step % 2 ? -0.15 : 0.15,
+        },
+      );
+      if (step % 4 === 2)
+        this.noise(at, 0.14, 0.018, this.chase, 1100, "bandpass", 0.035, {
+          q: 0.5,
+        });
+    }
+
+    if (this.boss) {
       const pitch = bass + [0, 0, 7, 0, 3, 0, 7, -1][step % 8];
       this.note(midi(pitch), at, 0.29, 0.19, this.chase, {
         type: "bass",

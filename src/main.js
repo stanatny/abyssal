@@ -4387,6 +4387,7 @@ function frame(now) {
             : 0,
       {
         boss: !!bossCombat,
+        bossKind: bossCombat ? activeBoss.state.species.kind : null,
         pursuing: !!threat || !!surface.danger || !!humans.defense.threat,
         ink: effects.ink,
         depth: -position.y,
