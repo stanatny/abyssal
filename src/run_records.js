@@ -1,4 +1,5 @@
 /** 本地通关榜：只接收完成的远征，按海域独立保留最快十次，存储失败不阻断游戏。 */
+import { OCEAN_CURRENT_RULES } from "./ocean_current_rules.js";
 import { ROUND_DURATION } from "./simulation.js";
 import { PLAYER_CHARACTERS } from "./character_rules.js";
 
@@ -7,7 +8,11 @@ export const RUN_RULESET = "survival-2026-10";
 // 变更目标的海域独立分榜，旧成绩仍保留在本机，不与新规则混排。
 const revisedRegions = new Set(["europa", "amazon", "atlantis"]);
 export const runRuleset = (region) =>
-  revisedRegions.has(region) ? "expedition-2026-10-14" : RUN_RULESET;
+  OCEAN_CURRENT_RULES.regions.includes(region)
+    ? "currents-2026-10-30"
+    : revisedRegions.has(region)
+      ? "expedition-2026-10-14"
+      : RUN_RULESET;
 export const RUN_RECORD_LIMIT = 10;
 const MAX_TIME_MS = ROUND_DURATION * 1000;
 
@@ -52,7 +57,10 @@ export function createRunRecordStore(
       row.id.length < 100 &&
       allowed.has(row.region) &&
       characters.has(row.character) &&
-      (row.ruleset === RUN_RULESET || row.ruleset === runRuleset(row.region)) &&
+      (row.ruleset === RUN_RULESET ||
+        (revisedRegions.has(row.region) &&
+          row.ruleset === "expedition-2026-10-14") ||
+        row.ruleset === runRuleset(row.region)) &&
       Number.isInteger(row.timeMs) &&
       row.timeMs > 0 &&
       row.timeMs <= MAX_TIME_MS &&

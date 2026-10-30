@@ -1,5 +1,31 @@
 # ABYSSAL Penglai HF redraw — 2026-10-27
 
+Surface currents accepted for local checkpoint — 2026-10-30: the user accepts
+the HF water-flow revision and requests a local commit before a separate Atlantis
+puzzle design. All 2,104 delivered source inputs match before acceptance-only
+notes. The existing 2,118-test and native/public receipts apply to unchanged
+runtime inputs; no repeated gameplay run is claimed. No push, release or version
+bump is requested. Earlier candidate labels retain their historical scope.
+
+Surface-current revision — 2026-10-30: the user rejects the first effect's
+artificial appearance and missing upstream resistance. An original HF FLUX water
+texture now replaces spiral lines, with downstream microbubble trails. The field
+pushes downstream regardless of facing; leave sideways or dive out, while slow
+controls affect only personal swimming. Four-map reverse runs, fallback/recovery,
+pause and disposal are checked; 2,118 tests pass. Preview: `index-ByVSSP5c.js`.
+The feature remains uncommitted/unpushed and awaits review. Earlier candidate
+notes below are historical. See [the current review](docs/ocean_currents_revision.md).
+
+Temporary surface-current candidate — 2026-10-30: accepted creature/Penglai work
+is committed locally as `1f65b08`, without a push. A separate candidate adds
+intermittent horizontal near-surface return lanes to Hawaii, Atlantis, Bermuda
+and Odyssey, with free exit controls, normal collision/damage and bilingual
+Guide/radar feedback. Earlier scores remain stored under their original rulesets.
+Native route and control evidence is recorded in the
+[current review](docs/ocean_currents_revision.md). Final validation passes 2,116
+tests; the four-map public build is `index-nR_c1JS5.js`. The new feature remains
+uncommitted and pending user review; main/Pages is unchanged.
+
 Creature and Penglai follow-ups accepted for local checkpoint — 2026-10-30:
 the user requests a local commit before a separate ocean-current gameplay feature.
 All 2,098 delivered input hashes match before these acceptance notes. This includes

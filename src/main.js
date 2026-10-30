@@ -62,6 +62,7 @@ import {
   resetTorpedoTarget,
 } from "./mechanical_shark_rules.js";
 import { bossRequiredHits, bossCounterOpen } from "./boss_rules.js";
+import { attachOceanCurrents } from "./ocean_currents.js";
 import { attachDeepVents } from "./deep_vents.js";
 import { attachDeepHazards } from "./deep_hazards.js";
 import {
@@ -275,6 +276,7 @@ let ocean = attachDeepHazards(
   "hawaii",
   { heightAt: baseSeabedHeight },
 );
+attachOceanCurrents(ocean, "hawaii");
 const terrainColliders = [...ocean.colliders];
 let loadedRegion = "hawaii";
 let regionLoading = false;
@@ -587,6 +589,7 @@ const lordLockFeedback = createLordLockFeedback({
 });
 let worldRenderDirty = true;
 let movementLabel = "巡游";
+let currentTravelSpeed = 0;
 let lureFlash = 0,
   waterMotion = null;
 let lastCollision = null;
@@ -759,6 +762,7 @@ async function selectRegion(region) {
     attachDeepHazards(nextOcean, region.id, {
       heightAt: nextOcean.heightAt || baseSeabedHeight,
     });
+    attachOceanCurrents(nextOcean, region.id);
     await regionLoader.paint();
     regionLoader.stage("正在准备海面与生物…", 52);
     await regionLoader.paint();
@@ -1125,6 +1129,8 @@ function updateSonar() {
     sonarActive: visible,
     world: activeWorld(),
     riverPaths: ocean.radarPaths,
+    currentRoutes: ocean.currents?.routes,
+    currentOpacity: ocean.currents?.state.opacity ?? 0,
     rareArea: rareDiscovery.update({
       active: mode === "playing",
       now: player.elapsed,
@@ -1699,6 +1705,8 @@ function resetExpedition(preserveWorld = false) {
   yaw = 0;
   pitch = 0;
   speed = PLAYER_MOVEMENT.cruiseSpeed;
+  currentTravelSpeed = 0;
+  ocean.currents?.reset();
   if (!preserveWorld) elapsed = 0;
   forward.set(0, 0, -1);
   lastZone = "";
@@ -1825,6 +1833,7 @@ function updateLaunch(roundDt) {
 }
 function showOverlay(kind) {
   if (["dead", "won", "timeup"].includes(kind)) {
+    ocean.currents?.reset();
     lordLockFeedback.reset();
     minion.reset();
     torpedoes.reset();
@@ -1847,6 +1856,8 @@ function showOverlay(kind) {
     sonarActive: false,
     world: activeWorld(),
     riverPaths: ocean.radarPaths,
+    currentRoutes: ocean.currents?.routes,
+    currentOpacity: ocean.currents?.state.opacity ?? 0,
   });
   document.body.classList.remove("sonar-active");
   audio.setPaused(kind !== "won");
@@ -2216,6 +2227,22 @@ function updatePlayer(dt, roundDt) {
   const previousPosition = position.clone();
   // 离水后由弹道积分负责全部位移，空格不再产生额外向上推力。
   if (!wasAirborne) position.addScaledVector(forward, speed * dt);
+  const current = ocean.currents?.step(dt, {
+    position: previousPosition,
+    forward,
+    enabled: mode === "playing" && !wasAirborne && !jet,
+  });
+  if (current && !wasAirborne && !jet)
+    position.addScaledVector(current.velocity, dt);
+  if (current?.announced && !activeBoss)
+    notify("近海洋流正在形成 · 雷达箭头标出往返方向", 5);
+  if (current?.entered)
+    notify(
+      current.against
+        ? "逆流受阻 · 侧游或下潜离开洋流"
+        : "进入洋流 · 水纹指向下游，侧游或下潜可离开",
+      4,
+    );
   waterMotion = surface.move(dt, {
     position,
     previousPosition,
@@ -2261,6 +2288,8 @@ function updatePlayer(dt, roundDt) {
   });
   const desiredY = position.y;
   const movementCollision = resolvePlayerMotion(previousPosition);
+  currentTravelSpeed = dt > 0 ? position.distanceTo(previousPosition) / dt : 0;
+  if (movementCollision.blocked && current?.speed > 0) ocean.currents.blocked();
   if (mode !== "epilogue") {
     const jet = ocean.deepVents?.onMovement(
       previousPosition,
@@ -2352,6 +2381,14 @@ function updatePlayer(dt, roundDt) {
               : targetSpeed === 5
                 ? "慢游"
                 : "巡游";
+  if (current?.route && current.speed > 3)
+    movementLabel = current.against
+      ? current.route.inbound
+        ? "逆流受阻 → 浅海"
+        : "逆流受阻 → 外海"
+      : current.route.inbound
+        ? "洋流 → 浅海"
+        : "洋流 → 外海";
   $("movement-mode").textContent = t(movementLabel);
   if ((boosting || jet) && Math.random() < 0.6) burst(position, 1);
   // 饥饿先由规则模块处理，熔岩只在贴近深海海底时灼伤。
@@ -3894,7 +3931,9 @@ function updateHud() {
   $("length").textContent = t(player.length.toFixed(1));
   $("eaten").textContent = t(tr`已捕食 ${player.eaten}`);
   $("growth").style.width = getProgress(player) + "%";
-  $("speed").textContent = t(Math.round(speed));
+  $("speed").textContent = t(
+    Math.round(ocean.currents?.state.speed > 0 ? currentTravelSpeed : speed),
+  );
   document.querySelector(".depth-rail span").textContent = t(
     surface.mode === "aether" && position.y > WORLD.surfaceY ? "高度" : "深度",
   );
@@ -4422,6 +4461,8 @@ function frame(now) {
     );
     minimap.update({
       riverPaths: ocean.radarPaths,
+      currentRoutes: ocean.currents?.routes,
+      currentOpacity: ocean.currents?.state.opacity ?? 0,
       position,
       forward,
       spawn: expedition.region.spawn,

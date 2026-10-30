@@ -36,6 +36,7 @@ export function createMinimap(container) {
   let previousRareArea = null;
   let previousRareWorld = null;
   let previousRiverPaths = null;
+  let previousCurrentRoutes = null;
   let previousContourWorld = null;
   let previousContourDepth = null;
   container.classList.add("minimap");
@@ -67,7 +68,7 @@ export function createMinimap(container) {
     <text class="minimap-zone" x="15" y="37">深</text>
     <text class="minimap-zone" x="77" y="81">浅</text>
     <path class="minimap-home-route"/><path class="minimap-boundary"/>
-    <g class="minimap-rivers"></g>
+    <g class="minimap-rivers"></g><g class="minimap-currents"></g>
     <circle class="minimap-rare-area" visibility="hidden"/>
     <g class="minimap-waypoints"></g><g class="minimap-contacts"></g>
     <path class="minimap-home" d="M 0 -2.7 L 2.7 0 L 0 2.7 L -2.7 0 Z"/>
@@ -139,6 +140,8 @@ export function createMinimap(container) {
       world = WORLD,
       waypoints = [],
       riverPaths = null,
+      currentRoutes = null,
+      currentOpacity = 0,
       rareArea = null,
     }) {
       if (disposed) return null;
@@ -156,6 +159,42 @@ export function createMinimap(container) {
             "r",
             String(projectMinimapRadius(rareArea.radius, world)),
           );
+        }
+      }
+      const currentLayer = container.querySelector(".minimap-currents");
+      currentLayer.setAttribute("opacity", String(currentOpacity));
+      if (previousCurrentRoutes !== currentRoutes) {
+        previousCurrentRoutes = currentRoutes;
+        currentLayer.replaceChildren();
+        for (const route of currentRoutes || []) {
+          const points = route.points.map((p) =>
+            projectMinimapPosition(p, world),
+          );
+          const line = document.createElementNS(SVG_NAMESPACE, "path");
+          line.setAttribute(
+            "d",
+            points.map((p, i) => `${i ? "L" : "M"} ${p.x} ${p.y}`).join(" "),
+          );
+          line.setAttribute("fill", "none");
+          line.setAttribute("stroke", route.inbound ? "#a2e6be" : "#82dce9");
+          line.setAttribute("stroke-width", "1");
+          line.setAttribute("stroke-dasharray", "2 1");
+          currentLayer.append(line);
+          for (const i of [15, 55, 95]) {
+            const a = points[i],
+              b = points[i + 1],
+              angle = Math.atan2(b.y - a.y, b.x - a.x);
+            const arrow = document.createElementNS(SVG_NAMESPACE, "path");
+            arrow.setAttribute("d", "M -2 -1.5 L 0 0 L -2 1.5");
+            arrow.setAttribute(
+              "transform",
+              `translate(${a.x} ${a.y}) rotate(${(angle * 180) / Math.PI})`,
+            );
+            arrow.setAttribute("stroke", route.inbound ? "#a2e6be" : "#82dce9");
+            arrow.setAttribute("fill", "none");
+            arrow.setAttribute("stroke-width", ".7");
+            currentLayer.append(arrow);
+          }
         }
       }
       if (previousRiverPaths !== riverPaths) {

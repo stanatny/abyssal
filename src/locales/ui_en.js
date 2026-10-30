@@ -1,4 +1,25 @@
 export const UI_EN = Object.freeze({
+  表层洋流隧道: "Surface current lanes",
+  快速航路: "Fast travel route",
+  临时双向航路: "Temporary return routes",
+  浅海与外海上方的近水面航道:
+    "Near-surface lanes between the shallows and offshore waters",
+  "顺流加速 · 逆流受阻": "Ride downstream · Resist upstream",
+  "开局{0}秒后开始形成，经过{1}秒后开放{2}秒，再用{3}秒消散；每{4}秒重现。两条分开的洋流分别通往外海和浅海，雷达箭头标示流向。":
+    "Forms {0}s after departure, opens after {1}s for {2}s, then fades over {3}s; repeats every {4}s. Separate lanes lead offshore and back to the shallows. Radar arrows show their direction.",
+  "水纹和微泡沿下游移动。顺流可快速穿行，逆流会被顶回；侧游或下潜离开航道后恢复普通游速。慢游只降低自身游速，不能抵消水流。洋流不额外消耗体力，不强制转向或下潜；碰撞、伤害与饥饿仍然有效。":
+    "Water wisps and bubbles move downstream. Ride with them for fast travel; swimming upstream pushes you back. Steer sideways or dive out of the lane to regain normal travel. Slow swimming does not stop the water. Currents cost no extra stamina, never force your heading or depth, and preserve collisions, damage and hunger.",
+  "近海洋流正在形成 · 雷达箭头标出往返方向":
+    "Surface currents forming · Radar arrows show both routes",
+  "进入洋流 · 水纹指向下游，侧游或下潜可离开":
+    "Current flows with the wisps · Steer aside or dive to leave",
+  "逆流受阻 · 侧游或下潜离开洋流":
+    "Against the current · Steer aside or dive to leave",
+  "逆流受阻 → 浅海": "Pushed back → Shallows",
+  "逆流受阻 → 外海": "Pushed back → Offshore",
+  "洋流 → 浅海": "Current → Shallows",
+  "洋流 → 外海": "Current → Offshore",
+
   "正在加载外观…": "Loading appearance…",
   "外观未加载 · 点击重试": "Appearance unavailable · Retry",
   "仅展示当前远征规则的成绩；旧规则记录仍保存在本机。":

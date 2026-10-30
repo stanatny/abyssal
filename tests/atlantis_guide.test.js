@@ -94,7 +94,7 @@ test("the guide's full and regional catalogs agree with actual species and lord 
   const catalog = buildOceanCatalog();
   assert.equal(
     catalog.length,
-    180 + REGIONAL_RARES.length + PENGLAI_TRANSFORMATION_FORMS.length,
+    181 + REGIONAL_RARES.length + PENGLAI_TRANSFORMATION_FORMS.length,
   );
   assert.equal(
     catalog.filter((e) =>
@@ -102,7 +102,7 @@ test("the guide's full and regional catalogs agree with actual species and lord 
         (id) => id !== "europa" && id !== "penglai" && id !== "odyssey",
       ),
     ).length,
-    104 +
+    105 +
       REGIONAL_RARES.filter(
         (s) => !["europa", "penglai", "odyssey"].includes(s.regionId),
       ).length,
@@ -114,6 +114,10 @@ test("the guide's full and regional catalogs agree with actual species and lord 
   );
   for (const region of REGIONS.filter((entry) => entry.available)) {
     const visible = filterOceanCatalog(catalog, { regionId: region.id });
+    assert.equal(
+      visible.some((e) => e.kind === "surface_ocean_currents"),
+      ["hawaii", "atlantis", "bermuda", "odyssey"].includes(region.id),
+    );
     assert.deepEqual(
       kinds(ordinary(visible)),
       kinds([

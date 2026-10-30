@@ -137,7 +137,7 @@ test("通关角色与成绩一起持久保存，改名和新角色扩展不会�
 
 test("Revised expeditions keep old records without ranking them against new objectives", () => {
   const disk = storage();
-  const ids = ["hawaii", "europa", "amazon", "atlantis"];
+  const ids = ["mariana", "europa", "amazon", "atlantis"];
   disk.setItem(
     RUN_RECORD_KEY,
     JSON.stringify({
@@ -154,7 +154,7 @@ test("Revised expeditions keep old records without ranking them against new obje
     }),
   );
   const store = createRunRecordStore(disk, ids);
-  assert.equal(store.list("hawaii")[0].id, "old-hawaii");
+  assert.equal(store.list("mariana")[0].id, "old-mariana");
   for (const region of ids.slice(1)) {
     assert.deepEqual(store.list(region), []);
     for (let i = 0; i < 12; i++)
@@ -168,4 +168,30 @@ test("Revised expeditions keep old records without ranking them against new obje
   const reloaded = createRunRecordStore(disk, ids);
   for (const region of ids.slice(1))
     assert.deepEqual(reloaded.list(region), store.list(region));
+});
+
+test("Ocean current runs rank separately while both older record generations survive saving", () => {
+  const disk = storage(),
+    ids = ["hawaii", "atlantis", "bermuda", "odyssey"];
+  const old = ids.map((region) => ({
+    id: `old-${region}`,
+    region,
+    character: "orca",
+    timeMs: 1000,
+    name: "Old",
+    at: 1,
+    ruleset:
+      region === "atlantis" ? "expedition-2026-10-14" : "survival-2026-10",
+  }));
+  disk.setItem(RUN_RECORD_KEY, JSON.stringify({ version: 1, rows: old }));
+  const store = createRunRecordStore(disk, ids);
+  for (const id of ids) {
+    assert.deepEqual(store.list(id), []);
+    store.record(run(`new-${id}`, id, 100));
+    assert.equal(store.list(id)[0].ruleset, "currents-2026-10-30");
+  }
+  const saved = JSON.parse(disk.getItem(RUN_RECORD_KEY));
+  for (const row of old) assert.ok(saved.rows.some((r) => r.id === row.id));
+  const reloaded = createRunRecordStore(disk, ids);
+  for (const id of ids) assert.equal(reloaded.list(id).length, 1);
 });

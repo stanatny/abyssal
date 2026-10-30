@@ -1,3 +1,4 @@
+import { oceanCurrentGuideEntry } from "./ocean_current_catalog.js";
 import {
   createGraphicsRecovery,
   createEnvironmentCache,
@@ -406,6 +407,7 @@ export function buildOceanCatalog(regionId) {
       counter:
         "喷流仅覆盖喷口上方约42米、半径10米的水体；横向绕行即可避开。它们不封锁守关入口、古城宝藏或育幼区，也不会提供食物。",
     },
+    oceanCurrentGuideEntry(),
     ...deepHazardGuideEntries(),
     ...penglaiSkyHazardGuideEntries(),
     ...REGIONAL_RARES.map((config) => ({
