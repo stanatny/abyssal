@@ -146,6 +146,9 @@ export function fitOdysseyEcology(species) {
               Math.max(entry.length * 0.6 + 8, y - odysseySeabedHeight(x, z)),
             );
           });
+        // 从西侧重复栖地调一只成年猎手至漩涡东侧，保持总量和既有非猎食补给。
+        if (entry.kind === "abyss_lamprey")
+          homes[1] = groundHome(100, -1455, 45);
         e.spawnAnchors = homes;
         e.scatterPopulation = false;
         e.population = homes.length;

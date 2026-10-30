@@ -91,6 +91,24 @@ test("Every Europa lord has three accessible adult meals and one 30m threat, wit
       const near = adults.filter((e) => e.p.distanceTo(center) < 180);
       const food = near.filter((e) => !e.s.predator && e.s.length < 25);
       assert.equal(food.length, 3, `${boss.id} finite reserve`);
+      const hunterFood = near.filter((e) => e.s.predator && e.s.length < 25);
+      assert.equal(
+        hunterFood.length,
+        1,
+        `${boss.id}: one medium hunter reserve`,
+      );
+      const reserve = hunterFood[0];
+      assert.ok(preyMealReward(30, reserve.s).nutrition >= 30);
+      assert.equal(
+        !!castBodySegment(center, reserve.p, {
+          colliders: ocean.colliders,
+          radius: bodyRadius(30),
+          length: 30,
+          forward: reserve.p.clone().sub(center).normalize(),
+        }),
+        false,
+        `${boss.id}: hunter food access`,
+      );
       for (const e of food) {
         assert.ok(
           e.p.distanceTo(center) >= 60 && e.p.distanceTo(center) <= 130,

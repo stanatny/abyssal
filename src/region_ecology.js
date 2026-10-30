@@ -1,3 +1,4 @@
+import { fitRegionalLordHabitats } from "./regional_lord_habitats.js";
 import { fitOdysseyEcology } from "./odyssey_ecology.js";
 import { ODYSSEY_SPECIES } from "./odyssey_species.js";
 import { PENGLAI_SPECIES } from "./penglai_species.js";
@@ -209,7 +210,7 @@ const REGION_SPECIES = Object.freeze(
             ? fitEuropaEcology(distributed)
             : id === "penglai"
               ? fitPenglaiEcology(distributed)
-              : distributed,
+              : fitRegionalLordHabitats(id, distributed),
       ];
     }),
   ),

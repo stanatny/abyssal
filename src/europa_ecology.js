@@ -26,6 +26,9 @@ const HOME_REPLACEMENTS = {
   // outside its pressure rooms, on the eastern rim and the basin approach.
   prism_hunter: {
     2: [240, -380, -445],
+    // 三处战区各有中型猎手补给，复用旧库存，不只提供滤食动物。
+    3: [-60, -720, -760],
+    7: [-205, -380, -430],
     4: [250, -425, -500],
     5: [135, -500, -600],
     6: [10, -490, -570],
@@ -59,6 +62,10 @@ export function fitEuropaEcology(species) {
       return Object.freeze({
         ...entry,
         spawnAnchors: Object.freeze(spawnAnchors),
+        depthMax:
+          entry.kind === "prism_hunter"
+            ? Math.max(entry.depthMax, ...spawnAnchors.map((p) => -p[1] + 35))
+            : entry.depthMax,
       });
     }),
   );

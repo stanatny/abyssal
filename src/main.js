@@ -1,3 +1,4 @@
+import { fitHawaiiEncounterHabitats } from "./regional_lord_habitats.js";
 import { loadRegionEnvironment } from "./region_environment.js";
 import { nearbyOrdinaryBodies, stopOrdinaryAtPlayer } from "./ordinary_body.js";
 import {
@@ -1502,6 +1503,11 @@ function addEntity(species, location, populationIndex = 0) {
   return entity;
 }
 function seedPopulation() {
+  const roundSpecies =
+    expedition.region.id === "hawaii"
+      ? fitHawaiiEncounterHabitats(speciesList(), encounters.bosses)
+      : speciesList();
+  const roundHomes = new Map(roundSpecies.map((s) => [s.kind, s]));
   rareDiscovery.reset();
   for (const entity of entities) {
     restoreMythicForm(entity);
@@ -1518,7 +1524,7 @@ function seedPopulation() {
       (existing.get(entity.species.kind) || 0) + 1,
     );
   for (const species of [
-    ...speciesList(),
+    ...roundSpecies,
     getRegionalRare(expedition.region.id),
   ].filter(Boolean)) {
     const count =
@@ -1536,6 +1542,14 @@ function seedPopulation() {
     const index = speciesIndices.get(entity.species.kind) || 0;
     speciesIndices.set(entity.species.kind, index + 1);
     entity.populationIndex = index;
+    // 重新开局或从地图缓存恢复时刷新随机领主的外围栖地；复活仍使用本轮配置。
+    if (
+      expedition.region.id === "hawaii" &&
+      ["ichthyotitan", "basilosaurus", "megalodon"].includes(
+        entity.species.kind,
+      )
+    )
+      entity.species = roundHomes.get(entity.species.kind);
     if (isRegionalRare(entity.species)) {
       entity.species = chooseRareHabitat(getRegionalRare(expedition.region.id));
       entity.elusiveState = {};

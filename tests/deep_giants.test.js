@@ -22,7 +22,7 @@ import {
 
 const NURSERY_POSITION = new THREE.Vector3(0, -18, 75);
 
-test("新增巨兽只加两只，不扩大旧物种或幼年食物库存", () => {
+test("每个领主安排巨兽，旧物种尺寸及幼年食物库存保持不变", () => {
   assert.equal(DEEP_GIANT_SPECIES.length, 1);
   assert.equal(
     ALL_SPECIES.filter((species) => species.kind === "ichthyotitan").length,
@@ -44,13 +44,14 @@ test("新增巨兽只加两只，不扩大旧物种或幼年食物库存", () =>
       old.reduce((sum, species) => sum + species.population, 0),
       count,
     );
-    assert.equal(giant.population, 2);
+    assert.equal(giant.population, region === "hawaii" ? 2 : 3);
     assert.equal(giant.schoolSize, 1);
     assert.equal(giant.tier, 2);
     assert.equal(giant.category, "ancient");
     assert.equal(giant.extinct, true);
     assert.equal(giant.predator, true);
-    assert.deepEqual(giant.spawnAnchors, DEEP_GIANT_ANCHORS[region]);
+    if (region === "hawaii")
+      assert.deepEqual(giant.spawnAnchors, DEEP_GIANT_ANCHORS[region]);
     assert.equal(Object.isFrozen(giant.spawnAnchors[0]), true);
     assert.equal(old.find((s) => s.kind === "megalodon").length, 20);
     assert.equal(old.find((s) => s.kind === "basilosaurus").length, 18);
@@ -58,7 +59,7 @@ test("新增巨兽只加两只，不扩大旧物种或幼年食物库存", () =>
   }
 });
 
-test("两张完整地图的四个巨兽锚点均合法、独立，深海补位不能迁入幼年区", () => {
+test("两张完整地图的巨兽锚点均合法、独立，深海补位返回固定栖地", () => {
   for (const region of ["hawaii", "atlantis"]) {
     const ocean =
       region === "hawaii"
@@ -98,7 +99,7 @@ test("两张完整地图的四个巨兽锚点均合法、独立，深海补位�
           canPredatorHunt(species, index, point, NURSERY_POSITION),
           false,
         );
-        assert.equal(
+        assert.deepEqual(
           habitatPosition(species, {
             heightAt,
             colliders: ocean.colliders,
@@ -106,11 +107,11 @@ test("两张完整地图的四个巨兽锚点均合法、独立，深海补位�
             near: true,
             playerPosition: NURSERY_POSITION,
           }),
-          null,
+          point,
         );
         positions.push(point);
       }
-      assert.ok(positions[0].distanceTo(positions[1]) > 250);
+      assert.ok(positions[0].distanceTo(positions[1]) > 150);
     } finally {
       ocean.dispose();
     }

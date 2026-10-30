@@ -64,8 +64,8 @@ test("横向分群保持人数、水层和资源，明确的育幼与建筑栖�
 test("五海域实际分群库存完整，出生深度与每一群的固定水层一致", () => {
   const counts = {
     hawaii: 516,
-    atlantis: 560,
-    bermuda: 467,
+    atlantis: 561,
+    bermuda: 469,
     mariana: 458,
     europa: 352,
   };

@@ -70,7 +70,7 @@ test("The final Mariana pipeline keeps two unchanged adult hunters in each pre-g
   assert.equal(canEat({ length: 28 }, giant.length), false);
 });
 
-test("Only five ordinary instances are added and the other seven regional inventories stay intact", () => {
+test("Mariana retains its stock while the regional guard audit adds only three hunters elsewhere", () => {
   assert.equal(roster.length, 22);
   assert.equal(
     roster.reduce((n, s) => n + s.population, 0),
@@ -78,8 +78,8 @@ test("Only five ordinary instances are added and the other seven regional invent
   );
   for (const [region, count] of Object.entries({
     hawaii: 516,
-    atlantis: 560,
-    bermuda: 467,
+    atlantis: 561,
+    bermuda: 469,
     amazon: 409,
     europa: 352,
     penglai: 393,

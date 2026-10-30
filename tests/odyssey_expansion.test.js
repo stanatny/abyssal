@@ -95,6 +95,12 @@ test("each guardian has a nearby adult threat and two or three adult meals outsi
       `${boss.kind}: ${meals.length}`,
     );
     assert.ok(meals.every((e) => e.d > 100));
+    assert.ok(
+      nearby.some(
+        (e) => e.s.predator && e.s.length >= 10 && e.s.length < 25 && e.d < 180,
+      ),
+      `${boss.kind}: medium/large hunter reserve`,
+    );
   }
 });
 

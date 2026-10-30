@@ -1,5 +1,21 @@
 # ABYSSAL
 
+Eight-region ecology accepted for local checkpoint — 2026-10-30: the user accepts
+the delivered ecology adjustment and requests a local commit before a separate
+creature-attitude review. All 2,082 delivered input hashes match before these
+acceptance-only notes. The recorded 2,091 tests and native/public checks apply
+to unchanged runtime inputs; no repeated runtime run is claimed. No push or
+version bump is requested. Earlier candidate labels retain their historical
+scope. See [the ecology review](docs/all_region_ecology_revision.md).
+
+Eight-region ecology candidate — 2026-10-30: the user requests a full map-by-map
+nursery, catalogue, guard and adult-supply audit. Regional habitat data now repair
+thin or crowded lord outskirts, with one additional Atlantis giant and two in
+Bermuda; all other ordinary stock is reused. Actual native coverage, 30 m guard
+attacks and normal supply replenishment are checked. Existing art/audio, shared
+combat/reward rules and regional objectives remain. Uncommitted/unpushed; see
+[the ecology review](docs/all_region_ecology_revision.md).
+
 Main publication v0.11.23 — 2026-10-29: the user accepts all eight regional
 music groups and explicitly requests a commit and push to main after the playable
 preview. Integrate the accepted Hawaii theme extension, 22 selected recordings,

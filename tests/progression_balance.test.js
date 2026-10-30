@@ -19,8 +19,8 @@ import {
 test("八海域保持数量、各水层食物和领主阶段的大型猎物", () => {
   for (const [region, total] of Object.entries({
     hawaii: 516,
-    atlantis: 560,
-    bermuda: 467,
+    atlantis: 561,
+    bermuda: 469,
     mariana: 458,
     amazon: 409,
     europa: 352,
@@ -130,7 +130,7 @@ test("大型空中猎手各自的初始栖地不重叠，地下城后方补给�
   );
   for (const kind of ["basilosaurus", "megalodon"]) {
     const s = getRegionSpecies("atlantis").find((s) => s.kind === kind);
-    assert.equal(s.residentRadius, 65);
+    assert.equal(s.residentRadius, 25);
     assert.ok(s.spawnAnchors.length >= s.population);
   }
 });
