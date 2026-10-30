@@ -1,4 +1,8 @@
 import {
+  creaturePitchLimit,
+  updateCreatureAttitude,
+} from "./creature_attitude.js";
+import {
   scyllaCanAim,
   steerScyllaSwim,
   updateScyllaSwimAttitude,
@@ -741,7 +745,7 @@ function updateAbilityFx(
     fx.paths.material.opacity = windup ? 0.25 + phaseT * 0.2 : 0.12;
   } else if (fx.ability === "water") {
     fx.group.position.copy(entry.waterOrigin);
-    fx.group.quaternion.setFromUnitVectors(UP_AXIS, entry.heading);
+    fx.group.quaternion.setFromUnitVectors(UP_AXIS, entry.waterDirection);
     const range = entry.waterRange;
     const radius = state.species.breathRadius;
     fx.stream.position.y = range / 2;
@@ -1144,6 +1148,7 @@ export function createEncounters(
       grapple: createKrakenGrapple(),
       grappleForces: krakenGrappleForces(Infinity),
       waterOrigin: new THREE.Vector3(),
+      waterDirection: new THREE.Vector3(0, 0, -1),
       waterRange: species.breathRange ?? 0,
       contactCooldown: 0,
       phaseHit: false,
@@ -1291,6 +1296,7 @@ export function createEncounters(
     }
     entry.attackOrigin.set(0, 0, 0);
     entry.lockTarget.set(0, 0, 0);
+    entry.waterDirection.set(0, 0, -1);
     entry.lockedVelocity.set(0, 0, 0);
     entry.slot = index;
     entry.label.position.copy(entry.home).add(new THREE.Vector3(0, 25, 0));
@@ -1574,6 +1580,12 @@ export function createEncounters(
       entry.waterOrigin
         .copy(entry.mesh.position)
         .addScaledVector(entry.heading, entry.state.species.length * 0.35);
+    // 身体有独立的俯仰/避障约束。水路必须从实际吻端指向已锁定点，
+    // 不能把身体中心的航向平移到龙吻，也不能在锁定后重新追踪玩家。
+    entry.waterDirection.copy(entry.lockTarget).sub(entry.waterOrigin);
+    if (entry.waterDirection.lengthSq() < 1e-10)
+      entry.waterDirection.copy(entry.heading);
+    else entry.waterDirection.normalize();
     const end = entry.motion.lookahead;
     entry.waterRange = entry.state.species.breathRange;
     for (
@@ -1581,7 +1593,9 @@ export function createEncounters(
       distance <= entry.state.species.breathRange;
       distance += 5
     ) {
-      end.copy(entry.waterOrigin).addScaledVector(entry.heading, distance);
+      end
+        .copy(entry.waterOrigin)
+        .addScaledVector(entry.waterDirection, distance);
       if (blockedBetween(entry.waterOrigin, end)) {
         entry.waterRange = Math.max(0, distance - 5);
         break;
@@ -2344,9 +2358,11 @@ export function createEncounters(
                 entry.mesh.rotation.y,
                 entry.mesh.userData.aquaticPitchLimit,
               )
-            : entry.motion.orientation.setFromUnitVectors(
-                FORWARD_AXIS,
+            : aquaticHeading(
+                entry.motion.orientation,
                 entry.heading,
+                entry.mesh.rotation.y,
+                creaturePitchLimit(state.species, entry.mesh.userData),
               );
       // 地面与限俯仰游姿的移动朝向已平滑；再次滞后会让躯体横滑并偏离已验证的占地。
       if (entry.navigation?.recoveredThisFrame) {
@@ -2373,7 +2389,14 @@ export function createEncounters(
         Number.isFinite(entry.mesh.userData.aquaticPitchLimit)
       )
         entry.mesh.quaternion.copy(orientation);
-      else entry.mesh.quaternion.slerp(orientation, Math.min(1, dt * 2));
+      else
+        updateCreatureAttitude(
+          entry.mesh.quaternion,
+          entry.heading,
+          dt,
+          creaturePitchLimit(state.species, entry.mesh.userData),
+          2,
+        );
       if (
         entry.navigation &&
         !lordMoveClear(
@@ -2436,6 +2459,11 @@ export function createEncounters(
             : recover
               ? 0.5 * Math.max(0, 1 - state.timer / 0.6)
               : 0) * TIDAL_LOOM.sweep,
+      );
+      entry.mesh.userData.setAzureBreathTarget?.(
+        (windup || attack) && state.ability === "water"
+          ? entry.lockTarget
+          : null,
       );
       entry.mesh.userData.setKrakenGrip?.(
         attack && entry.grapple.held ? 1 : windup ? 0.2 : 0,
@@ -2674,7 +2702,7 @@ export function createEncounters(
           inWaterBreath(
             position,
             entry.waterOrigin,
-            entry.heading,
+            entry.waterDirection,
             entry.waterRange,
             state.species.breathRadius,
             player.length * 0.12,

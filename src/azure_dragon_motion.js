@@ -13,6 +13,15 @@ export function createAzureDragonMotion(root, bones, axial, head, legs) {
   const absolute = axial.ids.map(() => new T.Quaternion());
   const previousInverse = new T.Quaternion(),
     euler = new T.Euler(0, 0, 0, "YXZ");
+  const aim = { enabled: false, target: new T.Vector3(), pitch: 0, yaw: 0 };
+  const localTarget = new T.Vector3(),
+    headPivot = new T.Vector3(...head.points[2]),
+    neckAim = new T.Quaternion();
+  root.userData.azureBreathAim = aim;
+  root.userData.setAzureBreathTarget = (target) => {
+    aim.enabled = Boolean(target);
+    if (target) aim.target.copy(target);
+  };
   root.userData.azureUndulation = state;
   root.userData.setSwimTravel = (distance, dt) => {
     if (!(dt > 0) || !Number.isFinite(distance)) return;
@@ -21,6 +30,9 @@ export function createAzureDragonMotion(root, bones, axial, head, legs) {
   };
   root.userData.resetSwimTravel = () => {
     Object.assign(state, { phase: 0, drive: 0, speed: 0, worldTravel: false });
+    aim.enabled = false;
+    aim.pitch = aim.yaw = 0;
+    aim.target.set(0, 0, 0);
   };
   return (dt, effort, brace) => {
     const target = state.worldTravel
@@ -51,6 +63,33 @@ export function createAzureDragonMotion(root, bones, axial, head, legs) {
     bones[head.ids[0]].quaternion.copy(absolute[0]).invert();
     bones[head.ids[1]].rotation.x =
       -brace * 0.035 + Math.sin(state.phase) * 0.018 * (1 - brace);
+    // 龙身保持平稳，颈部在有限关节范围内抬头/低头瞄准。
+    // 使用锁定的世界坐标，避免攻击期间头部追踪已经闪开的玩家。
+    let pitch = 0,
+      yaw = 0;
+    if (aim.enabled) {
+      root.updateWorldMatrix(true, false);
+      root.worldToLocal(localTarget.copy(aim.target));
+      localTarget.sub(headPivot);
+      pitch = T.MathUtils.clamp(
+        Math.atan2(localTarget.y, Math.hypot(localTarget.x, localTarget.z)),
+        -0.75,
+        0.75,
+      );
+      yaw = T.MathUtils.clamp(
+        Math.atan2(-localTarget.x, -localTarget.z),
+        -0.6,
+        0.6,
+      );
+    }
+    const step = Math.max(0, dt) * 1.8;
+    aim.pitch += T.MathUtils.clamp(pitch - aim.pitch, -step, step);
+    aim.yaw += T.MathUtils.clamp(yaw - aim.yaw, -step, step);
+    neckAim.setFromEuler(euler.set(aim.pitch * 0.65, aim.yaw * 0.65, 0, "YXZ"));
+    bones[head.ids[0]].quaternion.multiply(neckAim);
+    bones[head.ids[1]].rotation.x += aim.pitch * 0.25;
+    bones[head.ids[1]].rotation.y = aim.yaw * 0.25;
+    bones[head.ids[2]].rotation.set(aim.pitch * 0.1, aim.yaw * 0.1, 0, "YXZ");
     for (const c of legs) {
       const wave = state.phase - (c.front ? 0 : 2.8);
       bones[c.ids[0]].rotation.y =

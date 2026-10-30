@@ -1,3 +1,7 @@
+import {
+  creaturePitchLimit,
+  updateCreatureAttitude,
+} from "./creature_attitude.js";
 import { fitHawaiiEncounterHabitats } from "./regional_lord_habitats.js";
 import { loadRegionEnvironment } from "./region_environment.js";
 import { nearbyOrdinaryBodies, stopOrdinaryAtPlayer } from "./ordinary_body.js";
@@ -27,7 +31,6 @@ import {
   stepMythicTransformation,
 } from "./mythic_transformations.js";
 import { steerElusiveRare } from "./regional_rare_pursuit.js";
-import { aquaticHeading } from "./aquatic_reptile_motion.js";
 import { createSwimmingSpacing, turnSwimmingBody } from "./swimming_spacing.js";
 import {
   getRegionalRare,
@@ -39,11 +42,7 @@ import { createRareDiscovery } from "./regional_rare_discovery.js";
 import { trimPopulationCache } from "./population_cache.js";
 import { attachRareMarker } from "./regional_rare_marker.js";
 import { rareMarkerPalette } from "./regional_rare_palette.js";
-import {
-  aerialFormationPose,
-  createAerialSpacing,
-  aerialHeadingQuaternion,
-} from "./aerial_flocks.js";
+import { aerialFormationPose, createAerialSpacing } from "./aerial_flocks.js";
 import "./penglai_ui.css";
 import {
   PENGLAI_FLIGHT_HELP,
@@ -325,7 +324,6 @@ const entityOrientation = new THREE.Quaternion();
 const entityUnitVelocity = new THREE.Vector3();
 const entityScreenPoint = new THREE.Vector3();
 const targetScreenPoint = new THREE.Vector3();
-const modelForward = new THREE.Vector3(0, 0, -1);
 const captureContact = new THREE.Vector3();
 const preyContact = new THREE.Vector3();
 const swallowPoint = new THREE.Vector3();
@@ -2584,7 +2582,7 @@ function updateEntities(dt) {
     }
     if (stepFlyingFish(entity, dt, player.elapsed, position)) {
       mesh.visible = mesh.position.distanceTo(position) < 180;
-      mesh.quaternion.setFromUnitVectors(modelForward, entity.velocity);
+      updateCreatureAttitude(mesh.quaternion, entity.velocity, dt, 1.4, 8);
       mesh.userData.animate?.(elapsed + entity.seed, 1.4);
       eatEntity(entity, mouth, previousPreyPosition, dt);
       continue;
@@ -3202,20 +3200,11 @@ function updateEntities(dt) {
         ),
       );
     } else if (!(species.swimClearance > 0))
-      mesh.quaternion.slerp(
-        species.flying
-          ? aerialHeadingQuaternion(entityOrientation, entity.velocity)
-          : mesh.userData.aquaticUpright
-            ? aquaticHeading(
-                entityOrientation,
-                entity.velocity,
-                mesh.rotation.y,
-              )
-            : entityOrientation.setFromUnitVectors(
-                modelForward,
-                entityUnitVelocity.copy(entity.velocity).normalize(),
-              ),
-        Math.min(1, dt * 3),
+      updateCreatureAttitude(
+        mesh.quaternion,
+        entity.velocity,
+        dt,
+        creaturePitchLimit(species, mesh.userData),
       );
     mesh.userData.updateRareShimmer?.(
       elapsed,

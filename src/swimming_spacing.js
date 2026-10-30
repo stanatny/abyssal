@@ -1,3 +1,4 @@
+import { creaturePitchLimit } from "./creature_attitude.js";
 import * as THREE from "three";
 
 const heading = new THREE.Euler(0, 0, 0, "YXZ");
@@ -8,10 +9,11 @@ export function turnSwimmingBody(entity, direction, dt) {
   const horizontal = Math.hypot(direction.x, direction.z);
   const yaw =
     horizontal > 1e-5 ? Math.atan2(-direction.x, -direction.z) : heading.y;
+  const pitchLimit = creaturePitchLimit(entity.species, entity.mesh.userData);
   const pitch = THREE.MathUtils.clamp(
     Math.atan2(direction.y, horizontal),
-    -1.4,
-    1.4,
+    -pitchLimit,
+    pitchLimit,
   );
   const limit = dt * Math.min(3, 1.6 + 16 / entity.species.length);
   const yawDelta =

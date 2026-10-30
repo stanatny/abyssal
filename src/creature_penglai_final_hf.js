@@ -1,4 +1,8 @@
 import * as T from "three";
+import {
+  createGroundFootPlant,
+  legHeightWeights,
+} from "./ground_foot_plant.js";
 import { penglaiFinalAsset, penglaiFinalFit } from "./penglai_final_asset.js";
 import { bindOrganicBody } from "./hf_organic_asset.js";
 import {
@@ -110,7 +114,13 @@ export function buildPenglaiFinalHF(kind, root, motions) {
         }
       }
       // Blend only the actual under-body leg regions, never a nearest limb through the belly.
-      const candidates = legs.map((c) => ({ c, near: nearestChain(point, c) }));
+      const candidates = legs.map((c) => ({
+        c,
+        near: {
+          ...nearestChain(point, c),
+          ...(kind === "taotie" ? legHeightWeights(y, c) : {}),
+        },
+      }));
       const closest = Math.min(...candidates.map((v) => v.near.distance));
       const low = 1 - smooth(fit.legY - 0.08, fit.legY + 0.025, y);
       const coverage = low * (1 - smooth(0.075, 0.14, Math.sqrt(closest)));
@@ -189,10 +199,14 @@ export function buildPenglaiFinalHF(kind, root, motions) {
         root.updateMatrixWorld(true);
         return [bones[axis.ids[0]].localToWorld(local.clone())];
       };
-    } else
-      root.userData.getHeadWorldPositions = () => [
-        root.localToWorld(head.clone()),
-      ];
+    } else {
+      root.userData.getHeadWorldPositions = () => {
+        root.updateMatrixWorld(true);
+        return [
+          (kind === "taotie" ? bones[0] : root).localToWorld(head.clone()),
+        ];
+      };
+    }
   }
   root.userData.prepareMaterials = asset.prepare;
   asset.prepare();
@@ -225,6 +239,9 @@ export function buildPenglaiFinalHF(kind, root, motions) {
   const abs = axis?.ids.map(() => new T.Quaternion()),
     inv = new T.Quaternion(),
     euler = new T.Euler(0, 0, 0, "YXZ");
+  const plantFeet =
+    kind === "taotie" ? createGroundFootPlant(root, bones, legs) : null;
+  const footCycles = legs.map(() => 0);
   motions.push((phase, effort, state) => {
     if (axis) {
       for (let i = 0; i < axis.ids.length; i++) {
@@ -297,9 +314,17 @@ export function buildPenglaiFinalHF(kind, root, motions) {
               1,
             )
           : 1;
+      // Navigation retains a safety margin; remove it from the visual rig so
+      // the sole touches the terrain instead of hovering above it.
+      bones[0].position.y = state?.groundContacts
+        ? -0.015 - 0.12 / Math.max(1, root.scale.x)
+        : 0;
       // A four-beat walk: planted paws travel backward relative to the trunk,
       // then lift and recover. Fit each asymmetric generated leg in its own rest frame.
-      for (const { c, length1, length2, angle1, bend } of stride) {
+      for (const [
+        legIndex,
+        { c, length1, length2, angle1, bend },
+      ] of stride.entries()) {
         // A blocked or stopped walker keeps its last planted stance.
         if (state && moving === 0) continue;
         const offset = (c.side === 1 ? 0.5 : 0) + (c.front ? 0 : 0.25);
@@ -307,6 +332,7 @@ export function buildPenglaiFinalHF(kind, root, motions) {
           gait / (Math.PI * 2) + offset,
           1,
         );
+        footCycles[legIndex] = cycle;
         const stance = 0.62;
         const swing = T.MathUtils.clamp((cycle - stance) / (1 - stance), 0, 1);
         const z =
@@ -341,10 +367,12 @@ export function buildPenglaiFinalHF(kind, root, motions) {
           Math.cos(hip - angle1),
         );
         const kneeRotation = knee - bend;
-        bones[c.ids[0]].rotation.x = hipRotation;
-        bones[c.ids[1]].rotation.x = kneeRotation;
-        bones[c.ids[2]].rotation.x = -(hipRotation + kneeRotation);
+        bones[c.ids[0]].rotation.set(hipRotation, 0, 0);
+        bones[c.ids[1]].rotation.set(kneeRotation, 0, 0);
+        bones[c.ids[2]].rotation.set(-(hipRotation + kneeRotation), 0, 0);
       }
+      if (!state || moving > 0 || state.phase !== "walk")
+        plantFeet(state, footCycles, 0.62);
       neck.ids.forEach(
         (id, i) =>
           (bones[id].rotation.x = Math.sin(phase * 0.4 - i * 0.3) * 0.018),

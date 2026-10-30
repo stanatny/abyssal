@@ -1,5 +1,53 @@
 # ABYSSAL Penglai HF redraw — 2026-10-27
 
+Creature and Penglai follow-ups accepted for local checkpoint — 2026-10-30:
+the user requests a local commit before a separate ocean-current gameplay feature.
+All 2,098 delivered input hashes match before these acceptance notes. This includes
+creature attitude/aiming, Taotie and Zheng alignment/motion, island winding and
+HF bamboo. The delivered 2,108-test result and native/public checks apply to those
+unchanged runtime inputs. Earlier uncommitted/candidate labels retain their
+historical scope and are superseded for this checkpoint. No push, version bump
+or main release is requested. The new current system is a separate candidate.
+
+Penglai ground-motion follow-up — 2026-10-30: the user reports Zheng's crooked
+head beside Taotie and sliding Taotie feet. Zheng receives a gradual offline skull
+alignment; Taotie gains world-space support steps and continuous knee bindings.
+Related ground beasts receive stride timing corrections. Actual world walking,
+turning, leap, pause and 30 m player damage are checked; 2,108 tests pass.
+Uncommitted/unpushed, awaiting visual review. See
+[the ground-motion review](docs/penglai_ground_motion_revision.md).
+
+Penglai island / bamboo follow-up — 2026-10-30: the user accepts the steep-target
+Azure Dragon aiming correction and reports see-through floating islands plus
+primitive bamboo at White Tiger's habitat. All six islands now have outward-facing
+triangles; ten existing bamboo anchors use a new HF TRELLIS.2 clump. Collider
+layout, creatures and combat remain unchanged. Uncommitted/unpushed; see
+[the scenery review](docs/penglai_island_bamboo_revision.md).
+
+Steep-target aiming follow-up — 2026-10-30: the user reports Azure Dragon
+missing a diagonally elevated player. Water breath now shares an actual-mouth to
+locked-point ray across rendering, obstruction and damage; bounded neck aiming
+uses continuous bindings. Upper/lower attacks are checked for eight other lords,
+with additional native Azure/Hydra/Sword Sage and ordinary hunter cases. The full
+suite passes 2,102 tests. Uncommitted/unpushed; see
+[the aiming follow-up](docs/creature_attitude_revision.md#steep-target-aiming-correction--2026-10-30).
+
+Taotie head / roster follow-up — 2026-10-30: the user reopens Taotie's crooked
+head and asks for broader creature coverage. Its static skull axis is aligned
+offline while preserving skin topology, color and gait. The expanded review
+separates 157 controlled kinds, 61 visually inspected kinds and six actual lord
+encounters; it does not claim every kind has complete native combat coverage.
+Fresh validation passes 2,098 tests. Still uncommitted/unpushed; see
+[the follow-up](docs/creature_attitude_revision.md#taotie-head-and-expanded-roster-review--2026-10-30).
+
+Creature attitude candidate — 2026-10-30: after the accepted ecology checkpoint
+`6d5fb90`, the user requests coherent motion for non-fish, quadrupeds and lords.
+A native Hydra encounter reproduces accidental dorsal inversion from single-vector
+orientation. Separated yaw/pitch and body-specific limits repair generic swimming,
+flying and ascent while preserving specialist ground/guardian/pit-lord controllers.
+The candidate is verified separately and remains uncommitted/unpushed. See
+[the attitude review](docs/creature_attitude_revision.md).
+
 Eight-region ecology accepted for local checkpoint — 2026-10-30: the user accepts
 the delivered ecology adjustment and requests a local commit before a separate
 creature-attitude review. All 2,082 delivered input hashes match before these

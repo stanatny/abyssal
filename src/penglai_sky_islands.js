@@ -66,7 +66,8 @@ export function createPenglaiSkyIslands(parent, colliders) {
         colors.push(color.r, color.g, color.b);
         if (i < rings && j < n) {
           const k = i * (n + 1) + j;
-          indices.push(k, k + n + 1, k + 1, k + 1, k + n + 1, k + n + 2);
+          // 从外侧看向山体，顶面朝上、岩根朝外；不能用双面材质掩盖反绕序。
+          indices.push(k, k + 1, k + n + 1, k + 1, k + n + 2, k + n + 1);
         }
       }
     }

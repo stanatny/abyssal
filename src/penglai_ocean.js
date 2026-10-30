@@ -1,3 +1,4 @@
+import { createPenglaiBambooAsset } from "./penglai_bamboo_asset.js";
 import {
   createPenglaiGardenAsset,
   createPenglaiLotusLeaf,
@@ -918,8 +919,8 @@ export function* createPenglaiOceanSteps(parent) {
     }
     root.userData.summitRoutes = PENGLAI_SUMMIT_ROUTES;
     // 松林轮廓与修竹强调山水环境；落地树干有细小碰撞代理。
-    const pine = material("pine", "#426457"),
-      bamboo = material("bamboo", "#779268");
+    const pine = material("pine", "#426457");
+    const bamboo = createPenglaiBambooAsset(keep);
     const crown = geometry("pine_crown", () => new THREE.ConeGeometry(1, 1, 9));
     for (let j = 0; j < 96; j++) {
       const x = Math.sin(j * 2.399) * 480,
@@ -933,26 +934,21 @@ export function* createPenglaiOceanSteps(parent) {
       )
         continue;
       if (j % 3 === 0) {
-        for (let k = 0; k < 5; k++) {
-          const xx = x + (k - 2) * 1.3,
-            zz = z + Math.sin(k) * 2,
-            h = 15 + k * 1.3;
-          emit(column, bamboo, xx, y + h / 2, zz, 0.18, h, 0.18);
-          for (let n = 0; n < 5; n++)
-            emit(
-              sphere,
-              leaf,
-              xx + (n % 2 ? 2 : -2),
-              y + h - 5 + n,
-              zz,
-              2.6,
-              0.2,
-              0.5,
-              0,
-              0.5 * n,
-              0.2,
-            );
-        }
+        // 一丛同源 HF 竹子取代五根圆柱与扁球叶片，保留原来的竹林锚点。
+        const scale = 0.94 + (j % 4) * 0.04;
+        emit(
+          bamboo.geometry,
+          bamboo.material,
+          x,
+          y - 0.25,
+          z,
+          scale,
+          scale,
+          scale,
+          0,
+          j * 2.399,
+          0,
+        );
       } else {
         emit(column, wood, x, y + 7, z, 0.7, 14, 0.7);
         colliders.push({ kind: "pine_trunk", x, y: y + 7, z, radius: 1.0 });

@@ -866,3 +866,112 @@ test("Lord models are lazy, dormant pools are detached, and all species can be r
     f.encounters.dispose();
   }
 });
+
+test("Azure breath targets the locked point from its animated mouth at steep elevations without rolling the body", () => {
+  for (const hz of [30, 60, 120])
+    for (const angle of [80, -60, -80]) {
+      const f = fixture("azure_dragon");
+      f.player.length = 30;
+      const a = (angle * Math.PI) / 180;
+      f.position.set(20, -400 + Math.sin(a) * 85, -Math.cos(a) * 85);
+      let attacks = 0;
+      while (f.time < 15) {
+        f.step(1 / hz);
+        const e = f.entry;
+        assert.ok(
+          new THREE.Vector3(0, 1, 0).applyQuaternion(e.mesh.quaternion).y >
+            0.65,
+        );
+        if (e.state.phase === "attack") {
+          attacks++;
+          const toLock = e.lockTarget.clone().sub(e.waterOrigin);
+          assert.ok(toLock.clone().cross(e.waterDirection).length() < 1e-6);
+          assert.ok(toLock.dot(e.waterDirection) > 0);
+          const visible = new THREE.Vector3(0, 1, 0).applyQuaternion(
+            e.fx.group.quaternion,
+          );
+          assert.ok(visible.distanceTo(e.waterDirection) < 1e-6);
+          assert.equal(e.waterRange, 145);
+          const mouth = e.mesh.userData.mouthAnchors[0].getWorldPosition(
+            new THREE.Vector3(),
+          );
+          assert.ok(mouth.distanceTo(e.waterOrigin) < 1e-6);
+        }
+        if (e.state.phase === "recover") break;
+      }
+      assert.ok(attacks > 0);
+      assert.equal(f.events.hits, 1, `${hz} Hz / ${angle} degrees`);
+      assert.equal(f.entry.state.phaseDuration, 3.8);
+      f.encounters.dispose();
+    }
+});
+
+test("Steep Azure breath retains its lock window, vertical escape and actual ray obstruction", () => {
+  for (const strategy of ["escape", "cover"]) {
+    const f = fixture("azure_dragon");
+    f.player.length = 30;
+    f.position.set(20, -320, -20);
+    let locked;
+    while (f.time < 15) {
+      const s = f.entry.state;
+      if (
+        s.phase === "windup" &&
+        s.timer >= s.phaseDuration - s.species.lockWindow
+      ) {
+        locked ||= f.entry.lockTarget.clone();
+        if (strategy === "escape") f.position.y += 160 / 60;
+      }
+      f.step(
+        1 / 60,
+        (a, b) => strategy === "cover" && Boolean(locked) && b.y > a.y + 10,
+      );
+      if (f.entry.state.phase === "attack") {
+        assert.ok(f.entry.lockTarget.distanceTo(locked) < 1e-6);
+        if (strategy === "cover") assert.ok(f.entry.waterRange < 40);
+      }
+      if (f.entry.state.phase === "recover") break;
+    }
+    assert.ok(locked);
+    assert.equal(f.events.hits, 0, strategy);
+    f.encounters.dispose();
+  }
+});
+
+test("Other free-swimming aimed lords retain upper and lower damage through a complete ordinary attack cycle", () => {
+  for (const kind of [
+    "hydra",
+    "vermilion_bird",
+    "scylla",
+    "thunderbarbel",
+    "sword_sage",
+    "leviathan",
+    "rootjaw",
+    "lumen_stalker",
+  ]) {
+    for (const angle of [60, -60]) {
+      const f = fixture(kind);
+      f.player.length = 30;
+      const a = (angle * Math.PI) / 180;
+      f.position.set(10, -400 + Math.sin(a) * 75, -Math.cos(a) * 75);
+      const phases = new Set();
+      while (f.time < 20) {
+        f.step();
+        phases.add(f.entry.state.phase);
+        if (f.entry.state.phase === "recover") {
+          // Allow the last projectile to travel after the firing animation.
+          for (let i = 0; i < 120; i++) f.step();
+          break;
+        }
+      }
+      assert.ok(
+        phases.has("windup") && phases.has("attack") && phases.has("recover"),
+        kind,
+      );
+      assert.ok(
+        f.events.hits > 0 && f.player.health < 90,
+        `${kind} / ${angle} degrees`,
+      );
+      f.encounters.dispose();
+    }
+  }
+});

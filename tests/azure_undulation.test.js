@@ -129,3 +129,62 @@ test("Azure world request accelerates into a continuous curved path without chan
     assert.deepEqual(out, aim);
   }
 });
+
+test("Azure neck aiming moves actual head skin continuously, retains its mouth, and pauses/resets independently", () => {
+  const r = createCreature("azure_dragon", 56, 8),
+    other = createCreature("azure_dragon", 56, 9);
+  const m = r.userData.hfRig.mesh,
+    g = m.geometry,
+    p = g.attributes.position;
+  const edges = [],
+    a = new T.Vector3(),
+    b = new T.Vector3();
+  for (let i = 0; i < g.index.count; i += 3) {
+    const j = g.index.getX(i),
+      k = g.index.getX(i + 1);
+    if (p.getZ(j) > -0.2) continue;
+    const d = a
+      .fromBufferAttribute(p, j)
+      .distanceTo(b.fromBufferAttribute(p, k));
+    if (d > 0.001) edges.push({ j, k, d });
+  }
+  r.userData.animate(0, 1);
+  let previous,
+    maxJump = 0,
+    minY = Infinity,
+    maxY = -Infinity;
+  for (let i = 1; i <= 240; i++) {
+    r.userData.setAzureBreathTarget(
+      new T.Vector3(15, i < 120 ? 100 : -100, -60),
+    );
+    r.userData.animate(i / 60, 1);
+    r.updateMatrixWorld(true);
+    m.skeleton.update();
+    const mouth = r.userData.mouthAnchors[0].getWorldPosition(new T.Vector3());
+    minY = Math.min(minY, mouth.y);
+    maxY = Math.max(maxY, mouth.y);
+    if (previous) maxJump = Math.max(maxJump, mouth.distanceTo(previous));
+    previous = mouth;
+    for (const e of edges) {
+      const d = m
+        .getVertexPosition(e.j, a)
+        .distanceTo(m.getVertexPosition(e.k, b));
+      assert.ok(
+        Number.isFinite(d) && d < e.d * 2 + 0.004,
+        `neck stretch ${d / e.d}`,
+      );
+    }
+  }
+  assert.ok(maxY - minY > 8 && maxJump < 1.5);
+  const frozen = Float32Array.from(m.skeleton.boneMatrices);
+  r.userData.animate(4, 1);
+  r.updateMatrixWorld(true);
+  m.skeleton.update();
+  assert.deepEqual(m.skeleton.boneMatrices, frozen);
+  assert.equal(other.userData.azureBreathAim.pitch, 0);
+  r.userData.resetSwimTravel();
+  assert.equal(r.userData.azureBreathAim.enabled, false);
+  assert.equal(r.userData.azureBreathAim.pitch, 0);
+  r.userData.disposeLocalMotion();
+  other.userData.disposeLocalMotion();
+});

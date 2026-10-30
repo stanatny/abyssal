@@ -156,8 +156,11 @@ export function buildPenglaiGuardianBatch2HF(kind, root, motions) {
       ids[o + 1] = n.b;
       w[o] = 1 - n.t;
       w[o + 1] = n.t;
-      if (z < -0.28 || (z < -0.22 && y > -0.03)) {
-        const neck = smooth(0.245, 0.305, -z),
+      if (z < -0.19) {
+        const neck = Math.max(
+            smooth(0.245, 0.305, -z),
+            smooth(-0.065, 0.015, y) * smooth(0.19, 0.23, -z),
+          ),
           hn = nearestChain(p, head);
         ids[o] = axial.ids[0];
         ids[o + 1] = hn.a;
@@ -165,11 +168,12 @@ export function buildPenglaiGuardianBatch2HF(kind, root, motions) {
         w[o] = 1 - neck;
         w[o + 1] = neck * (1 - hn.t);
         w[o + 2] = neck * hn.t;
-        if (z < -0.35 || y > 0.085) {
-          ids[o] = head.ids[2];
-          w[o] = 1;
-          w[o + 1] = w[o + 2] = 0;
-        }
+        // 张口抬头时，颈部到刚性颅骨也要连续过渡，不能在一条阈值线上跳绑。
+        const skull =
+          neck * Math.max(smooth(0.32, 0.38, -z), smooth(0.06, 0.115, y));
+        for (let j = 0; j < 3; j++) w[o + j] *= 1 - skull;
+        ids[o + 3] = head.ids[2];
+        w[o + 3] = skull;
       }
       let leg, best;
       for (const c of legs) {
@@ -184,13 +188,21 @@ export function buildPenglaiGuardianBatch2HF(kind, root, motions) {
         (1 - smooth(-0.08, -0.035, y)) *
         (1 - smooth(0.045, 0.085, Math.sqrt(best.distance)));
       if (k > 0.001) {
-        const support = axial.ids[leg.front ? 0 : 4];
-        ids[o] = support;
-        ids[o + 1] = best.a;
-        ids[o + 2] = best.b;
-        w[o] = 1 - k;
-        w[o + 1] = k * (1 - best.t);
-        w[o + 2] = k * best.t;
+        // 混入腿部而非覆盖已有颈部权重，避免肩颈在抬头时沿腿根撕开。
+        const mixed = new Map();
+        for (let j = 0; j < 4; j++)
+          mixed.set(
+            ids[o + j],
+            (mixed.get(ids[o + j]) || 0) + w[o + j] * (1 - k),
+          );
+        mixed.set(best.a, (mixed.get(best.a) || 0) + k * (1 - best.t));
+        mixed.set(best.b, (mixed.get(best.b) || 0) + k * best.t);
+        const top = [...mixed].sort((a, b) => b[1] - a[1]).slice(0, 4);
+        const total = top.reduce((sum, v) => sum + v[1], 0);
+        for (let j = 0; j < 4; j++) {
+          ids[o + j] = top[j]?.[0] || 0;
+          w[o + j] = (top[j]?.[1] || 0) / total;
+        }
       }
     } else {
       // 以下阈值围绕甲缘外的真实肢根，不让划水牵扯龟甲。

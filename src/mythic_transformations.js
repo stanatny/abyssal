@@ -1,3 +1,4 @@
+import { updateCreatureAttitude } from "./creature_attitude.js";
 import * as THREE from "three";
 import { createCreature } from "./creatures.js";
 import { createHunterState } from "./hunter_rules.js";
@@ -7,10 +8,8 @@ import {
   transformationForm,
 } from "./penglai_transformation_species.js";
 
-const forward = new THREE.Vector3(0, 0, -1);
 const next = new THREE.Vector3(),
   tangent = new THREE.Vector3();
-const orientation = new THREE.Quaternion();
 const ease = (x) => x * x * (3 - 2 * x);
 
 /** 同一个体切换形态；模型预建并复用，捕食、鱼雷锁定和结算仍持有原实体。 */
@@ -175,8 +174,7 @@ export function stepMythicTransformation(
     tangent.copy(next).sub(entity.mesh.position).normalize();
     if (tangent.lengthSq() > 0.01) {
       entity.velocity.copy(tangent);
-      orientation.setFromUnitVectors(forward, tangent);
-      entity.mesh.quaternion.slerp(orientation, Math.min(1, dt * 4));
+      updateCreatureAttitude(entity.mesh.quaternion, tangent, dt, 1, 4);
     }
     entity.mesh.position.copy(next);
     if (p === 1) {

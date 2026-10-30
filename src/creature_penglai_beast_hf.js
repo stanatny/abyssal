@@ -47,7 +47,10 @@ export function buildPenglaiBeastHF(kind, root, motions) {
     tails = [],
     wings = [];
   const add = (name, type, points, extra = {}) => {
-    const fitted = points.map(point);
+    const fitted =
+      kind === "zheng" && type === "neck" && fit.alignedNeck
+        ? fit.alignedNeck.map((p) => p.slice())
+        : points.map(point);
     if (kind === "zheng" && type === "tail")
       fitted.forEach((p) => {
         p[0] += 1.38 * (p[2] - 0.18) * smooth(0.18, 0.3, p[2]);
@@ -482,9 +485,12 @@ export function buildPenglaiBeastHF(kind, root, motions) {
         walk = (1 - crouch) * (1 - leap),
         duty = 0.67;
       base.position.y = (horse ? -0.017 : -0.007) - 0.022 * crouch;
+      const strideScale = state
+        ? (0.38 * duty) / (2 * (horse ? 0.105 : fox ? 0.045 : 0.065))
+        : 1;
       for (const c of legs) {
         const cycle =
-            (((phase / (2 * Math.PI) +
+            ((((phase * strideScale) / (2 * Math.PI) +
               (c.side === 1 ? 0.5 : 0) +
               (c.front ? 0.25 : 0)) %
               1) +

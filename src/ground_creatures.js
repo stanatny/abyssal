@@ -92,6 +92,8 @@ export function groundGaitState(state, distance, length, dt) {
       2;
   return {
     gaitPhase: state.gaitPhase,
+    groundContacts: true,
+    deltaSeconds: dt,
     phase: state.phase,
     progress: Math.min(1, (state.timer ?? 0) / 1.3),
     speed: dt > 0 ? distance / dt : 0,

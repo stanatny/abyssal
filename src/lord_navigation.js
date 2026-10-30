@@ -2,8 +2,7 @@ import * as T from "three";
 import { aquaticHeading } from "./aquatic_reptile_motion.js";
 import { updateLordBody } from "./lord_body.js";
 
-const forward = new T.Vector3(0, 0, -1),
-  up = new T.Vector3(0, 1, 0);
+const up = new T.Vector3(0, 1, 0);
 /** 承重解剖截面生成有限净空球；只存数字，柔性龙躯另留摆动包络。 */
 export function createLordNavigation(mesh, species) {
   const inverse = mesh.matrixWorld.clone();
@@ -95,7 +94,7 @@ export function lordHeadingQuaternion(
     return out.setFromAxisAngle(up, Math.atan2(-heading.x, -heading.z));
   if (Number.isFinite(pitchLimit))
     return aquaticHeading(out, heading, previousYaw, pitchLimit);
-  return out.setFromUnitVectors(forward, heading);
+  return aquaticHeading(out, heading, previousYaw, 1.4);
 }
 /** 连续检查身体转向与平移，视线线段的零半径不再代替身体碰撞。 */
 export function lordMoveClear(
