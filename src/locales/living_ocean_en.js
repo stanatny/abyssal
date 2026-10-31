@@ -92,8 +92,8 @@ export const LIVING_OCEAN_EN = {
   "1.4 m（体长，翼展另计）": "1.4 m (body length; wingspan separate)",
   "1.1 m（含尾羽）": "1.1 m (including tail streamers)",
   "捕食{0} · {1}": "Caught {0} · {1}",
-  "亚特兰蒂斯有三只克拉肯，分别守卫西侧城区、中庭和后城；每只拥有独立领地与生命值。每局随机由其中一只守护波塞冬地宫的圣珠，身份不会预先公开。先在城区公共建筑寻找海螺钥匙。每局只出现引水机关或光照封印其中一种；海螺铭文提示钥匙入口与本局机关位置；集齐钥匙、机关印记与真正守宝者的印记，波塞冬地宫宝箱才会开启。达到30米并吞食箱中圣珠才能胜利。所有领主本局不再复活。":
-    "Three independent Krakens guard Atlantis's west district, central court and rear city. One secretly guards Poseidon’s treasure each round. Find the conch key in a public gallery. Each round has either a water-level lock or a light seal; conch inscriptions locate the key entrance and active mechanism. The key, mechanism seal and true guardian’s mark open the vault chest. Reach 30 m and consume its pearl to win. Defeated lords never respawn during the round.",
+  "亚特兰蒂斯有三只克拉肯，分别守卫西侧城区、中庭和后城；每只拥有独立领地与生命值。每局随机由其中一只守护波塞冬地宫的圣珠，身份不会预先公开。先在城区公共建筑寻找海螺钥匙。每局只出现引水机关、光照封印或壁画寻路其中一种；海螺铭文提示钥匙入口与本局机关位置；集齐钥匙、机关印记与真正守宝者的印记，波塞冬地宫宝箱才会开启。达到30米并吞食箱中圣珠才能胜利。所有领主本局不再复活。":
+    "Three independent Krakens guard Atlantis's west district, central court and rear city. One secretly guards Poseidon’s treasure each round. Find the conch key in a public gallery. Each round has one water-level lock, light seal or mural path; conch inscriptions locate the key entrance and active mechanism. The key, mechanism seal and true guardian’s mark open the vault chest. Reach 30 m and consume its pearl to win. Defeated lords never respawn during the round.",
   "亚特兰蒂斯另有鱼群栖息在古城街巷、上下柱廊、月湾古港地下厅、沉没市集内庭和波塞冬地宫。该深水分布为幻想生态；小鱼主要供较小角色补给，成年角色应寻找城区内的中大型猎物。普通住宅宝箱与陶器是探索陈设；公共建筑隐藏着海螺钥匙；需钥匙、本局机关印记与真正守宝者的印记才能打开神庙地宫宝箱，箱中圣珠是本海域的胜利宝物。":
     "Additional Atlantis schools inhabit streets, colonnades, the harbor hall, sunken agora and Poseidon’s vault. This is fantasy ecology; small prey feed small characters, while adults need medium and large meals. Ordinary house chests and pottery are scenery. A public gallery hides the conch key. That key, the active mechanism seal and the true guardian’s mark open the temple chest; its pearl completes the expedition.",
 };

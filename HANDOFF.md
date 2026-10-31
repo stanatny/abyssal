@@ -1,5 +1,48 @@
 # ABYSSAL Penglai HF redraw — 2026-10-27
 
+Mural path accepted for local checkpoint — 2026-10-31: the user accepts the
+five-stage memory route, symbol-specific membranes and current-gate retry, and
+authorizes a local commit. All 1,836 recorded source/test/build inputs and 965
+runtime artifacts match the delivered preview. The prior 44 focused tests and
+native/public checks apply to unchanged runtime inputs; only acceptance notes
+are added for this checkpoint. Earlier candidate/no-commit labels are historical.
+No push, release, version bump or personal Skill change is requested. See
+[the accepted review](docs/atlantis_mural_path_revision.md#accepted-local-checkpoint--2026-10-31).
+
+Current mural retry rule — 2026-10-31: the user replaces full-route failure reset
+with current-gate retry. A wrong crossing still charges 15 base damage and waits
+three active seconds; passed gates, clues, symbol phase and the current minimap
+marker persist. Only the failed gate flashes red. Earlier full-reset notes below
+are historical and superseded. Water-level and light rules are unchanged.
+No commit, push or personal Skill change is included.
+
+Mural membrane follow-up — 2026-10-31: gates now contain a permeable animated
+film with candidate-specific patterns, dormant/active/passed/recovery states and
+contact-centered success/failure feedback. The hidden answer never controls
+candidate appearance; existing puzzle rules and collision are unchanged. See the
+[follow-up review](docs/atlantis_mural_path_revision.md#membrane-follow-up--2026-10-31).
+This remains an uncommitted candidate for visual review; no push or personal
+Skill change is included.
+
+Mural-path implementation — 2026-10-31: the user authorizes the revised five-gate
+memory trial. A shallow-harbor mural gives five ordered symbols; one active gate
+at a time cycles four symbols, and native forward passage submits an attempt.
+Wrong passage charges 15 base damage and resets all stages; the fifth correct
+pass grants the shared mechanism requirement/cue. Three verified placement
+variants join water and light in an exclusive per-expedition draw. See the
+[implementation review](docs/atlantis_mural_path_revision.md). Work remains
+uncommitted/unpushed and pending player review. Earlier design-only notes below
+are superseded; no personal Skill or release changed.
+
+Mural-path design revision — 2026-10-31: accepted light-seal/awakening/audio
+and mirror mounting remain locally committed as `3c0905e`, without a push. The
+user replaces selectable reliefs/final testing with five numbered cycling-symbol
+passages: only the current gate is active and marked on the minimap; a correct
+crossing activates the next, and a wrong crossing penalizes and resets all five.
+See the [revised proposal](docs/atlantis_mural_path_design.md). Timing and penalty
+values remain proposed. This is design only; runtime still draws water-level or
+light. No new implementation, commit, push or personal Skill edit is included.
+
 Light seal accepted for local checkpoint — 2026-10-31: the user accepts the
 mirror-mount repair and requests a local commit of the distributed light seal,
 Poseidon awakening and four quest cues. Runtime/test inputs and all 965 build

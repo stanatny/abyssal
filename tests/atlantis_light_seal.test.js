@@ -164,10 +164,13 @@ test("Random selection and objective edges share the solve cue and only the true
     id: "atlantis",
     bossInstances: [{ id: "a" }, { id: "b" }, { id: "c" }],
   };
-  for (const value of [0.1, 0.9]) {
+  for (const value of [0.1, 0.5, 0.9]) {
     const s = createExpeditionObjective(region, () => value),
       p = { length: 30, dead: false, timedOut: false };
-    assert.equal(s.mechanismKind, value < 0.5 ? "water" : "light");
+    assert.equal(
+      s.mechanismKind,
+      ["water", "light", "mural"][Math.floor(value * 3)],
+    );
     const bosses = region.bossInstances.map((b) => ({
       ...b,
       enabled: true,

@@ -1188,7 +1188,9 @@ function updateSonar() {
         : objectiveState?.relicUnlocked && !objectiveState.relicCollected
           ? [{ ...ATLANTIS_RELIC, open: false, relic: true }]
           : objectiveState?.regionId === "atlantis" &&
-              (objectiveState.clueRead || objectiveState.mechanismSolved)
+              (objectiveState.clueRead ||
+                objectiveState.mechanismSolved ||
+                ocean.muralPath)
             ? [
                 ...(objectiveState.mechanismSolved &&
                 !objectiveState.guardianDefeated
@@ -1214,15 +1216,20 @@ function updateSonar() {
                     ]
                   : []),
                 ...(!objectiveState.mechanismSolved
-                  ? (ocean.lightSeal
-                      ? ocean.lightSeal.controls
-                      : [ocean.mechanism.entry]
+                  ? (ocean.muralPath
+                      ? ocean.muralPath.markers.map((m) => m.point)
+                      : ocean.lightSeal
+                        ? ocean.lightSeal.controls
+                        : [ocean.mechanism.entry]
                     ).map((point, index) => ({
                       ...point,
                       open: false,
                       mechanism: true,
                       light: !!ocean.lightSeal,
-                      index: index + 1,
+                      mural: !!ocean.muralPath,
+                      index: ocean.muralPath
+                        ? ocean.muralPath.markers[index].index
+                        : index + 1,
                     }))
                   : []),
               ].sort(
@@ -1868,6 +1875,8 @@ function updateLaunch(roundDt) {
 }
 function showOverlay(kind) {
   waterwheelUI.hide();
+  ocean.lightSeal?.hide();
+  ocean.muralPath?.hide();
   if (["dead", "won", "timeup"].includes(kind)) {
     ocean.currents?.reset();
     lordLockFeedback.reset();
@@ -3859,8 +3868,10 @@ function updateTorpedoAim() {
 }
 
 function updateHud() {
-  if (mode !== "playing" || player.dead || player.timedOut || player.won)
+  if (mode !== "playing" || player.dead || player.timedOut || player.won) {
     ocean.lightSeal?.hide();
+    ocean.muralPath?.hide();
+  }
   waterwheelUI.update(
     ocean.waterwheel,
     mode === "playing",
@@ -4384,17 +4395,34 @@ function frame(now) {
       if (event?.kind === "failed") {
         const resistance =
           getCharacter(player.characterId).passive.resistance || 1;
-        if (takeDamage(player, event.damage * resistance)) {
+        if (
+          takeDamage(
+            player,
+            event.damage *
+              (objectiveState.mechanismKind === "mural" ? 1 : resistance),
+          )
+        ) {
           hitFlash = 0.8;
           effects.hurt(position, player.length);
           audio.hit();
-          notify("试闸失败 · 损失15生命，六阀已关闭，水箱正在排空", 5);
+          notify(
+            objectiveState.mechanismKind === "mural"
+              ? "符号错误 · 受到惩罚，已通过进度保留，请重试当前符印"
+              : "试闸失败 · 损失15生命，六阀已关闭，水箱正在排空",
+            5,
+          );
         }
+      } else if (event?.kind === "blocked" && ocean.muralPath) {
+        notify("符印暂不判定 · 请稍后重新从入口通过", 3);
+      } else if (event?.kind === "passed") {
+        notify(message`第${event.index}道符印已通过 · 下一道已标在小地图`, 3);
       } else if (event?.kind === "solved") {
         notify(
-          objectiveState.mechanismKind === "light"
-            ? "光照封印已解除 · 波塞冬神像正在苏醒"
-            : "水轮已转动 · 闸门升起，获得机关印记",
+          objectiveState.mechanismKind === "mural"
+            ? "五道符印已解除 · 机关印记已获得"
+            : objectiveState.mechanismKind === "light"
+              ? "光照封印已解除 · 波塞冬神像正在苏醒"
+              : "水轮已转动 · 闸门升起，获得机关印记",
           6,
         );
       }

@@ -9,7 +9,7 @@ export const RUN_RULESET = "survival-2026-10";
 const revisedRegions = new Set(["europa", "amazon", "atlantis"]);
 export const runRuleset = (region) =>
   region === "atlantis"
-    ? "atlantis-seals-2026-10-31"
+    ? "atlantis-mural-2026-10-31"
     : OCEAN_CURRENT_RULES.regions.includes(region)
       ? "currents-2026-10-30"
       : revisedRegions.has(region)
@@ -65,9 +65,11 @@ export function createRunRecordStore(
         (revisedRegions.has(row.region) &&
           row.ruleset === "expedition-2026-10-14") ||
         (row.region === "atlantis" &&
-          ["waterwheel-2026-10-31", "waterlevel-2026-10-31"].includes(
-            row.ruleset,
-          )) ||
+          [
+            "waterwheel-2026-10-31",
+            "waterlevel-2026-10-31",
+            "atlantis-seals-2026-10-31",
+          ].includes(row.ruleset)) ||
         row.ruleset === runRuleset(row.region)) &&
       Number.isInteger(row.timeMs) &&
       row.timeMs > 0 &&

@@ -16,6 +16,16 @@ restriction. See the [design proposal](atlantis_light_seal_design.md) and
 [implementation candidate](atlantis_light_seal_revision.md). Only one puzzle family
 is active in each expedition. The accepted water-level rules remain unchanged.
 
+**Explicit mural-path exception, 2026-10-31:** the user requests a remembered
+five-symbol sequence and numbered cycling-symbol passages. Only the current
+stage judges; a physical forward crossing submits immediately. Wrong crossings
+penalize and require retrying only the current gate; passed gates and the current
+minimap target persist. The symbol clock continues through recovery. This explicit
+exception overrides the general full-reset default. The fifth crossing completes without a
+separate final test. Navigation may reveal the active gate, never its answer.
+Keep retry clues unchanged and use readable, equal symbol dwell intervals. See
+[the mural-path design](atlantis_mural_path_design.md).
+
 ## 1. Make the objective and controls understandable
 
 Before implementation, describe what blocks progress, what the player can change,

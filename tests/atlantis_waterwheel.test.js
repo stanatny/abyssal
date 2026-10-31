@@ -127,7 +127,11 @@ test("Every key draw is outside the mechanism complex; the two conspicuous plaqu
       () => i / 100,
     );
     assert.ok(
-      !["agora_bridges", "agora_sunken_archive"].includes(
+      !(
+        o.mechanismKind === "mural"
+          ? ["harbor_sanctuary", "harbor_sunken_halls", "poseidon_temple_vault"]
+          : ["agora_bridges", "agora_sunken_archive"]
+      ).includes(
         ATLANTIS_KEY_SITES.find((s) => s.id === o.keySiteId).buildingId,
       ),
     );

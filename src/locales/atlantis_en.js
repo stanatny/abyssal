@@ -1,5 +1,47 @@
 /** 亚特兰蒂斯物种、地区与图鉴筛选文案；键保留中文原文。 */
 export const ATLANTIS_EN = Object.freeze({
+  "记住顺序 → 依次穿过五道符印": "Remember the order → cross five seals",
+  已通过: "Complete",
+  "入口 → 等待壁画对应符号": "ENTRY → Wait for the mural symbol",
+  "休眠 · 先完成上一道": "Dormant · Complete the previous seal",
+  休眠: "Dormant",
+  "记住壁画的五个符号。按小地图顺序，从入口穿过对应符号的机关。错一次扣15基础生命，保留已通过进度，3秒后重试当前符印。":
+    "Memorize the five mural symbols. Follow the minimap and cross each entrance at its matching symbol. A mistake deals 15 base damage. Passed seals stay open; retry the current seal after 3 seconds.",
+  "五道符印已解除 · 机关印记已获得":
+    "Five seals opened · Mechanism seal acquired",
+  "当前符印恢复中 · 稍候重新从入口通过":
+    "Current seal recovering · Wait, then approach the entrance again",
+  "受伤保护中 · 符印暂不判定，请稍后重新通过":
+    "Damage protection active · Trial unavailable; approach again later",
+  "已通过 {0}/5 · 第{1}道当前显示：{2}。等待记忆中的符号，从入口穿过。":
+    "Completed {0}/5 · Stage {1} shows {2}. Wait for the remembered symbol, then cross the entrance.",
+  月湾圣所壁画与五道符印: "Moon Harbor sanctuary mural and five seals",
+  "海螺钥匙已得 · 记住月湾圣所壁画，依次通过五道符印":
+    "Key acquired · Memorize the harbor sanctuary mural and pass five seals in order",
+  "符号错误 · 受到惩罚，已通过进度保留，请重试当前符印":
+    "Wrong symbol · Damage dealt; progress kept. Retry this seal.",
+  "符印暂不判定 · 请稍后重新从入口通过":
+    "Trial unavailable · Approach the entrance again later",
+  "第{0}道符印已通过 · 下一道已标在小地图":
+    "Seal {0} passed · Next seal marked on the minimap",
+  "壁画寻路 · 第{0}道符印": "Mural path · Seal {0}",
+  "壁画 · 月湾圣所上层": "Mural · Upper Moon Harbor sanctuary",
+  壁画寻路: "Mural path",
+  五道符印: "Five seals",
+  月湾古港至神庙前庭: "Moon Harbor to the temple approach",
+  "记忆顺序 · 等待符号 · 依次通过": "Remember · Wait · Cross in order",
+  "每局只出现一种机关。壁画寻路不与引水机关、光照封印同时出现。可从侧面绕行，休眠机关不判定；钥匙和守宝者战果不会因失败丢失。":
+    "Only one mechanism appears per expedition: mural path, water-level lock or light seal. Bypass gates from the side; dormant gates do not judge. Failure preserves the key and guardian victory.",
+  "壁画寻路：在月湾圣所上层记住五个符号，按小地图依次前往五道符印。每道只有当前机关激活，符号每4秒轮换；角色前端从入口穿过时判定，记对且时机正确才会激活下一道。错一次受15基础伤害，保留已通过的符印，3秒后重试当前符印；受伤保护时暂不判定。壁画与顺序不变，第五道通过即得机关印记。":
+    "Mural path: memorize five symbols in the upper Moon Harbor sanctuary. Follow the minimap to five numbered seals. Only the current gate is active; symbols change every 4 seconds. Judgment occurs as the front of the character crosses the entrance. A matching symbol activates the next seal. A wrong crossing deals 15 base damage. Passed seals stay open; retry the current seal after 3 seconds. Damage protection temporarily disables judgment. The mural stays unchanged. Passing the fifth grants the mechanism seal.",
+  海豚: "Dolphin",
+  海螺: "Conch",
+  海星: "Starfish",
+  海龟: "Turtle",
+  三叉戟: "Trident",
+  双耳瓶: "Amphora",
+  船锚: "Anchor",
+  扇贝: "Scallop",
   "光照镜塔 {0}": "Light mirror tower {0}",
   "光照封印已解除 · 神像苏醒": "Light seal broken · Poseidon awakens",
   "光照封印已解除 · 波塞冬神像正在苏醒":

@@ -1,3 +1,4 @@
+import { createAtlantisMuralPath } from "./atlantis_mural_path.js";
 import { createAtlantisLightSeal } from "./atlantis_light_seal.js";
 import { createAtlantisWaterwheel } from "./atlantis_waterwheel.js";
 import {
@@ -80,16 +81,32 @@ export function* createAtlantisOceanSteps(scene) {
         awaken: () => city.poseidon.awaken(),
       }),
     );
-    let mechanism = waterwheel;
+    const muralPath = scope.own(
+      createAtlantisMuralPath(root, city.underways.records),
+    );
+    let mechanism = waterwheel,
+      configured = {};
     const barriers = [...city.barriers];
     function configureMechanism(objective) {
+      configured = { ...objective };
+      muralPath.root.removeFromParent();
+      muralPath.hide();
+      muralPath.reset(
+        objective?.mechanismRoute || 0,
+        objective?.mechanismSeed || 1,
+      );
       waterwheel.root.removeFromParent();
       lightSeal.root.removeFromParent();
       lightSeal.hide();
       waterwheel.reset();
       lightSeal.reset(objective?.mechanismRoute || 0);
       city.poseidon.reset();
-      mechanism = objective?.mechanismKind === "light" ? lightSeal : waterwheel;
+      mechanism =
+        objective?.mechanismKind === "mural"
+          ? muralPath
+          : objective?.mechanismKind === "light"
+            ? lightSeal
+            : waterwheel;
       root.add(mechanism.root);
       barriers.splice(
         0,
@@ -111,6 +128,9 @@ export function* createAtlantisOceanSteps(scene) {
       get lightSeal() {
         return mechanism === lightSeal ? lightSeal : null;
       },
+      get muralPath() {
+        return mechanism === muralPath ? muralPath : null;
+      },
       get mechanism() {
         return mechanism;
       },
@@ -118,10 +138,7 @@ export function* createAtlantisOceanSteps(scene) {
       barriers,
       reset() {
         relic.reset();
-        configureMechanism({
-          mechanismKind: mechanism === lightSeal ? "light" : "water",
-          mechanismRoute: lightSeal.layout.route,
-        });
+        configureMechanism(configured);
         city.poseidon.reset();
       },
       outskirts,
@@ -147,6 +164,7 @@ export function* createAtlantisOceanSteps(scene) {
         disposed = true;
         waterwheel.dispose();
         lightSeal.dispose();
+        muralPath.dispose();
         relic.dispose();
         outskirts.dispose();
         city.dispose();

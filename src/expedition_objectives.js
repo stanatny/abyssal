@@ -91,10 +91,7 @@ export const REGION_OBJECTIVES = Object.freeze({
 /** 新局抽取一个不公开的守宝者；地图首页预览不能算作新局或公开答案。 */
 export function createExpeditionObjective(region, random = Math.random) {
   const ids = region.bossInstances?.map((b) => b.id) || [];
-  const keyPool = ATLANTIS_KEY_SITES.filter(
-    (site) =>
-      !["agora_bridges", "agora_sunken_archive"].includes(site.buildingId),
-  );
+
   const draw = () => {
     const value = random();
     return Number.isFinite(value) ? Math.max(0, Math.min(0.999999, value)) : 0;
@@ -102,11 +99,23 @@ export function createExpeditionObjective(region, random = Math.random) {
   const guardianDraw = region.id === "atlantis" ? draw() : 0;
   const keyDraw = region.id === "atlantis" ? draw() : 0;
   const mechanismKind =
-    region.id === "atlantis" && draw() >= 0.5 ? "light" : "water";
+    region.id === "atlantis"
+      ? ["water", "light", "mural"][Math.floor(draw() * 3)]
+      : "water";
+  const keyPool = ATLANTIS_KEY_SITES.filter(
+    (site) =>
+      !(
+        mechanismKind === "mural"
+          ? ["harbor_sanctuary", "harbor_sunken_halls", "poseidon_temple_vault"]
+          : ["agora_bridges", "agora_sunken_archive"]
+      ).includes(site.buildingId),
+  );
   const mechanismRoute = region.id === "atlantis" ? Math.floor(draw() * 3) : 0;
   return {
     mechanismKind,
     mechanismRoute,
+    mechanismSeed:
+      region.id === "atlantis" ? Math.floor(draw() * 4294967295) : 1,
     mechanismSolved: false,
     regionId: region.id,
     localIds: ids.length ? new Set(ids) : null,
@@ -214,12 +223,14 @@ export function expeditionObjectiveHint(objective, player) {
   if (objective.regionId === "atlantis")
     return !objective.keyCollected
       ? objective.clueRead
-        ? message`钥匙：${ATLANTIS_KEY_SITES.find((s) => s.id === objective.keySiteId).name} · 机关：${objective.mechanismKind === "light" ? "城区外围镜塔" : "市集柱廊北段下层"}`
+        ? message`钥匙：${ATLANTIS_KEY_SITES.find((s) => s.id === objective.keySiteId).name} · 机关：${objective.mechanismKind === "mural" ? "月湾圣所壁画与五道符印" : objective.mechanismKind === "light" ? "城区外围镜塔" : "市集柱廊北段下层"}`
         : "寻找海螺铭文与钥匙 · 探索城区公共建筑"
       : !objective.mechanismSolved
-        ? objective.mechanismKind === "light"
-          ? "海螺钥匙已得 · 沿城区外围镜塔，将光引向波塞冬神像"
-          : "海螺钥匙已得 · 前往市集柱廊北段下层，引水开闸"
+        ? objective.mechanismKind === "mural"
+          ? "海螺钥匙已得 · 记住月湾圣所壁画，依次通过五道符印"
+          : objective.mechanismKind === "light"
+            ? "海螺钥匙已得 · 沿城区外围镜塔，将光引向波塞冬神像"
+            : "海螺钥匙已得 · 前往市集柱廊北段下层，引水开闸"
         : player.length < 25 && !objective.guardianDefeated
           ? "海螺钥匙已得 · 成长至25米后寻找守宝者"
           : objective.relicUnlocked

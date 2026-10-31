@@ -1,5 +1,27 @@
 # Atlantis environmental puzzles — replacement proposal, 2026-10-30
 
+Current mural retry rule — 2026-10-31: the user replaces full-route failure reset
+with current-gate retry. A wrong crossing still charges 15 base damage and waits
+three active seconds; passed gates, clues, symbol phase and the current minimap
+marker persist. Only the failed gate flashes red. Earlier full-reset notes below
+are historical and superseded. Water-level and light rules are unchanged.
+No commit, push or personal Skill change is included.
+
+**Mural implementation candidate, 2026-10-31:** the authorized five-stage
+memory route now joins water and light as an exclusive random choice. Physical
+forward passage judges cycling symbols; wrong passage resets all five with a
+penalty. See [implementation and validation](atlantis_mural_path_revision.md).
+The remaining two families are still proposals. Earlier unimplemented labels
+below retain their historical scope.
+
+**Mural-path design revision, 2026-10-31:** accepted light-seal work is locally
+committed as `3c0905e`, without a push. The user now specifies a shallow-edge
+five-mark mural and five distributed numbered gates with cycling symbols. Only
+the current gate is active and marked on the minimap; correct passage unlocks the
+next, while a wrong passage penalizes and resets all five. See
+[the revised memory-route proposal](atlantis_mural_path_design.md). It supersedes
+family 5 below and the separate-final-test draft. It remains unimplemented.
+
 **Implementation candidate, 2026-10-31:** water-level and light-seal families are
 now mutually exclusive random expedition choices. The distributed light route,
 Poseidon awakening and four quest cues are ready for review; see the
@@ -175,7 +197,12 @@ safe waiting bays and an active/quiet cycle are readable from the entrance.
   spaces must allow a 30 m body, slow controls and mobile steering; do not copy
   existing passive hazard timings without testing the full crossing.
 
-### 5. Mural path — readable sequence
+<a id="mural-path-history"></a>
+
+### 5. Mural path — readable sequence (superseded)
+
+Use [the five-stage memory proposal](atlantis_mural_path_design.md) for future
+work. The three-symbol, always-visible-clue single-room draft below is historical.
 
 **Goal:** follow the three-symbol route illustrated by an illuminated mural.
 Large numbered mural panels show, for example, dolphin → conch → trident. At each
