@@ -65,7 +65,7 @@ export const REGION_OBJECTIVES = Object.freeze({
     kind: "hidden_relic",
     minimumLength: 30,
     summary:
-      "寻找海螺钥匙，完成市集引水机关，击败真正守宝者；成长至30米，开启地宫宝箱。",
+      "寻找海螺钥匙，解除本局遗迹机关，击败真正守宝者；成长至30米，开启地宫宝箱。",
     completed: "圣珠已吞食，亚特兰蒂斯的秘密已解开。",
     difficulty: "遗迹寻宝",
     food: "月下鱼群 → 城区猎手 → 地宫巨兽",
@@ -95,27 +95,30 @@ export function createExpeditionObjective(region, random = Math.random) {
     (site) =>
       !["agora_bridges", "agora_sunken_archive"].includes(site.buildingId),
   );
+  const draw = () => {
+    const value = random();
+    return Number.isFinite(value) ? Math.max(0, Math.min(0.999999, value)) : 0;
+  };
+  const guardianDraw = region.id === "atlantis" ? draw() : 0;
+  const keyDraw = region.id === "atlantis" ? draw() : 0;
+  const mechanismKind =
+    region.id === "atlantis" && draw() >= 0.5 ? "light" : "water";
+  const mechanismRoute = region.id === "atlantis" ? Math.floor(draw() * 3) : 0;
   return {
+    mechanismKind,
+    mechanismRoute,
     mechanismSolved: false,
     regionId: region.id,
     localIds: ids.length ? new Set(ids) : null,
     defeated: new Set(),
     guardianId:
       region.id === "atlantis"
-        ? ids[
-            Math.min(
-              ids.length - 1,
-              Math.floor(Math.max(0, random()) * ids.length),
-            )
-          ]
+        ? ids[Math.min(ids.length - 1, Math.floor(guardianDraw * ids.length))]
         : null,
     keySiteId:
       region.id === "atlantis"
         ? keyPool[
-            Math.min(
-              keyPool.length - 1,
-              Math.floor(Math.max(0, random()) * keyPool.length),
-            )
+            Math.min(keyPool.length - 1, Math.floor(keyDraw * keyPool.length))
           ].id
         : null,
     keyCollected: false,
@@ -158,6 +161,8 @@ export function advanceExpeditionObjective(
   const wasCollected = objective.relicCollected;
   const hadKey = objective.keyCollected;
   const hadClue = objective.clueRead;
+  const hadMechanism = objective.mechanismSolved;
+  const hadGuardian = objective.guardianDefeated;
   const rule = REGION_OBJECTIVES[objective.regionId];
   const alive = !player.dead && !player.timedOut;
   if (objective.regionId === "atlantis" && alive) {
@@ -190,6 +195,8 @@ export function advanceExpeditionObjective(
   player.expeditionComplete = finished;
   player.won = alive && player.length >= rule.minimumLength && finished;
   return {
+    mechanismCompleted: objective.mechanismSolved && !hadMechanism,
+    guardianFound: objective.guardianDefeated && !hadGuardian && alive,
     keyFound: objective.keyCollected && !hadKey,
     clueFound: objective.clueRead && !hadClue,
     unlocked: objective.relicUnlocked && !wasUnlocked,
@@ -207,10 +214,12 @@ export function expeditionObjectiveHint(objective, player) {
   if (objective.regionId === "atlantis")
     return !objective.keyCollected
       ? objective.clueRead
-        ? message`钥匙：${ATLANTIS_KEY_SITES.find((s) => s.id === objective.keySiteId).name} · 机关：市集柱廊北段下层`
+        ? message`钥匙：${ATLANTIS_KEY_SITES.find((s) => s.id === objective.keySiteId).name} · 机关：${objective.mechanismKind === "light" ? "城区外围镜塔" : "市集柱廊北段下层"}`
         : "寻找海螺铭文与钥匙 · 探索城区公共建筑"
       : !objective.mechanismSolved
-        ? "海螺钥匙已得 · 前往市集柱廊北段下层，引水开闸"
+        ? objective.mechanismKind === "light"
+          ? "海螺钥匙已得 · 沿城区外围镜塔，将光引向波塞冬神像"
+          : "海螺钥匙已得 · 前往市集柱廊北段下层，引水开闸"
         : player.length < 25 && !objective.guardianDefeated
           ? "海螺钥匙已得 · 成长至25米后寻找守宝者"
           : objective.relicUnlocked

@@ -18,6 +18,18 @@ test("Sacred pearl has a fixed world capture center, unlocks without resizing, a
     ATLANTIS_RELIC.z,
   ]);
   relic.setState({ relicUnlocked: true, relicCollected: false });
+  assert.equal(seal.visible, true);
+  assert.equal(
+    relic.openNear(new THREE.Vector3(0, -18, 75), { length: 30 }),
+    false,
+  );
+  assert.equal(relic.openNear(world, { length: 30 }, false), false);
+  assert.equal(relic.opened, false);
+  assert.equal(relic.openNear(world, { length: 16 }), false);
+  assert.equal(relic.openNear(world, { length: 30, dead: true }), false);
+  assert.equal(relic.openNear(world, { length: 30 }), true);
+  assert.equal(relic.opened, false, "collection waits for the lid to open");
+  assert.equal(relic.openNear(world, { length: 30 }), false);
   assert.equal(seal.visible, false);
   for (const reduced of [true, false])
     for (const time of [0, 0.5, 1, 10]) {
@@ -28,6 +40,7 @@ test("Sacred pearl has a fixed world capture center, unlocks without resizing, a
       assert.ok(pearl.material.emissiveIntensity >= 0.59 - 1e-9);
       assert.ok(pearl.material.emissiveIntensity <= 0.71 + 1e-9);
     }
+  assert.equal(relic.opened, true);
   relic.setState({ relicUnlocked: true, relicCollected: true });
   assert.equal(pearl.visible, false);
   relic.reset();

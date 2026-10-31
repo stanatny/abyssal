@@ -236,3 +236,22 @@ These generated recordings are not labeled CC0. The source workflow used Stable
 Audio 3 Medium and its recorded provider/model terms; no new generation or license
 reclassification occurs during this integration. Runtime files are bundled locally,
 content-hashed and fetched only for the selected map, not streamed from HF.
+
+## Atlantis quest cues — 2026-10-31 candidate
+
+Four original non-speech effects generated with [MOSS-SoundEffect-v2.0](https://huggingface.co/OpenMOSS-Team/MOSS-SoundEffect-v2.0) using the official [HF Space](https://huggingface.co/spaces/OpenMOSS-Team/MOSS-SoundEffect-v2.0). The model card declares Apache-2.0; this is not a claim that generated audio is CC0. Eight serial included-quota candidates used `/run_inference`, 50 steps, CFG 4 and sigma shift 5. Raw sources/receipts remain in `.local/atlantis_light_seal_20261031/`. Included quota decreased from 2260.30 to 2196.92 seconds, with no over-quota usage.
+
+The selected runtime files are `src/assets/audio/quest_{key,mechanism,guardian,chest}.wav`. These are initial review candidates, not user-approved sound choices. PCM decode/measurement is not subjective listening.
+
+| Cue         | Seed   | Duration | Peak       | SHA-256                                                            |
+| ----------- | ------ | -------- | ---------- | ------------------------------------------------------------------ |
+| `key`       | 103101 | 3.00 s   | -3.00 dBFS | `d3420933cbcdad1b5b46e22178d7a5134db3f9737c830b274e3f4cb1a698a992` |
+| `mechanism` | 103112 | 3.00 s   | -6.63 dBFS | `ab34de9885403aca97db7ffc119d5a3b7288fb99278e2dbcbbc8eaef1e7dd547` |
+| `guardian`  | 103121 | 3.00 s   | -7.81 dBFS | `ad573dd2561eb2fda06aa21d7de1824d4e7ff81ef717c87488f03bfae5515022` |
+| `chest`     | 103132 | 4.00 s   | -6.51 dBFS | `d553efd145b0d93f71d622e93ad6e8a7cf4bd33b34538d00d5d9a8c9d990600b` |
+
+Processing: preserve raw sources; automatic onset trim, DC removal, 5 ms attack / 100 ms release fades, target active RMS −19 dBFS and ceiling −3 dBFS. Files remain 48 kHz mono PCM16, no resampling, pitch shift or speed change. All selected files have zero full-scale samples and silent endpoints. Raw MOSS files each had one normalized maximum sample; this is not evidence of a clipped plateau. Runtime gain is 0.72 through the existing effects bus.
+
+Semantic generation briefs: key—short bright conch/bronze/pearl discovery; mechanism—bronze unlocking with a three-note resonant completion; guardian—heavy seal rupture then relieved crystal resonance; chest—latch, lid and luminous ascending treasure release. Prompts exclude voice, continuous music, ambient noise and explosions. Complete verbatim prompts, generation parameters and source/output hashes are retained in local receipts.
+
+Runtime contract: key and mechanism edges emit once; both puzzle families call the identical `mechanism` cue; only the randomly selected true chest guardian emits `guardian`; a qualified nearby player with clear access starts chest opening and emits `chest`. Acquiring all seals while distant does not open or sound the chest. Pausing, muting, resetting or changing maps stops active quest tails. Loading never queues a stale event; unavailable samples use four distinct short fallback motifs. Four recorded quest voices maximum, normal end releases nodes.

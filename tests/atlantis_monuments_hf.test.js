@@ -130,7 +130,7 @@ test("Six obelisks preserve exact world placement, existing light glyphs, and ci
     const statue = city.root.getObjectByName("poseidon_monument");
     assert.equal(statue.children.length, 1);
     assert.equal(statue.children[0].scale.x, 1.55);
-    assert.equal(city.stats.colliders, 20964);
+    assert.equal(city.stats.colliders + city.barriers.length, 20964);
     let releases = 0;
     statue.children[0].geometry.addEventListener("dispose", () => releases++);
     newParts[0].geometry.addEventListener("dispose", () => releases++);

@@ -96,11 +96,31 @@ export function createAtlantisRelic(parent, { records = [] } = {}) {
   crown.rotation.x = Math.PI / 2;
   let unlocked = false,
     collected = false,
+    opened = false,
     disposed = false,
     previousTime = null;
   return {
     root,
     keyArt,
+    get opened() {
+      return opened && lid.rotation.x > 1;
+    },
+    openNear(position, player, clear = true) {
+      if (
+        !clear ||
+        opened ||
+        !unlocked ||
+        player.dead ||
+        player.timedOut ||
+        player.length < 30 ||
+        position.distanceToSquared(root.position) > 35 ** 2
+      )
+        return false;
+      opened = true;
+      pearl.visible = !collected;
+      seal.visible = false;
+      return true;
+    },
     get unlocked() {
       return unlocked;
     },
@@ -116,8 +136,8 @@ export function createAtlantisRelic(parent, { records = [] } = {}) {
         return;
       unlocked = state.relicUnlocked;
       collected = state.relicCollected;
-      seal.visible = !unlocked;
-      pearl.visible = unlocked && !collected;
+      seal.visible = !opened;
+      pearl.visible = opened && !collected;
       crown.visible = !collected;
       pearlMat.emissiveIntensity = unlocked ? 0.65 : 0.1;
     },
@@ -130,10 +150,10 @@ export function createAtlantisRelic(parent, { records = [] } = {}) {
           : THREE.MathUtils.clamp(time - previousTime, 0, 0.12);
       previousTime = time;
       lid.rotation.x = reducedMotion
-        ? unlocked
+        ? opened
           ? 1.2
           : 0
-        : THREE.MathUtils.damp(lid.rotation.x, unlocked ? 1.2 : 0, 4, dt);
+        : THREE.MathUtils.damp(lid.rotation.x, opened ? 1.2 : 0, 4, dt);
       root.visible = root.position.distanceToSquared(position) < 230 ** 2;
       seal.rotation.y = reducedMotion ? 0 : time * 0.09;
       crown.rotation.z = reducedMotion ? 0 : Math.sin(time * 0.6) * 0.15;
@@ -144,6 +164,7 @@ export function createAtlantisRelic(parent, { records = [] } = {}) {
     },
     reset() {
       keyArt.reset();
+      opened = false;
       this.setState({ relicUnlocked: false, relicCollected: false });
       lid.rotation.x = 0;
       previousTime = null;

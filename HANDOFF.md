@@ -1,5 +1,46 @@
 # ABYSSAL Penglai HF redraw — 2026-10-27
 
+Light seal accepted for local checkpoint — 2026-10-31: the user accepts the
+mirror-mount repair and requests a local commit of the distributed light seal,
+Poseidon awakening and four quest cues. Runtime/test inputs and all 965 build
+artifacts match the delivered preview fingerprint; only follow-up documentation
+changed afterward. Prior validation retains its documented scope. Earlier
+candidate/pending labels below are historical. No push, release or version bump
+is requested; mural-path work starts as a separate design proposal.
+
+Mirror-mount follow-up — 2026-10-31: the user accepts the light-seal candidate
+but reports a floating turning assembly. The control wheel now connects to the HF
+gearbox through a shaft/bearing/hub; the plaque and swivel have physical supports,
+and spokes rotate with the wheel. Four native contact changes and seven focused
+tests pass. See [the follow-up](docs/atlantis_light_seal_revision.md#mirror-mounting-follow-up--2026-10-31).
+Preview `index-DPGdYI0f.js`; still uncommitted/unpushed.
+
+Light-seal implementation candidate — 2026-10-31: Atlantis now chooses exactly
+one mechanism per expedition: the accepted water-level lock or a distributed
+five-mirror light seal. Three routes use actual reflected rays and static scenery
+occlusion; body contact cycles four fitted mirror angles. Completion lights
+Poseidon's eyes and raises the gripping arm and rigid trident. Four distinct HF
+quest cues cover key, shared puzzle success, true guardian defeat and nearby
+chest opening. Native contact, rig/collision, audio decoding and regression
+checks are documented in the [implementation review](docs/atlantis_light_seal_revision.md).
+Uncommitted/unpushed and pending user review; earlier design-only statuses below
+are historical. No further puzzle family, personal Skill or main release changed.
+
+Light-seal follow-up — 2026-10-31: the user accepts the design and requests eye
+illumination followed by a trident lift. The [awakening addition](docs/atlantis_light_seal_design.md#accepted-addition-poseidon-awakens)
+records timing, once-only completion, pose persistence and collision/rig checks.
+The current shared monument is one static mesh with skin attributes removed;
+an actual fitted arm/weapon rig is still needed. This pass updates the proposal,
+not runtime, and remains uncommitted/unpushed.
+
+Light-seal design — 2026-10-31: the user reopens work for the next family's design.
+Read the [distributed reflection proposal](docs/atlantis_light_seal_design.md).
+Five mirrors/four detents and three route templates are proposed, not implemented
+or route-verified. User requirements override the indoor-host, separate-test and
+failed-test penalty defaults for this family. Accepted water-level code stays
+unchanged; this documentation pass is uncommitted and unpushed. Do not infer
+authorization to implement the remaining families from this design request.
+
 Local checkpoint `fbecdf0` records the accepted Atlantis touch-operated puzzle.
 Reusable [environmental puzzle rules](docs/environment_puzzle_rules.md) are linked
 from `AGENTS.md`. Read them before a future puzzle batch. This turn adds no further

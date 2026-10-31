@@ -1,5 +1,18 @@
 # Atlantis environmental puzzles — replacement proposal, 2026-10-30
 
+**Implementation candidate, 2026-10-31:** water-level and light-seal families are
+now mutually exclusive random expedition choices. The distributed light route,
+Poseidon awakening and four quest cues are ready for review; see the
+[implementation evidence](atlantis_light_seal_revision.md). The other three
+families and randomized indoor hosts remain proposals. Earlier statuses below
+retain their original scope. No commit or push is performed.
+
+**Latest light-seal direction, 2026-10-31:** the user requests a distributed
+outdoor mirror network ending at Poseidon's statue, with fixed-angle touch
+rotation and no puzzle penalty. See the [new light-seal proposal](atlantis_light_seal_design.md).
+It supersedes family 2 and the common contract's separate-test/reset requirements
+for that family. This pass changes design documents only.
+
 **Current status, 2026-10-31:** the user has accepted the first waterwheel slice:
 a six-valve exact-level arithmetic lock operated by physical contact, with no
 pre-submission answer cue. An incorrect master-valve test resets all selections
@@ -116,6 +129,11 @@ different and labeled; paths never disappear into an unexplained wall.
   no arbitrary network or invisible answer. Proposed first prototype.
 
 ### 2. Pearl-light seal — visible direction
+
+**Superseded indoor draft.** Use the
+[distributed reflection proposal](atlantis_light_seal_design.md) for future work;
+the user now requires the statue as target, automatic completion and no penalty.
+The original proposal below is retained as history.
 
 **Goal:** illuminate the large crest above a sealed enclosure. A fixed pearl
 lamp and two discrete-angle mirrors produce a continuous visible beam. The crest

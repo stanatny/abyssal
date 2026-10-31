@@ -1,5 +1,21 @@
 /** 亚特兰蒂斯物种、地区与图鉴筛选文案；键保留中文原文。 */
 export const ATLANTIS_EN = Object.freeze({
+  "光照镜塔 {0}": "Light mirror tower {0}",
+  "光照封印已解除 · 神像苏醒": "Light seal broken · Poseidon awakens",
+  "光照封印已解除 · 波塞冬神像正在苏醒":
+    "Light seal broken · Poseidon's statue is awakening",
+  "光照封印：头部碰触铜轮，四档循环。离开再碰换一档。沿光束寻找下一座镜塔，让光照到波塞冬胸前的圆环。无需试闸，不扣血。":
+    "Light seal: touch a bronze wheel with your head to cycle four angles. Move away and return to turn again. Follow the beam between mirror towers, then illuminate the ring on Poseidon's chest. No test lever or damage.",
+  "钥匙、机关与守宝印记齐全 · 前往波塞冬地宫开启宝箱":
+    "All three seals acquired · go to Poseidon's crypt to open the chest",
+  "寻找海螺钥匙，解除本局遗迹机关，击败真正守宝者；成长至30米，开启地宫宝箱。":
+    "Find the conch key, solve this expedition's mechanism and defeat the true guardian; reach 30m and open the crypt chest.",
+  "海螺钥匙已得 · 沿城区外围镜塔，将光引向波塞冬神像":
+    "Conch key acquired · follow the outer-city mirror towers and guide light to Poseidon",
+  "钥匙：{0} · 机关：{1}": "Key: {0} · mechanism: {1}",
+  城区外围镜塔: "outer-city mirror towers",
+  市集柱廊北段下层: "north lower Agora gallery",
+
   开启: "Open",
   关闭: "Close",
   引水开闸: "WATERWHEEL GATE",

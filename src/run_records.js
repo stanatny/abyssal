@@ -9,7 +9,7 @@ export const RUN_RULESET = "survival-2026-10";
 const revisedRegions = new Set(["europa", "amazon", "atlantis"]);
 export const runRuleset = (region) =>
   region === "atlantis"
-    ? "waterlevel-contact-2026-10-31"
+    ? "atlantis-seals-2026-10-31"
     : OCEAN_CURRENT_RULES.regions.includes(region)
       ? "currents-2026-10-30"
       : revisedRegions.has(region)

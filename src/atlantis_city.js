@@ -1,3 +1,4 @@
+import { createPoseidonAwakening } from "./atlantis_poseidon_awake.js";
 import { createAtlantisLightPool } from "./atlantis_light_pool.js";
 import { prepareAtlantisSurfaces } from "./atlantis_surface_material.js";
 import { PEARL_LIGHT_INTENSITY } from "./atlantis_pearl.js";
@@ -532,19 +533,17 @@ export function* createAtlantisCitySteps(parent, { heightAt } = {}) {
     statueGroup.name = "poseidon_monument";
     root.add(statueGroup);
     const statueAsset = monumentAsset("poseidon");
-    const statueMesh = new THREE.Mesh(
-      statueAsset.geometry,
-      statueAsset.material,
+    const poseidon = scope.own(
+      createPoseidonAwakening(
+        statueAsset,
+        new THREE.Vector3(origin.x, origin.y, origin.z),
+        statueScale,
+        statue.colliders,
+        transformedCollider,
+      ),
     );
-    statueMesh.name = "poseidon_hf_monument";
-    statueMesh.position.set(origin.x, origin.y, origin.z);
-    statueMesh.scale.setScalar(statueScale);
-    statueMesh.receiveShadow = true;
-    statueGroup.add(statueMesh);
-    for (const c of statue.colliders)
-      colliders.push(
-        transformedCollider(c, origin.x, origin.y, origin.z, statueScale, 0),
-      );
+    statueGroup.add(poseidon.mesh);
+    colliders.push(...poseidon.fixed);
     const head = statue.headCenter
       .clone()
       .multiplyScalar(statueScale)
@@ -753,6 +752,7 @@ export function* createAtlantisCitySteps(parent, { heightAt } = {}) {
     root.userData.cityStats = stats;
     function update(time, dt, position, highQuality = true) {
       if (disposed) return;
+      poseidon.update(dt);
       underways.update(time, dt, position, highQuality);
       exploration.update(time, dt, position, highQuality);
       agora.update(time, dt, position, highQuality);
@@ -778,6 +778,8 @@ export function* createAtlantisCitySteps(parent, { heightAt } = {}) {
       landmarks,
       stats,
       buildings: records,
+      poseidon,
+      barriers: poseidon.moving,
       underways,
       exploration,
       agora,
@@ -790,6 +792,7 @@ export function* createAtlantisCitySteps(parent, { heightAt } = {}) {
       dispose() {
         if (disposed) return;
         disposed = true;
+        poseidon.dispose();
         residential.dispose();
         temple.dispose();
         marine.dispose();

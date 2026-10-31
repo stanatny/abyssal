@@ -309,6 +309,7 @@ scene.add(avatar);
 const audio = new OceanAudio();
 void audio.preloadHumanVoices();
 void audio.preloadCombatSounds();
+void audio.preloadQuestSounds();
 void audio.preloadZombieSounds();
 const effects = createCombatEffects(scene, {
   colors: rareMarkerPalette(),
@@ -1213,13 +1214,16 @@ function updateSonar() {
                     ]
                   : []),
                 ...(!objectiveState.mechanismSolved
-                  ? [
-                      {
-                        ...ocean.waterwheel.entry,
-                        open: false,
-                        mechanism: true,
-                      },
-                    ]
+                  ? (ocean.lightSeal
+                      ? ocean.lightSeal.controls
+                      : [ocean.mechanism.entry]
+                    ).map((point, index) => ({
+                      ...point,
+                      open: false,
+                      mechanism: true,
+                      light: !!ocean.lightSeal,
+                      index: index + 1,
+                    }))
                   : []),
               ].sort(
                 (a, b) =>
@@ -1728,7 +1732,7 @@ function resetExpedition(preserveWorld = false) {
   player = createPlayer(expedition.character.id, expedition.startLength);
   player.expeditionComplete = false;
   objectiveState = createExpeditionObjective(expedition.region);
-  ocean.waterwheel?.reset();
+  ocean.configureMechanism?.(objectiveState);
   ocean.relic?.reset();
   selectAvatar(expedition.character);
   inkAbility = createInkState();
@@ -3855,6 +3859,8 @@ function updateTorpedoAim() {
 }
 
 function updateHud() {
+  if (mode !== "playing" || player.dead || player.timedOut || player.won)
+    ocean.lightSeal?.hide();
   waterwheelUI.update(
     ocean.waterwheel,
     mode === "playing",
@@ -4363,7 +4369,7 @@ function frame(now) {
       capturePoint(captureContact).distanceToSquared(relicPosition) <
         (ATLANTIS_RELIC.radius + player.length * 0.06) ** 2 &&
       !blockedBetween(position, relicPosition);
-    const waterwheel = ocean.waterwheel;
+    const waterwheel = ocean.mechanism;
     if (waterwheel) {
       waterwheel.sense(position, player.length, blockedBetween, {
         from: playerMovementStart,
@@ -4385,8 +4391,12 @@ function frame(now) {
           notify("试闸失败 · 损失15生命，六阀已关闭，水箱正在排空", 5);
         }
       } else if (event?.kind === "solved") {
-        audio.pickup();
-        notify("水轮已转动 · 闸门升起，获得机关印记", 6);
+        notify(
+          objectiveState.mechanismKind === "light"
+            ? "光照封印已解除 · 波塞冬神像正在苏醒"
+            : "水轮已转动 · 闸门升起，获得机关印记",
+          6,
+        );
       }
     }
     const objectiveEvent = advanceExpeditionObjective(
@@ -4394,7 +4404,7 @@ function frame(now) {
       player,
       encounters.bosses,
       {
-        relicContact,
+        relicContact: relicContact && !!ocean.relic?.opened,
         mechanismSolved: !!waterwheel?.state.solved,
         keyContact: (() => {
           const point = ocean.relic?.keyArt.getPoint(objectiveState.keySiteId);
@@ -4415,14 +4425,24 @@ function frame(now) {
       },
     );
     ocean.relic?.setState(objectiveState);
+    if (
+      ocean.relic?.openNear(
+        position,
+        player,
+        !blockedBetween(position, relicPosition),
+      )
+    )
+      audio.quest("chest");
     if (objectiveEvent.clueFound)
       notify(expeditionObjectiveHint(objectiveState, player), 6);
     if (objectiveEvent.keyFound) {
-      audio.pickup();
+      audio.quest("key");
       notify("海螺钥匙已找到 · 保留至神庙地宫开启宝箱", 6);
     }
+    if (objectiveEvent.mechanismCompleted) audio.quest("mechanism");
+    if (objectiveEvent.guardianFound) audio.quest("guardian");
     if (objectiveEvent.unlocked)
-      notify("钥匙、机关与守宝印记齐全 · 波塞冬宝箱已开启", 6);
+      notify("钥匙、机关与守宝印记齐全 · 前往波塞冬地宫开启宝箱", 6);
     if (objectiveEvent.collected) {
       audio.pickup();
       notify("圣珠已吞食 · 亚特兰蒂斯的秘密已解开", 6);

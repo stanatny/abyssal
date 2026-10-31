@@ -363,7 +363,9 @@ export function createMinimap(container) {
                 ? tr`守卫 ↑ ${Math.round((next.y - position.y) * world.displayDepthScale)}m`
                 : tr`守卫 ↓ ${Math.round((position.y - next.y) * world.displayDepthScale)}m`
             : next.mechanism
-              ? "机关 · 市集柱廊北段下层"
+              ? next.light
+                ? tr`光照镜塔 ${next.index}`
+                : "机关 · 市集柱廊北段下层"
               : next.key
                 ? Math.abs(next.y - position.y) <= 3
                   ? "钥匙建筑 · 同层"

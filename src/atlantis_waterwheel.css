@@ -1,4 +1,5 @@
-#waterwheel-ui {
+#waterwheel-ui,
+.light-seal-ui {
   position: fixed;
   z-index: 12;
   bottom: 24px;
@@ -43,7 +44,8 @@
   color: #b5ffe8;
 }
 @media (max-width: 600px) {
-  #waterwheel-ui {
+  #waterwheel-ui,
+  .light-seal-ui {
     bottom: calc(264px + env(safe-area-inset-bottom, 0px));
     padding: 8px 12px;
     font-size: 11px;
@@ -52,4 +54,8 @@
   #waterwheel-ui .waterwheel-valves {
     grid-template-columns: repeat(3, minmax(0, 1fr));
   }
+}
+
+.light-seal-ui[hidden] {
+  display: none;
 }

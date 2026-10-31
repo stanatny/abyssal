@@ -7,6 +7,15 @@ across ABYSSAL. The [Atlantis withdrawal review](atlantis_environment_puzzles_re
 record the feedback behind these rules. General design requirements are separated
 below from the current water-level lock's particular numbers and placement.
 
+**Explicit light-seal exception, 2026-10-31:** the user requests distributed
+outdoor reflectors and automatic completion when a continuous reflected beam
+illuminates Poseidon's statue. There is no separate final test, puzzle damage or
+failure reset; detent adjustment is reversible and earlier settings persist.
+This overrides those defaults below for this family, including the indoor-host
+restriction. See the [design proposal](atlantis_light_seal_design.md) and
+[implementation candidate](atlantis_light_seal_revision.md). Only one puzzle family
+is active in each expedition. The accepted water-level rules remain unchanged.
+
 ## 1. Make the objective and controls understandable
 
 Before implementation, describe what blocks progress, what the player can change,

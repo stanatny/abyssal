@@ -1,5 +1,36 @@
 # ABYSSAL
 
+Light seal accepted for local checkpoint — 2026-10-31: the user accepts the
+mirror-mount repair and requests a local commit of the distributed light seal,
+Poseidon awakening and four quest cues. Runtime/test inputs and all 965 build
+artifacts match the delivered preview fingerprint; only follow-up documentation
+changed afterward. Prior validation retains its documented scope. Earlier
+candidate/pending labels below are historical. No push, release or version bump
+is requested; mural-path work starts as a separate design proposal.
+
+Light-seal implementation candidate — 2026-10-31: Atlantis now chooses exactly
+one mechanism per expedition: the accepted water-level lock or a distributed
+five-mirror light seal. Three routes use actual reflected rays and static scenery
+occlusion; body contact cycles four fitted mirror angles. Completion lights
+Poseidon's eyes and raises the gripping arm and rigid trident. Four distinct HF
+quest cues cover key, shared puzzle success, true guardian defeat and nearby
+chest opening. Native contact, rig/collision, audio decoding and regression
+checks are documented in the [implementation review](docs/atlantis_light_seal_revision.md).
+Uncommitted/unpushed and pending user review; earlier design-only statuses below
+are historical. No further puzzle family, personal Skill or main release changed.
+
+Light-seal direction accepted — 2026-10-31: the user adds glowing eyes and a
+trident-raising ceremony to the [completion design](docs/atlantis_light_seal_design.md#accepted-addition-poseidon-awakens).
+The proposal records a planted statue, articulated gripping arm, persistent
+completed pose and native-control/collision requirements. No light-seal runtime
+or animation is implemented yet.
+
+Light-seal design — 2026-10-31: the user requests distributed reflectors, contact
+cycling through fixed angles and completion at Poseidon's outdoor monument,
+without puzzle penalties. The [new proposal](docs/atlantis_light_seal_design.md)
+supersedes the indoor two-mirror draft. It is design-only; accepted water-level
+runtime is unchanged, and no light-seal implementation or publication is claimed.
+
 Local checkpoint `fbecdf0` records the accepted Atlantis touch-operated puzzle.
 Reusable [environmental puzzle rules](docs/environment_puzzle_rules.md) now cover
 reasoning difficulty, readable clues, world contact, failed-test penalties/reset,

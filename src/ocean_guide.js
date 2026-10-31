@@ -306,7 +306,7 @@ export function buildOceanCatalog(regionId) {
         tier: config.tier,
         realSize: config.realSize,
         habitatNote: config.schoolProfiles?.some((group) => group.cityResident)
-          ? tr`${config.habitatNote} ${tr`亚特兰蒂斯另有鱼群栖息在古城街巷、上下柱廊、月湾古港地下厅、沉没市集内庭和波塞冬地宫。该深水分布为幻想生态；小鱼主要供较小角色补给，成年角色应寻找城区内的中大型猎物。普通住宅宝箱与陶器是探索陈设；公共建筑隐藏着海螺钥匙；需钥匙、引水机关印记与真正守宝者的印记才能打开神庙地宫宝箱，箱中圣珠是本海域的胜利宝物。`}`
+          ? tr`${config.habitatNote} ${tr`亚特兰蒂斯另有鱼群栖息在古城街巷、上下柱廊、月湾古港地下厅、沉没市集内庭和波塞冬地宫。该深水分布为幻想生态；小鱼主要供较小角色补给，成年角色应寻找城区内的中大型猎物。普通住宅宝箱与陶器是探索陈设；公共建筑隐藏着海螺钥匙；需钥匙、本局机关印记与真正守宝者的印记才能打开神庙地宫宝箱，箱中圣珠是本海域的胜利宝物。`}`
           : config.habitatNote,
       })),
     ...SURFACE_BIRDS.map((b) => ({
@@ -348,7 +348,7 @@ export function buildOceanCatalog(regionId) {
                   : regionId === "bermuda"
                     ? tr`${DESCRIPTIONS[config.kind].text} ${tr`本海域必须击败全部四位深渊领主；各领主只出现一次。`}`
                     : regionId === "atlantis" && config.kind === "kraken"
-                      ? tr`${DESCRIPTIONS.kraken.text} ${tr`亚特兰蒂斯有三只克拉肯，分别守卫西侧城区、中庭和后城；每只拥有独立领地与生命值。每局随机由其中一只守护波塞冬地宫的圣珠，身份不会预先公开。先在城区公共建筑寻找海螺钥匙。海螺铭文分别提示钥匙与引水机关的建筑入口；集齐钥匙、机关印记与真正守宝者的印记，波塞冬地宫宝箱才会开启。达到30米并吞食箱中圣珠才能胜利。所有领主本局不再复活。`}`
+                      ? tr`${DESCRIPTIONS.kraken.text} ${tr`亚特兰蒂斯有三只克拉肯，分别守卫西侧城区、中庭和后城；每只拥有独立领地与生命值。每局随机由其中一只守护波塞冬地宫的圣珠，身份不会预先公开。先在城区公共建筑寻找海螺钥匙。每局只出现引水机关或光照封印其中一种；海螺铭文提示钥匙入口与本局机关位置；集齐钥匙、机关印记与真正守宝者的印记，波塞冬地宫宝箱才会开启。达到30米并吞食箱中圣珠才能胜利。所有领主本局不再复活。`}`
                       : tr`${DESCRIPTIONS[config.kind].text} ${tr`每局击败后不再复活。夏威夷成长至30米并击败任意一位即可胜利。`}`),
       length: config.length,
       size: tr`${config.length} m`,

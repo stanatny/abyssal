@@ -1,3 +1,4 @@
+import { QuestAudioBank } from "./quest_audio_assets.js";
 import { RecordedMusic } from "./recorded_music.js";
 import { HAWAII_SCORE, hawaiiPhrase, hawaiiMix } from "./music_hawaii.js";
 import { OdysseyMusic, ODYSSEY_SCORE } from "./music_odyssey.js";
@@ -22,12 +23,17 @@ import { AtlantisMusic, ATLANTIS_SCORE } from "./music_atlantis.js";
 export class OceanAudio {
   constructor({
     context = null,
+    questAudioBank = new QuestAudioBank(),
     humanVoiceBank = new HumanVoiceBank(),
     combatAudioBank = new CombatAudioBank(),
     zombieAudioBank = new ZombieAudioBank(),
     lordAttackAudio = new LordAttackAudio(),
   } = {}) {
     this.context = context;
+    this.questAudioBank = questAudioBank;
+    this.questBuffers = new Map();
+    this.questVoices = new Set();
+    this.questPreparation = null;
     this.humanVoiceBank = humanVoiceBank;
     this.combatAudioBank = combatAudioBank;
     this.zombieAudioBank = zombieAudioBank;
@@ -91,6 +97,7 @@ export class OceanAudio {
     if (!this.ready) this.createGraph();
     void this.prepareHumanVoices();
     void this.prepareCombatSounds();
+    void this.prepareQuestSounds();
     void this.prepareZombieSounds();
     void this.lordAttackAudio.prepare(this.context);
     void this.recordedMusic.setRegion(this.regionId);
@@ -123,6 +130,7 @@ export class OceanAudio {
       ? regionId
       : "hawaii";
     if (next === this.regionId) return next;
+    this.stopQuestSounds();
     this.regionId = next;
     if (this.recordedMusic) void this.recordedMusic.setRegion(next);
     this.beat =
@@ -159,6 +167,82 @@ export class OceanAudio {
     if (next === "amazon") this.ensureAmazonMusic().reset(now);
     if (next === "odyssey") this.ensureOdysseyMusic().reset(now);
     return next;
+  }
+
+  /** 菜单预取四段任务音；异步完成不补播过去事件。 */
+  preloadQuestSounds() {
+    return this.questAudioBank
+      .preload()
+      .then(() => true)
+      .catch(() => false);
+  }
+  prepareQuestSounds() {
+    if (this.questPreparation) return this.questPreparation;
+    if (!this.context?.decodeAudioData || this.context.state === "closed")
+      return Promise.resolve(false);
+    this.questPreparation = this.questAudioBank
+      .load(this.context)
+      .then((buffers) => {
+        this.questBuffers = buffers;
+        return true;
+      })
+      .catch(() => {
+        this.questPreparation = null;
+        return false;
+      });
+    return this.questPreparation;
+  }
+  stopQuestSounds() {
+    for (const voice of this.questVoices) {
+      try {
+        voice.stop();
+      } catch {
+        /* 已结束。 */
+      }
+    }
+    this.questVoices.clear();
+  }
+  /** 主线状态边沿调用一次；最大四声部，失败立即采用各自的短音型，永不延后重播。 */
+  quest(kind) {
+    const pitches = {
+      key: [81, 88],
+      mechanism: [67, 74, 79],
+      guardian: [43, 55, 62],
+      chest: [72, 76, 79, 84],
+    };
+    if (
+      !pitches[kind] ||
+      this.regionId !== "atlantis" ||
+      !this.effectReady(`quest_${kind}`, 1)
+    )
+      return false;
+    const at = this.context.currentTime + 0.005,
+      buffer = this.questBuffers.get(kind);
+    if (!buffer) {
+      pitches[kind].forEach((p, i) =>
+        this.note(midi(p), at + i * 0.13, 0.7, 0.09, this.effects, {
+          attack: 0.01,
+        }),
+      );
+      return true;
+    }
+    if (this.questVoices.size >= 4) {
+      const first = this.questVoices.values().next().value;
+      first.stop();
+      this.questVoices.delete(first);
+    }
+    const source = this.context.createBufferSource();
+    source.buffer = buffer;
+    source.loop = false;
+    const gain = this.makeBus(0.72);
+    source.connect(gain);
+    const nodes = [source, gain];
+    this.connectVoice(gain, this.effects, 0, nodes);
+    this.questVoices.add(source);
+    this.releaseWhenEnded(source, nodes, () => this.questVoices.delete(source));
+    source.start(at);
+    source.stop(at + buffer.duration + 0.01);
+    return true;
   }
 
   /** preloadHumanVoices 在菜单预取录音，不激活AudioContext；返回是否成功。 */
@@ -262,6 +346,7 @@ export class OceanAudio {
     }
     this.enabled = !this.enabled;
     if (!this.enabled) {
+      this.stopQuestSounds();
       this.stopCombatVoices();
       this.stopMusic(this.context.currentTime);
       this.recordedMusic?.stop();
@@ -295,7 +380,10 @@ export class OceanAudio {
     this.paused = Boolean(paused);
     if (!this.context || !this.ready) return;
     const now = this.context.currentTime;
-    if (this.paused) this.stopCombatVoices();
+    if (this.paused) {
+      this.stopCombatVoices();
+      this.stopQuestSounds();
+    }
     const gain = this.pauseGate.gain;
     if (typeof gain.cancelAndHoldAtTime === "function")
       gain.cancelAndHoldAtTime(now);
@@ -324,6 +412,7 @@ export class OceanAudio {
 
   /** reset 清除上一局尾音和节拍，复用声音开关与主图；无参数，无返回值。 */
   reset() {
+    this.stopQuestSounds();
     this.lastDanger = 0;
     this.pursuing = false;
     this.musicCombat = false;

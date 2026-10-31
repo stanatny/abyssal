@@ -1,5 +1,47 @@
 # ABYSSAL Development Rules
 
+Light seal accepted for local checkpoint — 2026-10-31: the user accepts the
+mirror-mount repair and requests a local commit of the distributed light seal,
+Poseidon awakening and four quest cues. Runtime/test inputs and all 965 build
+artifacts match the delivered preview fingerprint; only follow-up documentation
+changed afterward. Prior validation retains its documented scope. Earlier
+candidate/pending labels below are historical. No push, release or version bump
+is requested; mural-path work starts as a separate design proposal.
+
+Light-seal implementation candidate — 2026-10-31: Atlantis now chooses exactly
+one mechanism per expedition: the accepted water-level lock or a distributed
+five-mirror light seal. Three routes use actual reflected rays and static scenery
+occlusion; body contact cycles four fitted mirror angles. Completion lights
+Poseidon's eyes and raises the gripping arm and rigid trident. Four distinct HF
+quest cues cover key, shared puzzle success, true guardian defeat and nearby
+chest opening. Native contact, rig/collision, audio decoding and regression
+checks are documented in the [implementation review](docs/atlantis_light_seal_revision.md).
+Uncommitted/unpushed and pending user review; earlier design-only statuses below
+are historical. No further puzzle family, personal Skill or main release changed.
+
+Current implementation scope — 2026-10-31: the user authorizes the distributed
+light seal and Poseidon awakening, with exactly one randomly selected mechanism
+per Atlantis expedition (water-level or light). Add four distinct quest cues:
+key found, mechanism solved (shared by both families), true guardian defeated,
+and chest opened. Hugging Face included-quota generation is authorized where
+needed. Preserve accepted water-level rules; no commit, push or personal Skill
+edit is requested. Earlier design-only restrictions below are superseded.
+
+Light-seal follow-up — 2026-10-31: the user accepts the distributed reflection
+design and adds a completion awakening: Poseidon's eyes glow, then his gripping
+arm raises the rigid trident. Record this in the proposal; the current monument
+is a static mesh, so articulation and moving-collider fit still require actual
+implementation and review. Do not claim the animation is already playable.
+
+Current scope — 2026-10-31, light-seal design: prepare the
+[distributed reflection proposal](docs/atlantis_light_seal_design.md) only.
+The user specifies in-world contact cycling through fixed angles, variable
+outer-city sites and completion by illuminating Poseidon's statue. No puzzle
+penalty, failure reset or separate submission is required for this family;
+these explicit exceptions override the general defaults. Preserve the accepted
+water-level runtime. No new implementation, commit, push or personal Skill edit
+is authorized in this design pass. The earlier pause is lifted for this design.
+
 Current scope — 2026-10-31: the user accepts the Atlantis direct-contact
 water-level puzzle and authorizes a local checkpoint and reusable repository
 puzzle rules. Do not start the next batch, push, release or modify personal

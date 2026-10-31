@@ -200,9 +200,7 @@ test("Ocean current runs rank separately while both older record generations sur
     store.record(run(`new-${id}`, id, 100));
     assert.equal(
       store.list(id)[0].ruleset,
-      id === "atlantis"
-        ? "waterlevel-contact-2026-10-31"
-        : "currents-2026-10-30",
+      id === "atlantis" ? "atlantis-seals-2026-10-31" : "currents-2026-10-30",
     );
   }
   const saved = JSON.parse(disk.getItem(RUN_RECORD_KEY));

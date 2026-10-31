@@ -1,3 +1,4 @@
+import { createAtlantisLightSeal } from "./atlantis_light_seal.js";
 import { createAtlantisWaterwheel } from "./atlantis_waterwheel.js";
 import {
   finishScenePreparation,
@@ -61,7 +62,7 @@ export function* createAtlantisOceanSteps(scene) {
     const waterwheel = scope.own(
       createAtlantisWaterwheel(root, city.underways.records),
     );
-    colliders.push(...city.colliders, ...waterwheel.colliders);
+    colliders.push(...city.colliders);
     obstacles.push(...city.obstacles);
     const outskirts = scope.own(
       createAtlantisOutskirts(root, {
@@ -72,16 +73,56 @@ export function* createAtlantisOceanSteps(scene) {
     colliders.push(...outskirts.colliders);
     obstacles.push(...outskirts.obstacles);
 
+    const lightSeal = scope.own(
+      createAtlantisLightSeal(root, {
+        target: city.poseidon.target,
+        staticColliders: colliders,
+        awaken: () => city.poseidon.awaken(),
+      }),
+    );
+    let mechanism = waterwheel;
+    const barriers = [...city.barriers];
+    function configureMechanism(objective) {
+      waterwheel.root.removeFromParent();
+      lightSeal.root.removeFromParent();
+      lightSeal.hide();
+      waterwheel.reset();
+      lightSeal.reset(objective?.mechanismRoute || 0);
+      city.poseidon.reset();
+      mechanism = objective?.mechanismKind === "light" ? lightSeal : waterwheel;
+      root.add(mechanism.root);
+      barriers.splice(
+        0,
+        barriers.length,
+        ...city.barriers,
+        ...mechanism.colliders,
+        ...(mechanism === waterwheel ? waterwheel.barriers : []),
+      );
+    }
+    configureMechanism();
     return scope.finish({
       root,
       heightAt: seabedHeight,
       city,
       relic,
-      waterwheel,
-      barriers: waterwheel.barriers,
+      get waterwheel() {
+        return mechanism === waterwheel ? waterwheel : null;
+      },
+      get lightSeal() {
+        return mechanism === lightSeal ? lightSeal : null;
+      },
+      get mechanism() {
+        return mechanism;
+      },
+      configureMechanism,
+      barriers,
       reset() {
         relic.reset();
-        waterwheel.reset();
+        configureMechanism({
+          mechanismKind: mechanism === lightSeal ? "light" : "water",
+          mechanismRoute: lightSeal.layout.route,
+        });
+        city.poseidon.reset();
       },
       outskirts,
       colliders,
@@ -90,7 +131,7 @@ export function* createAtlantisOceanSteps(scene) {
       update(elapsed, position, dt = 0, highQuality = true) {
         if (disposed) return;
         time.value = elapsed;
-        waterwheel.update(
+        mechanism.update(
           elapsed,
           position,
           dt,
@@ -105,6 +146,7 @@ export function* createAtlantisOceanSteps(scene) {
         if (disposed) return;
         disposed = true;
         waterwheel.dispose();
+        lightSeal.dispose();
         relic.dispose();
         outskirts.dispose();
         city.dispose();
