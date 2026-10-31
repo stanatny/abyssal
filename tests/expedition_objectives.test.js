@@ -63,7 +63,8 @@ test("Atlantis conceals a fresh guardian selection, and other victories or meals
     guardian.state.defeated = true;
     assert.equal(f.step().unlocked, false);
     assert.equal(f.state.guardianDefeated, true);
-    assert.equal(f.step({ keyContact: true }).unlocked, true);
+    assert.equal(f.step({ keyContact: true }).unlocked, false);
+    assert.equal(f.step({ mechanismSolved: true }).unlocked, true);
     assert.equal(f.player.won, false);
     f.player.length = 29.9;
     assert.equal(f.step({ relicContact: true }).collected, false);
@@ -200,7 +201,8 @@ test("Atlantis key and guardian are independent, order-free requirements; option
       guard.state.defeated = true;
       assert.equal(f.step().unlocked, false);
     }
-    assert.equal(f.step({ keyContact: true }).unlocked, true);
+    assert.equal(f.step({ keyContact: true }).unlocked, false);
+    assert.equal(f.step({ mechanismSolved: true }).unlocked, true);
     assert.equal(f.player.won, false);
     assert.equal(f.step({ relicContact: true }).won, true);
   }

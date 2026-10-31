@@ -105,10 +105,10 @@ test("Conch keys use constructed public-gallery coordinates, not juvenile homes;
   ];
   const scene = new THREE.Scene(),
     r = createAtlantisRelic(scene, { records });
-  assert.equal(r.keyArt.locations.length, 12);
+  assert.equal(r.keyArt.locations.length, 10);
   assert.deepEqual(
-    r.keyArt.getPoint("colonnade_east").toArray(),
-    [239, -225, -425.5],
+    r.keyArt.getPoint("colonnade_west").toArray(),
+    [191, -225, -469.5],
   );
   for (const s of r.keyArt.locations) {
     r.setState({

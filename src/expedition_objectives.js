@@ -65,7 +65,7 @@ export const REGION_OBJECTIVES = Object.freeze({
     kind: "hidden_relic",
     minimumLength: 30,
     summary:
-      "寻找海螺钥匙，击败真正守宝者；成长至30米，打开地宫宝箱并吞食圣珠。",
+      "寻找海螺钥匙，完成市集引水机关，击败真正守宝者；成长至30米，开启地宫宝箱。",
     completed: "圣珠已吞食，亚特兰蒂斯的秘密已解开。",
     difficulty: "遗迹寻宝",
     food: "月下鱼群 → 城区猎手 → 地宫巨兽",
@@ -91,7 +91,12 @@ export const REGION_OBJECTIVES = Object.freeze({
 /** 新局抽取一个不公开的守宝者；地图首页预览不能算作新局或公开答案。 */
 export function createExpeditionObjective(region, random = Math.random) {
   const ids = region.bossInstances?.map((b) => b.id) || [];
+  const keyPool = ATLANTIS_KEY_SITES.filter(
+    (site) =>
+      !["agora_bridges", "agora_sunken_archive"].includes(site.buildingId),
+  );
   return {
+    mechanismSolved: false,
     regionId: region.id,
     localIds: ids.length ? new Set(ids) : null,
     defeated: new Set(),
@@ -106,10 +111,10 @@ export function createExpeditionObjective(region, random = Math.random) {
         : null,
     keySiteId:
       region.id === "atlantis"
-        ? ATLANTIS_KEY_SITES[
+        ? keyPool[
             Math.min(
-              ATLANTIS_KEY_SITES.length - 1,
-              Math.floor(Math.max(0, random()) * ATLANTIS_KEY_SITES.length),
+              keyPool.length - 1,
+              Math.floor(Math.max(0, random()) * keyPool.length),
             )
           ].id
         : null,
@@ -139,6 +144,7 @@ export function advanceExpeditionObjective(
     keyContact = false,
     clueContact = false,
     trenchArrived = false,
+    mechanismSolved = false,
   } = {},
 ) {
   for (const b of bosses)
@@ -155,6 +161,7 @@ export function advanceExpeditionObjective(
   const rule = REGION_OBJECTIVES[objective.regionId];
   const alive = !player.dead && !player.timedOut;
   if (objective.regionId === "atlantis" && alive) {
+    if (mechanismSolved) objective.mechanismSolved = true;
     if (keyContact) objective.keyCollected = true;
     if (clueContact) objective.clueRead = true;
   }
@@ -162,7 +169,9 @@ export function advanceExpeditionObjective(
     objective.regionId === "atlantis" &&
     objective.defeated.has(objective.guardianId);
   objective.relicUnlocked =
-    objective.guardianDefeated && objective.keyCollected;
+    objective.guardianDefeated &&
+    objective.keyCollected &&
+    objective.mechanismSolved;
   if (
     alive &&
     objective.relicUnlocked &&
@@ -198,15 +207,17 @@ export function expeditionObjectiveHint(objective, player) {
   if (objective.regionId === "atlantis")
     return !objective.keyCollected
       ? objective.clueRead
-        ? message`铭文线索 · 钥匙藏在${ATLANTIS_KEY_SITES.find((s) => s.id === objective.keySiteId).name}`
+        ? message`钥匙：${ATLANTIS_KEY_SITES.find((s) => s.id === objective.keySiteId).name} · 机关：市集柱廊北段下层`
         : "寻找海螺铭文与钥匙 · 探索城区公共建筑"
-      : player.length < 25 && !objective.guardianDefeated
-        ? "海螺钥匙已得 · 成长至25米后寻找守宝者"
-        : objective.relicUnlocked
-          ? player.length < 30
-            ? "圣珠已苏醒 · 成长至30米，再前往波塞冬地宫"
-            : "圣珠已苏醒 · 进入波塞冬地宫吞食宝物"
-          : message`海螺钥匙已得 · 寻找守宝克拉肯 ${objective.defeated.size}/3`;
+      : !objective.mechanismSolved
+        ? "海螺钥匙已得 · 前往市集柱廊北段下层，引水开闸"
+        : player.length < 25 && !objective.guardianDefeated
+          ? "海螺钥匙已得 · 成长至25米后寻找守宝者"
+          : objective.relicUnlocked
+            ? player.length < 30
+              ? "圣珠已苏醒 · 成长至30米，再前往波塞冬地宫"
+              : "圣珠已苏醒 · 进入波塞冬地宫吞食宝物"
+            : message`海螺钥匙已得 · 寻找守宝克拉肯 ${objective.defeated.size}/3`;
   if (objective.regionId === "odyssey")
     return message`神话海路守卫 ${objective.defeated.size}/${objective.required} · 成长至30米`;
   if (objective.regionId === "europa")

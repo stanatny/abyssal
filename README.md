@@ -1,5 +1,66 @@
 # ABYSSAL
 
+Accepted puzzle checkpoint — 2026-10-31: the user accepts the direct-contact
+water-level lock and requests a local commit, followed by repository puzzle
+rules. All 1,228 delivered runtime-input hashes match before these documentation
+updates; the recorded 41 focused tests and native/public checks still describe
+that unchanged implementation. Earlier candidate statuses below are historical.
+Only the first puzzle family is accepted; the other four and randomized hosts
+remain pending. The next batch is paused. No push or release is authorized.
+
+Direct-contact revision — 2026-10-31: the user replaces panel controls with
+physical touch and requires automatic reset after a wrong final test. Branch
+wheels toggle once per approach; leave and re-contact to reverse. A separate
+master wheel submits, charging 15 health on an incorrect total, closing all six
+valves and draining the tank while preserving clues. The overlay is read-only;
+normal swimming and follow camera remain active. Earlier panel-control receipts
+are historical and superseded. See the [contact review](docs/atlantis_waterwheel_revision.md#direct-environment-contact).
+41 focused tests, native swimming/contact, bilingual touch and restricted-public
+checks pass. The interaction remains pending user review; uncommitted/unpushed.
+
+Interaction revision — 2026-10-31: the user accepts the six-valve arithmetic
+layout but reports inaccessible controls and unclear reset/submission. The candidate
+now uses one visible, unobstructed front operation area: Start controls stops swimming,
+all six toggle buttons remain reachable, Close all resets selections for free without
+rerolling clues, and Pull test lever explicitly submits. Free adjustment remains
+available during retry/damage protection; testing waits with an explicit explanation.
+The inspection camera clears the adult body. No computed total or correct-answer cue
+is introduced. See the [interaction review](docs/atlantis_waterwheel_revision.md#interaction-readability-revision).
+This revision remains uncommitted and pending user playtest; the math design is accepted.
+
+Six-valve water-level candidate — 2026-10-31: the user replaces the two-valve
+fill-up task with arithmetic and requires at least five contributions without
+pre-submission correctness hints. Six metered valves now have distinct randomized
+values and a uniquely solvable target requiring three or four selections. High
+and low submissions both fail; adjustment is free. The same HF assets, mid-city
+host and separated key remain. This first family is uncommitted/unpushed;
+other families and randomized hosts remain pending. See the
+[current review](docs/atlantis_waterwheel_revision.md#six-valve-water-level-revision).
+The earlier two-valve contract and its test receipts below are historical.
+
+Atlantis waterwheel candidate — 2026-10-31: production starts with the first
+replacement puzzle, in the north lower Agora gallery. HF bronze valves and a
+carved gate support visible water routing, deliberate pressure tests and a
+mechanism seal. Key sites are separated from this complex; both locales and
+expedition records are updated. Other puzzle families and randomized hosts are
+still pending. Uncommitted/unpushed; see the
+[current implementation review](docs/atlantis_waterwheel_revision.md).
+Earlier concept-only and rollback notes below retain their historical scope.
+
+Atlantis puzzle concepts — 2026-10-31: the replacement design direction is
+accepted and five concept plates are prepared for visual review. Runtime remains
+at the restored accepted checkpoint; see the
+[design and concept scope](docs/atlantis_environment_puzzles_design.md).
+
+Atlantis puzzle candidate withdrawn — 2026-10-30: the user found its goals and
+win/loss conditions unclear and requested mid-city placement between the shallows
+and Poseidon Temple. The full candidate is archived; runtime and the same-origin
+preview are restored to accepted local checkpoint `ba1eb8d` / `index-ByVSSP5c.js`.
+A [replacement proposal](docs/atlantis_environment_puzzles_design.md) describes
+five visible environmental tasks and a one-room prototype review before expansion.
+Only documentation changes remain; no new implementation, commit or push.
+See the [rollback checks](docs/atlantis_environment_puzzles_review.md).
+
 Surface currents accepted for local checkpoint — 2026-10-30: the user accepts
 the HF water-flow revision and requests a local commit before a separate Atlantis
 puzzle design. All 2,104 delivered source inputs match before acceptance-only

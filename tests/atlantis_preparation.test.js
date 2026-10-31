@@ -23,7 +23,10 @@ test("分片古城保留已验收版本的全部实体、障碍及近景模型�
   const hash = (value) =>
     createHash("sha256").update(JSON.stringify(value)).digest("hex");
   // 认证基线 3292104 在同一 Node/Three 环境构造；保持逐字比较，避免跨运行时硬编码浮点哈希。
-  assert.equal(hash(ocean.colliders), hash(reference.colliders));
+  assert.equal(
+    hash(ocean.colliders.filter((c) => c.kind !== "atlantis_waterwheel")),
+    hash(reference.colliders),
+  );
   assert.equal(hash(ocean.obstacles), hash(reference.obstacles));
   assert.equal(ocean.city.stats.colliders, 20964);
   // 已验收布局快照保持冻结；豁免已替换建筑/纪念碑以及本次任务道具外观。
@@ -62,6 +65,7 @@ test("分片古城保留已验收版本的全部实体、障碍及近景模型�
       // 任务道具由独立几何/铰链/拾取测试覆盖；圣珠、封印和旧基座仍逐字比较。
       let ancestor = node.parent;
       while (ancestor) {
+        if (ancestor.name === "atlantis_waterwheel_gate") return;
         // 家具仅替换皮肤；完整实体仍与冻结基线逐字比较，独立射线/生命周期测试覆盖拟合。
         if (ancestor.userData.furnitureStats) return;
         if (ancestor.name === "atlantis_conch_key_and_inscriptions") return;

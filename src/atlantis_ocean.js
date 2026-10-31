@@ -1,3 +1,4 @@
+import { createAtlantisWaterwheel } from "./atlantis_waterwheel.js";
 import {
   finishScenePreparation,
   prepareScene,
@@ -57,7 +58,10 @@ export function* createAtlantisOceanSteps(scene) {
     const relic = scope.own(
       createAtlantisRelic(root, { records: city.underways.records }),
     );
-    colliders.push(...city.colliders);
+    const waterwheel = scope.own(
+      createAtlantisWaterwheel(root, city.underways.records),
+    );
+    colliders.push(...city.colliders, ...waterwheel.colliders);
     obstacles.push(...city.obstacles);
     const outskirts = scope.own(
       createAtlantisOutskirts(root, {
@@ -73,8 +77,11 @@ export function* createAtlantisOceanSteps(scene) {
       heightAt: seabedHeight,
       city,
       relic,
+      waterwheel,
+      barriers: waterwheel.barriers,
       reset() {
         relic.reset();
+        waterwheel.reset();
       },
       outskirts,
       colliders,
@@ -83,6 +90,12 @@ export function* createAtlantisOceanSteps(scene) {
       update(elapsed, position, dt = 0, highQuality = true) {
         if (disposed) return;
         time.value = elapsed;
+        waterwheel.update(
+          elapsed,
+          position,
+          dt,
+          reducedMotion?.matches || false,
+        );
         relic.update(elapsed, position, reducedMotion?.matches || false);
         nursery.visible = position.z > -390;
         city.update(elapsed, dt, position, highQuality);
@@ -91,6 +104,7 @@ export function* createAtlantisOceanSteps(scene) {
       dispose() {
         if (disposed) return;
         disposed = true;
+        waterwheel.dispose();
         relic.dispose();
         outskirts.dispose();
         city.dispose();

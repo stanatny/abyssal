@@ -1,5 +1,22 @@
 /** 亚特兰蒂斯物种、地区与图鉴筛选文案；键保留中文原文。 */
 export const ATLANTIS_EN = Object.freeze({
+  开启: "Open",
+  关闭: "Close",
+  引水开闸: "WATERWHEEL GATE",
+  "六阀水位锁 · 目标 {0} 刻": "SIX-VALVE LOCK · TARGET {0}",
+  "闸门已开启 · 机关印记已获得": "Gate opened · mechanism seal acquired",
+  "机关 · 市集柱廊北段下层": "Mechanism · north lower Agora gallery",
+  "水轮已转动 · 闸门升起，获得机关印记":
+    "Waterwheel turning · gate raised, mechanism seal acquired",
+  "钥匙、机关与守宝印记齐全 · 波塞冬宝箱已开启":
+    "Key, mechanism and guardian seals complete · Poseidon's chest is open",
+  "寻找海螺钥匙，完成市集引水机关，击败真正守宝者；成长至30米，开启地宫宝箱。":
+    "Find the conch key, open the Agora waterwheel gate and defeat the true guardian. Reach 30 m and open the vault chest.",
+  "钥匙：{0} · 机关：市集柱廊北段下层":
+    "Key: {0} · mechanism: north lower gallery of the Agora Colonnade",
+  "海螺钥匙已得 · 前往市集柱廊北段下层，引水开闸":
+    "Key acquired · route water to open the gate in the north lower Agora gallery",
+
   "亚特兰蒂斯另有鱼群栖息在古城街巷、上下柱廊、月湾古港地下厅、沉没市集内庭和波塞冬地宫。该深水分布为幻想生态；小鱼主要供较小角色补给，成年角色应寻找城区内的中大型猎物。住宅与神殿中的宝箱、陶器是探索陈设，不提供奖励。":
     "In Atlantis, shoals inhabit the streets, galleries, Moon Harbor halls, Drowned Agora cistern and Poseidon crypt. This deep-water distribution is a fantasy ecosystem. Small fish mainly feed smaller characters; grown characters should seek medium and large prey. Chests and pottery inside houses and temples are scenery and grant no rewards.",
   "{0} {1}": "{0} {1}",
@@ -113,4 +130,23 @@ export const ATLANTIS_EN = Object.freeze({
     "Extinct. The game reconstructs a large individual; its revival depth and active pursuit are fantasy choices.",
   "保持侧向机动，体长超过10米后可把它作为下潜途中的大型补给。":
     "Keep moving sideways. Once longer than 10 m, you can feed on it during the descent.",
+  碰触试闸: "TOUCH TO TEST",
+  已开: "OPEN",
+  已关: "CLOSED",
+  "用头部碰触铜轮开关，离开后再碰可反向。自行计算，最后碰触右侧总阀试闸。":
+    "Touch a bronze wheel with your head to toggle it. Move away before touching again. Calculate, then touch the master valve on the right to test.",
+  "水位调整中：离开总阀，稳定后再碰。":
+    "Water is settling. Move away and touch the master valve again once settled.",
+  "受伤保护中：离开总阀，保护结束后再碰。":
+    "Damage protection active. Move away and touch the master valve again after it ends.",
+  "总阀恢复中：离开总阀，稍后再碰。":
+    "Master valve recovering. Move away and touch it again shortly.",
+  "水位偏低：已扣15生命，全部分阀关闭并排水。题目不变。":
+    "Too low: lost 15 health. All branch valves closed; tank draining. Same puzzle.",
+  "水位偏高：已扣15生命，全部分阀关闭并排水。题目不变。":
+    "Too high: lost 15 health. All branch valves closed; tank draining. Same puzzle.",
+  "调节免费；试闸错误扣15生命并全部复位。贴住不会连续触发。":
+    "Adjust freely. A wrong test costs 15 health and resets all valves. Staying in contact never repeats an action.",
+  "试闸失败 · 损失15生命，六阀已关闭，水箱正在排空":
+    "Test failed · Lost 15 health; all six valves closed and tank draining",
 });

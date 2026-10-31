@@ -2,6 +2,9 @@ import { NONFISH_SPECIES } from "../nonfish_ecology.js";
 import { SURFACE_BIRDS } from "../surface_birds.js";
 
 export const LIVING_OCEAN_EN = {
+  "海螺钥匙随机藏在与机关分开的公共建筑中，铭文会分别指出建筑入口。市集柱廊北段下层有六阀水位锁：碑文标明目标，六个阀门各有不同刻数。用角色头部碰触铜轮开启分阀，离开后再碰可关闭；开阀加入定量水，关阀退回。自行计算组合，使总量恰好等于目标，水位稳定后碰触右侧总阀试闸。没有自动求和或正确提示。只调节不扣血；试闸偏高或偏低都扣15生命，同时关闭全部分阀并排空水箱，题目不变。3秒后可重试；必须离开总阀再碰，贴住不会连续扣血。集齐钥匙、机关印记与真正守宝者印记后开启地宫宝箱；30米时吞食圣珠获胜。":
+    "The Conch Key is hidden in a different public building; inscriptions mark each entrance. The north lower Agora gallery holds a six-valve water-level lock. Read the target and each distinct amount. Touch a bronze wheel with your head to open it; move away and touch again to close. Opening adds its fixed amount and closing removes it. Calculate the exact target, wait for the water to settle, then touch the master valve on the right to test. There is no computed total or correct-answer hint. Adjustment is free. A high or low test costs 15 health, closes all six valves and drains the tank without changing the puzzle. Retry after 3 seconds by moving away and touching the master valve again; staying in contact never repeats damage. Collect the key, mechanism seal and true guardian seal to unlock the crypt chest, then consume the Sacred Pearl at 30 m to win.",
+
   月湾古港地下厅: "Moon Harbor Sunken Hall",
   沉没市集档案库: "Sunken Agora Archive",
   波塞冬地宫: "Poseidon’s Vault",
@@ -89,8 +92,8 @@ export const LIVING_OCEAN_EN = {
   "1.4 m（体长，翼展另计）": "1.4 m (body length; wingspan separate)",
   "1.1 m（含尾羽）": "1.1 m (including tail streamers)",
   "捕食{0} · {1}": "Caught {0} · {1}",
-  "亚特兰蒂斯有三只克拉肯，分别守卫西侧城区、中庭和后城；每只拥有独立领地与生命值。每局随机由其中一只守护波塞冬地宫的圣珠，身份不会预先公开。先在城区公共建筑寻找海螺钥匙。海螺铭文可提供建筑线索；钥匙与真正守宝者的印记齐全，波塞冬地宫宝箱才会开启。达到30米并吞食箱中圣珠才能胜利。所有领主本局不再复活。":
-    "Three independent Krakens guard Atlantis's west district, central court and rear city. One secretly guards Poseidon’s treasure each round. Find the conch key in a public gallery; conch inscriptions offer a location clue. The key and true guardian’s mark open the vault chest. Reach 30 m and consume its pearl to win. Defeated lords never respawn during the round.",
-  "亚特兰蒂斯另有鱼群栖息在古城街巷、上下柱廊、月湾古港地下厅、沉没市集内庭和波塞冬地宫。该深水分布为幻想生态；小鱼主要供较小角色补给，成年角色应寻找城区内的中大型猎物。普通住宅宝箱与陶器是探索陈设；公共建筑隐藏着海螺钥匙；需钥匙与真正守宝者的印记才能打开神庙地宫宝箱，箱中圣珠是本海域的胜利宝物。":
-    "Additional Atlantis schools inhabit streets, colonnades, the harbor hall, sunken agora and Poseidon’s vault. This is fantasy ecology; small prey feed small characters, while adults need medium and large meals. Ordinary house chests and pottery are scenery. A public gallery hides the conch key. Both that key and the true guardian’s mark open the temple chest; its pearl completes the expedition.",
+  "亚特兰蒂斯有三只克拉肯，分别守卫西侧城区、中庭和后城；每只拥有独立领地与生命值。每局随机由其中一只守护波塞冬地宫的圣珠，身份不会预先公开。先在城区公共建筑寻找海螺钥匙。海螺铭文分别提示钥匙与引水机关的建筑入口；集齐钥匙、机关印记与真正守宝者的印记，波塞冬地宫宝箱才会开启。达到30米并吞食箱中圣珠才能胜利。所有领主本局不再复活。":
+    "Three independent Krakens guard Atlantis's west district, central court and rear city. One secretly guards Poseidon’s treasure each round. Find the conch key in a public gallery; conch inscriptions offer a location clue. The key, waterwheel mechanism seal and true guardian’s mark open the vault chest. Reach 30 m and consume its pearl to win. Defeated lords never respawn during the round.",
+  "亚特兰蒂斯另有鱼群栖息在古城街巷、上下柱廊、月湾古港地下厅、沉没市集内庭和波塞冬地宫。该深水分布为幻想生态；小鱼主要供较小角色补给，成年角色应寻找城区内的中大型猎物。普通住宅宝箱与陶器是探索陈设；公共建筑隐藏着海螺钥匙；需钥匙、引水机关印记与真正守宝者的印记才能打开神庙地宫宝箱，箱中圣珠是本海域的胜利宝物。":
+    "Additional Atlantis schools inhabit streets, colonnades, the harbor hall, sunken agora and Poseidon’s vault. This is fantasy ecology; small prey feed small characters, while adults need medium and large meals. Ordinary house chests and pottery are scenery. A public gallery hides the conch key. That key, the waterwheel mechanism seal and the true guardian’s mark open the temple chest; its pearl completes the expedition.",
 };

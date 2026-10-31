@@ -183,12 +183,27 @@ test("Ocean current runs rank separately while both older record generations sur
     ruleset:
       region === "atlantis" ? "expedition-2026-10-14" : "survival-2026-10",
   }));
+  old.push({
+    ...old[1],
+    id: "previous-waterwheel",
+    ruleset: "waterwheel-2026-10-31",
+  });
+  old.push({
+    ...old[1],
+    id: "previous-panel",
+    ruleset: "waterlevel-2026-10-31",
+  });
   disk.setItem(RUN_RECORD_KEY, JSON.stringify({ version: 1, rows: old }));
   const store = createRunRecordStore(disk, ids);
   for (const id of ids) {
     assert.deepEqual(store.list(id), []);
     store.record(run(`new-${id}`, id, 100));
-    assert.equal(store.list(id)[0].ruleset, "currents-2026-10-30");
+    assert.equal(
+      store.list(id)[0].ruleset,
+      id === "atlantis"
+        ? "waterlevel-contact-2026-10-31"
+        : "currents-2026-10-30",
+    );
   }
   const saved = JSON.parse(disk.getItem(RUN_RECORD_KEY));
   for (const row of old) assert.ok(saved.rows.some((r) => r.id === row.id));

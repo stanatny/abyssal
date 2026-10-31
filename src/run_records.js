@@ -8,11 +8,13 @@ export const RUN_RULESET = "survival-2026-10";
 // 变更目标的海域独立分榜，旧成绩仍保留在本机，不与新规则混排。
 const revisedRegions = new Set(["europa", "amazon", "atlantis"]);
 export const runRuleset = (region) =>
-  OCEAN_CURRENT_RULES.regions.includes(region)
-    ? "currents-2026-10-30"
-    : revisedRegions.has(region)
-      ? "expedition-2026-10-14"
-      : RUN_RULESET;
+  region === "atlantis"
+    ? "waterlevel-contact-2026-10-31"
+    : OCEAN_CURRENT_RULES.regions.includes(region)
+      ? "currents-2026-10-30"
+      : revisedRegions.has(region)
+        ? "expedition-2026-10-14"
+        : RUN_RULESET;
 export const RUN_RECORD_LIMIT = 10;
 const MAX_TIME_MS = ROUND_DURATION * 1000;
 
@@ -58,8 +60,14 @@ export function createRunRecordStore(
       allowed.has(row.region) &&
       characters.has(row.character) &&
       (row.ruleset === RUN_RULESET ||
+        (OCEAN_CURRENT_RULES.regions.includes(row.region) &&
+          row.ruleset === "currents-2026-10-30") ||
         (revisedRegions.has(row.region) &&
           row.ruleset === "expedition-2026-10-14") ||
+        (row.region === "atlantis" &&
+          ["waterwheel-2026-10-31", "waterlevel-2026-10-31"].includes(
+            row.ruleset,
+          )) ||
         row.ruleset === runRuleset(row.region)) &&
       Number.isInteger(row.timeMs) &&
       row.timeMs > 0 &&

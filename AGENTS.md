@@ -1,5 +1,11 @@
 # ABYSSAL Development Rules
 
+Current scope — 2026-10-31: the user accepts the Atlantis direct-contact
+water-level puzzle and authorizes a local checkpoint and reusable repository
+puzzle rules. Do not start the next batch, push, release or modify personal
+Skills. Only the first family is accepted; the remaining four families and
+randomized hosts are pending. Earlier candidate statuses are historical.
+
 Surface currents accepted for local checkpoint — 2026-10-30: the user accepts
 the HF water-flow revision and requests a local commit before a separate Atlantis
 puzzle design. All 2,104 delivered source inputs match before acceptance-only

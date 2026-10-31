@@ -17,16 +17,19 @@ import { MAX_SWIM_PITCH } from "../src/steering_rules.js";
 import { WORLD } from "../src/world_config.js";
 import { t } from "../src/i18n.js";
 
-test("All twelve hiding spots are independently drawable and have translated building-only clues", () => {
+test("Remaining hiding spots are independently drawable and have translated building-only clues", () => {
   const region = getExpedition("atlantis").region;
-  assert.equal(ATLANTIS_KEY_SITES.length, 12);
+  assert.equal(ATLANTIS_KEY_SITES.length, 10);
   assert.equal(new Set(ATLANTIS_KEY_SITES.map((s) => s.buildingId)).size, 6);
+  const pool = ATLANTIS_KEY_SITES.filter(
+    (s) => !["agora_bridges", "agora_sunken_archive"].includes(s.buildingId),
+  );
   for (let guardian = 0; guardian < 3; guardian++)
-    for (let key = 0; key < 12; key++) {
-      const values = [(guardian + 0.5) / 3, (key + 0.5) / 12];
+    for (let key = 0; key < pool.length; key++) {
+      const values = [(guardian + 0.5) / 3, (key + 0.5) / pool.length];
       const state = createExpeditionObjective(region, () => values.shift());
       assert.equal(state.guardianId, region.bossInstances[guardian].id);
-      assert.equal(state.keySiteId, ATLANTIS_KEY_SITES[key].id);
+      assert.equal(state.keySiteId, pool[key].id);
       state.clueRead = true;
       const hint = t(expeditionObjectiveHint(state, { length: 3 }), [], "en");
       assert.doesNotMatch(hint, /[\u3400-\u9fff]/u);
@@ -38,8 +41,10 @@ test("Every hiding spot admits full entrance, turns, real capture and return at 
   const scene = new THREE.Scene(),
     ocean = createAtlantisOcean(scene);
   ctx.after(() => ocean.dispose());
-  const sites = resolveAtlantisKeySites(ocean.city.underways.records);
-  assert.equal(sites.length, 12);
+  const sites = resolveAtlantisKeySites(ocean.city.underways.records).filter(
+    (s) => !["agora_bridges", "agora_sunken_archive"].includes(s.buildingId),
+  );
+  assert.equal(sites.length, 7);
   for (const site of sites)
     for (const length of [3, 16, 30]) {
       const points = [...site.route, ...site.route.slice(0, -1).reverse()];

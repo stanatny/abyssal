@@ -1,3 +1,4 @@
+import { createWaterwheelUI } from "./atlantis_waterwheel_ui.js";
 import {
   creaturePitchLimit,
   updateCreatureAttitude,
@@ -1185,18 +1186,46 @@ function updateSonar() {
             }))
         : objectiveState?.relicUnlocked && !objectiveState.relicCollected
           ? [{ ...ATLANTIS_RELIC, open: false, relic: true }]
-          : objectiveState?.clueRead &&
-              !objectiveState.keyCollected &&
-              ocean.relic?.keyArt.getGuidancePoint(objectiveState.keySiteId)
+          : objectiveState?.regionId === "atlantis" &&
+              (objectiveState.clueRead || objectiveState.mechanismSolved)
             ? [
-                {
-                  ...ocean.relic.keyArt.getGuidancePoint(
-                    objectiveState.keySiteId,
-                  ),
-                  open: false,
-                  key: true,
-                },
-              ]
+                ...(objectiveState.mechanismSolved &&
+                !objectiveState.guardianDefeated
+                  ? [
+                      {
+                        ...encounters.bosses.find(
+                          (b) => b.id === objectiveState.guardianId,
+                        )?.home,
+                        open: false,
+                        guardian: true,
+                      },
+                    ]
+                  : []),
+                ...(objectiveState.clueRead && !objectiveState.keyCollected
+                  ? [
+                      {
+                        ...ocean.relic.keyArt.getGuidancePoint(
+                          objectiveState.keySiteId,
+                        ),
+                        open: false,
+                        key: true,
+                      },
+                    ]
+                  : []),
+                ...(!objectiveState.mechanismSolved
+                  ? [
+                      {
+                        ...ocean.waterwheel.entry,
+                        open: false,
+                        mechanism: true,
+                      },
+                    ]
+                  : []),
+              ].sort(
+                (a, b) =>
+                  Math.hypot(a.x - position.x, a.z - position.z) -
+                  Math.hypot(b.x - position.x, b.z - position.z),
+              )
             : [],
   });
   const character = getCharacter(player.characterId);
@@ -1679,6 +1708,7 @@ function seedPickups() {
   }
 }
 let objectiveState;
+const waterwheelUI = createWaterwheelUI();
 let currentNotification = "";
 function notify(source, duration = 3) {
   currentNotification = source;
@@ -1698,6 +1728,7 @@ function resetExpedition(preserveWorld = false) {
   player = createPlayer(expedition.character.id, expedition.startLength);
   player.expeditionComplete = false;
   objectiveState = createExpeditionObjective(expedition.region);
+  ocean.waterwheel?.reset();
   ocean.relic?.reset();
   selectAvatar(expedition.character);
   inkAbility = createInkState();
@@ -1832,6 +1863,7 @@ function updateLaunch(roundDt) {
   }
 }
 function showOverlay(kind) {
+  waterwheelUI.hide();
   if (["dead", "won", "timeup"].includes(kind)) {
     ocean.currents?.reset();
     lordLockFeedback.reset();
@@ -3823,6 +3855,12 @@ function updateTorpedoAim() {
 }
 
 function updateHud() {
+  waterwheelUI.update(
+    ocean.waterwheel,
+    mode === "playing",
+    !player.dead && !player.timedOut && !player.won,
+    player.invulnerable <= 0,
+  );
   const cap = vitalLimit(player) === 150 ? "150" : "100";
   if ($("hud").dataset.vitalCap !== cap) $("hud").dataset.vitalCap = cap;
   for (const key of ["health", "stamina", "hunger"]) {
@@ -4325,12 +4363,39 @@ function frame(now) {
       capturePoint(captureContact).distanceToSquared(relicPosition) <
         (ATLANTIS_RELIC.radius + player.length * 0.06) ** 2 &&
       !blockedBetween(position, relicPosition);
+    const waterwheel = ocean.waterwheel;
+    if (waterwheel) {
+      waterwheel.sense(position, player.length, blockedBetween, {
+        from: playerMovementStart,
+        forward: playerFacing.set(0, 0, -1).applyQuaternion(avatar.quaternion),
+        previousForward: playerMovementFacing,
+        active: !player.dead && !player.timedOut && !player.won,
+      });
+      const event = waterwheel.step(dt, {
+        active: !player.dead && !player.timedOut && !player.won,
+        vulnerable: player.invulnerable <= 0,
+      });
+      if (event?.kind === "failed") {
+        const resistance =
+          getCharacter(player.characterId).passive.resistance || 1;
+        if (takeDamage(player, event.damage * resistance)) {
+          hitFlash = 0.8;
+          effects.hurt(position, player.length);
+          audio.hit();
+          notify("试闸失败 · 损失15生命，六阀已关闭，水箱正在排空", 5);
+        }
+      } else if (event?.kind === "solved") {
+        audio.pickup();
+        notify("水轮已转动 · 闸门升起，获得机关印记", 6);
+      }
+    }
     const objectiveEvent = advanceExpeditionObjective(
       objectiveState,
       player,
       encounters.bosses,
       {
         relicContact,
+        mechanismSolved: !!waterwheel?.state.solved,
         keyContact: (() => {
           const point = ocean.relic?.keyArt.getPoint(objectiveState.keySiteId);
           return (
@@ -4357,7 +4422,7 @@ function frame(now) {
       notify("海螺钥匙已找到 · 保留至神庙地宫开启宝箱", 6);
     }
     if (objectiveEvent.unlocked)
-      notify("钥匙与守宝印记齐全 · 波塞冬宝箱已开启", 6);
+      notify("钥匙、机关与守宝印记齐全 · 波塞冬宝箱已开启", 6);
     if (objectiveEvent.collected) {
       audio.pickup();
       notify("圣珠已吞食 · 亚特兰蒂斯的秘密已解开", 6);

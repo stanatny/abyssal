@@ -92,7 +92,11 @@ for (const site of sites) {
   if (site.point) Object.freeze(site.point);
   Object.freeze(site);
 }
-export const ATLANTIS_KEY_SITES = Object.freeze(sites);
+export const ATLANTIS_KEY_SITES = Object.freeze(
+  sites.filter(
+    (s) => !["sanctuary_lower_west", "colonnade_east"].includes(s.id),
+  ),
+);
 
 /** 由已建成公共廊道与挖掘元数据解析藏点及可往返的身体中心路线。 */
 export function resolveAtlantisKeySites(records) {
