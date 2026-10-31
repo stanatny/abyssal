@@ -1585,6 +1585,19 @@ Whenever a gameplay rule changes or an element is added, renamed, or removed, ch
 
 For reports about searching for food, slow growth, combat readability or missing device controls, use the [gameplay iteration playbook](docs/gameplay_iteration_playbook.md). Distinguish habitat coverage, actual local stock and meal economy before changing values; compare representative size/depth routes and keep controlled contract tests separate from natural player experience. Keep methods in that playbook and current tuning constants in the existing shared rules below.
 
+## Environmental puzzle design
+
+For environmental puzzle design, implementation or revisions, follow the
+[puzzle design rules](docs/environment_puzzle_rules.md). Make controls, clues,
+success conditions and retry rules understandable while leaving the answer for
+the player to infer. Require meaningful reasoning, in-world contact controls and
+an explicit final test; a wrong test applies one announced health penalty and
+resets selections without rerolling clues. Validate solvability, host access,
+key separation and survival pressure. Check one playable slice with native
+controls before expanding; distinguish staged demonstrations from an unassisted
+run. The water-level lock's six valves, 15-health cost and three-second delay are
+family-specific parameters, not universal puzzle constants.
+
 ## Lord body contact and rare blessing feedback
 
 The shared lord-contact candidate lets actual body contact count from any angle during post-attack `recover`; other unguarded phases for ordinary lords accept inward approaches to the body's sides, dorsal/ventral surface or rear, while the frontal armor cone remains protected. Each opening permits only one damaging bite or torpedo; the latch resets only after the next attack finishes into recovery. Preserve the initial side/back or ranged ambush for ordinary lords, and never refresh a spent opening by cooldown, disengagement, ink, return or re-entry. The HUD and torpedo aim must distinguish a spent opening from an available counter. Keep the real 25 m gate, three separate valid hits by default (four for Black Tortoise, five for the Sword Sage), 1.2-second player/lord cooldown, at least 0.35 seconds outside contact before rearming, locked guardians, guarded phases, occlusion and once-only regional settlement. The melee contact point remains the shared forward 0.38-body-length region for all four characters, separate from ordinary feeding and the Squid's backward swallowing anchor; use a 0.09-length contact radius with a 0.4 minimum. Do not make Squid melee unreachable by substituting that swallowing anchor.

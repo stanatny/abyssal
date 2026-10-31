@@ -1,5 +1,11 @@
 # ABYSSAL Penglai HF redraw — 2026-10-27
 
+Local checkpoint `fbecdf0` records the accepted Atlantis touch-operated puzzle.
+Reusable [environmental puzzle rules](docs/environment_puzzle_rules.md) are linked
+from `AGENTS.md`. Read them before a future puzzle batch. This turn adds no further
+runtime changes. Remaining families and randomized hosts stay pending; the next
+batch is paused and no push, release or personal Skill change is authorized.
+
 Accepted puzzle checkpoint — 2026-10-31: the user accepts the direct-contact
 water-level lock and requests a local commit, followed by repository puzzle
 rules. All 1,228 delivered runtime-input hashes match before these documentation

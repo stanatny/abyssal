@@ -1,5 +1,11 @@
 # ABYSSAL
 
+Local checkpoint `fbecdf0` records the accepted Atlantis touch-operated puzzle.
+Reusable [environmental puzzle rules](docs/environment_puzzle_rules.md) now cover
+reasoning difficulty, readable clues, world contact, failed-test penalties/reset,
+solvable randomization, placement and native-play evidence. The next batch remains
+paused; no push or release is authorized.
+
 Accepted puzzle checkpoint — 2026-10-31: the user accepts the direct-contact
 water-level lock and requests a local commit, followed by repository puzzle
 rules. All 1,228 delivered runtime-input hashes match before these documentation
