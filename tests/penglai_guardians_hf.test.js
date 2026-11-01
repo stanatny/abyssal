@@ -271,3 +271,50 @@ test("White Tiger tail binding leaves the rear paws independent and moves the ac
   assert.ok(step < 0.004, "continuous tail surface");
   a.userData.disposeLocalMotion();
 });
+
+test("White Tiger skull stays square to the torso through walking, leap and roar", () => {
+  const root = createCreature("white_tiger", 1, 17),
+    rig = root.userData.hfRig,
+    left = new THREE.Vector3(),
+    right = new THREE.Vector3();
+  // 同一头骨两侧的耳根、眼眶和吻部表面；原资产的深度错位为 0.03–0.07。
+  const pairs = [
+    [20098, 9334],
+    [10075, 14307],
+    [20588, 20770],
+  ];
+  let time = 0;
+  for (const [phase, ability] of [
+    ["hunt", undefined],
+    ["windup", "charge"],
+    ["attack", "charge"],
+    ["recover", "charge"],
+    ["attack", "roar"],
+    ["recover", "roar"],
+  ]) {
+    root.userData.setBossPhase(phase, ability);
+    for (let frame = 0; frame < 90; frame++) {
+      root.userData.setGroundTravel(phase === "hunt" ? 0.3 / 60 : 0, 1 / 60);
+      pose(root, (time += 1 / 60), 1.2);
+      for (const [a, b] of pairs) {
+        rig.mesh.getVertexPosition(a, left);
+        rig.mesh.getVertexPosition(b, right);
+        const delta = left.clone().sub(right);
+        assert.ok(
+          Math.abs(delta.z) < 0.003,
+          "paired skull surfaces must not retain the sideways head turn",
+        );
+        assert.ok(
+          Math.abs(delta.y) < 0.003,
+          "paired skull surfaces must remain level",
+        );
+        assert.ok(Math.abs((left.x + right.x) / 2 - 0.014) < 0.002);
+      }
+      const mouth = root.userData.getHeadWorldPositions()[0];
+      assert.ok(mouth.toArray().every(Number.isFinite));
+      assert.ok(Math.abs(mouth.x - 0.014) < 1e-7);
+      assert.ok(mouth.z < -0.47 && mouth.z > -0.51);
+    }
+  }
+  root.userData.disposeLocalMotion();
+});

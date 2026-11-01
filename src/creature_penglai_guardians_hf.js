@@ -1,5 +1,8 @@
 import * as T from "three";
-import { penglaiGuardianHFAsset } from "./penglai_guardian_hf_asset.js";
+import {
+  penglaiGuardianHFAsset,
+  PENGLAI_HF_GUARDIAN_DATA,
+} from "./penglai_guardian_hf_asset.js";
 import { bindOrganicBody } from "./hf_organic_asset.js";
 import {
   chainWeights,
@@ -11,6 +14,7 @@ const smooth = (a, b, x) => T.MathUtils.smoothstep(x, a, b);
 /** 基于实际 HF 表面拟合翼根、胸肩、腿与口部，所有实例只共用不可变资产。 */
 export function buildPenglaiGuardianHF(kind, root, motions) {
   const tiger = kind === "white_tiger",
+    fitted = tiger ? PENGLAI_HF_GUARDIAN_DATA.white_tiger.headAlignment : null,
     base = new T.Bone(),
     bones = [base],
     chains = [];
@@ -33,10 +37,7 @@ export function buildPenglaiGuardianHF(kind, root, motions) {
   const head = add(
     "guardian_head",
     tiger
-      ? [
-          [0.005, 0.16, -0.32],
-          [0.014, 0.15, -0.48],
-        ]
+      ? fitted.head
       : [
           [0, 0.12, -0.29],
           [0, 0.095, -0.48],
@@ -45,7 +46,7 @@ export function buildPenglaiGuardianHF(kind, root, motions) {
   );
   const jaw = add(
     "guardian_jaw",
-    tiger ? [[0.014, 0.105, -0.43]] : [[0, 0.08, -0.43]],
+    tiger ? [fitted.jaw] : [[0, 0.08, -0.43]],
     "jaw",
   );
   // 下颌与头骨共同转动，口部不因颈部动作脱离。
@@ -224,7 +225,7 @@ export function buildPenglaiGuardianHF(kind, root, motions) {
   mesh.userData.lordCoreParts = parts.filter((a) => a.length > 20);
   const mouth = new T.Object3D();
   mouth.position
-    .set(tiger ? 0.014 : 0, tiger ? 0.115 : 0.085, -0.49)
+    .fromArray(tiger ? fitted.mouth : [0, 0.085, -0.49])
     .sub(new T.Vector3(...head.points[0]));
   bones[head.ids[0]].add(mouth);
   root.userData.mouthAnchors = [mouth];

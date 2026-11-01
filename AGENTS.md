@@ -1,5 +1,20 @@
 # ABYSSAL Development Rules
 
+Main publication v0.11.24 — 2026-11-01: the user authorizes publishing the
+existing work to main. This integrates the eight-region ecology revision,
+creature posture/aiming and Penglai scenery fixes, temporary surface currents,
+three exclusive Atlantis puzzles and quest cues, plus the White Tiger skull
+alignment. The proposed midgame hunting mechanics remain undecided and are not
+implemented. Earlier local-only/candidate status notes below are historical;
+see [the integration record](docs/release_v0_11_24.md). No tag, separate GitHub
+Release or personal Skill update is included.
+
+White Tiger head follow-up — 2026-11-01: correct the HF skull's static sideways
+alignment and refit the head/jaw anchors, preserving locomotion and combat.
+Focused tests and native Penglai observation cover the actual skinned surface.
+See [the review](docs/penglai_white_tiger_head_revision.md). This visual fix is
+included in the authorized main integration above.
+
 Mural path accepted for local checkpoint — 2026-10-31: the user accepts the
 five-stage memory route, symbol-specific membranes and current-gate retry, and
 authorizes a local commit. All 1,836 recorded source/test/build inputs and 965
