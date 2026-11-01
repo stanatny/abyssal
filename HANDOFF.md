@@ -1,5 +1,29 @@
 # ABYSSAL Penglai HF redraw — 2026-10-27
 
+Main publication v0.11.25 — 2026-11-01: the user authorizes publishing the
+accepted Atlantis distant-city rendering and shared lord visibility correction
+to main. This adds lightweight city silhouettes and removes the unrelated
+230/850 m lord body cutoff across all eight maps. Existing gameplay and the
+undecided midgame proposals remain unchanged. Earlier candidate/uncommitted
+notes below are historical; see [the integration record](docs/release_v0_11_25.md).
+
+Shared lord visibility candidate — 2026-11-01: remove the player-distance
+render cutoff (230 m for ordinary/alien lords, 850 m for mythic lords) from the
+shared encounter update. Live selected lords retain their real meshes and use
+existing camera frustum/depth/fog handling; defeated and unselected pools remain
+hidden. Eight-region regression and actual Europa/Atlantis comparisons reproduce
+the original pop-in. See [the review](docs/lord_distance_visibility.md).
+This preserves the preceding Atlantis skyline candidate; neither is committed
+or pushed, and the formal release below is unchanged.
+
+Atlantis distant-city candidate — 2026-11-01: add geometry-derived silhouettes
+for all 32 architectural chunks and the main temple, plus shared architectural
+haze so high underwater views show the royal skyline. Existing near meshes,
+collisions, population and puzzle behavior remain; 309 focused tests pass and
+same-machine High/Smooth A/B/A samples remain near 60 FPS. See
+[the review](docs/atlantis_distant_city.md). Uncommitted/unpushed pending user
+review; the main publication below remains the current formal release.
+
 Main publication v0.11.24 — 2026-11-01: the user authorizes publishing the
 existing work to main. This integrates the eight-region ecology revision,
 creature posture/aiming and Penglai scenery fixes, temporary surface currents,

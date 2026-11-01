@@ -1,5 +1,12 @@
 # ABYSSAL
 
+Main publication v0.11.25 — 2026-11-01: the user authorizes publishing the
+accepted Atlantis distant-city rendering and shared lord visibility correction
+to main. This adds lightweight city silhouettes and removes the unrelated
+230/850 m lord body cutoff across all eight maps. Existing gameplay and the
+undecided midgame proposals remain unchanged. Earlier candidate/uncommitted
+notes below are historical; see [the integration record](docs/release_v0_11_25.md).
+
 Main publication v0.11.24 — 2026-11-01: the user authorizes publishing the
 existing work to main. This integrates the eight-region ecology revision,
 creature posture/aiming and Penglai scenery fixes, temporary surface currents,

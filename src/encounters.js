@@ -2088,7 +2088,9 @@ export function createEncounters(
         entry.pursuitAnnounced = true;
         notify("四象护阵已解 · 御剑真君开始全域追击", 3);
       }
-      entry.mesh.visible = distance < (state.species.mythic ? 850 : 230);
+      // 领主已在地图准备阶段建好；按玩家距离硬隐藏会让巨兽在水雾中突然闪现。
+      // 保留真实模型，由相机视锥与现有水雾决定远景；战斗和领地判定仍独立计算。
+      entry.mesh.visible = true;
       entry.label.visible = homeDistance < 175 && !inTerritory;
       entry.contactCooldown = Math.max(0, entry.contactCooldown - dt);
       const sight = !blockedBetween(entry.mesh.position, position);

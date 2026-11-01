@@ -145,7 +145,13 @@ export function* createAtlantisOceanSteps(scene) {
       colliders,
       obstacles,
       landmarks: city.landmarks,
-      update(elapsed, position, dt = 0, highQuality = true) {
+      update(
+        elapsed,
+        position,
+        dt = 0,
+        highQuality = true,
+        cameraPosition = position,
+      ) {
         if (disposed) return;
         time.value = elapsed;
         mechanism.update(
@@ -156,7 +162,7 @@ export function* createAtlantisOceanSteps(scene) {
         );
         relic.update(elapsed, position, reducedMotion?.matches || false);
         nursery.visible = position.z > -390;
-        city.update(elapsed, dt, position, highQuality);
+        city.update(elapsed, dt, position, highQuality, cameraPosition);
         outskirts.update(elapsed, position, dt, highQuality);
       },
       dispose() {

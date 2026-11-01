@@ -80,6 +80,8 @@ test("分片古城保留已验收版本的全部实体、障碍及近景模型�
           [
             "atlantis_waterwheel_gate",
             "atlantis_light_seal",
+            // 新增的纯显示远景单独验证预算与覆盖，近景仍逐字比对。
+            "atlantis_distant_city",
             "poseidon_monument",
           ].includes(ancestor.name)
         )

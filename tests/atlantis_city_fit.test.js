@@ -1,7 +1,11 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 import * as THREE from "three";
-import { createAtlantisCity } from "../src/atlantis_city.js";
+import {
+  createAtlantisCity,
+  createAtlantisCitySteps,
+} from "../src/atlantis_city.js";
+import { createAtlantisCityDistance } from "../src/atlantis_city_distance.js";
 import { GEOMETRIES } from "../src/atlantis_art_geometry.js";
 import {
   ATLANTIS_CITY_BOUNDS,
@@ -373,6 +377,114 @@ test("Travel reuses a fixed light pool with readable warm local marine glow at b
       );
     }
   }
+});
+
+test("Distant Atlantis covers all districts and the temple without changing near culling", () => {
+  const layer = city.distance;
+  const chunks = city.root.children.filter((n) =>
+    n.name.startsWith("city_district_"),
+  );
+  assert.equal(layer.stats.meshes, chunks.length + 1);
+  assert.ok(layer.stats.triangles < layer.stats.sourceTriangles * 0.06);
+  let bytes = 0;
+  for (const mesh of layer.root.children) {
+    const geometry = mesh.geometry;
+    bytes += geometry.index.array.byteLength;
+    for (const attribute of Object.values(geometry.attributes)) {
+      bytes += attribute.array.byteLength;
+      assert.ok(attribute.array.every(Number.isFinite));
+    }
+    assert.equal(mesh.material.map, null);
+    assert.equal(mesh.material.depthTest, true);
+    assert.equal(mesh.castShadow, false);
+    assert.ok(geometry.boundingSphere.radius > 0);
+  }
+  assert.ok(bytes < 5_000_000, "City-wide distant buffers must stay bounded");
+  const temple = layer.root.getObjectByName("city_silhouette_poseidon_temple");
+  assert.ok(
+    temple.geometry.boundingBox.max.y > city.temple.site.templeFloorY + 50,
+  );
+  assert.ok(
+    temple.geometry.boundingBox.min.y >= city.temple.site.templeFloorY - 8,
+  );
+  const colliderCount = city.colliders.length;
+  for (const high of [true, false])
+    for (const point of [
+      new THREE.Vector3(0, -8, 70),
+      new THREE.Vector3(0, -28, -360),
+      new THREE.Vector3(0, -420, -600),
+      new THREE.Vector3(0, -610, -911),
+    ]) {
+      city.update(0, 0, point, high);
+      for (const chunk of chunks) {
+        const [x, z] = chunk.name
+          .slice("city_district_".length)
+          .split(":")
+          .map(Number);
+        const near =
+          Math.hypot(x * 150 - 225 - point.x, z * 140 - 1030 - point.z) <
+          (high ? 350 : 275);
+        assert.equal(chunk.visible, near);
+        assert.equal(
+          layer.root.getObjectByName(`city_silhouette_${chunk.name}`).visible,
+          !near,
+        );
+      }
+      assert.equal(temple.visible, !city.temple.root.visible);
+      assert.equal(city.colliders.length, colliderCount);
+    }
+});
+
+test("Cancelling distant-city preparation releases private batches and restores shared materials", () => {
+  const parent = new THREE.Group();
+  const iterator = createAtlantisCitySteps(parent, { heightAt: seabedHeight });
+  let steps = 0;
+  while (!iterator.next().done) {
+    const far = parent.getObjectByName("atlantis_distant_city");
+    if (far?.children.length >= 2) break;
+    assert.ok(++steps < 5000);
+  }
+  const far = parent.getObjectByName("atlantis_distant_city");
+  assert.ok(far.children.length >= 2);
+  let disposed = 0;
+  const count = far.children.length;
+  for (const mesh of far.children)
+    mesh.geometry.addEventListener("dispose", () => disposed++);
+  iterator.return();
+  assert.equal(disposed, count);
+  assert.equal(parent.children.length, 0);
+  // 已存在城市仍拥有共享材质；取消另一份构造不能撤掉它的雾着色器。
+  assert.match(
+    city.distance.root.children[0].material.customProgramCacheKey(),
+    /atlantis-city-distance/,
+  );
+});
+
+test("Reentering the city updates uniforms retained by cached WebGL programs", () => {
+  const material = new THREE.MeshStandardMaterial();
+  const mesh = new THREE.Mesh(new THREE.BoxGeometry(2, 2, 2), material);
+  const original = material.onBeforeCompile;
+  const parent = new THREE.Group();
+  const first = createAtlantisCityDistance(parent);
+  first.prepareMaterials(mesh);
+  const shader = {
+    uniforms: {},
+    fragmentShader: THREE.ShaderLib.standard.fragmentShader,
+  };
+  material.onBeforeCompile(shader);
+  const cached = shader.uniforms.cityAmbientDensity;
+  first.dispose();
+  assert.equal(material.onBeforeCompile, original);
+  const second = createAtlantisCityDistance(parent);
+  second.prepareMaterials(mesh);
+  second.update(new THREE.Vector3(0, -28, -360));
+  assert.ok(cached.value > 0.006 && cached.value < 0.0061);
+  second.update(new THREE.Vector3(0, -450, -700));
+  assert.ok(Math.abs(cached.value - 0.0017) < 1e-9);
+  second.dispose();
+  assert.equal(material.onBeforeCompile, original);
+  material.dispose();
+  mesh.geometry.dispose();
 });
 
 test.after(() => city.dispose());

@@ -1,3 +1,4 @@
+import { createAtlantisCityDistance } from "./atlantis_city_distance.js";
 import { createPoseidonAwakening } from "./atlantis_poseidon_awake.js";
 import { createAtlantisLightPool } from "./atlantis_light_pool.js";
 import { prepareAtlantisSurfaces } from "./atlantis_surface_material.js";
@@ -651,6 +652,7 @@ export function* createAtlantisCitySteps(parent, { heightAt } = {}) {
         rotation: random() * 6.28,
       });
     }
+    const distance = scope.own(createAtlantisCityDistance(root));
     const dummy = new THREE.Object3D();
     for (const chunk of chunks.values()) {
       for (const batch of chunk.batches.values()) {
@@ -676,7 +678,15 @@ export function* createAtlantisCitySteps(parent, { heightAt } = {}) {
         owned.add({ dispose: () => mesh.dispose() });
       }
       chunk.batches.clear();
+      yield* distance.addSteps(chunk.group, chunk.group.name);
     }
+    // 主神庙远景保留地表主体；地下圣库与家具仍按原有距离加载。
+    yield* distance.addSteps(temple.root, "poseidon_temple", {
+      minY: temple.site.templeFloorY - 3,
+      include: (mesh) => mesh.parent === temple.root,
+    });
+    distance.prepareMaterials(poseidon.mesh);
+    distance.finish();
     // 陈设先占据实际空间，再让海洋生长避让家具；最终碰撞只在组装时合并。
     const harborSite = ATLANTIS_EXCAVATION_SITES[0];
     const facades = selectMarineFacades(colliders, {
@@ -747,10 +757,17 @@ export function* createAtlantisCitySteps(parent, { heightAt } = {}) {
       residential: residential.stats,
       temple: temple.stats,
       chunks: chunks.size,
+      distance: distance.stats,
       colliders: colliders.length,
     };
     root.userData.cityStats = stats;
-    function update(time, dt, position, highQuality = true) {
+    function update(
+      time,
+      dt,
+      position,
+      highQuality = true,
+      cameraPosition = position,
+    ) {
       if (disposed) return;
       poseidon.update(dt);
       underways.update(time, dt, position, highQuality);
@@ -767,6 +784,7 @@ export function* createAtlantisCitySteps(parent, { heightAt } = {}) {
           !position ||
           Math.hypot(chunk.center.x - position.x, chunk.center.z - position.z) <
             reach;
+      distance.update(position, cameraPosition);
       lightPool.update(time, dt, position, highQuality);
       void dt;
     }
@@ -779,6 +797,7 @@ export function* createAtlantisCitySteps(parent, { heightAt } = {}) {
       stats,
       buildings: records,
       poseidon,
+      distance,
       barriers: poseidon.moving,
       underways,
       exploration,
@@ -792,6 +811,7 @@ export function* createAtlantisCitySteps(parent, { heightAt } = {}) {
       dispose() {
         if (disposed) return;
         disposed = true;
+        distance.dispose();
         poseidon.dispose();
         residential.dispose();
         temple.dispose();
