@@ -1,5 +1,53 @@
 /** 亚特兰蒂斯物种、地区与图鉴筛选文案；键保留中文原文。 */
 export const ATLANTIS_EN = Object.freeze({
+  "浅滩西北 · 月湾古港": "Northwest of the shallows · Moonbay harbor",
+  "城区东侧 · 市集": "East city · Agora",
+  "神庙西北 · 深城": "Northwest of the temple · Deep city",
+  "深城中央 · 波塞冬神庙": "Central deep city · Poseidon Temple",
+  "寻找高台上的单顶柱廊，沿浅水侧进入上层大厅。":
+    "Find the single-roof colonnade on a raised platform. Enter its upper hall from the shallow-water side.",
+  "寻找两翼相连、中间有天井的柱廊，从浅水侧进入下层。":
+    "Find the twin-wing colonnade with an open central well. Enter the lower level from the shallow-water side.",
+  "寻找月湾圣所下方的古港天井，沿敞口阶梯下潜至地下厅。":
+    "Find the harbor well below Moonbay Sanctuary. Descend the open staircase to the underground hall.",
+  "档案库在市集柱廊下方。绕到深水侧的门洞，沿水道进入地下。":
+    "The archive is beneath the Agora Colonnade. Find the doorway on its deep-water side and follow the channel underground.",
+  "寻找神庙左后方、带三个屋顶的高台建筑。":
+    "Find the three-roof terrace northwest of the temple.",
+  "寻找神庙左后方的三顶高台建筑，绕到深水侧进入上层大厅。":
+    "Find the three-roof terrace northwest of the temple. Go around to its deep-water side to enter the upper hall.",
+  "寻找神庙左后方的三顶高台建筑，从浅水侧进入下层大厅。":
+    "Find the three-roof terrace northwest of the temple. Enter the lower hall from the shallow-water side.",
+  "寻找巨大神像所在的神庙，从神像前方的中央开口下潜进入地宫。":
+    "Find the temple with the giant statue. Descend through the central opening in front of the statue to reach the vault.",
+  上层大厅入口: "Upper hall entrance",
+  下层柱廊入口: "Lower colonnade entrance",
+  地下厅阶梯入口: "Hall stairway entrance",
+  地下档案库水道入口: "Archive channel entrance",
+  下层大厅入口: "Lower hall entrance",
+  深水侧上层入口: "Upper entry · Deep side",
+  浅水侧下层入口: "Lower entry · Shallow side",
+  神庙中央下潜入口: "Central descent entrance",
+  "钥匙线索：{0} · {1}。{2}海图上的金色钥匙标记指向入口，进入后自行寻找。":
+    "Key clue: {0} · {1}. {2} The gold key on the minimap marks the entrance. Search inside for the key.",
+  "已到达{0} · {1}。{2}钥匙藏在建筑内部。":
+    "Reached {0} · {1}. {2} The key is hidden inside.",
+  "{0} · 平距 {1}m": "{0} · {1}m across",
+  入口就在附近: "Entrance nearby",
+  "入口 · 同层": "Entry · Same level",
+  "入口 ↑ {0}m": "Entry ↑ {0}m",
+  "入口 ↓ {0}m": "Entry ↓ {0}m",
+  北: "N",
+  东北: "NE",
+  东: "E",
+  东南: "SE",
+  南: "S",
+  西南: "SW",
+  西: "W",
+  西北: "NW",
+  "铭文说明藏钥建筑的方位、外形与入口层级。阅读后，海图的金色钥匙标记和独立指引会持续指向建筑入口；到达后进入建筑自行寻找。钥匙不提供营养，也不能替代机关与守宝者印记；新局重新抽取藏点。":
+    "Inscriptions describe the building’s direction, appearance and entrance level. After reading one, a gold key marker and dedicated minimap guidance lead to its entrance. Search inside for the key. It grants no nutrition and does not replace the mechanism or guardian seal. Hiding sites are redrawn each expedition.",
+
   "记住顺序 → 依次穿过五道符印": "Remember the order → cross five seals",
   已通过: "Complete",
   "入口 → 等待壁画对应符号": "ENTRY → Wait for the mural symbol",

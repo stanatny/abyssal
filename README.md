@@ -1,5 +1,19 @@
 # ABYSSAL
 
+Main publication v0.11.26 — 2026-11-02: the user authorizes committing and
+pushing the accepted Atlantis key-entrance guidance to main. All 2,154 recorded
+delivery inputs match before publication-only metadata and documentation edits.
+This adds readable building/entrance clues and persistent key navigation while
+preserving hiding points and puzzle rules. Earlier candidate notes below are
+historical; see [the release record](docs/release_v0_11_26.md).
+
+Atlantis key-guidance candidate — 2026-11-02: inscriptions now identify the
+building sector, appearance and entrance level. A distinct gold key marker and
+independent minimap caption persist alongside mechanism navigation; actual
+entrance proximity confirms the location. Existing hiding points, random draws,
+combat and puzzle rules remain unchanged. See [the review](docs/atlantis_key_guidance.md).
+Uncommitted/unpublished; formal main remains v0.11.25.
+
 Main publication v0.11.25 — 2026-11-01: the user authorizes publishing the
 accepted Atlantis distant-city rendering and shared lord visibility correction
 to main. This adds lightweight city silhouettes and removes the unrelated

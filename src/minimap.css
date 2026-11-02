@@ -5,6 +5,60 @@
   font-variant-numeric: tabular-nums;
 }
 
+.minimap-key-marker {
+  fill: none;
+  stroke: #ffe09a;
+  stroke-width: 1.5;
+  stroke-linecap: round;
+  paint-order: stroke;
+  filter: drop-shadow(0 1px 1px #041b26);
+}
+
+.minimap-key-guidance:not([hidden]) {
+  display: grid;
+  gap: 2px;
+  margin-top: 6px;
+  padding: 6px 4px;
+  border-top: 1px solid #e8c98766;
+  border-radius: 0 0 6px 6px;
+  background: #07232bdb;
+  color: #d3e1d9;
+  font-size: 10px;
+  line-height: 13px;
+  text-align: center;
+  text-wrap: balance;
+  overflow-wrap: anywhere;
+}
+.minimap-key-guidance span:first-child {
+  color: #ffe09a;
+  font-weight: 600;
+}
+.minimap-key-guidance span:nth-child(2) {
+  color: #b6c8c1;
+}
+
+/* 入口指引独立于最近机关字幕；为原有声纳统计保留空间。 */
+#hud:has(.minimap-key-guidance:not([hidden])) #sonar-panel {
+  translate: 0 112px;
+}
+
+/* 矮屏优先保留钥匙方位与上下距离，避免覆盖慢游按钮；返航路径仍在海图内。 */
+@media (max-height: 700px) {
+  #minimap:has(.minimap-key-guidance:not([hidden])) .minimap-caption,
+  .minimap-key-guidance span:nth-child(2),
+  #hud:has(.minimap-key-guidance:not([hidden])) #sonar-panel {
+    display: none;
+  }
+  .minimap-key-guidance:not([hidden]) {
+    margin-top: 3px;
+    padding: 3px 2px;
+    gap: 1px;
+    font-size: 10px;
+    line-height: 12px;
+    text-wrap: initial;
+  }
+}
+
 .minimap-chart {
   display: block;
   width: 100%;

@@ -145,6 +145,10 @@ import { createSonar } from "./sonar.js";
 import { createSonarMarkers } from "./sonar_markers.js";
 import { createSonarWave } from "./sonar_wave.js";
 import { createMinimap } from "./minimap.js";
+import {
+  atlantisKeyClue,
+  createAtlantisKeyArrival,
+} from "./atlantis_key_guidance.js";
 import { createRegionLoading } from "./region_loading.js";
 import { createExpeditionSetup } from "./menu_selection.js";
 import { createRunRecordsUI } from "./run_records_ui.js";
@@ -1719,6 +1723,9 @@ function seedPickups() {
   }
 }
 let objectiveState;
+const keyArrival = createAtlantisKeyArrival();
+let keyClueContact = false;
+let keyNavigationNoticeUntil = 0;
 const waterwheelUI = createWaterwheelUI();
 let currentNotification = "";
 function notify(source, duration = 3) {
@@ -1739,6 +1746,8 @@ function resetExpedition(preserveWorld = false) {
   player = createPlayer(expedition.character.id, expedition.startLength);
   player.expeditionComplete = false;
   objectiveState = createExpeditionObjective(expedition.region);
+  keyClueContact = false;
+  keyNavigationNoticeUntil = 0;
   ocean.configureMechanism?.(objectiveState);
   ocean.relic?.reset();
   selectAvatar(expedition.character);
@@ -3909,35 +3918,39 @@ function updateHud() {
   $("round-clock").classList.toggle("urgent", remaining <= 120);
   const zone = regionZone(expedition.region.id, -position.y, position);
   if (zone.name !== lastZone) {
-    if (lastZone) notify(message`${zone.name}\n${zone.description}`, 4);
+    if (lastZone && elapsed >= keyNavigationNoticeUntil)
+      notify(message`${zone.name}\n${zone.description}`, 4);
     lastZone = zone.name;
   }
   const nursery = isNursery(position);
   if (lastNursery !== null && lastNursery !== nursery) {
-    notify(
-      nursery
-        ? expedition.region.surfaceMode === "ice"
-          ? "回到冰穹育幼湾 · 猎手停止追击"
-          : expedition.region.id === "penglai"
-            ? encounters.bosses.some(
-                (b) => b.enabled && b.state.pursuitStarted && !b.state.defeated,
-              )
-              ? "回到莲池 · 御剑真君仍在追击"
-              : "回到莲池育幼湾 · 猎手停止追击"
-            : expedition.region.id === "amazon"
-              ? "回到浮叶育幼湾 · 猎手停止追击"
-              : "回到安全浅滩 · 猎手停止追击"
-        : expedition.region.surfaceMode === "ice"
-          ? "离开冰穹育幼湾 · 沿盐脉寻找大一些的猎物"
-          : expedition.region.id === "penglai"
-            ? "离开莲池 · 可在低空寻找翼鱼，成长后探索仙山"
-            : expedition.region.id === "amazon"
-              ? "离开浮叶育幼湾 · 沿沉根寻找大一些的猎物"
-              : expedition.region.startLength
-                ? "离开安全浅滩 · 沿岩壁捕捉大鱼，25米后挑战守关领主"
-                : "离开安全浅滩 · 外礁有少量猎手，建议4米后探索",
-      4,
-    );
+    // 铭文路线与入口确认保留阅读时间；真正的攻击、受伤通知仍可正常覆盖。
+    if (elapsed >= keyNavigationNoticeUntil)
+      notify(
+        nursery
+          ? expedition.region.surfaceMode === "ice"
+            ? "回到冰穹育幼湾 · 猎手停止追击"
+            : expedition.region.id === "penglai"
+              ? encounters.bosses.some(
+                  (b) =>
+                    b.enabled && b.state.pursuitStarted && !b.state.defeated,
+                )
+                ? "回到莲池 · 御剑真君仍在追击"
+                : "回到莲池育幼湾 · 猎手停止追击"
+              : expedition.region.id === "amazon"
+                ? "回到浮叶育幼湾 · 猎手停止追击"
+                : "回到安全浅滩 · 猎手停止追击"
+          : expedition.region.surfaceMode === "ice"
+            ? "离开冰穹育幼湾 · 沿盐脉寻找大一些的猎物"
+            : expedition.region.id === "penglai"
+              ? "离开莲池 · 可在低空寻找翼鱼，成长后探索仙山"
+              : expedition.region.id === "amazon"
+                ? "离开浮叶育幼湾 · 沿沉根寻找大一些的猎物"
+                : expedition.region.startLength
+                  ? "离开安全浅滩 · 沿岩壁捕捉大鱼，25米后挑战守关领主"
+                  : "离开安全浅滩 · 外礁有少量猎手，建议4米后探索",
+        4,
+      );
   }
   lastNursery = nursery;
   $("hud").dataset.nursery = String(nursery);
@@ -4427,6 +4440,12 @@ function frame(now) {
         );
       }
     }
+    const touchingKeyClue =
+      ocean.relic?.keyArt.clues.some(
+        (site) =>
+          position.distanceToSquared(site.point) < 16 ** 2 &&
+          !blockedBetween(position, site.point),
+      ) || false;
     const objectiveEvent = advanceExpeditionObjective(
       objectiveState,
       player,
@@ -4443,12 +4462,7 @@ function frame(now) {
             !blockedBetween(position, point)
           );
         })(),
-        clueContact:
-          ocean.relic?.keyArt.clues.some(
-            (site) =>
-              position.distanceToSquared(site.point) < 16 ** 2 &&
-              !blockedBetween(position, site.point),
-          ) || false,
+        clueContact: touchingKeyClue,
         trenchArrived: !!ocean.progress?.arrived,
       },
     );
@@ -4461,9 +4475,37 @@ function frame(now) {
       )
     )
       audio.quest("chest");
-    if (objectiveEvent.clueFound)
-      notify(expeditionObjectiveHint(objectiveState, player), 6);
+    if (
+      touchingKeyClue &&
+      !keyClueContact &&
+      !objectiveState.keyCollected &&
+      !player.dead &&
+      !player.timedOut &&
+      !player.won
+    ) {
+      notify(atlantisKeyClue(objectiveState.keySiteId), 12);
+      keyNavigationNoticeUntil = notificationUntil;
+    }
+    keyClueContact = touchingKeyClue;
+    const keyArrivalNotice = keyArrival.update(
+      objectiveState,
+      ocean.relic?.keyArt.getGuidancePoint(objectiveState.keySiteId),
+      position,
+      {
+        active:
+          !player.dead &&
+          !player.timedOut &&
+          !player.won &&
+          elapsed >= notificationUntil,
+        blockedBetween,
+      },
+    );
+    if (keyArrivalNotice && !objectiveEvent.clueFound) {
+      notify(keyArrivalNotice, 8);
+      keyNavigationNoticeUntil = notificationUntil;
+    }
     if (objectiveEvent.keyFound) {
+      keyNavigationNoticeUntil = 0;
       audio.quest("key");
       notify("海螺钥匙已找到 · 保留至神庙地宫开启宝箱", 6);
     }

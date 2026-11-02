@@ -1,5 +1,6 @@
 import * as THREE from "three";
 import { resolveAtlantisKeySites } from "./atlantis_key_sites.js";
+import { atlantisKeyGuide } from "./atlantis_key_guidance.js";
 import { addSurfaceDetail } from "./ocean_visuals.js";
 import { acquireAtlantisQuestAsset } from "./atlantis_quest_asset.js";
 
@@ -34,6 +35,12 @@ export function createAtlantisKeyArt(parent, records = []) {
   }
   const locations = resolveAtlantisKeySites(records).map((site) => ({
     ...site,
+    guidance: {
+      ...site.guidance,
+      ...atlantisKeyGuide(site.id),
+      key: true,
+      open: false,
+    },
     point: new THREE.Vector3(site.point.x, site.point.y, site.point.z),
   }));
   // 铭文保留三块，扩展藏点不增加网格、灯或每帧资源分配。

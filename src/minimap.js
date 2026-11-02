@@ -13,6 +13,7 @@ import {
 import { getRareClueDirection } from "./regional_rare_discovery.js";
 import { getSwimmingAttitude } from "./steering_rules.js";
 import { rareMarkerPalette } from "./regional_rare_palette.js";
+import { atlantisKeyNavigation } from "./atlantis_key_guidance.js";
 import "./minimap.css";
 
 let nextMapId = 0;
@@ -71,6 +72,7 @@ export function createMinimap(container) {
     <g class="minimap-rivers"></g><g class="minimap-currents"></g>
     <circle class="minimap-rare-area" visibility="hidden"/>
     <g class="minimap-waypoints"></g><g class="minimap-contacts"></g>
+    <path class="minimap-key-marker" visibility="hidden" d="M -2 -3 a 2 2 0 1 0 0 4 a 2 2 0 1 0 0 -4 M -.6 .5 L 3.4 4.5 M 2 3.1 L 3.5 1.6 M 3.3 4.4 L 4.8 2.9"/>
     <path class="minimap-home" d="M 0 -2.7 L 2.7 0 L 0 2.7 L -2.7 0 Z"/>
     <g class="minimap-player"><circle r="4.8"/><path d="M 0 -4.5 L 3 3.5 L 0 2 L -3 3.5 Z"/></g>
     <g class="minimap-attitude">
@@ -81,6 +83,15 @@ export function createMinimap(container) {
   </svg><span class="minimap-rare-hint" hidden></span><span class="minimap-pitch-label" aria-hidden="true"></span><div class="minimap-caption"><span class="minimap-home-label"></span><span class="minimap-depth-label"></span></div>`,
   );
   const rareRange = container.querySelector(".minimap-rare-area");
+  const keyMarker = container.querySelector(".minimap-key-marker");
+  const keyHint = document.createElement("div");
+  keyHint.className = "minimap-key-guidance";
+  keyHint.hidden = true;
+  const keyLines = Array.from({ length: 4 }, () =>
+    document.createElement("span"),
+  );
+  keyHint.append(...keyLines);
+  container.append(keyHint);
   container.style.setProperty("--rare-map-spectrum", `url(#${rareGradientId})`);
   const rareHint = container.querySelector(".minimap-rare-hint");
   const boundary = container.querySelector(".minimap-boundary");
@@ -94,6 +105,8 @@ export function createMinimap(container) {
   const pitchLabel = container.querySelector(".minimap-pitch-label");
 
   function reset() {
+    keyHint.hidden = true;
+    keyMarker.setAttribute("visibility", "hidden");
     snapshot = null;
     previousRareArea = previousRareWorld = null;
     rareRange.setAttribute("visibility", "hidden");
@@ -145,6 +158,27 @@ export function createMinimap(container) {
       rareArea = null,
     }) {
       if (disposed) return null;
+      const keyEntry = waypoints.find((w) => w.key && !w.open);
+      keyHint.hidden = !keyEntry;
+      keyMarker.setAttribute("visibility", keyEntry ? "visible" : "hidden");
+      if (keyEntry) {
+        const point = projectMinimapPosition(keyEntry, world);
+        keyMarker.setAttribute("transform", `translate(${point.x} ${point.y})`);
+        const guidance = atlantisKeyNavigation(
+          keyEntry,
+          position,
+          world.displayDepthScale,
+        );
+        [
+          keyEntry.name,
+          keyEntry.entry,
+          guidance.horizontal,
+          guidance.vertical,
+        ].forEach((line, i) => {
+          const text = t(line);
+          if (keyLines[i].textContent !== text) keyLines[i].textContent = text;
+        });
+      }
       if (previousRareArea !== rareArea || previousRareWorld !== world) {
         previousRareArea = rareArea;
         previousRareWorld = world;
@@ -268,6 +302,7 @@ export function createMinimap(container) {
         dot.setAttribute("cx", String(p.x));
         dot.setAttribute("cy", String(p.y));
         dot.setAttribute("r", "3");
+        dot.setAttribute("visibility", w.key ? "hidden" : "visible");
         dot.setAttribute(
           "fill",
           w.final ? "#edc876" : w.open ? "#73cfb4" : "#bb98d9",
