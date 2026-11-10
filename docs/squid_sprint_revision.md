@@ -82,3 +82,12 @@ served artifacts match the reviewed candidate before these acceptance-only
 notes. Existing verification receipts keep their documented scope. Earlier
 pending/uncommitted statements describe the pre-acceptance stage; no push,
 release or version bump is included.
+
+## Accepted main integration — 2026-11-10
+
+The user accepts the delivered changes and authorizes their commit and push to
+main as v0.11.27. Recorded source inputs match before publication-only metadata
+and documentation updates. Earlier uncommitted/unpublished statements retain
+their historical scope. See the [integration record](release_v0_11_27.md) for
+included checkpoints, validation and formal delivery. No tag, separate GitHub
+Release or personal Skill update is included.

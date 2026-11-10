@@ -53,10 +53,10 @@ export const ATLANTIS_EN = Object.freeze({
   "入口 → 等待壁画对应符号": "ENTRY → Wait for the mural symbol",
   "休眠 · 先完成上一道": "Dormant · Complete the previous seal",
   休眠: "Dormant",
-  "记住壁画的五个符号。按小地图顺序，从入口穿过对应符号的机关。错一次扣15基础生命，保留已通过进度，3秒后重试当前符印。":
-    "Memorize the five mural symbols. Follow the minimap and cross each entrance at its matching symbol. A mistake deals 15 base damage. Passed seals stay open; retry the current seal after 3 seconds.",
-  "五道符印已解除 · 机关印记已获得":
-    "Five seals opened · Mechanism seal acquired",
+  "记住壁画的五个符号。按小地图顺序，从入口穿过对应符号的机关。错一次扣30基础生命，保留已通过进度，3秒后重试当前符印。":
+    "Memorize the five mural symbols. Follow the minimap and cross each entrance at its matching symbol. A mistake deals 30 base damage. Passed seals stay open; retry the current seal after 3 seconds.",
+  "五道符印已解除 · 波塞冬神像正在苏醒":
+    "Five seals opened · Poseidon's statue is awakening",
   "当前符印恢复中 · 稍候重新从入口通过":
     "Current seal recovering · Wait, then approach the entrance again",
   "受伤保护中 · 符印暂不判定，请稍后重新通过":
@@ -78,10 +78,10 @@ export const ATLANTIS_EN = Object.freeze({
   五道符印: "Five seals",
   月湾古港至神庙前庭: "Moon Harbor to the temple approach",
   "记忆顺序 · 等待符号 · 依次通过": "Remember · Wait · Cross in order",
-  "每局只出现一种机关。壁画寻路不与引水机关、光照封印同时出现。可从侧面绕行，休眠机关不判定；钥匙和守宝者战果不会因失败丢失。":
-    "Only one mechanism appears per expedition: mural path, water-level lock or light seal. Bypass gates from the side; dormant gates do not judge. Failure preserves the key and guardian victory.",
-  "壁画寻路：在月湾圣所上层记住五个符号，按小地图依次前往五道符印。每道只有当前机关激活，符号每4秒轮换；角色前端从入口穿过时判定，记对且时机正确才会激活下一道。错一次受15基础伤害，保留已通过的符印，3秒后重试当前符印；受伤保护时暂不判定。壁画与顺序不变，第五道通过即得机关印记。":
-    "Mural path: memorize five symbols in the upper Moon Harbor sanctuary. Follow the minimap to five numbered seals. Only the current gate is active; symbols change every 4 seconds. Judgment occurs as the front of the character crosses the entrance. A matching symbol activates the next seal. A wrong crossing deals 15 base damage. Passed seals stay open; retry the current seal after 3 seconds. Damage protection temporarily disables judgment. The mural stays unchanged. Passing the fifth grants the mechanism seal.",
+  "每局只出现一种机关。壁画寻路不与引水机关、光照封印同时出现。可从侧面绕行，休眠机关不判定；钥匙和守宝者战果不会因失败丢失。任一种机关通关后，波塞冬神像双眼亮起，并举起三叉戟；每局只触发一次。":
+    "Only one mechanism appears per expedition: mural path, water-level lock or light seal. Bypass gates from the side; dormant gates do not judge. Failure preserves the key and guardian victory. Solving any mechanism lights Poseidon's eyes and raises his trident, once per expedition.",
+  "壁画寻路：在月湾圣所上层记住五个符号，按小地图依次前往五道符印。每道只有当前机关激活，符号每4秒轮换；角色前端从入口穿过时判定，记对且时机正确才会激活下一道。错一次受30基础伤害，保留已通过的符印，3秒后重试当前符印；受伤保护时暂不判定。壁画与顺序不变，第五道通过即得机关印记。":
+    "Mural path: memorize five symbols in the upper Moon Harbor sanctuary. Follow the minimap to five numbered seals. Only the current gate is active; symbols change every 4 seconds. Judgment occurs as the front of the character crosses the entrance. A matching symbol activates the next seal. A wrong crossing deals 30 base damage. Passed seals stay open; retry the current seal after 3 seconds. Damage protection temporarily disables judgment. The mural stays unchanged. Passing the fifth grants the mechanism seal.",
   海豚: "Dolphin",
   海螺: "Conch",
   海星: "Starfish",
@@ -110,10 +110,11 @@ export const ATLANTIS_EN = Object.freeze({
   关闭: "Close",
   引水开闸: "WATERWHEEL GATE",
   "六阀水位锁 · 目标 {0} 刻": "SIX-VALVE LOCK · TARGET {0}",
-  "闸门已开启 · 机关印记已获得": "Gate opened · mechanism seal acquired",
+  "闸门已开启 · 波塞冬神像正在苏醒":
+    "Gate opened · Poseidon's statue is awakening",
   "机关 · 市集柱廊北段下层": "Mechanism · north lower Agora gallery",
-  "水轮已转动 · 闸门升起，获得机关印记":
-    "Waterwheel turning · gate raised, mechanism seal acquired",
+  "水轮已转动 · 波塞冬神像正在苏醒":
+    "Waterwheel turning · Poseidon's statue is awakening",
   "钥匙、机关与守宝印记齐全 · 波塞冬宝箱已开启":
     "Key, mechanism and guardian seals complete · Poseidon's chest is open",
   "寻找海螺钥匙，完成市集引水机关，击败真正守宝者；成长至30米，开启地宫宝箱。":
@@ -247,12 +248,12 @@ export const ATLANTIS_EN = Object.freeze({
     "Damage protection active. Move away and touch the master valve again after it ends.",
   "总阀恢复中：离开总阀，稍后再碰。":
     "Master valve recovering. Move away and touch it again shortly.",
-  "水位偏低：已扣15生命，全部分阀关闭并排水。题目不变。":
-    "Too low: lost 15 health. All branch valves closed; tank draining. Same puzzle.",
-  "水位偏高：已扣15生命，全部分阀关闭并排水。题目不变。":
-    "Too high: lost 15 health. All branch valves closed; tank draining. Same puzzle.",
-  "调节免费；试闸错误扣15生命并全部复位。贴住不会连续触发。":
-    "Adjust freely. A wrong test costs 15 health and resets all valves. Staying in contact never repeats an action.",
-  "试闸失败 · 损失15生命，六阀已关闭，水箱正在排空":
-    "Test failed · Lost 15 health; all six valves closed and tank draining",
+  "水位偏低：已扣30生命，全部分阀关闭并排水。题目不变。":
+    "Too low: lost 30 health. All branch valves closed; tank draining. Same puzzle.",
+  "水位偏高：已扣30生命，全部分阀关闭并排水。题目不变。":
+    "Too high: lost 30 health. All branch valves closed; tank draining. Same puzzle.",
+  "调节免费；试闸错误扣30生命并全部复位。贴住不会连续触发。":
+    "Adjust freely. A wrong test costs 30 health and resets all valves. Staying in contact never repeats an action.",
+  "试闸失败 · 损失30生命，六阀已关闭，水箱正在排空":
+    "Test failed · Lost 30 health; all six valves closed and tank draining",
 });

@@ -133,6 +133,40 @@ test("No damage or reset on a wrong light route; settled connected illumination 
   assert.equal(s.damage, undefined);
 });
 
+test("Every exclusive mechanism shares awakening, pause freeze and fresh-expedition reset", () => {
+  const position = new T.Vector3(0, -18, 75);
+  for (const mechanismKind of ["water", "light", "mural"]) {
+    ocean.configureMechanism({
+      mechanismKind,
+      mechanismRoute: 0,
+      mechanismSeed: 1,
+    });
+    const statue = ocean.city.poseidon;
+    ocean.update(1, position, 0.1);
+    assert.equal(
+      statue.progress,
+      0,
+      "unsolved mechanisms leave the statue asleep",
+    );
+    ocean.mechanism.state.solved = true;
+    for (let frame = 0; frame < 10; frame++)
+      ocean.update(1 + frame * 0.1, position, 0.1);
+    assert.ok(statue.progress > 0.9);
+    const before = statue.progress;
+    ocean.update(2, position, 0);
+    assert.equal(statue.progress, before);
+    ocean.update(2.1, position, 0.1);
+    assert.ok(
+      statue.progress > before,
+      "repeated solved-state observation continues rather than restarts",
+    );
+    ocean.reset();
+    assert.equal(statue.progress, 0);
+    assert.equal(statue.eyes[0].material.opacity, 0);
+    assert.equal(ocean.mechanism.state.solved, false);
+  }
+});
+
 test("Mirror wheels toggle once per entry for 3, 16 and 30 m bodies; staying and teleporting never repeat", () => {
   for (const length of [3, 16, 30]) {
     const p = new T.Vector3(0, 0, 0),

@@ -14,7 +14,14 @@ failure reset; detent adjustment is reversible and earlier settings persist.
 This overrides those defaults below for this family, including the indoor-host
 restriction. See the [design proposal](atlantis_light_seal_design.md) and
 [implementation candidate](atlantis_light_seal_revision.md). Only one puzzle family
-is active in each expedition. The accepted water-level rules remain unchanged.
+is active in each expedition.
+
+**Awakening and penalty follow-up, 2026-11-10:** every solved Atlantis family
+lights the statue’s eyes and raises its trident once. Water-level failures cost
+30 health; mural failures deal 30 base damage through ordinary armor. Their
+respective full-valve reset and current-gate retry remain unchanged. Light
+adjustment retains its explicit free/no-failure exception. See the
+[current revision](atlantis_awakening_revision.md).
 
 **Explicit mural-path exception, 2026-10-31:** the user requests a remembered
 five-symbol sequence and numbered cycling-symbol passages. Only the current
@@ -156,7 +163,7 @@ acceptance of controls, location or the entire expedition.
 ## 8. Current water-level example and future design record
 
 The accepted slice uses six distinct contributions, a unique three- or four-valve
-solution, one master test, a 15-health failure cost, all valves closing, a tank
+solution, one master test, a 30-health failure cost, all valves closing, a tank
 draining to zero, unchanged clues and a three-second retry delay. These are
 water-level parameters, not mandatory numbers for every puzzle. Keep their source
 of truth in [the shared rules](../src/atlantis_waterwheel_rules.js) and describe

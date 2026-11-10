@@ -1,5 +1,21 @@
 # ABYSSAL
 
+Main publication v0.11.27 — 2026-11-10: the user authorizes committing and
+pushing the accepted Giant Squid capture/sprint and Atlantis awakening changes
+to main. All 2,163 delivered source inputs match before publication-only metadata
+and documentation edits. This includes local checkpoints `dd953af` and `f45b12d`.
+Earlier candidate/no-push labels below are historical for this integrated scope;
+see [the release record](docs/release_v0_11_27.md). Existing preview services and
+archives remain; no tag, separate GitHub Release or personal Skill edit is added.
+
+Atlantis awakening follow-up — 2026-11-10: the accepted Squid sprint revision
+is locally committed as `f45b12d`, without a push. A separate candidate fits the
+eye glow to the real sculpture surface, raises the trident farther, and gives
+water, light and mural completion the same once-only awakening. Water failure
+cost is now 30 health and mural failure is 30 base damage; light adjustment
+remains free. See [the current review](docs/atlantis_awakening_revision.md).
+This candidate stays uncommitted/unpublished; formal main remains v0.11.26.
+
 Accepted sprint checkpoint — 2026-11-10: the user accepts the Giant Squid
 sprint-tentacle refinement and requests a local commit before a separate Atlantis
 awakening follow-up. All 2,162 delivered source inputs and 969 runtime artifacts

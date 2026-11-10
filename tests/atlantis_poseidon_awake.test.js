@@ -30,7 +30,10 @@ test("Awakening preserves planted body and rigid trident while rotating the grip
         .find((v, i) => p.getY(i) > 70)
         .clone()
         .sub(initial.find((v, i) => p.getY(i) > 70));
-    assert.ok(delta.y > 3);
+    assert.ok(
+      delta.y > 7,
+      "raised trident visibly clears its old planted pose",
+    );
     for (let i = 0; i < p.count; i++) {
       assert.ok(final[i].toArray().every(Number.isFinite));
       if (p.getY(i) < 35 && p.getX(i) > -8)
@@ -49,7 +52,7 @@ test("Awakening preserves planted body and rigid trident while rotating the grip
           "no discontinuous skin spike",
         );
       }
-    assert.ok(shaft.a.y > old.a.y + 4);
+    assert.ok(shaft.a.y > old.a.y + 11);
     assert.ok(Math.abs(shaft.b.y - shaft.a.y - (old.b.y - old.a.y)) < 1e-6);
     assert.equal(
       city.colliders.some((c) => c.kind === "poseidon_trident_shaft"),
@@ -67,4 +70,45 @@ test("Awakening preserves planted body and rigid trident while rotating the grip
   } finally {
     city.dispose();
   }
+});
+
+test("Eye glow uses the actual eye-socket surface, not floating volume, and releases only owned patches", () => {
+  const city = createAtlantisCity(new T.Scene(), {
+    heightAt: atlantisSeabedHeight,
+  });
+  const a = city.poseidon;
+  const source = a.mesh.geometry.attributes.position;
+  const points = new Set(
+    Array.from(
+      { length: source.count },
+      (_, i) => `${source.getX(i)},${source.getY(i)},${source.getZ(i)}`,
+    ),
+  );
+  let released = 0;
+  for (const eye of a.eyes) {
+    const p = eye.geometry.attributes.position;
+    assert.ok(p.count > 0 && p.count < 300);
+    assert.equal(eye.material.depthTest, true);
+    assert.equal(eye.material.depthWrite, false);
+    assert.equal(eye.material.polygonOffset, true);
+    for (let i = 0; i < p.count; i++)
+      assert.ok(
+        points.has(`${p.getX(i)},${p.getY(i)},${p.getZ(i)}`),
+        "eye surface stays exactly on the accepted face",
+      );
+    eye.geometry.addEventListener("dispose", () => released++);
+  }
+  a.awaken();
+  a.update(0.1);
+  const progress = a.progress;
+  a.awaken();
+  a.update(0);
+  assert.equal(
+    a.progress,
+    progress,
+    "repeated completion does not restart or advance a paused animation",
+  );
+  city.dispose();
+  city.dispose();
+  assert.equal(released, 2);
 });

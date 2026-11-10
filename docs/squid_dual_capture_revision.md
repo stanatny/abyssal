@@ -104,3 +104,12 @@ a separate sprint-tentacle refinement. Runtime inputs and served artifacts match
 the verified candidate; only acceptance documentation is added for this checkpoint.
 Earlier candidate/uncommitted status statements retain their historical meaning.
 No push, version bump or main publication is authorized.
+
+## Accepted main integration — 2026-11-10
+
+The user accepts the delivered changes and authorizes their commit and push to
+main as v0.11.27. Recorded source inputs match before publication-only metadata
+and documentation updates. Earlier uncommitted/unpublished statements retain
+their historical scope. See the [integration record](release_v0_11_27.md) for
+included checkpoints, validation and formal delivery. No tag, separate GitHub
+Release or personal Skill update is included.

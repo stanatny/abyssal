@@ -4,7 +4,7 @@ import { atlantisSeabedHeight } from "./atlantis_terrain.js";
 export const MURAL_RULES = Object.freeze({
   stages: 5,
   dwell: 4,
-  damage: 15,
+  damage: 30,
   retry: 3,
   halfWidth: 20,
   halfHeight: 15,

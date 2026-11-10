@@ -4420,7 +4420,7 @@ function frame(now) {
           notify(
             objectiveState.mechanismKind === "mural"
               ? "符号错误 · 受到惩罚，已通过进度保留，请重试当前符印"
-              : "试闸失败 · 损失15生命，六阀已关闭，水箱正在排空",
+              : "试闸失败 · 损失30生命，六阀已关闭，水箱正在排空",
             5,
           );
         }
@@ -4431,10 +4431,10 @@ function frame(now) {
       } else if (event?.kind === "solved") {
         notify(
           objectiveState.mechanismKind === "mural"
-            ? "五道符印已解除 · 机关印记已获得"
+            ? "五道符印已解除 · 波塞冬神像正在苏醒"
             : objectiveState.mechanismKind === "light"
               ? "光照封印已解除 · 波塞冬神像正在苏醒"
-              : "水轮已转动 · 闸门升起，获得机关印记",
+              : "水轮已转动 · 波塞冬神像正在苏醒",
           6,
         );
       }

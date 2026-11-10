@@ -1,6 +1,6 @@
 /** 六只定量阀组成算术水位锁；观察、调节免费，只有主动试闸才结算。 */
 export const WATERWHEEL_RULES = Object.freeze({
-  damage: 15,
+  damage: 30,
   retry: 3,
   fillSeconds: 3.5,
   valveCount: 6,

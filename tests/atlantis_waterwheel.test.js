@@ -27,7 +27,7 @@ test("Only deliberate valid tests charge health; idle/contact, pause, range, imm
     assert.equal(stepWaterwheel(s, 0.1, { action: "test", ...options }), null);
   assert.deepEqual(stepWaterwheel(s, 0.1, { action: "test" }), {
     kind: "failed",
-    damage: 15,
+    damage: 30,
   });
   for (let i = 0; i < 20; i++)
     assert.equal(stepWaterwheel(s, 0.1, { action: "test" }), null);
@@ -35,7 +35,7 @@ test("Only deliberate valid tests charge health; idle/contact, pause, range, imm
   run(s, 50, { active: false, action: "valve0" });
   assert.equal(JSON.stringify(s), frozen);
   run(s, 15);
-  assert.equal(stepWaterwheel(s, 0.1, { action: "test" }).damage, 15);
+  assert.equal(stepWaterwheel(s, 0.1, { action: "test" }).damage, 30);
 });
 test("Six distinct amounts always yield exactly one nontrivial three/four-valve solution", () => {
   let seed = 941;
@@ -59,7 +59,7 @@ test("Six distinct amounts always yield exactly one nontrivial three/four-valve 
         solutions.push(mask);
         assert.equal(event.kind, "solved");
       } else {
-        assert.equal(event.damage, 15);
+        assert.equal(event.damage, 30);
         assert.equal(trial.result, sum < s.target ? "low" : "high");
       }
     }
@@ -80,7 +80,7 @@ test("Metered contributions settle, close reverses them, and passing through tar
   const full = s.level;
   run(s, 100);
   assert.equal(s.level, full);
-  assert.equal(stepWaterwheel(s, 0, { action: "test" }).damage, 15);
+  assert.equal(stepWaterwheel(s, 0, { action: "test" }).damage, 30);
   assert.equal(s.result, "high");
   run(s);
   const amounts = [...s.amounts],
@@ -219,7 +219,7 @@ test("Wrong low/high tests close every valve and drain without rerolling, while 
     if (full)
       for (let i = 0; i < 6; i++) stepWaterwheel(s, 0, { action: `valve${i}` });
     run(s);
-    assert.equal(stepWaterwheel(s, 0, { action: "test" }).damage, 15);
+    assert.equal(stepWaterwheel(s, 0, { action: "test" }).damage, 30);
     assert.equal(s.result, full ? "high" : "low");
     assert.ok(s.valves.every((v) => !v));
     assert.equal(waterwheelTotal(s), 0);
@@ -281,7 +281,7 @@ test("Visible wheels are reachable by actual 3/16/30 m bodies; distant, blocked 
           w.state.valves,
           w.state.valves.map((_, j) => i === j),
         );
-      else assert.deepEqual(events, [{ kind: "failed", damage: 15 }]);
+      else assert.deepEqual(events, [{ kind: "failed", damage: 30 }]);
       // 贴住超过冷却、暂停后恢复，均不再触发。
       for (let n = 0; n < 80; n++) {
         w.sense(end, length, () => false, { from: end, forward });

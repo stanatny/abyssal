@@ -78,7 +78,6 @@ export function* createAtlantisOceanSteps(scene) {
       createAtlantisLightSeal(root, {
         target: city.poseidon.target,
         staticColliders: colliders,
-        awaken: () => city.poseidon.awaken(),
       }),
     );
     const muralPath = scope.own(
@@ -162,6 +161,8 @@ export function* createAtlantisOceanSteps(scene) {
         );
         relic.update(elapsed, position, reducedMotion?.matches || false);
         nursery.visible = position.z > -390;
+        // 三种机关共用同一次神像反馈；重复更新不得重启动画或重放通关音效。
+        if (mechanism.state.solved) city.poseidon.awaken();
         city.update(elapsed, dt, position, highQuality, cameraPosition);
         outskirts.update(elapsed, position, dt, highQuality);
       },

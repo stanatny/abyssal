@@ -406,9 +406,9 @@ export function createAtlantisMuralPath(parent, records) {
         label.hidden = !near || dt <= 0;
         label.textContent = t(
           nearMural
-            ? "记住壁画的五个符号。按小地图顺序，从入口穿过对应符号的机关。错一次扣15基础生命，保留已通过进度，3秒后重试当前符印。"
+            ? "记住壁画的五个符号。按小地图顺序，从入口穿过对应符号的机关。错一次扣30基础生命，保留已通过进度，3秒后重试当前符印。"
             : state.solved
-              ? "五道符印已解除 · 机关印记已获得"
+              ? "五道符印已解除 · 波塞冬神像正在苏醒"
               : state.cooldown > 0
                 ? "当前符印恢复中 · 稍候重新从入口通过"
                 : !eligible

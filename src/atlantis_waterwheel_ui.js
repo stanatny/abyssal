@@ -35,7 +35,7 @@ export function createWaterwheelUI() {
       });
       status.textContent = t(
         s.solved
-          ? "闸门已开启 · 机关印记已获得"
+          ? "闸门已开启 · 波塞冬神像正在苏醒"
           : art.notice === "settling"
             ? "水位调整中：离开总阀，稳定后再碰。"
             : art.notice === "protected"
@@ -43,10 +43,10 @@ export function createWaterwheelUI() {
               : art.notice === "cooldown"
                 ? "总阀恢复中：离开总阀，稍后再碰。"
                 : s.result === "low"
-                  ? "水位偏低：已扣15生命，全部分阀关闭并排水。题目不变。"
+                  ? "水位偏低：已扣30生命，全部分阀关闭并排水。题目不变。"
                   : s.result === "high"
-                    ? "水位偏高：已扣15生命，全部分阀关闭并排水。题目不变。"
-                    : "调节免费；试闸错误扣15生命并全部复位。贴住不会连续触发。",
+                    ? "水位偏高：已扣30生命，全部分阀关闭并排水。题目不变。"
+                    : "调节免费；试闸错误扣30生命并全部复位。贴住不会连续触发。",
       );
     },
     hide() {

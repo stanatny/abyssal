@@ -66,7 +66,7 @@ test("Only current gate judges; wrong crossing preserves passed gates and retrie
     s.clock = correctTime(s, stage) + 4;
     const e = stepMural(s, 0.02, { crossing: { stage, fraction: 0.5 } });
     assert.equal(e.kind, "failed");
-    assert.equal(e.damage, 15);
+    assert.equal(e.damage, 30);
     assert.equal(s.completed, stage);
     assert.equal(s.cooldown, 3);
     assert.equal(s.clock, correctTime(s, stage) + 4 + 0.02);

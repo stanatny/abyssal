@@ -13,10 +13,7 @@ import { castSegment } from "./collision.js";
 import { t } from "./i18n.js";
 
 /** 分布式反射台复用已验收的HF碑石与铜阀；光面和四档机械环是独立功能组件。 */
-export function createAtlantisLightSeal(
-  parent,
-  { target, staticColliders, awaken },
-) {
+export function createAtlantisLightSeal(parent, { target, staticColliders }) {
   const root = new THREE.Group();
   root.name = "atlantis_light_seal";
   const owned = new Set(),
@@ -375,7 +372,6 @@ export function createAtlantisLightSeal(
           front,
           layout.mirrors[event.index].normals[state.detents[event.index]],
         );
-      if (event?.kind === "solved") awaken();
       return event;
     },
     update(time, position, dt = 0, reduced = false) {
