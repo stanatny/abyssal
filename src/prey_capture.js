@@ -26,6 +26,50 @@ export function preyCaptureRadius(
   return normal + (frenzy ? Math.min(1.6, normal * 0.3) : 0);
 }
 
+const FORWARD_INTAKE = Object.freeze([-0.36]);
+const SQUID_INTAKES = Object.freeze([0.36, -0.36]);
+
+/** 乌贼保留后侧腕部，并增加行进前端；其他角色仍只有原入口。 */
+export function preyCaptureOffsets(characterId) {
+  return characterId === "squid" ? SQUID_INTAKES : FORWARD_INTAKE;
+}
+
+/** 两个入口独立扫掠、独立检查遮挡；按既有入口优先，只返回一次接触。 */
+export function resolvePreyCaptureContact(
+  anchors,
+  preyStart,
+  preyEnd,
+  radius,
+  { blockedBetween, captureContact, preyContact },
+) {
+  if (!Number.isFinite(radius) || radius <= 0) return null;
+  for (let index = 0; index < anchors.length; index++) {
+    const { start, end } = anchors[index];
+    const direct =
+      (end.x - preyEnd.x) ** 2 +
+        (end.y - preyEnd.y) ** 2 +
+        (end.z - preyEnd.z) ** 2 <
+      radius * radius;
+    const contact = direct
+      ? 1
+      : sweptCaptureFraction(start, end, preyStart, preyEnd, radius);
+    if (contact === null) continue;
+    for (const axis of ["x", "y", "z"]) {
+      captureContact[axis] = start[axis] + (end[axis] - start[axis]) * contact;
+      preyContact[axis] =
+        preyStart[axis] + (preyEnd[axis] - preyStart[axis]) * contact;
+    }
+    if (
+      (!direct && blockedBetween(start, end)) ||
+      blockedBetween(captureContact, preyContact) ||
+      blockedBetween(end, preyEnd)
+    )
+      continue;
+    return index;
+  }
+  return null;
+}
+
 /** 根据真实体长返回狂食接触区外的吸引宽度；不影响领主、伤害与刚体碰撞。 */
 export function frenzyReachBonus(playerLength) {
   return Number.isFinite(playerLength) && playerLength > 0

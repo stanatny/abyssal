@@ -1,5 +1,27 @@
 # ABYSSAL Penglai HF redraw — 2026-10-27
 
+Accepted local checkpoint — 2026-11-10: the user accepts the Giant Squid
+front/arm capture correction and the repaired trial link, and requests a local
+commit before a separate sprint-tentacle refinement. All 2,161 recorded source
+inputs match except the documented final preview-review paragraph; all 969
+served artifacts match. The recorded focused and native checks retain their
+scope. Earlier uncommitted labels below are historical for this checkpoint.
+No push, release or version bump is requested.
+
+Preview cold-start repair — 2026-11-10: the user cannot open the trial link.
+Replace its 217 eager module preloads with an eight-worker, dependency-first
+module-map bootstrap and bilingual progress/retry. All original game/model/audio
+artifacts remain unchanged; normal production builds and main are unaffected.
+The preview manager retains this preparation on rebuild. This uncommitted delivery
+repair preserves the Giant Squid candidate; see [the review](docs/preview_cold_load_revision.md).
+
+Giant Squid dual-capture candidate — 2026-11-10: retain the trailing arm intake
+and add an independently occlusion-checked leading intake for ordinary edible
+prey. Front catches travel around the mantle with a long tentacle to the existing
+mouth; nearby walls also constrain the visible carry. Shared eligibility, rare
+settlement, Frenzy attraction and other characters remain. This is uncommitted
+and unpublished, pending player review; see [the review](docs/squid_dual_capture_revision.md).
+
 Main publication v0.11.26 — 2026-11-02: the user authorizes committing and
 pushing the accepted Atlantis key-entrance guidance to main. All 2,154 recorded
 delivery inputs match before publication-only metadata and documentation edits.

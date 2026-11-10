@@ -72,7 +72,50 @@ export function buildSquid(root, motions) {
     tentacles: 2,
     source: "Microsoft TRELLIS.2-4B, fitted three-dimensional crown",
   };
+  const captureTarget = new THREE.Vector3();
+  let captureStrength = 0;
+  let captureBlend = 0;
+  let captureSide = 1;
+  root.userData.setCaptureTarget = (point, strength = 1) => {
+    if (!point) {
+      captureStrength = 0;
+      return;
+    }
+    inner.worldToLocal(captureTarget.copy(point));
+    if (captureBlend < 0.01) captureSide = captureTarget.x < 0 ? -1 : 1;
+    captureStrength = strength;
+  };
+  const resetMotion = root.userData.resetMotion;
+  root.userData.resetMotion = () => {
+    captureStrength = captureBlend = 0;
+    resetMotion?.();
+  };
+  const restPositions = bones.map((bone) => bone.position.clone());
+  const restTangents = packed.bones.map((bone, index) =>
+    new THREE.Vector3(
+      ...packed.bones[Math.min(index + 1, bones.length - 1)].position,
+    )
+      .sub(new THREE.Vector3(...bone.position))
+      .normalize(),
+  );
+  for (const chain of packed.chains)
+    restTangents[chain.first + chain.count - 1].copy(
+      restTangents[chain.first + chain.count - 2],
+    );
+  const grip = new THREE.Vector3();
+  const p1 = new THREE.Vector3();
+  const p2 = new THREE.Vector3();
+  const desired = new THREE.Vector3();
+  const previous = new THREE.Vector3();
+  const tangent = new THREE.Vector3();
+  const delta = new THREE.Vector3();
+  const desiredLocal = new THREE.Vector3();
+  const inverseParent = new THREE.Quaternion();
+  const absoluteRotation = new THREE.Quaternion();
+  const desiredRotation = new THREE.Quaternion();
   motions.push((phase, effort, state) => {
+    captureBlend +=
+      (captureStrength - captureBlend) * (1 - Math.exp(-state.dt * 18));
     const folded = Math.max(state.boost, state.jet);
     // 冲刺保留更清晰的鳍波，强喷射时仍收拢；两者共用躯干收缩节奏。
     const finFold = Math.max(state.boost * 0.55, state.jet);
@@ -101,6 +144,8 @@ export function buildSquid(root, motions) {
           c = Math.cos(chain.angle),
           s = Math.sin(chain.angle),
           bone = bones[chain.first + j];
+        bone.position.copy(restPositions[chain.first + j]);
+        bone.rotation.z = 0;
         const wave =
           Math.sin(phase * 0.72 - j * 0.8 + chain.angle) *
           (0.016 + distal * 0.07) *
@@ -113,6 +158,53 @@ export function buildSquid(root, motions) {
         bone.rotation.y =
           c * wave - c * (folded * 0.038 + curl) + state.turn * distal * 0.035;
       }
+    // 只让同侧长触腕沿体外弧线抱住前端猎物；短腕保持既有收拢，根节点不翻转。
+    if (captureBlend > 0.001) {
+      const chain = packed.chains.find(
+        (item) =>
+          item.type === "tentacle" && Math.sign(item.root[0]) === captureSide,
+      );
+      const origin = restPositions[chain.first];
+      grip.copy(captureTarget);
+      const sideReach = Math.max(0.13, Math.abs(grip.x));
+      p1.set(captureSide * sideReach, -0.045, origin.z);
+      p2.set(captureSide * sideReach, grip.y, grip.z + 0.06);
+      inverseParent.identity();
+      previous.set(0, 0, 0);
+      for (let j = 0; j < chain.count; j++) {
+        const t = j / (chain.count - 1),
+          u = 1 - t,
+          index = chain.first + j,
+          bone = bones[index];
+        desired
+          .copy(origin)
+          .multiplyScalar(u ** 3)
+          .addScaledVector(p1, 3 * u ** 2 * t)
+          .addScaledVector(p2, 3 * u * t ** 2)
+          .addScaledVector(grip, t ** 3);
+        tangent
+          .copy(p1)
+          .sub(origin)
+          .multiplyScalar(3 * u ** 2)
+          .addScaledVector(delta.copy(p2).sub(p1), 6 * u * t)
+          .addScaledVector(delta.copy(grip).sub(p2), 3 * t ** 2)
+          .normalize();
+        absoluteRotation.setFromUnitVectors(restTangents[index], tangent);
+        desiredRotation.copy(inverseParent).multiply(absoluteRotation);
+        bone.position.lerp(
+          desiredLocal
+            .copy(desired)
+            .sub(previous)
+            .applyQuaternion(inverseParent),
+          captureBlend,
+        );
+        bone.quaternion.slerp(desiredRotation, captureBlend);
+        // 下一关节的位置要使用实际混合后的父旋转，避免根部开裂。
+        absoluteRotation.copy(inverseParent).invert().multiply(bone.quaternion);
+        inverseParent.copy(absoluteRotation).invert();
+        previous.copy(desired);
+      }
+    }
     inner.rotation.z = state.turn * 0.12;
     Object.assign(root.userData.pose, {
       mantleContraction: contraction,
@@ -120,6 +212,7 @@ export function buildSquid(root, motions) {
       bank: inner.rotation.z,
       armPhase: phase,
       feed: state.feed,
+      capture: captureBlend,
     });
   });
 }

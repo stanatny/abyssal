@@ -2,6 +2,8 @@ import test from "node:test";
 import assert from "node:assert/strict";
 import {
   preyCaptureRadius,
+  preyCaptureOffsets,
+  resolvePreyCaptureContact,
   sweptCaptureFraction,
 } from "../src/prey_capture.js";
 import { createPlayer, canEat } from "../src/simulation.js";
@@ -177,4 +179,65 @@ test("扫掠拒绝非法半径或坐标，输入向量保持不变", () => {
 
 function point(x, y, z) {
   return { x, y, z };
+}
+
+test("squid keeps the trailing intake and adds only the forward endpoint", () => {
+  assert.deepEqual(preyCaptureOffsets("squid"), [0.36, -0.36]);
+  for (const kind of ["orca", "zombie_shark", "mechanical_shark"])
+    assert.deepEqual(preyCaptureOffsets(kind), [-0.36]);
+  assert.ok(Object.isFrozen(preyCaptureOffsets("squid")));
+});
+
+test("both squid endpoints catch independently in opposite headings without a body-wide intake", () => {
+  for (const sign of [-1, 1]) {
+    const anchors = preyCaptureOffsets("squid").map((z) => ({
+      start: point(0, 0, sign * z * 10),
+      end: point(0, 0, sign * z * 10),
+    }));
+    for (const index of [0, 1]) {
+      const prey = { ...anchors[index].end };
+      assert.equal(contact(anchors, prey, prey, 1), index);
+    }
+    assert.equal(contact(anchors, point(0, 0, 0), point(0, 0, 0), 1), null);
+    const outside = point(1, 0, sign * -3.6);
+    assert.equal(contact(anchors, outside, outside, 1), null);
+  }
+});
+
+test("a blocked original intake cannot veto a clear forward capture or bypass cover", () => {
+  const anchors = [
+    { start: point(0, 0, 1), end: point(0, 0, 1) },
+    { start: point(0, 0, -1), end: point(0, 0, -1) },
+  ];
+  const prey = point(0, 0, 0);
+  assert.equal(
+    contact(anchors, prey, prey, 2, (a) => a.z > 0),
+    1,
+  );
+  assert.equal(
+    contact(anchors, prey, prey, 2, () => true),
+    null,
+  );
+  // 两点均可接触时只结算原入口，既有嘴部迎击顺序保持不变。
+  assert.equal(contact(anchors, prey, prey, 2), 0);
+});
+
+test("forward intake retains relative sprint sweeps and rejects a blocked sweep", () => {
+  const anchors = [{ start: point(0, 0, -2), end: point(0, 0, 2) }];
+  const prey = point(0, 0, 0);
+  assert.equal(contact(anchors, prey, prey, 0.2), 0);
+  assert.equal(
+    contact(anchors, prey, prey, 0.2, (a, b) => a.z === -2 && b.z === 2),
+    null,
+  );
+  for (const radius of [0, -1, NaN, Infinity])
+    assert.equal(contact(anchors, prey, prey, radius), null);
+});
+
+function contact(anchors, start, end, radius, blockedBetween = () => false) {
+  return resolvePreyCaptureContact(anchors, start, end, radius, {
+    blockedBetween,
+    captureContact: point(0, 0, 0),
+    preyContact: point(0, 0, 0),
+  });
 }

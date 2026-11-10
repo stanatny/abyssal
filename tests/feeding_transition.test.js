@@ -4,6 +4,7 @@ import * as THREE from "three";
 import { createFeedingTransition } from "../src/feeding_transition.js";
 import { createCombatEffects } from "../src/combat_effects.js";
 import { createCreature } from "../src/creatures.js";
+import { castSegment } from "../src/collision.js";
 
 function pose(mesh) {
   return {
@@ -203,4 +204,163 @@ test("紧凑吞食余雾复用粒子池，微小猎物的雾团克制并能自�
   assert.equal(effects.activeParticles, 0);
   effects.dispose();
   assert.equal(scene.children.includes(effects.group), false);
+});
+
+test("front-caught squid prey travels outside the mantle before shrinking at the real mouth", () => {
+  for (const side of [-1, 1]) {
+    const squid = createCreature("squid", 10, 3);
+    squid.position.set(12, -8, 6);
+    squid.rotation.set(0.3, side * 1.1, 0);
+    const prey = createCreature("fish", 0.6, 4);
+    prey.position.copy(
+      squid.localToWorld(new THREE.Vector3(side * 0.01, 0, -0.5)),
+    );
+    const original = pose(prey),
+      mist = [];
+    const feeding = createFeedingTransition({ onMist: (p) => mist.push(p) });
+    feeding.start(prey, 0.6, { carryFrame: squid });
+    const duration = feeding.snapshot().entries[0].duration;
+    assert.ok(duration > 0.55 && duration <= 0.95);
+    let previous = prey.position.clone();
+    for (let i = 1; i <= 100; i++) {
+      const mouth = squid.userData.getFeedingMouth(new THREE.Vector3());
+      const direction = new THREE.Vector3(0, 0, 1).applyQuaternion(
+        squid.quaternion,
+      );
+      feeding.update(duration / 100, { mouth, direction });
+      if (!feeding.has(prey)) break;
+      const p = squid.worldToLocal(prey.position.clone());
+      if (p.z > -0.38 && p.z < -0.035)
+        assert.ok(
+          Math.hypot(p.x, p.y) > 0.065,
+          "prey stays outside the mantle",
+        );
+      if (i < 65) assert.ok(prey.scale.x > original.scale[0] * 0.98);
+      assert.ok(
+        prey.position.distanceTo(previous) < 0.5,
+        "continuous transport",
+      );
+      previous.copy(prey.position);
+      if (i < 90) assert.equal(mist.length, 0);
+      if (i === 92) assert.ok(prey.position.distanceTo(mouth) < 0.15);
+    }
+    feeding.update(duration, {
+      mouth: squid.userData.getFeedingMouth(new THREE.Vector3()),
+      direction: new THREE.Vector3(0, 0, 1),
+    });
+    assert.equal(mist.length, 1);
+    assert.deepEqual(pose(prey), original);
+    assert.equal(prey.visible, false);
+  }
+});
+
+test("carried prey follows a turning growing squid; pause and reset retain bounded ownership", () => {
+  const squid = createCreature("squid", 6, 3),
+    prey = createCreature("fish", 0.6, 4);
+  prey.position.set(0, 0, -3);
+  const original = pose(prey),
+    feeding = createFeedingTransition();
+  let covered = true;
+  feeding.start(prey, 0.6, {
+    carryFrame: squid,
+    blockedBetween: (a, b) => covered && b.x > 0,
+  });
+  const frame = () => ({
+    mouth: squid.userData.getFeedingMouth(new THREE.Vector3()),
+    direction: new THREE.Vector3(0, 0, 1).applyQuaternion(squid.quaternion),
+  });
+  feeding.update(0.15, frame());
+  assert.ok(
+    squid.worldToLocal(prey.position.clone()).x < 0,
+    "uses the clear flank",
+  );
+  const frozen = pose(prey);
+  feeding.update(0, frame());
+  assert.deepEqual(pose(prey), frozen);
+  covered = false;
+  squid.position.set(8, -12, 3);
+  squid.rotation.set(-0.4, 2.1, 0);
+  squid.scale.setScalar(10);
+  feeding.update(0.25, frame());
+  assert.ok(prey.position.distanceTo(squid.position) < 5);
+  assert.equal(feeding.snapshot().activeCount, 1);
+  feeding.reset();
+  squid.userData.resetMotion();
+  assert.deepEqual(pose(prey), original);
+  assert.equal(squid.userData.pose.capture, 0);
+  assert.equal(feeding.snapshot().activeCount, 0);
+});
+
+test("moving squid cannot carry the visible prey through its adjacent wall", () => {
+  const squid = createCreature("squid", 6, 3),
+    prey = createCreature("fish", 1.8, 4);
+  prey.position.set(0, 0, -4.2);
+  const wall = {
+    type: "box",
+    x: 0,
+    y: 0,
+    z: -5,
+    halfSize: { x: 12, y: 12, z: 0.5 },
+  };
+  const feeding = createFeedingTransition();
+  feeding.start(prey, 1.8, {
+    carryFrame: squid,
+    blockedBetween: (a, b) => castSegment(a, b, [wall]) !== null,
+  });
+  for (let i = 1; i <= 40; i++) {
+    squid.position.z = -Math.min(1.95, i * 0.12);
+    feeding.update(0.016, {
+      mouth: squid.userData.getFeedingMouth(new THREE.Vector3()),
+      direction: new THREE.Vector3(0, 0, 1),
+    });
+    if (feeding.has(prey))
+      assert.ok(prey.position.z > -4.5, "prey remains on the accessible side");
+  }
+  assert.ok(
+    prey.position.distanceTo(
+      squid.userData.getFeedingMouth(new THREE.Vector3()),
+    ) < 0.25,
+  );
+});
+
+test("a clipped carry resumes continuously in a narrow legal corridor", () => {
+  const squid = createCreature("squid", 10, 3),
+    prey = createCreature("fish", 4, 4);
+  prey.position.set(0, 0, -5);
+  const walls = [-2, 2].map((x) => ({
+    type: "box",
+    x,
+    y: 0,
+    z: 0,
+    halfSize: { x: 0.5, y: 10, z: 12 },
+  }));
+  const mouth = squid.userData.getFeedingMouth(new THREE.Vector3());
+  const mist = [];
+  const feeding = createFeedingTransition({
+    onMist: (point) => mist.push({ point, prey: prey.position.clone() }),
+  });
+  feeding.start(prey, 4, {
+    carryFrame: squid,
+    blockedBetween: (a, b) => castSegment(a, b, walls) !== null,
+  });
+  let previous = prey.position.clone();
+  for (let i = 0; i < 50 && feeding.has(prey); i++) {
+    feeding.update(0.016, { mouth, direction: new THREE.Vector3(0, 0, 1) });
+    if (!feeding.has(prey)) break;
+    assert.ok(
+      prey.position.distanceTo(previous) <= 22 * 0.016 + 1e-10,
+      "no catch-up snap after cover clears",
+    );
+    assert.ok(
+      Math.abs(prey.position.x) < 1.5,
+      "visible center remains inside corridor",
+    );
+    previous.copy(prey.position);
+  }
+  assert.equal(feeding.snapshot().activeCount, 0);
+  assert.equal(mist.length, 1);
+  assert.ok(
+    mist[0].prey.distanceTo(mouth) < 0.6,
+    "mist occurs only at the mouth stage",
+  );
 });

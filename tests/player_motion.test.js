@@ -185,6 +185,48 @@ test("乌贼腕足与吸盘连续蒙皮，各实例独立而几何和材质跨�
   assert.ok(Math.abs(arms[0].rotation.x) < 0.05);
 });
 
+test("front capture bends one real squid tentacle around the mantle and restores its rest chain", () => {
+  const squid = createCreature("squid", 10, 7);
+  const other = createCreature("squid", 10, 7);
+  const body = squid.getObjectByName("squid_hf_body");
+  const otherBody = other.getObjectByName("squid_hf_body");
+  const otherVertices = vertices(otherBody);
+  const originalRoot = pose(squid);
+  const originalVertices = vertices(body);
+  const target = new THREE.Vector3(1.2, -0.4, -4.4);
+  squid.userData.setCaptureTarget(target);
+  advance(squid, 40, {});
+  squid.updateMatrixWorld(true);
+  const tip = squid.getObjectByName("squid_tentacle_-1_5");
+  assert.ok(
+    tip.getWorldPosition(new THREE.Vector3()).distanceTo(target) < 0.03,
+  );
+  const carried = vertices(body);
+  assert.notDeepEqual(carried, originalVertices);
+  assert.ok(carried.every((value) => Number.isFinite(value)));
+  assert.deepEqual(vertices(otherBody), otherVertices);
+  assert.deepEqual(pose(squid), originalRoot);
+  const frozen = vertices(body);
+  squid.userData.animate(40 / 60, 1, { dt: 0 });
+  assert.deepEqual(vertices(body), frozen);
+  squid.userData.setCaptureTarget(null);
+  advance(squid, 80, {}, 40);
+  assert.ok(squid.userData.pose.capture < 0.001);
+  assert.ok(tip.getWorldPosition(new THREE.Vector3()).z > 3);
+  squid.userData.resetMotion();
+  other.userData.resetMotion();
+  assert.equal(squid.userData.pose.capture, 0);
+  squid.updateMatrixWorld(true);
+  other.updateMatrixWorld(true);
+  const resetVertices = vertices(otherBody);
+  const resetError = Math.max(
+    ...vertices(body).map((value, index) =>
+      Math.abs(value - resetVertices[index]),
+    ),
+  );
+  assert.ok(resetError < 1e-12, `reset vertex error ${resetError}`);
+});
+
 test("虎鲸尾鳍与尾柄共用连续骨架，空中收敛划水但不改飞行姿态", () => {
   const root = createCreature("orca", 6, 4);
   const fluke = root.getObjectByName("orca_flukes");
@@ -299,3 +341,11 @@ test("HF虎鲸完整水平尾鳍具有双侧弦长，蒙皮保持整片尾扇刚
       ) < 1e-6,
     );
 });
+
+function pose(root) {
+  return [
+    root.position.toArray(),
+    root.quaternion.toArray(),
+    root.scale.toArray(),
+  ];
+}

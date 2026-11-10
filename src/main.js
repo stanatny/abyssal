@@ -127,7 +127,8 @@ import { stepSurfaceSteering } from "./surface_steering.js";
 import { needsGroundRecovery, stepGroundSteering } from "./ground_steering.js";
 import {
   preyCaptureRadius,
-  sweptCaptureFraction,
+  preyCaptureOffsets,
+  resolvePreyCaptureContact,
   frenzyPullDistance,
 } from "./prey_capture.js";
 import { createFrenzyEffect } from "./frenzy_effect.js";
@@ -321,6 +322,8 @@ const effects = createCombatEffects(scene, {
 });
 const frenzyEffect = createFrenzyEffect(scene);
 const captureStart = new THREE.Vector3();
+const captureFrontStart = new THREE.Vector3();
+const entityFrontIntake = new THREE.Vector3();
 const previousPreyPosition = new THREE.Vector3();
 // 生物逐个更新；这些中间值不写入持久状态，避免每尾鱼每帧分配向量。
 const entityMouth = new THREE.Vector3();
@@ -334,6 +337,12 @@ const entityScreenPoint = new THREE.Vector3();
 const targetScreenPoint = new THREE.Vector3();
 const captureContact = new THREE.Vector3();
 const preyContact = new THREE.Vector3();
+const captureAnchors = [{ start: captureStart, end: entityMouth }];
+const squidCaptureAnchors = [
+  captureAnchors[0],
+  { start: captureFrontStart, end: entityFrontIntake },
+];
+const captureOptions = { blockedBetween, captureContact, preyContact };
 const swallowPoint = new THREE.Vector3();
 const feedingDirection = new THREE.Vector3();
 const feeding = createFeedingTransition({
@@ -1833,7 +1842,7 @@ function startGame({ transition = false } = {}) {
     camera.lookAt(lookTarget);
     mode = "playing";
   }
-  capturePoint(captureStart);
+  recordCaptureStart();
   avatar.visible = true;
   $("menu").hidden = !launchTransition;
   $("overlay").hidden = true;
@@ -1877,7 +1886,7 @@ function updateLaunch(roundDt) {
     $("hud").inert = false;
     document.body.classList.remove("launching");
     resetInput();
-    capturePoint(captureStart);
+    recordCaptureStart();
     updateSonar();
     announceDeparture();
   }
@@ -2162,18 +2171,15 @@ function pushFromRocks(point, radius) {
     pushFromStaticSpheres(point, radius, ocean.obstacles);
 }
 // 判定遵循可见角色的转向，避免乌贼快速转向时逻辑朝向领先模型。
-function capturePoint(out) {
-  return (
-    out
-      // 乌贼默认外套膜领先，腕部在行进方向后侧；捕食范围仍与虎鲸相同。
-      .set(
-        0,
-        0,
-        player.length * 0.36 * (player.characterId === "squid" ? 1 : -1),
-      )
-      .applyQuaternion(avatar.quaternion)
-      .add(position)
-  );
+function capturePoint(out, index = 0) {
+  return out
+    .set(0, 0, player.length * preyCaptureOffsets(player.characterId)[index])
+    .applyQuaternion(avatar.quaternion)
+    .add(position);
+}
+function recordCaptureStart() {
+  capturePoint(captureStart);
+  if (player.characterId === "squid") capturePoint(captureFrontStart, 1);
 }
 function feedingMouth(out) {
   return avatar.userData.getFeedingMouth?.(out) ?? capturePoint(out);
@@ -2187,7 +2193,7 @@ const playerFacing = new THREE.Vector3();
 function updatePlayer(dt, roundDt) {
   playerMovementStart.copy(position);
   playerMovementFacing.set(0, 0, -1).applyQuaternion(avatar.quaternion);
-  capturePoint(captureStart);
+  recordCaptureStart();
   const inputX =
     pointer.x + (keys.has("KeyD") ? 1 : 0) - (keys.has("KeyA") ? 1 : 0);
   const inputY =
@@ -2501,26 +2507,14 @@ function eatEntity(entity, mouth, previousPrey = entity.mesh.position, dt = 0) {
     if (pull > 0 && !blockedBetween(mouth, mesh.position))
       mesh.position.lerp(mouth, pull / distance);
   }
-  // 末帧已接触时保留原判定；两端皆在外才补查同帧相对轨迹，不增加吞食半径。
-  const direct = mouth.distanceToSquared(mesh.position) < biteRange * biteRange;
-  const contact = direct
-    ? 1
-    : sweptCaptureFraction(
-        captureStart,
-        mouth,
-        previousPrey,
-        mesh.position,
-        biteRange,
-      );
-  if (contact === null) return false;
-  captureContact.copy(captureStart).lerp(mouth, contact);
-  preyContact.copy(previousPrey).lerp(mesh.position, contact);
-  if (
-    (!direct && blockedBetween(captureStart, mouth)) ||
-    blockedBetween(captureContact, preyContact) ||
-    blockedBetween(mouth, mesh.position)
-  )
-    return false;
+  const intake = resolvePreyCaptureContact(
+    player.characterId === "squid" ? squidCaptureAnchors : captureAnchors,
+    previousPrey,
+    mesh.position,
+    biteRange,
+    captureOptions,
+  );
+  if (intake === null) return false;
   const feedingSound = preyFeedingSound(player, species);
   if (!consumePrey(player, species)) return false;
   audio.eatFish(species.length, feedingSound);
@@ -2528,7 +2522,11 @@ function eatEntity(entity, mouth, previousPrey = entity.mesh.position, dt = 0) {
   effects.bite(captureContact, forward, player.length);
   if (isRegionalRare(species)) effects.rareBlessing(preyContact, player.length);
   entity.hiddenFor = preyRespawnDelay(species);
-  feeding.start(mesh, species.length);
+  feeding.start(
+    mesh,
+    species.length,
+    intake === 1 ? { carryFrame: avatar, blockedBetween } : undefined,
+  );
   resetTorpedoTarget(entity);
   entity.chase = 0;
   entity.flight = null;
@@ -2614,6 +2612,7 @@ function updateEntities(dt) {
   threat = null;
   let bestThreat = Infinity;
   const mouth = capturePoint(entityMouth);
+  if (player.characterId === "squid") capturePoint(entityFrontIntake, 1);
   for (const entity of entities) {
     previousPreyPosition.copy(entity.mesh.position);
     if (entity.mesh.userData.getPredatorForward)
@@ -4527,6 +4526,7 @@ function frame(now) {
     avatar.scale.setScalar(player.length);
     updateCamera(dt);
     surface.update(dt, elapsed, player, position, camera, true, highQuality);
+    avatar.userData.setCaptureTarget?.(null);
     feeding.update(dt, {
       mouth: feedingMouth(swallowPoint),
       direction: feedingDirection
@@ -4990,6 +4990,10 @@ if (import.meta.env.DEV)
     },
     getCapturePoint: () => capturePoint(new THREE.Vector3()),
     getCaptureStart: () => captureStart.clone(),
+    getCapturePoints: () =>
+      preyCaptureOffsets(player.characterId).map((_, index) =>
+        capturePoint(new THREE.Vector3(), index),
+      ),
     getFeedingMouth: () => feedingMouth(new THREE.Vector3()),
     get controls() {
       return {
@@ -5016,14 +5020,14 @@ if (import.meta.env.DEV)
       camera.position.set(x, y + 6, z + 18);
       lookTarget.set(x, y + 1, z - 10);
       avatar.position.copy(position);
-      capturePoint(captureStart);
+      recordCaptureStart();
     },
     setFacing(nextYaw, nextPitch = 0) {
       yaw = nextYaw;
       pitch = nextPitch;
       forward.set(0, 0, -1).applyEuler(new THREE.Euler(pitch, yaw, 0, "YXZ"));
       avatar.rotation.set(pitch, yaw, 0, "YXZ");
-      capturePoint(captureStart);
+      recordCaptureStart();
     },
     setLength(length) {
       player.length = length;
