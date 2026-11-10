@@ -117,6 +117,7 @@ export function buildSquid(root, motions) {
     captureBlend +=
       (captureStrength - captureBlend) * (1 - Math.exp(-state.dt * 18));
     const folded = Math.max(state.boost, state.jet);
+    const sprintWave = state.boost * (1 - state.jet);
     // 冲刺保留更清晰的鳍波，强喷射时仍收拢；两者共用躯干收缩节奏。
     const finFold = Math.max(state.boost * 0.55, state.jet);
     const contraction =
@@ -148,8 +149,11 @@ export function buildSquid(root, motions) {
         bone.rotation.z = 0;
         const wave =
           Math.sin(phase * 0.72 - j * 0.8 + chain.angle) *
-          (0.016 + distal * 0.07) *
-          (1 - folded * 0.5);
+          // 冲刺由腕根向末端逐渐放大游曳；喷墨仍保持原来的流线收束。
+          ((0.016 + distal * 0.07) * (1 - state.jet * 0.5) +
+            sprintWave *
+              distal ** 1.3 *
+              (chain.type === "tentacle" ? 0.04 : 0.03));
         const curl = state.feed * distal * 0.17;
         bone.rotation.x =
           -s * wave +

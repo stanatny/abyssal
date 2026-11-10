@@ -1,5 +1,20 @@
 # ABYSSAL Development Rules
 
+Accepted sprint checkpoint — 2026-11-10: the user accepts the Giant Squid
+sprint-tentacle refinement and requests a local commit before a separate Atlantis
+awakening follow-up. All 2,162 delivered source inputs and 969 runtime artifacts
+match; the recorded motion, capture and public checks retain their exact scope.
+Earlier candidate/uncommitted notes below are historical for this checkpoint.
+No push, release or version bump is requested.
+
+Giant Squid sprint follow-up — 2026-11-10: accepted dual-capture and trial
+loading fixes are locally committed as `dd953af`, without a push. A separate
+candidate restores a stronger, staggered trailing wave during ordinary sprint,
+with a bounded increase toward the arm/tentacle tips. Cruise, ink-jet streamlining,
+feeding and gameplay remain; see [the motion review](docs/squid_sprint_revision.md).
+This animation refinement stays uncommitted for player review. Formal main
+remains v0.11.26; no release or version bump is requested.
+
 Accepted local checkpoint — 2026-11-10: the user accepts the Giant Squid
 front/arm capture correction and the repaired trial link, and requests a local
 commit before a separate sprint-tentacle refinement. All 2,161 recorded source

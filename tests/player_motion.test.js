@@ -349,3 +349,83 @@ function pose(root) {
     root.scale.toArray(),
   ];
 }
+
+test("squid sprint increases actual distal arm waves while jetting stays streamlined", () => {
+  const samples = {};
+  let indices;
+  for (const [name, input] of Object.entries({
+    cruise: { speed: 12 },
+    sprint: { speed: 32, boosting: true },
+    jet: { speed: 72, jet: true },
+  })) {
+    const root = createCreature("squid", 6, 7);
+    const body = root.getObjectByName("squid_hf_body");
+    if (!indices) {
+      const position = body.geometry.attributes.position;
+      const skin = body.geometry.attributes.skinIndex;
+      const weight = body.geometry.attributes.skinWeight;
+      indices = body.skeleton.bones
+        .map((bone, joint) => ({ bone, joint }))
+        .filter(({ bone }) =>
+          /squid_(?:arm_\d_4|tentacle_-?1_5)$/.test(bone.name),
+        )
+        .map(({ joint }) => {
+          const candidates = [];
+          for (let i = 0; i < position.count; i++)
+            for (let k = 0; k < 4; k++)
+              if (
+                skin.array[i * 4 + k] === joint &&
+                weight.array[i * 4 + k] > 0.8
+              )
+                candidates.push(i);
+          return candidates
+            .sort((a, b) => position.getZ(b) - position.getZ(a))
+            .slice(0, 12);
+        });
+      assert.equal(indices.length, 10);
+      assert.ok(indices.every((group) => group.length === 12));
+    }
+    advance(root, 120, input);
+    const trajectories = indices.map(() => []);
+    for (let frame = 0; frame < 360; frame++) {
+      // 固定同一相位，隔离游速导致的频率差异，直接采样实际蒙皮末端。
+      root.userData.motionState.phase = (frame * Math.PI) / 45;
+      root.userData.animate(2, 1, { ...input, dt: 0 });
+      root.updateMatrixWorld(true);
+      body.skeleton.update();
+      indices.forEach((group, index) => {
+        const point = new THREE.Vector3();
+        group.forEach((vertex) =>
+          point.add(body.getVertexPosition(vertex, new THREE.Vector3())),
+        );
+        trajectories[index].push(point.divideScalar(group.length));
+      });
+    }
+    samples[name] = trajectories.map((points) => {
+      const mean = points
+        .reduce((sum, point) => sum.add(point), new THREE.Vector3())
+        .divideScalar(points.length);
+      return Math.sqrt(
+        points.reduce(
+          (sum, point) =>
+            sum + (point.x - mean.x) ** 2 + (point.y - mean.y) ** 2,
+          0,
+        ) / points.length,
+      );
+    });
+    const frozen = vertices(body);
+    root.userData.animate(200, 1, { dt: 0 });
+    assert.deepEqual(vertices(body), frozen);
+  }
+  samples.cruise.forEach((rms, index) => {
+    assert.ok(
+      samples.sprint[index] > rms * 1.1,
+      `appendage ${index} has a visible sprint gain`,
+    );
+    assert.ok(samples.sprint[index] < rms * 2.5, "bounded trailing wave");
+    assert.ok(
+      samples.jet[index] < rms * 0.8,
+      "jet retains a streamlined crown",
+    );
+  });
+});
