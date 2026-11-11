@@ -10,7 +10,7 @@ import {
 } from "./hawaii_lord_rig.js";
 const smooth = (a, b, x) => THREE.MathUtils.smoothstep(x, a, b),
   point = new THREE.Vector3();
-let legGeometry, gonadGeometry;
+let legGeometry;
 const legPoints = (side, j) => [
   [side * 0.067, 0.025, -0.055 + j * 0.058],
   [side * (0.155 + (j < 3 ? j * 0.012 : 0)), 0.005, -0.105 + j * 0.078],
@@ -58,47 +58,11 @@ function walkingLegs() {
   parts.forEach((g) => g.dispose());
   return legGeometry;
 }
-function gonads() {
-  if (gonadGeometry) return gonadGeometry;
-  const parts = [];
-  for (let j = 0; j < 4; j++) {
-    const a = (j * Math.PI) / 2 + Math.PI / 4,
-      pts = [];
-    for (let i = 0; i <= 28; i++) {
-      const t = 0.35 + ((Math.PI * 2 - 0.7) * i) / 28;
-      pts.push(
-        new THREE.Vector3(
-          Math.cos(a) * 0.13 + Math.cos(t) * 0.07,
-          0.055,
-          Math.sin(a) * 0.13 + Math.sin(t) * 0.07,
-        ),
-      );
-    }
-    parts.push(
-      new THREE.TubeGeometry(
-        new THREE.CatmullRomCurve3(pts),
-        28,
-        0.008,
-        6,
-        false,
-      ),
-    );
-  }
-  gonadGeometry = mergeGeometries(parts);
-  parts.forEach((g) => g.dispose());
-  return gonadGeometry;
-}
 const legMaterial = new THREE.MeshStandardMaterial({
-    vertexColors: true,
-    roughness: 0.78,
-  }),
-  organMaterial = new THREE.MeshStandardMaterial({
-    color: 0xbba1b6,
-    transparent: true,
-    opacity: 0.72,
-    depthWrite: false,
-    roughness: 0.9,
-  });
+  vertexColors: true,
+  roughness: 0.78,
+});
+
 function bindNativeLegs(chains) {
   const g = walkingLegs();
   if (g.attributes.skinIndex) return g;
@@ -261,18 +225,14 @@ export function buildHawaiiBatch10HF(kind, root, motions) {
         0.15,
       ),
     );
-  if (jelly) {
-    const organs = new THREE.Mesh(gonads(), organMaterial);
-    organs.name = "four_horseshoe_gonads";
-    bones[chains[0].ids[0]].add(organs);
-    organs.position.y = -0.04;
-    organs.userData.keepSeparate = true;
+  if (jelly)
     root.userData.wildlifeAnatomy =
-      "Aurelia spp. / four gonads, four oral arms, short fringe";
-  }
+      "Aurelia spp. / source-textured four gonads, four oral arms, short fringe";
   root.userData.hfRig = { kind, chains, bones, mesh, skins };
   root.userData.normalizedLength = 1;
-  root.userData.artRevision = "trellis_hawaii_batch10_20261019";
+  root.userData.artRevision = jelly
+    ? "trellis_moon_jelly_20261111"
+    : "trellis_hawaii_batch10_20261019";
   root.userData.prepareMaterials = asset.prepare;
   asset.prepare();
   let disposed = false;

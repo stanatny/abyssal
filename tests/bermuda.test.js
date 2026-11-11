@@ -48,9 +48,9 @@ test("Bermuda roster, protected nursery and regional inhabitants remain isolated
   assert.equal(region.available, true);
   assert.equal(
     getRegionSpecies("bermuda").reduce((n, s) => n + s.population, 0),
-    469,
+    475,
   );
-  assert.equal(new Set(region.speciesKinds).size, 24);
+  assert.equal(new Set(region.speciesKinds).size, 25);
   for (const line of [
     "风暴遮蔽航路，幽灵炮声穿透浓雾。",
     "探索失落沉船，挑战各水层的深渊领主。",

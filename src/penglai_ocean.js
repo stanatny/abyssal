@@ -609,6 +609,7 @@ export function* createPenglaiOceanSteps(parent) {
       g.setAttribute("color", new THREE.Float32BufferAttribute(cs, 3));
       g.computeVertexNormals();
       const m = new THREE.Mesh(g, terrain);
+      m.userData.terrainContact = true;
       groundStrips.push(terrainMeshHeight(g));
       m.name = "same_source_mountain_floor";
       root.add(m);

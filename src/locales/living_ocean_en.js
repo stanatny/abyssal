@@ -1,7 +1,10 @@
 import { NONFISH_SPECIES } from "../nonfish_ecology.js";
+import { BLACK_SEA_NETTLE_SPECIES } from "../black_sea_nettle_ecology.js";
 import { SURFACE_BIRDS } from "../surface_birds.js";
 
 export const LIVING_OCEAN_EN = {
+  "表层有飞鱼群 · 向上游近，观察破水滑翔":
+    "Flying fish near the surface · Swim up to watch them glide.",
   "海螺钥匙随机藏在与机关分开的公共建筑中，铭文会分别指出建筑入口。市集柱廊北段下层有六阀水位锁：碑文标明目标，六个阀门各有不同刻数。用角色头部碰触铜轮开启分阀，离开后再碰可关闭；开阀加入定量水，关阀退回。自行计算组合，使总量恰好等于目标，水位稳定后碰触右侧总阀试闸。没有自动求和或正确提示。只调节不扣血；试闸偏高或偏低都扣30生命，同时关闭全部分阀并排空水箱，题目不变。3秒后可重试；必须离开总阀再碰，贴住不会连续扣血。集齐钥匙、机关印记与真正守宝者印记后开启地宫宝箱；30米时吞食圣珠获胜。":
     "The Conch Key is hidden in a different public building; inscriptions mark each entrance. The north lower Agora gallery holds a six-valve water-level lock. Read the target and each distinct amount. Touch a bronze wheel with your head to open it; move away and touch again to close. Opening adds its fixed amount and closing removes it. Calculate the exact target, wait for the water to settle, then touch the master valve on the right to test. There is no computed total or correct-answer hint. Adjustment is free. A high or low test costs 30 health, closes all six valves and drains the tank without changing the puzzle. Retry after 3 seconds by moving away and touching the master valve again; staying in contact never repeats damage. Collect the key, mechanism seal and true guardian seal to unlock the crypt chest, then consume the Sacred Pearl at 30 m to win.",
 
@@ -50,14 +53,32 @@ export const LIVING_OCEAN_EN = {
   潜艇反击: "Submarine retaliation",
   潜艇附近水域: "Waters near submarines",
   预警后直航: "Telegraphed straight shot",
-  "潜艇会对靠近的8米以上角色锁定2.2秒，再发射直航鱼雷。命中损失20生命；同艇至少间隔14秒再次发射。鱼雷最多航行5秒，不能被吞食。":
-    "Submarines lock onto nearby characters of at least 8 m for 2.2 seconds before firing straight-running torpedoes. A hit costs 20 health. Each submarine waits at least 14 seconds before firing again; shots expire after 5 seconds and cannot be eaten.",
+  "潜艇会对靠近的{0}米以上角色锁定{1}秒，再以{2}米/秒发射直航鱼雷。命中损失{3}生命；每次发射后冷却{4}秒，再重新锁定。鱼雷最多航行{5}秒，不能被吞食。":
+    "Submarines lock onto nearby characters of at least {0} m for {1} seconds, then fire straight-running torpedoes at {2} m/s. A hit costs {3} health. Each launch is followed by a {4}-second cooldown before another lock-on. Shots expire after {5} seconds and cannot be eaten.",
+  "水雷爆炸 · 生命 -{0}": "Mine explosion · health −{0}",
+  外礁与深水雷区: "Outer-reef and deep-water minefields",
+  "有水雷的海域会分布{0}枚接触水雷，在外礁与深水形成上下错落的立体雷区。球壳带触角、红色警示灯和警示环；接触后爆炸消失，基础伤害{1}点，不能吞食。":
+    "Seas with mines contain {0} contact mines scattered through three-dimensional outer-reef and deep-water minefields, at different heights. Their spherical shells have contact horns, red lamps and warning rings. Contact detonates and removes a mine, dealing {1} base damage. Mines cannot be eaten.",
+  "发现密集红色警示环时，沿雷区外侧或从上方绕行。水雷不会主动追踪角色；不要从密集雷体之间强行穿过。":
+    "When red warning rings cluster together, go around the minefield or pass above it. Mines do not track you; avoid squeezing between densely packed mines.",
+  "附近有密集雷区 · 沿外围或上方绕行，避开红色警示环":
+    "Dense minefield nearby · pass around or above it and avoid the red warning rings",
   "观察闪烁的艇灯和预警；发射后横向闪避，或利用礁石与建筑阻挡。安全浅滩与幼体不会被锁定。":
     "Watch the blinking hull lamps and warning. Dodge sideways after launch or use reefs and buildings as cover. Nursery waters and juveniles are protected.",
   "每次撞击后需要离开艇壳再冲刺接近。潜艇会预警后发射直航鱼雷；横向闪避或借实体掩护。贴着潜艇游动不会连续造成伤害。":
     "Leave the hull between rams before sprinting back. Submarines fire telegraphed straight-running torpedoes; dodge sideways or use solid cover. Staying in contact does not repeatedly damage the hull.",
   海洋无脊椎: "Marine invertebrates",
   海月水母: "Moon Jelly",
+  黑色海荨麻水母: "Black Sea Nettle",
+  伞体脉游: "Bell pulsing and trailing arms",
+  [BLACK_SEA_NETTLE_SPECIES.realSize]:
+    "1 m bell diameter in this game; oral arms and tentacles are additional. Real oral arms can reach around 6 m.",
+  [BLACK_SEA_NETTLE_SPECIES.description]:
+    "Four frilled oral arms hang beneath a purple-black bell, with fine tentacles trailing from its rim. Slow bell contractions drive its drift; in this game it does not actively attack the player.",
+  [BLACK_SEA_NETTLE_SPECIES.habitatNote]:
+    "Based on black sea nettles recorded along the North American Pacific coast. Appearances in other seas are game ecology adaptations, not claims of native distribution.",
+  [BLACK_SEA_NETTLE_SPECIES.counter]:
+    "Look for the larger dark-purple bell in open shallow water. Approach its bell to feed; trailing arms do not count toward bell diameter.",
   刺龙虾: "Spiny Lobster",
   伞体脉冲: "Bell pulsing",
   礁底步行: "Reef-floor walking",

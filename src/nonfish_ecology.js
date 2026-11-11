@@ -55,6 +55,28 @@ export const NONFISH_SPECIES = Object.freeze([
   }),
 ]);
 
+// 小水母保留真实伞径；以九处松散群落补足出发水层至外礁的可见密度。
+const HAWAII_JELLY_ANCHORS = Object.freeze(
+  [
+    [0, -16, 66],
+    [-8, -18, 48],
+    [10, -20, 30],
+    [-9, -22, 8],
+    [12, -24, -16],
+    [-12, -26, -41],
+    [8, -28, -65],
+    [-10, -30, -88],
+    [10, -32, -108],
+  ].flatMap(([x, y, z]) =>
+    [
+      [-2.5, 0.6, -2],
+      [2.5, -0.6, 2],
+      [-1, -1.2, 2.5],
+      [1, 1.2, -2.5],
+    ].map(([dx, dy, dz]) => Object.freeze([x + dx, y + dy, z + dz])),
+  ),
+);
+
 /** 各地图持有独立居民锚点；底栖高度由真实海床在生成与移动时采样。 */
 export function nonfishEcology(regionId, worldBounds) {
   const points =
@@ -82,12 +104,18 @@ export function nonfishEcology(regionId, worldBounds) {
               [-16, -25, -90],
             ];
   return Object.freeze(
-    NONFISH_SPECIES.map((s) =>
-      Object.freeze({
+    NONFISH_SPECIES.map((s) => {
+      const hawaiiJelly = regionId === "hawaii" && s.kind === "moon_jelly",
+        population = hawaiiJelly ? HAWAII_JELLY_ANCHORS.length : s.population;
+      return Object.freeze({
         ...s,
+        population,
+        // 夏威夷的小型水母在出发水层与浅礁入口松散漂游，避免慢慢散出常用路线。
+        residentRadius: hawaiiJelly ? 6 : s.residentRadius,
         worldBounds,
         spawnAnchors: Object.freeze(
-          Array.from({ length: s.population }, (_, i) => {
+          Array.from({ length: population }, (_, i) => {
+            if (hawaiiJelly) return HAWAII_JELLY_ANCHORS[i];
             const p = points[i % points.length],
               group = Math.floor(i / points.length),
               angle = group * 2.399;
@@ -99,7 +127,7 @@ export function nonfishEcology(regionId, worldBounds) {
             ]);
           }),
         ),
-      }),
-    ),
+      });
+    }),
   );
 }

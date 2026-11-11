@@ -1,4 +1,5 @@
 import * as THREE from "three";
+import { sceneryFootSamples, seatUprightScenery } from "./scenery_grounding.js";
 import { acquireHawaiiReefAsset } from "./hawaii_reef_asset.js";
 
 /** 复用已验收 HF 群落；保留原分布点，以完整底面贴坡，近远网格共用原型。 */
@@ -50,35 +51,19 @@ export function createBermudaColonies(parent, { heightAt, nursery = false }) {
       ),
       matrices = [],
       box = a.geometry.boundingBox,
-      band = box.min.y + (box.max.y - box.min.y) * 0.12;
+      footSamples = sceneryFootSamples([a.geometry, a.farGeometry], 0.12);
     near.name = `bermuda_${kind}_close`;
     far.name = `bermuda_${kind}_distant`;
     for (const row of placements) {
-      const dx = (heightAt(row.x + 2, row.z) - heightAt(row.x - 2, row.z)) / 4,
-        dz = (heightAt(row.x, row.z + 2) - heightAt(row.x, row.z - 2)) / 4;
-      dummy.quaternion.setFromUnitVectors(
-        new THREE.Vector3(0, 1, 0),
-        new THREE.Vector3(-dx, 1, -dz).normalize(),
-      );
-      dummy.quaternion.multiply(
-        new THREE.Quaternion().setFromAxisAngle(
-          new THREE.Vector3(0, 1, 0),
-          row.yaw,
-        ),
-      );
-      dummy.scale.setScalar(row.height / (box.max.y - box.min.y));
-      dummy.position.set(row.x, 0, row.z);
-      dummy.updateMatrix();
-      let low = Infinity;
-      for (let j = 0; j < a.geometry.attributes.position.count; j++) {
-        if (a.geometry.attributes.position.getY(j) > band) continue;
-        point
-          .fromBufferAttribute(a.geometry.attributes.position, j)
-          .applyMatrix4(dummy.matrix);
-        low = Math.min(low, point.y - heightAt(point.x, point.z));
-      }
-      dummy.position.y = -low - 0.15;
-      dummy.updateMatrix();
+      seatUprightScenery(dummy, {
+        x: row.x,
+        z: row.z,
+        yaw: row.yaw,
+        scale: row.height / (box.max.y - box.min.y),
+        heightAt,
+        samples: footSamples,
+        embed: 0.15,
+      });
       matrices.push(dummy.matrix.clone());
       row.y = dummy.position.y;
     }

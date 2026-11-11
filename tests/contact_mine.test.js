@@ -107,6 +107,13 @@ test("球形触角外缘可被高速扫掠命中，范围外安全且每雷仅�
     assert.equal(activity.hazards.length, HUMAN_RULES.torpedoCount);
     const player = createPlayer();
     const hazard = activity.hazards[0];
+    // 本项单独测量触角边界；相邻密集水雷由雷区交互测试保留并覆盖。
+    for (const other of activity.hazards) {
+      if (other === hazard) continue;
+      other.active = false;
+      other.mesh.visible = false;
+      other.warning.visible = false;
+    }
     const origin = hazard.mesh.position.clone();
     const forward = new THREE.Vector3(1, 0, 0);
     const radius =

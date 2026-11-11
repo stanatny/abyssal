@@ -130,7 +130,7 @@ for (const kind of kinds) {
   });
 }
 
-test("all regional school populations and biological lengths remain unchanged", () => {
+test("regional school stock follows the Hawaii encounter revision while biological lengths stay unchanged", () => {
   for (const region of [
     "hawaii",
     "bermuda",
@@ -145,7 +145,7 @@ test("all regional school populations and biological lengths remain unchanged", 
       const s = getRegionSpecies(region).find((s) => s.kind === kind);
       const count =
         region === "hawaii"
-          ? { flying_fish: 15, fish: 75, mackerel: 18, sardine: 40 }[kind]
+          ? { flying_fish: 30, fish: 75, mackerel: 18, sardine: 40 }[kind]
           : kind === "sardine"
             ? ({ bermuda: 100, atlantis: 172, mariana: 80 }[region] ?? 0)
             : 0;
@@ -190,11 +190,15 @@ test("flying fish opens continuous paired wings for the existing flight, then fo
   };
   const player = new THREE.Vector3(0, -5, -20);
   assert.equal(stepFlyingFish(e, 1 / 60, 2, player), true);
-  assert.equal(m.userData.airborne, true);
+  assert.equal(
+    m.userData.airborne,
+    false,
+    "fins remain folded during submerged run-up",
+  );
   let previous = pose();
   const stable = [];
   let maxY = -Infinity;
-  for (let i = 0; i < 270; i++) {
+  for (let i = 0; i < 420; i++) {
     stepFlyingFish(e, 1 / 60, 2 + i / 60, player);
     m.userData.animate(2 + i / 60, 1.4);
     const current = pose();
@@ -206,7 +210,7 @@ test("flying fish opens continuous paired wings for the existing flight, then fo
     );
     previous = current;
     maxY = Math.max(maxY, m.position.y);
-    if (i >= 100 && i < 160) stable.push(current);
+    if (i >= 145 && i < 185 && m.userData.airborne) stable.push(current);
   }
   assert.ok(maxY > 4);
   assert.equal(e.flight, null);
@@ -220,8 +224,18 @@ test("flying fish opens continuous paired wings for the existing flight, then fo
         "Settled gliding wings must not flap",
       ),
     );
-  for (let i = 270; i < 360; i++) m.userData.animate(2 + i / 60, 1.4);
-  assert.ok(Math.abs(width() - folded) < 0.02);
+  for (let i = 420; i < 510; i++) m.userData.animate(2 + i / 60, 1.4);
+  const reference = createCreature("flying_fish", 1, 31);
+  for (let i = 0; i < 120; i++) reference.userData.animate(i / 60, 1.4);
+  for (let i = 0; i < 510; i++) reference.userData.animate(2 + i / 60, 1.4);
+  const referenceBody = reference.userData.hfRig.mesh;
+  reference.updateMatrixWorld(true);
+  referenceBody.skeleton.update();
+  const referenceWidth = referenceBody
+    .getVertexPosition(tips[0], new THREE.Vector3())
+    .distanceTo(referenceBody.getVertexPosition(tips[1], new THREE.Vector3()));
+  assert.ok(Math.abs(width() - referenceWidth) < 0.02);
+  reference.userData.disposeLocalMotion?.();
   assert.deepEqual(
     other.userData.hfRig.bones.map((b) => b.rotation.toArray()),
     own,

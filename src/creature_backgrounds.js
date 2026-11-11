@@ -202,6 +202,11 @@ const natural = [
     "Spiny lobsters are crustaceans with hard exoskeletons, long antennae and jointed limbs, unlike soft-bodied octopuses.",
   ],
   [
+    "black_sea_nettle",
+    "黑色海荨麻水母是北美太平洋沿岸有记录的大型刺胞动物，深紫至黑色的伞体下垂着褶皱口腕与细长触手。伞径与口腕长度是不同的尺寸；本作跨海域栖地与捕食数值属于游戏适配。",
+    "Black sea nettles are large cnidarians recorded along the North American Pacific coast. A purple-black bell carries frilled oral arms and fine trailing tentacles. Bell diameter differs from arm length; cross-region habitats and feeding values here are game adaptations.",
+  ],
+  [
     "neon_tetra",
     "霓虹脂鲤是亚马逊地区的小型淡水群游鱼，蓝色反光带和红色尾部是辨识特征。",
     "Neon tetras are small Amazonian freshwater schooling fishes identified by a reflective blue stripe and red rear-body markings.",

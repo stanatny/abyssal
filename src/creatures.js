@@ -96,6 +96,7 @@ import {
 } from "./creature_atlantis_small_hf.js";
 import { buildHawaiiBatch11HF } from "./creature_hawaii_batch11_hf.js";
 import { buildHawaiiBatch10HF } from "./creature_hawaii_batch10_hf.js";
+import { buildBlackSeaNettleHF } from "./creature_black_sea_nettle_hf.js";
 import { buildHawaiiBatch8HF } from "./creature_hawaii_batch8_hf.js";
 import { buildHawaiiBatch9HF } from "./creature_hawaii_batch9_hf.js";
 import { buildHawaiiBatch7HF } from "./creature_hawaii_batch7_hf.js";
@@ -260,6 +261,7 @@ export function createCreature(kind, length = 6, seed = 1) {
     buildAmazonCreature(kind, root, motions);
   else if (EUROPA_CREATURE_KINDS.has(kind))
     buildEuropaCreature(kind, root, motions);
+  else if (kind === "black_sea_nettle") buildBlackSeaNettleHF(root, motions);
   else if (["herring", "anchovy", "moon_jelly", "spiny_lobster"].includes(kind))
     buildHawaiiBatch10HF(kind, root, motions);
   else if (WILDLIFE_KINDS.has(kind)) buildWildlife(kind, root, motions);
@@ -346,6 +348,7 @@ export function createCreature(kind, length = 6, seed = 1) {
     EUROPA_HF_MID.has(kind) ||
     EUROPA_HF_HUNTERS.has(kind) ||
     EUROPA_HF_GIANTS.has(kind) ||
+    kind === "black_sea_nettle" ||
     kind === "crystal_seraph" ||
     kind === "sword_sage"
   )

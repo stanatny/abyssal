@@ -7,7 +7,10 @@ import { createBermudaColonies } from "./bermuda_colonies.js";
 import { createBermudaVents } from "./bermuda_vents.js";
 
 /** 礁峡、失事残骸与热液群落；地标有实体接触，植物装饰合批并保持航道净空。 */
-export function createBermudaBiomes(parent, { heightAt } = {}) {
+export function createBermudaBiomes(
+  parent,
+  { heightAt, colonyHeightAt = heightAt } = {},
+) {
   const root = new THREE.Group();
   root.name = "bermuda_exploration_biomes";
   parent.add(root);
@@ -74,7 +77,7 @@ export function createBermudaBiomes(parent, { heightAt } = {}) {
     position: new THREE.Vector3(sx, sy + 8, sz),
     radius: 60,
   });
-  const coloniesArt = createBermudaColonies(root, { heightAt }),
+  const coloniesArt = createBermudaColonies(root, { heightAt: colonyHeightAt }),
     ventsArt = createBermudaVents(root, { heightAt });
   root.userData.coloniesArt = coloniesArt;
   root.userData.ventsArt = ventsArt;

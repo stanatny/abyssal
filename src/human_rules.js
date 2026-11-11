@@ -1,11 +1,12 @@
 import { consumePrey, takeDamage } from "./simulation.js";
+import { NAVAL_MINEFIELD_POPULATION } from "./naval_minefields.js";
 
 /** 人类活动的有限数量与交互门槛，所有时间使用游戏主循环时钟。 */
 export const HUMAN_RULES = Object.freeze({
   swimmerCount: 12,
   diverCount: 10,
   submarineCount: 3,
-  torpedoCount: 12,
+  torpedoCount: NAVAL_MINEFIELD_POPULATION,
   submarineHits: 3,
   impactSpeed: 20,
   impactLength: 18,
@@ -23,8 +24,8 @@ export const SUBMARINE_DEFENSE_RULES = Object.freeze({
   minimumLength: 8,
   range: 95,
   windup: 2.2,
-  cooldown: 14,
-  speed: 32,
+  cooldown: 8,
+  speed: 48,
   lifetime: 5,
   damage: 20,
   radius: 0.55,

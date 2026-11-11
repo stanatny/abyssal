@@ -16,7 +16,12 @@ for (const kind of kinds) {
       b = createCreature(kind, 1, 42),
       { mesh, skins } = a.userData.hfRig,
       g = mesh.geometry;
-    assert.equal(a.userData.artRevision, "trellis_hawaii_batch10_20261019");
+    assert.equal(
+      a.userData.artRevision,
+      kind === "moon_jelly"
+        ? "trellis_moon_jelly_20261111"
+        : "trellis_hawaii_batch10_20261019",
+    );
     assert.equal(g, b.userData.hfRig.mesh.geometry);
     assert.equal(mesh.material, b.userData.hfRig.mesh.material);
     assert.notEqual(mesh.skeleton, b.userData.hfRig.mesh.skeleton);
@@ -131,12 +136,13 @@ for (const kind of kinds) {
     }
   });
 }
-test("moon jelly retains four internal horseshoes and four oral arms; lobster has ten supported articulated walking limbs", () => {
+test("moon jelly keeps source-derived gonads and four oral arms; lobster has ten supported articulated walking limbs", () => {
   const jelly = createCreature("moon_jelly", 1),
     lobster = createCreature("spiny_lobster", 0.9),
     r = jelly.userData.hfRig;
   assert.equal(r.chains.filter((c) => c.type === "arm").length, 4);
-  assert.ok(jelly.getObjectByName("four_horseshoe_gonads"));
+  assert.equal(jelly.getObjectByName("four_horseshoe_gonads"), undefined);
+  assert.match(jelly.userData.wildlifeAnatomy, /source-textured four gonads/);
   assert.equal(r.mesh.material.transparent, true);
   assert.equal(r.mesh.material.depthWrite, false);
   const legs = lobster.userData.hfRig.chains.filter((c) => c.type === "leg");
@@ -170,9 +176,9 @@ test("re-unwrapped fish and jelly atlases keep each triangle inside one chart", 
     }
   }
 });
-test("all eight region populations, biological length, jelly diameter and lobster antenna-inclusive length remain unchanged", () => {
+test("regional jelly stock follows the Hawaii encounter revision while biological dimensions stay unchanged", () => {
   const counts = {
-    hawaii: [24, 27, 12, 8],
+    hawaii: [24, 27, 36, 8],
     bermuda: [30, 0, 12, 8],
     atlantis: [0, 0, 12, 8],
     mariana: [0, 0, 12, 8],

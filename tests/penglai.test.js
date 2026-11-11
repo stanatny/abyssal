@@ -123,9 +123,9 @@ test("Penglai is the seventh isolated mythic destination with real ordinary and 
   );
   for (const r of REGIONS.filter((r) => r.id !== "penglai")) {
     assert.ok(
-      getRegionSpecies(r.id).every(
-        (s) => Boolean(s.mythic) === (r.id === "odyssey"),
-      ),
+      getRegionSpecies(r.id)
+        .filter((s) => s.kind !== "black_sea_nettle")
+        .every((s) => Boolean(s.mythic) === (r.id === "odyssey")),
     );
     assert.ok(
       r.bossKinds.every((k) => !PENGLAI_LORDS.some((s) => s.kind === k)),

@@ -1,4 +1,5 @@
 import * as THREE from "three";
+import { sceneryFootSamples, seatUprightScenery } from "./scenery_grounding.js";
 
 /** 浅湾沙纹与砾质斑块；仅改水下浅段着色，远处滤去细纹，保持权威海床。 */
 export function finishOdysseyShallows(material) {
@@ -77,6 +78,7 @@ export function createOdysseyShallows(
     rows,
     fallbacks,
     heightAt,
+    fallenHeightAt = heightAt,
     loadAssets = () => import("./odyssey_shallows_asset.js"),
   },
 ) {
@@ -112,34 +114,51 @@ export function createOdysseyShallows(
           const matrices = [],
             colors = [],
             base = asset.geometry.attributes.position;
-          const foot =
-            asset.geometry.boundingBox.min.y +
-            0.08 *
-              (asset.geometry.boundingBox.max.y -
-                asset.geometry.boundingBox.min.y);
+          const footSamples = sceneryFootSamples(
+            [asset.geometry, asset.farGeometry],
+            0.08,
+          );
           for (const row of placements) {
-            dummy.position.set(row.x, 0, row.z);
-            const e = Math.max(0.3, row.size * 0.3),
-              dx =
-                (heightAt(row.x + e, row.z) - heightAt(row.x - e, row.z)) /
-                (2 * e),
-              dz =
-                (heightAt(row.x, row.z + e) - heightAt(row.x, row.z - e)) /
-                (2 * e);
-            normal.set(-dx, 1, -dz).normalize();
-            dummy.quaternion.setFromUnitVectors(up, normal);
-            dummy.quaternion.multiply(q.setFromAxisAngle(up, row.yaw));
-            if (row.fall) dummy.rotateZ(row.fall);
-            dummy.scale.setScalar(row.size);
-            dummy.updateMatrix();
-            let minGap = Infinity;
-            for (let i = 0; i < base.count; i++) {
-              if (!row.fall && base.getY(i) > foot) continue;
-              point.fromBufferAttribute(base, i).applyMatrix4(dummy.matrix);
-              minGap = Math.min(minGap, point.y - heightAt(point.x, point.z));
+            if (!row.fall) {
+              seatUprightScenery(dummy, {
+                x: row.x,
+                z: row.z,
+                yaw: row.yaw,
+                scale: row.size,
+                heightAt,
+                samples: footSamples,
+                embed: row.size * 0.035,
+                step: Math.max(0.3, row.size * 0.3),
+              });
+            } else {
+              // 倒伏陶罐保留原支撑规则与采样，不按直立底座压入地面。
+              dummy.position.set(row.x, 0, row.z);
+              const e = Math.max(0.3, row.size * 0.3),
+                dx =
+                  (fallenHeightAt(row.x + e, row.z) -
+                    fallenHeightAt(row.x - e, row.z)) /
+                  (2 * e),
+                dz =
+                  (fallenHeightAt(row.x, row.z + e) -
+                    fallenHeightAt(row.x, row.z - e)) /
+                  (2 * e);
+              normal.set(-dx, 1, -dz).normalize();
+              dummy.quaternion.setFromUnitVectors(up, normal);
+              dummy.quaternion.multiply(q.setFromAxisAngle(up, row.yaw));
+              dummy.rotateZ(row.fall);
+              dummy.scale.setScalar(row.size);
+              dummy.updateMatrix();
+              let minGap = Infinity;
+              for (let i = 0; i < base.count; i++) {
+                point.fromBufferAttribute(base, i).applyMatrix4(dummy.matrix);
+                minGap = Math.min(
+                  minGap,
+                  point.y - fallenHeightAt(point.x, point.z),
+                );
+              }
+              dummy.position.y = -minGap - row.size * 0.035;
+              dummy.updateMatrix();
             }
-            dummy.position.y = -minGap - row.size * 0.035;
-            dummy.updateMatrix();
             matrices.push(...dummy.matrix.elements);
             const tone = 0.92 + (row.seed % 4) * 0.025;
             colors.push(tone, tone, tone);

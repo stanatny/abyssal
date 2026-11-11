@@ -18,14 +18,14 @@ import {
 // 同一原始生态也必须保留持续补给；不能用全地图减食物掩盖早期成长过快。
 test("八海域保持数量、各水层食物和领主阶段的大型猎物", () => {
   for (const [region, total] of Object.entries({
-    hawaii: 516,
-    atlantis: 561,
-    bermuda: 469,
-    mariana: 458,
+    hawaii: 565,
+    atlantis: 567,
+    bermuda: 475,
+    mariana: 464,
     amazon: 409,
     europa: 352,
     penglai: 393,
-    odyssey: 323,
+    odyssey: 329,
   })) {
     const ss = getRegionSpecies(region);
     assert.equal(

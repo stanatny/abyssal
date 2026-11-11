@@ -27,13 +27,16 @@ test("the eighth underwater region has exclusive actual ecology and no modern hu
   const r = getExpedition("odyssey").region;
   assert.equal(REGIONS.at(-1).id, "odyssey");
   assert.equal(r.surfaceMode, undefined);
-  assert.equal(r.speciesKinds.length, 21);
+  assert.equal(r.speciesKinds.length, 22);
   assert.equal(r.bossInstances.length, 3);
   assert.ok(Object.values(r.humanActivity).every((x) => x === false));
   const kinds = new Set(r.speciesKinds);
   for (const other of REGIONS.filter((x) => x.id !== r.id)) {
-    assert.ok(
-      other.speciesKinds.every((x) => !kinds.has(x)),
+    assert.deepEqual(
+      other.speciesKinds.filter((kind) => kinds.has(kind)),
+      ["hawaii", "atlantis", "bermuda", "mariana"].includes(other.id)
+        ? ["black_sea_nettle"]
+        : [],
       other.id,
     );
     assert.ok(
@@ -44,7 +47,9 @@ test("the eighth underwater region has exclusive actual ecology and no modern hu
   const spec = getRegionSpecies(r.id);
   assert.ok(spec.reduce((n, s) => n + s.population, 0) > 250);
   assert.ok(
-    spec.every((s) => s.mythic && !s.flying && !s.groundbound && !s.alien),
+    spec
+      .filter((s) => s.kind !== "black_sea_nettle")
+      .every((s) => s.mythic && !s.flying && !s.groundbound && !s.alien),
   );
   for (const s of spec) {
     assert.equal(

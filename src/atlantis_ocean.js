@@ -260,6 +260,7 @@ function* createSeabedSteps(keep, time) {
   };
   material.customProgramCacheKey = () => "atlantis_pearl_slate_seabed_v1";
   const mesh = new THREE.Mesh(geometry, material);
+  mesh.userData.terrainContact = true;
   mesh.name = "atlantis_pearl_slate_seabed";
   mesh.receiveShadow = true;
   return mesh;

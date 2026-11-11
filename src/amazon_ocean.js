@@ -76,6 +76,7 @@ export function* createAmazonOceanSteps(parent) {
       );
       geometry.computeVertexNormals();
       const floorMesh = new THREE.Mesh(geometry, floorMaterial);
+      floorMesh.userData.terrainContact = true;
       floorMesh.name = "river_lowest_floor";
       root.add(floorMesh);
       yield "riverbed";

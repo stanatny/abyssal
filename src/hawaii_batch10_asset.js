@@ -46,7 +46,10 @@ export function hawaiiBatch10Asset(kind, bind) {
     ...(kind === "moon_jelly"
       ? {
           transparent: true,
-          opacity: 0.4,
+          opacity: 0.66,
+          roughness: 0.36,
+          emissive: 0xc8e0e7,
+          emissiveIntensity: 0.09,
           depthWrite: false,
           side: THREE.FrontSide,
         }
@@ -63,8 +66,20 @@ export function hawaiiBatch10Asset(kind, bind) {
         diffuseColor.rgb = mix(diffuseColor.rgb,skin,smoothstep(0.001,0.012,skinLum));
       #endif`,
     );
+    if (kind === "moon_jelly") {
+      // 伞缘只随真实视角增强珠光与透明轮廓，不放大生物或添加远处光球。
+      shader.fragmentShader = shader.fragmentShader.replace(
+        "#include <normal_fragment_maps>",
+        `#include <normal_fragment_maps>
+        float jellyRim = pow(1.0 - clamp(abs(dot(normal, normalize(vViewPosition))), 0.0, 1.0), 2.0);
+        diffuseColor.a *= mix(0.90, 1.24, jellyRim);`,
+      );
+    }
   };
-  material.customProgramCacheKey = () => `hawaii_batch10_${kind}_albedo_v1`;
+  material.customProgramCacheKey = () =>
+    kind === "moon_jelly"
+      ? "hawaii_moon_jelly_pearly_rim_v1"
+      : `hawaii_batch10_${kind}_albedo_v1`;
   const prepare = createMaterialPreparation(
     [
       {

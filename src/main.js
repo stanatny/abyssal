@@ -98,6 +98,8 @@ import { createCreature } from "./creatures.js";
 import { createVisualPipeline } from "./visual_pipeline.js";
 import { createLaunchTransition } from "./launch_transition.js";
 import { createOcean, seabedHeight as baseSeabedHeight } from "./ocean.js";
+import { createTerrainSurface } from "./terrain_surface.js";
+import { bodyTerrainFloor, clipTerrainCamera } from "./terrain_contact.js";
 import { MOON_DIRECTION } from "./atlantis_art_sky.js";
 import { getRegionSpecies } from "./region_ecology.js";
 import { regionZone, cityLightBlend } from "./region_appearance.js";
@@ -154,7 +156,11 @@ import { createRegionLoading } from "./region_loading.js";
 import { createExpeditionSetup } from "./menu_selection.js";
 import { createRunRecordsUI } from "./run_records_ui.js";
 import { getExpedition } from "./expedition_config.js";
-import { stepFlyingFish } from "./flying_fish.js";
+import {
+  stepFlyingFish,
+  takeFlyingFishEvent,
+  resetFlyingFishFlight,
+} from "./flying_fish.js";
 import {
   habitatPosition,
   initialSchoolAnchor,
@@ -446,8 +452,7 @@ minion = createZombieMinion(scene, {
       entity.hiddenFor = preyRespawnDelay(entity.species);
       entity.chase = 0;
       entity.groundState = null;
-      entity.flight = null;
-      entity.mesh.userData.setGliding?.(false);
+      resetFlyingFishFlight(entity);
     }
     return true;
   },
@@ -564,7 +569,8 @@ let player = createPlayer(),
 let lastTime = performance.now(),
   notificationUntil = 0,
   lastZone = "",
-  lastNursery = null;
+  lastNursery = null,
+  surfaceWildlifeHintUntil = 0;
 let threat = null,
   touchBoost = false,
   touchSlow = false,
@@ -893,7 +899,7 @@ function refreshRegionState() {
   lordLockFeedback.reset();
   terrainColliders.splice(0, terrainColliders.length, ...ocean.colliders);
   const region = expedition.region;
-  humans.reset(region.humanActivity);
+  humans.reset({ ...region.humanActivity, regionId: region.id });
   encounters.reset(region.bossKinds, region.bossHomes, region.bossInstances);
   audio.setRegion?.(region.id);
   camera.far = region.id === "hawaii" ? 650 : 2400;
@@ -1423,8 +1429,25 @@ function activeSeabedHeight(x, z) {
 function activeGroundHeight(x, z) {
   return (ocean.groundHeightAt || activeSeabedHeight)(x, z);
 }
+function activeContactSurface() {
+  if (!ocean.contactSurface) {
+    const owner = ocean,
+      surface = createTerrainSurface(owner.root, {
+        fallback: owner.heightAt || baseSeabedHeight,
+      }),
+      dispose = owner.dispose?.bind(owner);
+    owner.contactSurface = surface;
+    // 接触索引只持有CPU数值；淘汰缓存海域时与原场景资源一起释放。
+    owner.dispose = () => {
+      surface.dispose?.();
+      owner.contactSurface = null;
+      dispose?.();
+    };
+  }
+  return ocean.contactSurface;
+}
 function floorAt(x, z, margin = 4) {
-  return activeSeabedHeight(x, z) + margin;
+  return activeContactSurface()(x, z) + margin;
 }
 function speciesList() {
   return getRegionSpecies(expedition.region.id);
@@ -1630,11 +1653,9 @@ function seedPopulation() {
     entity.disorientedUntil = 0;
     entity.swimAvoidUntil = 0;
     if (entity.swimmingMotion) entity.swimmingMotion.travelSpeed = 0;
-    entity.flight = null;
-    entity.flightReadyAt = 0;
+    resetFlyingFishFlight(entity);
     entity.groundState = null;
     resetGroundNavigation(entity);
-    entity.mesh.userData.setGliding?.(false);
     if (entity.telegraph) entity.telegraph.visible = false;
   }
   for (const kind of speciesList()
@@ -1771,6 +1792,7 @@ function resetExpedition(preserveWorld = false) {
   forward.set(0, 0, -1);
   lastZone = "";
   lastNursery = null;
+  surfaceWildlifeHintUntil = 0;
   lastCollision = null;
   groundRecovering = iceRecovering = false;
   nextShipNotice = 0;
@@ -1801,7 +1823,10 @@ function resetExpedition(preserveWorld = false) {
   if (!preserveWorld) {
     surface.reset();
     ocean.reset?.();
-    humans.reset(expedition.region.humanActivity);
+    humans.reset({
+      ...expedition.region.humanActivity,
+      regionId: expedition.region.id,
+    });
     encounters.reset(
       expedition.region.bossKinds,
       expedition.region.bossHomes,
@@ -2080,14 +2105,16 @@ function blockedBetween(a, b, radius = 0) {
   return queryWorldSegment(a, b, radius) !== null;
 }
 function playerFloorHeight(x, z) {
-  const radius = bodyRadius(player.length);
-  return floorAt(
-    x,
-    z,
-    radius +
-      Math.abs(forward.y) * Math.max(0, player.length * 0.42 - radius) +
-      0.4,
-  );
+  return bodyTerrainFloor(x, z, {
+    heightAt: activeContactSurface(),
+    radius: bodyRadius(player.length),
+    // HF躯干端点约在±0.5体长，触底另留2%动态余量；实体/捕食长度不变。
+    length: (player.length * 0.52) / 0.42,
+    // 破损下颌略低于通用体壳，余量随真实体长缩放；不扩大攻击或实体碰撞。
+    margin:
+      0.4 + (player.characterId === "zombie_shark" ? player.length * 0.008 : 0),
+    forward,
+  });
 }
 function resolvePlayerMotion(previous, merge = false) {
   const radius = bodyRadius(player.length);
@@ -2141,8 +2168,6 @@ function resolvePlayerMotion(previous, merge = false) {
 /** 仆从复用世界粗筛和多球扫掠，独立约束海床、冰顶及动态船体，不穿墙追食。 */
 function resolveMinionMotion(previous, desired, heading, length) {
   const r = bodyRadius(length);
-  const clearance =
-    r + Math.abs(heading.y) * Math.max(0, length * 0.42 - r) + 0.4;
   return resolveIndexedMotion(previous, desired, {
     staticColliders: ocean.colliders,
     dynamicColliders: [
@@ -2154,7 +2179,14 @@ function resolveMinionMotion(previous, desired, heading, length) {
     radius: r,
     forward: heading,
     length,
-    floorHeight: (x, z) => floorAt(x, z, clearance),
+    floorHeight: (x, z) =>
+      bodyTerrainFloor(x, z, {
+        heightAt: activeContactSurface(),
+        radius: r,
+        length: (length * 0.52) / 0.42,
+        margin: 0.4 + length * 0.008,
+        forward: heading,
+      }),
     bounds: {
       minX: activeWorld().minX + WORLD_EDGE_INSET,
       maxX: activeWorld().maxX - WORLD_EDGE_INSET,
@@ -2529,8 +2561,7 @@ function eatEntity(entity, mouth, previousPrey = entity.mesh.position, dt = 0) {
   );
   resetTorpedoTarget(entity);
   entity.chase = 0;
-  entity.flight = null;
-  mesh.userData.setGliding?.(false);
+  resetFlyingFishFlight(entity);
   notify(
     isRegionalRare(species)
       ? "珍兽恩赐 · 三项补满，上限150（本局）"
@@ -2606,6 +2637,20 @@ function updateEntities(dt) {
     .sub(playerMovementStart)
     .divideScalar(Math.max(dt, 0.001));
   hunterPlayerVelocity.clampLength(0, 60);
+  const flyingFishThreat = {
+    position,
+    length: player.length,
+    velocity: hunterPlayerVelocity,
+  };
+  const flyingFishContext = {
+    surfaceMode: expedition.region.surfaceMode ?? surface.mode ?? "open",
+    waterHeightAt: (x, z, time) =>
+      surface.waterHeightAt?.(x, z, elapsed + time - player.elapsed) ??
+      WORLD.surfaceY,
+    heightAt: activeSeabedHeight,
+    bounds: activeWorld(),
+    castWorld: queryWorldSegment,
+  };
   const hasRocks = ocean.obstacles.length > 0;
   aerialSpacing.rebuild(entities);
   swimmingSpacing.rebuild(entities);
@@ -2662,6 +2707,7 @@ function updateEntities(dt) {
         }
         mesh.position.copy(replacement);
         resetTorpedoTarget(entity);
+        resetFlyingFishFlight(entity);
         mesh.visible = true;
         entity.hunter = createHunterState(species, entity.seed + elapsed);
         entity.swimAvoidUntil = 0;
@@ -2670,7 +2716,31 @@ function updateEntities(dt) {
       }
       continue;
     }
-    if (stepFlyingFish(entity, dt, player.elapsed, position)) {
+    // 表层生态先给一次观察方向；不强制抬镜头，也不改变游泳控制。
+    if (
+      surfaceWildlifeHintUntil === 0 &&
+      species.surfaceGlider &&
+      isNursery(position) &&
+      mesh.position.distanceTo(position) < 32
+    ) {
+      surfaceWildlifeHintUntil = elapsed + 8;
+    }
+    if (
+      stepFlyingFish(
+        entity,
+        dt,
+        player.elapsed,
+        flyingFishThreat,
+        flyingFishContext,
+      )
+    ) {
+      const event = takeFlyingFishEvent(entity);
+      if (event)
+        surface.creatureSplash?.(
+          event.position,
+          species.length,
+          event.kind === "reentry",
+        );
       mesh.visible = mesh.position.distanceTo(position) < 180;
       updateCreatureAttitude(mesh.quaternion, entity.velocity, dt, 1.4, 8);
       mesh.userData.animate?.(elapsed + entity.seed, 1.4);
@@ -3539,6 +3609,7 @@ function shortenCamera(point) {
     point
       .copy(hit.point)
       .addScaledVector(new THREE.Vector3().copy(hit.normal), 0.04);
+  point.copy(clipTerrainCamera(position, point, activeContactSurface()));
 }
 function updateCamera(dt) {
   const desired = followCameraPose();
@@ -4060,6 +4131,9 @@ function updateHud() {
           : "四道关卡已开 · 成长至30米，抵达海沟底部",
     );
   }
+  // 观察提示借用现有任务行，持续八秒，不被一次捕食通知立即覆盖。
+  if (elapsed < surfaceWildlifeHintUntil && isNursery(position))
+    $("objective").textContent = t("表层有飞鱼群 · 向上游近，观察破水滑翔");
   $("notification").style.opacity = elapsed < notificationUntil ? "1" : "0";
   setMarkup(
     $("buffs"),

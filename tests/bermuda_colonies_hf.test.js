@@ -70,13 +70,11 @@ test("Reef detail transitions retain every transform, use hysteresis, and do not
     for (const mesh of [batch.near, batch.far])
       for (let i = 0; i < mesh.count; i++) {
         mesh.getMatrixAt(i, m);
-        actual.push(m.elements.map((v) => v.toFixed(3)).join(","));
+        actual.push(m.elements.join(","));
       }
     assert.deepEqual(
       actual.sort(),
-      batch.matrices
-        .map((m) => m.elements.map((v) => v.toFixed(3)).join(","))
-        .sort(),
+      batch.matrices.map((m) => m.elements.map(Math.fround).join(",")).sort(),
     );
   }
   a.dispose();

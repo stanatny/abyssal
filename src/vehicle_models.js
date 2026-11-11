@@ -4,6 +4,7 @@ import { WORLD } from "./world_config.js";
 import { createArticulatedHuman } from "./human_models.js";
 import { createContactMine } from "./contact_mine.js";
 import { createAttackTorpedoModel } from "./submarine_defense.js";
+import { HUMAN_RULES, SUBMARINE_DEFENSE_RULES } from "./human_rules.js";
 
 /** 图鉴与场景共用的成人、潜艇与水雷资料；人类角色全部为成年人。 */
 export const HUMAN_CATALOG = Object.freeze([
@@ -19,7 +20,10 @@ export const HUMAN_CATALOG = Object.freeze([
     size: "3 m",
     habitat: "潜艇附近水域",
     ability: "预警后直航",
-    text: "潜艇会对靠近的8米以上角色锁定2.2秒，再发射直航鱼雷。命中损失20生命；同艇至少间隔14秒再次发射。鱼雷最多航行5秒，不能被吞食。",
+    get text() {
+      const r = SUBMARINE_DEFENSE_RULES;
+      return tr`潜艇会对靠近的${r.minimumLength}米以上角色锁定${r.windup}秒，再以${r.speed}米/秒发射直航鱼雷。命中损失${r.damage}生命；每次发射后冷却${r.cooldown}秒，再重新锁定。鱼雷最多航行${r.lifetime}秒，不能被吞食。`;
+    },
     counter:
       "观察闪烁的艇灯和预警；发射后横向闪避，或利用礁石与建筑阻挡。安全浅滩与幼体不会被锁定。",
   },
@@ -81,10 +85,13 @@ export const HUMAN_CATALOG = Object.freeze([
     color: "#ff826e",
     length: 3.6,
     size: "3.6 m",
-    habitat: `${220 * WORLD.displayDepthScale}—${550 * WORLD.displayDepthScale} m`,
+    habitat: "外礁与深水雷区",
     ability: "接触爆炸",
-    text: "带触角和红色警示灯的球形水雷静止悬浮在深海。碰到后爆炸并消失，命中可造成28点生命损失；它不是食物。",
-    counter: "留意球壳触角和红色警示环，留出距离绕行。水雷不会主动追踪角色。",
+    get text() {
+      return tr`有水雷的海域会分布${HUMAN_RULES.torpedoCount}枚接触水雷，在外礁与深水形成上下错落的立体雷区。球壳带触角、红色警示灯和警示环；接触后爆炸消失，基础伤害${HUMAN_RULES.torpedoDamage}点，不能吞食。`;
+    },
+    counter:
+      "发现密集红色警示环时，沿雷区外侧或从上方绕行。水雷不会主动追踪角色；不要从密集雷体之间强行穿过。",
   },
 ]);
 

@@ -1,4 +1,6 @@
 import * as THREE from "three";
+import { groundedArchGeometry } from "./grounded_arch.js";
+import { terrainMeshHeight } from "./terrain_mesh_height.js";
 import {
   addSurfaceDetail,
   ribbonGeometry,
@@ -38,6 +40,7 @@ export function createOcean(scene) {
   scene.add(root);
   const obstacles = [];
   const colliders = [];
+  const archFeet = { colliders: [], obstacles: [] };
   const disposables = new Set();
   const rand = seededRandom(9371);
   const dummy = new THREE.Object3D();
@@ -90,6 +93,8 @@ export function createOcean(scene) {
     new THREE.Float32BufferAttribute(terrainColors, 3),
   );
   terrainGeometry.computeVertexNormals();
+  const terrainGround = terrainMeshHeight(terrainGeometry);
+  const sceneryHeight = (x, z) => terrainGround(x, z) ?? seabedHeight(x, z);
   const terrainMaterial = track(
     new THREE.MeshStandardMaterial({
       vertexColors: true,
@@ -135,6 +140,7 @@ export function createOcean(scene) {
   addSurfaceDetail(terrainMaterial, "stone", 1.1);
   terrainMaterial.customProgramCacheKey = () => "abyssal_hawaii_terrain_v3";
   const terrain = new THREE.Mesh(terrainGeometry, terrainMaterial);
+  terrain.userData.terrainContact = true;
   terrain.receiveShadow = true;
   root.add(terrain);
 
@@ -229,12 +235,17 @@ export function createOcean(scene) {
   ];
   for (const arch of arches) {
     const baseY = seabedHeight(arch.x, arch.z) + 1.5;
-    const mesh = addMesh(
-      new THREE.TorusGeometry(arch.radius, arch.tube, 7, 26, Math.PI),
-      rockMaterial,
-      [arch.x, baseY, arch.z],
-    );
+    const grounded = groundedArchGeometry(arch, baseY, sceneryHeight);
+    archFeet.colliders.push(...grounded.colliders);
+    archFeet.obstacles.push(...grounded.obstacles);
+    const mesh = addMesh(grounded.geometry, rockMaterial, [
+      arch.x,
+      baseY,
+      arch.z,
+    ]);
     mesh.rotation.y = arch.angle;
+    mesh.name = `grounded_reef_arch_${arch.z}`;
+    mesh.userData.feet = grounded.feet;
     let previous = null;
     for (let segment = 0; segment <= 26; segment++) {
       const theta = (segment / 26) * Math.PI;
@@ -303,7 +314,7 @@ export function createOcean(scene) {
 
   const reef = createHawaiiReefDecorations(root, {
     rand,
-    heightAt: seabedHeight,
+    heightAt: sceneryHeight,
   });
 
   // 小幅长涌浪叠加经过像素足迹过滤的随机细波，避免远处整齐亮带与闪烁。
@@ -707,6 +718,9 @@ export function createOcean(scene) {
     clearings: [...LANDMARK_CLEARINGS, ...colliders.map(seabedClearing)],
   });
 
+  // 新增的实心石脚最后登记，保留既有实体/随机序列的原始前缀。
+  colliders.push(...archFeet.colliders);
+  obstacles.push(...archFeet.obstacles);
   return {
     root,
     obstacles,

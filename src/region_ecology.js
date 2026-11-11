@@ -14,6 +14,11 @@ import { EUROPA_SPECIES } from "./europa_species.js";
 import { fitPenglaiEcology } from "./penglai_ecology.js";
 import { fitEuropaEcology } from "./europa_ecology.js";
 import { NONFISH_SPECIES, nonfishEcology } from "./nonfish_ecology.js";
+import {
+  BLACK_SEA_NETTLE_SPECIES,
+  blackSeaNettleEcology,
+} from "./black_sea_nettle_ecology.js";
+import { ODYSSEY_WORLD } from "./odyssey_config.js";
 import { WORLD } from "./world_config.js";
 import { MARIANA_WORLD } from "./mariana_config.js";
 import { MARIANA_SPECIES } from "./mariana_species.js";
@@ -35,6 +40,7 @@ export const ALL_SPECIES = Object.freeze([
   ...BERMUDA_SPECIES,
   ...MARIANA_SPECIES,
   ...NONFISH_SPECIES,
+  BLACK_SEA_NETTLE_SPECIES,
   ...EUROPA_SPECIES,
   ...AMAZON_SPECIES,
   ...PENGLAI_SPECIES,
@@ -153,22 +159,34 @@ const ATLANTIS_OVERRIDES = {
   ichthyotitan: { spawnAnchors: DEEP_GIANT_ANCHORS.atlantis },
 };
 
+// 独立新增的海洋居民追加在旧名册末尾，不挪动既有物种或重复增密。
+function marineNettles(regionId, world) {
+  const species = blackSeaNettleEcology(regionId, world);
+  return species ? [species] : [];
+}
+
 const BASE_REGION_SPECIES = Object.freeze({
-  odyssey: ODYSSEY_SPECIES,
+  odyssey: Object.freeze([
+    ...ODYSSEY_SPECIES,
+    ...marineNettles("odyssey", ODYSSEY_WORLD),
+  ]),
   penglai: PENGLAI_SPECIES,
   europa: EUROPA_SPECIES,
   amazon: AMAZON_SPECIES,
   hawaii: Object.freeze([
     ...hawaiiEcology(ECOSYSTEM_SPECIES),
     ...nonfishEcology("hawaii", WORLD),
+    ...marineNettles("hawaii", WORLD),
   ]),
   mariana: Object.freeze([
     ...marianaEcology(ALL_SPECIES),
     ...nonfishEcology("mariana", MARIANA_WORLD),
+    ...marineNettles("mariana", MARIANA_WORLD),
   ]),
   bermuda: Object.freeze([
     ...bermudaEcology(ALL_SPECIES),
     ...nonfishEcology("bermuda", WORLD),
+    ...marineNettles("bermuda", WORLD),
   ]),
   atlantis: Object.freeze(
     Object.entries(ATLANTIS_OVERRIDES)
@@ -191,7 +209,10 @@ const BASE_REGION_SPECIES = Object.freeze({
           regionSpecies.spawnAnchors = atlantisLargePreyAnchors(regionSpecies);
         return freezeRecord(regionSpecies);
       })
-      .concat(nonfishEcology("atlantis", WORLD)),
+      .concat(
+        nonfishEcology("atlantis", WORLD),
+        marineNettles("atlantis", WORLD),
+      ),
   ),
 });
 

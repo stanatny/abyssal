@@ -20,6 +20,8 @@ import {
 } from "./europa_research_wreck.js";
 import { createEuropaGeochemistrySteps } from "./europa_geochemistry.js";
 import { addSurfaceDetail } from "./ocean_visuals.js";
+import { terrainMeshHeight } from "./terrain_mesh_height.js";
+import { groundedEllipticalArchGeometry } from "./arch_foot_geometry.js";
 import {
   finishScenePreparation,
   prepareScene,
@@ -56,6 +58,8 @@ export function* createEuropaOceanSteps(parent) {
     scope = constructionScope(worldRoot, resources),
     keep = (r) => (resources.add(r), r);
   const colliders = [],
+    archFeet = [],
+    floorStrips = [],
     chunks = [],
     lamps = [],
     lightSources = [];
@@ -98,11 +102,20 @@ export function* createEuropaOceanSteps(parent) {
       for (let i = 0; i < p.count; i++)
         p.setY(i, europaSeabedHeight(p.getX(i), p.getZ(i)));
       g.computeVertexNormals();
+      floorStrips.push(terrainMeshHeight(g));
       const m = new THREE.Mesh(g, rock);
+      m.userData.terrainContact = true;
       m.name = "europa_lowest_ground";
       root.add(m);
       yield "floor-strip";
     }
+    const sceneryHeight = (x, z) => {
+      for (const sample of floorStrips) {
+        const y = sample(x, z);
+        if (y !== null) return y;
+      }
+      return europaSeabedHeight(x, z);
+    };
     // 巨型冰层的下表面与实体底面一致；压褶另有对应椭球碰撞。
     const roof = new THREE.Mesh(
       keep(new THREE.BoxGeometry(660, 30, 1200)),
@@ -244,7 +257,7 @@ export function* createEuropaOceanSteps(parent) {
     ]) {
       const floor = europaSeabedHeight(x, z);
       // 连续岩弧有自然起伏，分段碰撞沿同一中心线排列。
-      const arc = keep(new THREE.TorusGeometry(85, 13, 12, 60, Math.PI));
+      const arc = new THREE.TorusGeometry(85, 13, 12, 60, Math.PI);
       arc.scale(1, h / 85, 2);
       const p = arc.attributes.position;
       for (let i = 0; i < p.count; i++) {
@@ -254,8 +267,24 @@ export function* createEuropaOceanSteps(parent) {
       }
       arc.translate(x, floor, z);
       arc.computeVertexNormals();
-      const arch = new THREE.Mesh(arc, rock);
+      const grounded = groundedEllipticalArchGeometry(
+          arc,
+          [1, -1].map((side) => ({
+            indices: Array.from(
+              { length: 13 },
+              (_, j) => j * 61 + (side > 0 ? 0 : 60),
+            ),
+            center: new THREE.Vector3(x + side * 85, floor, z),
+            radiusX: 13,
+            radiusZ: 26,
+            id: `europa_arch_${z}_${side}`,
+          })),
+          sceneryHeight,
+        ),
+        arch = new THREE.Mesh(keep(grounded.geometry), rock);
       arch.name = `europa_continuous_arch_${z}`;
+      arch.userData.feet = grounded.feet;
+      archFeet.push(...grounded.colliders);
       root.add(arch);
       for (let i = 0; i <= 16; i++) {
         const a = (i / 16) * Math.PI;
@@ -270,6 +299,7 @@ export function* createEuropaOceanSteps(parent) {
       }
       yield "arch";
     }
+    floorStrips.length = 0;
     // 花园岩台从侧壁长出，悬生器官与岩台底面相接，留出主航路。
     const shelves = new Map();
     for (const [x, y, z] of [
@@ -564,6 +594,14 @@ export function* createEuropaOceanSteps(parent) {
     colliders.push(...minerals.colliders);
     lightSources.push(...minerals.lightSources);
     chunks.push(...minerals.chunks);
+    // 扩展脚座最后追加，既有实体顺序与体积保持；只在此转一次世界坐标。
+    for (const c of archFeet) {
+      c.a.fromArray(europaWorldPoint(c.a.toArray()));
+      c.b.fromArray(europaWorldPoint(c.b.toArray()));
+      c.radius *= S;
+    }
+    colliders.push(...archFeet);
+    archFeet.length = 0;
     for (let i = 0; i < 3; i++) {
       const lamp = new THREE.PointLight(0x86bbc0, 0, 70, 2);
       lamps.push(lamp);

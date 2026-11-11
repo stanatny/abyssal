@@ -103,6 +103,7 @@ export function* createMarianaOceanSteps(parent) {
       fp.setY(i, marianaSeabedHeight(fp.getX(i), fp.getZ(i)));
     floorGeo.computeVertexNormals();
     const floor = new THREE.Mesh(floorGeo, pale);
+    floor.userData.terrainContact = true;
     floor.name = "mariana_lowest_ground";
     const lowestGround = terrainMeshHeight(floorGeo);
     root.add(floor);

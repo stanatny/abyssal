@@ -1,4 +1,5 @@
 import * as THREE from "three";
+import { createTerrainSurface } from "./terrain_surface.js";
 import {
   ODYSSEY_WORLD as W,
   ODYSSEY_LANDMARKS,
@@ -120,11 +121,15 @@ export function* createOdysseyOceanSteps(parent) {
       );
       g.computeVertexNormals();
       const mesh = new THREE.Mesh(g, floorMaterial);
+      mesh.userData.terrainContact = true;
       mesh.name = "odyssey_authoritative_seabed";
       mesh.receiveShadow = true;
       root.add(mesh);
       yield "seabed-strip";
     }
+    const contactSurface = keep(
+      createTerrainSurface(root, { fallback: odysseySeabedHeight }),
+    );
     // 背景岸地沿可见岸坡设为不可登陆区；覆盖触及干岸的网格，确保空中接触后落回水中。
     for (let x = -292; x < -68; x += 8)
       for (let z = -188; z < 100; z += 8) {
@@ -384,7 +389,8 @@ export function* createOdysseyOceanSteps(parent) {
     const shallows = createOdysseyShallows(root, keep, {
       rows: shallowRows,
       fallbacks: shallowFallbacks,
-      heightAt: odysseySeabedHeight,
+      heightAt: contactSurface,
+      fallenHeightAt: odysseySeabedHeight,
     });
     const surface = createSurface(root, keep, time);
     yield "warm_sea_surface";
@@ -403,6 +409,7 @@ export function* createOdysseyOceanSteps(parent) {
       barriers: [],
       obstacles: [],
       heightAt: odysseySeabedHeight,
+      contactSurface,
       groundHeightAt: odysseySeabedHeight,
       waterHeightAt: odysseyWaterHeight,
       landmarks,

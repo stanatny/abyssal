@@ -1,4 +1,5 @@
 import * as THREE from "three";
+import { createTerrainSurface } from "./terrain_surface.js";
 import { createBermudaBiomes } from "./bermuda_biomes.js";
 import { createStormWater, stormWaveHeight } from "./bermuda_water.js";
 import { WORLD } from "./world_config.js";
@@ -39,8 +40,12 @@ export function createBermudaOcean(parent, options = {}) {
   );
   addSurfaceDetail(sand, "stone", 0.65);
   const floor = new THREE.Mesh(g, sand);
+  floor.userData.terrainContact = true;
   floor.name = "bermuda_eroded_seabed";
   root.add(floor);
+  const contactSurface = keep(
+    createTerrainSurface(root, { fallback: bermudaSeabedHeight }),
+  );
   const { material: waterMat } = createStormWater(root, keep, time);
   const shelfArt = createBermudaGeology(root, {
     heightAt: bermudaSeabedHeight,
@@ -49,13 +54,16 @@ export function createBermudaOcean(parent, options = {}) {
   root.userData.shelfArt = shelfArt;
   const colliders = [...shelfArt.colliders];
   const nurseryArt = createBermudaColonies(root, {
-    heightAt: bermudaSeabedHeight,
+    heightAt: contactSurface,
     nursery: true,
   });
   root.userData.nurseryArt = nurseryArt;
   const wreck = createBermudaWreck(root, { heightAt: bermudaSeabedHeight });
   colliders.push(...wreck.colliders);
-  const biomes = createBermudaBiomes(root, { heightAt: bermudaSeabedHeight });
+  const biomes = createBermudaBiomes(root, {
+    heightAt: bermudaSeabedHeight,
+    colonyHeightAt: contactSurface,
+  });
   colliders.push(...biomes.colliders);
   const weather = createBermudaWeather(root, options);
   const lights = Array.from({ length: 3 }, () => {
@@ -66,6 +74,7 @@ export function createBermudaOcean(parent, options = {}) {
   const candidates = [...wreck.lightSources, ...biomes.lightSources];
   return {
     root,
+    contactSurface,
     heightAt: bermudaSeabedHeight,
     waterHeightAt: (x, z, now) => WORLD.surfaceY + stormWaveHeight(x, z, now),
     colliders,

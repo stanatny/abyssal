@@ -1,4 +1,5 @@
 import * as THREE from "three";
+import { sceneryFootSamples, seatUprightScenery } from "./scenery_grounding.js";
 import { acquireHawaiiReefAsset } from "./hawaii_reef_asset.js";
 import { clusterInstances } from "./ocean_visuals.js";
 
@@ -6,7 +7,7 @@ import { clusterInstances } from "./ocean_visuals.js";
 export function createHawaiiReefDecorations(parent, { rand, heightAt }) {
   const root = new THREE.Group();
   root.name = "hawaii_reef_decorations";
-  root.userData.artRevision = "hawaii-reef-hf-20261020";
+  root.userData.artRevision = "hawaii-reef-grounded-20261111";
   parent.add(root);
   const placements = {
     reef_branch: [],
@@ -77,8 +78,7 @@ export function createHawaiiReefDecorations(parent, { rand, heightAt }) {
 
   const assets = [],
     batches = [],
-    dummy = new THREE.Object3D(),
-    sample = new THREE.Vector3();
+    dummy = new THREE.Object3D();
   for (const [kind, rows] of Object.entries(placements)) {
     const asset = acquireHawaiiReefAsset(kind);
     assets.push(asset);
@@ -90,27 +90,19 @@ export function createHawaiiReefDecorations(parent, { rand, heightAt }) {
       rows.length,
     );
     instances.name = `hawaii_${kind}_hf`;
-    const position = asset.geometry.attributes.position,
-      box = asset.geometry.boundingBox;
-    const footBand = box.min.y + (box.max.y - box.min.y) * 0.06;
+    const footSamples = sceneryFootSamples([asset.geometry, asset.farGeometry]);
     for (let i = 0; i < rows.length; i++) {
       const row = rows[i];
-      dummy.position.set(row.x, 0, row.z);
-      dummy.rotation.set(...row.rotation);
-      dummy.scale.set(...row.scale);
-      dummy.updateMatrix();
-      // 采样真实底面并略微压入海床，倾斜底座也有接触，不用额外垫台遮盖。
-      let lowestGap = Infinity;
-      for (let v = 0; v < position.count; v++) {
-        if (position.getY(v) > footBand) continue;
-        sample.fromBufferAttribute(position, v).applyMatrix4(dummy.matrix);
-        lowestGap = Math.min(
-          lowestGap,
-          sample.y - heightAt(sample.x, sample.z),
-        );
-      }
-      dummy.position.y = -lowestGap - row.size * 0.08;
-      dummy.updateMatrix();
+      seatUprightScenery(dummy, {
+        x: row.x,
+        z: row.z,
+        yaw: row.rotation[1],
+        scale: row.scale,
+        heightAt,
+        samples: footSamples,
+        embed: row.size * 0.08,
+      });
+      row.fittedQuaternion = dummy.quaternion.toArray();
       instances.setMatrixAt(i, dummy.matrix);
       // HF 色图已包含明暗与色相，实例仅作轻微亮度变化，避免二次重染。
       const tone = 0.92 + row.palette * 0.025;

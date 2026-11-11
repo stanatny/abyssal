@@ -227,7 +227,7 @@ export function createSurface(
   let dripCursor = 0,
     dripEmit = 0;
 
-  function splash(point, length, landing) {
+  function splash(point, length, landing, presentationScale = 1) {
     const material = new THREE.MeshBasicMaterial({
       color: 0xd8fbff,
       transparent: true,
@@ -244,6 +244,7 @@ export function createSurface(
       depthWrite: false,
     });
     const group = new THREE.Group();
+    group.scale.setScalar(presentationScale);
     group.position.set(
       point.x,
       waterHeightAt(point.x, point.z, movementTime) + 0.12,
@@ -579,6 +580,14 @@ export function createSurface(
 
   return {
     waterHeightAt,
+    // 小型生物复用既有出入水效果；密集鱼群共用上限，暂停与清理仍由原生命周期负责。
+    creatureSplash(point, length, landing) {
+      if (splashes.length >= 12 || !Number.isFinite(length) || length <= 0)
+        return false;
+      // 环纹扩散、薄幕和液滴轨迹一起按体长缩放，避免小鱼激起玩家尺寸的水花。
+      splash(point, 6, landing, THREE.MathUtils.clamp(length / 6, 0.025, 1));
+      return true;
+    },
     launchImpulse(velocity, position, length) {
       state.airborne = true;
       state.velocityX = velocity.x;

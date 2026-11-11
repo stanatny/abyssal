@@ -45,7 +45,7 @@ const SPAWN = new THREE.Vector3(0, -18, 75);
 const CITY = createAtlantisCity(new THREE.Scene(), { heightAt: seabedHeight });
 const CITY_COLLIDERS = CITY.colliders;
 
-test("海域名单隔离，夏威夷516个体与亚特兰蒂斯561个体保持各自实际库存", () => {
+test("海域名单隔离，夏威夷565个体与亚特兰蒂斯567个体保持各自实际库存", () => {
   assert.equal(SPECIES, ECOSYSTEM_SPECIES);
   const hawaii = getRegionSpecies().filter(
     (s) => s.category !== "invertebrate",
@@ -56,7 +56,7 @@ test("海域名单隔离，夏威夷516个体与亚特兰蒂斯561个体保持�
   );
   assert.equal(
     getRegionSpecies().reduce((sum, s) => sum + s.population, 0),
-    516,
+    565,
   );
   for (const s of hawaii) {
     const original = ECOSYSTEM_SPECIES.find((entry) => entry.kind === s.kind);
@@ -85,16 +85,16 @@ test("海域名单隔离，夏威夷516个体与亚特兰蒂斯561个体保持�
   assert.equal(
     ALL_SPECIES.filter((s) => s.category !== "alien" && s.category !== "mythic")
       .length,
-    69,
+    70,
   );
   assert.equal(ALL_SPECIES.filter((s) => s.category === "alien").length, 16);
-  assert.equal(ALL_SPECIES.length, 126);
-  assert.equal(new Set(ALL_SPECIES.map((s) => s.kind)).size, 126);
+  assert.equal(ALL_SPECIES.length, 127);
+  assert.equal(new Set(ALL_SPECIES.map((s) => s.kind)).size, 127);
   const atlantis = getRegionSpecies("atlantis");
-  assert.equal(atlantis.length, 20);
+  assert.equal(atlantis.length, 21);
   assert.equal(
     atlantis.reduce((sum, s) => sum + s.population, 0),
-    561,
+    567,
   );
   assert.deepEqual(
     REGION_SPECIES_KINDS.atlantis,
@@ -106,7 +106,7 @@ test("海域名单隔离，夏威夷516个体与亚特兰蒂斯561个体保持�
   );
   assert.equal(
     atlantis.filter((s) => REGION_SPECIES_KINDS.hawaii.includes(s.kind)).length,
-    13,
+    14,
   );
   for (const unique of ATLANTIS_SPECIES) {
     assert.ok(REGION_SPECIES_KINDS.atlantis.includes(unique.kind));
@@ -128,7 +128,7 @@ test("海域名单隔离，夏威夷516个体与亚特兰蒂斯561个体保持�
 
 test("实际坡度与真实城市下，561个出生位置合法且幼年补给就在前方", () => {
   const population = seedPopulation();
-  assert.equal(population.length, 561);
+  assert.equal(population.length, 567);
   const nursery = population.filter(({ point }) => isNursery(point));
   assert.ok(nursery.length >= 206);
   assert.ok(nursery.every(({ species }) => !species.predator));

@@ -14,6 +14,23 @@ export function hawaiiEcology(species) {
 
 // 中型鱼群沿外礁两翼分布，新增个体属于普通生态库存，捕食后正常刷新。
 const OVERRIDES = {
+  flying_fish: {
+    // 进入共享增密流程前共20尾；四处表层鱼群固定水层与中心，最终库存30尾。
+    population: 20,
+    schoolSize: 6,
+    schoolProfiles: [
+      { anchor: [7, -8, 57], count: 6 },
+      { anchor: [-9, -6, 10], count: 6 },
+      { anchor: [12, -5, -60], count: 4 },
+      { anchor: [-16, -5, -138], count: 4 },
+    ].map((profile) => ({
+      ...profile,
+      depthMin: 2,
+      depthMax: 10,
+      fixedHabitat: true,
+      nurseryResident: false,
+    })),
+  },
   sunfish: {
     population: 14,
     schoolAnchors: [

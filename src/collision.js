@@ -124,7 +124,7 @@ export function isPositionBlocked(position, options = {}) {
  * 鱼身、约束与恢复
  ********************************************/
 
-function bodyOffsets({ radius = 0, forward, length = 0 }) {
+export function bodyOffsets({ radius = 0, forward, length = 0 }) {
   const direction = normalize(forward || { x: 0, y: 0, z: -1 });
   const extent = Math.max(0, length * 0.42 - radius);
   if (extent < EPSILON) return [{ x: 0, y: 0, z: 0 }];

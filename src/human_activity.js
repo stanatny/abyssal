@@ -13,6 +13,7 @@ import {
 import { HUMAN_CATALOG, createHumanModel } from "./vehicle_models.js";
 import { bodyClearOfHull } from "./surface_ship_impact.js";
 import { createSubmarineDefense } from "./submarine_defense.js";
+import { navalMinefieldSlot } from "./naval_minefields.js";
 
 export { HUMAN_CATALOG, createHumanModel } from "./vehicle_models.js";
 
@@ -397,13 +398,12 @@ export function createHumanActivity(
     }
     for (let i = 0; i < hazards.length; i++) {
       const hazard = hazards[i];
-      hazard.active = activity.mines !== false;
-      const band = Math.floor(i / 4);
-      const base = new THREE.Vector3(
-        -165 + (i % 4) * 100,
-        -230 - band * 125,
-        -570 - band * 220,
-      );
+      const slot = navalMinefieldSlot(activity.regionId ?? "hawaii", i);
+      hazard.fieldId = slot?.fieldId ?? null;
+      hazard.active = activity.mines !== false && Boolean(slot);
+      const base = slot
+        ? new THREE.Vector3(slot.x, slot.y, slot.z)
+        : new THREE.Vector3(0, -80, -200);
       hazard.mesh.position.copy(
         hazard.active ? safePosition(base, 3, i * 1.6) : base,
       );
@@ -537,15 +537,20 @@ export function createHumanActivity(
         radius,
         target,
       );
+      const healthBefore = player.health;
       const result = detonateTorpedo(player, hazard, touching);
       if (!result.exploded) continue;
       hazard.mesh.visible = false;
       hazard.warning.visible = false;
       emit(point, true);
       audio?.hit?.(1.3);
-      if (result.damaged)
-        onDamage?.(HUMAN_RULES.torpedoDamage, point.clone(), hazard);
-      notify(result.damaged ? "水雷爆炸 · 生命 -28" : "水雷爆炸 · 已避开伤害");
+      const actualDamage = healthBefore - player.health;
+      if (result.damaged) onDamage?.(actualDamage, point.clone(), hazard);
+      notify(
+        result.damaged
+          ? message`水雷爆炸 · 生命 -${Math.round(actualDamage)}`
+          : "水雷爆炸 · 已避开伤害",
+      );
       contacts.push({ kind: "torpedo", entry: hazard, ...result });
     }
     for (const entity of entities) {
@@ -673,11 +678,13 @@ export function createHumanActivity(
         warning && Math.sin(now * 12) > 0 ? 0xff8757 : 0x85e6cb,
       );
     }
-    let nearest = Infinity;
+    let nearest = Infinity,
+      nearbyMines = 0;
     for (const hazard of hazards) {
       if (!hazard.active) continue;
       const distance = position.distanceTo(hazard.mesh.position);
       nearest = Math.min(nearest, distance);
+      if (distance < 70) nearbyMines++;
       hazard.mesh.userData.animate?.(now + hazard.phase);
       hazard.warning.material.opacity =
         0.18 + (Math.sin(now * 5 + hazard.phase) + 1) * 0.06;
@@ -686,8 +693,12 @@ export function createHumanActivity(
       );
       hazard.warning.visible = distance < 90;
     }
-    if (nearest < 30 && now >= nextWarning) {
-      notify("附近有接触水雷 · 避开红色警示圈");
+    if ((nearbyMines >= 4 || nearest < 30) && now >= nextWarning) {
+      notify(
+        nearbyMines >= 4
+          ? "附近有密集雷区 · 沿外围或上方绕行，避开红色警示环"
+          : "附近有接触水雷 · 避开红色警示圈",
+      );
       nextWarning = now + 7;
     }
     for (const particle of particles) {

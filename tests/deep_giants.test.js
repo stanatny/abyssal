@@ -22,14 +22,14 @@ import {
 
 const NURSERY_POSITION = new THREE.Vector3(0, -18, 75);
 
-test("每个领主安排巨兽，旧物种尺寸及幼年食物库存保持不变", () => {
+test("每个领主保留巨兽与旧尺寸，幼年食物库存遵循当前浅海增密", () => {
   assert.equal(DEEP_GIANT_SPECIES.length, 1);
   assert.equal(
     ALL_SPECIES.filter((species) => species.kind === "ichthyotitan").length,
     1,
   );
   for (const [region, count, kinds] of [
-    ["hawaii", 485, 24],
+    ["hawaii", 500, 24],
     ["atlantis", 538, 17],
   ]) {
     const population = getRegionSpecies(region);

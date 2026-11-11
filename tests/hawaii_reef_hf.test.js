@@ -82,11 +82,18 @@ test("reef redraw retains pre-redraw colony anchors and static collision layout"
     // 快照来源和数量不能跟着当前实现重新生成后静默接受。
     assert.equal(hash(baseline.colliders), baseline.originalSha256);
     assert.equal(baseline.colliders.length, 646);
-    compare(ocean.colliders, baseline.colliders);
+    compare(
+      ocean.colliders.filter((c) => c.kind !== "arch_foot"),
+      baseline.colliders,
+    );
+    assert.ok(ocean.colliders.some((c) => c.kind === "arch_foot"));
     t.diagnostic(`Collider snapshot maximum numeric delta: ${maxDelta}`);
     assert.throws(() => compare([1.001], [1]), /colliders.0/);
     assert.throws(() => compare([1, 1], [1]));
-    assert.equal(ocean.obstacles.length, 401);
+    assert.equal(
+      ocean.obstacles.filter((c) => c.kind !== "arch_foot").length,
+      401,
+    );
     // 锚点快照来自提交前的独立旧版工厂，按 GPU float32 精度比较。
     for (const [group, expected] of [
       [

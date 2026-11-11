@@ -206,86 +206,8 @@ export function createOceanExtra(
   }
   root.add(clusterInstances(kelpStems), clusterInstances(kelpLeaves));
 
-  // 水母统一实例化，钟形伞体和垂落触丝分别渲染，时间变化留在 GPU。
-  const jellyMaterial = material("#a6dbe5", {
-    emissive: "#4294ad",
-    emissiveIntensity: 0.7,
-    transparent: true,
-    opacity: 0.4,
-    depthWrite: false,
-    side: THREE.DoubleSide,
-  });
-  const jellyThreadMaterial = material("#67aebc", {
-    emissive: "#285f81",
-    emissiveIntensity: 0.7,
-    transparent: true,
-    opacity: 0.62,
-    depthWrite: false,
-  });
-  applyJellyPulse(jellyMaterial, worldUniforms, false);
-  applyJellyPulse(jellyThreadMaterial, worldUniforms, true);
-  const jellyBellGeometry = track(
-    new THREE.SphereGeometry(1, 14, 8, 0, Math.PI * 2, 0, Math.PI * 0.6),
-  );
-  const jellyRimGeometry = track(new THREE.TorusGeometry(0.95, 0.027, 5, 18));
-  jellyRimGeometry.rotateX(Math.PI / 2);
-  jellyRimGeometry.translate(0, -0.31, 0);
-  const strands = [];
-  for (let strand = 0; strand < 6; strand++) {
-    const angle = (strand / 6) * Math.PI * 2;
-    const c = Math.cos(angle),
-      s = Math.sin(angle);
-    strands.push(
-      tubeGeometry(
-        [
-          [c * 0.63, -0.2, s * 0.63],
-          [c * 0.71, -0.85, s * 0.71],
-          [c * 0.6 + 0.15, -1.65, s * 0.58],
-          [c * 0.56 - 0.1, -2.55, s * 0.52],
-        ],
-        0.018,
-        12,
-        4,
-      ),
-    );
-  }
-  const jellyThreadsGeometry = track(mergeGeometries(strands));
-  for (const strand of strands) strand.dispose();
-  const jellyCount = 36;
-  const jellyBells = new THREE.InstancedMesh(
-    jellyBellGeometry,
-    jellyMaterial,
-    jellyCount,
-  );
-  const jellyRims = new THREE.InstancedMesh(
-    jellyRimGeometry,
-    jellyThreadMaterial,
-    jellyCount,
-  );
-  const jellyThreads = new THREE.InstancedMesh(
-    jellyThreadsGeometry,
-    jellyThreadMaterial,
-    jellyCount,
-  );
-  for (let index = 0; index < jellyCount; index++) {
-    const x = index < 9 ? -30 + random() * 75 : (random() - 0.5) * 440;
-    const z = index < 9 ? -45 - random() * 105 : -170 - random() * 840;
-    const floor = seabedHeight(x, z);
-    const y = Math.min(-12, floor + 22 + random() * 58);
-    const size = 0.8 + random() * 1.6;
-    dummy.position.set(x, y, z);
-    dummy.rotation.set(
-      (random() - 0.5) * 0.1,
-      random() * Math.PI,
-      (random() - 0.5) * 0.13,
-    );
-    dummy.scale.set(size, size * 0.82, size);
-    dummy.updateMatrix();
-    jellyBells.setMatrixAt(index, dummy.matrix);
-    jellyRims.setMatrixAt(index, dummy.matrix);
-    jellyThreads.setMatrixAt(index, dummy.matrix);
-  }
-  root.add(jellyBells, jellyRims, jellyThreads);
+  // 水母由生物系统的海月水母统一呈现；保留旧布局的252次抽样，不移动后续热泉与烟雾。
+  for (let i = 0; i < 36 * 7; i++) random();
 
   const wreck = landmark("沉船遗骸", -49, -167, 230);
   wreck.rotation.set(-Math.atan(0.5), -0.31, 0.09);
@@ -720,30 +642,6 @@ function applyOrganicSway(material, uniforms, amount) {
       );
   };
   material.customProgramCacheKey = () => "abyssal_kelp_v2";
-}
-
-function applyJellyPulse(material, uniforms, threads) {
-  material.onBeforeCompile = (shader) => {
-    shader.uniforms.oceanTime = uniforms.oceanTime;
-    shader.vertexShader = shader.vertexShader
-      .replace(
-        "#include <common>",
-        "#include <common>\nuniform float oceanTime;",
-      )
-      .replace(
-        "#include <begin_vertex>",
-        `#include <begin_vertex>
-        float phase = 0.0;
-        #ifdef USE_INSTANCING
-          phase = instanceMatrix[3].x * 0.31 + instanceMatrix[3].z * 0.15;
-        #endif
-        float pulse = sin(oceanTime * 1.4 + phase);
-        transformed.y += sin(oceanTime * 0.45 + phase) * 0.28;
-        ${threads ? "transformed.x += sin(oceanTime * 0.7 + phase + position.y) * abs(position.y) * 0.08;" : "transformed.xz *= 1.0 + pulse * 0.1; transformed.y *= 1.0 - pulse * 0.12;"}
-      `,
-      );
-  };
-  material.customProgramCacheKey = () => `abyssal_jelly_${threads}`;
 }
 
 function batchStatic(group, track) {

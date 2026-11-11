@@ -143,7 +143,7 @@ test("Hawaii: all ordered lord pairs and placement extremes reuse two guards and
             pop = population(fitted, ocean);
           assert.equal(
             fitted.reduce((n, s) => n + s.population, 0),
-            516,
+            565,
           );
           for (const [i, boss] of bosses.entries())
             checkSite(boss.home, pop, ocean, `${a.kind}/${b.kind}/${t}/${i}`);

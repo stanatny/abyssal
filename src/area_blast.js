@@ -1,4 +1,5 @@
 import * as THREE from "three";
+import { resetFlyingFishFlight } from "./flying_fish.js";
 import { updateLordBody } from "./lord_body.js";
 import { isRegionalRare, preyRespawnDelay } from "./regional_rare.js";
 import { consumeDefeatedPrey, consumePrey } from "./simulation.js";
@@ -68,7 +69,7 @@ export function createAreaBlast({
       e.mesh.visible = false;
       e.chase = 0;
       e.groundState = null;
-      e.flight = null;
+      resetFlyingFishFlight(e);
       resetTorpedoTarget(e);
       effects?.blood?.(e.mesh.position, Math.min(5, e.species.length));
     }

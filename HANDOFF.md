@@ -1,5 +1,68 @@
 # ABYSSAL Penglai HF redraw — 2026-10-27
 
+Accepted local checkpoint — 2026-11-11: the user requests a local commit
+of the delivered marine wildlife, flying-fish, terrain/scenery contact and naval
+threat candidates before a separate lord-combat feedback review. All 2,193
+recorded inputs match the delivered volumetric preview except its documented
+completion review; all 976 served artifacts match. The prior 2,243-test full run
+and the subsequent 52 focused volumetric/activity checks retain their recorded
+scope. Earlier uncommitted labels below are historical for this checkpoint.
+No push, version bump or main/Pages release is requested.
+
+Naval threat density follow-up — 2026-11-11: the player requests denser
+minefields and more frequent, faster submarine torpedoes. Hawaii, Atlantis and
+Bermuda now each have four fixed fields of twelve contact mines; the follow-up
+uses irregular 36 × 42 × 34 m volumetric scatter instead of a near-flat sheet.
+Other maps' exclusions remain. Submarine post-launch cooldown is 8 seconds and shot speed 48,
+with the full 2.2-second warning retained. Dense-field approach feedback and the
+bilingual Guide describe the current rules. See
+[the current review](docs/naval_threat_revision.md). This extends the existing
+uncommitted candidate; formal main remains v0.11.27, without a commit or push.
+
+Black sea nettle addition — 2026-11-11: add a separate larger, dark-belled
+TRELLIS.2 jelly with four attached frilled oral arms and shared world/Guide art.
+Hawaii has ten residents; Bermuda, Atlantis, Mariana and Odyssey each have six
+in validated open upper water. The one-metre measure is bell diameter, with oral
+arms additional; cross-region distribution is explicitly a game adaptation.
+Existing population rows and the smaller moon jellies remain. This supersedes
+the proposal-only status below; see
+[the current review](docs/black_sea_nettle_revision.md). The integrated candidate
+remains uncommitted/unpushed; formal main remains v0.11.27.
+
+Hawaii surface-encounter follow-up — 2026-11-11: respond to scarce jellyfish
+and unseen flying fish with 36 real small moon jellies in nine loose groups and
+30 flying fish in four fixed surface schools near normal routes. Individual
+sizes, rewards and flight physics remain. A once-per-round bilingual objective
+hint directs observation toward the surface. See
+[the current review](docs/hawaii_surface_encounter_revision.md). Larger Pacific
+jellyfish are researched as a separate species proposal, not yet implemented.
+This extends the uncommitted candidate; formal main remains v0.11.27.
+
+Scenery footing follow-up — 2026-11-11: the player marks a floating Hawaii
+arch foot and reef colony. Extend exposed Hawaii/Europa arch ends into the final
+seabed and seat upright Hawaii/Bermuda/Odyssey reef bases across both LODs. Old
+collider prefixes and scenery anchors remain; necessary new foot solids are
+appended. Fallen Odyssey amphorae retain exact transforms. See
+[the current review](docs/scenery_footing_revision.md). This extends the existing
+uncommitted candidate; formal main remains v0.11.27.
+
+Jelly visibility / terrain-contact follow-up — 2026-11-11: the user reports
+hard-to-find jellies and shallow-slope contact. Improve the shared jelly material
+and Hawaii departure-layer residents. Player/companion floor support and camera
+clearance now use the eight maps' tagged, final terrain triangles instead of
+center-only analytic heights. Collider layout, feeding and combat rules remain;
+see [the current review](docs/terrain_contact_jelly_visibility.md), including
+actual-skin and camera limits. This extends the uncommitted candidate below;
+formal main remains v0.11.27.
+
+Hawaii jelly / flying-fish candidate — 2026-11-11: the user requests a fresh
+HF jelly and coherent threat-triggered flying-fish escape. Twelve real moon
+jellies now share a new TRELLIS.2 mesh with the Guide; the 36 decorative copies
+are removed without shifting seeded scenery. Flying fish accelerate, glide and
+reenter with bounded collision-aware movement and small surface effects. See
+[the current review](docs/hawaii_jelly_flight_revision.md). This candidate stays
+uncommitted/unpublished; formal main remains v0.11.27.
+
 Main publication v0.11.27 — 2026-11-10: the user authorizes committing and
 pushing the accepted Giant Squid capture/sprint and Atlantis awakening changes
 to main. All 2,163 delivered source inputs match before publication-only metadata

@@ -31,10 +31,10 @@ test("expanded Odyssey preserves the accepted shoreline and opens the deeper rou
 test("final population, full-body placement and normal resident replenishment fit the expanded terrain", () => {
   const ocean = createOdysseyOcean(new THREE.Group());
   try {
-    assert.equal(roster.length, 21);
+    assert.equal(roster.length, 22);
     assert.equal(
       roster.reduce((n, s) => n + s.population, 0),
-      323,
+      329,
     );
     let seed = 73;
     const random = () =>
