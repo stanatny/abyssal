@@ -80,6 +80,10 @@ import {
 } from "./boss_rules.js";
 import { takeDamage } from "./simulation.js";
 import {
+  bossAttackFeedback,
+  bossFailureFeedback,
+} from "./boss_attack_feedback.js";
+import {
   LORD_RECOVERY,
   recoveryGuardStatus,
   recoveryGuardCanStart,
@@ -1158,6 +1162,7 @@ export function createEncounters(
       volleyShots: 0,
       lockedVelocity: new THREE.Vector3(),
       lastBiteResult: null,
+      attackFeedback: null,
       lastAttackSide: false,
     };
     entry.fxVariants = [
@@ -1284,6 +1289,7 @@ export function createEncounters(
     entry.recovery.hit = false;
     entry.volleyShots = 0;
     entry.lastBiteResult = null;
+    entry.attackFeedback = null;
     entry.lastAttackSide = false;
     entry.phaseHit = false;
     entry.lashReady = false;
@@ -1348,6 +1354,7 @@ export function createEncounters(
     bosses.forEach((entry) => {
       audio.stopBossAbility?.(entry);
       entry.audioAttackTime = -1;
+      entry.attackFeedback = null;
       entry.state = createBossState(entry.state.species);
       entry.id = `${entry.state.species.kind}_${entry.poolIndex}`;
       entry.fixedHome = null;
@@ -1982,6 +1989,31 @@ export function createEncounters(
     }
     return affected;
   }
+  function recordAttackFeedback(entry, player, result, ranged = false) {
+    const message = bossFailureFeedback(entry.state, player, result, {
+      ranged,
+    });
+    if (!message || player.dead || player.won || player.timedOut) return;
+    const now = player.elapsed;
+    const windowCode = bossAttackFeedback(entry.state, player, { ranged }).code;
+    const previous = entry.attackFeedback;
+    // 同一轮命中成功要有完整可读时间，持续贴身的冷却失败不能马上盖掉它。
+    if (!result.hit && previous?.until > now) {
+      if (
+        previous.type === "hit" ||
+        (previous.windowCode === windowCode &&
+          previous.reason === result.reason)
+      )
+        return;
+    }
+    entry.attackFeedback = {
+      message,
+      type: result.hit ? "hit" : "blocked",
+      reason: result.reason,
+      windowCode,
+      until: now + 2.6,
+    };
+  }
   function torpedoHit(player, entry, contact) {
     return rangedHit(player, entry, contact, false);
   }
@@ -1995,6 +2027,7 @@ export function createEncounters(
       entry.state,
     );
     if (!corpse) entry.lastTorpedoResult = result;
+    recordAttackFeedback(entry, player, result, true);
     if (result.hit) {
       onTorpedoHit?.(contact, entry.state.species.length);
       notify(
@@ -2018,6 +2051,7 @@ export function createEncounters(
     audio.stopBossAbility?.(entry);
     entry.recovery.startedAt = -1;
     entry.recovery.hit = false;
+    entry.attackFeedback = null;
     entry.mesh.visible = entry.label.visible = entry.ring.visible = false;
     entry.fx.group.visible = false;
     entry.grapple = createKrakenGrapple();
@@ -2911,6 +2945,8 @@ export function createEncounters(
           visibleBody: true,
         });
         updateBossContact(state, Boolean(contact), dt);
+        const contactUnblocked =
+          Boolean(contact) && !blockedBetween(mouth, contact);
         if (
           recoveryGuard === "strike" &&
           !entry.recovery.hit &&
@@ -2919,7 +2955,7 @@ export function createEncounters(
             entry.motion.offset.copy(position).sub(entry.mesh.position),
             entry.recovery.direction,
           ) &&
-          !blockedBetween(mouth, contact)
+          contactUnblocked
         ) {
           // 每次戒备只结算一次轻反击，不叠加普通贴身伤害，也不关闭可用咬击窗口。
           entry.recovery.hit = damage(
@@ -2945,7 +2981,7 @@ export function createEncounters(
         });
         const result = canAttempt
           ? hitBoss(player, state, {
-              inRange: Boolean(contact) && !blockedBetween(mouth, contact),
+              inRange: contactUnblocked,
               isFlank: entry.lastAttackSide,
             })
           : { hit: false, reason: "too_small" };
@@ -2954,6 +2990,7 @@ export function createEncounters(
           touching: Boolean(contact),
           contactArmed: state.contactArmed,
         };
+        if (contactUnblocked) recordAttackFeedback(entry, player, result);
         if (result.hit) {
           audio.biteLord();
           onBite?.(contact, state.species.length);

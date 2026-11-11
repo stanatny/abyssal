@@ -62,7 +62,12 @@ import {
   torpedoStatus,
   resetTorpedoTarget,
 } from "./mechanical_shark_rules.js";
-import { bossRequiredHits, bossCounterOpen } from "./boss_rules.js";
+import { recoveryGuardStatus } from "./lord_recovery.js";
+import { bossRequiredHits } from "./boss_rules.js";
+import {
+  bossAttackFeedback,
+  compactBossFeedback,
+} from "./boss_attack_feedback.js";
 import { attachOceanCurrents } from "./ocean_currents.js";
 import { attachDeepVents } from "./deep_vents.js";
 import { attachDeepHazards } from "./deep_hazards.js";
@@ -1758,12 +1763,18 @@ let keyClueContact = false;
 let keyNavigationNoticeUntil = 0;
 const waterwheelUI = createWaterwheelUI();
 let currentNotification = "";
+let notificationStartedAt = -Infinity;
+let bossHudEntry = null;
+let bossHudEnteredAt = 0;
 function notify(source, duration = 3) {
   currentNotification = source;
+  notificationStartedAt = elapsed;
   $("notification").textContent = t(source);
   notificationUntil = elapsed + duration;
 }
 function resetExpedition(preserveWorld = false) {
+  bossHudEntry = null;
+  notificationStartedAt = -Infinity;
   lordLockFeedback.reset();
   rareDiscovery.reset();
   delete document.body.dataset.epilogue;
@@ -3865,10 +3876,12 @@ function updateTorpedoAim() {
     (aim.boss
       ? aim.entity.enabled && !aim.entity.state.defeated
       : aim.entity.hiddenFor <= 0);
+  const aimBossFeedback =
+    aimAlive && aim.boss
+      ? bossAttackFeedback(aim.entity.state, player, { ranged: true })
+      : null;
   const aimDamageReady =
-    aim?.eligible &&
-    (!aim.boss ||
-      (!aim.entity.state.openingSpent && bossCounterOpen(aim.entity.state)));
+    aim?.eligible && (!aimBossFeedback || aimBossFeedback.canDamage);
   $("reticle").classList.toggle("aim-assisted", Boolean(aimAlive));
   $("reticle").classList.toggle(
     "aim-ineligible",
@@ -3890,15 +3903,13 @@ function updateTorpedoAim() {
         : 1;
     $("torpedo-aim").querySelector("b").textContent = t(species.label);
     $("torpedo-aim").querySelector("small").textContent = t(
-      aim.eligible && aim.boss && aim.entity.state.openingSpent
-        ? "目标锁定 · 破绽已用，技能结束后开火"
-        : aim.eligible && aim.boss && !bossCounterOpen(aim.entity.state)
-          ? "目标锁定 · 护体剑阵，收势时开火"
-          : aim.eligible
-            ? tr`目标锁定 · 预计${needed}发 · ${Math.round(aim.distance)}m`
-            : aim.boss && aim.entity.state.locked
-              ? "四象护阵未解 · 先击败四神兽"
-              : "领主体型门槛 · 需25米",
+      aimBossFeedback && !aimDamageReady
+        ? aimBossFeedback.title
+        : aim.eligible
+          ? tr`目标锁定 · 预计${needed}发 · ${Math.round(aim.distance)}m`
+          : aim.boss && aim.entity.state.locked
+            ? "四象护阵未解 · 先击败四神兽"
+            : "领主体型门槛 · 需25米",
     );
     $("torpedo-aim").classList.toggle("ineligible", !aimDamageReady);
     aimProjection.copy(aim.entity.mesh.position).project(camera);
@@ -4151,6 +4162,13 @@ function updateHud() {
   const showGhost = ghostThreat && (ghostThreat.charging || !threat);
   $("threat").hidden = !threat && !ghostThreat && !submarineThreat;
   $("threat").classList.toggle("spectral-threat", !!showGhost);
+  $("threat").dataset.urgent = String(
+    Boolean(
+      ghostThreat?.charging ||
+        submarineThreat ||
+        (threat && ["windup", "active"].includes(threat.entity.hunter.phase)),
+    ),
+  );
   if (showGhost) {
     $("threat-title").textContent = t("飞翔的荷兰人号");
     $("threat-detail").textContent = t(
@@ -4239,35 +4257,58 @@ function updateHud() {
     );
   }
   $("boss-panel").hidden = !activeBoss;
+  if (!activeBoss) bossHudEntry = null;
   if (activeBoss) {
     const { state, tip } = activeBoss;
+    if (bossHudEntry !== activeBoss.entry) {
+      bossHudEntry = activeBoss.entry;
+      bossHudEnteredAt = elapsed;
+    }
+    const pursuitCount = lordLockFeedback.count;
+    $("boss-pursuit-count").hidden = pursuitCount < 2;
+    $("boss-pursuit-count").textContent =
+      pursuitCount > 1 ? t(message`${pursuitCount}位追击`) : "";
     $("boss-name").textContent = t(state.species.label);
     $("boss-health").style.width = (state.health / state.maxHealth) * 100 + "%";
     $("boss-hp").textContent = t(
       Math.ceil(state.health) + " / " + state.maxHealth,
     );
-    $("boss-tip").textContent = t(
-      state.locked
-        ? "四象护阵未解 · 先击败四神兽"
-        : activeBoss.entry?.grapple.escapeCost > 0
-          ? tip
-          : player.length < state.species.minAttackLength
-            ? "体型不足 · 借地形与技能间隙撤出领地"
-            : tip,
-    );
-    $("boss-weakness").hidden =
-      state.locked || player.length < state.species.minAttackLength;
-    $("boss-weakness").textContent = t(
-      state.openingSpent
-        ? tr`破绽已用 · ${state.validatedHits}/${bossRequiredHits(state.species)} · 技能结束后再攻`
-        : !bossCounterOpen(state)
-          ? tr`护体剑阵 · ${state.validatedHits}/${bossRequiredHits(state.species)} · 等收势反击`
-          : state.phase === "recover"
-            ? state.species.counterPhases
-              ? tr`收势${Math.max(0, state.phaseDuration - state.timer).toFixed(1)}秒 · ${state.validatedHits}/${bossRequiredHits(state.species)} · 咬中身体`
-              : tr`身体命中即可 · ${state.validatedHits}/${bossRequiredHits(state.species)} · 本轮可反击`
-            : tr`咬身体侧面、背部 · ${state.validatedHits}/${bossRequiredHits(state.species)} · 本轮可偷袭`,
-    );
+    const bossTip = state.locked
+      ? "四象护阵未解 · 先击败四神兽"
+      : activeBoss.entry?.grapple.escapeCost > 0
+        ? tip
+        : player.length < state.species.minAttackLength
+          ? "体型不足 · 借地形与技能间隙撤出领地"
+          : tip;
+    $("boss-tip").textContent = t(bossTip);
+    const danger =
+      activeBoss.entry?.grapple.escapeCost > 0 ||
+      ["windup", "attack"].includes(state.phase) ||
+      (state.phase === "recover" &&
+        ["warning", "strike"].includes(
+          recoveryGuardStatus(activeBoss.entry.recovery.startedAt, state.timer),
+        ));
+    // 战斗只有一个行动区；本次交战前的区域通知不再占用它。
+    const feedback = compactBossFeedback(state, player, {
+      ranged: player.characterId === "mechanical_shark",
+      tip: bossTip,
+      danger,
+      recentAttack: activeBoss.entry?.attackFeedback,
+      now: player.elapsed,
+      notification:
+        elapsed < notificationUntil &&
+        notificationStartedAt > bossHudEnteredAt &&
+        $("threat").hidden &&
+        effects.ink < 0.08
+          ? currentNotification
+          : null,
+    });
+    $("boss-weakness").hidden = false;
+    $("boss-weakness").dataset.state = feedback.code;
+    $("boss-weakness").dataset.tone = feedback.tone;
+    $("boss-weakness").dataset.feedback = feedback.feedback ?? "";
+    $("boss-attack-state").textContent = t(feedback.title);
+    $("boss-attack-advice").textContent = t(feedback.advice);
     $("boss-phase").textContent = t(
       {
         hunt: state.species.pursuitOnUnlock ? "全域追猎" : "领地主宰",

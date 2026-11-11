@@ -315,6 +315,9 @@ test("领主真实侧翼咬击需要离开实体和下一次完整技能，停�
   assert.equal(f.events.bites, 1);
   assert.equal(f.entry.lastAttackSide, true);
   assert.equal(f.entry.lastBiteResult.hit, true);
+  assert.equal(f.entry.attackFeedback.type, "hit");
+  assert.match(t(f.entry.attackFeedback.message), /有效命中1\/3/);
+  const successMessage = f.entry.attackFeedback.message;
   const health = f.entry.state.health;
   for (let i = 0; i < 100; i++) {
     followContact();
@@ -322,6 +325,7 @@ test("领主真实侧翼咬击需要离开实体和下一次完整技能，停�
   }
   assert.equal(f.entry.state.health, health);
   assert.equal(f.entry.lastBiteResult.reason, "must_disengage");
+  assert.equal(f.entry.attackFeedback.message, successMessage);
   const attackPosition = f.position.clone();
   f.position.x += 40;
   for (let i = 0; i < 23; i++) f.step();
@@ -974,4 +978,37 @@ test("Other free-swimming aimed lords retain upper and lower damage through a co
       f.encounters.dispose();
     }
   }
+});
+
+test("Actual protected torpedo feedback stays in the boss entry, preserves successful feedback and clears across pooled reset", () => {
+  const f = fixture("black_tortoise");
+  Object.assign(f.player, createPlayer("mechanical_shark", 25));
+  f.entry.state.phase = "attack";
+  const contact = f.entry.mesh.position.clone();
+  const hp = f.entry.state.health;
+  const rejected = f.encounters.torpedoHit(f.player, f.entry, contact);
+  assert.equal(rejected.hit, false);
+  assert.equal(f.entry.state.health, hp);
+  assert.equal(f.entry.attackFeedback.type, "blocked");
+  assert.equal(f.entry.attackFeedback.windowCode, "protected");
+  assert.match(t(f.entry.attackFeedback.message), /甲阵/);
+  const until = f.entry.attackFeedback.until;
+  f.player.elapsed = 1;
+  f.encounters.torpedoHit(f.player, f.entry, contact);
+  assert.equal(f.entry.attackFeedback.until, until);
+  f.entry.state.phase = "recover";
+  f.entry.state.phaseDuration = 4;
+  f.entry.state.timer = 0;
+  const hit = f.encounters.torpedoHit(f.player, f.entry, contact);
+  assert.equal(hit.hit, true);
+  assert.equal(f.entry.attackFeedback.type, "hit");
+  assert.match(t(f.entry.attackFeedback.message), /有效命中1\/4/);
+  const successful = f.entry.attackFeedback;
+  f.encounters.torpedoHit(f.player, f.entry, contact);
+  assert.equal(f.entry.attackFeedback, successful);
+  f.encounters.reset(["hydra"]);
+  assert.equal(f.entry.enabled, false);
+  assert.equal(f.entry.attackFeedback, null);
+  assert.ok(f.encounters.bosses.every((e) => e.attackFeedback === null));
+  f.encounters.dispose();
 });

@@ -492,7 +492,7 @@ try {
     await page.evaluate(() => window.__testBoss.state.health),
     firstBite.health,
   );
-  assert.match(await page.locator("#boss-weakness").innerText(), /破绽已用/);
+  assert.match(await page.locator("#boss-weakness").innerText(), /本轮已命中/);
   await page.evaluate(() => {
     window.__finishTestBossAttack();
     window.__placeTestBossContact();

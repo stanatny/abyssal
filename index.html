@@ -190,12 +190,16 @@
         </div>
         <div id="boss-panel" hidden>
           <div class="boss-head">
-            <span id="boss-phase">领地主宰</span><strong id="boss-name"></strong
-            ><b id="boss-hp"></b>
+            <span id="boss-phase" hidden>领地主宰</span
+            ><strong id="boss-name"></strong
+            ><small id="boss-pursuit-count" hidden></small><b id="boss-hp"></b>
           </div>
           <div class="boss-meter"><i id="boss-health"></i></div>
-          <p id="boss-tip"></p>
-          <p id="boss-weakness"></p>
+          <p id="boss-tip" hidden></p>
+          <p id="boss-weakness">
+            <strong id="boss-attack-state"></strong>
+            <span id="boss-attack-advice"></span>
+          </p>
         </div>
         <div id="ink-status" hidden role="status">墨云遮蔽 · 横向游出云团</div>
         <div id="notification" role="status" aria-live="polite"></div>

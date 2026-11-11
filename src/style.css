@@ -3373,12 +3373,88 @@ html[lang="en"] #boss-tip {
   letter-spacing: 0;
 }
 #boss-weakness {
-  margin: 4px 0 0;
-  color: #e4c9ff;
-  font-size: 11px;
+  --boss-action-color: #c6d0d0;
+  --boss-action-border: #9baeb366;
+  --boss-action-fill: #a9bbc20b;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 4px;
+  min-width: 0;
+  margin: 7px 0 0;
+  padding: 6px 8px;
+  border-left: 2px solid var(--boss-action-border);
+  background: var(--boss-action-fill);
+  color: var(--boss-action-color);
+  font-size: 12px;
   line-height: 1.4;
   letter-spacing: 0;
   overflow-wrap: anywhere;
+}
+#boss-attack-state {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 6px;
+  max-width: 100%;
+  padding: 2px 6px;
+  border: 1px solid var(--boss-action-border);
+  color: var(--boss-action-color);
+  font-size: 12px;
+  font-weight: 600;
+  line-height: 1.35;
+}
+#boss-attack-state::before {
+  content: "";
+  flex: 0 0 5px;
+  width: 5px;
+  height: 5px;
+  border: 1px solid currentColor;
+  transform: rotate(45deg);
+}
+#boss-attack-advice {
+  display: block;
+  min-width: 0;
+  max-width: 100%;
+  color: #c1cccb;
+}
+/* 金色只表达攻击机会；红橙色仍留给领主的危险技能预警。 */
+#boss-weakness:is([data-state="body"], [data-state="flank"]) {
+  --boss-action-color: #f2d995;
+  --boss-action-border: #dcc178a8;
+  --boss-action-fill: #d6ad4d10;
+}
+#boss-weakness:is([data-state="body"], [data-state="flank"])
+  #boss-attack-state::before {
+  background: currentColor;
+}
+#boss-weakness[data-state="body"] #boss-attack-state {
+  animation: boss-opening-arrival 650ms ease-out 1;
+}
+#boss-weakness[data-state="spent"] #boss-attack-state {
+  border-style: dashed;
+}
+#boss-weakness[data-state="defeated"] {
+  --boss-action-color: #e4ddc7;
+  --boss-action-border: #c3bda178;
+}
+#boss-weakness[data-feedback="blocked"] #boss-attack-advice {
+  color: #edc9ae;
+}
+#boss-weakness[data-feedback="hit"] #boss-attack-advice {
+  color: #f4e3b0;
+}
+@keyframes boss-opening-arrival {
+  from {
+    background: #e8cd794d;
+  }
+  to {
+    background: transparent;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  #boss-weakness[data-state="body"] #boss-attack-state {
+    animation: none;
+  }
 }
 .modal-card {
   max-height: calc(100dvh - 32px);

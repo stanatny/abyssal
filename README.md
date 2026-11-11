@@ -1,5 +1,29 @@
 # ABYSSAL
 
+Accepted local lord-feedback checkpoint — 2026-11-11: the user accepts the
+compact boss HUD and requests a local commit before a separate Mariana survey
+buoy HF redraw. All 2,197 recorded delivery inputs match except the documented
+verification-only review update, and all 976 runtime artifacts match. The earlier
+full-suite and subsequent focused/native/public checks retain their recorded
+scope. Previous candidate-only labels below are historical for this checkpoint.
+No push, version bump or main/Pages publication is requested.
+
+Lord HUD consolidation follow-up — 2026-11-11: reduce overlapping battle
+messages to one compact boss card and one priority-based action area. Fold the
+duplicate lock card and ordinary notification into that presentation; preserve
+release feedback, multiple-pursuer count, real external attacks and ink warnings.
+Danger instructions take precedence over results and default attack advice.
+See [the follow-up review](docs/lord_attack_feedback_revision.md#overlay-consolidation-follow-up).
+This extends the uncommitted boss candidate; no commit or push is requested.
+
+Lord attack-feedback follow-up — 2026-11-11: accepted wildlife, terrain and
+naval changes are locally committed as `eed09c6`, without a push. A separate
+candidate explains real attack windows, size/protection and one-hit progress in
+the boss panel, keeps actual failed-hit advice visible on mobile, and corrects
+White Tiger wording and Black Tortoise ranged readiness. Combat rules and danger
+cues remain. See [the review](docs/lord_attack_feedback_revision.md). This new
+feedback work stays uncommitted; formal main remains v0.11.27.
+
 Accepted local checkpoint — 2026-11-11: the user requests a local commit
 of the delivered marine wildlife, flying-fish, terrain/scenery contact and naval
 threat candidates before a separate lord-combat feedback review. All 2,193

@@ -1,5 +1,29 @@
 # ABYSSAL Development Rules
 
+Accepted local lord-feedback checkpoint — 2026-11-11: the user accepts the
+compact boss HUD and requests a local commit before a separate Mariana survey
+buoy HF redraw. All 2,197 recorded delivery inputs match except the documented
+verification-only review update, and all 976 runtime artifacts match. The earlier
+full-suite and subsequent focused/native/public checks retain their recorded
+scope. Previous candidate-only labels below are historical for this checkpoint.
+No push, version bump or main/Pages publication is requested.
+
+Lord HUD consolidation follow-up — 2026-11-11: reduce overlapping battle
+messages to one compact boss card and one priority-based action area. Fold the
+duplicate lock card and ordinary notification into that presentation; preserve
+release feedback, multiple-pursuer count, real external attacks and ink warnings.
+Danger instructions take precedence over results and default attack advice.
+See [the follow-up review](docs/lord_attack_feedback_revision.md#overlay-consolidation-follow-up).
+This extends the uncommitted boss candidate; no commit or push is requested.
+
+Lord attack-feedback follow-up — 2026-11-11: accepted wildlife, terrain and
+naval changes are locally committed as `eed09c6`, without a push. A separate
+candidate explains real attack windows, size/protection and one-hit progress in
+the boss panel, keeps actual failed-hit advice visible on mobile, and corrects
+White Tiger wording and Black Tortoise ranged readiness. Combat rules and danger
+cues remain. See [the review](docs/lord_attack_feedback_revision.md). This new
+feedback work stays uncommitted; formal main remains v0.11.27.
+
 Accepted local checkpoint — 2026-11-11: the user requests a local commit
 of the delivered marine wildlife, flying-fish, terrain/scenery contact and naval
 threat candidates before a separate lord-combat feedback review. All 2,193
@@ -1853,6 +1877,21 @@ run. The water-level lock's six valves, 30-health cost and three-second delay ar
 family-specific parameters, not universal puzzle constants.
 
 ## Lord body contact and rare blessing feedback
+
+Keep battle information in one compact lord card with one current action area.
+Prioritize real skill/grapple/recovery-counter danger over recent hit results,
+active notices and default attack advice. Avoid repeating lock identity, hit
+progress or the same warning across cards. Preserve multiple-pursuer counts,
+release feedback and urgent external attack/ink instructions. Notifications
+must not reappear in a delayed queue or hide controls when the encounter ends.
+
+Explain the current attack window from the same live rule flags used for actual
+settlement. Keep each lord's protection wording accurate, distinguish a spent
+opening from cooldown, show actual valid-hit progress and make real failed-hit
+reasons visible inside the mobile boss panel. An available counter is not an
+all-clear: preserve skill warnings and recovery-counter danger. Do not invent a
+new weak point or silently change combat timing for presentation. See
+[the feedback review](docs/lord_attack_feedback_revision.md).
 
 The shared lord-contact candidate lets actual body contact count from any angle during post-attack `recover`; other unguarded phases for ordinary lords accept inward approaches to the body's sides, dorsal/ventral surface or rear, while the frontal armor cone remains protected. Each opening permits only one damaging bite or torpedo; the latch resets only after the next attack finishes into recovery. Preserve the initial side/back or ranged ambush for ordinary lords, and never refresh a spent opening by cooldown, disengagement, ink, return or re-entry. The HUD and torpedo aim must distinguish a spent opening from an available counter. Keep the real 25 m gate, three separate valid hits by default (four for Black Tortoise, five for the Sword Sage), 1.2-second player/lord cooldown, at least 0.35 seconds outside contact before rearming, locked guardians, guarded phases, occlusion and once-only regional settlement. The melee contact point remains the shared forward 0.38-body-length region for all four characters, separate from ordinary feeding and the Squid's backward swallowing anchor; use a 0.09-length contact radius with a 0.4 minimum. Do not make Squid melee unreachable by substituting that swallowing anchor.
 

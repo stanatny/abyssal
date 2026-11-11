@@ -154,6 +154,9 @@ export function createLordLockFeedback({
     panel.style.opacity = String(locked ? 1 : envelope);
   }
   return {
+    get count() {
+      return state.count;
+    },
     update(dt, bosses, position, reducedMotion, focus) {
       tickLordLock(state, dt, bosses, position);
       render(reducedMotion, focus);

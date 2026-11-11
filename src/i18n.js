@@ -1,3 +1,4 @@
+import { BOSS_FEEDBACK_EN } from "./locales/boss_feedback_en.js";
 import { ORCA_SQUID_EN } from "./locales/orca_squid_en.js";
 import { ODYSSEY_EN } from "./odyssey_species.js";
 import { ODYSSEY_UI_EN } from "./locales/odyssey_en.js";
@@ -44,6 +45,7 @@ const english = Object.freeze(
     BACKGROUND_EN,
     CREATURE_SKILLS_EN,
     LORD_REVISION_EN,
+    BOSS_FEEDBACK_EN,
   ),
 );
 const listeners = new Set();
