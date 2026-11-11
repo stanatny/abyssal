@@ -83,6 +83,8 @@ export function createMarianaFleet(parent, options = {}) {
   });
   const impact = createSurfaceShipImpact(parent, ships, colliders, options);
   const buoys = [];
+  const buoyAsset = acquireMarianaFleetAsset("buoy");
+  keep({ dispose: buoyAsset.release });
   for (const [i, p] of [
     [-130, -65],
     [132, -245],
@@ -91,23 +93,16 @@ export function createMarianaFleet(parent, options = {}) {
     const g = new THREE.Group();
     g.name = `trench_observatory_${i}`;
     root.add(g);
+    const body = new THREE.Mesh(buoyAsset.geometry, buoyAsset.material);
+    body.name = "mariana_buoy_hf_surface";
+    g.add(body);
+    g.userData.artRevision = "mariana-survey-buoy-hf-20261111";
+    g.userData.buoyArt = { body };
+    g.userData.prepareMaterials = buoyAsset.prepare;
+    buoyAsset.prepare();
+    // 浮座、设备和天线已离线按原水线适配；缆线和碰撞仍由旧锚点持有。
     const b = createBermudaBuilder(g, keep),
       m = materials;
-    b.add(new THREE.CylinderGeometry(1.5, 1.9, 1.2, 20), m.orange, [0, 0, 0]);
-    b.add(
-      new THREE.TorusGeometry(1.85, 0.24, 8, 24),
-      m.rubber,
-      [0, 0, 0],
-      [Math.PI / 2, 0, 0],
-    );
-    for (let k = 0; k < 3; k++) {
-      const a = (k * Math.PI * 2) / 3;
-      b.beam(m.steel, [Math.cos(a), 0.5, Math.sin(a)], [0, 3.8, 0], 0.09);
-    }
-    b.box(m.enamel, [0, 2.4, 0], [1.6, 0.2, 1.5]);
-    b.box(m.glass, [0, 2.52, 0], [1.5, 0.05, 1.4]);
-    b.beam(m.steel, [0, 3.4, 0], [0, 5.8, 0], 0.04);
-    b.add(new THREE.SphereGeometry(0.21, 10, 6), m.orange, [0, 4.3, 0]);
     b.beam(m.cable, [0, -0.6, 0], [0, -7, 0], 0.055);
     b.finish();
     const collider = {

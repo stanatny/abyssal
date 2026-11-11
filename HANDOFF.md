@@ -1,5 +1,22 @@
 # ABYSSAL Penglai HF redraw — 2026-10-27
 
+Main publication v0.11.28 — 2026-11-11: the user authorizes committing and
+pushing the accepted marine wildlife, terrain/scenery contact, volumetric
+minefields, submarine threats, compact lord feedback and Mariana survey-buoy
+redraw to main. This includes local checkpoints `eed09c6` and `501f8bc`; refreshed
+remote main remains v0.11.27 / `3d5ca6d` before integration. Earlier candidate and
+local-only labels below are historical for this accepted scope. See
+[the release record](docs/release_v0_11_28.md). Existing preview services and
+archives remain; no tag, separate GitHub Release or personal Skill edit is added.
+
+Mariana survey-buoy redraw candidate — 2026-11-11: accepted compact lord
+feedback is locally committed as `501f8bc`, without a push. Replace only the
+three Mariana instrument-buoy appearances with one original Hugging Face
+TRELLIS.2 asset, keeping their homes, waterline/bob/roll, original moorings and
+collision contract. Ships and gameplay remain. See
+[the production review](docs/mariana_survey_buoy_revision.md). This new art stays
+uncommitted for player review; formal main remains v0.11.27.
+
 Accepted local lord-feedback checkpoint — 2026-11-11: the user accepts the
 compact boss HUD and requests a local commit before a separate Mariana survey
 buoy HF redraw. All 2,197 recorded delivery inputs match except the documented

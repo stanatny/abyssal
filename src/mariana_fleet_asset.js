@@ -1,10 +1,15 @@
 import * as THREE from "three";
+import buoy from "./assets/models/mariana_buoy_hf_mesh.json" with { type: "json" };
 import research from "./assets/models/mariana_research_hf_mesh.json" with { type: "json" };
 import tender from "./assets/models/mariana_tender_hf_mesh.json" with { type: "json" };
 import { decodeOrganicMesh } from "./hf_organic_asset.js";
 import { createMaterialPreparation } from "./material_loading.js";
 
 const definitions = {
+  buoy: [
+    buoy,
+    new URL("./assets/models/mariana_buoy_hf_color.webp", import.meta.url),
+  ],
   research: [
     research,
     new URL("./assets/models/mariana_research_hf_color.webp", import.meta.url),
@@ -29,8 +34,8 @@ export function acquireMarianaFleetAsset(kind) {
     geometry.deleteAttribute("skinWeight");
     const material = new THREE.MeshStandardMaterial({
       vertexColors: true,
-      roughness: 0.78,
-      metalness: 0.03,
+      roughness: kind === "buoy" ? 0.74 : 0.78,
+      metalness: kind === "buoy" ? 0.1 : 0.03,
       side: THREE.DoubleSide,
     });
     material.name = `${kind}_hf_hull_and_superstructure`;
