@@ -77,7 +77,7 @@ npm run build
 
 ## Project notes
 
-- [Current release — v0.11.28](docs/release_v0_11_28.md)
+- [Current release — v0.11.29](docs/release_v0_11_29.md)
 - [Development rules](AGENTS.md) · [Asset quality standard](docs/asset_quality_standard.md)
 - [Localization](docs/localization.md) · [Audio sources](docs/audio_sources.md) · [Verification records](docs/verification.md)
 - [Earlier detailed README and development history](https://github.com/stanatny/abyssal/blob/ef6a6a2345329370d553a87d97389b869ac22cfe/README.md)

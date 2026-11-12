@@ -77,7 +77,7 @@ npm run build
 
 ## 项目资料
 
-- [当前版本 — v0.11.28](docs/release_v0_11_28.md)
+- [当前版本 — v0.11.29](docs/release_v0_11_29.md)
 - [开发规则](AGENTS.md) · [资产质量标准](docs/asset_quality_standard.md)
 - [本地化](docs/localization.md) · [音频来源](docs/audio_sources.md) · [验证记录](docs/verification.md)
 - [此前的完整 README 与开发历史](https://github.com/stanatny/abyssal/blob/ef6a6a2345329370d553a87d97389b869ac22cfe/README.md)

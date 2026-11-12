@@ -1,5 +1,24 @@
 # ABYSSAL Penglai HF redraw — 2026-10-27
 
+Main publication v0.11.29 — 2026-11-12: the user authorizes committing and
+pushing the accepted startup-progress loader and Zombie Shark split repair to
+main. All 2,215 delivered repair inputs and 979 runtime artifacts match before
+release-only metadata and documentation. Refreshed remote main is `75db4c9`;
+local checkpoint `d12e612` is included. Earlier candidate/local-only labels below
+are historical for this accepted scope. See
+[the release record](docs/release_v0_11_29.md). Preserve existing preview services
+and archives; no tag, separate GitHub Release or personal Skill edit is added.
+
+Zombie Shark split repair — 2026-11-12: accepted startup progress is locally
+committed as `d12e612`, without a push. A separate candidate restores the
+body-aware open-water ceiling clearance removed from the actual companion
+movement callback. The missing declaration caused a post-sacrifice exception
+before valid companion placement; preserve the existing terrain support,
+formation, costs, lifetime and blast rules. See
+[the current repair review](docs/zombie_split_repair.md). New gameplay work stays
+uncommitted for player review on `fix/zombie-split-ability`; preserve published
+v0.11.28 and the existing preview services and archives.
+
 Accepted local startup checkpoint — 2026-11-12: the user accepts the delivered
 loading-progress candidate and requests a local commit, then reports Zombie
 Shark's split ability deducting health without an effect. All 2,213 delivered

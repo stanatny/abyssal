@@ -2179,6 +2179,9 @@ function resolvePlayerMotion(previous, merge = false) {
 /** 仆从复用世界粗筛和多球扫掠，独立约束海床、冰顶及动态船体，不穿墙追食。 */
 function resolveMinionMotion(previous, desired, heading, length) {
   const r = bodyRadius(length);
+  // 地表支撑另行采样；露天水面的上界仍须保留倾斜身体的净空。
+  const clearance =
+    r + Math.abs(heading.y) * Math.max(0, length * 0.42 - r) + 0.4;
   return resolveIndexedMotion(previous, desired, {
     staticColliders: ocean.colliders,
     dynamicColliders: [

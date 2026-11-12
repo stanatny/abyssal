@@ -1,5 +1,10 @@
 # Startup resource progress — 2026-11-12
 
+Publication v0.11.29 — 2026-11-12: the user subsequently authorizes publishing
+this accepted loader and the Zombie Shark repair to main. See
+[the release record](release_v0_11_29.md). The local-only status and old formal
+HTML described below record the earlier delivery, before this authorization.
+
 Status: accepted for a local commit on `fix/startup-load-progress`, based on
 published main `75db4c9` / v0.11.28. On 2026-11-12 the user explicitly requests
 committing the delivered startup loader before a separate Zombie Shark repair.

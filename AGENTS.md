@@ -1,5 +1,22 @@
 # ABYSSAL Development Rules
 
+Main publication v0.11.29 — 2026-11-12: the user authorizes committing and
+pushing the accepted startup-progress loader and Zombie Shark split repair to
+main. All 2,215 delivered repair inputs and 979 runtime artifacts match before
+release-only metadata and documentation. Refreshed remote main is `75db4c9`;
+local checkpoint `d12e612` is included. Earlier candidate/local-only labels below
+are historical for this accepted scope. See
+[the release record](docs/release_v0_11_29.md). Preserve existing preview services
+and archives; no tag, separate GitHub Release or personal Skill edit is added.
+
+Zombie Shark split repair — 2026-11-12: startup progress is locally committed
+as `d12e612`. Restore the actual companion movement callback's body-aware
+open-water upper bound while retaining whole-body terrain support and explicit
+surface ceilings. Exercise that real integration callback in regression checks;
+standalone minion tests with substituted resolvers cannot verify world wiring.
+See [the current review](docs/zombie_split_repair.md). This separate repair stays
+uncommitted/unpublished; formation, sacrifice and blast rules remain unchanged.
+
 Accepted local startup checkpoint — 2026-11-12: the user requests a local commit
 of the delivered startup loader before a separate Zombie Shark split-ability
 repair. All 2,213 delivered source inputs and 979 runtime artifacts match before
