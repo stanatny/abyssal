@@ -1,5 +1,23 @@
 # ABYSSAL Penglai HF redraw — 2026-10-27
 
+Accepted local startup checkpoint — 2026-11-12: the user accepts the delivered
+loading-progress candidate and requests a local commit, then reports Zombie
+Shark's split ability deducting health without an effect. All 2,213 delivered
+inputs and 979 runtime artifacts match before acceptance-only documentation.
+The recorded startup checks retain their tested scope; no push, release or
+version bump is requested. Preserve preview services and archives. The separate
+split-ability diagnosis and repair returns to the default uncommitted review flow.
+
+Startup resource-progress candidate — 2026-11-12: respond to the slow first
+Pages visit with a first-paint loading shell, actual startup-item progress,
+bilingual retry and the original world-preparation handoff. Normal compiled
+builds and the existing restricted preview now share the same dependency-aware
+loader, preserving all 976 original non-HTML runtime artifacts. See
+[the current review](docs/startup_loading_progress.md). This runtime candidate
+stays uncommitted/unpublished on `fix/startup-load-progress`; the preceding
+README-only main authorization does not extend to it. Preserve the existing
+preview services, archives and published v0.11.28.
+
 Bilingual README follow-up — 2026-11-12: extend the published README task
 with an English default (`README.md`) and Simplified Chinese counterpart
 (`readme_zh_cn.md`). Add reciprocal language links, preserve the shared current

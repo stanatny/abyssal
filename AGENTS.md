@@ -1,5 +1,22 @@
 # ABYSSAL Development Rules
 
+Accepted local startup checkpoint — 2026-11-12: the user requests a local commit
+of the delivered startup loader before a separate Zombie Shark split-ability
+repair. All 2,213 delivered source inputs and 979 runtime artifacts match before
+acceptance-only notes. The recorded 33 focused checks, compiled/native failure
+cases and bilingual public flows retain their exact scope. Earlier candidate-only
+labels below are historical for this checkpoint. No push, main/Pages publication
+or version bump is requested; new gameplay repairs remain uncommitted for review.
+
+Startup resource-progress candidate — 2026-11-12: normal browser builds and
+the restricted preview share an early, bilingual loader with actual completed
+startup-item counts, bounded dependency-first requests and native reload on
+failure. Preserve original hashed URLs, module-map reuse, gzip and all existing
+world-preparation behavior. Keep the small bootstrap self-contained; distinguish
+resource counts from bytes and world readiness. See
+[the current review](docs/startup_loading_progress.md). This candidate remains
+uncommitted/unpublished; prior README-only publication authorization is separate.
+
 Main publication v0.11.28 — 2026-11-11: the user authorizes committing and
 pushing the accepted marine wildlife, terrain/scenery contact, volumetric
 minefields, submarine threats, compact lord feedback and Mariana survey-buoy

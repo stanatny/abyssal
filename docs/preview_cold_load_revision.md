@@ -1,5 +1,12 @@
 # Cold-start preview loading — 2026-11-10
 
+Superseding startup candidate — 2026-11-12: the shared loader now also runs in
+normal compiled browser builds and paints before the game stylesheet. Its
+resource-item progress, initial-bootstrap recovery, 180-second request timeout
+and current verification are documented in
+[the startup review](startup_loading_progress.md). The preview-only production
+boundary and 45-second timeout below describe the earlier historical repair.
+
 Status: uncommitted preview-delivery repair. The existing Giant Squid candidate
 and published main v0.11.26 are preserved. The user reports that the trial link
 does not open; this pass repairs its reproducible cold-load failure without

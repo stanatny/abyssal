@@ -1,9 +1,10 @@
 import { defineConfig } from "vite";
 import { compressedAssets, modelChunkName } from "./scripts/cacheable_build.js";
+import { startupLoading } from "./scripts/startup_loading_build.js";
 export default defineConfig({
   base: "./",
   server: { host: "127.0.0.1", port: 5178 },
-  plugins: [compressedAssets()],
+  plugins: [compressedAssets(), startupLoading()],
   build: {
     rolldownOptions: {
       output: {
