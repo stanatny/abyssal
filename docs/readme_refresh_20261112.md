@@ -58,3 +58,20 @@ the first playable link near the top. Its preview CSS is an approximation of
 GitHub layout, not evidence of an already-published README. Corresponding
 receipts are `links.json`, `selected_images.json`, `capture.json`,
 `capture_travel.json`, `capture_flight.json`, `readme_layout.json` and `check.log`.
+
+## Bilingual follow-up
+
+The user extends the same README publication task with separate Chinese and
+English versions. Keep `README.md` as the English default and add
+`readme_zh_cn.md` with reciprocal language links directly below both titles.
+Translate the concise content using the game's current Chinese names and
+control labels; reuse the same three screenshots and identify their English
+interface. The English quality-setting label is synchronized with the actual
+`Quality · Low` UI, corresponding to Chinese `流畅`.
+
+The development rules explicitly allow this user-requested Chinese README and
+require both variants to stay aligned. Gameplay, images and v0.11.28 are
+unchanged. Existing format/check commands now include the Chinese README.
+Continue the previously authorized main publication after focused
+formatting, link, translation and rendered-document checks. Bilingual publication
+receipts remain in the ignored `readme_bilingual_20261112` task folder.

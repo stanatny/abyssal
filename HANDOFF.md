@@ -1,5 +1,13 @@
 # ABYSSAL Penglai HF redraw — 2026-10-27
 
+Bilingual README follow-up — 2026-11-12: extend the published README task
+with an English default (`README.md`) and Simplified Chinese counterpart
+(`readme_zh_cn.md`). Add reciprocal language links, preserve the shared current
+English screenshots and stable play entry, and synchronize actual UI labels.
+The user's preceding direct-main publication authorization continues for this
+README refinement. Gameplay and v0.11.28 remain unchanged; see
+[the follow-up review](docs/readme_refresh_20261112.md#bilingual-follow-up).
+
 Public README refresh — 2026-11-12: replace the long checkpoint-heavy landing
 page with a short player introduction, prominent stable play link and current
 English gameplay screenshots. Retain the old README through an immutable Git

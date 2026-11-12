@@ -1,5 +1,7 @@
 # ABYSSAL
 
+**English** | [简体中文](readme_zh_cn.md)
+
 **[Play now in your browser →](https://stanatny.github.io/abyssal/)** · No installation or account required
 
 A single-player 3D survival and exploration game. Feed, grow, escape predators and challenge sea monsters across eight worlds, from sunlit reefs to alien oceans and mythic skies.
@@ -12,7 +14,7 @@ A single-player 3D survival and exploration game. Feed, grow, escape predators a
 2. Choose a character and destination, then select **Begin expedition**. Hawaiian Waters is a good first stop.
 3. Eat smaller creatures, avoid larger hunters and follow the objective in the HUD. Open the **Ocean Guide** from the home screen to learn about creatures, abilities and landmarks.
 
-Desktop keyboard and mobile touch controls are supported. Select English or Simplified Chinese on the home screen. Use **Smooth** graphics if your device needs a lighter rendering setting.
+Desktop keyboard and mobile touch controls are supported. Select English or Simplified Chinese on the home screen. Use **Low** graphics if your device needs a lighter rendering setting.
 
 ## Explore eight worlds
 
