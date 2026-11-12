@@ -1,5 +1,14 @@
 # ABYSSAL Penglai HF redraw — 2026-10-27
 
+Public README refresh — 2026-11-12: replace the long checkpoint-heavy landing
+page with a short player introduction, prominent stable play link and current
+English gameplay screenshots. Retain the old README through an immutable Git
+link; keep future checkpoints out of the public landing page. Gameplay and
+published v0.11.28 remain unchanged. The user has reviewed the delivered
+candidate and explicitly authorizes committing and pushing this documentation
+update to main; see
+[the review](docs/readme_refresh_20261112.md).
+
 Main publication v0.11.28 — 2026-11-11: the user authorizes committing and
 pushing the accepted marine wildlife, terrain/scenery contact, volumetric
 minefields, submarine threats, compact lord feedback and Mariana survey-buoy
