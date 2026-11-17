@@ -1,4 +1,11 @@
-import { readFile, writeFile, rename, realpath, lstat } from "node:fs/promises";
+import {
+  readFile,
+  writeFile,
+  rename,
+  realpath,
+  lstat,
+  readdir,
+} from "node:fs/promises";
 import { createHash } from "node:crypto";
 import { gzipSync, gunzipSync } from "node:zlib";
 import { resolve } from "node:path";
@@ -9,6 +16,12 @@ const marker = "/* ABYSSAL_STARTUP_MANIFEST */";
 const runtimePath = fileURLToPath(
   new URL("./preview_bootstrap.js", import.meta.url),
 );
+const workerPath = fileURLToPath(
+  new URL("./runtime_cache_worker.js", import.meta.url),
+);
+const runtimeCacheMarker = "/* ABYSSAL_RUNTIME_CACHE_MANIFEST */";
+const fingerprintedAsset = /^[a-zA-Z0-9_-]+-[a-zA-Z0-9_-]{8,}\.[a-z0-9]+$/;
+const rootWorkerPath = /^runtime_cache-[0-9a-f]{16}\.js$/;
 
 /** 构建资源必须是目录内的实际文件，与受限静态服务器的符号链接规则一致。 */
 async function readRuntimeFile(root, path, encoding) {
@@ -119,6 +132,90 @@ function assetName(code) {
   return `assets/startup_bootstrap-${createHash("sha256").update(code).digest("hex").slice(0, 16)}.js`;
 }
 
+/** 缓存只收录原始指纹资源；首屏启动器、压缩副本和HTML不进入资源池。 */
+async function runtimeCacheBuild(root) {
+  const source = await readFile(workerPath, "utf8"),
+    assets = [],
+    inputs = [];
+  const nodes = [parseAst(source)];
+  while (nodes.length) {
+    const node = nodes.pop();
+    if (!node || typeof node !== "object") continue;
+    if (
+      node.type === "ImportDeclaration" ||
+      node.type === "ImportExpression" ||
+      (node.source &&
+        ["ExportNamedDeclaration", "ExportAllDeclaration"].includes(node.type))
+    )
+      throw new Error("Runtime cache worker must be self-contained");
+    for (const value of Object.values(node))
+      if (Array.isArray(value)) nodes.push(...value);
+      else if (value && typeof value === "object") nodes.push(value);
+  }
+  for (const name of (await readdir(resolve(root, "assets"))).sort()) {
+    if (
+      !fingerprintedAsset.test(name) ||
+      /^(?:startup|preview)_bootstrap-/.test(name) ||
+      name.endsWith(".gz")
+    )
+      continue;
+    const path = `assets/${name}`,
+      bytes = await readRuntimeFile(root, path);
+    assets.push({ path, size: bytes.length });
+    inputs.push({
+      path,
+      size: bytes.length,
+      sha256: createHash("sha256").update(bytes).digest("hex"),
+    });
+  }
+  const buildId = createHash("sha256")
+    .update(JSON.stringify(inputs))
+    .digest("hex");
+  const config = {
+    buildId,
+    assets,
+    maxBytes: 384 * 1024 * 1024,
+    maxEntries: 1024,
+  };
+  const code = `${source}\n${runtimeCacheMarker}\ninstallRuntimeCache(self,${JSON.stringify(config)});\n`;
+  const asset = `runtime_cache-${createHash("sha256").update(code).digest("hex").slice(0, 16)}.js`;
+  return { asset, code, config };
+}
+
+/** gzip仅是同一指纹文件的传输表示；存在时必须与原文完全一致。 */
+async function validateOptionalGzip(root, path, code) {
+  try {
+    await lstat(resolve(root, `${path}.gz`));
+  } catch (error) {
+    if (error.code === "ENOENT") return;
+    throw error;
+  }
+  const gzip = await readRuntimeFile(root, `${path}.gz`);
+  if (!gunzipSync(gzip).equals(Buffer.from(code)))
+    throw new Error("Prepared runtime cache gzip does not match");
+}
+
+async function validateRuntimeCache(root, cache, expected) {
+  if (
+    !cache ||
+    typeof cache.worker !== "string" ||
+    !cache.worker.startsWith("./") ||
+    !rootWorkerPath.test(cache.worker.slice(2)) ||
+    cache.worker !== `./${expected.asset}` ||
+    cache.buildId !== expected.config.buildId ||
+    Object.keys(cache).length !== 2
+  )
+    throw new Error(
+      "Prepared runtime cache manifest does not match build inputs",
+    );
+  const existing = await readRuntimeFile(root, expected.asset, "utf8");
+  if (existing !== expected.code)
+    throw new Error(
+      "Prepared runtime cache worker does not match build inputs",
+    );
+  await validateOptionalGzip(root, expected.asset, existing);
+}
+
 function metadata(graph, config, asset, alreadyPrepared, removedPreloads = 0) {
   return {
     entry: config.entry.slice(2),
@@ -129,6 +226,7 @@ function metadata(graph, config, asset, alreadyPrepared, removedPreloads = 0) {
     layers: config.layers.map((layer) => layer.length),
     removedPreloads,
     alreadyPrepared,
+    cache: { ...config.cache },
   };
 }
 
@@ -170,10 +268,13 @@ export async function prepareStartupLoader(root) {
     if (new Set(styles).size !== styles.length)
       throw new Error("Duplicate startup stylesheet");
     for (const path of styles) await readRuntimeFile(root, path.slice(2));
+    const worker = await runtimeCacheBuild(root);
+    await validateRuntimeCache(root, config.cache, worker);
     const expectedConfig = {
       layers: previewDependencyLayers(graph),
       entry: `./${entry}`,
       styles,
+      cache: { worker: `./${worker.asset}`, buildId: worker.config.buildId },
     };
     const expectedCode = bootstrapCode(source, expectedConfig);
     if (
@@ -208,7 +309,13 @@ export async function prepareStartupLoader(root) {
   if (new Set(styles).size !== styles.length)
     throw new Error("Duplicate startup stylesheet");
   for (const path of styles) await readRuntimeFile(root, path.slice(2));
-  const config = { layers, entry: `./${scriptPath}`, styles };
+  const worker = await runtimeCacheBuild(root);
+  const config = {
+    layers,
+    entry: `./${scriptPath}`,
+    styles,
+    cache: { worker: `./${worker.asset}`, buildId: worker.config.buildId },
+  };
   const code = bootstrapCode(source, config),
     asset = assetName(code);
   const placeholders = [
@@ -230,6 +337,21 @@ export async function prepareStartupLoader(root) {
       initialShell(STARTUP_COPY, graph.size + styles.length),
     )
     .replace("</head>", `${initialStyle}\n</head>`);
+  let workerExists = true;
+  try {
+    await lstat(resolve(root, worker.asset));
+  } catch (error) {
+    if (error.code !== "ENOENT") throw error;
+    workerExists = false;
+  }
+  if (workerExists) await validateRuntimeCache(root, config.cache, worker);
+  // 原文不存在时也不能覆盖已有的错误gzip或符号链接副本。
+  else await validateOptionalGzip(root, worker.asset, worker.code);
+  await writeFile(`${root}/${worker.asset}`, worker.code);
+  await writeFile(
+    `${root}/${worker.asset}.gz`,
+    gzipSync(worker.code, { level: 9 }),
+  );
   await writeFile(`${root}/${asset}`, code);
   await writeFile(`${root}/${asset}.gz`, gzipSync(code, { level: 9 }));
   // 原HTML可能参与硬链接归档，替换目录项以保留此前验收版本。

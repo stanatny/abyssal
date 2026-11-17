@@ -9,6 +9,7 @@ import { mergeGeometries } from "three/addons/utils/BufferGeometryUtils.js";
  */
 export function createPlayerMotion(kind, phase = 0) {
   const shark = kind === "zombie_shark" || kind === "mechanical_shark";
+  const holdFeeding = kind === "orca" || shark;
   const initialState = {
     phase,
     dt: 0,
@@ -25,16 +26,19 @@ export function createPlayerMotion(kind, phase = 0) {
   const state = { ...initialState };
   let previousTime;
   let feedTarget = 0;
+  let feedHold = 0;
   return {
     state,
     reset() {
       Object.assign(state, initialState);
       previousTime = undefined;
       feedTarget = 0;
+      feedHold = 0;
       return state;
     },
     feed() {
       feedTarget = 1;
+      feedHold = holdFeeding ? 0.26 : 0;
     },
     update(time, effort = 1, input) {
       const elapsed = previousTime === undefined ? 0 : time - previousTime;
@@ -69,7 +73,10 @@ export function createPlayerMotion(kind, phase = 0) {
           (key === "turn" || key === "pitchInput" || (shark && key === "boost")
             ? steeringSmoothing
             : smoothing);
-      feedTarget *= Math.exp(-dt * 5);
+      // 三种口颌角色短暂保持吞咽开度；使用已有动作时钟，暂停不推进，乌贼原脉冲不变。
+      const held = Math.min(feedHold, dt);
+      feedHold = Math.max(0, feedHold - dt);
+      feedTarget *= Math.exp(-(dt - held) * 5);
       state.phase +=
         dt *
         (kind === "orca"

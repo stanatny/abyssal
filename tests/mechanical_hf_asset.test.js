@@ -65,7 +65,9 @@ test("机械HF权重归一化且UV接缝不裂开，独立骨架共享不可变�
     for (let k = 0; k < 4; k++) {
       const v = w.getComponent(i, k),
         id = ids.getComponent(i, k);
-      assert.ok(v >= 0 && v <= 1 && id >= 0 && id < 7);
+      assert.ok(
+        v >= 0 && v <= 1 && id >= 0 && id < a.mesh.skeleton.bones.length,
+      );
       sum += v;
       value.push(id, v);
     }

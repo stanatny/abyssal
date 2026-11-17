@@ -22,6 +22,11 @@ class PreviewServerTests(unittest.TestCase):
         (self.root / (self.name[1:] + ".gz")).write_bytes(gzip.compress(self.body))
         (self.root / "secret").write_bytes(b"not public")
         (self.root / "assets/leak-1234abcd.js").symlink_to(self.root / "secret")
+        self.worker = "/runtime_cache-0123456789abcdef.js"
+        self.worker_body = b"self.addEventListener('fetch', () => {});"
+        (self.root / self.worker[1:]).write_bytes(self.worker_body)
+        (self.root / (self.worker[1:] + ".gz")).write_bytes(gzip.compress(self.worker_body))
+        (self.root / "runtime_cache-ffffffffffffffff.js").symlink_to(self.root / "secret")
         self.server = RuntimeServer(("127.0.0.1", 0), RuntimeHandler)
         self.server.root = self.root
         self.thread = threading.Thread(target=self.server.serve_forever, daemon=True)
@@ -81,6 +86,48 @@ class PreviewServerTests(unittest.TestCase):
     def test_nonfingerprinted_files_never_get_immutable_cache(self):
         (self.root / "assets/live.json").write_bytes(b"{}")
         self.assertEqual(self.request("/assets/live.json")[1]["Cache-Control"], "no-store")
+
+    def test_root_module_worker_scope_encoding_and_conditional_requests(self):
+        status, identity, body = self.request(self.worker, {"Service-Worker": "script"})
+        self.assertEqual((status, body), (200, self.worker_body))
+        self.assertIn("immutable", identity["Cache-Control"])
+        self.assertIn(identity["Content-Type"], ["text/javascript", "application/javascript"])
+        self.assertEqual(identity["X-Content-Type-Options"], "nosniff")
+        status, compressed, body = self.request(self.worker, {"Accept-Encoding": "gzip"})
+        self.assertEqual(status, 200)
+        self.assertEqual(gzip.decompress(body), self.worker_body)
+        self.assertEqual(compressed["Vary"], "Accept-Encoding")
+        self.assertEqual(compressed["Content-Encoding"], "gzip")
+        self.assertNotEqual(identity["ETag"], compressed["ETag"])
+        self.assertEqual(self.request(self.worker, {"Accept-Encoding": "gzip", "If-None-Match": compressed["ETag"]})[0], 304)
+        self.assertEqual(self.request(self.worker, {"If-None-Match": compressed["ETag"]})[0], 200)
+        status, headers, body = self.request(self.worker, {"Accept-Encoding": "gzip"}, "HEAD")
+        self.assertEqual(status, 200)
+        self.assertEqual(body, b"")
+        self.assertEqual(headers["Content-Length"], compressed["Content-Length"])
+        (self.root / (self.worker[1:] + ".gz")).unlink()
+        status, headers, body = self.request(self.worker, {"Accept-Encoding": "gzip"})
+        self.assertEqual((status, body), (200, self.worker_body))
+        self.assertNotIn("Content-Encoding", headers)
+
+    def test_root_worker_exception_does_not_expose_arbitrary_root_paths_or_gzip(self):
+        for path in [
+            "/runtime_cache.js",
+            "/runtime_cache-1234abcd.js",
+            "/runtime_cache-0123456789ABCDEF.js",
+            "/runtime_cache-0123456789abcdef0.js",
+            "/runtime_cache-0123456789abcdef.css",
+            self.worker + ".gz",
+            "/runtime_cache-ffffffffffffffff.js",
+            "/runtime_cache-eeeeeeeeeeeeeeee.js",
+            "/scripts/runtime_cache_worker.js",
+            "/preview_server.py",
+        ]:
+            with self.subTest(path=path):
+                status, headers, body = self.request(path)
+                self.assertEqual(status, 404)
+                self.assertEqual(headers["Cache-Control"], "no-store")
+                self.assertNotIn(b"not public", body)
 
 
 if __name__ == "__main__":

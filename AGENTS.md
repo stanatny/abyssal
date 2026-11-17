@@ -1,5 +1,38 @@
 # ABYSSAL Development Rules
 
+Main publication v0.11.30 — 2026-11-18: the user authorizes committing and
+pushing the accepted runtime-cache, Mechanical Shark airborne-aim, moving-mouth
+swallowing and rear-view feeding-pose refinements to main. The Orca-only final
+amplitude reduction is included. All 2,228 delivered inputs and 981 runtime
+artifacts match before release-only metadata and documentation edits. Refreshed
+remote main remains `6fbbb9e`. Earlier uncommitted/no-push labels below describe
+historical candidate stages and are superseded for this accepted scope. See
+[the release record](docs/release_v0_11_30.md). Preserve existing preview services,
+runtime archives and Giant Squid behavior; no tag, separate GitHub Release or
+personal Skill edit is added.
+
+Rear-view feeding pose follow-up — 2026-11-17: the player authorizes local
+jaw/head-side swallowing motion for Orca, Mechanical Shark, Zombie Shark and its
+companion. After further feedback, strengthen the actual rear silhouette and
+hold the opening briefly; zoomed close-ups alone are insufficient. The later
+Orca-only refinement reduces its excessive jaw/head inflation while retaining
+the shared dwell and current shark poses. Preserve
+original source art, swimming, hardware attachments, root movement,
+capture/rewards and Giant Squid. Orca uses continuous jaw/throat flex,
+not fish gills or a newly cut mouth cavity. Validate actual posed skin, moving
+mouths and native rear-view readability; see
+[the current pose review](docs/feeding_head_pose_revision.md). This extends the
+uncommitted candidate; no commit, push or version bump is authorized.
+
+Runtime cache, air aim and swallowing candidate — 2026-11-17: preserve the
+working HTTP cache and add bounded optional persistence with honest read counts;
+separate Mechanical Shark air aim from physical glide; enable moving-mouth intake
+for the three non-Squid characters and Zombie Shark companion. Keep Giant Squid,
+capture/reward rules and ordinary-ocean firing restrictions unchanged. See
+[the current review](docs/cache_air_feeding_revision.md). This candidate stays
+uncommitted/unpublished; no version bump, commit or push is authorized. Preserve
+preview archives and scope-specific cache fallback.
+
 Main publication v0.11.29 — 2026-11-12: the user authorizes committing and
 pushing the accepted startup-progress loader and Zombie Shark split repair to
 main. All 2,215 delivered repair inputs and 979 runtime artifacts match before

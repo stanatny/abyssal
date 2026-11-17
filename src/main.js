@@ -58,6 +58,12 @@ import {
 import { createAreaBlast } from "./area_blast.js";
 import { createMechanicalTorpedoes } from "./mechanical_torpedoes.js";
 import {
+  isMechanicalAirAim,
+  mechanicalAimDirection,
+  mechanicalAimCameraPitch,
+  frameMechanicalAimTarget,
+} from "./mechanical_aim_direction.js";
+import {
   MECHANICAL_RULES,
   torpedoStatus,
   resetTorpedoTarget,
@@ -357,6 +363,8 @@ const captureOptions = { blockedBetween, captureContact, preyContact };
 const swallowPoint = new THREE.Vector3();
 const feedingDirection = new THREE.Vector3();
 const feeding = createFeedingTransition({
+  scene,
+  reducedMotion: () => reducedMotionQuery.matches,
   onMist: (point, length) => effects.mealMist(point, length),
 });
 let minion, torpedoes;
@@ -390,7 +398,13 @@ const surfaceOptions = {
   isSwallowing: (mesh) =>
     feeding.has(mesh) || Boolean(minion?.feeding.has(mesh)),
   onEat(point, length, bird) {
-    feeding.start(bird.mesh, length);
+    feeding.start(
+      bird.mesh,
+      length,
+      player.characterId !== "squid"
+        ? { swallowFrame: avatar, blockedBetween }
+        : undefined,
+    );
     effects.bite(point, forward, player.length);
   },
 };
@@ -432,7 +446,13 @@ const humans = createHumanActivity(scene, {
   isSwallowing: (mesh) =>
     feeding.has(mesh) || Boolean(minion?.feeding.has(mesh)),
   onEat(point, length, entity) {
-    feeding.start(entity.mesh, length);
+    feeding.start(
+      entity.mesh,
+      length,
+      player.characterId !== "squid"
+        ? { swallowFrame: avatar, blockedBetween }
+        : undefined,
+    );
   },
   onDamage() {
     hitFlash = 0.85;
@@ -557,7 +577,10 @@ const temp = new THREE.Vector3(),
   lookTarget = new THREE.Vector3();
 const rotation = new THREE.Euler(0, 0, 0, "YXZ");
 const aimOrigin = new THREE.Vector3(),
-  aimProjection = new THREE.Vector3();
+  aimProjection = new THREE.Vector3(),
+  weaponAimDirection = new THREE.Vector3(),
+  cameraAimPoint = new THREE.Vector3();
+const mechanicalAimState = { forward };
 let aimPreview = null;
 const bubbleGeometry = new THREE.SphereGeometry(0.12, 5, 4);
 const bubbleMaterial = new THREE.MeshBasicMaterial({
@@ -1015,6 +1038,17 @@ function mechanicalUnderwater() {
           player.length * 0.2)
   );
 }
+function mechanicalAimContext() {
+  mechanicalAimState.characterId = player.characterId;
+  mechanicalAimState.surfaceMode = surface.mode;
+  mechanicalAimState.airborne = surface.airborne;
+  mechanicalAimState.positionY = position.y;
+  mechanicalAimState.surfaceY =
+    surface.waterHeightAt?.(position.x, position.z, elapsed) ?? WORLD.surfaceY;
+  mechanicalAimState.yaw = yaw;
+  mechanicalAimState.pitch = pitch;
+  return mechanicalAimState;
+}
 function activateCharacterSkill() {
   if (player.characterId === "mechanical_shark") {
     if (mode !== "playing") return false;
@@ -1034,7 +1068,7 @@ function activateCharacterSkill() {
     const active = torpedoes.activate(
       player,
       swallowPoint,
-      forward,
+      mechanicalAimDirection(weaponAimDirection, mechanicalAimContext()),
       underwater,
     );
     if (active)
@@ -2571,7 +2605,11 @@ function eatEntity(entity, mouth, previousPrey = entity.mesh.position, dt = 0) {
   feeding.start(
     mesh,
     species.length,
-    intake === 1 ? { carryFrame: avatar, blockedBetween } : undefined,
+    intake === 1
+      ? { carryFrame: avatar, blockedBetween }
+      : player.characterId !== "squid"
+        ? { swallowFrame: avatar, blockedBetween }
+        : undefined,
   );
   resetTorpedoTarget(entity);
   entity.chase = 0;
@@ -3581,6 +3619,8 @@ function updatePickups(dt) {
 }
 function followCameraPose() {
   const ratio = player.length / 6;
+  const aimContext = mechanicalAimContext();
+  const airAim = isMechanicalAirAim(aimContext);
   // 幼年镜头按体型拉近；桌面端再轻微缩短距离，触屏维持原有视野。
   const juvenileRatio = Clamp(ratio, 0.4, 1);
   const closeView = THREE.MathUtils.lerp(
@@ -3592,11 +3632,17 @@ function followCameraPose() {
     0,
     4.8 * juvenileRatio + ratio * 1.4,
     (13 * juvenileRatio + ratio * 4) * closeView,
-  )
-    .multiplyScalar(touchPointer.matches ? 1 : 0.9)
-    .applyEuler(
-      new THREE.Euler((waterMotion?.posePitch ?? pitch) * 0.35, yaw, 0, "YXZ"),
-    );
+  ).multiplyScalar(touchPointer.matches ? 1 : 0.9);
+  offset.applyEuler(
+    new THREE.Euler(
+      airAim
+        ? mechanicalAimCameraPitch(pitch, offset.y, offset.z)
+        : (waterMotion?.posePitch ?? pitch) * 0.35,
+      yaw,
+      0,
+      "YXZ",
+    ),
+  );
   // 分裂时平滑容纳本尊与真实仆从；竖屏稍微后移，不切换相机或暂停操作。
   const birthFrame = minion?.presentation;
   if (birthFrame)
@@ -3608,7 +3654,10 @@ function followCameraPose() {
   shortenCamera(desired);
   const target = position
     .clone()
-    .addScaledVector(forward, 9 * juvenileRatio + ratio * 2)
+    .addScaledVector(
+      airAim ? mechanicalAimDirection(weaponAimDirection, aimContext) : forward,
+      9 * juvenileRatio + ratio * 2,
+    )
     .add(new THREE.Vector3(0, 1.1, 0));
   if (birthFrame)
     target.lerp(
@@ -3630,8 +3679,25 @@ function updateCamera(dt) {
   camera.position.lerp(desired.position, 1 - Math.exp(-3.5 * dt));
   shortenCamera(camera.position);
   lookTarget.lerp(desired.target, 1 - Math.exp(-5 * dt));
-  camera.lookAt(lookTarget);
   camera.fov = THREE.MathUtils.damp(camera.fov, speed > 18 ? 69 : 60, 2.5, dt);
+  const aimContext = mechanicalAimContext();
+  if (isMechanicalAirAim(aimContext)) {
+    cameraAimPoint.copy(position);
+    avatar.userData.getTorpedoMuzzle?.(cameraAimPoint);
+    cameraAimPoint.addScaledVector(
+      mechanicalAimDirection(weaponAimDirection, aimContext),
+      80,
+    );
+    // 墙体缩短与插值完成后，保持真实炮口射线在视野内，不裁剪准星位置。
+    frameMechanicalAimTarget(lookTarget, {
+      cameraPosition: camera.position,
+      preferredTarget: lookTarget,
+      aimPoint: cameraAimPoint,
+      fov: camera.fov,
+      aspect: camera.aspect,
+    });
+  }
+  camera.lookAt(lookTarget);
   camera.updateProjectionMatrix();
   // HUD在渲染前投影；旋转后的视图逆矩阵不能等到渲染器下一帧才更新。
   camera.updateMatrixWorld();
@@ -3857,16 +3923,23 @@ function resetTorpedoAim() {
 
 function updateTorpedoAim() {
   const aiming =
-    player.characterId === "mechanical_shark" &&
-    mode === "playing" &&
-    mechanicalUnderwater();
+    player.characterId === "mechanical_shark" && mode === "playing";
   const reticle = $("reticle");
   reticle.classList.toggle("mechanical-sight", aiming);
   if (aiming) {
     avatar.userData.getTorpedoMuzzle?.(aimOrigin);
-    aimPreview = torpedoes.previewAim(aimOrigin, forward, player);
+    const direction = mechanicalAimDirection(
+      weaponAimDirection,
+      mechanicalAimContext(),
+    );
+    aimPreview = mechanicalUnderwater()
+      ? torpedoes.previewAim(aimOrigin, direction, player)
+      : null;
     // 准星投影到炮口前方80米处，不把追尾相机的视线当作发射线。
-    aimProjection.copy(aimOrigin).addScaledVector(forward, 80).project(camera);
+    aimProjection
+      .copy(aimOrigin)
+      .addScaledVector(direction, 80)
+      .project(camera);
     reticle.style.left = (aimProjection.x * 0.5 + 0.5) * innerWidth + "px";
     reticle.style.top = (-aimProjection.y * 0.5 + 0.5) * innerHeight + "px";
   } else {

@@ -73,7 +73,7 @@ test("HF尸鲨UV重复点权重一致，四权重归一化，法线和骨骼索�
     for (let j = 0; j < 4; j++) {
       const id = ids.array[i * 4 + j],
         weight = w.array[i * 4 + j];
-      assert.ok(id >= 0 && id < 7);
+      assert.ok(id >= 0 && id < body(model).skeleton.bones.length);
       assert.ok(weight >= 0 && weight <= 1);
       sum += weight;
       bind.push(id, weight);

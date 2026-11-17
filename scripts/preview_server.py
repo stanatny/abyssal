@@ -16,6 +16,7 @@ from socketserver import TCPServer
 from urllib.parse import unquote
 
 HASHED_ASSET = re.compile(r"^assets/[a-zA-Z0-9_-]+-[a-zA-Z0-9_-]{8,}\.[a-z0-9]+$")
+ROOT_CACHE_WORKER = re.compile(r"^runtime_cache-[0-9a-f]{16}\.js$")
 
 
 def request_path(target):
@@ -29,7 +30,11 @@ def request_path(target):
         raise ValueError("Invalid path")
     if any(ord(c) < 32 or ord(c) == 127 for c in path):
         raise ValueError("Invalid path")
-    if path != "index.html" and not (len(parts) == 2 and parts[0] == "assets"):
+    if (
+        path != "index.html"
+        and not ROOT_CACHE_WORKER.fullmatch(path)
+        and not (len(parts) == 2 and parts[0] == "assets")
+    ):
         raise ValueError("Outside runtime scope")
     return path
 
@@ -87,7 +92,7 @@ class RuntimeHandler(BaseHTTPRequestHandler):
         try:
             path = request_path(self.path)
             stream = open_runtime(self.server.root, path)
-            immutable = bool(HASHED_ASSET.fullmatch(path))
+            immutable = bool(HASHED_ASSET.fullmatch(path) or ROOT_CACHE_WORKER.fullmatch(path))
             compressed = False
             if immutable and path.endswith((".js", ".css")) and allows_gzip(self.headers.get("Accept-Encoding", "")):
                 try:

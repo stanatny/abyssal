@@ -13,6 +13,7 @@ import {
 import { dirname, join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import { gunzipSync, gzipSync } from "node:zlib";
+import { createHash } from "node:crypto";
 import { parseAst } from "rolldown/parseAst";
 import { build } from "vite";
 import { compressedAssets } from "../scripts/cacheable_build.js";
@@ -134,6 +135,17 @@ function manifestFrom(code) {
     "Wrapper must contain the entry, styles and module layers",
   );
   return manifest;
+}
+
+function cacheManifestFrom(code) {
+  const match = code.match(
+    /\/\* ABYSSAL_RUNTIME_CACHE_MANIFEST \*\/\s*installRuntimeCache\(self,(\{[^\n]+\})\);\s*$/,
+  );
+  assert.ok(
+    match,
+    "Root worker must contain its literal runtime cache manifest",
+  );
+  return JSON.parse(match[1]);
 }
 
 async function sourceFixture(root) {
@@ -281,9 +293,28 @@ test("Ordinary Vite builds add a compressed startup wrapper without changing exi
           bytes,
           `Changed compiled artifact: ${path}`,
         );
+    const startupManifest = manifestFrom(after.get(wrapper).toString()),
+      worker = startupManifest.cache.worker.slice(2);
+    assert.match(worker, /^runtime_cache-[0-9a-f]{16}\.js$/);
+    assert.deepEqual(gunzipSync(after.get(`${worker}.gz`)), after.get(worker));
     assert.deepEqual(
       [...after.keys()].filter((path) => !before.has(path)).sort(),
-      [wrapper, `${wrapper}.gz`].sort(),
+      [wrapper, `${wrapper}.gz`, worker, `${worker}.gz`].sort(),
+    );
+    const cacheManifest = cacheManifestFrom(after.get(worker).toString());
+    assert.equal(cacheManifest.buildId, startupManifest.cache.buildId);
+    assert.equal(cacheManifest.maxBytes, 384 * 1024 * 1024);
+    assert.equal(cacheManifest.maxEntries, 1024);
+    assert.deepEqual(
+      cacheManifest.assets,
+      [...before]
+        .filter(([path]) => /^assets\/[^.]+\.[a-z0-9]+$/.test(path))
+        .map(([path, bytes]) => ({ path, size: bytes.length }))
+        // 指纹可能含下划线；清单顺序必须使用固定字符序，不能受主机语言排序影响。
+        .sort((a, b) => (a.path < b.path ? -1 : a.path > b.path ? 1 : 0)),
+    );
+    assert.ok(
+      !cacheManifest.assets.some(({ path }) => /bootstrap-|\.gz$/.test(path)),
     );
     assert.doesNotMatch(
       html,
@@ -300,7 +331,7 @@ test("Ordinary Vite builds add a compressed startup wrapper without changing exi
     assert.match(shell, /<progress\b|role\s*=\s*["']progressbar["']/i);
     assert.match(shell, /role\s*=\s*["']status["']/i);
 
-    const manifest = manifestFrom(after.get(wrapper).toString()),
+    const manifest = startupManifest,
       entry = moduleScript(original),
       chunks = new Map(
         baseline.output
@@ -357,6 +388,18 @@ test("Static import and re-export closure excludes lazy modules and preparation 
       ["./assets/entry-abcdefgh.js"],
     ]);
     assert.deepEqual(manifest.styles, ["./assets/style-abcdefgh.css"]);
+    const worker = manifest.cache.worker.slice(2),
+      cacheManifest = cacheManifestFrom(prepared.get(worker).toString());
+    assert.deepEqual(
+      cacheManifest.assets.map(({ path }) => path),
+      [
+        "assets/bridge-abcdefgh.js",
+        "assets/entry-abcdefgh.js",
+        "assets/lazy-abcdefgh.js",
+        "assets/leaf-abcdefgh.js",
+        "assets/style-abcdefgh.css",
+      ],
+    );
     for (const [path, bytes] of before)
       if (path !== "index.html")
         assert.deepEqual(prepared.get(path), bytes, path);
@@ -367,6 +410,86 @@ test("Static import and re-export closure excludes lazy modules and preparation 
   });
 });
 
+test("Root cache workers are reproducible across directories and track same-size lazy asset changes", async () => {
+  await withFixture(async (root) => {
+    const first = await compiledFixture(root),
+      second = await compiledFixture(join(root, "second")),
+      changed = await compiledFixture(join(root, "changed"));
+    const code = await readFile(
+      join(changed, "assets/lazy-abcdefgh.js"),
+      "utf8",
+    );
+    const revised = code.replace("On-demand", "Rewritten");
+    assert.equal(Buffer.byteLength(revised), Buffer.byteLength(code));
+    await put(changed, "assets/lazy-abcdefgh.js", revised);
+    const results = [];
+    for (const dist of [first, second, changed]) {
+      await prepareStartupLoader(dist);
+      const wrapper = moduleScript(
+          await readFile(join(dist, "index.html"), "utf8"),
+        ),
+        config = manifestFrom(await readFile(join(dist, wrapper), "utf8")),
+        worker = config.cache.worker.slice(2),
+        workerCode = await readFile(join(dist, worker), "utf8");
+      assert.equal(
+        worker,
+        `runtime_cache-${createHash("sha256").update(workerCode).digest("hex").slice(0, 16)}.js`,
+      );
+      assert.equal(
+        parseAst(workerCode).body.some(
+          (node) => node.type === "ImportDeclaration",
+        ),
+        false,
+      );
+      results.push({ config, workerCode, wrapper });
+    }
+    assert.deepEqual(
+      results[0],
+      results[1],
+      "Machine paths do not affect worker or bootstrap fingerprints",
+    );
+    assert.notEqual(
+      results[0].config.cache.buildId,
+      results[2].config.cache.buildId,
+    );
+    assert.notEqual(
+      results[0].config.cache.worker,
+      results[2].config.cache.worker,
+    );
+    assert.notEqual(results[0].wrapper, results[2].wrapper);
+  });
+});
+
+test("Worker gzip is an optional verified representation and stale fingerprint outputs are never overwritten", async () => {
+  await withFixture(async (root) => {
+    const dist = await compiledFixture(root);
+    await prepareStartupLoader(dist);
+    const wrapper = moduleScript(
+        await readFile(join(dist, "index.html"), "utf8"),
+      ),
+      config = manifestFrom(await readFile(join(dist, wrapper), "utf8")),
+      worker = config.cache.worker.slice(2);
+    await unlink(join(dist, `${worker}.gz`));
+    const prepared = await snapshot(dist);
+    assert.equal((await prepareStartupLoader(dist)).alreadyPrepared, true);
+    assertSameFiles(prepared, await snapshot(dist));
+
+    await compiledFixture(root);
+    await put(dist, worker, "// altered pre-existing fingerprint\n");
+    const before = await snapshot(dist);
+    await assert.rejects(
+      prepareStartupLoader(dist),
+      /worker does not match build inputs/,
+    );
+    assertSameFiles(before, await snapshot(dist));
+    await unlink(join(dist, worker));
+    await symlink("missing_outside.js", join(dist, worker));
+    const linked = await snapshot(dist);
+    await assert.rejects(prepareStartupLoader(dist));
+    assertSameFiles(linked, await snapshot(dist));
+  });
+});
+
 test("Corrupt prepared HTML, wrappers and gzip or missing wrapper files fail before any repair or rewrite", async (t) => {
   for (const corruption of [
     "html_shell",
@@ -374,6 +497,12 @@ test("Corrupt prepared HTML, wrappers and gzip or missing wrapper files fail bef
     "gzip",
     "missing_wrapper",
     "missing_gzip",
+    "runtime_worker",
+    "runtime_gzip",
+    "missing_runtime_worker",
+    "runtime_worker_path",
+    "runtime_worker_symlink",
+    "changed_runtime_asset",
   ])
     await t.test(corruption, async () => {
       await withFixture(async (root) => {
@@ -382,6 +511,9 @@ test("Corrupt prepared HTML, wrappers and gzip or missing wrapper files fail bef
         const wrapper = moduleScript(
           await readFile(join(dist, "index.html"), "utf8"),
         );
+        const wrapperCode = await readFile(join(dist, wrapper), "utf8"),
+          config = manifestFrom(wrapperCode),
+          worker = config.cache.worker.slice(2);
         if (corruption === "html_shell")
           await put(
             dist,
@@ -402,6 +534,47 @@ test("Corrupt prepared HTML, wrappers and gzip or missing wrapper files fail bef
         if (corruption === "missing_wrapper") await unlink(join(dist, wrapper));
         if (corruption === "missing_gzip")
           await unlink(join(dist, `${wrapper}.gz`));
+        if (corruption === "runtime_worker")
+          await put(
+            dist,
+            worker,
+            `${await readFile(join(dist, worker), "utf8")}\n// corrupted worker\n`,
+          );
+        if (corruption === "runtime_gzip")
+          await put(dist, `${worker}.gz`, gzipSync("Different worker"));
+        if (corruption === "missing_runtime_worker")
+          await unlink(join(dist, worker));
+        if (corruption === "runtime_worker_path") {
+          config.cache.worker = "../runtime_cache-0123456789abcdef.js";
+          await put(
+            dist,
+            wrapper,
+            wrapperCode.replace(
+              /startPreviewBootstrap\((\{[^\n]+\})\);\s*$/,
+              `startPreviewBootstrap(${JSON.stringify(config)});\n`,
+            ),
+          );
+        }
+        if (corruption === "runtime_worker_symlink") {
+          await put(
+            root,
+            "outside_worker.js",
+            await readFile(join(dist, worker)),
+          );
+          await unlink(join(dist, worker));
+          await symlink("../outside_worker.js", join(dist, worker));
+        }
+        if (corruption === "changed_runtime_asset") {
+          const code = await readFile(
+            join(dist, "assets/lazy-abcdefgh.js"),
+            "utf8",
+          );
+          await put(
+            dist,
+            "assets/lazy-abcdefgh.js",
+            code.replace("On-demand", "Rewritten"),
+          );
+        }
         const before = await snapshot(dist);
         await assert.rejects(prepareStartupLoader(dist));
         assertSameFiles(before, await snapshot(dist));
@@ -417,6 +590,7 @@ test("Missing dependencies, cycles and escaped JS or CSS paths fail atomically w
     "escaped_js",
     "escaped_css",
     "symlink_escape",
+    "lazy_symlink_escape",
   ])
     await t.test(invalid, async () => {
       await withFixture(async (root) => {
@@ -454,6 +628,14 @@ test("Missing dependencies, cycles and escaped JS or CSS paths fail atomically w
           await symlink(
             "../../outside-abcdefgh.js",
             join(dist, "assets/leaf-abcdefgh.js"),
+          );
+        }
+        if (invalid === "lazy_symlink_escape") {
+          await put(root, "outside_lazy.js", "export const lazy = true;");
+          await unlink(join(dist, "assets/lazy-abcdefgh.js"));
+          await symlink(
+            "../../outside_lazy.js",
+            join(dist, "assets/lazy-abcdefgh.js"),
           );
         }
         const before = await snapshot(root);

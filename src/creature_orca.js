@@ -37,12 +37,30 @@ function sharedGeometry() {
         (1 - smooth(-0.082, -0.058, y)) *
         smooth(-0.315, -0.285, z) *
         (1 - smooth(-0.165, -0.135, z));
+      // 沿现有闭合嘴缝平滑带动下颌，不切开网格或在嘴内制造未衬里的空洞。
+      const jawLine = THREE.MathUtils.lerp(
+        -0.018,
+        -0.06,
+        smooth(-0.485, -0.32, z),
+      );
+      const jaw =
+        (1 - smooth(-0.365, -0.305, z)) *
+        (1 - smooth(jawLine - 0.014, jawLine + 0.014, y));
+      const head =
+        smooth(-0.465, -0.405, z) *
+        (1 - smooth(-0.235, -0.065, z)) *
+        smooth(-0.05, -0.02, y) *
+        (1 - smooth(0.045, 0.085, y)) *
+        (1 - fin);
+      const appendage = Math.max(fin, jaw);
       ids[k] = joint;
       ids[k + 1] = joint + 1;
-      ids[k + 2] = x < 0 ? 5 : 6;
-      weights[k] = (1 - wave) * (1 - fin);
-      weights[k + 1] = wave * (1 - fin);
-      weights[k + 2] = fin;
+      ids[k + 2] = jaw > fin ? 7 : x < 0 ? 5 : 6;
+      ids[k + 3] = 8;
+      weights[k] = (1 - wave) * (1 - appendage) * (1 - head);
+      weights[k + 1] = wave * (1 - appendage) * (1 - head);
+      weights[k + 2] = appendage;
+      weights[k + 3] = (1 - appendage) * head;
     },
     (x, y, z, color) => {
       const belly =
@@ -79,6 +97,15 @@ export function buildOrca(root, motions) {
     bones[0].add(bone);
     bones.push(bone);
   }
+  const jaw = new THREE.Bone(),
+    throat = new THREE.Bone();
+  jaw.name = "orca_lower_jaw";
+  throat.name = "orca_head_throat";
+  throat.position.set(0, -0.02, -0.36);
+  jaw.position.set(0, -0.06, -0.32);
+  // 吻端下颌独立开合，侧颈展开不会横向拉宽鼻端或改变嘴部锚点。
+  bones[0].add(throat, jaw);
+  bones.push(jaw, throat);
   bindOrganicBody(
     inner,
     "orca_hf_body",
@@ -87,9 +114,18 @@ export function buildOrca(root, motions) {
     bones,
     0.16,
   );
-  addFeedingMouth(root, inner, [0, -0.052, -0.43]);
+  addFeedingMouth(root, jaw, [0, 0.008, -0.11]);
   root.userData.normalizedLength = 1;
   motions.push((phase, effort, state) => {
+    // 共享时钟控制进食停留和回落；本物种仅映射有界的开颌、侧颈展开。
+    const feeding = smooth(
+      0,
+      1,
+      THREE.MathUtils.clamp(state.feed * 2.05, 0, 1),
+    );
+    jaw.rotation.x = -feeding * 0.16;
+    throat.scale.set(1 + feeding * 0.18, 1 + feeding * 0.02, 1);
+    throat.position.y = -0.02 - feeding * 0.001;
     const folded = Math.max(state.boost, state.airborne);
     const amplitude =
       (0.09 + state.power * 0.09 + state.boost * 0.045) *
@@ -121,6 +157,10 @@ export function buildOrca(root, motions) {
       flukePitch: bones[4].rotation.x,
       bank: inner.rotation.z,
       folded,
+      feeding,
+      jawOpen: -jaw.rotation.x,
+      throatExpansion: feeding * 0.02,
+      headSideExpansion: feeding * 0.18,
     });
   });
 }

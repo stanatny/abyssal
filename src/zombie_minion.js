@@ -40,6 +40,8 @@ export function createZombieMinion(
 ) {
   const state = createSummonState();
   const feeding = createFeedingTransition({
+    scene,
+    reducedMotion,
     onMist: (point, length) => effects.mealMist(point, length),
   });
   let mesh = null,
@@ -561,7 +563,10 @@ export function createZombieMinion(
       ) {
         mesh.userData.triggerFeed?.();
         effects.bite(mouth, direction, visibleLength);
-        feeding.start(target.mesh, target.species.length);
+        feeding.start(target.mesh, target.species.length, {
+          swallowFrame: mesh,
+          blockedBetween,
+        });
         onMeal?.(target, feedingSound);
         target = null;
       }

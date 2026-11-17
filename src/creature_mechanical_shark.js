@@ -26,7 +26,7 @@ export function buildMechanicalShark(root, motions) {
   const { body, bones } = createMechanicalSharkRig(root),
     torso = bones[0],
     jaw = bones[4];
-  addMechanicalHardware(root, bones, motions);
+  addMechanicalHardware(root, bones.slice(0, 7), motions);
   addFeedingMouth(root, jaw, [0, 0.021, -0.154]);
   const muzzle = new THREE.Object3D();
   muzzle.name = "ventral_torpedo_exit";
@@ -108,6 +108,11 @@ export function buildMechanicalShark(root, motions) {
     [-1, bones[5]],
     [1, bones[6]],
   ];
+  const panels = bones.slice(7).map((bone, i) => ({
+    bone,
+    side: i ? 1 : -1,
+    closedX: bone.position.x,
+  }));
   motions.push((phase, effort, state = {}) => {
     if (disposed) return;
     const boost = state.boost || 0,
@@ -122,7 +127,14 @@ export function buildMechanicalShark(root, motions) {
     poseSharkPectorals(fins, phase, state, 0.9);
     launch *= Math.exp(-(state.dt || 0) * 11);
     const chamber = launcher.update(state.dt || 0);
-    jaw.rotation.x = -(state.feed || 0) * 0.16;
+    // 局部重映射让进食脉冲完整开颌；保持与收拢继续由公共动作时钟驱动。
+    const feeding = THREE.MathUtils.smoothstep((state.feed || 0) * 2.1, 0, 1);
+    jaw.rotation.x = -feeding * 0.26;
+    for (const { bone, side, closedX } of panels) {
+      // 硬甲小幅向外滑移并绕后端铰接，不缩放甲片或整个前躯。
+      bone.position.x = closedX + side * feeding * 0.012;
+      bone.rotation.y = -side * feeding * 0.2;
+    }
     for (const [i, flame] of flames.entries()) {
       flame.visible = boost > 0.015;
       flame.material.uniforms.power.value = boost;
@@ -140,6 +152,9 @@ export function buildMechanicalShark(root, motions) {
       chamberLoaded: chamber.loaded,
       reloadProgress: chamber.reload,
       plumes: boost > 0.015 ? 2 : 0,
+      feedingOpen: feeding,
+      jawAngle: -jaw.rotation.x,
+      headSpread: feeding * 0.012,
     });
   });
   root.userData.disposeMechanical = root.userData.disposeLocalMotion = () => {

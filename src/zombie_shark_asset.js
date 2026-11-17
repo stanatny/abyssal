@@ -70,21 +70,30 @@ function sharedGeometry() {
       1 - smooth(-0.44, -0.29, z),
     );
     const jaw =
-      (1 - smooth(-0.33, -0.255, z)) *
-      (1 - smooth(jawLine - 0.006, jawLine + 0.006, y));
+      // 在真实颌轴之前结束过渡，不能把颌后的腹侧皮肤一同翻折。
+      (1 - smooth(-0.36, -0.285, z)) *
+      (1 - smooth(jawLine - 0.045, jawLine + 0.045, y));
     const fin =
       smooth(0.1, 0.155, Math.abs(x)) *
       (1 - smooth(-0.052, -0.022, y)) *
       smooth(-0.24, -0.17, z) *
       (1 - smooth(0.13, 0.22, z));
     const appendage = Math.max(jaw, fin);
+    // 颊部肌肉向两侧小幅舒张，鼻尖、下颌和胸鳍仍遵循原有支撑骨骼。
+    const cheek =
+      smooth(0.025, 0.055, Math.abs(x)) *
+      smooth(-0.435, -0.385, z) *
+      (1 - smooth(-0.31, -0.275, z)) *
+      (1 - smooth(0.065, 0.09, y));
     const k = i * 4;
     ids[k] = joint;
     ids[k + 1] = joint + 1;
     ids[k + 2] = jaw > fin ? 4 : x < 0 ? 5 : 6;
-    weights[k] = (1 - axial) * (1 - appendage);
-    weights[k + 1] = axial * (1 - appendage);
+    ids[k + 3] = x < 0 ? 7 : 8;
+    weights[k] = (1 - axial) * (1 - appendage) * (1 - cheek);
+    weights[k + 1] = axial * (1 - appendage) * (1 - cheek);
     weights[k + 2] = appendage;
+    weights[k + 3] = cheek * (1 - appendage);
   }
   geometry = new THREE.BufferGeometry();
   geometry.setAttribute("position", new THREE.BufferAttribute(xyz, 3));
@@ -124,6 +133,8 @@ export function createZombieSharkRig(root) {
     // 转轴贴合实际胸鳍根（腹侧），避免放大动作时从躯干中部拉长鳍根。
     ["zombie_shark_pectoral_-1", [-0.1, -0.105, -0.105]],
     ["zombie_shark_pectoral_1", [0.1, -0.105, -0.105]],
+    ["zombie_shark_buccal_-1", [-0.035, -0.015, -0.22]],
+    ["zombie_shark_buccal_1", [0.035, -0.015, -0.22]],
   ]) {
     const bone = new THREE.Bone();
     bone.name = name;

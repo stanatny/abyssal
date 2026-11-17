@@ -1,7 +1,7 @@
 export const STARTUP_COPY = Object.freeze({
   en: Object.freeze({
     title: "Waking the ocean",
-    note: "Loading the resources needed to start. World visuals and audio are prepared next.",
+    note: "Reading startup resources, including cached files. World visuals and audio are prepared next.",
     progress: "Startup resources",
     initializing: "Initializing the ocean…",
     initializingNote:
@@ -23,7 +23,7 @@ export const STARTUP_COPY = Object.freeze({
   }),
   "zh-CN": Object.freeze({
     title: "正在唤醒海洋",
-    note: "正在读取启动所需的资源，完成后继续准备海域画面和声音。",
+    note: "正在读取启动资源（包含缓存读取），完成后继续准备海域画面和声音。",
     progress: "启动资源",
     initializing: "正在初始化海洋…",
     initializingNote: "启动资源已就绪，正在准备所选海域。",
@@ -194,9 +194,139 @@ function supportsModulePreload(documentObject) {
   }
 }
 
+/** 可选的同源持久缓存；首次接管和状态查询共享期限，不阻塞游戏回退。 */
+export async function prepareRuntimeCache(
+  config,
+  {
+    navigatorObject = globalThis.navigator,
+    documentObject = globalThis.document,
+    MessageChannelClass = globalThis.MessageChannel,
+    timeoutMs = 3500,
+    onRead = () => {},
+  } = {},
+) {
+  const unavailable = { available: false, dispose() {} };
+  let workerURL, container;
+  try {
+    container = navigatorObject?.serviceWorker;
+    if (!config || !container || !MessageChannelClass) return unavailable;
+    const base = new URL(".", documentObject.URL || documentObject.baseURI);
+    workerURL = new URL(config.worker, base);
+    if (
+      workerURL.origin !== base.origin ||
+      workerURL.search ||
+      workerURL.hash ||
+      workerURL.pathname !==
+        base.pathname + workerURL.pathname.split("/").at(-1) ||
+      !/^runtime_cache-[a-f0-9]{16}\.js$/.test(
+        workerURL.pathname.split("/").at(-1),
+      ) ||
+      typeof config.buildId !== "string" ||
+      !config.buildId
+    )
+      return unavailable;
+  } catch {
+    return unavailable;
+  }
+  let ended = false,
+    timer,
+    port,
+    controllerListener,
+    readListener;
+  const cleanup = () => {
+    ended = true;
+    clearTimeout(timer);
+    if (controllerListener)
+      container.removeEventListener("controllerchange", controllerListener);
+    if (readListener) container.removeEventListener("message", readListener);
+    port?.close();
+  };
+  const expected = () => container.controller?.scriptURL === workerURL.href;
+  const timeout = new Promise((resolve) => {
+    timer = setTimeout(
+      () => {
+        cleanup();
+        resolve(unavailable);
+      },
+      Math.max(1, timeoutMs),
+    );
+  });
+  const prepare = async () => {
+    try {
+      // 先监听，再注册；避免首次激活发生在注册 Promise 返回之前。
+      let claimed;
+      const claim = new Promise((resolve) => {
+        claimed = resolve;
+        controllerListener = () => {
+          if (expected()) resolve();
+        };
+        container.addEventListener("controllerchange", controllerListener);
+      });
+      await container.register(workerURL.href, {
+        type: "module",
+        scope: "./",
+        updateViaCache: "none",
+      });
+      if (ended) return unavailable;
+      if (expected()) claimed();
+      await claim;
+      if (ended) return unavailable;
+      container.removeEventListener("controllerchange", controllerListener);
+      const controller = container.controller;
+      if (controller?.scriptURL !== workerURL.href) {
+        cleanup();
+        return unavailable;
+      }
+      const channel = new MessageChannelClass();
+      port = channel.port1;
+      const status = await new Promise((resolve) => {
+        port.onmessage = (event) => {
+          if (
+            event.data?.type === "ABYSSAL_RUNTIME_CACHE_STATUS" &&
+            event.data.buildId === config.buildId
+          )
+            resolve(event.data);
+        };
+        port.start?.();
+        readListener = (event) => {
+          const data = event.data;
+          if (
+            !ended &&
+            event.source === controller &&
+            data?.type === "ABYSSAL_RUNTIME_CACHE_READ" &&
+            data.buildId === config.buildId &&
+            ["persistent", "network"].includes(data.source)
+          )
+            onRead(data);
+        };
+        container.addEventListener("message", readListener);
+        controller.postMessage({ type: "ABYSSAL_RUNTIME_CACHE_STATUS" }, [
+          channel.port2,
+        ]);
+      });
+      if (ended) return unavailable;
+      port.close();
+      if (
+        !status.available ||
+        container.controller !== controller ||
+        !expected()
+      ) {
+        cleanup();
+        return unavailable;
+      }
+      clearTimeout(timer);
+      return { ...status, dispose: cleanup };
+    } catch {
+      cleanup();
+      return unavailable;
+    }
+  };
+  return Promise.race([prepare(), timeout]);
+}
+
 /** 正式包与临时试玩共用；仅准备启动依赖，海域构建仍交给原游戏入口。 */
 export async function startPreviewBootstrap(
-  { layers, entry, styles = [] },
+  { layers, entry, styles = [], cache },
   options = {},
 ) {
   const documentObject = options.documentObject || globalThis.document;
@@ -319,6 +449,10 @@ export async function startPreviewBootstrap(
   const note = element("p", "startup-note", copy.note);
   note.style.cssText =
     "font-size:13px;line-height:1.6;color:#a4bdbd;margin:8px 0 0;overflow-wrap:anywhere";
+  const cacheNote = element("p", "startup-cache");
+  cacheNote.hidden = true;
+  cacheNote.style.cssText =
+    "font-size:12px;line-height:1.5;color:#a4bdbd;margin:8px 0 0";
   const waiting = element("p", "startup-waiting", copy.waiting);
   waiting.hidden = true;
   waiting.style.cssText =
@@ -333,10 +467,11 @@ export async function startPreviewBootstrap(
     retry.disabled = true;
     locationObject.reload();
   });
-  card.append(brand, status, bar, count, note, waiting, retry);
+  card.append(brand, status, bar, count, note, cacheNote, waiting, retry);
   panel.append(card);
   panel.focus?.({ preventScroll: true });
 
+  let cacheSession;
   let phase = "resources",
     waitingTimer;
   const setState = (state) => {
@@ -397,6 +532,35 @@ export async function startPreviewBootstrap(
     ];
     if (new Set(canonical).size !== canonical.length)
       throw new Error("Duplicate startup resource");
+    if (cache) {
+      const startupURLs = new Set(canonical),
+        persistentURLs = new Set();
+      cacheSession = await prepareRuntimeCache(cache, {
+        navigatorObject,
+        documentObject,
+        MessageChannelClass:
+          options.MessageChannelClass || globalThis.MessageChannel,
+        timeoutMs: options.cacheTimeoutMs ?? 3500,
+        onRead({ url, source }) {
+          if (source === "persistent" && startupURLs.has(url)) {
+            persistentURLs.add(url);
+            cacheNote.textContent =
+              language === "zh-CN"
+                ? "已从本地缓存读取 " +
+                  persistentURLs.size +
+                  " 项；其余读取仍会复用浏览器缓存。"
+                : persistentURLs.size +
+                  " resources read from local cache. Other reads can also reuse the browser cache.";
+          }
+        },
+      });
+      cacheNote.hidden = !cacheSession.available;
+      if (cacheSession.available && !persistentURLs.size)
+        cacheNote.textContent =
+          language === "zh-CN"
+            ? "本地缓存已启用；新资源会在浏览器空间允许时保存。"
+            : "Local cache is available. New resources are saved when browser storage permits.";
+    }
     if (supportsModulePreload(documentObject)) {
       const resourceLayers = layers.length
         ? [[...styles, ...layers[0]], ...layers.slice(1)]
@@ -461,6 +625,7 @@ export async function startPreviewBootstrap(
     retry.focus?.({ preventScroll: true });
     return false;
   } finally {
+    cacheSession?.dispose();
     clearWaiting();
   }
 }

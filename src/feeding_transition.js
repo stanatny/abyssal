@@ -1,11 +1,12 @@
 import * as THREE from "three";
+import { createSwallowEffect } from "./swallow_effect.js";
 
 /**
  * 借用已完成数值结算的猎物模型，表现收拢至嘴部、压缩和吞没。
  * @param {object} options 回调配置；onMist 接收世界坐标与猎物体长。
  * @returns {object} start(mesh, length)、has(mesh)、update(dt, {mouth, direction})、reset()、snapshot()。
  */
-export function createFeedingTransition({ onMist } = {}) {
+export function createFeedingTransition({ onMist, scene, reducedMotion } = {}) {
   const active = new Map();
   const directionUnit = new THREE.Vector3();
   const target = new THREE.Vector3();
@@ -17,6 +18,11 @@ export function createFeedingTransition({ onMist } = {}) {
   const parentRotation = new THREE.Quaternion();
   const carryCandidate = new THREE.Vector3();
   const carryTrial = new THREE.Vector3();
+  const bodyScale = new THREE.Vector3();
+  const swallowFacing = new THREE.Quaternion();
+  const intakeDirection = new THREE.Vector3();
+  let intakeEffect = null,
+    disposed = false;
   let startedCount = 0;
   let completedCount = 0;
   let evictedCount = 0;
@@ -33,8 +39,13 @@ export function createFeedingTransition({ onMist } = {}) {
     if (completed) completedCount++;
   }
 
-  function start(mesh, preyLength, { carryFrame, blockedBetween } = {}) {
+  function start(
+    mesh,
+    preyLength,
+    { carryFrame, swallowFrame, blockedBetween } = {},
+  ) {
     if (
+      disposed ||
       !mesh?.isObject3D ||
       active.has(mesh) ||
       !Number.isFinite(preyLength) ||
@@ -44,6 +55,21 @@ export function createFeedingTransition({ onMist } = {}) {
     mesh.updateWorldMatrix(true, false);
     const origin = mesh.getWorldPosition(new THREE.Vector3());
     if (!finiteVector(origin)) return false;
+    let swallowBodyLength;
+    if (!carryFrame?.isObject3D && swallowFrame?.isObject3D) {
+      swallowFrame.updateWorldMatrix(true, false);
+      swallowFrame.getWorldScale(bodyScale);
+      if (
+        !finiteVector(bodyScale) ||
+        Math.min(
+          Math.abs(bodyScale.x),
+          Math.abs(bodyScale.y),
+          Math.abs(bodyScale.z),
+        ) <= 1e-8
+      )
+        return false;
+      swallowBodyLength = Math.abs(bodyScale.x);
+    }
     if (active.size >= FEEDING_CAPACITY) {
       finish(active.values().next().value);
       evictedCount++;
@@ -93,6 +119,30 @@ export function createFeedingTransition({ onMist } = {}) {
         0.55,
         0.95,
       );
+    } else if (swallowFrame?.isObject3D) {
+      swallowFrame.updateWorldMatrix(true, false);
+      const bodyLength = swallowBodyLength;
+      entry.swallow = {
+        frame: swallowFrame,
+        origin: swallowFrame.worldToLocal(origin.clone()),
+        quaternion: swallowFrame
+          .getWorldQuaternion(new THREE.Quaternion())
+          .invert()
+          .multiply(entry.worldQuaternion),
+        previous: origin.clone(),
+        framePosition: swallowFrame.getWorldPosition(new THREE.Vector3()),
+        bodyLength,
+        blockedBetween,
+      };
+      entry.duration = THREE.MathUtils.clamp(
+        0.5 + Math.sqrt(preyLength) * 0.05,
+        0.55,
+        0.75,
+      );
+      if (scene?.isObject3D) {
+        intakeEffect ||= createSwallowEffect(scene, { reducedMotion });
+        intakeEffect.emit(preyLength, bodyLength);
+      }
     }
     active.set(mesh, entry);
     startedCount++;
@@ -103,6 +153,7 @@ export function createFeedingTransition({ onMist } = {}) {
   function update(dt, { mouth, direction } = {}) {
     // 无有效游戏时间或嘴部锚点时冻结；不使用墙钟或独立动画循环。
     if (
+      disposed ||
       !Number.isFinite(dt) ||
       dt <= 0 ||
       !finiteVector(mouth) ||
@@ -168,6 +219,45 @@ export function createFeedingTransition({ onMist } = {}) {
           worldPoint,
           1 - THREE.MathUtils.smoothstep(progress, 0.82, 1),
         );
+      } else if (entry.swallow) {
+        const swallow = entry.swallow,
+          frame = swallow.frame;
+        frame.updateWorldMatrix(true, false);
+        frame.worldToLocal(localPoint.copy(target));
+        const travel = THREE.MathUtils.smoothstep(progress, 0, 0.78);
+        control.copy(swallow.origin).lerp(localPoint, 0.6);
+        control.y += Math.min(
+          0.015,
+          (entry.preyLength / swallow.bodyLength) * 0.025,
+        );
+        worldPoint
+          .copy(swallow.origin)
+          .multiplyScalar((1 - travel) ** 2)
+          .addScaledVector(control, 2 * (1 - travel) * travel)
+          .addScaledVector(localPoint, travel * travel);
+        frame.localToWorld(worldPoint);
+        frame.getWorldPosition(carryTrial);
+        const maxTravel =
+          (8 + swallow.bodyLength * 1.4) * Math.min(dt, 0.1) +
+          carryTrial.distanceTo(swallow.framePosition);
+        swallow.framePosition.copy(carryTrial);
+        const separation = worldPoint.distanceTo(swallow.previous);
+        if (separation > maxTravel)
+          worldPoint.lerp(swallow.previous, 1 - maxTravel / separation);
+        if (swallow.blockedBetween?.(swallow.previous, worldPoint)) {
+          carryCandidate.copy(worldPoint);
+          let low = 0,
+            high = 1;
+          for (let i = 0; i < 6; i++) {
+            const fraction = (low + high) / 2;
+            carryTrial.copy(swallow.previous).lerp(carryCandidate, fraction);
+            if (swallow.blockedBetween(swallow.previous, carryTrial))
+              high = fraction;
+            else low = fraction;
+          }
+          worldPoint.copy(swallow.previous).lerp(carryCandidate, low);
+        }
+        swallow.previous.copy(worldPoint);
       } else {
         control.copy(entry.origin).lerp(target, 0.6);
         control.y += Math.min(0.24, entry.preyLength * 0.07);
@@ -178,9 +268,21 @@ export function createFeedingTransition({ onMist } = {}) {
           .addScaledVector(target, pull * pull);
       }
       localPoint.copy(worldPoint);
-      worldRotation
-        .copy(entry.worldQuaternion)
-        .slerp(facing, THREE.MathUtils.smoothstep(progress, 0.02, 0.66) * 0.65);
+      if (entry.swallow)
+        entry.swallow.frame
+          .getWorldQuaternion(worldRotation)
+          .multiply(entry.swallow.quaternion);
+      else worldRotation.copy(entry.worldQuaternion);
+      worldRotation.slerp(
+        entry.swallow
+          ? swallowFacing.setFromUnitVectors(
+              FORWARD,
+              intakeDirection.copy(directionUnit).negate(),
+            )
+          : facing,
+        THREE.MathUtils.smoothstep(progress, 0.02, 0.66) *
+          (entry.swallow ? 0.85 : 0.65),
+      );
       if (entry.parent) {
         entry.parent.updateWorldMatrix(true, false);
         entry.parent.worldToLocal(localPoint);
@@ -189,25 +291,35 @@ export function createFeedingTransition({ onMist } = {}) {
       }
       entry.mesh.position.copy(localPoint);
       entry.mesh.quaternion.copy(worldRotation);
+      // 尚未到嘴边（例如途中出现遮挡）时保留猎物完整轮廓。
+      const compressionProgress =
+        entry.swallow &&
+        worldPoint.distanceTo(mouth) > Math.max(0.2, entry.preyLength * 0.5)
+          ? 0
+          : progress;
       const crossSection =
         1 -
         THREE.MathUtils.smoothstep(
-          progress,
-          entry.carry ? 0.68 : 0.22,
-          entry.carry ? 0.9 : 0.8,
+          compressionProgress,
+          entry.carry ? 0.68 : entry.swallow ? 0.58 : 0.22,
+          entry.carry ? 0.9 : entry.swallow ? 0.88 : 0.8,
         ) *
           0.88;
       const longitudinal =
         1 -
         THREE.MathUtils.smoothstep(
-          progress,
-          entry.carry ? 0.78 : 0.45,
-          entry.carry ? 0.96 : 0.9,
+          compressionProgress,
+          entry.carry ? 0.78 : entry.swallow ? 0.7 : 0.45,
+          entry.carry ? 0.96 : entry.swallow ? 0.97 : 0.9,
         ) *
           0.7;
       const vanish =
         1 -
-        THREE.MathUtils.smoothstep(progress, entry.carry ? 0.92 : 0.82, 1) *
+        THREE.MathUtils.smoothstep(
+          compressionProgress,
+          entry.carry ? 0.92 : entry.swallow ? 0.9 : 0.82,
+          1,
+        ) *
           0.95;
       entry.mesh.scale.set(
         entry.scale.x * crossSection * vanish,
@@ -216,18 +328,27 @@ export function createFeedingTransition({ onMist } = {}) {
       );
       entry.mesh.visible = true;
       entry.mesh.updateMatrix();
-      if (!entry.mistEmitted && progress >= (entry.carry ? 0.91 : 0.65)) {
+      if (
+        !entry.mistEmitted &&
+        progress >= (entry.carry ? 0.91 : entry.swallow ? 0.9 : 0.65)
+      ) {
         entry.mistEmitted = true;
         // 回调使用独立向量，避免调用方保存或修改复用的临时坐标。
-        onMist?.(target.clone(), entry.preyLength);
+        if (
+          !entry.swallow ||
+          worldPoint.distanceTo(mouth) <= Math.max(0.2, entry.preyLength * 0.3)
+        )
+          onMist?.(target.clone(), entry.preyLength);
       }
       if (progress >= 1) finish(entry, true);
     }
+    intakeEffect?.update(dt, { mouth, direction });
   }
 
   function reset() {
     for (const entry of active.values()) finish(entry);
     startedCount = completedCount = evictedCount = 0;
+    intakeEffect?.reset();
   }
 
   return {
@@ -235,6 +356,12 @@ export function createFeedingTransition({ onMist } = {}) {
     has: (mesh) => active.has(mesh),
     update,
     reset,
+    dispose() {
+      if (disposed) return;
+      reset();
+      disposed = true;
+      intakeEffect?.dispose();
+    },
     snapshot: () => ({
       activeCount: active.size,
       capacity: FEEDING_CAPACITY,
@@ -248,6 +375,7 @@ export function createFeedingTransition({ onMist } = {}) {
         progress: entry.age / entry.duration,
         mistEmitted: entry.mistEmitted,
         carrying: !!entry.carry,
+        swallowing: !!entry.swallow,
       })),
     }),
   };

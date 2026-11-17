@@ -48,6 +48,11 @@ export function buildZombieShark(root, motions) {
     [-1, bones[5]],
     [1, bones[6]],
   ];
+  const cheeks = bones.slice(7).map((bone, i) => ({
+    bone,
+    side: i ? 1 : -1,
+    closedX: bone.position.x,
+  }));
   motions.push((phase, effort, state) => {
     const power =
       0.065 +
@@ -57,13 +62,19 @@ export function buildZombieShark(root, motions) {
     bones[2].rotation.y = Math.sin(phase - 1.45) * power * 1.3;
     bones[3].rotation.y = Math.sin(phase - 1.9) * power * 0.55;
     bones[0].rotation.z = (state?.turn || 0) * -0.11;
-    jaw.rotation.x =
-      0.025 - (state?.feed || 0) * 0.2 - Math.sin(phase * 0.55) * 0.014;
+    const feeding = THREE.MathUtils.smoothstep((state?.feed || 0) * 2.1, 0, 1);
+    jaw.rotation.x = 0.025 - feeding * 0.28 - Math.sin(phase * 0.55) * 0.014;
+    for (const { bone, side, closedX } of cheeks) {
+      bone.position.x = closedX + side * feeding * 0.015;
+      bone.scale.set(1 + feeding * 0.25, 1 + feeding * 0.015, 1);
+    }
     poseSharkPectorals(fins, phase, state);
     Object.assign(root.userData.pose || {}, {
       tailBeat: bones[2].rotation.y,
       jawOpen: 0.2 - jaw.rotation.x,
       power,
+      feedingOpen: feeding,
+      headSpread: feeding * 0.015,
     });
   });
 }

@@ -95,22 +95,37 @@ function sharedGeometry() {
       -0.036,
       smooth(-0.46, -0.31, z),
     );
+    // 放大的开口在嘴角采用较宽过渡，避免原窄权重带把口缘三角形折回。
+    const jawBand = THREE.MathUtils.lerp(
+      0.012,
+      0.045,
+      smooth(-0.43, -0.345, z),
+    );
     const jaw =
       (1 - smooth(-0.36, -0.29, z)) *
-      (1 - smooth(jawLine - 0.006, jawLine + 0.006, y));
+      (1 - smooth(jawLine - jawBand, jawLine + jawBand, y));
     const fin =
       smooth(0.086, 0.115, Math.abs(x)) *
       (1 - smooth(-0.014, 0.008, y)) *
       smooth(-0.31, -0.275, z) *
       (1 - smooth(-0.12, -0.1, z));
     const appendage = Math.max(jaw, fin);
+    // 仅现有前颅两侧甲片跟随开口，鼻尖、腹部发射架和肩部仍归原骨架。
+    const panel =
+      smooth(0.032, 0.053, Math.abs(x)) *
+      smooth(-0.415, -0.38, z) *
+      (1 - smooth(-0.28, -0.245, z)) *
+      smooth(-0.035, -0.005, y) *
+      (1 - smooth(0.065, 0.09, y));
     const k = i * 4;
     ids[k] = joint;
     ids[k + 1] = joint + 1;
     ids[k + 2] = jaw > fin ? 4 : x < 0 ? 5 : 6;
-    weights[k] = (1 - axial) * (1 - appendage);
-    weights[k + 1] = axial * (1 - appendage);
+    ids[k + 3] = x < 0 ? 7 : 8;
+    weights[k] = (1 - axial) * (1 - appendage) * (1 - panel);
+    weights[k + 1] = axial * (1 - appendage) * (1 - panel);
     weights[k + 2] = appendage;
+    weights[k + 3] = panel * (1 - appendage);
   }
   geometry = new THREE.BufferGeometry();
   geometry.setAttribute("position", new THREE.BufferAttribute(xyz, 3));
@@ -151,6 +166,9 @@ export function createMechanicalSharkRig(root) {
     // 转轴贴合实际胸鳍根（腹侧），避免放大动作时从躯干中部拉长鳍根。
     ["servo_pectoral_-1", [-0.09, -0.052, -0.265]],
     ["servo_pectoral_1", [0.09, -0.052, -0.265]],
+    // 追加局部甲片关节，不改变现有0至6号骨骼及其硬件支撑关系。
+    ["intake_cheek_panel_-1", [-0.045, 0.005, -0.235]],
+    ["intake_cheek_panel_1", [0.045, 0.005, -0.235]],
   ]) {
     const bone = new THREE.Bone();
     bone.name = name;
