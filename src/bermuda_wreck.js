@@ -236,6 +236,8 @@ export function createBermudaWreck(parent, { heightAt } = {}) {
   }
   addWreckRusticles(b, m);
   const colliders = b.finish();
+  // 新烟囱实体追加在旧船体之后，保留现有舱室碰撞的编号和顺序。
+  colliders.push(...skins.colliders);
   surfaces.project(root);
   const scale = BERMUDA_WRECK.scale;
   root.scale.setScalar(scale);

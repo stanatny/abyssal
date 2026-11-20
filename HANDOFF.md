@@ -1,5 +1,22 @@
 # ABYSSAL Penglai HF redraw — 2026-10-27
 
+Main publication v0.11.31 — 2026-11-20: the user authorizes committing and
+pushing the accepted Bermuda liner funnel-contact repair to main. All 2,232
+delivered source inputs and 981 preview artifacts match before release-only
+metadata and documentation edits. Refreshed remote main remains `9d6fd60`.
+Earlier candidate/no-push labels below are historical for this accepted scope.
+See [the release record](docs/release_v0_11_31.md). Preserve existing preview
+services, runtime archives, the original 402 ship colliders and visible geometry;
+no tag, separate GitHub Release or personal Skill edit is included.
+
+Bermuda funnel-contact candidate — 2026-11-20: the four visible HF liner
+funnels lacked matching upper-wall collision. Add 192 triangle-derived static
+shell contacts after the original 402 colliders, preserving the open top, real
+bottom, tilted pose, all original geometry and adult interior routes. See
+[the repair review](docs/bermuda_funnel_contact_revision.md). This candidate stays
+uncommitted/unpublished; main remains v0.11.30. Preserve preview services and
+archives; no new commit, push or version bump is authorized.
+
 Main publication v0.11.30 — 2026-11-18: the user authorizes committing and
 pushing the accepted runtime-cache, Mechanical Shark airborne-aim, moving-mouth
 swallowing and rear-view feeding-pose refinements to main. The Orca-only final

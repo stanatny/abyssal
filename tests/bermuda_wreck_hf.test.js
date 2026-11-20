@@ -69,7 +69,7 @@ test("Two live wrecks share all generated asset leases and release each resource
     kinds.map((k) => placements.filter((p) => p.kind === k).length),
     [4, 17, 4, 4, 4, 4, 10],
   );
-  assert.equal(b.colliders.length, 402);
+  assert.equal(b.colliders.length, 594);
   assert.equal(b.fixtures.length, 204);
   assert.equal(b.rooms.length, 11);
   a.dispose();

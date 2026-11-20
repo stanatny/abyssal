@@ -12,7 +12,8 @@ test("Bermuda geology preserves every non-geology solid and all original placeme
   const ocean = createBermudaOcean(new T.Group());
   const unchanged = ocean.colliders.filter(
     (c) =>
-      !/^(reef_arch_|trench_arch_|bermuda_spire_|bermuda_rock_)/.test(
+      // 烟囱补充实体另有真实网格回归；这里仍验证其余旧实体的原始完整指纹。
+      !/^(reef_arch_|trench_arch_|bermuda_spire_|bermuda_rock_|bermuda_ocean_liner_wreck_funnel_)/.test(
         c.id || "",
       ),
   );
