@@ -8,14 +8,29 @@ import { acquireBermudaGeologyAsset } from "../src/bermuda_geology_asset.js";
 import { bermudaSeabedHeight as heightAt } from "../src/bermuda_terrain.js";
 import { isPositionBlocked } from "../src/collision.js";
 const options = { heightAt };
-test("Bermuda geology preserves every non-geology solid and all original placement counts", () => {
+test("Bermuda geology preserves every non-geology solid and all original placement counts", (t) => {
   const ocean = createBermudaOcean(new T.Group());
+  t.after(() => ocean.dispose());
+  // 完整HF、压爪石床和新洞各有专用实体；旧外海迁位仍由cave_sites的精确快照约束。
+  const caveAdditions = [
+    "kaiju_lair_",
+    "luminous_grotto_",
+    "fossil_passage_",
+    "sleeping_titan_whole_",
+    "sleeping_titan_rear_",
+    "titan_paw_rock_",
+  ];
+  for (const prefix of caveAdditions)
+    assert.ok(
+      ocean.colliders.some((c) => c.id?.startsWith(prefix)),
+      `${prefix}: explicit added contact scope`,
+    );
   const unchanged = ocean.colliders.filter(
     (c) =>
       // 烟囱补充实体另有真实网格回归；这里仍验证其余旧实体的原始完整指纹。
-      !/^(reef_arch_|trench_arch_|bermuda_spire_|bermuda_rock_|bermuda_ocean_liner_wreck_funnel_)/.test(
+      !/^(outer_|reef_arch_|trench_arch_|bermuda_spire_|bermuda_rock_|bermuda_ocean_liner_wreck_funnel_)/.test(
         c.id || "",
-      ),
+      ) && !caveAdditions.some((prefix) => c.id?.startsWith(prefix)),
   );
   assert.equal(
     createHash("sha256").update(JSON.stringify(unchanged)).digest("hex"),
@@ -29,10 +44,11 @@ test("Bermuda geology preserves every non-geology solid and all original placeme
   assert.equal(shelf.batches[0].matrices.length, 60);
   ocean.dispose();
 });
-test("Geology surfaces are backed by local solids and seated on the actual seabed", () => {
+test("Geology surfaces are backed by local solids and seated on the actual seabed", (t) => {
   for (const shelf of [false, true]) {
     const art = createBermudaGeology(new T.Group(), { heightAt, shelf }),
       p = new T.Vector3();
+    t.after(() => art.dispose());
     for (const b of art.batches)
       for (let k = 0; k < b.matrices.length; k++) {
         const boxes = art.colliders.filter(
@@ -65,11 +81,12 @@ test("Geology surfaces are backed by local solids and seated on the actual seabe
     art.dispose();
   }
 });
-test("Both reef arches retain an adult-width route through the full final collision set", () => {
+test("Both reef arches retain an adult-width route through the full final collision set", (t) => {
   const ocean = createBermudaOcean(new T.Group()),
     a = ocean.root.getObjectByName("bermuda_exploration_biomes").userData
       .geologyArt,
     p = new T.Vector3();
+  t.after(() => ocean.dispose());
   for (const row of a.arches) {
     let found = false;
     for (let d = 10; d < 35; d++) {
@@ -95,11 +112,14 @@ test("Both reef arches retain an adult-width route through the full final collis
   }
   ocean.dispose();
 });
-test("Geology detail state is instance-local; shared buffers are released once after the last owner", () => {
+test("Geology detail state is instance-local; shared buffers are released once after the last owner", (t) => {
   const parent = new T.Group(),
-    lease = acquireBermudaGeologyAsset("spire"),
-    a = createBermudaGeology(parent, options),
-    b = createBermudaGeology(parent, options);
+    lease = acquireBermudaGeologyAsset("spire");
+  t.after(() => lease.release());
+  const a = createBermudaGeology(parent, options);
+  t.after(() => a.dispose());
+  const b = createBermudaGeology(parent, options);
+  t.after(() => b.dispose());
   let disposed = 0;
   lease.geometry.addEventListener("dispose", () => disposed++);
   const point = new T.Vector3().setFromMatrixPosition(a.batches[0].matrices[0]);

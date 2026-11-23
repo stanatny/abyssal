@@ -21,6 +21,12 @@ export const REGIONAL_RECORDINGS = Object.freeze({
     },
   },
   bermuda: {
+    cave: {
+      url: new URL("./assets/music/bermuda_cave.m4a", import.meta.url).href,
+      entry: 0,
+      loopStart: 0,
+      loopEnd: 59.6,
+    },
     explore: {
       url: new URL("./assets/music/bermuda_explore.m4a", import.meta.url).href,
       entry: 0,

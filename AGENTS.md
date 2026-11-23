@@ -1,5 +1,301 @@
 # ABYSSAL Development Rules
 
+Current main-publication scope — 2026-11-23: the player accepts the chamber-scale lava preview and explicitly requests pushing to main. Integrate the accepted accumulated Bermuda expedition from candidate `991abf2616be7996`, following v0.11.31 / `2271eaf`, as v0.11.32. This overrides earlier no-commit/no-push notes only for this accepted scope. Preserve raw HF art, reviewed whole-body/paw/jewel, ordinary food/survival and existing services/archives. Release preparation synchronizes superseded test fixtures with the accepted one-exit/whole-body/stock contracts, tracks the known behind-mouth direct-lava pocket check as an exercised TODO, moves required test oracles out of ignored directories and repairs the local pursuer's ordinary physical return to its actual moved home. No tag or separate GitHub Release is requested. Complete full active tests, formatting, build, exact-commit Pages deployment and native formal-site entry before reporting publication. See [the release record](docs/release_v0_11_32.md).
+
+Chamber-scale lava follow-up — 2026-11-23: the player requests coverage across most of the actual titan chamber, superseding the modest area expansion below. Complete 180 m sheets cover about62% of the measured285–290 m transverse span. Retain the previous legal fit, then search at most16 shuffled legal sites within the same48-attempt ceiling. The broad lower skin and rounded pool share0.5 m bed clearance; both full volumes must validate. Twenty sleeping/waking cases retain180 m flow and one real hot pool with three distinct landing sites; maximum23 attempts/13 visited sites. Focused42 and world3 checks pass. Legal30 m waiting/evasion geometry is separate from native timed-dodge acceptance. Matched populated desktop/phone observer views verify onset/flow/residue; no FPS/heat claim. Current preview is candidate `991abf2616be7996`; delivery and public-check evidence are in ignored `.local/bermuda_room_spray_20261123/current_preview_delivery.json`. Preserve all services, archives, raw HF/body/paw/jewel and unrelated work. The old paw-behind-mouth coverage gap remains separate. No commit, push or version bump. See [the chamber-scale review](docs/bermuda_room_scale_lava.md).
+
+Lava area expansion — 2026-11-23: the player accepts the current presentation and requests more area. After the previous complete fit, try same-site/lift/seed factors1.5/1.25/1.1 with full-volume clearance, retaining the original if blocked and the existing48-attempt cap. Twenty world cases have16 larger landing footprints/4 unchanged/0 smaller, summed+29.17%; clear full widths reach72/96m. Sheet/damage/warning/pool remain shared; no damage, timing, character/HF, treasure or population change. Focused41 and world3 checks pass; actual paused scene comparisons are separate from native difficulty/FPS acceptance. The known paw-behind-mouth lava gap remains open. See [the area review](docs/bermuda_lava_area_expansion.md). No commit, push or version bump; deliver the exact rebuilt preview link.
+
+Adult cave access and escape HUD follow-up — 2026-11-23: the joined den now physically clears all eight supported 25/30 m approaches. A local .36 rad wrist release plus one derived seam-weight correction preserves raw HF/rest geometry, fixed head/other feet, jewel and 8 m pickup. Conservative continuous contact/rock proxies are refined. Small-body escape/sealing/failure HUD now outranks growth/wildlife text. A controlled native 30 m Orca pickup, ordinary fish meal, north exit and physical sealing secures the relic with health100 and16.5941s left at escape; its initial seals/open window are staged and a nonfatal driver waypoint deadline is retained. It is not an unassisted puzzle/all-character survival clear. Nearby lava coverage has one unresolved test; do not claim full regional acceptance. See [the current review](docs/bermuda_adult_access_followup.md). No commit, push or version bump. Preserve services and evidence; refresh the candidate link after validation.
+
+Verified preview delivery policy — 2026-11-23: the player requires an accessible, verified playable link after every completed modification. Deliver the exact current candidate through the existing restricted preview service, verify public resources and native startup/affected interactions, identify its build and known limitations, and preserve rollback artifacts. This explicit instruction supersedes earlier withholding of preview rebuilds while the adult cave acceptance remains open; a review preview does not imply those unresolved gates passed. Keep formal main/Pages unchanged unless separately authorized to publish. A stale link or local-only screenshots do not complete delivery. Current review runtime: candidate `991abf2616be7996` replaces archived `081a18e6cbc1accd` with chamber-scale lava and fully validated residue. Exact URL, source/artifact identity, current public/native checks and service evidence are in ignored `.local/bermuda_room_spray_20261123/current_preview_delivery.json`. The preceding candidate receipts retain their historical scope. The previous adult pickup/controlled Orca escape and small-body HUD proofs retain their scoped status; the separate paw-behind-mouth coverage gap and unassisted all-character survival remain open.
+
+
+Entrance brightness and lair backdrop follow-up — 2026-11-23: the player corrected height to brightness and accepts the already raised entrance. The local candidate retains two taller fault arches, adds private wet-rock fill at the mouth and three wall-bound mineral fields with a twelve-second gentle pulse. Existing three-light pool, exposure, fog, food and hazards remain. Sixteen focused checks, matched desktop/phone observer rendering, a native 30 m Orca doorway round-trip and build pass. A legacy rear-shadow test still fails identically on the pre-task modules. Full adult treasure access remains open; preserve the accepted public preview/services. No commit, push or version bump. See [the entrance/light review](docs/bermuda_entrance_lighting_revision.md).
+
+
+Bermuda cave motion/floor/runtime follow-up — 2026-11-23: the served preview's
+10.1 m front lift is confirmed; the local whole-HF candidate uses one real wrist
+while the head/other feet remain fixed. Unsupported duplicate native-floor
+render faces are removed with complete physical source/contact bytes preserved.
+Conservative segment bounds, dormant far-lord sight gating, correctly timed
+waypoint caching and actor-private contact scratch reduce sampled near-jewel
+main-loop CPU from190.42 to78.35 ms/frame with1,083 entities unchanged. This is
+headless/CDP diagnostic evidence, not native FPS or thermal acceptance. Focused
+segment27, encounters101, waypoint7 and floor/model28 checks pass. Full-world
+adult access is still unresolved; preserve the accepted public preview and all
+services/archives. No commit, push or version bump. See
+[the current review](docs/bermuda_cave_motion_performance_revision.md).
+
+Bermuda shoal-density follow-up — 2026-11-23: ordinary stock increases from 816
+to 1,082 through four outer schooling species, including ten appended route
+schools. Exact nursery, liner/cave food, lord reserves and all other regions
+remain unchanged. Six complete-world spawn/food checks and thirty-six focused
+cases pass; matching native views show 8→12 reef fish and 0→12 bridge fish,
+three moving new tuna are consumed, and pause/new-round counts pass. Build
+passes. This is local/uncommitted and the separate adult cave gate remains
+open; preserve the existing public preview and services. See
+[the density review](docs/bermuda_shoal_density_revision.md).
+
+Flying Dutchman relocation — 2026-11-22: the player approved moving the existing
+ghost ship to the northeastern surface at `(210, 4, -460)`. Original circular
+patrol, HF model/contacts and cannon rules remain unchanged; the bilingual Guide
+is synchronized. Actual posed clearances, twelve focused checks, native staged
+warning/volley and pause, and build pass. Existing wider-suite failures are
+reproduced against the pre-move fleet; the separate adult cave gate remains
+open. Local only: no commit, push, version bump or public preview rebuild. See
+[the relocation review](docs/bermuda_distribution_revision.md#northeastern-flying-dutchman-relocation--2026-11-22).
+
+Lord-landmark follow-up — 2026-11-22: the four Bermuda homes now use
+`bermuda_lord_sites.js`: Hydra near the waterline above the twin gates; Kraken
+in open water west of the Titanic; Gran Maja in the eastern lost-flight wreck
+belt; Leviathan retains the southeastern cable-field basin. The eastern balance moves only the Mayan
+guard and four adult supply slots relative to the preceding western layout;
+other lord homes and ecology anchors are unchanged. The original thirteen-slot
+normalizer remains valid, and the new final-fit revision migrates old inputs.
+Real posed home/landmark checks, guard/food world checks, bilingual Guide,
+three retained native location checks and a new eastern Mayan view, pause,
+format and build pass. This is local and
+uncommitted; no public rebuild/push/version bump. The separate adult cave gate
+remains unresolved. See [the placement review](docs/bermuda_lord_landmarks_revision.md).
+
+Straight-current follow-up — 2026-11-22: Bermuda's four currents now run
+parallel to the map Z axis, retaining both full-length surface lanes and the
+550 m deep return. Thirteen focused checks, real terrain/major-prop clearance,
+four staged native rides, pause and the local build pass. Other-map route bytes
+and shared force/timing match the baseline. This is an uncommitted local
+current-layout change; the separate adult cave gate below remains unresolved,
+and the existing public preview has not been replaced. See the latest section
+of [the distribution review](docs/bermuda_distribution_revision.md).
+
+Exploration-video delivery checkpoint — 2026-11-22: the requested 54 s actual-scene
+guided tour has been delivered and its actual video receipt verified. It uses
+a protected 10 m actor and staged camera/contacts, with omitted seal shuttles;
+it is not a native adult clear. The cleaned continuous whole HF, local
+bioluminescence and sampled palm seat are in the local candidate. Seven of
+eight actor-only 25/30 m entries pass; Squid30 and complete-world entry/return
+remain unresolved. Current full-ocean character tests are red, and lava-world
+is 3/4 with its nominal wait blocked. The ignored exit ramp is not ported.
+Do not claim playable acceptance, rebuild the public preview, commit, push or
+bump a version from these partial checks. The preceding accepted public
+preview and all source/evidence archives remain intact. See
+[the current evidence](docs/bermuda_sleeping_paw_revision.md).
+
+Exposed-body proportion correction — 2026-11-22: the player rejects the
+new whole-model proportions: the broad lower-head/front mass reads as an obese
+chin attached directly to a tail. The initial Candidate A/B assembly review is
+therefore superseded. Rear occlusion is allowed, but the visible head, neck,
+forelimbs, shoulders and their exposed trunk transition must have coherent
+anatomy. Diagnose the actual HF front rest shape and correct the visible shape;
+do not relabel the mass, darken it or add masking rock as the fix. Preserve all
+candidate evidence and raw HF bytes. Establish natural exposed proportions in
+actual cave near/far views before final paw clearance/contact baking. The active
+foot-guard, local-lighting, 30 m access, awakening and escape requirements remain.
+No commit, push or version bump is authorized. See the active paw revision.
+
+
+Sleeping-paw guard revision — 2026-11-22: the player now requests a genuine
+resting foot/paw to completely cover the jewel, with an occasional natural
+sleeping release; this supersedes the head-lift natural pocket above. Keep the
+jewel fixed on real support, with no skin intersection. Prefer a real planted
+forepaw's local wrist/edge movement rather than lifting the entire front body.
+The whole exposed creature must read as one naturally resting animal. Verify
+front/rear continuity and weight-bearing in actual cave far views and separately
+labelled unobstructed full-model inspections, as well as close details and
+fixed-camera closed/open transitions. Preserve ordinary supported 25/30 m body
+access, true skin/contact agreement, existing 60 s escape, hazards and pickup
+roar/tremor; previous route/photo passes do not validate this new pose. Keep raw
+HF bytes and prior states/evidence, preview services and archives. No commit,
+push or version bump is authorized. See
+[the active plan](docs/bermuda_sleeping_paw_revision.md).
+
+
+Local lair-lighting follow-up — 2026-11-22: the same active task additionally
+requires visible cool-colour bioluminescent growth or mineral light on actual
+walls and resting rocks near the titan. Improve head/paw/route legibility while
+retaining cave depth and lava-warning contrast. Keep global exposure/fog and
+food/hazard balance; reuse the finite light pool, avoid floating body specks,
+and verify the actual brightened cave in both near and far views.
+
+Guarded-relic natural pocket revision — 2026-11-22: the player rejects the
+wrist-embedded appearance. This supersedes the preceding forced arm-bend/G
+placement: use a naturally supported treasure under the chin or within the
+protective forelimbs, with no crystal/skin intersection. The actual closed
+HF body must obstruct entry, while unconscious breathing/head lifting opens
+sufficient real space for a complete 30 m character to approach, collect and
+retreat/turn using ordinary controls. A guard flag alone is not physical proof.
+Taking the relic adds bounded camera tremor, one creature roar and visible
+incipient waking. Preserve original movement/aim, reduced-motion preference,
+accepted HF source bytes, single north exit, food, pursuer, falling rocks, lava,
+four lords and sixty active seconds. No commit, push or version bump is
+authorized. Preserve prior evidence and services. See
+[the active review](docs/bermuda_guarded_relic_revision.md).
+
+Verification checkpoint — 2026-11-22: the natural head-under stone pocket,
+real closed-body guarding and all four supported characters at 25/30 m pass
+eight actual-mesh/resolved-motion routes. The current world/support/hazard batch
+passes 26/26; focused rules/audio/camera/objectives pass 72/72. Preserve the
+separate 32 m oversized Zombie turn failure as a non-production stress limit;
+normal growth is capped at 30 m. The current-source prepared 30 m pickup starts one
+3.8 s real-game roar and bounded tremor; the reviewed 24.821 s excerpt shows
+closed/open/closed, pickup and 4.8 s of awakening feedback. It is not a complete
+native escape or unassisted expedition. The longer raw run has a later close
+follow-camera obstruction; keep it and the failed hungry g04 escape as evidence.
+Production build, compiled public en/zh390px Guide and start/pause/Home/region
+switches, six served-resource byte comparisons and private-path rejection pass.
+All 32 protected HF assets and original rear cache are unchanged. No commit,
+push or version bump; main remains v0.11.31. Keep preview/tunnel/awake, archives
+and all rejected evidence. See the active review for scope and remaining limits.
+
+Lava flow and black-surface follow-up — 2026-11-21: the player sees large
+black blocks around the titan and requests mouth-emitted travel, source shutdown
+with a travelling tail, and a ground pool that cools away. This supersedes the
+preceding instant whole-sheet on/off contract. Diagnose the actual rendered
+mesh/material separately from recording; preserve natural solid rock, one north
+exit, accepted HF source maps, forty-point lava/shared damage rules, arms, food,
+rocks/pursuer and the sixty-second escape. Explicit disjoint ownership applies.
+The player additionally requires the heart inside the actual arm bend near the
+chest, rather than exposed ahead of the wrists. Verify real enclosure and
+opened access from ordinary approach views; do not hide it with a camera trick.
+No commit, push or version bump is authorized; preserve services and archives.
+See [the active review](docs/bermuda_lava_flow_revision.md).
+Previous verified G09 candidate (superseded by the natural-pocket revision above) — 2026-11-22: the real world crystal inherits the
+titan's orientation, a locally overbroad contact is refined, and the inverted
+end of the descending gate is removed with matching contacts. Forty-three
+model/query, ten world and seven entrance/route cases pass. A prepared25m native
+pickup/exit/physical-closure run succeeds with13.968s remaining and health30.533
+under ordinary post-pickup survival. The labelled observer reaches the unchanged
+fatal deadline after60.003 wall seconds. The then-current G09 effects and the
+144.4s H.264 movie are verified; compiled public bilingual/390px/native UI and
+six served-resource byte comparisons pass. Preserve all failed evidence, fourteen HF source files and the original rear contact cache,
+preview/tunnel/awake and runtime archives; only dev is stopped.
+No commit, push or version bump is authorized; main remains v0.11.31.
+
+
+
+Cave descent and embrace follow-up — 2026-11-21: the player requests a
+layered northern entrance, a single exterior entrance with a winding descending
+interior, a true two-arm embrace with brief collection access and closing-arm
+crushing damage, and a broad molten outpouring instead of separated lava rays.
+This supersedes the preceding two-exit/loose-arm/jet contracts for this candidate.
+Keep accepted HF materials and creature, other caves/maps, food, pursuer, falling
+rocks, four lords and sixty active-second escape. No commit, push or version bump
+is authorized. See [the active review](docs/bermuda_cave_descent_revision.md).
+Final candidate: focused world rerun26/26 passes; the controlled25m native
+pickup/return/physical-closure run succeeds with13.930s remaining and ordinary
+damage/hunger after pickup. The shared HF asset bytes are unchanged. Preserve
+the failed first driver recording, current source/artifact fingerprints and
+frame-cost limitation in the review; this does not authorize publication.
+
+HF lava appearance follow-up — 2026-11-21: the player rejects the procedural
+orange pipe/crown appearance and explicitly requests a Hugging Face redraw. Use
+the existing FLUX.1-schnell VFX-texture workflow for original molten-basalt
+material, coupled with actual thick liquid/impact geometry and an independent
+rising terminal volume. Static image generation supplies material, not generated
+fluid animation. Preserve all current trajectory/radius/phase/damage/escape,
+world and survival contracts. Keep prior raw outputs and preview archives, use
+included quota only, and verify real onset/active/off/terminal scenes before
+delivery. No commit, push or version bump is authorized. See
+[the active HF material review](docs/bermuda_lava_huggingface_revision.md).
+
+Lava, pursuit and collapse follow-up — 2026-11-21: the player rejects the
+clipped/partial blue plume. Replace it with fully on/off molten breath along
+complete reachable paths, broad seeded-random warned landing areas and a harder
+but physically avoidable collection window. Add warned real falling rocks and
+one actual local predator pursuit through existing ordinary AI. Taking the heart
+starts stronger waking behavior and denser, less predictable hazards during the
+unchanged sixty active-second escape. At expiry, visible lava/rock catastrophe
+must accompany immediate fatal failure; no extra playable grace period. Record
+both successful escape and the full timeout failure. Preserve current map bounds,
+actual intake/portal geometry, shared survival, food, four lords and prior work.
+This supersedes the previous diagonal-blue presentation and hazard pacing. No
+commit, push or version bump is authorized. See
+[the active revision](docs/bermuda_titan_lava_revision.md).
+
+
+Breath direction and cave-location follow-up — 2026-11-21: the player rejects
+horizontal breath because a ground-hugging approach avoids it. Revise the actual
+mouth-origin effect and damage into wider, irregular diagonal-forward breath
+that threatens the low treasure approach. Preserve readable charging, real
+cover/terrain clipping, feasible cooldown access and the existing escape/food
+contracts. Keep the prior straight-beam footage and checks as historical evidence;
+they do not validate the new hazard. Also explain the real geography: the lair
+lies beyond the liner in the southern water already expanded in the previous
+iteration, wholly beyond the pre-expansion z=-1150 boundary. The cave uses the
+current map space and does not expand its boundary again. Sparse seabed glow
+connects the liner slope to the north entrance. This instruction asks
+for verification and explanation, not an unrequested lair relocation. No commit,
+push or version bump is authorized. The current implementation and evidence are
+recorded in [the candidate review](docs/bermuda_titan_escape_revision.md).
+
+Approved sleeping-titan expedition — 2026-11-21: the player accepts the
+crossed-arms front-half concept and authorizes implementation. This supersedes
+the concept-review pause. Build actual protective sleeping arm motion, mysterious
+forks, entrance guidance, cave food and the guarded relic. The latest instruction
+also supersedes the earlier never-awake ending: taking the relic starts partial
+awareness and a 60-second active-time escape. Full-body exit precedes closure;
+failed escape is fatal, and a safely recovered relic counts toward victory only
+after escape/closure. Keep four original lords and other maps, use the existing
+character/survival/audio pipelines, and verify real geometry, food and native
+controls. No commit, push or version bump is authorized. See
+[the active cave brief](docs/bermuda_deep_caves.md).
+
+Concept review checkpoint — 2026-11-21: the player now explicitly requests a
+scene concept before more implementation. Show the sleeping titan's front half,
+forearms crossed protectively around the relic, with a continuous real body
+receding into a deeper private den. Retain mysterious forks, sparse luminous
+natural entrance guidance and danger as scene direction. Pause dependent game,
+mesh-conversion and layout work until the player reviews the delivered concept;
+retain all existing work and raw HF outputs. The earlier exposed-body gameplay
+candidate remains uncommitted and is not this new composition's acceptance.
+No commit, push or version bump is authorized.
+
+Bermuda hidden-head cave revision — 2026-11-21: the latest player review asks
+for only a colossal prone sleeping head and inward-holding foreclaws at the
+cave's deepest branch, with the rest of the body occluded by rock and the relic
+inside the embrace. Replace the earlier exposed full-body staging accordingly.
+Add real branching, sparse luminous natural entrance guidance, sheltered danger
+and a distinct cave atmosphere/music cue. Keep ordered seals, unconscious
+periodic breath, four original combat lords plus relic victory, and the two
+ordinary lair guards. Reuse the accepted HF bones; the new HF bust uses an
+original reference and included quota only. Preserve other maps and live
+services; no commit, push or version bump is authorized. See
+[the active cave brief](docs/bermuda_deep_caves.md).
+
+Bermuda sleeping-titan revision — 2026-11-21: the player explicitly requests a
+larger lair, a realistic colossal sleeping Godzilla-inspired original HF 3D
+creature, HF skeletal remains, telegraphed atomic breath, ordered seals, a guarded
+relic and relic collection as an additional Bermuda victory condition. This
+supersedes the earlier environment-only/no-new-loot cave brief and fixed 788
+population restriction for the two additional ordinary lair guards. Preserve the
+four existing combat lords, protected nursery/liner, shared survival and other
+maps. Keep the titan asleep and outside boss combat/counting. See
+[the revised production brief](docs/bermuda_deep_caves.md). No commit, push or
+version bump is authorized; preserve preview services and runtime archives.
+
+Bermuda deep-cave follow-up — 2026-11-21: add three enterable deep-sea caves,
+including a Godzilla-style titan-lair environment, to the existing uncommitted
+candidate. Preserve the four lords, exact protected food, accepted routes and
+other maps; verify actual hollow interiors, roofs, large-body travel and obtainable
+food. See [the current cave brief](docs/bermuda_deep_caves.md). No commit, push or
+version bump is authorized. Preserve preview services and runtime archives.
+
+Bermuda distribution follow-up — 2026-11-21: the player finds the expanded
+water too empty and requests whole-map distribution, including currents, fleet,
+lords, bathymetry and food. This supersedes the previous old-core population and
+surface-fleet placement preservation for this candidate. Keep the nursery,
+liner interiors, shared combat/survival rules and other maps. See
+[the current revision](docs/bermuda_distribution_revision.md). Remain uncommitted;
+no push or version bump is authorized. Preserve preview services and archives.
+
+Bermuda expansion candidate — 2026-11-20: implement the first approved map
+expansion with regional identity, not an empty boundary stretch. Preserve the
+nursery, liner and published v0.11.31; add western reef gates, eastern lost-flight
+sites and southern salvage routes with explicit food. See [the production brief](docs/bermuda_expansion.md).
+Amazon and Odyssey remain later batches. This candidate stays uncommitted for
+review; no new commit, push or version bump is authorized. Preserve preview
+services and runtime archives.
+
 Main publication v0.11.31 — 2026-11-20: the user authorizes committing and
 pushing the accepted Bermuda liner funnel-contact repair to main. All 2,232
 delivered source inputs and 981 preview artifacts match before release-only

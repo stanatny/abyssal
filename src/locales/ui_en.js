@@ -1,4 +1,13 @@
 export const UI_EN = Object.freeze({
+  "洋流正在形成 · 雷达箭头标出航路与流向":
+    "Ocean currents forming · Radar arrows show routes and flow",
+  洋流航路: "Ocean current lanes",
+  "近水面航道；百慕大另有中层与深层支线":
+    "Near-surface lanes, plus midwater and deep branches in Bermuda",
+  "洋流 · {0}": "Current · {0}",
+  "逆流受阻 · {0}": "Against current · {0}",
+  "开局{0}秒后开始形成，经过{1}秒后开放{2}秒，再用{3}秒消散；每{4}秒重现。航流分别通往外海或返航方向，雷达箭头标示流向。百慕大两侧的表层航路贯穿全图，并有中层与深层支线。":
+    "Forms {0}s after departure, opens after {1}s for {2}s, then fades over {3}s; repeats every {4}s. Radar arrows show offshore and return directions. Bermuda has two full-length surface lanes plus midwater and deep branches.",
   表层洋流隧道: "Surface current lanes",
   快速航路: "Fast travel route",
   临时双向航路: "Temporary return routes",
@@ -364,7 +373,7 @@ export const UI_EN = Object.freeze({
     "Reach 30m and earn an abyssal mark to win.",
   "耳机体验更佳 · 推荐电脑全屏游玩":
     "Best with headphones · Desktop fullscreen recommended",
-  "海洋远征 / v0.11.31": "Ocean Expeditions / v0.11.31",
+  "海洋远征 / v0.11.32": "Ocean Expeditions / v0.11.32",
   生存状态: "Survival status",
   深度: "Depth",
   "m / 深度": "m / depth",

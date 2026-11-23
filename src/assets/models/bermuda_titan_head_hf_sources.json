@@ -1,0 +1,43 @@
+{
+  "asset": "bermuda_titan_head",
+  "input": {
+    "kind": "Original project-generated concept image; no external photograph or third-party artwork uploaded",
+    "sha256": "ed40ac41df475f0b8738c1303571fe65638a971147646a901c4d731f336e9570"
+  },
+  "provider": {
+    "model": "Microsoft TRELLIS.2-4B",
+    "modelRevision": "af44b45f2e35a493886929c6d786e563ec68364d",
+    "spaceRevision": "ebf60b20fc5a4607f90a1c11c0aab0ceeda5429d",
+    "modelCard": "https://huggingface.co/microsoft/TRELLIS.2-4B",
+    "space": "https://huggingface.co/spaces/microsoft/TRELLIS.2",
+    "code": "https://github.com/microsoft/TRELLIS.2",
+    "license": "MIT (model/code release; does not by itself establish rights to arbitrary input artwork)",
+    "checkedAt": "2026-11-21"
+  },
+  "generation": {
+    "seed": 761124,
+    "resolution": "1024",
+    "completed": true,
+    "rawGlbSha256": "a510c4ea2fccfff6bc9ec5d0e7bc7921e25c475bab3610c5eccab03b13280e7b",
+    "rawGlbBytes": 4045816
+  },
+  "conversion": {
+    "entrypoint": "scripts/prepare_bermuda_titan_head_hf_asset.mjs",
+    "rotationRadians": [0, 3.141592653589793, 0],
+    "normalization": "Rigid yaw pi and uniform outer X width1; source PBR unchanged",
+    "sourceVertices": 78999,
+    "sourceTriangles": 95294,
+    "nearTriangles": 36602,
+    "farTriangles": 2952,
+    "contacts": 5657,
+    "originalTextureChannelsRetained": ["color", "metallic_roughness"],
+    "texturesByteIdenticalToGlb": true,
+    "collisionRepair": "Collision copy only: 0.008 normalized cells, one-cell six-neighbour closing then enclosed-volume filling. Large exterior water/cradle remains unfilled."
+  },
+  "limits": [
+    "Single-image reconstruction infers hidden surfaces; this is a fictional titan, not an anatomical scan.",
+    "Crossing forearms are fused in source topology. Shared local brace deformation preserves their contact; independent arm twists are deliberately not applied.",
+    "Far LOD uses original sampled vertex colors and constant roughness. Near retains source UV and byte-identical source PBR maps.",
+    "No treasure is baked into this mesh; actual relic must remain in measured external water, not the solid chest."
+  ]
+}

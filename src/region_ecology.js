@@ -24,7 +24,10 @@ import { MARIANA_WORLD } from "./mariana_config.js";
 import { MARIANA_SPECIES } from "./mariana_species.js";
 import { marianaEcology } from "./mariana_ecology.js";
 import { BERMUDA_SPECIES } from "./bermuda_species.js";
-import { bermudaEcology } from "./bermuda_ecology.js";
+import {
+  bermudaEcology,
+  fitBermudaExpansionEcology,
+} from "./bermuda_ecology.js";
 import { ECOSYSTEM_SPECIES } from "./ecosystem_config.js";
 import { ATLANTIS_SPECIES } from "./atlantis_species.js";
 import { DEEP_GIANT_ANCHORS } from "./deep_giants.js";
@@ -231,7 +234,11 @@ const REGION_SPECIES = Object.freeze(
             ? fitEuropaEcology(distributed)
             : id === "penglai"
               ? fitPenglaiEcology(distributed)
-              : fitRegionalLordHabitats(id, distributed),
+              : id === "bermuda"
+                ? fitBermudaExpansionEcology(
+                    fitRegionalLordHabitats(id, distributed),
+                  )
+                : fitRegionalLordHabitats(id, distributed),
       ];
     }),
   ),

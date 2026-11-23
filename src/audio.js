@@ -14,6 +14,7 @@ import { HumanVoiceBank } from "./human_voice_assets.js";
 import { createFeedingSound } from "./feeding_audio.js";
 import { createWaterAmbience } from "./water_ambience.js";
 import { AtlantisMusic, ATLANTIS_SCORE } from "./music_atlantis.js";
+import { BermudaTitanAwakenAudio } from "./bermuda_titan_awaken_audio.js";
 
 /**
  * OceanAudio 提供原创海洋配乐、分层水下音效与随应用打包的真人呼喊。
@@ -28,6 +29,7 @@ export class OceanAudio {
     combatAudioBank = new CombatAudioBank(),
     zombieAudioBank = new ZombieAudioBank(),
     lordAttackAudio = new LordAttackAudio(),
+    titanAwakenAudio = new BermudaTitanAwakenAudio(),
   } = {}) {
     this.context = context;
     this.questAudioBank = questAudioBank;
@@ -38,6 +40,7 @@ export class OceanAudio {
     this.combatAudioBank = combatAudioBank;
     this.zombieAudioBank = zombieAudioBank;
     this.lordAttackAudio = lordAttackAudio;
+    this.titanAwakenAudio = titanAwakenAudio;
     this.zombieSoundState = "idle";
     this.zombieSoundPreparation = null;
     this.zombieBuffers = new Map();
@@ -64,6 +67,8 @@ export class OceanAudio {
     this.boss = false;
     this.bossKind = null;
     this.depth = 0;
+    this.cave = false;
+    this.escaping = false;
     this.aboveWater = false;
     this.ink = 0;
     this.voices = new Set();
@@ -99,7 +104,7 @@ export class OceanAudio {
     void this.prepareCombatSounds();
     void this.prepareQuestSounds();
     void this.prepareZombieSounds();
-    void this.lordAttackAudio.prepare(this.context);
+    void this.prepareTitanAwakenSound();
     void this.recordedMusic.setRegion(this.regionId);
     this.setPaused(false);
     this.update(0, this.lastDanger, {
@@ -109,6 +114,8 @@ export class OceanAudio {
       depth: this.depth,
       aboveWater: this.aboveWater,
       ink: this.ink,
+      cave: this.cave,
+      escaping: this.escaping,
     });
   }
 
@@ -131,7 +138,10 @@ export class OceanAudio {
       : "hawaii";
     if (next === this.regionId) return next;
     this.stopQuestSounds();
+    this.titanAwakenAudio.reset();
     this.regionId = next;
+    this.cave = false;
+    this.escaping = false;
     if (this.recordedMusic) void this.recordedMusic.setRegion(next);
     this.beat =
       next === "odyssey"
@@ -167,6 +177,33 @@ export class OceanAudio {
     if (next === "amazon") this.ensureAmazonMusic().reset(now);
     if (next === "odyssey") this.ensureOdysseyMusic().reset(now);
     return next;
+  }
+
+  /** 与既有领主短样本共享准备；完成时只缓存，不补播已经发生的拿宝事件。 */
+  prepareTitanAwakenSound() {
+    const context = this.context;
+    if (!context || context.state === "closed") return Promise.resolve(false);
+    try {
+      this.titanAwakenAudio.prepare(context);
+    } catch {
+      return Promise.resolve(false);
+    }
+    return this.lordAttackAudio
+      .prepare(context)
+      .then((ready) => {
+        if (this.context !== context || context.state === "closed")
+          return false;
+        if (ready)
+          this.titanAwakenAudio.prepare(context, this.lordAttackAudio.buffers);
+        return ready;
+      })
+      .catch(() => false);
+  }
+
+  /** 真实拿宝边沿触发一次；苏醒不是第五个领主，也不改变战斗配乐资格。 */
+  titanAwaken() {
+    if (this.regionId !== "bermuda") return false;
+    return this.titanAwakenAudio.play(this);
   }
 
   /** 菜单预取四段任务音；异步完成不补播过去事件。 */
@@ -212,7 +249,10 @@ export class OceanAudio {
     };
     if (
       !pitches[kind] ||
-      this.regionId !== "atlantis" ||
+      !(
+        this.regionId === "atlantis" ||
+        (this.regionId === "bermuda" && ["mechanism", "chest"].includes(kind))
+      ) ||
       !this.effectReady(`quest_${kind}`, 1)
     )
       return false;
@@ -346,6 +386,7 @@ export class OceanAudio {
     }
     this.enabled = !this.enabled;
     if (!this.enabled) {
+      this.titanAwakenAudio.stop();
       this.stopQuestSounds();
       this.stopCombatVoices();
       this.stopMusic(this.context.currentTime);
@@ -378,6 +419,7 @@ export class OceanAudio {
   /** setPaused 暂停或继续声音时钟，参数为暂停状态，无返回值。 */
   setPaused(paused) {
     this.paused = Boolean(paused);
+    if (this.paused) this.titanAwakenAudio.stop();
     if (!this.context || !this.ready) return;
     const now = this.context.currentTime;
     if (this.paused) {
@@ -412,6 +454,7 @@ export class OceanAudio {
 
   /** reset 清除上一局尾音和节拍，复用声音开关与主图；无参数，无返回值。 */
   reset() {
+    this.titanAwakenAudio.reset();
     this.stopQuestSounds();
     this.lastDanger = 0;
     this.pursuing = false;
@@ -421,6 +464,8 @@ export class OceanAudio {
     this.boss = false;
     this.bossKind = null;
     this.depth = 0;
+    this.cave = false;
+    this.escaping = false;
     this.aboveWater = false;
     this.ink = 0;
     this.step = 0;
@@ -483,6 +528,8 @@ export class OceanAudio {
       depth = 0,
       aboveWater = false,
       ink = 0,
+      cave = false,
+      escaping = false,
     } = {},
   ) {
     void time;
@@ -493,6 +540,8 @@ export class OceanAudio {
     this.depth = Math.max(0, Number.isFinite(depth) ? depth : 0);
     this.aboveWater = Boolean(aboveWater);
     this.ink = clamp(ink, 0, 1);
+    this.cave = this.regionId === "bermuda" && Boolean(cave);
+    this.escaping = this.regionId === "bermuda" && Boolean(escaping);
     if (!this.ready || this.paused) return;
     const now = this.context.currentTime;
     const recorded = this.recordedMusic?.ready && this.enabled;
@@ -502,6 +551,8 @@ export class OceanAudio {
         boss: this.boss,
         bossKind: this.bossKind,
         pursuing: this.pursuing,
+        cave: this.cave,
+        escaping: this.escaping,
       });
     }
     this.usingRecordings = recorded;

@@ -200,7 +200,14 @@ export function createMinimap(container) {
       if (previousCurrentRoutes !== currentRoutes) {
         previousCurrentRoutes = currentRoutes;
         currentLayer.replaceChildren();
+        currentLayer.dataset.layered = String(
+          new Set((currentRoutes || []).map((route) => route.points[0].y))
+            .size > 1,
+        );
         for (const route of currentRoutes || []) {
+          const lane = document.createElementNS(SVG_NAMESPACE, "g");
+          lane.dataset.depthY = String(route.points[0].y);
+          currentLayer.append(lane);
           const points = route.points.map((p) =>
             projectMinimapPosition(p, world),
           );
@@ -213,7 +220,7 @@ export function createMinimap(container) {
           line.setAttribute("stroke", route.inbound ? "#a2e6be" : "#82dce9");
           line.setAttribute("stroke-width", "1");
           line.setAttribute("stroke-dasharray", "2 1");
-          currentLayer.append(line);
+          lane.append(line);
           for (const i of [15, 55, 95]) {
             const a = points[i],
               b = points[i + 1],
@@ -227,9 +234,18 @@ export function createMinimap(container) {
             arrow.setAttribute("stroke", route.inbound ? "#a2e6be" : "#82dce9");
             arrow.setAttribute("fill", "none");
             arrow.setAttribute("stroke-width", ".7");
-            currentLayer.append(arrow);
+            lane.append(arrow);
           }
         }
+      }
+      for (const lane of currentLayer.children) {
+        const gap = Math.abs(position.y - Number(lane.dataset.depthY));
+        lane.setAttribute(
+          "opacity",
+          String(
+            currentLayer.dataset.layered !== "true" || gap < 55 ? 1 : 0.22,
+          ),
+        );
       }
       if (previousRiverPaths !== riverPaths) {
         previousRiverPaths = riverPaths;
@@ -391,35 +407,43 @@ export function createMinimap(container) {
       const next = waypoints.find((w) => !w.open);
       if (next && !nursery)
         depthLabel.textContent = t(
-          next.guardian
-            ? Math.abs(next.y - position.y) <= 3
-              ? "守卫 · 同层"
-              : next.y > position.y
-                ? tr`守卫 ↑ ${Math.round((next.y - position.y) * world.displayDepthScale)}m`
-                : tr`守卫 ↓ ${Math.round((position.y - next.y) * world.displayDepthScale)}m`
-            : next.mechanism
-              ? next.mural
-                ? next.index
-                  ? tr`壁画寻路 · 第${next.index}道符印`
-                  : "壁画 · 月湾圣所上层"
-                : next.light
-                  ? tr`光照镜塔 ${next.index}`
-                  : "机关 · 市集柱廊北段下层"
-              : next.key
-                ? Math.abs(next.y - position.y) <= 3
-                  ? "钥匙建筑 · 同层"
-                  : next.y > position.y
-                    ? tr`钥匙建筑 ↑ ${Math.round((next.y - position.y) * world.displayDepthScale)}m`
-                    : tr`钥匙建筑 ↓ ${Math.round((position.y - next.y) * world.displayDepthScale)}m`
+          next.titan
+            ? next.escape
+              ? "撤离路线 · 前往洞口"
+              : next.entrance
+                ? "沉眠巢穴 · 洞口"
                 : next.relic
+                  ? "巢穴宝物 · 避开吐息水道"
+                  : tr`巢穴封印 ${next.index}/3`
+            : next.guardian
+              ? Math.abs(next.y - position.y) <= 3
+                ? "守卫 · 同层"
+                : next.y > position.y
+                  ? tr`守卫 ↑ ${Math.round((next.y - position.y) * world.displayDepthScale)}m`
+                  : tr`守卫 ↓ ${Math.round((position.y - next.y) * world.displayDepthScale)}m`
+              : next.mechanism
+                ? next.mural
+                  ? next.index
+                    ? tr`壁画寻路 · 第${next.index}道符印`
+                    : "壁画 · 月湾圣所上层"
+                  : next.light
+                    ? tr`光照镜塔 ${next.index}`
+                    : "机关 · 市集柱廊北段下层"
+                : next.key
                   ? Math.abs(next.y - position.y) <= 3
-                    ? "圣珠 · 同层"
+                    ? "钥匙建筑 · 同层"
                     : next.y > position.y
-                      ? tr`圣珠 ↑ ${Math.round((next.y - position.y) * world.displayDepthScale)}m`
-                      : tr`圣珠 ↓ ${Math.round((position.y - next.y) * world.displayDepthScale)}m`
-                  : next.final
-                    ? tr`秘境 ↓ ${Math.max(0, Math.round((position.y - next.y) * world.displayDepthScale))}m`
-                    : tr`关卡 ↓ ${Math.max(0, Math.round((position.y - next.y) * world.displayDepthScale))}m`,
+                      ? tr`钥匙建筑 ↑ ${Math.round((next.y - position.y) * world.displayDepthScale)}m`
+                      : tr`钥匙建筑 ↓ ${Math.round((position.y - next.y) * world.displayDepthScale)}m`
+                  : next.relic
+                    ? Math.abs(next.y - position.y) <= 3
+                      ? "圣珠 · 同层"
+                      : next.y > position.y
+                        ? tr`圣珠 ↑ ${Math.round((next.y - position.y) * world.displayDepthScale)}m`
+                        : tr`圣珠 ↓ ${Math.round((position.y - next.y) * world.displayDepthScale)}m`
+                    : next.final
+                      ? tr`秘境 ↓ ${Math.max(0, Math.round((position.y - next.y) * world.displayDepthScale))}m`
+                      : tr`关卡 ↓ ${Math.max(0, Math.round((position.y - next.y) * world.displayDepthScale))}m`,
         );
       const edge = nearestWorldBoundary(position, world);
       const nearEdge = edge.distance < BOUNDARY_NOTICE_DISTANCE;

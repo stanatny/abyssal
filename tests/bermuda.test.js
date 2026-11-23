@@ -35,7 +35,7 @@ import {
 import { BermudaMusic } from "../src/music_bermuda.js";
 import { t } from "../src/i18n.js";
 import { wreckWorldPoint, WRECK_BED } from "../src/bermuda_sites.js";
-import { WORLD } from "../src/world_config.js";
+import { BERMUDA_WORLD as WORLD } from "../src/bermuda_config.js";
 
 const region = REGIONS.find((r) => r.id === "bermuda");
 const wreck = createBermudaWreck(new THREE.Scene(), {
@@ -48,7 +48,7 @@ test("Bermuda roster, protected nursery and regional inhabitants remain isolated
   assert.equal(region.available, true);
   assert.equal(
     getRegionSpecies("bermuda").reduce((n, s) => n + s.population, 0),
-    475,
+    1082,
   );
   assert.equal(new Set(region.speciesKinds).size, 25);
   for (const line of [
@@ -137,7 +137,7 @@ test("Bermuda roster, protected nursery and regional inhabitants remain isolated
       15,
   );
   const hydra = region.bossInstances.find((e) => e.kind === "hydra");
-  assert.equal(hydra.home[1], -20);
+  assert.equal(hydra.home[1], -18);
   assert.equal(isNursery(new THREE.Vector3(...hydra.home)), false);
 });
 
@@ -531,7 +531,10 @@ test("Rendered seabed follows the authoritative height at triangle interiors and
     }
   }
   assert.ok(maximumError < 0.3, `Terrain interpolation error ${maximumError}`);
-  assert.ok(index.count / 3 < 240000);
+  assert.ok(
+    index.count / 3 < 270000,
+    `Expanded terrain triangles ${index.count / 3}`,
+  );
   for (const x of [WRECK_BED.minX, -65, WRECK_BED.maxX])
     for (const z of [WRECK_BED.minZ, -650, WRECK_BED.maxZ])
       assert.equal(bermudaSeabedHeight(x, z), -486);

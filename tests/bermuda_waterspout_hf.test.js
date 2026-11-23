@@ -38,19 +38,19 @@ test("Waterspout HF visuals share bounded resources and retain every cue in Smoo
   assert.equal(art.prepare.state, "disposed");
 });
 
-test("Waterspout surface footprint stays at the existing danger centers through travel", () => {
+test("Waterspout surface footprint stays at the distributed danger centers through travel", () => {
   const scene = new THREE.Scene(),
     weather = createBermudaWeather(scene),
     position = new THREE.Vector3(0, 7, -500);
   assert.equal(weather.spouts.length, 7);
   const anchors = [
-    [-235, -410],
-    [115, -715],
-    [-125, -280],
-    [230, -350],
-    [45, -500],
-    [-235, -885],
-    [210, -1010],
+    [240, -320],
+    [-365, -560],
+    [345, -800],
+    [-320, -1050],
+    [320, -1260],
+    [-160, -1470],
+    [140, -1650],
   ];
   for (const t of [0, 1, 17, 68, 140, 301]) {
     weather.update(t, position, 0.016, true, position);

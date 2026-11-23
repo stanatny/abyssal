@@ -31,6 +31,60 @@ export function oceanCurrentPhase(time) {
 
 export function oceanCurrentRoutes(regionId) {
   if (!OCEAN_CURRENT_RULES.regions.includes(regionId)) return [];
+  if (regionId === "bermuda") {
+    // 各水层沿地图纵轴平行直行；保留两侧长航路及独立的短程深水回流。
+    const lanes = [
+      {
+        id: "outbound",
+        name: "西境远海航流",
+        inbound: false,
+        y: -24,
+        z0: -65,
+        z1: -1670,
+        x: -345,
+      },
+      {
+        id: "inbound",
+        name: "东境返航流",
+        inbound: true,
+        y: -24,
+        z0: -65,
+        z1: -1670,
+        x: 325,
+      },
+      {
+        id: "deep_west",
+        name: "西礁深层航流",
+        inbound: false,
+        y: -240,
+        z0: -680,
+        z1: -1230,
+        x: -300,
+      },
+      {
+        id: "deep_east",
+        name: "南境深层回流",
+        inbound: true,
+        y: -520,
+        z0: -1110,
+        z1: -1660,
+        x: 245,
+      },
+    ];
+    return lanes.map(({ x, y, z0, z1, ...lane }) => {
+      const points = Array.from({ length: 129 }, (_, i) => {
+        const u = lane.inbound ? 1 - i / 128 : i / 128;
+        return new T.Vector3(x, y, z0 + (z1 - z0) * u);
+      });
+      let length = 0;
+      const distances = [0];
+      for (let i = 1; i < points.length; i++) {
+        length += points[i].distanceTo(points[i - 1]);
+        distances.push(length);
+      }
+      return { ...lane, points, distances, length };
+    });
+  }
   const endZ = regionId === "odyssey" ? -1480 : -990;
   return [false, true].map((inbound) => {
     const points = [];
@@ -63,7 +117,7 @@ export function oceanCurrentRoutes(regionId) {
   });
 }
 
-// 复用输出对象，最近线段只在两条已验证的固定航路内搜索。
+// 复用输出对象；最近线段沿当前海域的固定航路搜索。
 export function nearestCurrentPoint(route, position, out) {
   let best = Infinity;
   for (let i = 0; i < route.points.length - 1; i++) {

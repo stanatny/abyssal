@@ -70,7 +70,7 @@ test("The final Mariana pipeline keeps two unchanged adult hunters in each pre-g
   assert.equal(canEat({ length: 28 }, giant.length), false);
 });
 
-test("Mariana retains its stock while the regional guard audit adds only three hunters elsewhere", () => {
+test("Mariana stock remains isolated from later regional supply expansions", () => {
   assert.equal(roster.length, 23);
   assert.equal(
     roster.reduce((n, s) => n + s.population, 0),
@@ -79,7 +79,7 @@ test("Mariana retains its stock while the regional guard audit adds only three h
   for (const [region, count] of Object.entries({
     hawaii: 565,
     atlantis: 567,
-    bermuda: 475,
+    bermuda: 1082,
     amazon: 409,
     europa: 352,
     penglai: 393,

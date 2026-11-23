@@ -265,6 +265,19 @@
       "sha256": "a0f181a5b436696af0e4e92ec1fb625d10b2c64dc3ff133e29779fdcc29342a2",
       "bytes": 1094754,
       "duration": 54.0
+    },
+    {
+      "region": "bermuda",
+      "state": "cave",
+      "source": ".local/bermuda_titan_approved_20261121/music/bermuda_cave_raw.wav",
+      "sourceSha256": "488dfcd69502539781faab0fbb57d4bc597b21b14e5d8e62a130a79e32dc3fc5",
+      "offset": 0,
+      "gainDb": 0,
+      "file": "src/assets/music/bermuda_cave.m4a",
+      "sha256": "45b755be72ccb13ba9b2fde63b62fc0cad493ddf156b50318238bd3b2f89679e",
+      "bytes": 982409,
+      "duration": 60.2,
+      "provenance": "Original Web Audio score, source src/music_bermuda_cave.js; OfflineAudioContext rendering; AAC128k 32kHz normalized -26LUFS, -3dBTP. Candidate 2026-11-21, no external recording."
     }
   ]
 }

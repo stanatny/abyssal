@@ -39,10 +39,10 @@ const HOMES = {
       [-96.19, -320, -724.1],
     ],
     ichthyotitan: [
-      [100, -35, -360],
-      [-210, -235, -590],
-      [215, -405, -850],
-      [115, -570, -1050],
+      [-255, -35, -625],
+      [355, -280, -945],
+      [-235, -505, -1305],
+      [175, -595, -1615],
     ],
     sperm_whale: [
       [75, -75, -360],
@@ -182,6 +182,8 @@ function replaceHomes(entry, homes, extra = {}) {
 export function fitRegionalLordHabitats(region, species) {
   return Object.freeze(
     species.map((entry) => {
+      // 全图栖地已经过最终地形校验，后续重复拟合不能再套回旧的局部补给坐标。
+      if (region === "bermuda" && entry.bermudaHabitatRevision) return entry;
       const homes = HOMES[region]?.[entry.kind];
       if (
         region === "hawaii" &&
@@ -207,9 +209,9 @@ export function fitRegionalLordHabitats(region, species) {
           // 九头蛇是远海表层危险点，不是出生浅滩；允许守卫在该海区实际反击。
           extra.depthMin = 20;
           extra.hunterTerritory = {
-            minX: -292,
-            maxX: 292,
-            minZ: -1142,
+            minX: -492,
+            maxX: 492,
+            minZ: -1752,
             maxZ: -230,
           };
         }

@@ -1,0 +1,64 @@
+{
+  "scope": "One fixed XZ: exact projected triangle overlap gives highest vertical nonintersection fit, then true Euclidean triangle separation and whole-cluster crossings; support floor not yet raised",
+  "original": [-200.4, -621.8702014213027, -1625],
+  "fitted": [-200.4, -620.8284618194066, -1625],
+  "heightShift": 1.0417396018960745,
+  "limiting": {
+    "actorFace": 26495,
+    "gemFace": 2,
+    "xz": [-200.4, -1625.1678208559752],
+    "verticalClearance": 1.1917396018960744,
+    "actorNormal": [
+      -0.2917042909069574, -0.9553519568955139, 0.04702387821502736
+    ]
+  },
+  "minDistance": 0.1433027935343351,
+  "nearest": {
+    "actorFace": 26495,
+    "gemFace": 2
+  },
+  "rows": [
+    {
+      "guardAmount": 1,
+      "reverseEdgeCrossings": 0,
+      "actorVerticesInside": 0,
+      "crystalComponents": 3,
+      "hits": [],
+      "inside": [],
+      "forwardEdgeCrossings": 0,
+      "parity": [
+        [0, 0, 0],
+        [0, 0, 0],
+        [0, 0, 0]
+      ]
+    },
+    {
+      "guardAmount": 0.5,
+      "reverseEdgeCrossings": 0,
+      "actorVerticesInside": 0,
+      "crystalComponents": 3,
+      "hits": [],
+      "inside": [],
+      "forwardEdgeCrossings": 0,
+      "parity": [
+        [0, 0, 0],
+        [0, 0, 0],
+        [0, 0, 0]
+      ]
+    },
+    {
+      "guardAmount": 0,
+      "reverseEdgeCrossings": 0,
+      "actorVerticesInside": 0,
+      "crystalComponents": 3,
+      "hits": [],
+      "inside": [],
+      "forwardEdgeCrossings": 0,
+      "parity": [
+        [0, 0, 0],
+        [0, 0, 0],
+        [0, 0, 0]
+      ]
+    }
+  ]
+}

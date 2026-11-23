@@ -1,4 +1,5 @@
 import * as THREE from "three";
+import { BERMUDA_WORLD } from "./bermuda_config.js";
 
 /** 三组长涌浪叠加；船只视觉与水面取同一相位，碰撞随船姿同步。 */
 export function stormWaveHeight(x, z, time) {
@@ -11,6 +12,10 @@ export function stormWaveHeight(x, z, time) {
 
 /** GPU涌浪和解析法线；波峰泡沫按坡度出现，不再在起伏网格上保留平面法线。 */
 export function createStormWater(root, keep, time) {
+  const center = new THREE.Vector2(
+    (BERMUDA_WORLD.minX + BERMUDA_WORLD.maxX) / 2,
+    (BERMUDA_WORLD.minZ + BERMUDA_WORLD.maxZ) / 2,
+  );
   const material = keep(
     new THREE.MeshStandardMaterial({
       color: "#214652",
@@ -24,8 +29,10 @@ export function createStormWater(root, keep, time) {
   );
   material.onBeforeCompile = (shader) => {
     shader.uniforms.stormTime = time;
+    shader.uniforms.stormCenter = { value: center };
     const wave = `
       uniform float stormTime;
+      uniform vec2 stormCenter;
       varying float vStormCrest;
       varying vec2 vStormOcean;
       vec3 stormWave(vec2 p) {
@@ -40,7 +47,7 @@ export function createStormWater(root, keep, time) {
       .replace("#include <common>", "#include <common>\n" + wave)
       .replace(
         "#include <beginnormal_vertex>",
-        "#include <beginnormal_vertex>\nvec2 stormP=vec2(position.x, -position.y-505.0);vec3 swell=stormWave(stormP);objectNormal=normalize(vec3(-swell.y,swell.z,1.0));",
+        "#include <beginnormal_vertex>\nvec2 stormP=vec2(position.x,-position.y)+stormCenter;vec3 swell=stormWave(stormP);objectNormal=normalize(vec3(-swell.y,swell.z,1.0));",
       )
       .replace(
         "#include <begin_vertex>",
@@ -60,13 +67,20 @@ export function createStormWater(root, keep, time) {
       diffuseColor.rgb*=.85+.15*grain;`,
       );
   };
-  material.customProgramCacheKey = () => "bermuda_swell_normals_foam_v2";
+  material.customProgramCacheKey = () => "bermuda_swell_normals_foam_v3";
   const water = new THREE.Mesh(
-    keep(new THREE.PlaneGeometry(2800, 3000, 200, 220)),
+    keep(
+      new THREE.PlaneGeometry(
+        BERMUDA_WORLD.maxX - BERMUDA_WORLD.minX + 1800,
+        BERMUDA_WORLD.maxZ - BERMUDA_WORLD.minZ + 1100,
+        200,
+        220,
+      ),
+    ),
     material,
   );
   water.rotation.x = -Math.PI / 2;
-  water.position.set(0, 4, -505);
+  water.position.set(center.x, BERMUDA_WORLD.surfaceY, center.y);
   water.name = "bermuda_storm_water";
   root.add(water);
   return { water, material };

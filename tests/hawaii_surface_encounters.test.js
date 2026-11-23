@@ -26,7 +26,7 @@ test("Hawaii keeps small real jellies in nine discoverable loose groups without 
   for (const region of ["bermuda", "atlantis", "mariana"])
     assert.equal(
       getRegionSpecies(region).find((s) => s.kind === "moon_jelly").population,
-      12,
+      region === "bermuda" ? 20 : 12,
     );
   const o = createOcean(new THREE.Group());
   try {

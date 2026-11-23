@@ -190,7 +190,13 @@ export class RecordedMusic {
   }
 
   /** 按实际交战和追击选择音乐；2.5 秒退出延迟避免频繁切换。 */
-  update({ boss = false, bossKind = null, pursuing = false } = {}) {
+  update({
+    boss = false,
+    bossKind = null,
+    pursuing = false,
+    cave = false,
+    escaping = false,
+  } = {}) {
     if (!this.ready) return false;
     const now = this.context.currentTime;
     if (boss) {
@@ -201,25 +207,33 @@ export class RecordedMusic {
           : "lord";
     }
     if (pursuing) this.pursuitUntil = now + 2.5;
+    const caveActive =
+        this.region === "bermuda" && cave && this.buffers.has("cave"),
+      escapeActive = this.region === "bermuda" && escaping;
     const next =
       now < this.bossUntil
         ? this.heldBoss
-        : now < this.pursuitUntil
+        : now < this.pursuitUntil || escapeActive
           ? "chase"
-          : "explore";
+          : caveActive
+            ? "cave"
+            : "explore";
     if (next !== this.state) {
       const ambush = next === "lord" || next === "sage";
       const incoming =
         this.tracks.get(next) || this.createTrack(next, now, ambush);
-      const duration = !this.state
-        ? ambush
-          ? 0.01
-          : 1
-        : ambush
-          ? 0.01
-          : next === "chase"
-            ? 6
-            : 8;
+      const duration =
+        escapeActive && next === "chase"
+          ? 0.35
+          : !this.state
+            ? ambush
+              ? 0.01
+              : 1
+            : ambush
+              ? 0.01
+              : next === "chase"
+                ? 6
+                : 8;
       for (const track of this.tracks.values())
         this.fade(
           track,

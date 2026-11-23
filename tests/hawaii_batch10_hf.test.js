@@ -179,7 +179,7 @@ test("re-unwrapped fish and jelly atlases keep each triangle inside one chart", 
 test("regional jelly stock follows the Hawaii encounter revision while biological dimensions stay unchanged", () => {
   const counts = {
     hawaii: [24, 27, 36, 8],
-    bermuda: [30, 0, 12, 8],
+    bermuda: [30, 0, 20, 12],
     atlantis: [0, 0, 12, 8],
     mariana: [0, 0, 12, 8],
   };

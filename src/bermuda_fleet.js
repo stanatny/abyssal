@@ -25,7 +25,7 @@ export function createBermudaFleet(parent, options = {}) {
     makeFreighter("storm_tanker", 145, 27, m, keep),
   ];
   ships.forEach((ship, i) => {
-    ship.anchor = new THREE.Vector3(i ? 125 : -85, 4, i ? -660 : -365);
+    ship.anchor = new THREE.Vector3(i ? 265 : -245, 4, i ? -1110 : -550);
     ship.phase = i * 2 + 0.6;
     ship.kind = "cruise";
     ship.label = i ? "风暴远洋油轮" : "钢岬号货轮";
@@ -33,7 +33,7 @@ export function createBermudaFleet(parent, options = {}) {
   });
   const ghost = createFlyingDutchman(m, keep);
   root.add(ghost.root);
-  ghost.anchor = new THREE.Vector3(-172, 4, -265);
+  ghost.anchor = new THREE.Vector3(210, 4, -460);
   ghost.heading = 0;
   ghost.phase = 1.4;
   ghost.label = "飞翔的荷兰人号";
@@ -53,7 +53,7 @@ export function createBermudaFleet(parent, options = {}) {
     }));
     colliders.push(...ship.colliders);
   }
-  const rig = createBermudaOilRig(m, keep, options.heightAt);
+  const rig = createBermudaOilRig(m, keep, options.heightAt, [-45, 4, -1100]);
   root.add(rig.root);
   colliders.push(...rig.colliders);
   const impact = createSurfaceShipImpact(parent, ships, colliders, options);
@@ -291,6 +291,8 @@ export function createBermudaFleet(parent, options = {}) {
   let lastStep = 0;
   function reset() {
     impact.reset();
+    // 冲撞系统只恢复可破坏轮船；幽灵船和平台也必须重新加入实际运动碰撞集。
+    colliders.push(...ghost.colliders, ...rig.colliders);
     effects.reset();
     windup = -1;
     nextAttack = 0;

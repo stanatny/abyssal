@@ -148,7 +148,7 @@ export function resolveCreatureMotion(
   desired,
   direction,
   habitat,
-  { colliders, heightAt, territory = null },
+  { colliders = [], heightAt, territory = null, dynamicContacts = null },
 ) {
   const world = habitat.worldBounds || WORLD;
   if (
@@ -168,7 +168,7 @@ export function resolveCreatureMotion(
     0.45,
     habitat.length * (habitat.swimClearance ?? 0.18),
   );
-  if (!colliders?.length) return null;
+  if (!colliders?.length && !dynamicContacts) return null;
   const extent = Math.max(0, habitat.length * 0.42 - radius);
   const bounds = {
     minX: territory?.minX ?? world.minX + 8,
@@ -224,12 +224,22 @@ export function resolveCreatureMotion(
           !needsVerticalProjection(previous, { bounds, floorHeight }) &&
           !needsVerticalProjection(desired, { bounds, floorHeight }),
       });
-  if (!candidates.length) return null;
+  const moving =
+    dynamicContacts?.(previous, desired, {
+      radius,
+      padding: extent + travel + 0.1,
+      // 这里只判断是否需要求解，保留投影/脱困前的宽相；实际子查询再按真实线段筛选。
+      segment: false,
+    }) || [];
+  if (!candidates.length && !moving.length) return null;
   const heading = normalize(direction, { x: 0, y: 0, z: -1 });
   const maxY = bounds.maxY;
   const options = {
-    colliders: (start, end, dimensions) =>
-      cached.grid.query(start, end, dimensions),
+    colliders: (start, end, dimensions) => {
+      const fixed = cached.grid.query(start, end, dimensions);
+      const moving = dynamicContacts?.(start, end, dimensions);
+      return moving?.length ? [...fixed, ...moving] : fixed;
+    },
     radius,
     forward: heading,
     length: habitat.length,

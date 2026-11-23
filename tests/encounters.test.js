@@ -74,6 +74,48 @@ function fixture(kind, floor = -900) {
   };
 }
 
+test("Dormant out-of-territory lords skip unused player sight rays while nearby cover still controls engagement", () => {
+  const f = fixture("hydra");
+  try {
+    let sightQueries = 0;
+    const blocked = (_from, to) => {
+      if (to === f.position) sightQueries++;
+      return true;
+    };
+    f.position.set(500, -400, 500);
+    for (let i = 0; i < 20; i++) f.step(0.05, blocked);
+    assert.equal(sightQueries, 0);
+    assert.equal(f.entry.state.phase, "dormant");
+    assert.equal(f.events.hits, 0);
+    f.position.copy(f.entry.home).add(new THREE.Vector3(0, 0, -95));
+    f.step(0.05, blocked);
+    assert.ok(sightQueries > 0);
+    assert.equal(f.entry.state.phase, "dormant");
+    f.step(0.05, () => false);
+    assert.equal(f.entry.state.phase, "hunt");
+  } finally {
+    f.encounters.dispose();
+  }
+});
+
+test("Persistent pursuit retains a fresh sight ray outside the original home territory", () => {
+  const f = fixture("sword_sage");
+  try {
+    f.entry.state.pursuitStarted = true;
+    f.position.set(500, -400, 500);
+    let sightQueries = 0;
+    f.step(0.05, (_from, to) => {
+      if (to === f.position) sightQueries++;
+      return false;
+    });
+    assert.ok(sightQueries > 0);
+    assert.equal(f.entry.state.pursuitStarted, true);
+    assert.equal(f.entry.state.phase, "hunt");
+  } finally {
+    f.encounters.dispose();
+  }
+});
+
 test("Restart clears an old Kraken grip even when that pooled lord is not selected", () => {
   const f = fixture("kraken");
   f.entry.grapple.held = true;

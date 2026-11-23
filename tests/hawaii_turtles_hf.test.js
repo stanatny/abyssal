@@ -181,7 +181,7 @@ test("both turtle types retain regional memberships, lengths and stocks", () => 
       ["archelon", 4.5, 9, 1],
     ],
     atlantis: [],
-    bermuda: [["turtle", 1.2, 8, 2]],
+    bermuda: [["turtle", 1.2, 16, 2]],
     mariana: [],
     odyssey: [],
     europa: [],

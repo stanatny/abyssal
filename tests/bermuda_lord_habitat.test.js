@@ -11,7 +11,8 @@ import {
   castIndexedSegment,
   queryStaticColliders,
 } from "../src/static_collider_grid.js";
-import { WORLD } from "../src/world_config.js";
+import { BERMUDA_WORLD as WORLD } from "../src/bermuda_config.js";
+import { BERMUDA_LORD_SITES } from "../src/bermuda_lord_sites.js";
 
 // 仅替换文字贴图；海床三角面、实体、领主模型、状态机和移动都使用正式代码。
 const noop = () => {};
@@ -274,7 +275,47 @@ test("All four Bermuda lords start above the real seabed before any floor projec
       `${entry.id}: horizontal territory envelope inside playable world`,
     );
   }
-  assertPosedClear(f, f.leviathan, "Leviathan initial home");
+  assert.strictEqual(f.region.bossInstances, BERMUDA_LORD_SITES);
+  for (const entry of entries)
+    assertPosedClear(f, entry, `${entry.id} initial body`);
+  const hydra = entries.find((e) => e.id === "bermuda_hydra"),
+    crown = new THREE.Box3().setFromObject(hydra.mesh).max.y;
+  assert.ok(
+    crown > 1 && crown < WORLD.surfaceY + 1,
+    `Hydra's real heads reach the waterline: ${crown}`,
+  );
+  assert.equal(hydra.maxCenterY, -17);
+  for (let i = 0; i < entries.length; i++)
+    for (let j = i + 1; j < entries.length; j++) {
+      const a = entries[i],
+        b = entries[j],
+        horizontal = Math.hypot(a.home.x - b.home.x, a.home.z - b.home.z);
+      assert.ok(
+        horizontal > a.radius + b.radius + 60,
+        `${a.id}/${b.id}: separated horizontal arenas`,
+      );
+      assert.ok(
+        a.home.distanceTo(b.home) > a.radius + b.radius + 100,
+        `${a.id}/${b.id}: separated water volumes`,
+      );
+    }
+  const wreckBounds = new THREE.Box3().setFromObject(f.ocean.wreck.root),
+    kraken = entries.find((e) => e.id === "bermuda_kraken");
+  assert.ok(kraken.home.x < wreckBounds.min.x - 70);
+  assert.ok(
+    wreckBounds.distanceToPoint(kraken.home) < 130,
+    "Kraken guards the real west side of the Titanic",
+  );
+  for (const site of BERMUDA_LORD_SITES.filter((s) => s.kind !== "kraken")) {
+    const landmark = f.ocean.landmarks.find((l) => l.id === site.landmarkId);
+    assert.ok(landmark, `${site.kind}: corresponding real landmark`);
+    assert.ok(
+      Math.hypot(
+        site.home[0] - landmark.position.x,
+        site.home[2] - landmark.position.z,
+      ) < 190,
+    );
+  }
   const { depthMin, depthMax } = f.leviathan.state.species;
   assert.ok(-f.leviathan.home.y >= depthMin && -f.leviathan.home.y <= depthMax);
 });

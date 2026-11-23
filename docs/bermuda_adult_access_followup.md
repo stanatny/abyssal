@@ -1,0 +1,35 @@
+# Bermuda adult access and escape HUD follow-up — 2026-11-23
+
+The player asked to continue the unfinished cave work and requires a verifiable candidate link after every modification. This candidate repairs the physical adult paw approach and the small-character escape HUD. It remains uncommitted; main and the formal Pages release are unchanged.
+
+## Physical route and local wrist
+
+The real western-den junction previously crossed 188 actual 25 m Orca triangles at the waiting pose. Its opening now starts at main-shell row 3 rather than 6, with 20 m extra junction width. The annex smoothly returns to its original rear widths by u=.47, preserving the old external reef/current passage and closed western cap. Actual shell triangles and contact generation agree. The water-proof subdivision includes its 0.05 m query/contact skin and independently refills real material faces; the unchanged 2 m exterior fit audit checks 3,871 main inward faces with no uncovered faces and worst intrusion 1.2174 m.
+
+A genuine local wrist release increases from .26 to .36 radians. The head, trunk and other supporting feet remain fixed. One thin seam triangle exposed a poor original blend: the derived weight at raw vertex 12554 changes from .6555234145 to .625475362, computed by projection between its welded endpoints 12527/12553. No raw HF, rest position, UV, jewel position or visible rock geometry changes. Existing all-face deformation checks retain their 16% minimum area requirement and reject flipped faces. The unconditional .30 and .36 trials are preserved as rejected evidence.
+
+The continuous contact cache is regenerated for [0,.36], retaining all 15,606 parent faces and 74,658 conservative patches. Its source hashes and actual Float32 skin weights match. Eight coarse rock leaves become 352 conservative full-column capsules; complete solid/source surface coverage remains below the unchanged 2 m fit bound. The fixed jewel and original 8 m pickup gate remain. Only the previously missing Squid30 witness changes; the other seven supported character/length records are identical.
+
+## Escape HUD
+
+The existing growth and nursery-observation text previously replaced the urgent escape instruction below 25 m. A small pure resolver now gives escape, physical sealing and entombed messages final priority in the actual HUD assignment. Both languages and ordinary hints retain their existing text. This does not alter quest clocks, survival, damage or victory rules.
+
+## Fresh evidence
+
+- All eight full-ocean supported 25/30 m character approaches reach the real jewel through ordinary shared collision and emit real pickup events. Whole-model/access checks pass 12/12, and contact/cache/actual-rock checks pass 20/20.
+- Shell/entrance/ecology/navigation checks pass; the former pending Squid fixture is now populated. A separate old cave-sites lord-home literal still fails identically with frozen pre-task cave modules and is retained as a baseline mismatch.
+- Actual HUD assignment tests reproduce four failing groups before the fix. The HUD/objective batch passes 14/14 afterwards. Actual local desktop and 390 px presentation fixtures pass escape/sealing/entombed states in both languages; these staged states are UI evidence, not gameplay clears. Invalid initial harness syntax and paused-screen captures remain archived and are excluded.
+- A controlled native 30 m Orca run performs real pickup, ordinary post-pickup keyboard movement, one ordinary fish meal, complete northern exit and physical closure. It finishes with health 100, hunger 37.5424, secured/relicCollected true and 16.5941 seconds remaining at escape. The initial adult wait, three solved seals and initial open window are staged once; pauses separate driver waypoints. No protection, healing, actor teleport or quest completion is applied during the route. A driver waypoint deadline at 9.56 m short of its target is retained; the same actor continues normally and secures the relic. This is not an unassisted puzzle, four-lord regional victory or all-character native timing proof. The earlier native attempt dies from starvation after a slow low target; that failed attempt is preserved.
+- Four actual populated-cave fixed observer stills show closed/open near and far views with unchanged global exposure and no page/console errors. They are paused scene observations, not native frame-rate or thermal measurements.
+
+The final combined 35-case batch currently passes 34 cases: its nearby lava-threat assertion remains unfulfilled after the legal wait assertion now succeeds. The original hazard code, damage and timing have not been tuned to silence that check. A bounded eight-seed follow-up confirms a real coverage gap, including with occlusion disabled: the mouth faces east at x=-154.858 while the wait is behind it at x=-200.4, and the selected sheets stay east of the mouth. Preserve the red assertion; the local lava difficulty gate is not accepted. The closing paw, rocks, pursuit and successful controlled escape do not prove this separate coverage requirement. Natural all-character puzzle/survival pacing, actual-device heat and full regional victory remain user acceptance limits.
+
+Ignored evidence, source snapshots, rejected variants, native recordings, reports and delivery receipts are under `.local/bermuda_access_resume_20261123/`. The restricted preview receives the exact current build with rollback retained; public bytes and compiled native startup are checked separately before link delivery.
+
+## Preview delivery
+
+Candidate `8bea5eedd80d1be2` is built and installed in the existing restricted runtime. Ten public resources, including the derived binding and continuous-contact cache, match the recorded artifact SHA-256 values; three private paths return 404. An actual compiled public browser passes home, Bermuda preparation, native start/dive, pause/resume, home and refresh with no page/console/request errors. The first home becomes ready in 67.731 s and reload in 9.096 s in this host run; these timings do not establish a loading-performance improvement. The current worker controls the refreshed page. A harmless same-URL public probe changes from A to B with no-store and is removed. User-network/device acceptance remains separate.
+
+Scoped JavaScript, tests and documentation formatting passes. The two generated binding/contact JSON files retain the same compact generator representation as their pre-task files; a broad formatting probe reports them, and frozen pre-task inputs reproduce those warnings through stdin. Geometry/data validation and baked source hashes remain authoritative for those generated artifacts. No format-only rebake or unrelated generated-data churn is introduced.
+
+The prior runtime is archived at `.local/mini_preview_20261007/runtime_before_20261123_173839`. Preview, tunnel and awake process identities are unchanged. Only the task development listener and test browsers are stopped. Live URL, process identities, source/artifact provenance, remaining limits and final attachment receipts are stored in ignored `current_preview_delivery.json` under the task evidence directory.

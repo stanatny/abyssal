@@ -132,8 +132,8 @@ test("all regional instances retain the existing creature size and populations",
       ["mosasaur", 13, 9],
     ],
     bermuda: [
-      ["pliosaur", 11, 5],
-      ["mosasaur", 13, 8],
+      ["pliosaur", 11, 12],
+      ["mosasaur", 13, 12],
     ],
     mariana: [
       ["pliosaur", 11, 17],

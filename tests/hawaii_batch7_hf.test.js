@@ -177,7 +177,8 @@ for (const kind of kinds) {
 test("four-kind redraw retains regional ecology and body sizes", () => {
   const expected = {
     hawaii: [28, 108, 40, 7],
-    bermuda: [16, 76, 38, 10],
+    // 当前获验收全图/洞穴补给与外海鱼群加密；其他海域和全部原有体长保持不变。
+    bermuda: [76, 344, 132, 18],
     atlantis: [24, 74, 36, 7],
     mariana: [16, 64, 32, 0],
   };

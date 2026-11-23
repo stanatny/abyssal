@@ -11,6 +11,7 @@ import {
 import { createCreature } from "../src/creatures.js";
 import {
   habitatPosition,
+  initialSpeciesAnchor,
   steerResidentHabitat,
 } from "../src/ecosystem_population.js";
 import { WORLD } from "../src/world_config.js";
@@ -173,10 +174,12 @@ test("Relative sweep detects a character crossing a fast shot, without repeat se
 test("Benthic residents spawn on sampled floors and ignore vertical slope when returning to habitat", () => {
   for (const region of ["hawaii", "atlantis", "bermuda", "mariana"]) {
     const species = getRegionSpecies(region).find(
-        (s) => s.kind === "spiny_lobster",
-      ),
-      heightAt = (x, z) => -25 + x * 0.2 - z * 0.1;
+      (s) => s.kind === "spiny_lobster",
+    );
     for (let i = 0; i < species.population; i++) {
+      // 保留原斜率，只平移局部原点；不能把扩大地图的合法锚点放在出水的假平面上。
+      const anchor = initialSpeciesAnchor(species, i),
+        heightAt = (x, z) => -35 + (x - anchor.x) * 0.2 - (z - anchor.z) * 0.1;
       const p = habitatPosition(species, {
         heightAt,
         populationIndex: i,

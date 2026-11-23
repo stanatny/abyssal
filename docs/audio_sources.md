@@ -255,3 +255,40 @@ Processing: preserve raw sources; automatic onset trim, DC removal, 5 ms attack 
 Semantic generation briefs: key—short bright conch/bronze/pearl discovery; mechanism—bronze unlocking with a three-note resonant completion; guardian—heavy seal rupture then relieved crystal resonance; chest—latch, lid and luminous ascending treasure release. Prompts exclude voice, continuous music, ambient noise and explosions. Complete verbatim prompts, generation parameters and source/output hashes are retained in local receipts.
 
 Runtime contract: key and mechanism edges emit once; both puzzle families call the identical `mechanism` cue; only the randomly selected true chest guardian emits `guardian`; a qualified nearby player with clear access starts chest opening and emits `chest`. Acquiring all seals while distant does not open or sound the chest. Pausing, muting, resetting or changing maps stops active quest tails. Loading never queues a stale event; unavailable samples use four distinct short fallback motifs. Four recorded quest voices maximum, normal end releases nodes.
+
+## Bermuda slumber-cave cue — 2026-11-21 candidate
+
+`src/music_bermuda_cave.js` is an original, slow 46 BPM score built from the
+existing bowed and bell synthesis voices. Its sparse minor/harmonic phrases
+share the ordinary music graph, depth filter, ducking and voice cleanup. The
+procedural fallback and the locally bundled `bermuda_cave.m4a` use the same
+score. This new cue is not a Hugging Face recording or a field recording; the
+previous 22 accepted regional recordings retain their original bytes and terms.
+The asset ledger records both the original PCM and AAC hashes.
+
+A native `OfflineAudioContext` rendered 62 seconds at 32 kHz through the real
+`OceanAudio` graph. The 60.2-second runtime edit uses AAC 128 kb/s with -26 LUFS
+normalization and a -3 dBTP ceiling. Its loop ends at 59.6 seconds and uses the
+existing crossfade overlap. The main cave, including its western private den,
+selects this cue; real pursuit or relic escape selects the existing chase cue,
+with a 0.35-second escape entry. Engaged lords retain priority. Other maps ignore
+cave/escape flags. No new render or audio update loop is introduced.
+
+The native AudioContext fixture captured the actual graph and local AAC decode,
+cave-to-escape entry, pause/suspended clock, mute/no sources, resume, reset and
+map switch. Its recorded signal measured -25.1 dB mean and -12.5 dB peak; these
+are objective signal checks, not subjective listening. Audio input is unavailable
+to this agent, so timbre and comfort still need player listening. Evidence:
+`.local/bermuda_titan_approved_20261121/music/native_audio.json`,
+`native_cue_graph.webm`, `native_signal.log` and `render.json`.
+
+At the browser's 48 kHz decode rate, the four Bermuda music buffers total
+92,236,800 bytes; the added cue contributes about 23 MB of decoded memory.
+Only the selected region retains these buffers. This is a cost disclosure,
+not a claim of performance improvement or of physical-phone validation.
+
+The two existing quest cues are reused only for Bermuda seal completion and
+actual relic pickup. The titan's nearby charging/release edges reuse the
+accepted Leviathan warning and short `lord_breath.wav` release through the
+bounded existing effect pipeline. It is an environmental actor and does not
+start lord combat music or create a fifth lord.

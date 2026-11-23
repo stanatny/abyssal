@@ -130,7 +130,8 @@ test("all regional instances retain the existing creature size and populations",
       ["basilosaurus", 18, 8],
       ["megalodon", 20, 9],
     ],
-    bermuda: [["megalodon", 20, 9]],
+    // 当前获验收洞穴在原14只之外增加两只各守独立家的猎食者；HF重绘不改变其体长。
+    bermuda: [["megalodon", 20, 16]],
     mariana: [
       ["basilosaurus", 18, 12],
       ["megalodon", 20, 15],

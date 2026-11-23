@@ -2127,7 +2127,9 @@ export function createEncounters(
       entry.mesh.visible = true;
       entry.label.visible = homeDistance < 175 && !inTerritory;
       entry.contactCooldown = Math.max(0, entry.contactCooldown - dt);
-      const sight = !blockedBetween(entry.mesh.position, position);
+      // 脱离交战时状态机先返回，后续攻击也不会读取视线；持续追击领主仍由inTerritory保留检测。
+      const sight =
+        inTerritory && !blockedBetween(entry.mesh.position, position);
       tickBoss(state, dt, {
         inTerritory: inTerritory && !state.locked,
         distance,

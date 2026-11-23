@@ -2,18 +2,33 @@ import * as THREE from "three";
 import { createBermudaBuilder } from "./bermuda_geometry.js";
 import { acquireBermudaRigAsset } from "./bermuda_rig_asset.js";
 
-/** 原支脚/桩基与碰撞契约保留；新生成上层统一装配，资源由船队所有者释放。 */
-export function createBermudaOilRig(m, keep, heightAt = () => -370) {
+/** 原支脚平面与碰撞顺序保留；坡地基础覆盖完整足迹，资源由船队所有者释放。 */
+export function createBermudaOilRig(
+  m,
+  keep,
+  heightAt = () => -370,
+  site = [210, 4, -450],
+) {
   const root = new THREE.Group();
   root.name = "bermuda_offshore_oil_rig";
-  const origin = new THREE.Vector3(210, 4, -450);
+  const origin = new THREE.Vector3(...site);
   root.position.copy(origin);
   const b = createBermudaBuilder(root, keep, origin);
   for (const x of [-16, 16])
     for (const z of [-20, 20]) {
-      const base = heightAt(origin.x + x, origin.z + z) - origin.y;
+      let low = Infinity,
+        high = -Infinity;
+      // 脚垫宽十米，不能只取中心高度，否则倾斜海床会露出悬空底面。
+      for (let dx = -5; dx <= 5; dx += 0.5)
+        for (let dz = -5; dz <= 5; dz += 0.5) {
+          const y = heightAt(origin.x + x + dx, origin.z + z + dz) - origin.y;
+          low = Math.min(low, y);
+          high = Math.max(high, y);
+        }
+      const base = low - (high - low > 0.000001 ? 0.15 : 0),
+        top = high + 4;
       b.box(m.steel, [x, (base + 15) / 2, z], [4.5, 15 - base, 4.5], true);
-      b.box(m.rust, [x, base + 2, z], [10, 4, 10], true);
+      b.box(m.rust, [x, (base + top) / 2, z], [10, top - base, 10], true);
       for (let y = base + 20; y < 13; y += 28) {
         // 支撑斜杆止于甲板底部，不能像旧版一样刺穿上层设备。
         const top = Math.min(y + 24, 13);

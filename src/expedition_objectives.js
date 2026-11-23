@@ -71,10 +71,11 @@ export const REGION_OBJECTIVES = Object.freeze({
     food: "月下鱼群 → 城区猎手 → 地宫巨兽",
   }),
   bermuda: Object.freeze({
-    kind: "all_lords",
+    kind: "lords_and_titan_relic",
     minimumLength: 25,
-    summary: "击败本海域全部四位深渊领主。",
-    completed: "四位深渊领主全部被征服。",
+    summary:
+      "击败四位深渊领主，解开沉眠巢穴封印，夺取晶核，并在惊动巨兽后60秒内逃出洞穴。",
+    completed: "四位领主已征服，晶核已安全带出，沉眠巢穴已封闭。",
     difficulty: "高危征服",
     food: "安全鱼群 → 沉船猎手 → 风暴巨兽",
   }),
@@ -135,6 +136,7 @@ export function createExpeditionObjective(region, random = Math.random) {
     guardianDefeated: false,
     relicUnlocked: false,
     relicCollected: false,
+    titanRelicCollected: false,
     required: ids.length || 1,
   };
 }
@@ -157,6 +159,7 @@ export function advanceExpeditionObjective(
     clueContact = false,
     trenchArrived = false,
     mechanismSolved = false,
+    titanRelicCollected = false,
   } = {},
 ) {
   for (const b of bosses)
@@ -166,6 +169,7 @@ export function advanceExpeditionObjective(
       (!objective.localIds || objective.localIds.has(b.id))
     )
       objective.defeated.add(b.id);
+  const hadTitanRelic = objective.titanRelicCollected;
   const wasUnlocked = objective.relicUnlocked;
   const wasCollected = objective.relicCollected;
   const hadKey = objective.keyCollected;
@@ -193,17 +197,23 @@ export function advanceExpeditionObjective(
     relicContact
   )
     objective.relicCollected = true;
+  if (objective.regionId === "bermuda" && alive && titanRelicCollected)
+    objective.titanRelicCollected = true;
   const finished =
-    rule.kind === "hidden_relic"
-      ? objective.relicCollected
-      : rule.kind === "all_lords"
-        ? objective.defeated.size >= objective.required
-        : rule.kind === "trench_descent"
-          ? trenchArrived && objective.defeated.size >= objective.required
-          : objective.defeated.size >= 1;
+    rule.kind === "lords_and_titan_relic"
+      ? objective.defeated.size >= objective.required &&
+        objective.titanRelicCollected
+      : rule.kind === "hidden_relic"
+        ? objective.relicCollected
+        : rule.kind === "all_lords"
+          ? objective.defeated.size >= objective.required
+          : rule.kind === "trench_descent"
+            ? trenchArrived && objective.defeated.size >= objective.required
+            : objective.defeated.size >= 1;
   player.expeditionComplete = finished;
   player.won = alive && player.length >= rule.minimumLength && finished;
   return {
+    titanRelicFound: objective.titanRelicCollected && !hadTitanRelic,
     mechanismCompleted: objective.mechanismSolved && !hadMechanism,
     guardianFound: objective.guardianDefeated && !hadGuardian && alive,
     keyFound: objective.keyCollected && !hadKey,
@@ -245,7 +255,9 @@ export function expeditionObjectiveHint(objective, player) {
   if (objective.regionId === "amazon")
     return message`河道主宰 ${objective.defeated.size}/${objective.required} · 成长至30米`;
   if (objective.regionId === "bermuda")
-    return message`征服四位深渊领主 · ${objective.defeated.size}/4`;
+    return objective.titanRelicCollected
+      ? message`领主 ${objective.defeated.size}/4 · 晶核已安全带出`
+      : message`领主 ${objective.defeated.size}/4 · 深海沉眠巢穴寻宝`;
   return objective.defeated.size
     ? "深渊印记已得 · 成长至 30 米"
     : "25 米后挑战主宰 · 接触咬击";

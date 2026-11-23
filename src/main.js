@@ -1,4 +1,6 @@
 import { createWaterwheelUI } from "./atlantis_waterwheel_ui.js";
+import { createTitanPickupTremor } from "./bermuda_titan_camera.js";
+import { prioritizeTitanEscapeHint } from "./bermuda_titan_hud.js";
 import {
   creaturePitchLimit,
   updateCreatureAttitude,
@@ -820,7 +822,10 @@ async function selectRegion(region) {
       regionId: region.id,
       surfaceMode: region.surfaceMode,
       worldBounds: region.world || WORLD,
-      heightAt: nextOcean.heightAt || baseSeabedHeight,
+      heightAt:
+        region.id === "bermuda"
+          ? nextOcean.contactSurface
+          : nextOcean.heightAt || baseSeabedHeight,
       waterHeightAt: nextOcean.waterHeightAt,
       onDamage() {
         hitFlash = 0.9;
@@ -1198,104 +1203,107 @@ function updateSonar() {
       entity: entities.find((entry) => isRegionalRare(entry.species)),
       regionId: expedition.region.id,
     }),
-    waypoints: ocean.guardianWaypoints
-      ? ocean.guardianWaypoints
-          .filter(
-            (g) =>
-              g.id !== "penglai_sage" ||
-              encounters.bosses
-                .filter((b) => b.enabled && b.id !== "penglai_sage")
-                .every((b) => b.state.defeated),
-          )
-          .map((g) => ({
-            x: g.home[0],
-            y: g.home[1],
-            z: g.home[2],
-            guardian: true,
-            open: encounters.bosses.some(
-              (b) => b.enabled && b.id === g.id && b.state.defeated,
-            ),
-            final: g.id === "penglai_sage",
-          }))
-          .sort(
-            (a, b) =>
-              Math.hypot(a.x - position.x, a.z - position.z) -
-              Math.hypot(b.x - position.x, b.z - position.z),
-          )
-      : ocean.progress
-        ? ocean.progress.opened === MARIANA_GATES.length
-          ? [{ ...MARIANA_REFUGE, open: false, final: true }]
-          : MARIANA_GATES.map((g, i) => ({
-              x:
-                g.guideToGuardian && i >= ocean.progress.opened
-                  ? g.home[0]
-                  : g.x,
-              y:
-                g.guideToGuardian && i >= ocean.progress.opened
-                  ? g.home[1]
-                  : -g.depth,
-              z:
-                g.guideToGuardian && i >= ocean.progress.opened
-                  ? g.home[2]
-                  : g.z,
-              guardian: Boolean(
-                g.guideToGuardian && i >= ocean.progress.opened,
-              ),
-              open: i < ocean.progress.opened,
-            }))
-        : objectiveState?.relicUnlocked && !objectiveState.relicCollected
-          ? [{ ...ATLANTIS_RELIC, open: false, relic: true }]
-          : objectiveState?.regionId === "atlantis" &&
-              (objectiveState.clueRead ||
-                objectiveState.mechanismSolved ||
-                ocean.muralPath)
-            ? [
-                ...(objectiveState.mechanismSolved &&
-                !objectiveState.guardianDefeated
-                  ? [
-                      {
-                        ...encounters.bosses.find(
-                          (b) => b.id === objectiveState.guardianId,
-                        )?.home,
-                        open: false,
-                        guardian: true,
-                      },
-                    ]
-                  : []),
-                ...(objectiveState.clueRead && !objectiveState.keyCollected
-                  ? [
-                      {
-                        ...ocean.relic.keyArt.getGuidancePoint(
-                          objectiveState.keySiteId,
-                        ),
-                        open: false,
-                        key: true,
-                      },
-                    ]
-                  : []),
-                ...(!objectiveState.mechanismSolved
-                  ? (ocean.muralPath
-                      ? ocean.muralPath.markers.map((m) => m.point)
-                      : ocean.lightSeal
-                        ? ocean.lightSeal.controls
-                        : [ocean.mechanism.entry]
-                    ).map((point, index) => ({
-                      ...point,
-                      open: false,
-                      mechanism: true,
-                      light: !!ocean.lightSeal,
-                      mural: !!ocean.muralPath,
-                      index: ocean.muralPath
-                        ? ocean.muralPath.markers[index].index
-                        : index + 1,
-                    }))
-                  : []),
-              ].sort(
+    waypoints:
+      ocean.titanQuest && !ocean.titanQuest.state.secured
+        ? titanWaypoints()
+        : ocean.guardianWaypoints
+          ? ocean.guardianWaypoints
+              .filter(
+                (g) =>
+                  g.id !== "penglai_sage" ||
+                  encounters.bosses
+                    .filter((b) => b.enabled && b.id !== "penglai_sage")
+                    .every((b) => b.state.defeated),
+              )
+              .map((g) => ({
+                x: g.home[0],
+                y: g.home[1],
+                z: g.home[2],
+                guardian: true,
+                open: encounters.bosses.some(
+                  (b) => b.enabled && b.id === g.id && b.state.defeated,
+                ),
+                final: g.id === "penglai_sage",
+              }))
+              .sort(
                 (a, b) =>
                   Math.hypot(a.x - position.x, a.z - position.z) -
                   Math.hypot(b.x - position.x, b.z - position.z),
               )
-            : [],
+          : ocean.progress
+            ? ocean.progress.opened === MARIANA_GATES.length
+              ? [{ ...MARIANA_REFUGE, open: false, final: true }]
+              : MARIANA_GATES.map((g, i) => ({
+                  x:
+                    g.guideToGuardian && i >= ocean.progress.opened
+                      ? g.home[0]
+                      : g.x,
+                  y:
+                    g.guideToGuardian && i >= ocean.progress.opened
+                      ? g.home[1]
+                      : -g.depth,
+                  z:
+                    g.guideToGuardian && i >= ocean.progress.opened
+                      ? g.home[2]
+                      : g.z,
+                  guardian: Boolean(
+                    g.guideToGuardian && i >= ocean.progress.opened,
+                  ),
+                  open: i < ocean.progress.opened,
+                }))
+            : objectiveState?.relicUnlocked && !objectiveState.relicCollected
+              ? [{ ...ATLANTIS_RELIC, open: false, relic: true }]
+              : objectiveState?.regionId === "atlantis" &&
+                  (objectiveState.clueRead ||
+                    objectiveState.mechanismSolved ||
+                    ocean.muralPath)
+                ? [
+                    ...(objectiveState.mechanismSolved &&
+                    !objectiveState.guardianDefeated
+                      ? [
+                          {
+                            ...encounters.bosses.find(
+                              (b) => b.id === objectiveState.guardianId,
+                            )?.home,
+                            open: false,
+                            guardian: true,
+                          },
+                        ]
+                      : []),
+                    ...(objectiveState.clueRead && !objectiveState.keyCollected
+                      ? [
+                          {
+                            ...ocean.relic.keyArt.getGuidancePoint(
+                              objectiveState.keySiteId,
+                            ),
+                            open: false,
+                            key: true,
+                          },
+                        ]
+                      : []),
+                    ...(!objectiveState.mechanismSolved
+                      ? (ocean.muralPath
+                          ? ocean.muralPath.markers.map((m) => m.point)
+                          : ocean.lightSeal
+                            ? ocean.lightSeal.controls
+                            : [ocean.mechanism.entry]
+                        ).map((point, index) => ({
+                          ...point,
+                          open: false,
+                          mechanism: true,
+                          light: !!ocean.lightSeal,
+                          mural: !!ocean.muralPath,
+                          index: ocean.muralPath
+                            ? ocean.muralPath.markers[index].index
+                            : index + 1,
+                        }))
+                      : []),
+                  ].sort(
+                    (a, b) =>
+                      Math.hypot(a.x - position.x, a.z - position.z) -
+                      Math.hypot(b.x - position.x, b.z - position.z),
+                  )
+                : [],
   });
   const character = getCharacter(player.characterId);
   const skill = character.active;
@@ -1611,10 +1619,16 @@ function addEntity(species, location, populationIndex = 0) {
         radius,
         length: entity.species.length,
         forward: direction,
-        colliders: queryStaticColliders(colliders, point, point, {
-          radius,
-          padding: entity.species.length * 0.42,
-        }),
+        colliders: [
+          ...queryStaticColliders(colliders, point, point, {
+            radius,
+            padding: entity.species.length * 0.42,
+          }),
+          ...(ocean.dynamicContacts?.(point, point, {
+            radius,
+            padding: entity.species.length * 0.42,
+          }) || []),
+        ],
       });
     };
   resetGroundNavigation(entity);
@@ -1792,6 +1806,91 @@ function seedPickups() {
   }
 }
 let objectiveState;
+// 超时已判死后只播放短暂崩塌，不再推进角色或允许继续逃生。
+let titanCollapseRemaining = 0;
+let titanRockWarningKey = null;
+const titanPickupTremor = createTitanPickupTremor();
+const titanCameraOffset = new THREE.Vector3();
+const titanCameraBase = new THREE.Vector3();
+const titanCameraTarget = new THREE.Vector3();
+function titanWaypoints() {
+  const quest = ocean.titanQuest,
+    state = quest.state,
+    body = { length: player.length, forward };
+  if (state.relicHeld) {
+    const point = ocean.caves.escapeWaypoint?.(position, body);
+    return point ? [{ ...point, titan: true, escape: true, open: false }] : [];
+  }
+  if (!ocean.caves.records[0].contains(position, 0)) {
+    const point = ocean.caves.entranceWaypoint?.(position, body);
+    return point
+      ? [{ ...point, titan: true, entrance: true, open: false }]
+      : [];
+  }
+  const point = state.barrierOpen
+    ? quest.records.relic
+    : quest.records.seals[state.completed].point;
+  return [
+    {
+      ...point,
+      titan: true,
+      relic: state.barrierOpen,
+      index: state.completed + 1,
+      open: false,
+    },
+  ];
+}
+function titanHazardAdvice(quest) {
+  const hazards = quest?.hazards;
+  if (!hazards) return null;
+  if (quest.state.guardClosing && quest.records.relic.distanceTo(position) < 45)
+    return "前爪即将压回 · 立即退到爪外";
+  if (hazards.rocks.some((rock) => rock.phase === "falling"))
+    return "坠石正在落下 · 侧向游开";
+  if (
+    hazards.lava.phase === "warning" &&
+    (hazards.lava.warningSheets?.length || hazards.lava.paths.length)
+  )
+    return "岩浆即将喷发 · 离开预警扇面";
+  if (hazards.lava.phase === "active" && hazards.lava.paths.length)
+    return "岩浆喷涌中 · 绕开熔流扇面";
+  if (hazards.lava.pools?.some((pool) => pool.harmful))
+    return "地面熔池仍炽热 · 绕开余温区域";
+  if (hazards.rocks.some((rock) => rock.phase === "warning"))
+    return "落石预警 · 离开地面标记";
+  return null;
+}
+function activeObjectiveHint() {
+  const quest = ocean.titanQuest;
+  const urgentHint = prioritizeTitanEscapeHint(
+    quest?.state,
+    null,
+    titanHazardAdvice(quest),
+  );
+  if (urgentHint) return urgentHint;
+  if (
+    quest &&
+    !quest.state.secured &&
+    ocean.caves.records[0].contains(position, 0)
+  ) {
+    const danger = titanHazardAdvice(quest);
+    if (danger) return danger;
+    const phase =
+      quest.state.phase === "cooldown"
+        ? "吐息间歇"
+        : quest.state.phase === "charging"
+          ? "岩浆蓄热"
+          : "岩浆喷发";
+    if (quest.state.phase === "charging") return "岩浆即将喷发 · 离开预警扇面";
+    if (quest.state.phase === "breath") return "岩浆喷涌中 · 绕开熔流扇面";
+    return quest.state.barrierOpen
+      ? quest.state.guardOpen
+        ? "前爪已卸重 · 取走晶核后退开"
+        : "前爪压护晶核 · 等待睡梦松掌"
+      : message`巢穴封印 ${quest.state.completed}/3 · ${phase} ${Math.ceil(quest.state.remaining)}秒`;
+  }
+  return expeditionObjectiveHint(objectiveState, player);
+}
 const keyArrival = createAtlantisKeyArrival();
 let keyClueContact = false;
 let keyNavigationNoticeUntil = 0;
@@ -1807,6 +1906,12 @@ function notify(source, duration = 3) {
   notificationUntil = elapsed + duration;
 }
 function resetExpedition(preserveWorld = false) {
+  titanCollapseRemaining = 0;
+  titanRockWarningKey = null;
+  titanPickupTremor.reset();
+  camera.position.sub(titanCameraOffset);
+  titanCameraOffset.set(0, 0, 0);
+  $("pause").disabled = false;
   bossHudEntry = null;
   notificationStartedAt = -Infinity;
   lordLockFeedback.reset();
@@ -1825,6 +1930,7 @@ function resetExpedition(preserveWorld = false) {
   keyNavigationNoticeUntil = 0;
   ocean.configureMechanism?.(objectiveState);
   ocean.relic?.reset();
+  ocean.titanQuest?.reset();
   selectAvatar(expedition.character);
   inkAbility = createInkState();
   position.fromArray(expedition.region.spawn);
@@ -2032,11 +2138,13 @@ function renderOverlay(kind) {
     won
       ? expedition.region.objective.completed
       : dead
-        ? player.hunger <= 0
-          ? "饥饿夺走了你的生命。长大后需要更大的猎物。"
-          : activeBoss
-            ? "主宰比冲刺更快。观察技能前摇、侧向闪避，并利用恢复期撤出领地。"
-            : "保留一段冲刺体力，借助岩柱切断追击者的视线。"
+        ? player.titanEntombed
+          ? "巨兽苏醒后的熔岩与落石吞没了洞穴。取宝前补足食物，记住出口，务必在60秒内完整游出。"
+          : player.hunger <= 0
+            ? "饥饿夺走了你的生命。长大后需要更大的猎物。"
+            : activeBoss
+              ? "主宰比冲刺更快。观察技能前摇、侧向闪避，并利用恢复期撤出领地。"
+              : "保留一段冲刺体力，借助岩柱切断追击者的视线。"
         : timeup
           ? "30分钟探索已结束。本次未达成海域目标，可以再次出发。"
           : "远征已暂停，生存与技能计时已停止。",
@@ -2140,6 +2248,7 @@ function queryWorldSegment(a, b, radius = 0) {
     staticColliders: ocean.colliders,
     dynamicColliders: [
       ...(ocean.barriers || []),
+      ...(ocean.dynamicContacts?.(a, b, { radius }) || []),
       ...surface.colliders,
       ...humans.colliders,
     ],
@@ -2163,15 +2272,23 @@ function playerFloorHeight(x, z) {
 }
 function resolvePlayerMotion(previous, merge = false) {
   const radius = bodyRadius(player.length);
-  // 各海域共用静态地形粗筛；船只与人类每次读取当前碰撞体，不能进入静态缓存。
-  const result = resolveIndexedMotion(previous, position, {
-    staticColliders: ocean.colliders,
-    dynamicColliders: [
+  const movingWorld = [
       ...(ocean.barriers || []),
       ...surface.colliders,
       ...humans.colliders,
+    ],
+    movingCreatures = [
       ...encounters.bodyColliders(position, player.length, previous),
       ...nearbyOrdinaryBodies(entities, position, player.length, previous),
+    ];
+  // 各海域共用静态地形粗筛；船只与人类每次读取当前碰撞体，不能进入静态缓存。
+  const result = resolveIndexedMotion(previous, position, {
+    staticColliders: ocean.colliders,
+    // 滑动和脱困会离开初始线段，前爪须按求解器的新位置重新粗筛。
+    dynamicColliders: (start, end, dimensions) => [
+      ...movingWorld,
+      ...(ocean.dynamicContacts?.(start, end, dimensions) || []),
+      ...movingCreatures,
     ],
     radius,
     forward,
@@ -2213,16 +2330,21 @@ function resolvePlayerMotion(previous, merge = false) {
 /** 仆从复用世界粗筛和多球扫掠，独立约束海床、冰顶及动态船体，不穿墙追食。 */
 function resolveMinionMotion(previous, desired, heading, length) {
   const r = bodyRadius(length);
+  const movingWorld = [
+      ...(ocean.barriers || []),
+      ...surface.colliders,
+      ...humans.colliders,
+    ],
+    movingCreatures = encounters.bodyColliders(desired, length, previous);
   // 地表支撑另行采样；露天水面的上界仍须保留倾斜身体的净空。
   const clearance =
     r + Math.abs(heading.y) * Math.max(0, length * 0.42 - r) + 0.4;
   return resolveIndexedMotion(previous, desired, {
     staticColliders: ocean.colliders,
-    dynamicColliders: [
-      ...(ocean.barriers || []),
-      ...surface.colliders,
-      ...humans.colliders,
-      ...encounters.bodyColliders(desired, length, previous),
+    dynamicColliders: (start, end, dimensions) => [
+      ...movingWorld,
+      ...(ocean.dynamicContacts?.(start, end, dimensions) || []),
+      ...movingCreatures,
     ],
     radius: r,
     forward: heading,
@@ -2375,7 +2497,7 @@ function updatePlayer(dt, roundDt) {
   if (current && !wasAirborne && !jet)
     position.addScaledVector(current.velocity, dt);
   if (current?.announced && !activeBoss)
-    notify("近海洋流正在形成 · 雷达箭头标出往返方向", 5);
+    notify("洋流正在形成 · 雷达箭头标出航路与流向", 5);
   if (current?.entered)
     notify(
       current.against
@@ -2522,13 +2644,17 @@ function updatePlayer(dt, roundDt) {
                 ? "慢游"
                 : "巡游";
   if (current?.route && current.speed > 3)
-    movementLabel = current.against
-      ? current.route.inbound
-        ? "逆流受阻 → 浅海"
-        : "逆流受阻 → 外海"
-      : current.route.inbound
-        ? "洋流 → 浅海"
-        : "洋流 → 外海";
+    movementLabel = current.route.name
+      ? current.against
+        ? message`逆流受阻 · ${current.route.name}`
+        : message`洋流 · ${current.route.name}`
+      : current.against
+        ? current.route.inbound
+          ? "逆流受阻 → 浅海"
+          : "逆流受阻 → 外海"
+        : current.route.inbound
+          ? "洋流 → 浅海"
+          : "洋流 → 外海";
   $("movement-mode").textContent = t(movementLabel);
   if ((boosting || jet) && Math.random() < 0.6) burst(position, 1);
   // 饥饿先由规则模块处理，熔岩只在贴近深海海底时灼伤。
@@ -2724,6 +2850,8 @@ function updateEntities(dt) {
     entity.cooldown = Math.max(0, entity.cooldown - dt);
     if (entity.telegraph) entity.telegraph.visible = false;
     if (entity.hiddenFor > 0) {
+      if (ocean.lairPursuer?.matches(species, entity.populationIndex))
+        ocean.lairPursuer.suspend();
       mesh.userData.electricCharge?.setPhase("idle");
       if (!feeding.has(mesh) && !minion.feeding.has(mesh)) mesh.visible = false;
       entity.hiddenFor -= dt;
@@ -2800,6 +2928,8 @@ function updateEntities(dt) {
       continue;
     }
     if (entity.disorientedUntil > player.elapsed) {
+      if (ocean.lairPursuer?.matches(species, entity.populationIndex))
+        ocean.lairPursuer.suspend();
       mesh.visible = mesh.position.distanceTo(position) < 180;
       mesh.userData.animate?.(elapsed + entity.seed, 0.05);
       if (entity.telegraph) entity.telegraph.visible = false;
@@ -2821,12 +2951,35 @@ function updateEntities(dt) {
     const distance = mesh.position.distanceTo(position),
       edible = canEat(player, species.length);
     mesh.visible = distance < speciesVisibilityDistance(species, highQuality);
-    const allowedHunt = canPredatorHunt(
+    const ordinaryHuntAllowed = canPredatorHunt(
       species,
       entity.populationIndex,
       mesh.position,
       position,
     );
+    const lairIntent = ocean.lairPursuer?.step(dt, {
+      species,
+      populationIndex: entity.populationIndex,
+      position: mesh.position,
+      player: position,
+      visible:
+        ocean.lairPursuer.matches(species, entity.populationIndex) &&
+        distance < 210 &&
+        !blockedBetween(mesh.position, position),
+      eligible:
+        ordinaryHuntAllowed &&
+        canPredatorRetaliate(
+          player.length,
+          species.length,
+          species.threatCeilingLength,
+        ),
+      playerAlive: !player.dead && !player.won,
+      awake: !!ocean.titanQuest?.state.relicHeld,
+      secured: !!ocean.titanQuest?.state.secured,
+      entombed: !!ocean.titanQuest?.state.entombed,
+    });
+    const allowedHunt =
+      ordinaryHuntAllowed && (!lairIntent || lairIntent.hunting);
     const predator =
       species.predator &&
       canPredatorRetaliate(
@@ -2871,6 +3024,8 @@ function updateEntities(dt) {
     )
       entity.chase = 4;
     else entity.chase = Math.max(0, entity.chase - dt);
+    if (lairIntent)
+      entity.chase = lairIntent.hunting ? Math.max(entity.chase, 0.25) : 0;
     const tailEligible =
       predator &&
       entity.chase > 0 &&
@@ -3100,6 +3255,12 @@ function updateEntities(dt) {
         direction,
       );
     }
+    // 特定巢穴追兵只改变路线意图；咬击/技能锁向/转身/实体接触仍沿用普通链路。
+    if (lairIntent?.target && !["windup", "active"].includes(hunter.phase)) {
+      direction.copy(lairIntent.target).sub(mesh.position);
+      if (direction.lengthSq() > 1e-8) direction.normalize();
+      if (lairIntent.hold) moveSpeed = 0;
+    }
     const schoolLayer = entity.school?.habitat;
     const layeredSchool = schoolLayer && schoolLayer !== species;
     const habitat =
@@ -3114,7 +3275,7 @@ function updateEntities(dt) {
       entity.populationIndex,
       mesh.position,
       direction,
-      predator && entity.chase > 0,
+      (predator && entity.chase > 0) || !!lairIntent?.returning,
     );
     direction.set(
       residentDirection.x,
@@ -3316,6 +3477,7 @@ function updateEntities(dt) {
         habitat,
         {
           colliders: navigationColliders,
+          dynamicContacts: ocean.dynamicContacts,
           heightAt: species.groundbound
             ? activeGroundHeight
             : activeSeabedHeight,
@@ -3522,6 +3684,7 @@ function updateEntities(dt) {
         habitat,
         {
           colliders: navigationColliders || ocean.colliders,
+          dynamicContacts: ocean.dynamicContacts,
           heightAt: activeSeabedHeight,
           territory,
         },
@@ -3675,6 +3838,8 @@ function shortenCamera(point) {
   point.copy(clipTerrainCamera(position, point, activeContactSurface()));
 }
 function updateCamera(dt) {
+  // 插值前移除上一帧的表现偏移，避免震颤累积漂移。
+  camera.position.sub(titanCameraOffset);
   const desired = followCameraPose();
   camera.position.lerp(desired.position, 1 - Math.exp(-3.5 * dt));
   shortenCamera(camera.position);
@@ -3697,7 +3862,17 @@ function updateCamera(dt) {
       aspect: camera.aspect,
     });
   }
-  camera.lookAt(lookTarget);
+  titanCameraBase.copy(camera.position);
+  const tremor = titanPickupTremor.step(dt, {
+    reducedMotion: reducedMotionQuery.matches,
+  });
+  titanCameraOffset.set(tremor.x, tremor.y, tremor.z);
+  camera.position.add(titanCameraOffset);
+  // 震颤沿用跟随相机的真实墙体与地形裁剪。
+  shortenCamera(camera.position);
+  titanCameraOffset.copy(camera.position).sub(titanCameraBase);
+  titanCameraTarget.copy(lookTarget).add(titanCameraOffset);
+  camera.lookAt(titanCameraTarget);
   camera.updateProjectionMatrix();
   // HUD在渲染前投影；旋转后的视图逆矩阵不能等到渲染器下一帧才更新。
   camera.updateMatrixWorld();
@@ -4176,7 +4351,7 @@ function updateHud() {
         ? "沿莲池与低空觅食 · 成长后探索仙山"
         : player.length < 25
           ? "寻找山间大食物 · 25米后挑战四象"
-          : expeditionObjectiveHint(objectiveState, player)
+          : activeObjectiveHint()
       : expedition.region.id === "amazon" && player.length < 25
         ? player.length < 6
           ? "沿浮叶捕食 · 成长后探索支流"
@@ -4199,15 +4374,13 @@ function updateHud() {
                   ? "狩猎海洋霸主，探索深水区"
                   : player.length < 25
                     ? "挑战远古巨兽，成长至 25 米"
-                    : expeditionObjectiveHint(objectiveState, player),
+                    : activeObjectiveHint(),
   );
   if (
     objectiveState.regionId === "atlantis" &&
     (objectiveState.clueRead || objectiveState.keyCollected)
   )
-    $("objective").textContent = t(
-      expeditionObjectiveHint(objectiveState, player),
-    );
+    $("objective").textContent = t(activeObjectiveHint());
   if (ocean.progress) {
     const { opened, next } = ocean.progress;
     $("objective").textContent = t(
@@ -4221,6 +4394,14 @@ function updateHud() {
   // 观察提示借用现有任务行，持续八秒，不被一次捕食通知立即覆盖。
   if (elapsed < surfaceWildlifeHintUntil && isNursery(position))
     $("objective").textContent = t("表层有飞鱼群 · 向上游近，观察破水滑翔");
+  // 取宝后的撤离/封洞不受体长限制，也不能被育幼湾观察提示覆盖。
+  const priorityHint = prioritizeTitanEscapeHint(
+    ocean.titanQuest?.state,
+    $("objective").textContent,
+    titanHazardAdvice(ocean.titanQuest),
+  );
+  if (priorityHint !== $("objective").textContent)
+    $("objective").textContent = t(priorityHint);
   $("notification").style.opacity = elapsed < notificationUntil ? "1" : "0";
   setMarkup(
     $("buffs"),
@@ -4481,9 +4662,13 @@ function frame(now) {
   )
     return;
   // 暂停及结算是静止画面；进入、尺寸或画质变化才重绘，不持续提交 GPU 工作。
-  const animatedWorld = ["menu", "launching", "playing", "epilogue"].includes(
-    mode,
-  );
+  const animatedWorld = [
+    "menu",
+    "launching",
+    "playing",
+    "epilogue",
+    "titan_collapse",
+  ].includes(mode);
   if (!animatedWorld && !worldRenderDirty) return;
   if (mode === "menu") {
     elapsed += dt;
@@ -4630,6 +4815,109 @@ function frame(now) {
         );
       }
     }
+    const titanEvents =
+      ocean.titanQuest?.step(dt, {
+        active:
+          !player.dead &&
+          !player.timedOut &&
+          !player.won &&
+          (ocean.caves.records[0].contains(position, 0) ||
+            (ocean.titanQuest.state.relicHeld &&
+              !ocean.titanQuest.state.secured &&
+              !ocean.titanQuest.state.entombed)),
+        activeTimeDt: roundDt,
+        position,
+        intakePoint: (() => {
+          if (player.characterId !== "squid") return feedingMouth(swallowPoint);
+          const relic = ocean.titanQuest.records.relic;
+          capturePoint(entityMouth);
+          capturePoint(entityFrontIntake, 1);
+          return entityFrontIntake.distanceToSquared(relic) <
+            entityMouth.distanceToSquared(relic)
+            ? entityFrontIntake
+            : entityMouth;
+        })(),
+        previous: playerMovementStart,
+        previousForward: playerMovementFacing,
+        forward: playerFacing.set(0, 0, -1).applyQuaternion(avatar.quaternion),
+        playerLength: player.length,
+      }) || [];
+    const warnedRock = ocean.titanQuest?.hazards?.rocks.find(
+      (rock) =>
+        rock.phase === "warning" &&
+        Math.hypot(
+          rock.warningPoint.x - position.x,
+          rock.warningPoint.z - position.z,
+        ) < 70,
+    );
+    if (warnedRock && warnedRock.id !== titanRockWarningKey && !player.dead) {
+      titanRockWarningKey = warnedRock.id;
+      audio.bossAttack("karkinos", "fault");
+    }
+    for (const event of titanEvents) {
+      if (ocean.titan.mouth.distanceTo(position) < 180) {
+        if (event.kind === "phase" && event.phase === "charging")
+          audio.bossAttack("leviathan", "breath");
+        else if (event.kind === "breath_pulse")
+          audio.bossAbility("leviathan", "breath", {
+            owner: ocean.titan.root,
+            distance: ocean.titan.mouth.distanceTo(position),
+            duration: 0.58,
+            strength: 0.7,
+          });
+      }
+      if (event.damage && takeDamage(player, event.damage)) {
+        hitFlash = 0.8;
+        effects.hurt(position, player.length);
+        audio.hit();
+      }
+      if (event.kind === "discovered")
+        notify("巨兽仍在沉睡 · 先读石碑，避开岩浆落点和坠石", 5);
+      else if (event.kind === "tablet")
+        notify("封印顺序：波纹 → 骨纹 → 火纹 · 冷却时接触，喷发时避让", 7);
+      else if (event.kind === "seal_wrong")
+        notify("封印顺序错误 · 已受惩罚，先前进度保留", 3);
+      else if (event.kind === "seal_wait" || event.kind === "relic_wait")
+        notify("吐息尚未冷却 · 离开后等冷却再靠近", 3);
+      else if (event.kind === "seal")
+        notify(message`巢穴封印 ${event.completed}/3 · 进度已保存`, 3);
+      else if (event.kind === "barrier_open") {
+        audio.quest("mechanism");
+        notify("三枚封印已解除 · 等前爪松掌，取宝后立即退开", 5);
+      } else if (event.kind === "relic_locked")
+        notify("宝物仍被封印 · 先按石碑顺序解除三枚符印", 4);
+      else if (event.kind === "relic_guarded")
+        notify("前爪仍压护晶核 · 等松掌再进入", 3);
+      else if (event.kind === "relic_held") {
+        audio.titanAwaken();
+        titanPickupTremor.trigger();
+        effects.flash(position, 0xe6b76a, 12);
+        notify("巨兽开始苏醒 · 60秒内沿原路返回北洞口！", 5);
+      } else if (event.kind === "escaped")
+        notify("已游出洞口 · 保持在外，岩门即将封闭", 3);
+      else if (event.kind === "escape_returned")
+        notify("你又进入了洞穴 · 立即游出出口", 3);
+      else if (event.kind === "secured")
+        notify("晶核已安全带出 · 巢穴封闭，夺宝目标完成", 5);
+      else if (event.kind === "entombed") {
+        // 封洞是任务失败，不能被普通受击无敌、护甲或临时增益抵消。
+        player.health = 0;
+        player.dead = true;
+        player.titanEntombed = true;
+        titanCollapseRemaining = 1.2;
+        mode = "titan_collapse";
+        resetInput();
+        $("pause").disabled = true;
+        audio.hit();
+        audio.bossAbility("leviathan", "breath", {
+          owner: ocean.titan.root,
+          distance: 0,
+          duration: 1.2,
+          strength: 1,
+        });
+        effects.hurt(position, player.length);
+      }
+    }
     const touchingKeyClue =
       ocean.relic?.keyArt.clues.some(
         (site) =>
@@ -4654,6 +4942,7 @@ function frame(now) {
         })(),
         clueContact: touchingKeyClue,
         trenchArrived: !!ocean.progress?.arrived,
+        titanRelicCollected: !!ocean.titanQuest?.state.secured,
       },
     );
     ocean.relic?.setState(objectiveState);
@@ -4780,6 +5069,11 @@ function frame(now) {
         ink: effects.ink,
         depth: -position.y,
         aboveWater: cameraAboveWater(),
+        cave: !!ocean.caves?.records[0].contains(position, 0),
+        escaping:
+          !!ocean.titanQuest?.state.relicHeld &&
+          !ocean.titanQuest.state.secured &&
+          !ocean.titanQuest.state.entombed,
       },
     );
     uiClock += dt;
@@ -4788,8 +5082,42 @@ function frame(now) {
       uiClock = 0;
     }
     updateTorpedoAim();
-    if (player.dead) showOverlay("dead");
+    if (player.dead && mode !== "titan_collapse") showOverlay("dead");
     else if (player.won) showOverlay("won");
+  }
+  if (mode === "titan_collapse") {
+    // 倒计时到零时已经扣至零血、锁输入和封门；此处仅让真实灾难画面可见。
+    const presentationDt = Math.max(0, Math.min(roundDt, 0.25));
+    titanCollapseRemaining = Math.max(
+      0,
+      titanCollapseRemaining - presentationDt,
+    );
+    elapsed += presentationDt;
+    ocean.titanQuest?.presentTerminal(presentationDt);
+    updateHud();
+    effects.update(dt, camera.position, position);
+    atmosphere(dt);
+    ocean.update(
+      elapsed,
+      position,
+      0,
+      highQuality,
+      camera.position,
+      reducedMotionQuery.matches,
+    );
+    $("notification").hidden = true;
+    $("objective").textContent = t("熔岩与落石淹没洞穴 · 未能及时逃离");
+    audio.update(elapsed, 1, {
+      cave: true,
+      escaping: true,
+      pursuing: true,
+      depth: -position.y,
+      aboveWater: false,
+    });
+    if (titanCollapseRemaining <= 0) {
+      $("pause").disabled = false;
+      showOverlay("dead");
+    }
   }
   if (mode === "epilogue") {
     elapsed += dt;

@@ -65,7 +65,7 @@ test("五海域实际分群库存完整，出生深度与每一群的固定水�
   const counts = {
     hawaii: 565,
     atlantis: 567,
-    bermuda: 475,
+    bermuda: 1082,
     mariana: 464,
     europa: 352,
   };
@@ -100,25 +100,61 @@ test("五海域实际分群库存完整，出生深度与每一群的固定水�
 
 test("沉船内部补给保留实际锚点与库存，不能被外海分群搬出船舱", () => {
   const species = getRegionSpecies("bermuda");
-  const fixed = species.flatMap((s) =>
-    (s.schoolProfiles || [])
-      .filter((p) => p.fixedHabitat)
-      .map((p) => ({ ...p, kind: s.kind })),
-  );
-  assert.equal(fixed.length, 3);
-  assert.equal(
-    fixed.reduce((n, p) => n + p.count, 0),
-    22,
-  );
-  const again = spreadFeedingSchools(species);
-  assert.deepEqual(
-    again.flatMap((s) =>
+  const fixedProfiles = (roster) =>
+    roster.flatMap((s) =>
       (s.schoolProfiles || [])
         .filter((p) => p.fixedHabitat)
         .map((p) => ({ ...p, kind: s.kind })),
-    ),
-    fixed,
+    );
+  const fixed = fixedProfiles(species),
+    oldCore = (p) => Math.abs(p.anchor[0]) <= 300 && p.anchor[2] >= -1150,
+    interior = fixed.filter((p) => !p.bermudaRouteSchool),
+    routes = fixed.filter((p) => p.bermudaRouteSchool);
+  assert.deepEqual(interior, [
+    {
+      anchor: [-57.5, -396, -525],
+      count: 8,
+      depthMin: 378,
+      depthMax: 414,
+      fixedHabitat: true,
+      kind: "tuna",
+    },
+    {
+      anchor: [-65, -446, -770],
+      count: 8,
+      depthMin: 428,
+      depthMax: 464,
+      fixedHabitat: true,
+      kind: "tuna",
+    },
+    {
+      anchor: [-65, -411, -600],
+      count: 6,
+      depthMin: 393,
+      depthMax: 429,
+      fixedHabitat: true,
+      kind: "ray",
+    },
+  ]);
+  assert.equal(interior.length, 3);
+  assert.equal(
+    interior.reduce((n, p) => n + p.count, 0),
+    22,
   );
+  assert.equal(routes.length, 71);
+  assert.equal(
+    routes.reduce((n, p) => n + p.count, 0),
+    634,
+  );
+  assert.ok(routes.every((p) => p.nurseryResident === false));
+  assert.ok(routes.some(oldCore), "route food also repopulates the old map");
+  assert.ok(
+    routes.some((p) => !oldCore(p)),
+    "route food reaches the expanded map",
+  );
+  // 新旧固定群都必须保持自身航路；再次分群不能移动任何一组来填更大的地图。
+  const again = spreadFeedingSchools(species);
+  assert.deepEqual(fixedProfiles(again), fixed);
 });
 
 test("木卫二原库存覆盖全部已声明栖地，不遗失被大群规模遮蔽的深层锚点", () => {

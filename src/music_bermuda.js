@@ -1,3 +1,4 @@
+import { scheduleBermudaCave } from "./music_bermuda_cave.js";
 /** 原创风暴海域音型：不稳定的低弦幕、稀疏钟点与独立追猎节拍。 */
 export const BERMUDA_SCORE = Object.freeze({
   beat: 60 / 46,
@@ -48,7 +49,7 @@ export class BermudaMusic {
   }
   update(now) {
     const a = this.audio,
-      combat = a.pursuing || a.boss;
+      combat = a.pursuing || a.boss || a.escaping;
     this.exploration.gain.setTargetAtTime(combat ? 0.3 : 0.85, now, 0.4);
     this.pressure.gain.setTargetAtTime(
       0.16 + Math.min(1, a.depth / 580) * 0.5,
@@ -86,6 +87,13 @@ export class BermudaMusic {
     }
   }
   schedule(at, step) {
+    if (this.audio.cave && !this.audio.escaping) {
+      scheduleBermudaCave(this.audio, at, step, {
+        bed: this.pressure,
+        glint: this.exploration,
+      });
+      return;
+    }
     const a = this.audio,
       section = Math.floor(step / 32) % 8,
       phrase = step % 32,

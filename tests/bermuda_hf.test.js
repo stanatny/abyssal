@@ -152,15 +152,17 @@ test("new atlas triangles remain in one color chart", () => {
   }
 });
 
-test("Bermuda redraw preserves catalogue length, stock and original region membership", () => {
+test("Bermuda HF assets retain catalogue length and region isolation with approved route stock", () => {
   for (const [kind, population, length] of [
     ["queen_angelfish", 12, 0.45],
     ["triggerfish", 32, 0.55],
-    ["needlefish", 48, 0.9],
-    ["barracuda", 8, 1.8],
+    ["needlefish", 136, 0.9],
+    ["barracuda", 12, 1.8],
   ]) {
     const species = getRegionSpecies("bermuda").find((s) => s.kind === kind);
     assert.equal(species.population, population);
+    if (kind === "needlefish")
+      assert.equal(species.bermudaShoalDensityRevision, "20261123");
     assert.equal(species.length, length);
     assert.equal(
       getRegionSpecies("hawaii").some((s) => s.kind === kind),

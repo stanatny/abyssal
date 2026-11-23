@@ -9,6 +9,7 @@ import {
   marianaProgress,
 } from "../src/mariana_config.js";
 import { WORLD } from "../src/world_config.js";
+import { BERMUDA_WORLD } from "../src/bermuda_config.js";
 import { getRegionSpecies, ALL_SPECIES } from "../src/region_ecology.js";
 import { getExpedition } from "../src/expedition_config.js";
 import {
@@ -49,8 +50,10 @@ test("Mariana has a smaller footprint, over twice the depth and isolated world b
     (W.maxX - W.minX) * (W.maxZ - W.minZ) <
       (WORLD.maxX - WORLD.minX) * (WORLD.maxZ - WORLD.minZ),
   );
-  for (const r of ["hawaii", "atlantis", "bermuda"])
+  for (const r of ["hawaii", "atlantis"])
     assert.equal(getExpedition(r).region.world, undefined);
+  assert.equal(getExpedition("bermuda").region.world, BERMUDA_WORLD);
+  assert.notEqual(BERMUDA_WORLD, W);
   assert.equal(getExpedition("mariana").region.bossInstances.length, 4);
 });
 test("Regional starting size resets mass and growth without changing either character on other maps", () => {

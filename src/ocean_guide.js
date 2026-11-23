@@ -1,4 +1,5 @@
 import { oceanCurrentGuideEntry } from "./ocean_current_catalog.js";
+import { bermudaCaveGuideEntries } from "./bermuda_cave_guide.js";
 import {
   createGraphicsRecovery,
   createEnvironmentCache,
@@ -363,12 +364,9 @@ export function buildOceanCatalog(regionId) {
                 MARIANA_GATES.some((g) => g.kind === config.kind)
               ? tr`${MARIANA_GATES.find((g) => g.kind === config.kind).depth * 4} m（幻想领地）`
               : regionId === "bermuda"
-                ? {
-                    hydra: "风暴外海表层",
-                    kraken: "沉船西侧深水",
-                    mayan: "东南深沟",
-                    leviathan: "最深海沟",
-                  }[config.kind]
+                ? getExpedition("bermuda").region.bossInstances.find(
+                    (site) => site.kind === config.kind,
+                  )?.habitat
                 : tr`${Math.round(config.depthMin * WORLD.displayDepthScale)}—${Math.round(config.depthMax * WORLD.displayDepthScale)} m（幻想领地）`,
     })),
     {
@@ -551,6 +549,7 @@ export function guideCategoryIds(catalog, regionId) {
 /** 地图危险采用资料卡，不为非生物生成错误的鱼形标本。 */
 function bermudaGuideEntries() {
   return [
+    ...bermudaCaveGuideEntries(),
     {
       id: "bermuda_wreck",
       kind: "bermuda_wreck",
@@ -573,7 +572,7 @@ function bermudaGuideEntries() {
       role: "表层危险",
       symbol: "☠",
       effect: "锁定炮击",
-      habitat: "浅滩外的西侧海面",
+      habitat: "东北侧外海海面",
       text: tr`戴维琼斯的飞翔的荷兰人号在${BERMUDA_HAZARDS.ghostRange}米内锁定目标。${BERMUDA_HAZARDS.ghostWindup}秒预警后五炮齐射，炮弹不追踪；直接命中或近距离爆炸造成${BERMUDA_HAZARDS.ghostDamage}点伤害，每${BERMUDA_HAZARDS.ghostCooldown}秒最多发起一轮。`,
       counter:
         "绿色预警圈先跟随你，在开火前0.6秒固定落点；横向冲刺避开，或下潜到显示深度280米以下。岩石和实体船壳能遮挡炮击与爆炸，鬼船不能被撞沉。",
@@ -612,7 +611,7 @@ function bermudaGuideEntries() {
     category: "hazard",
     length: 0,
     ability: entry.effect,
-    size: "—",
+    size: entry.size || "—",
   }));
 }
 

@@ -446,3 +446,19 @@ test("Hawaii expands the melody beyond the original 24-second repeat without sta
     true,
   );
 });
+
+test("Bermuda cave/escape flags are regional and cannot survive reset or map changes", () => {
+  const { audio } = fixture();
+  audio.setRegion("bermuda");
+  audio.ready = true;
+  audio.update(1, 0, { cave: true, escaping: true });
+  assert.equal(audio.cave, true);
+  assert.equal(audio.escaping, true);
+  audio.reset();
+  assert.equal(audio.cave, false);
+  assert.equal(audio.escaping, false);
+  audio.setRegion("atlantis");
+  audio.update(2, 0, { cave: true, escaping: true });
+  assert.equal(audio.cave, false);
+  assert.equal(audio.escaping, false);
+});

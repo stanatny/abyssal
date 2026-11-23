@@ -1,6 +1,6 @@
 import * as THREE from "three";
 import { createWaterspoutVisuals } from "./bermuda_waterspout_visuals.js";
-import { WORLD } from "./world_config.js";
+import { BERMUDA_WORLD as WORLD } from "./bermuda_config.js";
 import {
   createWaterspoutState,
   stepWaterspout,
@@ -71,13 +71,13 @@ export function createBermudaWeather(parent, { audio, notify, onDamage } = {}) {
     spouts = [];
   root.userData.prepareMaterials = spoutVisuals.prepare;
   for (const [i, anchor] of [
-    [-235, -410],
-    [115, -715],
-    [-125, -280],
-    [230, -350],
-    [45, -500],
-    [-235, -885],
-    [210, -1010],
+    [240, -320],
+    [-365, -560],
+    [345, -800],
+    [-320, -1050],
+    [320, -1260],
+    [-160, -1470],
+    [140, -1650],
   ].entries()) {
     const { group, funnel, clouds, skirt } = spoutVisuals.create(i);
     root.add(group);

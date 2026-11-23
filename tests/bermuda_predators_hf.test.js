@@ -153,9 +153,9 @@ test("new atlas triangles remain in one color chart", () => {
 
 test("Bermuda redraw preserves catalogue length, stock and original region membership", () => {
   for (const [kind, population, length] of [
-    ["tiger_shark", 7, 5.2],
-    ["cameroceras", 8, 6],
-    ["livyatan", 8, 17.5],
+    ["tiger_shark", 10, 5.2],
+    ["cameroceras", 14, 6],
+    ["livyatan", 16, 17.5],
   ]) {
     const species = getRegionSpecies("bermuda").find((s) => s.kind === kind);
     assert.equal(species.population, population);

@@ -86,7 +86,7 @@ test("五海域保留独特种类与固定栖地，马里亚纳每层有两只�
   for (const [region, expected, kinds, giantCount] of [
     ["hawaii", 565, 29, 2],
     ["atlantis", 567, 21, 3],
-    ["bermuda", 475, 25, 4],
+    ["bermuda", 1082, 25, 6],
     ["mariana", 464, 23, 8],
     ["europa", 352, 16, 5],
   ]) {
@@ -128,6 +128,30 @@ test("五海域保留独特种类与固定栖地，马里亚纳每层有两只�
     assert.equal(
       getRegionSpecies(r).find((s) => s.kind === "sardine").nurseryResident,
       true,
+    );
+  const bermuda = getRegionSpecies("bermuda");
+  // 保留旧育幼库存与四只领主守卫；睡兽巢穴明确追加两守卫、两成年补给与24条逃生补给金枪鱼。
+  for (const [kind, population] of Object.entries({
+    sardine: 100,
+    herring: 30,
+    queen_angelfish: 12,
+    triggerfish: 32,
+    needlefish: 136,
+    sunfish: 76,
+    tuna: 344,
+    ray: 132,
+    sperm_whale: 16,
+    pliosaur: 12,
+    plesiosaur: 12,
+    mosasaur: 12,
+    megalodon: 16,
+    livyatan: 16,
+    ichthyotitan: 6,
+  }))
+    assert.equal(
+      bermuda.find((s) => s.kind === kind).population,
+      population,
+      `bermuda:${kind}: explicit whole-map stock`,
     );
 });
 

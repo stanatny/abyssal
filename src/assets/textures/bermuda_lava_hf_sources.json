@@ -1,0 +1,58 @@
+{
+  "purpose": "Original HF molten-basalt color, with explicitly derived runtime surface channels",
+  "model": "black-forest-labs/FLUX.1-schnell",
+  "space": "black-forest-labs/FLUX.1-schnell",
+  "spaceRevision": "e4e503061cac3005ac5a5be8f94fb397b42784dc",
+  "modelLicense": "Apache-2.0",
+  "seed": 118213,
+  "steps": 4,
+  "prompt": "An extremely realistic scientific macro photograph of flowing liquid lava at the advancing edge of a Hawaiian pahoehoe lava lake, cropped to fill the entire square image with the surface only. Thick viscous deep red-orange molten liquid, rolling and folding over itself, twisted ropy black cooling skin in thin torn patches, swirling fluid eddies, tiny natural incandescent bubbles. Mostly liquid rather than rocks. Rich realistic granular and wrinkled surface, subtle temperature variation, white-free restrained molten highlights. Overhead orthographic view, neutral flat illumination, no landscape or volcano, no horizon, no perspective, no smoke, no fire, no objects. A continuous seamless photographic material texture with no regular cracks, no polygonal paving stones, no symmetrical pattern, no cartoon, no illustration, no neon outlines, no text.",
+  "source": {
+    "filename": "lava_raw.webp",
+    "sha256": "7197f2f37e4fc180273f38cf11cd97b3db0042cdd921b58f1d6c5334977b91df",
+    "bytes": 263606
+  },
+  "processing": {
+    "converter": "scripts/prepare_bermuda_lava_hf_asset.mjs",
+    "colorSize": 1024,
+    "edgeBlendPixels": 48,
+    "surfaceSize": 512,
+    "heightFilter": "7x7 weighted toroidal low-pass",
+    "nativePbr": false
+  },
+  "outputs": [
+    {
+      "name": "bermuda_lava_hf_color.webp",
+      "size": 1024,
+      "colorSpace": "sRGB",
+      "channels": "HF color with 48-pixel periodic-edge blend",
+      "bytes": 335848,
+      "sha256": "090ee57de0e0829707e421973f62079585226f44074aae1d89ed5c968dc4602d"
+    },
+    {
+      "name": "bermuda_lava_hf_surface.webp",
+      "size": 512,
+      "colorSpace": "linear",
+      "channels": "R: derived low-pass height; G: derived roughness; B: derived thermal mask",
+      "bytes": 219586,
+      "sha256": "ecfb95df7c03aef23d58cab51a977deee8a61149ad223bbfc1073b53e33c9664"
+    }
+  ],
+  "surfaceStats": {
+    "height": {
+      "min": 61,
+      "max": 223,
+      "mean": 132.1849365234375
+    },
+    "roughness": {
+      "min": 102,
+      "max": 229,
+      "mean": 157.94621658325195
+    },
+    "heat": {
+      "min": 0,
+      "max": 255,
+      "mean": 142.78442764282227
+    }
+  }
+}

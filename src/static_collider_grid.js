@@ -80,7 +80,7 @@ export function createStaticColliderGrid(
   function query(
     start,
     end = start,
-    { padding = 0, radius = 0, vertical = true } = {},
+    { padding = 0, radius = 0, vertical = true, segment = false } = {},
   ) {
     if (
       ![start.x, start.z, end.x, end.z, padding, radius].every(
@@ -113,7 +113,14 @@ export function createStaticColliderGrid(
     const include = (index) => {
       if (visited[index] === generation) return;
       visited[index] = generation;
-      if (intersects(bounds, entries[index].bounds)) found.push(index);
+      const entry = entries[index];
+      if (
+        intersects(bounds, entry.bounds) &&
+        (!segment ||
+          entry.collider.type === "sphere_shell" ||
+          segmentIntersectsBounds(start, end, entry.bounds, margin, useHeight))
+      )
+        found.push(index);
     };
     // 超长扫掠直接遍历索引包围盒，避免空格数量随查询面积无界增长。
     // 立体海沟的上下层共享 XZ，有限高度查询只查所在层，投影查询仍走完整高度索引。
@@ -197,7 +204,7 @@ export function queryStaticColliders(
  * 用静态网格和当帧动态碰撞体求解移动，返回值与完整 resolveMotion 保持一致。
  * @param {object} previous 移动前位置，至少包含有限数值 x、y、z。
  * @param {object} desired 希望到达的位置，不会原地修改。
- * @param {object} options staticColliders 为不可变建筑数组；dynamicColliders 每次读取当前实体。
+ * @param {object} options staticColliders 为不可变建筑数组；dynamicColliders 为当帧数组或逐次查询函数。
  * 其余 radius、forward、length、floorHeight、bounds 参数原样交给精确求解器。
  * @returns {object} 精确求解器的 position、contacts、blocked、recovered、stuck。
  */
@@ -211,7 +218,9 @@ export function resolveIndexedMotion(
     ...options,
     colliders: (start, end, dimensions) => [
       ...(grid?.query(start, end, dimensions) || []),
-      ...dynamicColliders,
+      ...(typeof dynamicColliders === "function"
+        ? dynamicColliders(start, end, dimensions)
+        : dynamicColliders),
     ],
   });
 }
@@ -229,7 +238,10 @@ export function castIndexedSegment(
   { staticColliders = [], dynamicColliders = [], radius = 0 } = {},
 ) {
   const candidates = staticColliders.length
-    ? staticGridFor(staticColliders).query(start, end, { radius })
+    ? staticGridFor(staticColliders).query(start, end, {
+        radius,
+        segment: true,
+      })
     : [];
   return castSegment(start, end, [...candidates, ...dynamicColliders], radius);
 }
@@ -343,4 +355,32 @@ function intersects(a, b) {
     a.minY <= b.maxY &&
     a.maxY >= b.minY
   );
+}
+
+const SEGMENT_AXES = [
+  ["x", "minX", "maxX"],
+  ["z", "minZ", "maxZ"],
+  ["y", "minY", "maxY"],
+];
+// 射线只拒绝连保守外扩AABB也碰不到的实体；移动恢复查询仍使用完整矩形候选。
+function segmentIntersectsBounds(start, end, bounds, margin, useHeight) {
+  let entry = 0,
+    exit = 1;
+  for (let i = 0; i < (useHeight ? 3 : 2); i++) {
+    const axis = SEGMENT_AXES[i],
+      from = start[axis[0]],
+      delta = end[axis[0]] - from,
+      min = bounds[axis[1]] - margin,
+      max = bounds[axis[2]] + margin;
+    if (delta === 0) {
+      if (from < min || from > max) return false;
+    } else {
+      const a = (min - from) / delta,
+        b = (max - from) / delta;
+      entry = Math.max(entry, Math.min(a, b));
+      exit = Math.min(exit, Math.max(a, b));
+      if (entry > exit) return false;
+    }
+  }
+  return true;
 }

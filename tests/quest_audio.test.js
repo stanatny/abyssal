@@ -85,3 +85,19 @@ test("Quest loading recovers without replaying old events; voices are bounded an
   assert.equal(audio.questVoices.size, 0);
   assert.ok(sources.every((s) => s.stopped));
 });
+
+test("The Bermuda lair reuses only unlock and relic cues, without claiming Atlantis key/guardian events", () => {
+  const a = new OceanAudio({ context: { state: "running", currentTime: 10 } }),
+    notes = [];
+  a.ready = true;
+  a.regionId = "bermuda";
+  a.effects = {};
+  a.note = (...args) => notes.push(args);
+  assert.equal(a.quest("key"), false);
+  assert.equal(a.quest("guardian"), false);
+  assert.equal(a.quest("mechanism"), true);
+  assert.equal(a.quest("chest"), true);
+  assert.equal(notes.length, 7);
+  a.regionId = "hawaii";
+  assert.equal(a.quest("chest"), false);
+});

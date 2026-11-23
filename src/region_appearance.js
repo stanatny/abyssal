@@ -3,6 +3,7 @@ import { EUROPA_HABITATS, europaWorldY } from "./europa_config.js";
 import * as THREE from "three";
 import { getZone } from "./simulation.js";
 import { atlantisDistrict } from "./atlantis_city_plan.js";
+import { BERMUDA_CAVE_SITES } from "./bermuda_cave_config.js";
 
 const ATLANTIS_ZONES = {
   reef: {
@@ -183,6 +184,56 @@ export function regionZone(regionId, depth, position = null) {
                     "沿暖光抵达底部街区，突破四关并成长至30米即可获胜。",
                   ];
     return { ...zone, name: row[0], code: row[1], description: row[2] };
+  }
+  if (regionId === "bermuda" && position && depth > 45) {
+    const cave = BERMUDA_CAVE_SITES.find((site) => {
+      const dx = position.x - site.x,
+        dz = position.z - site.z,
+        c = Math.cos(site.yaw),
+        s = Math.sin(site.yaw),
+        x = dx * c - dz * s,
+        z = dx * s + dz * c;
+      return (
+        Math.abs(x) < site.width / 2 + 24 &&
+        Math.abs(z) < site.depth / 2 + 24 &&
+        position.y < site.floorMax + site.height + 24 &&
+        position.y > site.floorMin - 12
+      );
+    });
+    if (cave)
+      return {
+        ...zone,
+        name: cave.name,
+        code: cave.code,
+        description: cave.description,
+      };
+    const district =
+      position.z < -1180
+        ? [
+            "南境残骸盆地",
+            "SOUTHERN WRECK BASIN",
+            "货船残骸与缆机标记南部回环，补给后再挑战深渊领主。",
+          ]
+        : position.x < -300 && position.z < -200
+          ? [
+              "西境礁廊",
+              "WESTERN REEF CORRIDOR",
+              "沿双礁门绕行，礁外鱼群连接沉船西侧与深水航路。",
+            ]
+          : position.x > 300 && position.z < -200
+            ? [
+                "东境失踪航路",
+                "EASTERN LOST-FLIGHT ROUTE",
+                "失踪机群散落在东侧坡面，沿鱼群继续向南探索。",
+              ]
+            : null;
+    if (district)
+      return {
+        ...zone,
+        name: district[0],
+        code: district[1],
+        description: district[2],
+      };
   }
   if (regionId === "bermuda")
     return {

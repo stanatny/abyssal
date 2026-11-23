@@ -94,7 +94,8 @@ test("Bermuda needs every distinct local lord and ignores disabled or foreign en
   });
   assert.equal(f.step().won, false);
   f.bosses[3].state.defeated = true;
-  assert.equal(f.step().won, true);
+  assert.equal(f.step().won, false);
+  assert.equal(f.step({ titanRelicCollected: true }).won, true);
 });
 
 test("Mariana retains the bottom-arrival exception and rejects premature growth victory", () => {
@@ -218,4 +219,27 @@ test("Atlantis key and guardian are independent, order-free requirements; option
   const f = fixture("atlantis", () => [0, 0.99][n++]);
   assert.equal(f.state.guardianId, f.bosses[0].id);
   assert.equal(f.state.keySiteId, "vault_east");
+});
+
+test("Bermuda relic is persistent but never substitutes for a lord, life or growth", () => {
+  const f = fixture("bermuda");
+  assert.equal(f.step({ relicContact: true }).won, false);
+  assert.equal(f.state.titanRelicCollected, false);
+  f.player.dead = true;
+  assert.equal(f.step({ titanRelicCollected: true }).titanRelicFound, false);
+  f.player.dead = false;
+  assert.equal(f.step({ titanRelicCollected: true }).titanRelicFound, true);
+  assert.equal(f.step({ titanRelicCollected: true }).titanRelicFound, false);
+  assert.equal(f.player.won, false);
+  for (const b of f.bosses) b.state.defeated = true;
+  f.player.length = 24.99;
+  assert.equal(f.step().won, false);
+  f.player.length = 25;
+  assert.equal(f.step().won, true);
+  f.player.timedOut = true;
+  assert.equal(f.step().won, false);
+  assert.equal(fixture("bermuda").state.titanRelicCollected, false);
+  const other = fixture("amazon");
+  other.step({ titanRelicCollected: true });
+  assert.equal(other.state.titanRelicCollected, false);
 });

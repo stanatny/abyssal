@@ -22,7 +22,7 @@ Desktop keyboard and mobile touch controls are supported. Select English or Simp
 | --------------------- | ------------------------------------------------------------------------------------------------------------------------ |
 | **Hawaiian Waters**   | Grow from a small juvenile among coral reefs, then challenge an Abyss Lord.                                              |
 | **Ruins of Atlantis** | Find a hidden key, solve a randomly selected environmental puzzle, defeat the true guardian and open the treasure chest. |
-| **Bermuda Triangle**  | Explore stormy waters and shipwrecks; defeat all four lords.                                                             |
+| **Bermuda Triangle**  | Explore stormy wrecks, defeat four lords and descend into a winding slumber cave to steal its guarded heart and escape.  |
 | **Mariana Trench**    | Start at 15 m, defeat four ordered gatekeepers and reach the trench floor.                                               |
 | **Amazon River**      | Hunt through rainforest channels and overcome three river lords.                                                         |
 | **Europa**            | Explore an alien ocean beneath the ice and face three lords.                                                             |
@@ -77,7 +77,7 @@ npm run build
 
 ## Project notes
 
-- [Current release — v0.11.31](docs/release_v0_11_31.md)
+- [Current release — v0.11.32](docs/release_v0_11_32.md)
 - [Development rules](AGENTS.md) · [Asset quality standard](docs/asset_quality_standard.md)
 - [Localization](docs/localization.md) · [Audio sources](docs/audio_sources.md) · [Verification records](docs/verification.md)
 - [Earlier detailed README and development history](https://github.com/stanatny/abyssal/blob/ef6a6a2345329370d553a87d97389b869ac22cfe/README.md)

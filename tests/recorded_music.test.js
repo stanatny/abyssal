@@ -53,7 +53,7 @@ test("manifest binds only accepted recordings and packaged bytes", () => {
       new URL("../docs/regional_music_assets.json", import.meta.url),
     ),
   );
-  assert.equal(manifest.assets.length, 22);
+  assert.equal(manifest.assets.length, 23);
   assert.equal(REGIONAL_RECORDINGS.hawaii, undefined);
   for (const x of manifest.assets) {
     const bytes = fs.readFileSync(new URL(`../${x.file}`, import.meta.url));
@@ -138,7 +138,7 @@ test("loops overlap without source accumulation; stop/mute/reset releases everyt
   player.stop();
   assert.equal(player.snapshot().voices, 0);
   assert.equal(player.tracks.size, 0);
-  assert.equal(player.buffers.size, 3);
+  assert.equal(player.buffers.size, 4);
 });
 
 test("delayed old decode cannot replace selected region or replay old attack", async () => {
@@ -171,5 +171,26 @@ test("failure stays on procedural fallback and an explicit preparation retries",
   fail = false;
   assert.equal(await player.setRegion("odyssey"), true);
   player.update();
+  assert.equal(player.state, "explore");
+});
+
+test("Bermuda cave follows real presence, escape overrides it, and other regions ignore both", async () => {
+  const { player, context } = fixture();
+  await player.setRegion("bermuda");
+  player.update({ cave: true });
+  assert.equal(player.state, "cave");
+  context.currentTime = 4;
+  player.update({ cave: true, escaping: true });
+  assert.equal(player.state, "chase");
+  assert.equal(player.tracks.get("chase").envelope.duration, 0.35);
+  context.currentTime = 8;
+  player.update({ cave: true, boss: true });
+  assert.equal(player.state, "lord");
+  player.stop();
+  assert.equal(player.snapshot().voices, 0);
+  player.update({ cave: true });
+  assert.equal(player.state, "cave");
+  await player.setRegion("atlantis");
+  player.update({ cave: true, escaping: true });
   assert.equal(player.state, "explore");
 });

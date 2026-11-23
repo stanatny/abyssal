@@ -20,7 +20,7 @@ test("八海域保持数量、各水层食物和领主阶段的大型猎物", ()
   for (const [region, total] of Object.entries({
     hawaii: 565,
     atlantis: 567,
-    bermuda: 475,
+    bermuda: 1082,
     mariana: 464,
     amazon: 409,
     europa: 352,

@@ -3,6 +3,8 @@ import { ODYSSEY_BOSS_INSTANCES } from "./odyssey_lords.js";
 import { PENGLAI_WORLD, PENGLAI_BOSS_INSTANCES } from "./penglai_config.js";
 import { penglaiText as pt } from "./penglai_species.js";
 import { AMAZON_WORLD } from "./amazon_config.js";
+import { BERMUDA_WORLD } from "./bermuda_config.js";
+import { BERMUDA_LORD_SITES } from "./bermuda_lord_sites.js";
 import { AMAZON_BOSS_INSTANCES } from "./amazon_lords.js";
 import {
   EUROPA_WORLD,
@@ -63,11 +65,12 @@ export const REGIONS = Object.freeze(
     },
     {
       id: "bermuda",
+      world: BERMUDA_WORLD,
       name: "百慕大三角",
       available: true,
       seabedHeat: false,
       description:
-        "风暴遮蔽神秘外海，探索可进入的巨型沉船，避开龙卷水柱与幽灵炮击。出生点前方偏右固定有一枚深渊狂食，游过去拾取；随机狂食不会出现在安全浅滩。",
+        "千米宽的风暴海域：穿过西侧双礁门，寻找东侧失踪机群，沿沉船外缘下潜到南部打捞场。四位领主分守不同航路。出生点前方偏右有固定狂食，随机狂食留在安全浅滩外。",
       extraStarterRewards: Object.freeze([
         Object.freeze({
           id: "bermuda_spawn_frenzy",
@@ -89,36 +92,7 @@ export const REGIONS = Object.freeze(
         submarines: false,
         mines: true,
       },
-      bossInstances: Object.freeze(
-        [
-          {
-            id: "bermuda_hydra",
-            maxCenterY: -12,
-            kind: "hydra",
-            home: [150, -20, -300],
-            radius: 86,
-          },
-          {
-            id: "bermuda_kraken",
-            kind: "kraken",
-            home: [-140, -240, -540],
-            radius: 103,
-          },
-          {
-            id: "bermuda_maja",
-            kind: "mayan",
-            home: [140, -420, -800],
-            radius: 98,
-          },
-          {
-            id: "bermuda_leviathan",
-            kind: "leviathan",
-            // 扩建沉船的支撑床占据旧领地；东侧深水通道留出完整巡游与返巢空间。
-            home: [185, -590, -995],
-            radius: 86,
-          },
-        ].map((s) => Object.freeze({ ...s, home: Object.freeze(s.home) })),
-      ),
+      bossInstances: BERMUDA_LORD_SITES,
       spawn: [0, -18, 75],
     },
     {

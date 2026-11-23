@@ -1,5 +1,6 @@
 import { ODYSSEY_WORLD, odysseyWorldPoint } from "./odyssey_config.js";
 import { WORLD } from "./world_config.js";
+import { BERMUDA_WORLD } from "./bermuda_config.js";
 import { AMAZON_WORLD } from "./amazon_config.js";
 import { EUROPA_WORLD, europaWorldPoint } from "./europa_config.js";
 import { MARIANA_WORLD } from "./mariana_config.js";
@@ -115,9 +116,9 @@ const searchAreas = {
     [-230, -550, -810],
   ],
   bermuda: [
-    [165, -145, -360],
-    [-205, -230, -540],
-    [235, -340, -720],
+    [340, -145, -520],
+    [-355, -230, -1090],
+    [210, -340, -1510],
   ],
   mariana: [
     [-80, -380, -250],
@@ -141,6 +142,7 @@ const searchAreas = {
   ],
 };
 const worlds = {
+  bermuda: BERMUDA_WORLD,
   odyssey: ODYSSEY_WORLD,
   amazon: AMAZON_WORLD,
   europa: EUROPA_WORLD,

@@ -1,0 +1,41 @@
+{
+  "asset": "bermuda_titan_bones",
+  "input": {
+    "kind": "Original project-generated concept image; no external photograph or third-party artwork uploaded",
+    "sha256": "7babd8fef6bb4091026d91c6c8ec23fa4a2bad5146ce39a927fb77ce9e7c466d"
+  },
+  "provider": {
+    "model": "Microsoft TRELLIS.2-4B",
+    "modelRevision": "af44b45f2e35a493886929c6d786e563ec68364d",
+    "spaceRevision": "ebf60b20fc5a4607f90a1c11c0aab0ceeda5429d",
+    "modelCard": "https://huggingface.co/microsoft/TRELLIS.2-4B",
+    "space": "https://huggingface.co/spaces/microsoft/TRELLIS.2",
+    "code": "https://github.com/microsoft/TRELLIS.2",
+    "license": "MIT (model/code release; does not by itself establish rights to arbitrary input artwork)",
+    "checkedAt": "2026-11-21"
+  },
+  "generation": {
+    "seed": 761122,
+    "resolution": "1024",
+    "completed": true,
+    "rawGlbSha256": "45b672bcbf7ac31b25418121b5086abb7a6f4b4990881f55f8c37715f412432c",
+    "rawGlbBytes": 4039876
+  },
+  "conversion": {
+    "entrypoint": "scripts/prepare_bermuda_titan_bones_hf_asset.mjs",
+    "rotationRadians": [0, 1.5707963267948966, 0],
+    "normalization": "Rigid rotation and uniform longest-axis Z length 1; no anatomy warping",
+    "sourceVertices": 76966,
+    "sourceTriangles": 99316,
+    "nearTriangles": 18000,
+    "farTriangles": 2976,
+    "contacts": 806,
+    "originalTextureChannelsRetained": ["color", "metallic_roughness"],
+    "texturesByteIdenticalToGlb": true
+  },
+  "limits": [
+    "Single-image reconstruction infers hidden surfaces; this is an original fictional sea-beast remnant, not an anatomical scan.",
+    "Far LOD uses original sampled vertex color with constant roughness; source PBR remains on near geometry.",
+    "Not a live creature, encounter or new lord."
+  ]
+}

@@ -23,19 +23,53 @@ function active() {
 test("Temporary currents are scoped to the four ocean maps and stay horizontal inside their bounds", () => {
   for (const region of ["hawaii", "atlantis", "bermuda", "odyssey"]) {
     const routes = oceanCurrentRoutes(region);
-    assert.equal(routes.length, 2);
+    assert.equal(routes.length, region === "bermuda" ? 4 : 2);
     assert.ok(routes[0].length > (region === "odyssey" ? 1400 : 920));
     assert.ok(routes[0].points[0].z > routes[0].points.at(-1).z);
     assert.ok(routes[1].points[0].z < routes[1].points.at(-1).z);
     for (const r of routes)
       for (const p of r.points) {
-        assert.equal(p.y, -24);
-        assert.ok(p.x > -280 && p.x < 280);
-        assert.ok(p.z >= (region === "odyssey" ? -1700 : -1130) && p.z < 120);
+        assert.equal(p.y, r.points[0].y);
+        assert.ok(
+          p.x > (region === "bermuda" ? -480 : -280) &&
+            p.x < (region === "bermuda" ? 480 : 280),
+        );
+        assert.ok(
+          p.z >= (["odyssey", "bermuda"].includes(region) ? -1700 : -1130) &&
+            p.z < 120,
+        );
       }
   }
   for (const region of ["mariana", "amazon", "europa", "penglai"])
     assert.deepEqual(oceanCurrentRoutes(region), []);
+});
+test("Bermuda lanes run parallel to the map axis and retain the short deep return", () => {
+  const routes = oceanCurrentRoutes("bermuda");
+  for (const route of routes) {
+    const first = route.points[0],
+      last = route.points.at(-1);
+    assert.ok(route.points.every((p) => p.x === first.x && p.y === first.y));
+    assert.equal(route.length, Math.abs(last.z - first.z));
+    assert.equal(Math.sign(last.z - first.z), route.inbound ? 1 : -1);
+    const position = route.points[64].clone(),
+      near = sample();
+    nearestCurrentPoint(route, position, near);
+    assert.equal(near.direction.x, 0);
+    assert.equal(near.direction.y, 0);
+    const current = createOceanCurrentState([route]);
+    current.state.time = 18;
+    for (let i = 0; i < 120; i++)
+      current.step(1 / 60, { position, forward: near.direction });
+    assert.equal(current.state.velocity.x, 0);
+    assert.equal(current.state.velocity.y, 0);
+    assert.ok(current.state.velocity.z * (route.inbound ? 1 : -1) > 71);
+  }
+  const back = routes.find((r) => r.id === "deep_east");
+  assert.equal(back.inbound, true);
+  assert.equal(back.length, 550);
+  assert.equal(back.points[0].z, -1660);
+  assert.equal(back.points.at(-1).z, -1110);
+  assert.ok(back.length < routes[1].length / 2);
 });
 test("Current schedule has warning, usable interval, expiry and a quiet gap", () => {
   for (const [t, phase, force] of [
@@ -115,7 +149,7 @@ test("A sustained lane trip gives substantial horizontal travel without yaw or d
       }
       assert.ok(duration < 30, `${region}/${route.id}: ${duration}`);
       assert.ok(max > 70);
-      assert.equal(p.y, -24);
+      assert.equal(p.y, route.points[0].y);
       assert.ok(s.distance < 14);
     }
 });
