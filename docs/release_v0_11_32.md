@@ -28,3 +28,9 @@ Controlled pickup/escape evidence is not an unassisted all-character puzzle/surv
 ## Deployment verification
 
 Full local release tests, formatting, production build and the exact main-push workflow must complete before publication is reported. The workflow independently runs tests, formatting and build, then deploys Pages at <https://stanatny.github.io/abyssal/>. Final ignored release receipts record the exact commit, workflow/deploy result, served resource hashes and native formal-site start/pause/reload. Existing restricted preview/tunnel/awake services and rollback archives remain available.
+
+## Cross-platform CI follow-up
+
+The first Linux run completes2764 cases:2760 pass, the documented waiting-pocket TODO executes, and three raw numeric SHA snapshots differ from the Mac capture. They concern complete plant transforms, cave contacts and Penglai's computed terrain/altitude coordinates. The same accepted cave source on Node22/24Mac has4059 numeric differences with maximum absolute error1.82e-12, without identity, order, count or topology changes.
+
+The follow-up changes test references only. Lossless fixtures retain every plant transform, all34956 cave contacts, all three shell position/index arrays and the complete other-region registries. IDs, fields, order, counts, stock, body lengths and triangle indices remain exact. Explicit computed-coordinate comparisons allow at most0.2mm for geometry and1e-9 for matrix bases/rotations; other-registry computed coordinates and derived Penglai altitude bounds allow1e-9m while gameplay values remain exact. Mutation witnesses still reject real position, transform, population, identity and topology drift. Node22.23.5 andNode24 targeted checks pass; the next Linux workflow verifies the full suite again. The published runtime source and build bytes are unchanged by this follow-up.

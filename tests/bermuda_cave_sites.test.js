@@ -1,7 +1,13 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import { createHash } from "node:crypto";
 import * as T from "three";
+import portable from "./fixtures/bermuda_cave_portable_reference.json" with { type: "json" };
+import {
+  assertNumericReference,
+  decodeNumericReference,
+  bermudaGeometryTolerance,
+} from "./helpers/bermuda_numeric_reference.js";
+const reference = decodeNumericReference(portable);
 import {
   BERMUDA_CAVE_SITES,
   BERMUDA_TITAN_LAYOUT,
@@ -183,7 +189,7 @@ test("Cave footprints stay outside each lord's conservative patrol/hunt/body res
   }
 });
 
-test("Final terrain preserves both strict side caves, exact 288 plant roots and only the approved main-lair scenery moves", () => {
+test("Final terrain preserves both strict side caves, all 288 unchanged plant roots and only the approved main-lair scenery moves", () => {
   const root = new T.Group(),
     geometry = createBermudaTerrainMesh(),
     material = new T.MeshBasicMaterial(),
@@ -221,22 +227,19 @@ test("Final terrain preserves both strict side caves, exact 288 plant roots and 
     );
     // 基线来自本轮前已核验源 ada783bf.../f2af6837...，逐项排除获准迁位，并非新输出重录。
     const plantRoots = outer.reefFields.placements
-        .filter((r) => r.kind.startsWith("reef_"))
-        .map((r) => ({
-          id: r.id,
-          x: r.x,
-          y: r.y,
-          z: r.z,
-          matrix: r.matrix.toArray(),
-        }))
-        .sort((a, b) => a.id.localeCompare(b.id)),
-      hash = (value) =>
-        createHash("sha256").update(JSON.stringify(value)).digest("hex");
-    assert.equal(
-      hash(plantRoots),
-      "40681a0ed7deaf8fbcd8f03ecd7691bafd1fa988fd0d55e95e0f4898532b79b0",
-      "all 288 accepted plant roots and complete posed transforms remain exact",
-    );
+      .filter((r) => r.kind.startsWith("reef_"))
+      .map((r) => ({
+        id: r.id,
+        x: r.x,
+        y: r.y,
+        z: r.z,
+        matrix: r.matrix.toArray(),
+      }))
+      .sort((a, b) => (a.id < b.id ? -1 : a.id > b.id ? 1 : 0));
+    assertNumericReference(plantRoots, reference.plantRoots, {
+      label: "All 288 accepted plant roots and complete posed transforms",
+      toleranceFor: bermudaGeometryTolerance,
+    });
     const approvedMove = (id) =>
         id === "outer_salvage_cargo_2" ||
         id.startsWith("outer_gate_south_deep_") ||
@@ -252,7 +255,7 @@ test("Final terrain preserves both strict side caves, exact 288 plant roots and 
           rotation: r.rotation?.toArray(),
           radius: r.radius,
         }))
-        .sort((a, b) => a.id.localeCompare(b.id));
+        .sort((a, b) => (a.id < b.id ? -1 : a.id > b.id ? 1 : 0));
     // 唯一新增抬地边缘重座岩：与抬地前真实三角面逐 ID 对账，XZ、形体和全部其余接触体严格保持。
     for (let i = 0; i < 4; i++) {
       const row = fixedContacts.find(
@@ -266,11 +269,11 @@ test("Final terrain preserves both strict side caves, exact 288 plant roots and 
     }
     assert.equal(outer.colliders.length, 589);
     assert.equal(fixedContacts.length, 540);
-    assert.equal(
-      hash(fixedContacts),
-      "7c0d4bf6397c9c8e8e7022c82aec430ef603787a52d3891e2d1e1e12e6423f47",
-      "all original contact transforms remain exact after auditing the one entry-terrace rock Y re-seat",
-    );
+    assertNumericReference(fixedContacts, reference.fixedContacts, {
+      label:
+        "All original contact transforms after the single audited entry-terrace Y re-seat",
+      toleranceFor: bermudaGeometryTolerance,
+    });
     assert.equal(outer.arches.length, 4);
     const movedGate = outer.arches.find(
       (r) => r.id === "outer_gate_south_deep",

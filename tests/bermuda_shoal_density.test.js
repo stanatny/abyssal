@@ -12,6 +12,8 @@ import {
 import { preyRespawnDelay } from "../src/regional_rare.js";
 import { isNursery } from "../src/nursery_rules.js";
 import { restoreBermudaShoalDensityBaseline } from "./helpers/bermuda_shoal_density_baseline.js";
+import otherRegionReference from "./fixtures/bermuda_other_regions_reference.json" with { type: "json" };
+import { assertNumericReference } from "./helpers/bermuda_numeric_reference.js";
 
 const roster = getRegionSpecies("bermuda"),
   baseline = restoreBermudaShoalDensityBaseline(roster),
@@ -151,18 +153,136 @@ test("Exact nursery, liner, cave meals and all residents including lord reserves
   );
 });
 
-test("All other regional registries retain their independent pre-density bytes", () => {
-  for (const [region, sha] of Object.entries({
-    hawaii: "ae66f1ed756da5f524258ab29ad8711d0317151bdb398adbb6bbf2561ea262f6",
-    atlantis:
-      "ca14a08c9df110c80b412e192032421bcb7e371706e563166731bee0ac7bbdb8",
-    mariana: "03244e31cf0cef912c1fe1ad7466954cb0e0bed6acc8c79b696292b4379ebe23",
-    amazon: "e81d954a9d4d761111e56b59b4d3619df0b9f221fb54a4cbf13c16dac88e842a",
-    europa: "071e87cfa6247ec1c471c580ae12dbcbfd882bb26eeae9327c87e636203e1492",
-    penglai: "52264a60aa8d7027566d6c2abfc1e95aca5278de486053e8c1e5545f2f9d784b",
-    odyssey: "4832a6534be3e1a038f643a559238a3933c3726a9e7cf90d3dea36225fbfe7ac",
-  }))
-    assert.equal(digest(getRegionSpecies(region)), sha, region);
+// JSON原摘要会丢弃undefined与函数；独立参考把它们显式编码，避免比较时漏掉字段。
+function registryReferenceValue(value) {
+  if (value === undefined) return { $type: "undefined" };
+  if (typeof value === "function")
+    return {
+      $type: "function",
+      name: value.name,
+      sourceSHA256: createHash("sha256")
+        .update(Function.prototype.toString.call(value))
+        .digest("hex"),
+    };
+  if (Array.isArray(value)) return value.map(registryReferenceValue);
+  if (value !== null && typeof value === "object")
+    return Object.fromEntries(
+      Object.entries(value).map(([key, entry]) => [
+        key,
+        registryReferenceValue(entry),
+      ]),
+    );
+  return value;
+}
+
+function registryCoordinateTolerance(path, expected, region) {
+  // 只容忍计算坐标及蓬莱由高度派生水层的纳米级libm差异；库存、长度和伤害精确对账。
+  const coordinate =
+    /^\/\d+\/(?:spawnAnchors|schoolAnchors)\/\d+\/[012]$/.test(path) ||
+    /^\/\d+\/schoolProfiles\/\d+\/anchor\/[012]$/.test(path);
+  const derivedAltitude =
+    region === "penglai" &&
+    (/^\/\d+\/(?:depthMin|depthMax)$/.test(path) ||
+      /^\/\d+\/schoolProfiles\/\d+\/(?:depthMin|depthMax)$/.test(path));
+  return (coordinate || derivedAltitude) && !Number.isInteger(expected)
+    ? 1e-9
+    : 0;
+}
+
+function compareRegionalRegistry(actual, expected, label, region = label) {
+  return assertNumericReference(registryReferenceValue(actual), expected, {
+    label,
+    toleranceFor: (path, value) =>
+      registryCoordinateTolerance(path, value, region),
+  });
+}
+
+test("All other regional registries retain their independent complete pre-density records", (t) => {
+  assert.equal(
+    otherRegionReference.format,
+    "full-registry-numeric-reference-v1",
+  );
+  assert.deepEqual(Object.keys(otherRegionReference.registries), [
+    "hawaii",
+    "atlantis",
+    "mariana",
+    "amazon",
+    "europa",
+    "penglai",
+    "odyssey",
+  ]);
+  for (const [region, expected] of Object.entries(
+    otherRegionReference.registries,
+  ))
+    t.diagnostic(
+      JSON.stringify({
+        region,
+        ...compareRegionalRegistry(getRegionSpecies(region), expected, region),
+      }),
+    );
+});
+
+test("Regional reference tolerance permits only tiny coordinate drift and rejects gameplay or structural changes", () => {
+  const expected = otherRegionReference.registries.penglai,
+    index = expected.findIndex((species) => species.kind === "lushu"),
+    attempt = (change) => {
+      const actual = structuredClone(expected);
+      change(actual[index], actual);
+      return () =>
+        compareRegionalRegistry(actual, expected, "policy witness", "penglai");
+    };
+  assert.ok(index >= 0);
+  assert.doesNotThrow(
+    attempt((species) => {
+      species.spawnAnchors[0][1] += 1e-11;
+    }),
+  );
+  assert.throws(
+    attempt((species) => {
+      species.spawnAnchors[0][1] += 0.001;
+    }),
+  );
+
+  assert.doesNotThrow(
+    attempt((species) => {
+      species.depthMin += 1e-11;
+    }),
+  );
+  assert.throws(
+    attempt((species) => {
+      species.depthMin += 0.001;
+    }),
+  );
+  assert.throws(
+    attempt((species) => {
+      species.unapprovedUndefined = undefined;
+    }),
+  );
+  assert.throws(
+    attempt((species) => {
+      species.population += 1;
+    }),
+  );
+  assert.throws(
+    attempt((species) => {
+      species.length += 1e-11;
+    }),
+  );
+  assert.throws(
+    attempt((species) => {
+      species.kind = "changed_kind";
+    }),
+  );
+  assert.throws(
+    attempt((species) => {
+      species.unapprovedField = true;
+    }),
+  );
+  assert.throws(
+    attempt((species, registry) => {
+      registry.reverse();
+    }),
+  );
 });
 
 test("Final fitting is immutable and repeatable and actual group counts include every new member", () => {
