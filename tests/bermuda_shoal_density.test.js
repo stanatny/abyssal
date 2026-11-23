@@ -189,7 +189,58 @@ function registryCoordinateTolerance(path, expected, region) {
     : 0;
 }
 
+// 编码前先核验原值类型，不能让普通对象伪装成函数或undefined的参考标记。
+function assertRegistryRawTypes(actual, expected, label, path = "") {
+  const where = `${label}${path}`;
+  if (expected?.$type === "undefined") {
+    assert.equal(actual, undefined, `${where}: raw undefined`);
+    return;
+  }
+  if (expected?.$type === "function") {
+    assert.equal(typeof actual, "function", `${where}: raw function`);
+    return;
+  }
+  if (Array.isArray(expected)) {
+    assert.ok(Array.isArray(actual), `${where}: raw array`);
+    assert.equal(actual.length, expected.length, `${where}: raw array length`);
+    expected.forEach((entry, index) =>
+      assertRegistryRawTypes(actual[index], entry, label, `${path}/${index}`),
+    );
+  } else if (expected !== null && typeof expected === "object") {
+    assert.ok(
+      actual !== null && typeof actual === "object" && !Array.isArray(actual),
+      `${where}: raw object`,
+    );
+    assert.equal(
+      Object.getPrototypeOf(actual),
+      Object.prototype,
+      `${where}: plain registry record`,
+    );
+    assert.deepEqual(
+      Object.keys(actual).sort(),
+      Object.keys(expected).sort(),
+      `${where}: all raw owned fields`,
+    );
+    for (const [key, entry] of Object.entries(expected))
+      assertRegistryRawTypes(actual[key], entry, label, `${path}/${key}`);
+  } else
+    assert.equal(typeof actual, typeof expected, `${where}: raw value type`);
+}
+
+function cloneRawRegistry(value) {
+  if (Array.isArray(value)) return value.map(cloneRawRegistry);
+  if (value !== null && typeof value === "object")
+    return Object.fromEntries(
+      Object.entries(value).map(([key, entry]) => [
+        key,
+        cloneRawRegistry(entry),
+      ]),
+    );
+  return value;
+}
+
 function compareRegionalRegistry(actual, expected, label, region = label) {
+  assertRegistryRawTypes(actual, expected, label);
   return assertNumericReference(registryReferenceValue(actual), expected, {
     label,
     toleranceFor: (path, value) =>
@@ -226,7 +277,7 @@ test("Regional reference tolerance permits only tiny coordinate drift and reject
   const expected = otherRegionReference.registries.penglai,
     index = expected.findIndex((species) => species.kind === "lushu"),
     attempt = (change) => {
-      const actual = structuredClone(expected);
+      const actual = cloneRawRegistry(getRegionSpecies("penglai"));
       change(actual[index], actual);
       return () =>
         compareRegionalRegistry(actual, expected, "policy witness", "penglai");
@@ -283,6 +334,39 @@ test("Regional reference tolerance permits only tiny coordinate drift and reject
       registry.reverse();
     }),
   );
+});
+
+test("Regional reference rejects plain-object spoofs of raw function and undefined values", () => {
+  for (const [region, path, rawType] of [
+    ["mariana", ["worldBounds", "terrainContour"], "function"],
+    ["europa", ["spawnAnchors"], "undefined"],
+  ]) {
+    const expected = otherRegionReference.registries[region],
+      original = getRegionSpecies(region),
+      actual = cloneRawRegistry(original);
+    assert.doesNotThrow(() =>
+      compareRegionalRegistry(actual, expected, `${region} raw clone`),
+    );
+    let parent = actual[0],
+      marker = expected[0];
+    for (const key of path.slice(0, -1)) {
+      parent = parent[key];
+      marker = marker[key];
+    }
+    const key = path.at(-1);
+    assert.equal(typeof parent[key], rawType, `${region}: real source type`);
+    assert.equal(marker[key].$type, rawType, `${region}: expected encoding`);
+    parent[key] = cloneRawRegistry(marker[key]);
+    assert.equal(
+      typeof parent[key],
+      "object",
+      `${region}: explicit plain-object spoof`,
+    );
+    assert.throws(
+      () => compareRegionalRegistry(actual, expected, `${region} spoof`),
+      /raw (?:function|undefined)/,
+    );
+  }
 });
 
 test("Final fitting is immutable and repeatable and actual group counts include every new member", () => {
