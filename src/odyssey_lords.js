@@ -1,5 +1,27 @@
-import { odysseySeabedHeight, ODYSSEY_SITES } from "./odyssey_config.js";
+import {
+  odysseySeabedHeight,
+  ODYSSEY_SITES,
+  ODYSSEY_WORLD,
+} from "./odyssey_config.js";
 import { odysseyText as t } from "./odyssey_species.js";
+
+/** 地标、巡守中心与图鉴水深取自同一最终海床，避免扩图后坐标只更新一半。 */
+function habitat(kind, clearance, radius, rise) {
+  const [x, z] = ODYSSEY_SITES[kind];
+  const y = odysseySeabedHeight(x, z) + clearance;
+  return Object.freeze({
+    home: Object.freeze([x, y, z]),
+    radius,
+    maxCenterY: y + rise,
+    depthMin: Math.max(20, -y - rise),
+    depthMax: Math.min(ODYSSEY_WORLD.maxDepth - 5, -y + radius),
+  });
+}
+const HABITATS = Object.freeze({
+  karkinos: habitat("karkinos", 16, 150, 100),
+  scylla: habitat("scylla", 24, 170, 120),
+  charybdis: habitat("charybdis", 70, 180, 180),
+});
 
 /** 西方神话三守卫；25米与三次独立命中沿用共享规则。 */
 export const ODYSSEY_LORDS = Object.freeze(
@@ -33,8 +55,8 @@ export const ODYSSEY_LORDS = Object.freeze(
           "Six heads breathe in sequence · Keep sidestepping and use reef pillars as cover",
         ),
       },
-      depthMin: 570,
-      depthMax: 800,
+      depthMin: HABITATS.scylla.depthMin,
+      depthMax: HABITATS.scylla.depthMax,
       nutrition: 100,
       growth: 30,
       tier: 3,
@@ -76,8 +98,8 @@ export const ODYSSEY_LORDS = Object.freeze(
           "A tidewall is about to advance · Leave the locked lane sideways, above or below",
         ),
       },
-      depthMin: 690,
-      depthMax: 940,
+      depthMin: HABITATS.charybdis.depthMin,
+      depthMax: HABITATS.charybdis.depthMax,
       nutrition: 100,
       growth: 30,
       tier: 3,
@@ -121,8 +143,8 @@ export const ODYSSEY_LORDS = Object.freeze(
           "Three reef lanes are about to rupture · Rise away from the bottom or take the gaps",
         ),
       },
-      depthMin: 250,
-      depthMax: 440,
+      depthMin: HABITATS.karkinos.depthMin,
+      depthMax: HABITATS.karkinos.depthMax,
       nutrition: 100,
       growth: 30,
       tier: 3,
@@ -139,37 +161,25 @@ export const ODYSSEY_BOSS_INSTANCES = Object.freeze([
   Object.freeze({
     id: "odyssey_karkinos",
     kind: "karkinos",
-    home: Object.freeze([
-      190,
-      odysseySeabedHeight(...ODYSSEY_SITES.karkinos) + 16,
-      -625,
-    ]),
-    radius: 110,
-    maxCenterY: -250,
+    home: HABITATS.karkinos.home,
+    radius: HABITATS.karkinos.radius,
+    maxCenterY: HABITATS.karkinos.maxCenterY,
     persistentDefeat: true,
   }),
   Object.freeze({
     id: "odyssey_scylla",
     kind: "scylla",
-    home: Object.freeze([
-      -200,
-      odysseySeabedHeight(...ODYSSEY_SITES.scylla) + 24,
-      -1170,
-    ]),
-    radius: 125,
-    maxCenterY: -550,
+    home: HABITATS.scylla.home,
+    radius: HABITATS.scylla.radius,
+    maxCenterY: HABITATS.scylla.maxCenterY,
     persistentDefeat: true,
   }),
   Object.freeze({
     id: "odyssey_charybdis",
     kind: "charybdis",
-    home: Object.freeze([
-      190,
-      odysseySeabedHeight(...ODYSSEY_SITES.charybdis) + 70,
-      -1430,
-    ]),
-    radius: 135,
-    maxCenterY: -650,
+    home: HABITATS.charybdis.home,
+    radius: HABITATS.charybdis.radius,
+    maxCenterY: HABITATS.charybdis.maxCenterY,
     persistentDefeat: true,
   }),
 ]);

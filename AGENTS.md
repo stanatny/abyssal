@@ -1,5 +1,9 @@
 # ABYSSAL Development Rules
 
+Odyssey local-checkpoint authorization — 2026-11-24: the player explicitly asks to commit the delivered local map expansion before documenting a four-gate/four-lord trial proposal. Commit only this isolated `feat/odyssey-map-expansion` candidate after source/evidence verification; no push, main merge, version bump or formal deployment. The preceding candidate-only no-commit status is superseded for this checkpoint. Preserve the separate uncommitted Amazon branch, both live previews and archives. Four wind gates, a fourth lord, the Aeolus monument and homeward finish remain planning-only until the player confirms the design. Keep the current model until that confirmation; then restore the default model and verify it.
+
+Odyssey expansion review candidate — 2026-11-24: isolated `feat/odyssey-map-expansion` from formal v0.11.32 / `48355ee`, preserving the delivered uncommitted Amazon candidate and its services. Sampled wet area is 1.817×, deepest floor 939.41→1168.30 m; ordinary stock 329→662 across the same 22 kinds, with the original northern nursery and 144 residents exact. Four straight layered currents, fitted accepted HF landmarks, distributed deep meals and expanded three-lord territories pass focused geometry/ecology/native checks. Visible matched desktop samples retain approximately 60 FPS but use 5–15% more main-thread task time; physical-phone heat and natural whole-round pacing remain unverified. No commit/push/version bump or formal deployment is authorized. Independent preview `66a3fb303f4debc1` is verified: all 1,003 installed files match, twelve public resource hashes match, native bilingual start/dive/pause/home/refresh pass, and Amazon remains intact. Consult the [expansion review](docs/odyssey_map_expansion_20261124.md) and ignored task delivery receipt for current evidence, not superseded Bermuda publication instructions below.
+
 Current main-publication scope — 2026-11-23: the player accepts the chamber-scale lava preview and explicitly requests pushing to main. Integrate the accepted accumulated Bermuda expedition from candidate `991abf2616be7996`, following v0.11.31 / `2271eaf`, as v0.11.32. This overrides earlier no-commit/no-push notes only for this accepted scope. Preserve raw HF art, reviewed whole-body/paw/jewel, ordinary food/survival and existing services/archives. Release preparation synchronizes superseded test fixtures with the accepted one-exit/whole-body/stock contracts, tracks the known behind-mouth direct-lava pocket check as an exercised TODO, moves required test oracles out of ignored directories and repairs the local pursuer's ordinary physical return to its actual moved home. No tag or separate GitHub Release is requested. Complete full active tests, formatting, build, exact-commit Pages deployment and native formal-site entry before reporting publication. See [the release record](docs/release_v0_11_32.md).
 
 Chamber-scale lava follow-up — 2026-11-23: the player requests coverage across most of the actual titan chamber, superseding the modest area expansion below. Complete 180 m sheets cover about62% of the measured285–290 m transverse span. Retain the previous legal fit, then search at most16 shuffled legal sites within the same48-attempt ceiling. The broad lower skin and rounded pool share0.5 m bed clearance; both full volumes must validate. Twenty sleeping/waking cases retain180 m flow and one real hot pool with three distinct landing sites; maximum23 attempts/13 visited sites. Focused42 and world3 checks pass. Legal30 m waiting/evasion geometry is separate from native timed-dodge acceptance. Matched populated desktop/phone observer views verify onset/flow/residue; no FPS/heat claim. Current preview is candidate `991abf2616be7996`; delivery and public-check evidence are in ignored `.local/bermuda_room_spray_20261123/current_preview_delivery.json`. Preserve all services, archives, raw HF/body/paw/jewel and unrelated work. The old paw-behind-mouth coverage gap remains separate. No commit, push or version bump. See [the chamber-scale review](docs/bermuda_room_scale_lava.md).
@@ -10,9 +14,7 @@ Adult cave access and escape HUD follow-up — 2026-11-23: the joined den now ph
 
 Verified preview delivery policy — 2026-11-23: the player requires an accessible, verified playable link after every completed modification. Deliver the exact current candidate through the existing restricted preview service, verify public resources and native startup/affected interactions, identify its build and known limitations, and preserve rollback artifacts. This explicit instruction supersedes earlier withholding of preview rebuilds while the adult cave acceptance remains open; a review preview does not imply those unresolved gates passed. Keep formal main/Pages unchanged unless separately authorized to publish. A stale link or local-only screenshots do not complete delivery. Current review runtime: candidate `991abf2616be7996` replaces archived `081a18e6cbc1accd` with chamber-scale lava and fully validated residue. Exact URL, source/artifact identity, current public/native checks and service evidence are in ignored `.local/bermuda_room_spray_20261123/current_preview_delivery.json`. The preceding candidate receipts retain their historical scope. The previous adult pickup/controlled Orca escape and small-body HUD proofs retain their scoped status; the separate paw-behind-mouth coverage gap and unassisted all-character survival remain open.
 
-
 Entrance brightness and lair backdrop follow-up — 2026-11-23: the player corrected height to brightness and accepts the already raised entrance. The local candidate retains two taller fault arches, adds private wet-rock fill at the mouth and three wall-bound mineral fields with a twelve-second gentle pulse. Existing three-light pool, exposure, fog, food and hazards remain. Sixteen focused checks, matched desktop/phone observer rendering, a native 30 m Orca doorway round-trip and build pass. A legacy rear-shadow test still fails identically on the pre-task modules. Full adult treasure access remains open; preserve the accepted public preview/services. No commit, push or version bump. See [the entrance/light review](docs/bermuda_entrance_lighting_revision.md).
-
 
 Bermuda cave motion/floor/runtime follow-up — 2026-11-23: the served preview's
 10.1 m front lift is confirmed; the local whole-HF candidate uses one real wrist
@@ -93,7 +95,6 @@ actual cave near/far views before final paw clearance/contact baking. The active
 foot-guard, local-lighting, 30 m access, awakening and escape requirements remain.
 No commit, push or version bump is authorized. See the active paw revision.
 
-
 Sleeping-paw guard revision — 2026-11-22: the player now requests a genuine
 resting foot/paw to completely cover the jewel, with an occasional natural
 sleeping release; this supersedes the head-lift natural pocket above. Keep the
@@ -108,7 +109,6 @@ roar/tremor; previous route/photo passes do not validate this new pose. Keep raw
 HF bytes and prior states/evidence, preview services and archives. No commit,
 push or version bump is authorized. See
 [the active plan](docs/bermuda_sleeping_paw_revision.md).
-
 
 Local lair-lighting follow-up — 2026-11-22: the same active task additionally
 requires visible cool-colour bioluminescent growth or mineral light on actual
@@ -171,8 +171,6 @@ six served-resource byte comparisons pass. Preserve all failed evidence, fourtee
 preview/tunnel/awake and runtime archives; only dev is stopped.
 No commit, push or version bump is authorized; main remains v0.11.31.
 
-
-
 Cave descent and embrace follow-up — 2026-11-21: the player requests a
 layered northern entrance, a single exterior entrance with a winding descending
 interior, a true two-arm embrace with brief collection access and closing-arm
@@ -211,7 +209,6 @@ actual intake/portal geometry, shared survival, food, four lords and prior work.
 This supersedes the previous diagonal-blue presentation and hazard pacing. No
 commit, push or version bump is authorized. See
 [the active revision](docs/bermuda_titan_lava_revision.md).
-
 
 Breath direction and cave-location follow-up — 2026-11-21: the player rejects
 horizontal breath because a ground-hugging approach avoids it. Revise the actual

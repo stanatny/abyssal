@@ -51,7 +51,7 @@ export function* createOdysseyLandmarksSteps(
       ),
     });
   }
-  // 两座柱门保持既有位置与跨度；门楣上方也能绕行。
+  // 两座柱门沿新航路重定位，保留原实体尺寸和门楣上方绕行。
   for (const [index, x, z, opening, height] of [
     [0, ...ODYSSEY_SITES.garden, 112, 48],
     [1, ...ODYSSEY_SITES.passage, 126, 54],
@@ -186,13 +186,14 @@ export function* createOdysseyLandmarksSteps(
     yield "bronze-gateway";
   }
   // 散落陶罐以六个小型物流遗迹块分布，不覆盖主要转身区。
-  for (let patch = 0; patch < 6; patch++) {
+  for (let patch = 0; patch < 10; patch++) {
     const b = createOdysseyMergeBucket(keep, resources);
     const x =
         patch === 0 && shallowRows
           ? -55
-          : (patch % 2 ? 1 : -1) * (95 + (patch % 3) * 24),
-      z = -170 - patch * 100;
+          : (patch % 2 ? 1 : -1) *
+            (patch < 6 ? 95 + (patch % 3) * 24 : 245 + (patch % 3) * 18),
+      z = -170 - patch * 105;
     for (let i = 0; i < 15; i++) {
       const [px, pz] = odysseyRouteXZ(
           x + Math.cos(i * 2.399) * (5 + (i % 4) * 3),
@@ -201,7 +202,7 @@ export function* createOdysseyLandmarksSteps(
         y = heightAt(px, pz);
       const scale = 1.3 + (i % 4) * 0.5,
         fall = i % 4 === 0;
-      if (patch < 3 && shallowRows)
+      if (shallowRows)
         shallowRows.aegean_amphora.push({
           x: px,
           z: pz,
@@ -219,7 +220,7 @@ export function* createOdysseyLandmarksSteps(
       );
     }
     const cargo = b.finish(parent, `odyssey_amphora_cargo_${patch}`);
-    if (patch < 3 && shallowFallbacks) shallowFallbacks.push(cargo);
+    if (shallowFallbacks) shallowFallbacks.push(cargo);
     yield "amphora-field";
   }
   const { wreck, wreckEntrance } = createOdysseyGalley(

@@ -5,8 +5,8 @@ export const ODYSSEY_UI_EN = {
   双兽峡门: "Twin-monster Gateway",
   归航古桨船: "Homeward Galley",
   奥德赛迷航海域: "Odyssean Sea",
-  "从琥珀色浅湾潜入海妖花园、断桅礁棚与深水峡口。美人鱼、海神马与潮冠娜迦巡游水下，巨蟹卡尔基诺斯、六首斯库拉与吞潮卡律布狄斯分层守住归航之路。":
-    "Descend from amber shallows through Nereid Gardens, the broken-mast shelf and deep straits. Mermaids, hippocampi and tide-crowned Naga roam underwater; Karkinos, six-headed Scylla and tide-swallowing Charybdis guard successive reaches of the homeward sea road.",
+  "从琥珀色浅湾沿分层洋流深入海妖花园、断桅礁棚与更辽阔的深水峡口。两侧的陶罐遗迹与航海纪念碑指引补给支路；三位守卫分别巡守宽阔礁棚、西侧峡口与东南深潭。":
+    "Follow currents at different depths from amber shallows through Nereid Gardens, the broken-mast shelf and wider deep straits. Amphora fields and seafarer memorials mark feeding side roads; three guardians hold the broad shelf, western strait and southeastern basin.",
   "这里是伊萨卡育幼湾 · 沿海草与贝园觅食\n成长后探索断桅遗迹；25米后挑战海路上的三位守卫":
     "Ithacan nursery · Feed among seagrass and shell gardens\nExplore broken-mast ruins as you grow; challenge the three sea-road guardians at 25 m",
   "成长至30米，击败卡尔基诺斯、斯库拉与卡律布狄斯，打开归航之路。":

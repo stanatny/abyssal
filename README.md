@@ -78,6 +78,7 @@ npm run build
 ## Project notes
 
 - [Current release — v0.11.32](docs/release_v0_11_32.md)
+- [Odyssean Sea expansion — local review candidate](docs/odyssey_map_expansion_20261124.md)
 - [Development rules](AGENTS.md) · [Asset quality standard](docs/asset_quality_standard.md)
 - [Localization](docs/localization.md) · [Audio sources](docs/audio_sources.md) · [Verification records](docs/verification.md)
 - [Earlier detailed README and development history](https://github.com/stanatny/abyssal/blob/ef6a6a2345329370d553a87d97389b869ac22cfe/README.md)

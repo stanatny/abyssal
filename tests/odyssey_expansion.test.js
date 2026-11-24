@@ -4,6 +4,7 @@ import * as THREE from "three";
 import { getRegionSpecies } from "../src/region_ecology.js";
 import {
   ODYSSEY_WORLD as W,
+  ODYSSEY_SITES,
   odysseySeabedHeight as floor,
   odysseyLegacySeabedHeight as oldFloor,
 } from "../src/odyssey_config.js";
@@ -23,7 +24,7 @@ test("expanded Odyssey preserves the accepted shoreline and opens the deeper rou
   for (let x = -295; x < 300; x += 11)
     for (let z = -199; z < 140; z += 13)
       assert.equal(floor(x, z), oldFloor(x, z));
-  assert.ok(floor(190, -1430) < -850);
+  assert.ok(floor(...ODYSSEY_SITES.charybdis) < -1050);
   for (let x = -470; x < 480; x += 12)
     assert.ok(Math.abs(floor(x, -200.001) - floor(x, -199.999)) < 0.02);
 });
@@ -34,7 +35,7 @@ test("final population, full-body placement and normal resident replenishment fi
     assert.equal(roster.length, 22);
     assert.equal(
       roster.reduce((n, s) => n + s.population, 0),
-      329,
+      662,
     );
     let seed = 73;
     const random = () =>
@@ -184,4 +185,29 @@ test("late scenery import after region exit cannot attach resources; failures re
   assert.equal(b.state.status, "error");
   assert.equal(fallback.visible, true);
   held.at(-1).dispose();
+});
+
+test("distributed HF scenery retries at depth after a transient import failure", async () => {
+  const parent = new THREE.Group(),
+    owned = [];
+  let calls = 0;
+  const a = createOdysseyShallows(parent, (r) => (owned.push(r), r), {
+    rows: {},
+    fallbacks: [],
+    heightAt: () => -800,
+    loadAssets: () =>
+      ++calls === 1
+        ? Promise.reject(Error("offline"))
+        : Promise.resolve({ createOdysseyShallowAssets: () => ({}) }),
+  });
+  await a.prepare(0);
+  assert.equal(a.state.status, "error");
+  a.update(4, new THREE.Vector3(400, -760, -1700));
+  assert.equal(calls, 1);
+  a.update(6, new THREE.Vector3(400, -760, -1700));
+  await a.prepare(6);
+  assert.equal(calls, 2);
+  assert.equal(a.state.status, "ready");
+  owned.forEach((r) => r.dispose());
+  assert.equal(parent.children.length, 0);
 });

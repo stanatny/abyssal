@@ -1,4 +1,8 @@
-import { ODYSSEY_WORLD, odysseyWorldPoint } from "./odyssey_config.js";
+import {
+  ODYSSEY_WORLD,
+  odysseyWorldPoint,
+  expandOdysseyPoint,
+} from "./odyssey_config.js";
 import { WORLD } from "./world_config.js";
 import { BERMUDA_WORLD } from "./bermuda_config.js";
 import { AMAZON_WORLD } from "./amazon_config.js";
@@ -18,7 +22,7 @@ const definitions = [
     "golden_argonaut",
     copy("金帆船蛸", "Golden Argonaut"),
     "#ddb56d",
-    odysseyWorldPoint([-150, -190, -400]),
+    expandOdysseyPoint(odysseyWorldPoint([-150, -190, -400])),
     copy(
       "古航路外侧的贝园、断桅与沉锚",
       "Secluded shell gardens, broken masts and anchors beside the old sea road",
@@ -101,9 +105,9 @@ const definitions = [
 ];
 const searchAreas = {
   odyssey: [
-    odysseyWorldPoint([-150, -190, -400]),
-    odysseyWorldPoint([160, -250, -495]),
-    odysseyWorldPoint([-130, -300, -560]),
+    expandOdysseyPoint(odysseyWorldPoint([-150, -190, -400])),
+    expandOdysseyPoint(odysseyWorldPoint([160, -250, -495])),
+    expandOdysseyPoint(odysseyWorldPoint([-130, -300, -560])),
   ],
   hawaii: [
     [145, -74, -285],

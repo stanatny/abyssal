@@ -1,4 +1,4 @@
-import { odysseySeabedHeight as actualFloor } from "./odyssey_config.js";
+import { odysseyPreviousSeabedHeight as actualFloor } from "./odyssey_config.js";
 import { ODYSSEY_EXTRA_ROWS } from "./odyssey_species_extra.js";
 import {
   ODYSSEY_WORLD as W,

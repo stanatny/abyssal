@@ -89,8 +89,10 @@ test("Odyssey cancellation at staged crags and masonry leaves no partial scene",
     onStep: (label) => steps.push(label),
   });
   try {
-    assert.equal(restored.abyss.records.length, 8);
-    assert.equal(restored.colliders.length, 4531);
+    assert.equal(restored.abyss.records.length, 12);
+    const fresh = createOdysseyOcean(new THREE.Group());
+    assert.deepEqual(restored.colliders, fresh.colliders);
+    fresh.dispose();
     assert.equal(steps.filter((n) => n === "troy-masonry-row").length, 21);
   } finally {
     restored.dispose();

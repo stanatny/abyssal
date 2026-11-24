@@ -1,8 +1,9 @@
 import {
   ODYSSEY_WORLD,
-  ODYSSEY_SITES,
-  odysseySeabedHeight,
+  ODYSSEY_PREVIOUS_SITES as ODYSSEY_SITES,
+  odysseyPreviousSeabedHeight as odysseySeabedHeight,
 } from "./odyssey_config.js";
+import { expandOdysseyEcology } from "./odyssey_expansion_ecology.js";
 
 const groundHome = (x, z, h) => [
   x,
@@ -19,7 +20,7 @@ const freeze = (r) => {
 };
 
 /** 扩图后的最终栖地：保持育幼安全，沿左右航路补间隔，每位领主旁一只大猎手和少量独立补给。 */
-export function fitOdysseyEcology(species) {
+function fitPreviousOdysseyEcology(species) {
   return Object.freeze(
     species.map((entry) => {
       const e = { ...entry, worldBounds: ODYSSEY_WORLD };
@@ -159,4 +160,9 @@ export function fitOdysseyEcology(species) {
       return freeze(e);
     }),
   );
+}
+
+/** 先保留已验收库存，再统一迁移离岸栖地并补齐新航路，避免二次缩放或育幼区增密。 */
+export function fitOdysseyEcology(species) {
+  return expandOdysseyEcology(fitPreviousOdysseyEcology(species));
 }

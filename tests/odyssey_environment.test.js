@@ -33,11 +33,12 @@ test("Odyssey floor agrees with actual rendered triangle samples and preserves b
   parent.updateMatrixWorld(true);
   let maxError = 0;
   for (const x of [
-    -474, -405, -295, -252, -211, -125, -5, 72, 199, 248, 292, 370, 474,
+    -674, -570, -474, -405, -295, -252, -211, -125, -5, 72, 199, 248, 292, 370,
+    474, 570, 674,
   ])
     for (const z of [
       175, 135, 99, -3, -149, -277, -444, -647, -799, -947, -1140, -1363, -1549,
-      -1715,
+      -1715, -1855, -2050, -2230, -2315,
     ]) {
       const expected = odysseySeabedHeight(x, z);
       ray.set(

@@ -1,3 +1,4 @@
+import { expandOdysseyXZ } from "./odyssey_config.js";
 import { europaWorldPoint } from "./europa_config.js";
 import * as THREE from "three";
 import { acquireAtlantisQuestAsset } from "./atlantis_quest_asset.js";
@@ -134,7 +135,7 @@ export function deepHazardAnchors(ocean, regionId) {
         // 新古桨船占用原侧路锚点；机关移到船尾外侧，保留完整预警足迹。
         [-250, -650, 0],
         [-125, -1030, 0],
-      ],
+      ].map(([x, z, yaw]) => [...expandOdysseyXZ(x, z), yaw]),
       penglai: [
         [-470, -800, 0],
         [500, -350, 0],

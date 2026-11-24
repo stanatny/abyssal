@@ -9,6 +9,7 @@ import {
   nearestCurrentPoint,
 } from "../src/ocean_current_rules.js";
 import { attachOceanCurrents } from "../src/ocean_currents.js";
+import { ODYSSEY_WORLD } from "../src/odyssey_config.js";
 import { resolveMotion, bodyRadius } from "../src/collision.js";
 import { stepSurface, createSurfaceState } from "../src/surface_rules.js";
 const sample = () => ({ point: new T.Vector3(), direction: new T.Vector3() });
@@ -23,7 +24,10 @@ function active() {
 test("Temporary currents are scoped to the four ocean maps and stay horizontal inside their bounds", () => {
   for (const region of ["hawaii", "atlantis", "bermuda", "odyssey"]) {
     const routes = oceanCurrentRoutes(region);
-    assert.equal(routes.length, region === "bermuda" ? 4 : 2);
+    assert.equal(
+      routes.length,
+      ["bermuda", "odyssey"].includes(region) ? 4 : 2,
+    );
     assert.ok(routes[0].length > (region === "odyssey" ? 1400 : 920));
     assert.ok(routes[0].points[0].z > routes[0].points.at(-1).z);
     assert.ok(routes[1].points[0].z < routes[1].points.at(-1).z);
@@ -31,12 +35,26 @@ test("Temporary currents are scoped to the four ocean maps and stay horizontal i
       for (const p of r.points) {
         assert.equal(p.y, r.points[0].y);
         assert.ok(
-          p.x > (region === "bermuda" ? -480 : -280) &&
-            p.x < (region === "bermuda" ? 480 : 280),
+          p.x >
+            (region === "odyssey"
+              ? ODYSSEY_WORLD.minX
+              : region === "bermuda"
+                ? -480
+                : -280) &&
+            p.x <
+              (region === "odyssey"
+                ? ODYSSEY_WORLD.maxX
+                : region === "bermuda"
+                  ? 480
+                  : 280),
         );
         assert.ok(
-          p.z >= (["odyssey", "bermuda"].includes(region) ? -1700 : -1130) &&
-            p.z < 120,
+          p.z >=
+            (region === "odyssey"
+              ? ODYSSEY_WORLD.minZ
+              : region === "bermuda"
+                ? -1700
+                : -1130) && p.z < 120,
         );
       }
   }

@@ -7,12 +7,13 @@ import {
   resolveMotion,
   bodyRadius,
 } from "../src/collision.js";
+import { expandOdysseyXZ } from "../src/odyssey_config.js";
 import { ODYSSEY_BOSS_INSTANCES } from "../src/odyssey_lords.js";
 
 test("abyss scenery follows complete seabed footprints and blocks its actual visible surfaces", () => {
   const o = createOdysseyOcean(new T.Group());
   try {
-    assert.equal(o.abyss.meshes.length, 8);
+    assert.equal(o.abyss.meshes.length, 12);
     for (const r of o.abyss.records) {
       const m = r.mesh,
         p = r.near.attributes.position,
@@ -71,7 +72,7 @@ test("new scenery leaves adult approach/retreat lanes and lord patrol centres op
       [-200, -1170],
       [190, -1430],
       [65, -1500],
-    ])
+    ].map(([x, z]) => expandOdysseyXZ(x, z)))
       for (const sign of [1, -1]) {
         const points = Array.from({ length: 81 }, (_, i) => {
           const zz = z - 90 + (i * 180) / 80;

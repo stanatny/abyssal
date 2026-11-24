@@ -5,6 +5,7 @@ import {
   ODYSSEY_LANDMARKS,
   odysseySeabedHeight,
   odysseyRouteXZ,
+  expandOdysseyXZ,
   ODYSSEY_SITES,
 } from "./odyssey_config.js";
 import { addSurfaceDetail, clusterInstances } from "./ocean_visuals.js";
@@ -76,56 +77,67 @@ export function* createOdysseyOceanSteps(parent) {
       if (z >= -230)
         for (const center of [-293, -229, -180, -131])
           for (let x = center - 5; x <= center + 5; x += 0.5) xs.push(x);
-      const columns = [...new Set(xs)].sort((a, b) => a - b);
-      const width = W.maxX - W.minX,
-        size = Math.min(80, W.maxZ - z);
-      const g = keep(
-        new THREE.PlaneGeometry(
-          width,
-          size,
-          columns.length - 1,
-          Math.ceil(size / (z >= -230 ? 1 : 4)),
-        ),
-      );
-      g.rotateX(-Math.PI / 2);
-      g.translate((W.minX + W.maxX) * 0.5, 0, z + size * 0.5);
-      const p = g.attributes.position,
-        colors = new Float32Array(p.count * 3),
-        coastWeights = new Float32Array(p.count);
-      for (let i = 0; i < p.count; i++) {
-        const x = columns[i % columns.length],
-          zz = p.getZ(i),
-          y = odysseySeabedHeight(x, zz);
-        p.setXYZ(i, x, y, zz);
-        coastWeights[i] =
-          (1 - THREE.MathUtils.smoothstep(x, -85, -68)) *
-          THREE.MathUtils.smoothstep(zz, -198, -175) *
-          (1 - THREE.MathUtils.smoothstep(zz, 75, 98));
-        const descent = THREE.MathUtils.smoothstep(-zz, 100, 870);
-        color
-          .copy(sand)
-          .lerp(stone, Math.min(1, descent * 2.2))
-          .lerp(deep, Math.max(0, (descent - 0.36) / 0.64));
-        if (y > 2) color.set(y < 14 ? 0x9b916d : 0xa28f69);
-        color.multiplyScalar(
-          0.88 +
-            0.09 * Math.sin(x * 0.065 + zz * 0.043) +
-            0.035 * Math.cos(x * 0.18 - zz * 0.13),
+      const allColumns = [...new Set(xs)].sort((a, b) => a - b);
+      // 横向分块沿原网格共享边界，视锥裁剪只省渲染，不删除物理海床。
+      for (let columnStart = 0; columnStart < allColumns.length - 1; ) {
+        let columnEnd = columnStart + 1;
+        while (
+          columnEnd < allColumns.length - 1 &&
+          allColumns[columnEnd] - allColumns[columnStart] < 160
+        )
+          columnEnd++;
+        const columns = allColumns.slice(columnStart, columnEnd + 1);
+        columnStart = columnEnd;
+        const width = columns.at(-1) - columns[0],
+          size = Math.min(80, W.maxZ - z);
+        const g = keep(
+          new THREE.PlaneGeometry(
+            width,
+            size,
+            columns.length - 1,
+            Math.ceil(size / (z >= -230 ? 1 : 4)),
+          ),
         );
-        color.toArray(colors, i * 3);
+        g.rotateX(-Math.PI / 2);
+        g.translate((columns[0] + columns.at(-1)) * 0.5, 0, z + size * 0.5);
+        const p = g.attributes.position,
+          colors = new Float32Array(p.count * 3),
+          coastWeights = new Float32Array(p.count);
+        for (let i = 0; i < p.count; i++) {
+          const x = columns[i % columns.length],
+            zz = p.getZ(i),
+            y = odysseySeabedHeight(x, zz);
+          p.setXYZ(i, x, y, zz);
+          coastWeights[i] =
+            (1 - THREE.MathUtils.smoothstep(x, -85, -68)) *
+            THREE.MathUtils.smoothstep(zz, -198, -175) *
+            (1 - THREE.MathUtils.smoothstep(zz, 75, 98));
+          const descent = THREE.MathUtils.smoothstep(-zz, 100, 870);
+          color
+            .copy(sand)
+            .lerp(stone, Math.min(1, descent * 2.2))
+            .lerp(deep, Math.max(0, (descent - 0.36) / 0.64));
+          if (y > 2) color.set(y < 14 ? 0x9b916d : 0xa28f69);
+          color.multiplyScalar(
+            0.88 +
+              0.09 * Math.sin(x * 0.065 + zz * 0.043) +
+              0.035 * Math.cos(x * 0.18 - zz * 0.13),
+          );
+          color.toArray(colors, i * 3);
+        }
+        g.setAttribute("color", new THREE.BufferAttribute(colors, 3));
+        g.setAttribute(
+          "troyCoastWeight",
+          new THREE.BufferAttribute(coastWeights, 1),
+        );
+        g.computeVertexNormals();
+        const mesh = new THREE.Mesh(g, floorMaterial);
+        mesh.userData.terrainContact = true;
+        mesh.name = "odyssey_authoritative_seabed";
+        mesh.receiveShadow = true;
+        root.add(mesh);
+        yield "seabed-strip";
       }
-      g.setAttribute("color", new THREE.BufferAttribute(colors, 3));
-      g.setAttribute(
-        "troyCoastWeight",
-        new THREE.BufferAttribute(coastWeights, 1),
-      );
-      g.computeVertexNormals();
-      const mesh = new THREE.Mesh(g, floorMaterial);
-      mesh.userData.terrainContact = true;
-      mesh.name = "odyssey_authoritative_seabed";
-      mesh.receiveShadow = true;
-      root.add(mesh);
-      yield "seabed-strip";
     }
     const contactSurface = keep(
       createTerrainSurface(root, { fallback: odysseySeabedHeight }),
@@ -174,11 +186,11 @@ export function* createOdysseyOceanSteps(parent) {
     const kit = createOdysseyEnvironmentKit(keep, time);
     yield "shared-environment-kit";
     // 横向边缘从海床生长出石灰岩断壁，主航道宽度始终超过四百米。
-    for (let strip = 0; strip < 21; strip++) {
+    for (let strip = 0; strip < 29; strip++) {
       const z = 105 - strip * 86,
         b = createOdysseyMergeBucket(keep, resources);
       for (const side of [-1, 1]) {
-        const x = side * (465 + Math.sin(strip * 1.7) * 5),
+        const x = side * (665 + Math.sin(strip * 1.7) * 5),
           floor = odysseySeabedHeight(x, z),
           h = 38 + (strip % 4) * 11;
         if (side < 0 && z > -200) continue;
@@ -226,7 +238,7 @@ export function* createOdysseyOceanSteps(parent) {
         name: "red_branch_coral",
         geometry: kit.coral,
         material: kit.materials.coral,
-        count: 108,
+        count: 180,
         scale: 2.3,
         extent: 710,
       },
@@ -234,7 +246,7 @@ export function* createOdysseyOceanSteps(parent) {
         name: "crimson_lace_sea_fans",
         geometry: kit.fan,
         material: kit.materials.fan,
-        count: 106,
+        count: 184,
         scale: 3.8,
         extent: 1170,
       },
@@ -242,7 +254,7 @@ export function* createOdysseyOceanSteps(parent) {
         name: "gold_sponge_outcrops",
         geometry: kit.sponge,
         material: kit.materials.sponge,
-        count: 128,
+        count: 220,
         scale: 2.2,
         extent: 1210,
       },
@@ -250,7 +262,7 @@ export function* createOdysseyOceanSteps(parent) {
         name: "anchored_seagrass_meadows",
         geometry: kit.grass,
         material: kit.materials.grass,
-        count: 900,
+        count: 1500,
         scale: 3.1,
         extent: 800,
       },
@@ -274,7 +286,12 @@ export function* createOdysseyOceanSteps(parent) {
       for (let i = 0; i < spec.count; i++) {
         const oldZ = 115 - ((i * 73.97 + spec.scale * 27) % spec.extent),
           side = i % 2 ? 1 : -1;
-        const [x, z] = odysseyRouteXZ(side * (35 + ((i * 31.73) % 205)), oldZ),
+        const outer = oldZ < -240 && i % 3 === 0;
+        const [x, z] = odysseyRouteXZ(
+            side *
+              (outer ? 255 + ((i * 17.31) % 60) : 35 + ((i * 31.73) % 205)),
+            oldZ,
+          ),
           y = odysseySeabedHeight(x, z);
         if (y > W.surfaceY - 4) continue;
         const scale = spec.scale * (0.55 + (i % 7) * 0.12);
@@ -294,7 +311,7 @@ export function* createOdysseyOceanSteps(parent) {
           scale,
         );
         dummy.updateMatrix();
-        if (z > -530) {
+        if (spec.geometry !== kit.grass || z > -530) {
           fallback.setMatrixAt(shallowPlaced++, dummy.matrix);
           const kind =
             spec.geometry === kit.coral
@@ -425,9 +442,9 @@ export function* createOdysseyOceanSteps(parent) {
           [-15, -140],
           ODYSSEY_SITES.garden,
           ODYSSEY_SITES.passage,
-          [-170, -1110],
-          [145, -1370],
-          [0, -1650],
+          expandOdysseyXZ(-170, -1110),
+          expandOdysseyXZ(145, -1370),
+          expandOdysseyXZ(0, -1650),
         ],
       ],
       lightSources: [],
@@ -524,7 +541,14 @@ function createSurface(parent, keep, time) {
     }),
   );
   material.name = "amber_mediterranean_reflection";
-  const g = keep(new THREE.PlaneGeometry(1850, 2900, 50, 90));
+  const g = keep(
+    new THREE.PlaneGeometry(
+      W.maxX - W.minX + 900,
+      W.maxZ - W.minZ + 1000,
+      62,
+      110,
+    ),
+  );
   g.rotateX(-Math.PI / 2);
   g.translate(0, W.surfaceY, (W.minZ + W.maxZ) * 0.5);
   const surface = new THREE.Mesh(g, material);
@@ -568,8 +592,8 @@ function* createSkylineSteps(parent, keep, kit) {
   );
   addSurfaceDetail(islandMaterial, "stone", 0.23);
   for (const [i, cx, cz, rx, rz, height] of [
-    [1, 650, -280, 125, 140, 86],
-    [2, -660, -740, 130, 190, 98],
+    [1, 880, -380, 125, 140, 86],
+    [2, -900, -1080, 130, 190, 98],
     [3, 90, 340, 175, 95, 51],
   ]) {
     const g = keep(new THREE.PlaneGeometry(rx * 2, rz * 2, 60, 60));

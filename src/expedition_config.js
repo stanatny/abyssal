@@ -237,7 +237,7 @@ export const REGIONS = Object.freeze(
       world: ODYSSEY_WORLD,
       ecologyKind: "mythic",
       description:
-        "从琥珀色浅湾潜入海妖花园、断桅礁棚与深水峡口。美人鱼、海神马与潮冠娜迦巡游水下，巨蟹卡尔基诺斯、六首斯库拉与吞潮卡律布狄斯分层守住归航之路。",
+        "从琥珀色浅湾沿分层洋流深入海妖花园、断桅礁棚与更辽阔的深水峡口。两侧的陶罐遗迹与航海纪念碑指引补给支路；三位守卫分别巡守宽阔礁棚、西侧峡口与东南深潭。",
       departureHint:
         "这里是伊萨卡育幼湾 · 沿海草与贝园觅食\n成长后探索断桅遗迹；25米后挑战海路上的三位守卫",
       speciesKinds: REGION_SPECIES_KINDS.odyssey,

@@ -1,3 +1,4 @@
+import { expandOdysseyXZ } from "./odyssey_config.js";
 import * as THREE from "three";
 import { createOdysseyAbyssAssets } from "./odyssey_abyss_asset.js";
 import { finishScenePreparation } from "./scene_preparation.js";
@@ -15,7 +16,20 @@ export const ODYSSEY_ABYSS_PROPS = Object.freeze(
     ["crag", 245, -1640, 60, -0.2],
     ["memorial", 65, -1500, 31, -0.9],
     ["memorial", 6, -1470, 19, 0.4],
-  ].map(Object.freeze),
+  ]
+    .map(([kind, x, z, size, yaw]) => [
+      kind,
+      ...expandOdysseyXZ(x, z),
+      size,
+      yaw,
+    ])
+    .concat([
+      ["crag", -505, -1130, 72, 0.8],
+      ["crag", 510, -1690, 82, 2.1],
+      ["memorial", -420, -990, 24, 0.6],
+      ["memorial", 425, -1350, 27, -0.7],
+    ])
+    .map(Object.freeze),
 );
 
 /** 底座沿权威海床连续贴合；只烘焙静态实体，运行帧不改顶点。 */

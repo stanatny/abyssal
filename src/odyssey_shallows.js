@@ -222,7 +222,8 @@ export function createOdysseyShallows(
     prepare,
     update(t, position, highQuality = true) {
       if (disposed) return;
-      if (position.z > -520) prepare(t);
+      // 同源礁石与陶罐已延展到深海；失败重试不能要求玩家回到旧浅湾。
+      prepare(t);
       if (
         state.status !== "ready" ||
         (t >= lastUpdate && t - lastUpdate < 0.35)

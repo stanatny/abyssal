@@ -85,6 +85,32 @@ export function oceanCurrentRoutes(regionId) {
       return { ...lane, points, distances, length };
     });
   }
+  if (regionId === "odyssey") {
+    // 浅层长航流、离岸返程与两条深层短航流分开布置，均沿纵轴直行。
+    // 西侧返航不经过特洛伊干岸；深层接驳保留侧游/上浮离流的空间。
+    const lanes = [
+      { id: "outbound", inbound: false, x: 180, y: -24, z0: -65, z1: -2220 },
+      { id: "inbound", inbound: true, x: -260, y: -130, z0: -550, z1: -2180 },
+      {
+        id: "deep_west",
+        inbound: false,
+        x: -80,
+        y: -430,
+        z0: -1100,
+        z1: -1770,
+      },
+      { id: "deep_east", inbound: true, x: 440, y: -760, z0: -1720, z1: -2170 },
+    ];
+    return lanes.map(({ x, y, z0, z1, ...lane }) => {
+      const points = Array.from({ length: 129 }, (_, i) => {
+        const u = lane.inbound ? 1 - i / 128 : i / 128;
+        return new T.Vector3(x, y, z0 + (z1 - z0) * u);
+      });
+      const length = Math.abs(z1 - z0);
+      const distances = points.map((_, i) => (length * i) / 128);
+      return { ...lane, points, distances, length };
+    });
+  }
   const endZ = regionId === "odyssey" ? -1480 : -990;
   return [false, true].map((inbound) => {
     const points = [];
