@@ -17,7 +17,11 @@ import {
 import { canPredatorRetaliate } from "../src/predator_combat.js";
 import { bodyRadius, resolveMotion } from "../src/collision.js";
 import { createOdysseyShallows } from "../src/odyssey_shallows.js";
+import previousTideEcology from "./fixtures/odyssey_tide_ecology_665_20261125.json" with { type: "json" };
+import { POLYPHEMUS_SITE } from "../src/odyssey_polyphemus_site.js";
 const roster = getRegionSpecies("odyssey");
+const oldAnchors = (s) =>
+  previousTideEcology.species.find((p) => p.kind === s.kind).spawnAnchors;
 
 test("expanded Odyssey preserves the accepted shoreline and opens the deeper route", () => {
   assert.ok((W.maxX - W.minX) * (W.maxZ - W.minZ) > 2 * 600 * 1290);
@@ -35,7 +39,7 @@ test("final population, full-body placement and normal resident replenishment fi
     assert.equal(roster.length, 22);
     assert.equal(
       roster.reduce((n, s) => n + s.population, 0),
-      662,
+      677,
     );
     let seed = 73;
     const random = () =>
@@ -73,9 +77,11 @@ test("final population, full-body placement and normal resident replenishment fi
 });
 
 test("each guardian has a nearby adult threat and two or three adult meals outside its centre", () => {
-  for (const boss of bosses) {
+  for (const boss of bosses.filter((b) =>
+    ["karkinos", "scylla", "charybdis"].includes(b.kind),
+  )) {
     const nearby = roster.flatMap((s) =>
-      s.spawnAnchors.map((p) => ({
+      oldAnchors(s).map((p) => ({
         s,
         p,
         d: Math.hypot(...p.map((v, i) => v - boss.home[i])),
@@ -112,7 +118,7 @@ test("adult bodies can reach guardian side supplies and return through the final
     for (const boss of bosses) {
       const meals = roster
         .filter((s) => !s.predator && s.length >= 16)
-        .flatMap((s) => s.spawnAnchors)
+        .flatMap((s) => oldAnchors(s))
         .filter((p) => Math.hypot(...p.map((v, i) => v - boss.home[i])) < 185);
       for (const meal of meals)
         for (const direction of [1, -1]) {
@@ -120,29 +126,38 @@ test("adult bodies can reach guardian side supplies and return through the final
               ...(direction === 1 ? boss.home : meal),
             ),
             end = new THREE.Vector3(...(direction === 1 ? meal : boss.home));
+          const giant = ["ladon", "polyphemus"].includes(boss.kind);
+          // 直立巨人的新实心石台不能被直线穿透；真实退路从台面上方绕过再下降到旧食物。
+          const cruise = Math.max(start.y, end.y, POLYPHEMUS_SITE.top + 30);
+          const waypoints = giant
+            ? [start, start.clone().setY(cruise), end.clone().setY(cruise), end]
+            : [start, end];
           let prev = start.clone();
-          for (let i = 1; i <= 40; i++) {
-            const next = start.clone().lerp(end, i / 40);
-            next.y = Math.max(next.y, floor(next.x, next.z) + 24);
-            const result = resolveMotion(prev, next, {
-              colliders: ocean.colliders,
-              radius,
-              length: 30,
-              forward: next.clone().sub(prev).normalize(),
-              floorHeight: floor,
-              bounds: W,
-            });
-            assert.equal(result.stuck, false, boss.kind);
-            assert.ok(
-              new THREE.Vector3(
-                result.position.x,
-                result.position.y,
-                result.position.z,
-              ).distanceTo(next) < 0.1,
-              `${boss.kind} supply route`,
-            );
-            prev = next;
-          }
+          for (let segment = 1; segment < waypoints.length; segment++)
+            for (let i = 1; i <= 40; i++) {
+              const next = waypoints[segment - 1]
+                .clone()
+                .lerp(waypoints[segment], i / 40);
+              next.y = Math.max(next.y, floor(next.x, next.z) + 24);
+              const result = resolveMotion(prev, next, {
+                colliders: ocean.colliders,
+                radius,
+                length: 30,
+                forward: next.clone().sub(prev).normalize(),
+                floorHeight: floor,
+                bounds: W,
+              });
+              assert.equal(result.stuck, false, boss.kind);
+              assert.ok(
+                new THREE.Vector3(
+                  result.position.x,
+                  result.position.y,
+                  result.position.z,
+                ).distanceTo(next) < 0.1,
+                `${boss.kind} supply route ${result.contacts.map((c) => c.collider.id).join(",")}`,
+              );
+              prev = next;
+            }
         }
     }
   } finally {

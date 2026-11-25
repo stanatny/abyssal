@@ -58,6 +58,7 @@ export function tickBoss(
     inTerritory = false,
     distance = Infinity,
     lineOfSight = true,
+    aimReady = true,
     playerAlive = true,
     disoriented = false,
   } = {},
@@ -84,7 +85,10 @@ export function tickBoss(
   }
 
   if (boss.phase === "dormant" || boss.phase === "return") {
-    if ((lineOfSight && distance <= 220) || boss.pursuitStarted)
+    if (
+      (lineOfSight && distance <= (boss.species.wakeRange ?? 220)) ||
+      boss.pursuitStarted
+    )
       setPhase(boss, "hunt");
     else if (boss.phase === "return") {
       boss.timer += elapsed;
@@ -98,7 +102,11 @@ export function tickBoss(
   for (let transitions = 0; transitions < 64; transitions += 1) {
     if (
       boss.phase === "hunt" &&
-      (!lineOfSight || distance > boss.species.engageRange)
+      (!lineOfSight ||
+        !aimReady ||
+        distance >
+          (boss.species.abilityEngageRanges?.[nextAbility(boss)] ??
+            boss.species.engageRange))
     ) {
       boss.timer = 0;
       break;
@@ -199,7 +207,7 @@ export function isBossFlankContact({
 export function hitBoss(
   player,
   boss,
-  { inRange = false, isFlank = false } = {},
+  { inRange = false, isFlank = false, weakpointHit = false } = {},
 ) {
   const failure = (reason) => ({
     hit: false,
@@ -215,6 +223,8 @@ export function hitBoss(
   const minimum = boss.species.minAttackLength;
   if (player.length < minimum) return failure("too_small");
   if (!inRange) return failure("out_of_range");
+  if (boss.species.damageTarget === "eye" && !weakpointHit)
+    return failure("eye_required");
   if (boss.species.guardedPhases?.includes(boss.phase))
     return failure("shell_guarded");
   if (!bossCounterOpen(boss)) return failure("opening_closed");
@@ -228,16 +238,21 @@ export function hitBoss(
 }
 
 /** 有效鱼雷代替一口近身攻击，保留真实25米门槛、同轮破绽限制及同一击败结算。 */
-export function hitBossWithTorpedo(player, boss) {
-  return hitBossWithRangedImpact(player, boss, "mechanical_shark");
+export function hitBossWithTorpedo(player, boss, options) {
+  return hitBossWithRangedImpact(player, boss, "mechanical_shark", options);
 }
 
 /** 尸爆等同一次鱼雷命中，不绕过角色、门槛、剑阵或同轮破绽。 */
-export function hitBossWithCorpseBlast(player, boss) {
-  return hitBossWithRangedImpact(player, boss, "zombie_shark");
+export function hitBossWithCorpseBlast(player, boss, options) {
+  return hitBossWithRangedImpact(player, boss, "zombie_shark", options);
 }
 
-function hitBossWithRangedImpact(player, boss, characterId) {
+function hitBossWithRangedImpact(
+  player,
+  boss,
+  characterId,
+  { weakpointHit = false } = {},
+) {
   if (
     player.characterId !== characterId ||
     player.dead ||
@@ -256,6 +271,14 @@ function hitBossWithRangedImpact(player, boss, characterId) {
       hungerRestored: 0,
       defeated: false,
       reason: "ineligible",
+    };
+  if (boss.species.damageTarget === "eye" && !weakpointHit)
+    return {
+      hit: false,
+      damage: 0,
+      hungerRestored: 0,
+      defeated: false,
+      reason: "eye_required",
     };
   if (!bossCounterOpen(boss))
     return {
@@ -529,16 +552,18 @@ export const BOSS_SPECIES = Object.freeze(
  * Private Helper Functions
  ********************************************/
 
+// 准入检查与进入前摇必须读取同一个即将释放的技能，不能拿上一轮范围开下一轮。
+function nextAbility(boss) {
+  const cycle = boss.species.abilityCycle;
+  return cycle?.length ? cycle[boss.attackCount % cycle.length] : boss.ability;
+}
+
 function setPhase(boss, phase) {
   // 一次破绽只结算一次伤害；完整释放下一轮技能后才重新开放，撤出或喷墨不重置。
   if (boss.phase === "attack" && phase === "recover") boss.openingSpent = false;
   boss.phase = phase;
   boss.timer = 0;
-  if (phase === "windup" && boss.species.abilityCycle?.length)
-    boss.ability =
-      boss.species.abilityCycle[
-        boss.attackCount % boss.species.abilityCycle.length
-      ];
+  if (phase === "windup") boss.ability = nextAbility(boss);
   const timings = boss.species.abilityTimings?.[boss.ability];
   boss.phaseDuration = {
     dormant: Infinity,

@@ -83,7 +83,7 @@ test("Mariana stock remains isolated from later regional supply expansions", () 
     amazon: 409,
     europa: 352,
     penglai: 393,
-    odyssey: 329,
+    odyssey: 677,
   }))
     assert.equal(
       getRegionSpecies(region).reduce((n, s) => n + s.population, 0),

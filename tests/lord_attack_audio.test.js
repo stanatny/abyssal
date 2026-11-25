@@ -26,7 +26,7 @@ test("every declared lord ability resolves to an attack sound; important contras
   const abilities = BOSS_SPECIES.flatMap((s) =>
     (s.abilityCycle ?? [s.ability]).map((a) => [s.kind, a]),
   );
-  assert.equal(abilities.length, 22);
+  assert.equal(abilities.length, 23);
   for (const [kind, ability] of abilities)
     assert.ok(
       LORD_ATTACK_URLS[lordAttackSound(kind, ability)],

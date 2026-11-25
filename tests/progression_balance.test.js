@@ -25,7 +25,7 @@ test("八海域保持数量、各水层食物和领主阶段的大型猎物", ()
     amazon: 409,
     europa: 352,
     penglai: 393,
-    odyssey: 662,
+    odyssey: 677,
   })) {
     const ss = getRegionSpecies(region);
     assert.equal(

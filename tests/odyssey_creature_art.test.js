@@ -48,6 +48,8 @@ const expected = [
   "scylla",
   "charybdis",
   "karkinos",
+  "ladon",
+  "polyphemus",
   "golden_argonaut",
   "iris_cuttlefish",
   "amphora_hermit",
@@ -57,7 +59,7 @@ const expected = [
   "thalassa_manta",
   "cerulean_hound",
 ];
-test("Odyssean factory covers twenty-one ordinary kinds, three new lords and the exclusive rare", () => {
+test("Odyssean factory covers twenty-one ordinary kinds, four lords and the exclusive rare", () => {
   assert.deepEqual([...ODYSSEY_CREATURE_KINDS], expected);
   assert.throws(() => build("shark"), /Unknown Odyssean creature/);
 });
@@ -113,11 +115,12 @@ for (const kind of expected)
                         "iris_cuttlefish",
                         "thalassa_manta",
                         "bronze_turtle",
+                        "polyphemus",
                       ].includes(kind)
                     ? "getX"
                     : "getZ"
               ](i) *
-                (kind === "golden_argonaut" ? -1 : 1) >
+                (["golden_argonaut", "polyphemus"].includes(kind) ? -1 : 1) >
               skin.geometry.attributes.position[
                 kind === "moon_scallop"
                   ? "getY"
@@ -126,11 +129,12 @@ for (const kind of expected)
                         "iris_cuttlefish",
                         "thalassa_manta",
                         "bronze_turtle",
+                        "polyphemus",
                       ].includes(kind)
                     ? "getX"
                     : "getZ"
               ](best) *
-                (kind === "golden_argonaut" ? -1 : 1)
+                (["golden_argonaut", "polyphemus"].includes(kind) ? -1 : 1)
                 ? i
                 : best,
             0,
@@ -143,6 +147,12 @@ for (const kind of expected)
     );
     let moved = 0;
     for (let frame = 0; frame <= 240; frame++) {
+      if (kind === "polyphemus")
+        a.root.userData.setPolyphemusCombat({
+          phase: "windup",
+          ability: "boulder",
+          progress: Math.min(1, frame / 60),
+        });
       pose(a, frame / 20, frame < 120 ? 1 : 3);
       if (frame % 20 === 0) {
         for (const mouth of a.root.userData.mouthAnchors)

@@ -40,8 +40,8 @@ test("四位主宰均大于玩家上限，技能不同且栖息区在世界之�
     BOSS_SPECIES.filter((s) => !s.alien && !s.freshwater && !s.mythic).length,
     4,
   );
-  assert.equal(BOSS_SPECIES.length, 18);
-  assert.equal(new Set(BOSS_SPECIES.map((s) => s.ability)).size, 10);
+  assert.equal(BOSS_SPECIES.length, 19);
+  assert.equal(new Set(BOSS_SPECIES.map((s) => s.ability)).size, 11);
   for (const species of BOSS_SPECIES.filter((s) => !s.mythic)) {
     assert.equal(species.tier, 3);
     assert.ok(species.length > 30);
@@ -316,12 +316,18 @@ test("两角色在25至30米，领主保留阶段护甲与按配置分轮有效�
             const player = grownPlayer(length, characterId);
             if (frenzy) collectPickup(player, "frenzy");
             const boss = createBossState(species);
+            const contact =
+              species.damageTarget === "eye"
+                ? { ...FLANK, weakpointHit: true }
+                : FLANK;
+            if (species.damageTarget === "eye")
+              assert.equal(hitBoss(player, boss, FLANK).reason, "eye_required");
             assert.equal(boss.validatedHits, 0);
             const guarded = species.guardedPhases?.includes(phase);
             if (guarded) {
               boss.phase = phase;
               assert.equal(
-                hitBoss(player, boss, FLANK).reason,
+                hitBoss(player, boss, contact).reason,
                 "shell_guarded",
               );
               assert.equal(boss.validatedHits, 0);
@@ -331,7 +337,7 @@ test("两角色在25至30米，领主保留阶段护甲与按配置分轮有效�
             const counterClosed = !bossCounterOpen(boss);
             if (counterClosed && !guarded) {
               assert.equal(
-                hitBoss(player, boss, FLANK).reason,
+                hitBoss(player, boss, contact).reason,
                 "opening_closed",
               );
               assert.equal(boss.validatedHits, 0);
@@ -340,7 +346,7 @@ test("两角色在25至30米，领主保留阶段护甲与按配置分轮有效�
             const requiredHits = bossRequiredHits(species);
             for (let hits = 1; hits <= requiredHits; hits += 1) {
               boss.phase = guarded || counterClosed ? "recover" : phase;
-              const result = hitBoss(player, boss, FLANK);
+              const result = hitBoss(player, boss, contact);
               assert.equal(result.hit, true);
               assert.equal(boss.validatedHits, hits);
               assert.ok(
@@ -560,6 +566,13 @@ test("停顿期正面实体命中生效，仍保留资格、遮挡确认、冷�
     const player = grownPlayer(25);
     const boss = createBossState(species);
     boss.phase = "recover";
+    const eyeProof =
+      species.damageTarget === "eye" ? { weakpointHit: true } : {};
+    if (species.damageTarget === "eye")
+      assert.equal(
+        hitBoss(player, boss, { inRange: true }).reason,
+        "eye_required",
+      );
     assert.equal(
       hitBoss(player, boss, { inRange: false }).reason,
       "out_of_range",
@@ -571,14 +584,15 @@ test("停顿期正面实体命中生效，仍保留资格、遮挡确认、冷�
       if (i) {
         player.biteCooldown = boss.biteCooldown = 0;
         assert.equal(
-          hitBoss(player, boss, { inRange: true }).reason,
+          hitBoss(player, boss, { inRange: true, ...eyeProof }).reason,
           "must_disengage",
         );
         updateBossContact(boss, false, 0.35);
         finishNextBossAttack(boss);
       }
       assert.equal(
-        hitBoss(player, boss, { inRange: true, isFlank: false }).hit,
+        hitBoss(player, boss, { inRange: true, isFlank: false, ...eyeProof })
+          .hit,
         true,
         species.kind,
       );

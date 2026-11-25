@@ -28,7 +28,7 @@ test("the eighth underwater region has exclusive actual ecology and no modern hu
   assert.equal(REGIONS.at(-1).id, "odyssey");
   assert.equal(r.surfaceMode, undefined);
   assert.equal(r.speciesKinds.length, 22);
-  assert.equal(r.bossInstances.length, 3);
+  assert.equal(r.bossInstances.length, 4);
   assert.ok(Object.values(r.humanActivity).every((x) => x === false));
   const kinds = new Set(r.speciesKinds);
   for (const other of REGIONS.filter((x) => x.id !== r.id)) {
@@ -65,7 +65,7 @@ test("the eighth underwater region has exclusive actual ecology and no modern hu
   assert.equal(REGIONAL_RARES.filter((s) => s.regionId === r.id).length, 1);
 });
 
-test("food covers growing bodies and all three guardians without replacing late threats", () => {
+test("food covers growing bodies and all four guardians without replacing late threats", () => {
   const spec = getRegionSpecies("odyssey");
   for (const length of [3, 6, 10, 16, 25, 30]) {
     assert.ok(
@@ -91,50 +91,68 @@ test("food covers growing bodies and all three guardians without replacing late 
   }
 });
 
-test("mythic victory requires all three once-only guardians and 30 metres", () => {
+test("mythic victory requires four once-only guardians, four gates, 30 metres and real homeward arrival", () => {
   const r = getExpedition("odyssey").region;
   const o = createExpeditionObjective(r),
     p = createPlayer();
   p.length = 30;
-  const bosses = r.bossInstances.map((s, i) => ({
+  const bosses = r.bossInstances.map((s) => ({
     id: s.id,
     enabled: true,
-    state: { defeated: i === 0 },
+    state: { defeated: false },
   }));
-  advanceExpeditionObjective(o, p, bosses);
-  assert.equal(p.won, false);
-  bosses[1].state.defeated = true;
-  advanceExpeditionObjective(o, p, bosses);
-  assert.equal(p.won, false);
-  bosses[2].state.defeated = true;
+  const completed = { stabilized: 4, homewardAvailable: true, arrived: true };
+  for (let i = 0; i < 3; i++) {
+    bosses[i].state.defeated = true;
+    advanceExpeditionObjective(o, p, bosses, { windTrial: completed });
+    assert.equal(p.won, false);
+  }
+  bosses[3].state.defeated = true;
   p.length = 29;
-  advanceExpeditionObjective(o, p, bosses);
+  advanceExpeditionObjective(o, p, bosses, { windTrial: completed });
   assert.equal(p.won, false);
   p.length = 30;
-  advanceExpeditionObjective(o, p, bosses);
+  advanceExpeditionObjective(o, p, bosses, {
+    windTrial: { ...completed, stabilized: 3 },
+  });
+  assert.equal(p.won, false);
+  advanceExpeditionObjective(o, p, bosses, {
+    windTrial: { ...completed, arrived: false },
+  });
+  assert.equal(p.won, false);
+  advanceExpeditionObjective(o, p, bosses, { windTrial: completed });
   assert.equal(p.won, true);
-  advanceExpeditionObjective(o, p, bosses);
-  assert.equal(o.defeated.size, 3);
+  advanceExpeditionObjective(o, p, bosses, { windTrial: completed });
+  assert.equal(o.defeated.size, 4);
 });
 
-test("all three new lords preserve eligibility and three separate valid attacks", () => {
+test("all four lords preserve eligibility and three separate valid attacks", () => {
   for (const s of ODYSSEY_LORDS) {
     const b = createBossState(s),
       p = createPlayer();
     p.length = 24;
     assert.equal(hitBoss(p, b, { inRange: true, isFlank: true }).hit, false);
     p.length = 25;
+    const eyeProof = s.damageTarget === "eye" ? { weakpointHit: true } : {};
+    if (s.damageTarget === "eye")
+      assert.equal(
+        hitBoss(p, b, { inRange: true, isFlank: true }).reason,
+        "eye_required",
+      );
     for (let i = 0; i < 3; i++) {
-      if (i) finishNextBossAttack(b);
+      if (i || s.damageTarget === "eye") finishNextBossAttack(b);
       p.biteCooldown = 0;
       b.biteCooldown = 0;
       b.contactArmed = true;
-      const hit = hitBoss(p, b, { inRange: true, isFlank: true });
+      const hit = hitBoss(p, b, { inRange: true, isFlank: true, ...eyeProof });
       assert.equal(hit.defeated, i === 2);
     }
     assert.equal(b.validatedHits, 3);
     const cards = creatureGuideSkills(s, ODYSSEY_LORD_DESCRIPTIONS[s.kind]);
-    assert.equal(cards.length, s.kind === "scylla" ? 1 : 2);
+    assert.equal(
+      cards.length,
+      ["scylla", "polyphemus"].includes(s.kind) ? 1 : 2,
+    );
     for (const card of cards) {
       assert.ok(!/\p{Script=Han}/u.test(t(card.description, [], "en")));
       assert.ok(!/\p{Script=Han}/u.test(t(card.counter, [], "en")));

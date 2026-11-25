@@ -326,10 +326,13 @@ export function buildOceanCatalog(regionId) {
       skills: creatureGuideSkills(config, DESCRIPTIONS[config.kind]),
       requiredHits: bossRequiredHits(config),
       counterPhases: config.counterPhases,
+      damageTarget: config.damageTarget,
       text:
-        (config.pursuitOnUnlock
-          ? tr`四象护阵未解时留守道观，解锁后立即开始全域追击。`
-          : tr`未交战时也会在自己的领地内缓慢巡游，靠近时才发动追猎。`) +
+        (config.damageTarget === "eye"
+          ? tr`定点巨人以独眼警戒水域，会踏步转身面向已发现的角色；身体中心不会移动。`
+          : config.pursuitOnUnlock
+            ? tr`四象护阵未解时留守道观，解锁后立即开始全域追击。`
+            : tr`未交战时也会在自己的领地内缓慢巡游，靠近时才发动追猎。`) +
         " " +
         (DESCRIPTIONS[config.kind].appearance
           ? t(DESCRIPTIONS[config.kind].appearance) + " "
@@ -355,7 +358,7 @@ export function buildOceanCatalog(regionId) {
       size: tr`${config.length} m`,
       tier: 3,
       habitat: config.western
-        ? "神话海路与三位守卫的水下领地"
+        ? "神话海路与四位守卫的风门领地"
         : config.mythic
           ? "蓬莱仙山与云海领地"
           : regionId === "mariana" && config.kind === "hydra"
@@ -1109,7 +1112,7 @@ export function createOceanGuide(trigger) {
     }
     const combat =
       entry.category === "lord"
-        ? tr`${entry.counterPhases ? tr`25米可交战 · ${entry.requiredHits}次分轮反击。只有技能后的收势期能伤到本体，正面命中也有效。每轮最多一次，咬击与鱼雷共用；实体阻挡穿行，命中后需脱离。` : tr`25米可交战 · ${entry.requiredHits}次独立命中。身体侧面、背部是弱点；攻击后的收势期，正面咬中身体也有效。每轮最多一次有效伤害，需等下一轮技能结束再进攻；鱼雷共用这个间隔。身体会阻挡穿行，命中后需脱离再接近。`} · ${tr`每次有效咬击恢复${BOSS_BITE_HUNGER}点饱食（不超过当前上限），不额外回血或成长；击败奖励另计。`}`
+        ? tr`${entry.damageTarget === "eye" ? tr`25米可交战 · ${entry.requiredHits}次分轮眼部命中。只有投石后的收势期，攻击真实独眼才会造成伤害；身体和侧背均不受伤。咬击、鱼雷与尸爆共享每轮一次的眼部窗口，命中后需脱离。` : entry.counterPhases ? tr`25米可交战 · ${entry.requiredHits}次分轮反击。只有技能后的收势期能伤到本体，正面命中也有效。每轮最多一次，咬击与鱼雷共用；实体阻挡穿行，命中后需脱离。` : tr`25米可交战 · ${entry.requiredHits}次独立命中。身体侧面、背部是弱点；攻击后的收势期，正面咬中身体也有效。每轮最多一次有效伤害，需等下一轮技能结束再进攻；鱼雷共用这个间隔。身体会阻挡穿行，命中后需脱离再接近。`} · ${tr`每次有效咬击恢复${BOSS_BITE_HUNGER}点饱食（不超过当前上限），不额外回血或成长；击败奖励另计。`}`
         : entry.category === "player"
           ? tr`巡游 ${characterMovement(entry.characterId).cruiseSpeed} m/s · 冲刺 ${characterMovement(entry.characterId).sprintSpeed} m/s`
           : entry.role;
@@ -1126,7 +1129,7 @@ export function createOceanGuide(trigger) {
       : tr`<h4>${entry.skills?.length ? "遭遇与习性" : entry.ability}</h4><p>${entry.text}</p>`;
     setMarkup(
       info,
-      tr`<div class="guide-eyebrow">${entry.latin}</div><div class="guide-name-row"><h3>${entry.name}</h3><span>${entry.role}</span></div><div class="guide-facts"><div><small>本作尺度</small><b>${entry.size}</b></div><div><small>活动水层</small><b>${entry.habitat}</b></div></div>${entry.category === "player" && entry.appearance ? tr`<p class="guide-appearance">${entry.appearance}</p>` : ""}${abilities}${entry.background ? tr`<section class="guide-background"><h4>${entry.backgroundType}</h4><p>${entry.background}</p></section>` : ""}${behavior}<div class="guide-advice"><b>生存建议</b><p>${entry.counter}</p></div><small class="guide-combat">${combat}</small>${entry.category === "lord" ? tr`<p class="guide-recovery">${tr`收势时领主仍会绕位，命中后加快重整。近身戒备先预警${LORD_RECOVERY.warning}秒，再反击锁定的正面120度，每轮最多一次。绕到侧背或升降离开标记，咬中后及时脱离；戒备不关闭本轮身体破绽。`}</p>` : ""}${survival}${entry.realSize ? tr`<div class="guide-advice"><b>生态注记</b><p>${entry.realSize} ${entry.habitatNote || ""}</p></div>` : ""}`,
+      tr`<div class="guide-eyebrow">${entry.latin}</div><div class="guide-name-row"><h3>${entry.name}</h3><span>${entry.role}</span></div><div class="guide-facts"><div><small>本作尺度</small><b>${entry.size}</b></div><div><small>活动水层</small><b>${entry.habitat}</b></div></div>${entry.category === "player" && entry.appearance ? tr`<p class="guide-appearance">${entry.appearance}</p>` : ""}${abilities}${entry.background ? tr`<section class="guide-background"><h4>${entry.backgroundType}</h4><p>${entry.background}</p></section>` : ""}${behavior}<div class="guide-advice"><b>生存建议</b><p>${entry.counter}</p></div><small class="guide-combat">${combat}</small>${entry.category === "lord" && entry.damageTarget === "eye" ? tr`<p class="guide-recovery">${tr`定点巨人在收势期仍可能近身戒备：预警${LORD_RECOVERY.warning}秒后，反击锁定的正前方120度，单轮最多一次。改变深度或离开标记避开；戒备不关闭真实眼部窗口，身体仍没有破绽。`}</p>` : ""}${entry.category === "lord" && entry.damageTarget !== "eye" ? tr`<p class="guide-recovery">${tr`收势时领主仍会绕位，命中后加快重整。近身戒备先预警${LORD_RECOVERY.warning}秒，再反击锁定的正面120度，每轮最多一次。绕到侧背或升降离开标记，咬中后及时脱离；戒备不关闭本轮身体破绽。`}</p>` : ""}${survival}${entry.realSize ? tr`<div class="guide-advice"><b>生态注记</b><p>${entry.realSize} ${entry.habitatNote || ""}</p></div>` : ""}`,
     );
     showRegionalFacts(entry);
     if (!renderer) return;

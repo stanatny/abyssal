@@ -46,10 +46,8 @@ for (const region of REGIONS) {
     const forward = new THREE.Vector3(0, 0, -1);
     const entries = encounters.bosses.filter((b) => b.enabled);
     assert.ok(entries.length > 0);
-    const step = () =>
-      encounters.update(0, 0, player, position, forward, {
-        blockedBetween: () => false,
-      });
+    const step = (blockedBetween = () => false, dt = 0) =>
+      encounters.update(dt, dt, player, position, forward, { blockedBetween });
     for (const entry of entries) {
       reset();
       for (const distance of [229, 231, 400, 849, 851, 1400]) {
@@ -57,7 +55,12 @@ for (const region of REGIONS) {
           .copy(entry.mesh.position)
           .add(new THREE.Vector3(0, 0, distance));
         const phase = entry.state.phase;
-        step();
+        // 巨蟹的新260米发现范围包含旧229/231米样本；这些点用真实视线遮挡隔离渲染检查。
+        // 其他领主仍保留原来的清晰视线与全部旧距离样本。
+        const coveredCrab =
+          entry.state.species.kind === "karkinos" &&
+          distance <= entry.state.species.wakeRange;
+        step(coveredCrab ? () => true : () => false);
         assert.equal(entry.mesh.visible, true, `${entry.id} at ${distance} m`);
         assert.equal(
           entry.state.phase,
@@ -73,6 +76,18 @@ for (const region of REGIONS) {
           entry.label.visible,
           false,
           "distant bodies do not reveal labels",
+        );
+        assert.equal(entry.state.attackCount, 0);
+      }
+      if (entry.state.species.kind === "karkinos") {
+        reset();
+        position.copy(entry.mesh.position).add(new THREE.Vector3(0, 0, 259));
+        step(() => false, 0.01);
+        assert.equal(entry.mesh.visible, true);
+        assert.equal(
+          entry.state.phase,
+          "hunt",
+          "清晰视线下259米是已授权的巨蟹发现范围，不能当作距离裁剪",
         );
         assert.equal(entry.state.attackCount, 0);
       }

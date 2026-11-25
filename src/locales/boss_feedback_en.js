@@ -1,4 +1,16 @@
 export const BOSS_FEEDBACK_EN = Object.freeze({
+  "等待单眼破绽 · {0}/{1}": "Wait for the eye opening · {0}/{1}",
+  "身体无法造成伤害；先闪避投石，等收势时攻击独眼。":
+    "The body takes no damage. Dodge the boulder, then strike the single eye during recovery.",
+  "单眼破绽 · {0}/{1}": "Eye opening · {0}/{1}",
+  "收势还剩{0}秒 · 只攻击真实独眼，每轮一次。":
+    "Recovery: {0}s left · Strike only the actual single eye, once per cycle.",
+  "身体挡下攻击 · 唯一弱点是独眼，等收势时瞄准眼睛。":
+    "Body armor blocked the attack · The single eye is the only weak point; aim at it during recovery.",
+  "还剩{0}秒 · 瞄准独眼": "{0}s left · Aim at the single eye",
+  "躲过投石，收势时攻击独眼":
+    "Dodge the boulder, then strike the eye during recovery",
+
   "领主已击败 · {0}/{1}": "Lord defeated · {0}/{1}",
   "领主已被击败。": "This lord has been defeated.",
   "当前无法进攻 · {0}/{1}": "Cannot attack now · {0}/{1}",

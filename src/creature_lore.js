@@ -2,6 +2,11 @@ import { ODYSSEY_LORE } from "./odyssey_lore.js";
 /** 图鉴背景故事；出处与美术改编记录保留在内部来源文档。 */
 export const CREATURE_LORE = [
   [
+    "polyphemus",
+    "《奥德赛》第九卷中，奥德修斯与同伴走进独眼巨人的洞穴，最终以计谋脱身。愤怒的波吕斐摩斯向逃离的航船掷出巨岩，掀起危险的海浪。独眼、洞穴和投石来自这个古老故事。\n\n如今，巨人低伏在西侧沉水石台上。双脚撑住沉重躯体，右臂抬起岩石，掌心与落点同时给出预告；归航者把这轮攻势称为“巨岩掀浪”。躲开岩石和撞击水层扩散的水环，等待投掷后的收势，瞄准唯一的独眼反击，身体不受伤。击败守卫只解开风门的封锁；身后的风纹机关仍需亲手读懂。西风石台之后，仍有一条尚未苏醒的归航之路。",
+    "In Odyssey Book IX, Odysseus and his companions enter the Cyclops' cave and escape by a ruse. The furious Polyphemus throws enormous rocks toward their departing ship, raising dangerous waves. The single eye, cave and boulder throws come from that ancient story.\n\nThe crouching giant now watches a submerged western dais. Both feet support its massive body as the right arm raises a rock; the palm and landing mark announce the throw that voyagers call Boulder and Breaker. Evade the stone and water ring spreading through the impact layer, then strike the single eye during recovery; its armored body takes no damage. Defeating the guardian only unseals the wind gate: its wind-pattern puzzle still needs to be understood and operated. Beyond the western dais, the homeward road still waits to be awakened.",
+  ],
+  [
     "taotie",
     "山肩的雾散开时，饕餮才露出沉重的双角。它的骨甲像古器上的兽面，腹中却似乎永远空着。旅人听见石子被爪掌碾碎，便知道不该再靠近那张巨口。它不镇守道观，也不听命于四象，只循着自己的饥饿在山径上徘徊。",
     "When the mountain mist thins, Taotie's heavy horns emerge. Its bony ridges recall the faces on ancient vessels, yet its belly never seems full. Pebbles crunch beneath its paws, warning travelers away from the vast jaw. It guards no monastery and serves none of the Four Symbols; hunger alone guides its mountain patrol.",

@@ -1,9 +1,12 @@
+import { KARKINOS_COMBAT as CRAB } from "./karkinos_combat.js";
 import {
   odysseySeabedHeight,
   ODYSSEY_SITES,
   ODYSSEY_WORLD,
 } from "./odyssey_config.js";
 import { odysseyText as t } from "./odyssey_species.js";
+import { POLYPHEMUS_COMBAT as COMBAT } from "./polyphemus_combat.js";
+import { POLYPHEMUS_SITE } from "./odyssey_polyphemus_site.js";
 
 /** 地标、巡守中心与图鉴水深取自同一最终海床，避免扩图后坐标只更新一半。 */
 function habitat(kind, clearance, radius, rise) {
@@ -18,14 +21,69 @@ function habitat(kind, clearance, radius, rise) {
   });
 }
 const HABITATS = Object.freeze({
-  karkinos: habitat("karkinos", 16, 150, 100),
+  polyphemus: Object.freeze({
+    home: POLYPHEMUS_SITE.home,
+    radius: POLYPHEMUS_SITE.radius,
+    maxCenterY: POLYPHEMUS_SITE.home[1],
+    depthMin: Math.max(20, -(POLYPHEMUS_SITE.top + POLYPHEMUS_SITE.height)),
+    depthMax: Math.min(ODYSSEY_WORLD.maxDepth - 5, -POLYPHEMUS_SITE.top),
+  }),
+  karkinos: habitat("karkinos", 16, CRAB.territoryRadius, 100),
   scylla: habitat("scylla", 24, 170, 120),
   charybdis: habitat("charybdis", 70, 180, 180),
 });
 
-/** 西方神话三守卫；25米与三次独立命中沿用共享规则。 */
+/** 西方神话四守卫；25米与三次独立命中沿用共享规则。 */
 export const ODYSSEY_LORDS = Object.freeze(
   [
+    {
+      kind: "polyphemus",
+      label: t("独眼巨人 · 波吕斐摩斯", "Polyphemus the Cyclops"),
+      western: true,
+      mythic: true,
+      upright: true,
+      stationary: true,
+      damageTarget: "eye",
+      counterPhases: Object.freeze(["recover"]),
+      length: 90,
+      floorClearance: 45,
+      health: 210,
+      minAttackLength: 25,
+      speed: 0,
+      engageRange: COMBAT.engageRange,
+      wakeRange: COMBAT.wakeRange,
+      huntDuration: COMBAT.hunt,
+      lockWindow: COMBAT.lockWindow,
+      projectileSpeed: COMBAT.projectileSpeed,
+      damage: 30,
+      ability: "boulder",
+      abilityColors: { boulder: 0xd6b58a },
+      skillLabels: { boulder: t("巨岩掀浪", "Boulder and Breaker") },
+      skillTips: {
+        boulder: t(
+          "观察巨手抬石与落点预告，锁定后立刻闪避；只有收势时攻击独眼才有效",
+          "Read the raised stone and landing warning, dodge once locked; only the single eye takes damage during recovery",
+        ),
+      },
+      projectileHitMessage: t(
+        "巨岩掀浪命中 · 侧移避开落点，向上游离同层水环",
+        "Boulder and breaker hit · Sidestep the impact and rise or dive out of the impact layer",
+      ),
+      depthMin: HABITATS.polyphemus.depthMin,
+      depthMax: HABITATS.polyphemus.depthMax,
+      nutrition: 100,
+      growth: 30,
+      tier: 3,
+      windupDuration: COMBAT.windup,
+      attackDuration: COMBAT.attack,
+      abilityTimings: {
+        boulder: {
+          windup: COMBAT.windup,
+          attack: COMBAT.attack,
+          recover: COMBAT.recover,
+        },
+      },
+    },
     {
       kind: "scylla",
       label: t("六首噬礁者 · 斯库拉", "Six-headed Reefmaw · Scylla"),
@@ -122,12 +180,14 @@ export const ODYSSEY_LORDS = Object.freeze(
       health: 210,
       minAttackLength: 25,
       speed: 19,
-      engageRange: 100,
+      engageRange: CRAB.engageRange,
+      wakeRange: CRAB.wakeRange,
+      abilityEngageRanges: CRAB.abilityEngageRanges,
       lockWindow: 0.8,
-      abilityRadius: 105,
+      abilityRadius: CRAB.fault.range,
       damage: 30,
-      ability: "claw",
-      abilityCycle: ["claw", "fault"],
+      ability: "fault",
+      abilityCycle: CRAB.abilityCycle,
       abilityColors: { claw: 0xe3b274, fault: 0xda9b7e },
       skillLabels: {
         claw: t("破礁双钳", "Reef-sundering Claws"),
@@ -148,16 +208,21 @@ export const ODYSSEY_LORDS = Object.freeze(
       nutrition: 100,
       growth: 30,
       tier: 3,
-      windupDuration: 2.4,
-      attackDuration: 1.6,
-      abilityTimings: {
-        claw: { windup: 2.4, attack: 1.6, recover: 4.5 },
-        fault: { windup: 2.6, attack: 3, recover: 4.5 },
-      },
+      windupDuration: CRAB.abilityTimings.fault.windup,
+      attackDuration: CRAB.abilityTimings.fault.attack,
+      abilityTimings: CRAB.abilityTimings,
     },
   ].map((s) => Object.freeze(s)),
 );
 export const ODYSSEY_BOSS_INSTANCES = Object.freeze([
+  Object.freeze({
+    id: "odyssey_polyphemus",
+    kind: "polyphemus",
+    home: HABITATS.polyphemus.home,
+    radius: HABITATS.polyphemus.radius,
+    maxCenterY: HABITATS.polyphemus.maxCenterY,
+    persistentDefeat: true,
+  }),
   Object.freeze({
     id: "odyssey_karkinos",
     kind: "karkinos",
@@ -184,6 +249,31 @@ export const ODYSSEY_BOSS_INSTANCES = Object.freeze([
   }),
 ]);
 export const ODYSSEY_LORD_DESCRIPTIONS = {
+  polyphemus: {
+    name: t("波吕斐摩斯", "Polyphemus"),
+    latin: "POLYPHEMUS",
+    category: "lord",
+    role: t("西侧巨岩风门守卫", "Western boulder wind-gate guardian"),
+    color: "#a3896a",
+    ability: t("巨岩掀浪", "Boulder and Breaker"),
+    appearance: t(
+      "额头中央只有一只巨眼，宽厚肩背与完整双臂相连；它在石台上交替踏步转向，站稳后抬臂投岩。只有收势时的真实独眼可受伤。",
+      "One great eye sits above a broad, complete torso and articulated arms. The giant takes alternating pivot steps on its dais and plants its stance to throw. Only the actual single eye takes damage during recovery.",
+    ),
+    text: t(
+      "《奥德赛》第九卷中的独眼巨人曾从洞穴追至海边，掷出巨岩，激起几乎掀翻航船的海浪。这片海域将他的洞穴改编成沉水石台：击败守卫后，西风机关才会解除封锁。投石前有明确的抬臂与落点预告，岩石从掌心飞出，撞击后扩散成有限的同层水环。",
+      "In Odyssey Book IX, the Cyclops hurls enormous rocks from his cave's shore, sending waves toward the fleeing ship. Here his lair becomes a submerged dais: defeat the guardian to unlock the western wind puzzle. A raised arm and landing mark warn of the throw; the stone leaves the actual palm and its impact sends a finite water ring at the impact layer outward.",
+    ),
+    counter: t(
+      "1.8秒蓄势时先让开投石路线，最后0.6秒出现锁定闪环和四角标记后立即闪避。投掷后有3秒收势期，25米起只有攻击真实独眼才造成伤害，身体和侧背均不受伤，每轮只计一次眼部命中。",
+      "Leave the throw lane during the 1.8-second windup; dodge immediately when the final 0.6-second lock flash and brackets appear. In the 3-second post-throw recovery, only the actual single eye takes damage from 25 m. Body and flanks are armored; only one eye hit counts per cycle.",
+    ),
+    realSize: t(
+      "独眼、洞穴与掷岩激浪出自《奥德赛》第九卷；90米蹲伏高度、沉水石台、风门守卫与水下战斗是游戏改编。",
+      "The single eye, cave and wave-raising boulder throws come from Odyssey Book IX; the 90 m crouching height, submerged dais, wind-gate guardianship and underwater combat are game adaptations.",
+    ),
+    backgroundType: "神话传说",
+  },
   scylla: {
     name: t("斯库拉", "Scylla"),
     latin: "SCYLLA",

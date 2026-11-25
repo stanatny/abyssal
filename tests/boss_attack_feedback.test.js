@@ -30,10 +30,32 @@ const phases = [
   "disoriented",
 ];
 const methods = [
-  ["orca", false, (p, b) => hitBoss(p, b, { inRange: true, isFlank: true })],
-  ["mechanical_shark", true, hitBossWithTorpedo],
-  ["zombie_shark", true, hitBossWithCorpseBlast],
+  [
+    "orca",
+    false,
+    (p, b) =>
+      hitBoss(p, b, { inRange: true, isFlank: true, ...confirmedImpact(b) }),
+  ],
+  [
+    "mechanical_shark",
+    true,
+    (p, b) => hitBossWithTorpedo(p, b, confirmedImpact(b)),
+  ],
+  [
+    "zombie_shark",
+    true,
+    (p, b) => hitBossWithCorpseBlast(p, b, confirmedImpact(b)),
+  ],
 ];
+
+// 此规则夹具明确提供场景已确认的眼部命中；无证明与身体接触另测拒绝。
+function confirmedImpact(boss) {
+  return boss.species.damageTarget === "eye" ? { weakpointHit: true } : {};
+}
+
+function recoveryCode(boss) {
+  return boss.species.damageTarget === "eye" ? "eye" : "body";
+}
 
 function state(species, phase = "recover") {
   const b = createBossState(species);
@@ -42,6 +64,84 @@ function state(species, phase = "recover") {
   b.timer = 0.4;
   return b;
 }
+
+test("Polyphemus shows only the eye recovery opportunity; body misses explain the real weak point in both locales", () => {
+  const species = BOSS_SPECIES.find((s) => s.kind === "polyphemus");
+  assert.equal(species.damageTarget, "eye");
+  for (const [character, ranged, hit] of methods) {
+    const p = createPlayer(character, 25),
+      b = createBossState(species);
+    finishNextBossAttack(b);
+    tickBoss(b, 0.4, { inTerritory: true, distance: 0, lineOfSight: true });
+    const info = bossAttackFeedback(b, p, { ranged });
+    assert.equal(info.code, "eye");
+    assert.equal(info.canDamage, true);
+    assert.equal(info.seconds, b.phaseDuration - b.timer);
+    assert.match(t(info.title, [], "zh-CN"), /单眼破绽/);
+    assert.match(t(info.advice, [], "zh-CN"), /只攻击真实独眼/);
+    assert.doesNotMatch(t(info.advice, [], "zh-CN"), /咬中身体|侧背可攻击/);
+    const before = structuredClone({ player: p, boss: b });
+    const body = ranged
+      ? character === "mechanical_shark"
+        ? hitBossWithTorpedo(p, b)
+        : hitBossWithCorpseBlast(p, b)
+      : hitBoss(p, b, { inRange: true, isFlank: true });
+    assert.equal(body.hit, false);
+    assert.equal(body.reason, "eye_required");
+    assert.deepEqual({ player: p, boss: b }, before);
+    const failure = bossFailureFeedback(b, p, body, { ranged });
+    assert.match(t(failure, [], "zh-CN"), /身体挡下攻击.*独眼/);
+    assert.match(t(failure, [], "en"), /Body armor.*single eye/);
+    assert.doesNotMatch(t(failure, [], "en"), /[\u3400-\u9fff]|\{\d+\}/u);
+    const recentAttack = recentAttackFor(b, p, body, { ranged });
+    const compact = compactBossFeedback(b, p, {
+      ranged,
+      recentAttack,
+      now: 1,
+    });
+    assert.equal(compact.code, "eye");
+    assert.equal(compact.tone, "result");
+    assert.equal(compact.advice, recentAttack.message);
+    assert.equal(hit(p, b).hit, true);
+    assert.equal(bossAttackFeedback(b, p, { ranged }).code, "spent");
+  }
+});
+
+test("Polyphemus never advertises an eye window outside recovery or lets stale body feedback hide the next attack", () => {
+  const species = BOSS_SPECIES.find((s) => s.kind === "polyphemus");
+  for (const ranged of [false, true]) {
+    const p = createPlayer(ranged ? "mechanical_shark" : "orca", 25),
+      b = state(species);
+    const body = ranged
+      ? hitBossWithTorpedo(p, b)
+      : hitBoss(p, b, { inRange: true, isFlank: true });
+    const recentAttack = recentAttackFor(b, p, body, { ranged });
+    for (const phase of phases.filter((p) => p !== "recover")) {
+      b.phase = phase;
+      const feedback = bossAttackFeedback(b, p, { ranged }),
+        compact = compactBossFeedback(b, p, {
+          ranged,
+          recentAttack,
+          now: 1.1,
+        });
+      assert.equal(feedback.code, "eye_closed", phase);
+      assert.equal(feedback.canDamage, false, phase);
+      assert.equal(feedback.seconds, null);
+      assert.match(
+        t(feedback.advice, [], "zh-CN"),
+        /身体无法造成伤害.*收势.*独眼/,
+      );
+      assert.equal(compact.code, "eye_closed");
+      assert.equal(compact.tone, "neutral");
+      assert.match(t(compact.advice, [], "en"), /Dodge.*eye during recovery/);
+      assert.notEqual(compact.advice, recentAttack.message);
+      assert.doesNotMatch(
+        t(compact.advice, [], "zh-CN"),
+        /咬中身体|侧背|现在反击/,
+      );
+    }
+  }
+});
 
 test("Every lord and real attack path agrees with feedback window permission across all combat phases", () => {
   let cases = 0;
@@ -56,7 +156,8 @@ test("Every lord and real attack path agrees with feedback window permission acr
           hit(player, boss).hit,
           `${species.kind}/${phase}/${character}`,
         );
-        if (info.code === "body") assert.equal(info.seconds, 2.6);
+        if (["body", "eye"].includes(info.code))
+          assert.equal(info.seconds, 2.6);
         cases++;
       }
   assert.equal(cases, BOSS_SPECIES.length * phases.length * methods.length);
@@ -67,10 +168,11 @@ test("An actual hit spends the shared opening; short cooldown never masks it and
     const player = createPlayer("orca", 25),
       boss = createBossState(species);
     if (species.counterPhases) finishNextBossAttack(boss);
-    const result = hitBoss(player, boss, { inRange: true, isFlank: true });
+    const contact = { inRange: true, isFlank: true, ...confirmedImpact(boss) };
+    const result = hitBoss(player, boss, contact);
     assert.equal(result.hit, true);
     assert.equal(bossAttackFeedback(boss, player).code, "spent");
-    const blocked = hitBoss(player, boss, { inRange: true, isFlank: true });
+    const blocked = hitBoss(player, boss, contact);
     assert.equal(blocked.reason, "cooldown");
     assert.match(
       t(bossFailureFeedback(boss, player, blocked), [], "zh-CN"),
@@ -82,13 +184,10 @@ test("An actual hit spends the shared opening; short cooldown never masks it and
     );
     player.biteCooldown = boss.biteCooldown = 0;
     updateBossContact(boss, false, 0.35);
-    assert.equal(
-      hitBoss(player, boss, { inRange: true, isFlank: true }).reason,
-      "opening_spent",
-    );
+    assert.equal(hitBoss(player, boss, contact).reason, "opening_spent");
     finishNextBossAttack(boss);
-    assert.equal(bossAttackFeedback(boss, player).code, "body");
-    assert.equal(hitBoss(player, boss, { inRange: true }).hit, true);
+    assert.equal(bossAttackFeedback(boss, player).code, recoveryCode(boss));
+    assert.equal(hitBoss(player, boss, contact).hit, true);
   }
 });
 
@@ -133,7 +232,7 @@ test("Ranged availability never demands flank contact; locks, size, defeat and p
           t(info.title, [], "zh-CN") + t(info.advice, [], "zh-CN"),
         ),
       );
-      assert.equal(hitBossWithTorpedo(p, b).hit, true);
+      assert.equal(hitBossWithTorpedo(p, b, confirmedImpact(b)).hit, true);
     }
     for (const mode of ["locked", "too_small", "defeated", "unavailable"]) {
       const player = createPlayer(
@@ -215,7 +314,11 @@ test("Real final hits show the configured completed progress instead of inviting
       if (i || species.counterPhases) finishNextBossAttack(b);
       p.biteCooldown = b.biteCooldown = 0;
       updateBossContact(b, false, 0.35);
-      hit = hitBoss(p, b, { inRange: true, isFlank: true });
+      hit = hitBoss(p, b, {
+        inRange: true,
+        isFlank: true,
+        ...confirmedImpact(b),
+      });
       assert.equal(hit.hit, true);
     }
     assert.equal(hit.defeated, true);
@@ -430,7 +533,7 @@ test("Compact defaults use real recovery clocks and size gates, render in both l
       const context = { inTerritory: true, distance: 0, lineOfSight: true };
       tickBoss(b, 0.37, context);
       const info = compactBossFeedback(b, p, { ranged });
-      assert.equal(info.code, "body");
+      assert.equal(info.code, recoveryCode(b));
       assert.equal(info.seconds, b.phaseDuration - b.timer);
       assert.match(
         t(info.advice, [], "zh-CN"),

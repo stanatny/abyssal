@@ -1,3 +1,7 @@
+import {
+  polyphemusEyeTarget,
+  polyphemusEyeImpact,
+} from "./polyphemus_weakpoint.js";
 import { createAreaBlast } from "./area_blast.js";
 import * as THREE from "three";
 import { createAttackTorpedoModel } from "./submarine_defense.js";
@@ -66,6 +70,10 @@ export function createMechanicalTorpedoes(
   const intersections = [],
     forward = new THREE.Vector3();
   function bossPoint(origin, b) {
+    if (b.state.species.damageTarget === "eye") {
+      const point = polyphemusEyeTarget(b.mesh, new THREE.Vector3());
+      return polyphemusEyeImpact(b.mesh, point, { origin }) ? point : null;
+    }
     const contact = b.mesh.userData.contactRoot || b.mesh;
     contact.updateWorldMatrix(true, true);
     forward.copy(b.mesh.position).sub(origin).normalize();
@@ -203,7 +211,10 @@ export function createMechanicalTorpedoes(
             segment + b.state.species.length * 0.8
         )
           continue;
-        const contact = b.mesh.userData.contactRoot || b.mesh;
+        const contact =
+          b.state.species.damageTarget === "eye"
+            ? b.mesh
+            : b.mesh.userData.contactRoot || b.mesh;
         contact.updateWorldMatrix(true, true);
         if (segment < 1e-8) continue;
         ray.set(p.previous, relative.normalize());

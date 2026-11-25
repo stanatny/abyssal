@@ -155,7 +155,8 @@ test("Odyssey upright HF colonies seat both LODs and release the reused surface 
         count++;
       }
     }
-    assert.equal(count, 155);
+    // 2026-11-24 扩图增加已声明的 HF 植被；旧 155 是扩图前的基线数量。
+    assert.equal(count, 520);
     const stats = o.contactSurface.stats;
     o.dispose();
     assert.equal(stats.disposed, true);

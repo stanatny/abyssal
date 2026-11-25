@@ -1,3 +1,16 @@
+import { updateKarkinosFaultField } from "./karkinos_combat.js";
+import { createPolyphemusEyeMarker } from "./polyphemus_weakpoint_fx.js";
+import {
+  findPolyphemusEyeContact,
+  polyphemusEyeImpact,
+} from "./polyphemus_weakpoint.js";
+import { createPolyphemusTurn } from "./polyphemus_turn.js";
+import {
+  createPolyphemusBoulders,
+  polyphemusCanAim,
+  polyphemusThrowTarget,
+} from "./polyphemus_boulder.js";
+import { createLadonSweepTracker, stepLadonSweep } from "./ladon_sweep.js";
 import {
   creaturePitchLimit,
   updateCreatureAttitude,
@@ -1017,6 +1030,7 @@ export function createEncounters(
   const bosses = [],
     projectiles = [];
   let active = null;
+  let boulders = null;
   let disposed = false;
   let bossHomes = {};
   let bodyGeneration = 0;
@@ -1165,6 +1179,10 @@ export function createEncounters(
       attackFeedback: null,
       lastAttackSide: false,
     };
+    if (species.kind === "polyphemus") {
+      entry.polyphemusTurn = createPolyphemusTurn(entry.mesh);
+      entry.polyphemusEyeMarker = createPolyphemusEyeMarker(scene);
+    }
     entry.fxVariants = [
       entry.fx,
       ...(species.abilityCycle || [])
@@ -1346,6 +1364,7 @@ export function createEncounters(
         selected.push({ entry });
       }
     }
+    boulders?.reset();
     for (const p of projectiles) removeProjectile(p);
     projectiles.length = 0;
     active = null;
@@ -1355,6 +1374,8 @@ export function createEncounters(
       audio.stopBossAbility?.(entry);
       entry.audioAttackTime = -1;
       entry.attackFeedback = null;
+      entry.polyphemusEyeMarker?.reset();
+      entry.karkinosFaultField = null;
       entry.state = createBossState(entry.state.species);
       entry.id = `${entry.state.species.kind}_${entry.poolIndex}`;
       entry.fixedHome = null;
@@ -1394,6 +1415,7 @@ export function createEncounters(
       scene.add(entry.mesh, entry.ring, entry.label);
       for (const fx of entry.fxVariants) scene.add(fx.group);
       place(entry, index);
+      entry.polyphemusTurn?.reset();
       entry.state.locked = entry.requiresGuardians?.length > 0;
       entry.mesh.userData.setLocked?.(entry.state.locked);
     });
@@ -1410,7 +1432,7 @@ export function createEncounters(
   function lockAttack(entry, playerPosition) {
     const { state } = entry;
     const distance = entry.mesh.position.distanceTo(playerPosition);
-    const flightTime = ["volley", "swords"].includes(state.ability)
+    const flightTime = ["volley", "swords", "boulder"].includes(state.ability)
       ? distance / (state.species.projectileSpeed ?? 85)
       : state.ability === "charge"
         ? distance / state.species.chargeSpeed
@@ -1421,6 +1443,14 @@ export function createEncounters(
       .addScaledVector(
         playerVelocity,
         Math.min(2.2, state.species.lockWindow + flightTime),
+      );
+    if (state.species.kind === "polyphemus")
+      polyphemusThrowTarget(
+        entry.mesh.position,
+        entry.mesh.quaternion,
+        playerPosition,
+        entry.lockTarget,
+        entry.lockTarget,
       );
     entry.lockTarget.y = Math.max(
       entry.lockTarget.y,
@@ -1452,13 +1482,17 @@ export function createEncounters(
         .normalize();
     }
     const targetDirection = entry.lockTarget.clone().sub(entry.mesh.position);
+    // 拉冬在近身预警中侧转呈尾，真实尾节横扫目标；头部正对目标会让尾击永远落在身后。
+    if (state.ability === "tail_sweep")
+      targetDirection.applyAxisAngle(UP_AXIS, state.species.tailSweepYaw);
+
     if (
       state.species.groundbound ||
       state.species.upright ||
       state.ability === "surge"
     )
       targetDirection.y = 0;
-    if (targetDirection.lengthSq() > 0.001) {
+    if (!state.species.stationary && targetDirection.lengthSq() > 0.001) {
       targetDirection.normalize();
       // 锁定攻击也不能把虎身转进山里；不可转身时保留最后的完整身体朝向。
       if (
@@ -1722,7 +1756,7 @@ export function createEncounters(
     blockedBetween,
     turnRate = entry.state.species.pursuitTurnRate,
   ) {
-    if (dt <= 0 || speed <= 0) return;
+    if (dt <= 0 || speed <= 0 || entry.state.species.stationary) return;
     if (entry.navigation) {
       const request = (entry.navigation.request ??= {
         direction: new THREE.Vector3(),
@@ -1936,7 +1970,7 @@ export function createEncounters(
   }
   /** 未发现玩家时沿领域内部的缓慢椭圆巡游；所有位置连续积分，返巢后不瞬移。 */
   function patrolBoss(entry, dt, blockedBetween) {
-    if (dt <= 0) return;
+    if (dt <= 0 || entry.state.species.stationary) return;
     const radius = Math.min(38, entry.radius * 0.32);
     const speed = 3.4;
     entry.patrolAngle += (dt * speed) / radius;
@@ -2025,6 +2059,11 @@ export function createEncounters(
     const result = (corpse ? hitBossWithCorpseBlast : hitBossWithTorpedo)(
       player,
       entry.state,
+      {
+        weakpointHit:
+          entry.state.species.damageTarget !== "eye" ||
+          polyphemusEyeImpact(entry.mesh, contact),
+      },
     );
     if (!corpse) entry.lastTorpedoResult = result;
     recordAttackFeedback(entry, player, result, true);
@@ -2054,6 +2093,10 @@ export function createEncounters(
     entry.attackFeedback = null;
     entry.mesh.visible = entry.label.visible = entry.ring.visible = false;
     entry.fx.group.visible = false;
+    if (entry.state.species.kind === "polyphemus") {
+      boulders?.clear(entry);
+      entry.polyphemusEyeMarker?.reset();
+    }
     entry.grapple = createKrakenGrapple();
     entry.mesh.userData.resetKrakenGrip?.();
     if (entry.fx.ability === "charge")
@@ -2072,7 +2115,13 @@ export function createEncounters(
     dt = Number.isFinite(dt) ? Math.max(0, dt) : 0;
     active = null;
     if (player.dead || player.won || player.timedOut) {
-      for (const entry of bosses) audio.stopBossAbility?.(entry);
+      for (const entry of bosses) {
+        audio.stopBossAbility?.(entry);
+        if (entry.state.species.kind === "polyphemus") {
+          boulders?.clear(entry);
+          entry.polyphemusEyeMarker?.reset();
+        }
+      }
       return active;
     }
     if (hasPlayerPosition && dt > 0) {
@@ -2094,9 +2143,13 @@ export function createEncounters(
       let krakenBite = false;
       if (!entry.enabled) continue;
       if (state.defeated) {
+        if (state.species.kind === "polyphemus")
+          boulders?.update(entry, 0, time, position, position);
         hideDefeated(entry);
         continue;
       }
+      // 暂停不推进战斗，但已击败的真实身体和遗留弹体仍须保持隐藏。
+      if (state.species.kind === "polyphemus" && dt <= 0) continue;
       state.locked = Boolean(
         entry.requiresGuardians?.some(
           (id) =>
@@ -2128,8 +2181,35 @@ export function createEncounters(
       entry.label.visible = homeDistance < 175 && !inTerritory;
       entry.contactCooldown = Math.max(0, entry.contactCooldown - dt);
       // 脱离交战时状态机先返回，后续攻击也不会读取视线；持续追击领主仍由inTerritory保留检测。
-      const sight =
-        inTerritory && !blockedBetween(entry.mesh.position, position);
+      const giant = state.species.kind === "polyphemus";
+      // 独眼从真实眼部发现目标；侧后发现与能否开始正向投掷分开。
+      const sightOrigin = giant
+        ? entry.mesh.userData.eyeAnchor.getWorldPosition(entry.motion.target)
+        : entry.mesh.position;
+      const sight = inTerritory && !blockedBetween(sightOrigin, position);
+      const turn = entry.polyphemusTurn?.update(
+        dt,
+        sight && distance <= state.species.wakeRange ? position : null,
+        {
+          phase: state.phase,
+          locked:
+            state.phase === "attack" ||
+            (state.phase === "windup" &&
+              state.timer + dt >=
+                state.phaseDuration - state.species.lockWindow),
+          active:
+            !state.locked &&
+            state.phase !== "disoriented" &&
+            time >= entry.disorientedUntil,
+        },
+      );
+      if (turn) entry.heading.copy(turn.heading);
+      const frontalAim =
+        state.species.kind !== "polyphemus" ||
+        polyphemusCanAim(
+          entry.mesh.quaternion,
+          entry.motion.target.copy(position).sub(entry.mesh.position),
+        );
       tickBoss(state, dt, {
         inTerritory: inTerritory && !state.locked,
         distance,
@@ -2141,6 +2221,7 @@ export function createEncounters(
               entry.mesh.quaternion,
               entry.motion.target.copy(position).sub(entry.mesh.position),
             )),
+        aimReady: !giant || (frontalAim && Boolean(turn?.aligned)),
         playerAlive: !player.dead && !player.won && !player.timedOut,
         disoriented: time < entry.disorientedUntil,
       });
@@ -2150,7 +2231,9 @@ export function createEncounters(
       }
       if (
         state.phase === "windup" &&
-        state.timer < state.phaseDuration - state.species.lockWindow
+        state.timer < state.phaseDuration - state.species.lockWindow &&
+        frontalAim &&
+        (!giant || (sight && distance <= state.species.engageRange))
       )
         lockAttack(entry, position);
       const attack = state.phase === "attack",
@@ -2340,7 +2423,7 @@ export function createEncounters(
           entry.volleyShots += 1;
         }
       }
-      if (!entry.navigation)
+      if (!entry.navigation && !state.species.stationary)
         entry.mesh.position.y = Math.min(
           entry.maxCenterY,
           Math.max(
@@ -2416,7 +2499,10 @@ export function createEncounters(
         );
       else if (isPenglaiFlyingGuardian(state.species.kind))
         updatePenglaiFlightAttitude(entry.mesh.quaternion, entry.heading, dt);
-      else if (Number.isFinite(entry.mesh.userData.aquaticTurnRate))
+      else if (state.species.stationary) {
+        // 定点巨人由真实踏步控制朝向，不能在通用直立分支中每帧归零。
+        if (!entry.polyphemusTurn) entry.mesh.quaternion.identity();
+      } else if (Number.isFinite(entry.mesh.userData.aquaticTurnRate))
         // 锁定瞬间可能换向；有界转动避免长躯一帧翻身，随后仍检查实际完整姿态。
         entry.mesh.quaternion.rotateTowards(
           orientation,
@@ -2489,6 +2575,26 @@ export function createEncounters(
         ability: state.ability === "fault" ? "fissure" : state.ability,
         progress: state.timer / Math.max(0.001, state.phaseDuration),
       });
+      // 眼睛和上身也遵守已承诺的锁点，不能脚下停止后还隔墙追看玩家。
+      entry.mesh.userData.setPolyphemusTarget?.(
+        attack ||
+          (windup &&
+            state.timer >= state.phaseDuration - state.species.lockWindow)
+          ? entry.lockTarget
+          : sight && distance <= state.species.engageRange
+            ? position
+            : null,
+      );
+      entry.mesh.userData.setPolyphemusCombat?.({
+        phase: state.phase,
+        ability: state.ability,
+        progress: state.timer / Math.max(0.001, state.phaseDuration),
+      });
+      entry.mesh.userData.setLadonCombat?.({
+        phase: state.phase,
+        ability: state.ability,
+        progress: state.timer / Math.max(0.001, state.phaseDuration),
+      });
       entry.mesh.userData.setWeaverSweep?.(
         (attack
           ? state.timer / state.phaseDuration - 0.5
@@ -2511,6 +2617,41 @@ export function createEncounters(
           time,
           attack ? 2.5 : recover ? 0.35 : state.phase === "dormant" ? 0.7 : 1.2,
         );
+      if (state.species.kind === "polyphemus") {
+        entry.polyphemusTurn?.applyPose();
+        entry.polyphemusEyeMarker?.update(entry, position, time);
+        boulders ||= createPolyphemusBoulders(scene);
+        entry.playerRadius = player.length * 0.16;
+        boulders.update(entry, dt, time, movementStart || position, position, {
+          blocked: blockedBetween,
+          hit: (amount, text) => damage(player, amount, text),
+          active: !player.dead && !player.won && !player.timedOut,
+        });
+      }
+      if (state.species.kind === "ladon") {
+        const hit = stepLadonSweep(
+          (entry.ladonSweep ||= createLadonSweepTracker()),
+          entry.mesh.userData.tailSweepAnchors || [],
+          movementStart || position,
+          position,
+          {
+            active:
+              attack &&
+              state.ability === "tail_sweep" &&
+              dt > 0 &&
+              !entry.phaseHit,
+            radius: player.length * 0.16,
+            scale: state.species.length,
+            blocked: blockedBetween,
+          },
+        );
+        if (hit)
+          entry.phaseHit = damage(
+            player,
+            state.species.damage,
+            "盘柱横扫命中 · 改变高度或退到柱后，收势后反击",
+          );
+      }
       if (
         attack &&
         state.ability === "charge" &&
@@ -2607,6 +2748,18 @@ export function createEncounters(
         entry.mesh.userData.mouthAnchors?.[0]?.getWorldPosition(
           entry.attackOrigin,
         );
+      if (
+        state.species.kind === "karkinos" &&
+        state.ability === "fault" &&
+        (windup || attack)
+      )
+        entry.karkinosFaultField = updateKarkinosFaultField(
+          entry.karkinosFaultField,
+          entry.attackOrigin,
+          entry.heading,
+          seabedHeight,
+          blockedBetween,
+        );
       updateAbilityFx(
         entry.fx,
         entry,
@@ -2672,13 +2825,14 @@ export function createEncounters(
           );
         if (
           state.ability === "claw" &&
-          state.timer > 0.8 &&
           !entry.phaseHit &&
           inCrabClaws(
             position,
             entry.attackOrigin,
             entry.heading,
             player.length * 0.12,
+            state.timer,
+            dt,
           ) &&
           !blockedBetween(entry.attackOrigin, position)
         )
@@ -2698,6 +2852,7 @@ export function createEncounters(
             dt,
             seabedHeight,
             player.length * 0.12,
+            entry.karkinosFaultField,
           ) &&
           !blockedBetween(entry.attackOrigin, position)
         )
@@ -2943,10 +3098,23 @@ export function createEncounters(
         player.length >= minimumLength;
       if (canAttempt || !state.contactArmed || recoveryGuard === "strike") {
         const radius = Math.max(0.4, player.length * 0.09);
-        const contact = findBossContact(entry.mesh, mouth, radius, {
+        const bodyContact = findBossContact(entry.mesh, mouth, radius, {
           visibleBody: true,
         });
-        updateBossContact(state, Boolean(contact), dt);
+        const eyeContact =
+          state.species.damageTarget === "eye"
+            ? findPolyphemusEyeContact(entry.mesh, mouth, radius, {
+                blocked: blockedBetween,
+              })
+            : null;
+        const contact = eyeContact || bodyContact;
+        updateBossContact(
+          state,
+          state.species.damageTarget === "eye"
+            ? Boolean(eyeContact)
+            : Boolean(contact),
+          dt,
+        );
         const contactUnblocked =
           Boolean(contact) && !blockedBetween(mouth, contact);
         if (
@@ -2985,6 +3153,7 @@ export function createEncounters(
           ? hitBoss(player, state, {
               inRange: contactUnblocked,
               isFlank: entry.lastAttackSide,
+              weakpointHit: Boolean(eyeContact),
             })
           : { hit: false, reason: "too_small" };
         entry.lastBiteResult = {
@@ -3003,6 +3172,8 @@ export function createEncounters(
             2,
           );
           if (result.defeated) {
+            if (state.species.kind === "polyphemus")
+              boulders?.update(entry, 0, time, position, position);
             hideDefeated(entry);
             continue;
           }
@@ -3021,7 +3192,14 @@ export function createEncounters(
             state.ability === "water" ||
             state.ability === "lash" ||
             state.ability === "loom" ||
-            ["undertow", "surge", "claw", "fault"].includes(state.ability))
+            [
+              "undertow",
+              "surge",
+              "claw",
+              "fault",
+              "tail_sweep",
+              "boulder",
+            ].includes(state.ability))
         ) &&
         state.phase !== "disoriented" &&
         inTerritory &&
@@ -3044,7 +3222,10 @@ export function createEncounters(
         bite: krakenBite,
         target: position,
       });
-      if (inTerritory || state.phase === "return")
+      if (
+        (inTerritory || state.phase === "return") &&
+        (!giant || state.phase !== "dormant")
+      )
         if (!active || distance < active.distance)
           active = {
             entry,
@@ -3064,11 +3245,18 @@ export function createEncounters(
                       : recover
                         ? state.openingSpent
                           ? "护甲重整 · 先躲下一轮技能"
-                          : "收势绕位 · 追准身体反击，每轮一次"
+                          : state.species.damageTarget === "eye"
+                            ? "收势破绽 · 唯一弱点是独眼，瞄准眼睛"
+                            : "收势绕位 · 追准身体反击，每轮一次"
                         : entry.grapple.escapeCost > 0
                           ? message`向外冲刺挣脱需${entry.grapple.escapeCost}体力 · 越近越贵，可借掩体`
-                          : (state.species.skillTips?.[state.ability] ??
-                            TIPS[state.ability]),
+                          : giant &&
+                              windup &&
+                              state.timer >=
+                                state.phaseDuration - state.species.lockWindow
+                            ? "目标已锁定 · 立刻横移或上下闪避"
+                            : (state.species.skillTips?.[state.ability] ??
+                              TIPS[state.ability]),
           };
     }
     for (let i = projectiles.length - 1; i >= 0; i--) {
@@ -3129,6 +3317,7 @@ export function createEncounters(
   function dispose() {
     if (disposed) return;
     disposed = true;
+    boulders?.dispose();
     for (const projectile of projectiles) removeProjectile(projectile);
     projectiles.length = 0;
     const geometries = new Set(
@@ -3141,6 +3330,8 @@ export function createEncounters(
     for (const entry of bosses) {
       audio.stopBossAbility?.(entry);
       for (const fx of entry.fxVariants) resetAbilityFx(fx);
+      entry.polyphemusEyeMarker?.dispose();
+      entry.polyphemusTurn?.dispose();
       entry.mesh.userData.disposeLocalMotion?.();
       disposeTentacleMotion(entry.mesh);
       disposeCrocodilianMotion(entry.mesh);
@@ -3171,6 +3362,19 @@ export function createEncounters(
   );
   return {
     bosses,
+    prepareMaterials() {
+      if (
+        !bosses.some(
+          (entry) => entry.enabled && entry.state.species.kind === "polyphemus",
+        )
+      )
+        return Promise.resolve(true);
+      boulders ||= createPolyphemusBoulders(scene);
+      return boulders.prepare({ priority: 10 });
+    },
+    get boulders() {
+      return boulders;
+    },
     update,
     reset,
     dispose,

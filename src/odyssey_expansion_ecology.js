@@ -5,6 +5,7 @@ import {
   expandOdysseyXZ,
   odysseySeabedHeight,
 } from "./odyssey_config.js";
+import { TIDE_MEAL_HABITATS } from "./odyssey_tide_layout.js";
 
 // 这些航路坐标沿用上一版海图，再统一映射；群体规模固定，不套用共享增密第二次。
 const SCHOOLS = {
@@ -292,6 +293,19 @@ export function expandOdysseyEcology(species) {
           CLEARANCE[entry.kind] ?? Math.max(30, entry.length * 1.5 + 18);
         for (const site of RESIDENTS[entry.kind] || [])
           homes.push(mappedHome(site, clearance));
+        // 新守门龙使用追加的独立补给，不搬走旧战区食物。
+        const ladonMeals = {
+          bronze_turtle: [-550, -850],
+          oracle_whale: [-305, -1030],
+          thalassa_manta: [-500, -1120],
+        };
+        if (ladonMeals[entry.kind]) {
+          const [x, z] = ladonMeals[entry.kind];
+          homes.push(groundHome(x, z, CLEARANCE[entry.kind]));
+        }
+        // 阅读与往返试潮石需要普通补给，追加新锚点而不搬走旧有665个居民。
+        for (const meal of TIDE_MEAL_HABITATS)
+          if (meal.kind === entry.kind) homes.push([...meal.anchor]);
         e.spawnAnchors = homes;
         e.scatterPopulation = false;
         e.population = homes.length;

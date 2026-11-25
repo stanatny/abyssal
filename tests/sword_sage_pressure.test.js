@@ -102,7 +102,9 @@ test("Remote unlock starts Sage pursuit without sight; other lords remain territ
     );
     assert.deepEqual(
       other.counterPhases,
-      other.kind === "white_tiger" ? ["recover"] : undefined,
+      ["white_tiger", "polyphemus"].includes(other.kind)
+        ? ["recover"]
+        : undefined,
     );
   }
 });

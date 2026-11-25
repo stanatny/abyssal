@@ -22,14 +22,27 @@ export function createMechanicalAim({ entities, bosses, blocked, bossPoint }) {
       )
         return;
       if (!entity.mesh.visible || (!boss && entity.species.vehicle)) return;
-      delta.copy(entity.mesh.position).sub(origin);
+      const eye = boss && entity.state.species.damageTarget === "eye";
+      // 单眼必须先按真实位置计算窄角；只有确定远于整只巨人的保守边界才提前跳过精确皮肤查询。
+      const bodyLength = entity.state?.species?.length;
+      if (
+        eye &&
+        Number.isFinite(bodyLength) &&
+        entity.mesh.position.distanceTo(origin) > RULES.range + bodyLength
+      )
+        return;
+      const eyePoint = eye ? bossPoint(origin, entity) : null;
+      if (eye && !eyePoint) return;
+      delta.copy(eyePoint || entity.mesh.position).sub(origin);
       const distance = delta.length();
       if (distance < 0.001 || distance > RULES.range) return;
       const angle = direction.angleTo(delta);
       if (angle > cone) return;
       const candidateScore = angle + (distance / RULES.range) * 0.015;
       if (candidateScore >= score) return;
-      const point = boss ? bossPoint(origin, entity) : entity.mesh.position;
+      const point = boss
+        ? eyePoint || bossPoint(origin, entity)
+        : entity.mesh.position;
       if (!point || blocked(origin, point)) return;
       score = candidateScore;
       best = {
@@ -57,7 +70,18 @@ export function createMechanicalAim({ entities, bosses, blocked, bossPoint }) {
       return;
     }
     // mesh.visible也承担玩家距离裁剪，不能把仍存活的远处目标误判为退休。
-    desired.copy(e.mesh.position).sub(projectile.mesh.position).normalize();
+    const eyePoint =
+      target.boss && e.state.species.damageTarget === "eye"
+        ? bossPoint(projectile.mesh.position, e)
+        : null;
+    if (target.boss && e.state.species.damageTarget === "eye" && !eyePoint) {
+      projectile.target = null;
+      return;
+    }
+    desired
+      .copy(eyePoint || e.mesh.position)
+      .sub(projectile.mesh.position)
+      .normalize();
     if (desired.lengthSq() < 0.99) return;
     if (now >= projectile.aimCheckAt) {
       projectile.aimCheckAt = now + 0.12;

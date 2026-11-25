@@ -70,7 +70,8 @@ export function lordAttackSound(kind, ability) {
         : "breath";
   if (ability === "pulse") return kind === "brine_regent" ? "crystal" : "pulse";
   if (ability === "undertow") return "vortex";
-  if (ability === "surge") return "water";
+  if (ability === "boulder") return "fault";
+  if (ability === "surge" || ability === "tail_sweep") return "water";
   return Object.hasOwn(LORD_ATTACK_URLS, ability) ? ability : null;
 }
 
@@ -93,7 +94,16 @@ export function lordAttackBeats(state, previousTime) {
   const beats = [];
   for (let i = 0; i < count; i++) {
     // 巨钳在既有攻击阶段0.8秒开始合击；不能把壳碰声提前到张钳时。
-    const at = (state.ability === "claw" ? 0.8 : 0) + i * interval;
+    const at =
+      (state.ability === "claw"
+        ? 0.8
+        : state.ability === "boulder"
+          ? 0.42 *
+            (state.species.abilityTimings?.boulder?.attack ??
+              state.species.attackDuration ??
+              2)
+          : 0) +
+      i * interval;
     // 卡帧时已过去的音效不挤在一起补放；当前波仍可发声。
     if (at > previousTime && at <= state.timer && state.timer - at < 0.18)
       beats.push(i);

@@ -55,6 +55,26 @@ export function bossAttackFeedback(boss, player, { ranged = false } = {}) {
         ? message`先躲避下一轮技能，等新窗口再开火。`
         : message`先脱离领主，躲过下一轮技能；技能结束后再反击。`,
     );
+  if (boss.species.damageTarget === "eye") {
+    if (
+      !bossCounterOpen(boss) ||
+      boss.species.guardedPhases?.includes(boss.phase)
+    )
+      return result(
+        "eye_closed",
+        false,
+        message`等待单眼破绽 · ${hits}/${total}`,
+        message`身体无法造成伤害；先闪避投石，等收势时攻击独眼。`,
+      );
+    const seconds = Math.max(0, boss.phaseDuration - boss.timer);
+    return result(
+      "eye",
+      true,
+      message`单眼破绽 · ${hits}/${total}`,
+      message`收势还剩${seconds.toFixed(1)}秒 · 只攻击真实独眼，每轮一次。`,
+      seconds,
+    );
+  }
   if (
     boss.species.guardedPhases?.includes(boss.phase) ||
     !bossCounterOpen(boss)
@@ -135,6 +155,8 @@ export function bossFailureFeedback(boss, player, result, options = {}) {
       return boss.openingSpent
         ? feedback.advice
         : message`还没离开接触范围 · 先退开，再朝身体接近。`;
+    case "eye_required":
+      return message`身体挡下攻击 · 唯一弱点是独眼，等收势时瞄准眼睛。`;
     case "armored_angle":
       return message`正面护甲挡下了攻击 · 绕到身体侧面、背后或上下方，朝内接近。`;
     case "guardian_locked":
@@ -191,6 +213,13 @@ export function compactBossFeedback(
     );
   if (notification) return show(notification, "neutral");
   switch (feedback.code) {
+    case "eye":
+      return show(
+        message`还剩${feedback.seconds.toFixed(1)}秒 · 瞄准独眼`,
+        "opportunity",
+      );
+    case "eye_closed":
+      return show(message`躲过投石，收势时攻击独眼`, "neutral");
     case "body":
       return show(
         ranged

@@ -15,6 +15,7 @@ import {
   nearestCurrentPoint,
 } from "../src/ocean_current_rules.js";
 import { bodyRadius, castSegment } from "../src/collision.js";
+import { POLYPHEMUS_SITE } from "../src/odyssey_polyphemus_site.js";
 
 const routes = oceanCurrentRoutes("odyssey");
 
@@ -102,35 +103,63 @@ test("the full current tube plus a 30m body clears final terrain and actual scen
   }
 });
 
-test("guardian homes, habitat depths and separated territories follow the final landmarks", () => {
+test("guardian homes and depths stay fitted; the stationary sentinel alone admits broad edge-overlapping fire", () => {
   for (const boss of ODYSSEY_BOSS_INSTANCES) {
     const species = ODYSSEY_LORDS.find((s) => s.kind === boss.kind);
-    const [x, z] = ODYSSEY_SITES[boss.kind];
+    const [x, z] =
+      boss.kind === "polyphemus"
+        ? [POLYPHEMUS_SITE.x, POLYPHEMUS_SITE.z]
+        : ODYSSEY_SITES[boss.kind];
     assert.equal(boss.home[0], x);
     assert.equal(boss.home[2], z);
     assert.equal(
       boss.home[1],
-      odysseySeabedHeight(x, z) +
-        (boss.kind === "charybdis" ? 70 : species.floorClearance),
+      boss.kind === "polyphemus"
+        ? POLYPHEMUS_SITE.home[1]
+        : odysseySeabedHeight(x, z) +
+            (boss.kind === "charybdis"
+              ? 70
+              : boss.kind === "ladon"
+                ? 90
+                : species.floorClearance),
     );
     assert.ok(
       -boss.home[1] >= species.depthMin && -boss.home[1] <= species.depthMax,
     );
     assert.ok(boss.home[1] <= boss.maxCenterY);
-    assert.ok(
-      x - boss.radius > W.minX &&
-        x + boss.radius < W.maxX &&
-        z - boss.radius > W.minZ,
-    );
+    if (species.stationary) {
+      // 定点守卫的600米火力区可以超出海图边缘，实际身体与支台仍完全在地图中。
+      assert.equal(species.kind, "polyphemus");
+      assert.equal(species.speed, 0);
+      assert.equal(species.engageRange, 600);
+      assert.ok(
+        x - POLYPHEMUS_SITE.width / 2 > W.minX &&
+          x + POLYPHEMUS_SITE.width / 2 < W.maxX &&
+          z - POLYPHEMUS_SITE.depth / 2 > W.minZ,
+      );
+    } else
+      assert.ok(
+        x - boss.radius > W.minX &&
+          x + boss.radius < W.maxX &&
+          z - boss.radius > W.minZ,
+      );
     assert.ok(boss.radius >= 150);
   }
   for (let i = 0; i < ODYSSEY_BOSS_INSTANCES.length; i++)
     for (let j = i + 1; j < ODYSSEY_BOSS_INSTANCES.length; j++) {
       const a = ODYSSEY_BOSS_INSTANCES[i],
         b = ODYSSEY_BOSS_INSTANCES[j];
-      assert.ok(
-        Math.hypot(a.home[0] - b.home[0], a.home[2] - b.home[2]) >
-          a.radius + b.radius + 65,
+      const separation = Math.hypot(
+        a.home[0] - b.home[0],
+        a.home[2] - b.home[2],
       );
+      if ([a.kind, b.kind].includes("polyphemus")) {
+        // 火力区允许有边缘交叠，实际三维距离下，其余守卫的中心仍在射程外且保留65米余量。
+        const giant = ODYSSEY_LORDS.find((s) => s.kind === "polyphemus");
+        assert.ok(
+          Math.hypot(...a.home.map((value, i) => value - b.home[i])) >
+            giant.engageRange + 65,
+        );
+      } else assert.ok(separation > a.radius + b.radius + 65);
     }
 });

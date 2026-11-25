@@ -13,12 +13,13 @@ export const ATLANTIS_RELIC = Object.freeze({
 
 export const REGION_OBJECTIVES = Object.freeze({
   odyssey: Object.freeze({
-    kind: "all_lords",
+    kind: "four_winds",
     minimumLength: 30,
-    summary: "成长至30米，击败卡尔基诺斯、斯库拉与卡律布狄斯，打开归航之路。",
-    completed: "三位守卫已败，奥德赛归航之路重现。",
+    summary:
+      "成长至30米，先击败各门守卫，再解开四座风路机关，沿归航洋流穿过风神像基座的归航拱门。",
+    completed: "四风已平息，风神像完整出水，归航者穿过基座的归航拱门。",
     difficulty: "神话海路征服",
-    food: "浅湾贝园 → 海妖与海兽 → 三守卫外围补给",
+    food: "浅湾贝园 → 海妖与海兽 → 四守卫外围补给",
   }),
   penglai: Object.freeze({
     kind: "all_lords",
@@ -160,6 +161,7 @@ export function advanceExpeditionObjective(
     trenchArrived = false,
     mechanismSolved = false,
     titanRelicCollected = false,
+    windTrial = null,
   } = {},
 ) {
   for (const b of bosses)
@@ -199,17 +201,28 @@ export function advanceExpeditionObjective(
     objective.relicCollected = true;
   if (objective.regionId === "bermuda" && alive && titanRelicCollected)
     objective.titanRelicCollected = true;
+  if (objective.regionId === "odyssey" && alive) {
+    objective.windGates = windTrial?.stabilized ?? 0;
+    objective.homewardAvailable = windTrial?.homewardAvailable === true;
+    objective.homewardArrived = windTrial?.arrived === true;
+    objective.homewardReady = windTrial?.homewardReady === true;
+  }
   const finished =
-    rule.kind === "lords_and_titan_relic"
+    rule.kind === "four_winds"
       ? objective.defeated.size >= objective.required &&
-        objective.titanRelicCollected
-      : rule.kind === "hidden_relic"
-        ? objective.relicCollected
-        : rule.kind === "all_lords"
-          ? objective.defeated.size >= objective.required
-          : rule.kind === "trench_descent"
-            ? trenchArrived && objective.defeated.size >= objective.required
-            : objective.defeated.size >= 1;
+        objective.windGates === 4 &&
+        objective.homewardAvailable &&
+        objective.homewardArrived
+      : rule.kind === "lords_and_titan_relic"
+        ? objective.defeated.size >= objective.required &&
+          objective.titanRelicCollected
+        : rule.kind === "hidden_relic"
+          ? objective.relicCollected
+          : rule.kind === "all_lords"
+            ? objective.defeated.size >= objective.required
+            : rule.kind === "trench_descent"
+              ? trenchArrived && objective.defeated.size >= objective.required
+              : objective.defeated.size >= 1;
   player.expeditionComplete = finished;
   player.won = alive && player.length >= rule.minimumLength && finished;
   return {
@@ -249,7 +262,11 @@ export function expeditionObjectiveHint(objective, player) {
               : "圣珠已苏醒 · 进入波塞冬地宫吞食宝物"
             : message`海螺钥匙已得 · 寻找守宝克拉肯 ${objective.defeated.size}/3`;
   if (objective.regionId === "odyssey")
-    return message`神话海路守卫 ${objective.defeated.size}/${objective.required} · 成长至30米`;
+    return objective.homewardAvailable
+      ? objective.homewardReady
+        ? "四风已定 · 进入风神像基座的归航拱门"
+        : "归航水路已现 · 前往风神像，等待基座拱门开启"
+      : message`风门 ${objective.windGates ?? 0}/4 · 守卫 ${objective.defeated.size}/${objective.required} · 成长至30米`;
   if (objective.regionId === "europa")
     return message`冰下深渊领主 ${objective.defeated.size}/${objective.required} · 成长至30米`;
   if (objective.regionId === "amazon")

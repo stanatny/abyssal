@@ -1,3 +1,5 @@
+import { buildPolyphemusHF } from "./polyphemus_hf_asset.js";
+import { buildLadonHF } from "./ladon_hf_asset.js";
 import {
   ODYSSEY_HF_FINAL,
   buildOdysseyFinalHF,
@@ -57,6 +59,8 @@ export const ODYSSEY_CREATURE_KINDS = new Set([
   "scylla",
   "charybdis",
   "karkinos",
+  "ladon",
+  "polyphemus",
   "golden_argonaut",
   ...ODYSSEY_EXTRA_KINDS,
 ]);
@@ -83,6 +87,8 @@ const SHALLOWS = new Set([
  * @returns {void} 附加共享几何、独立骨架和随真实头部移动的嘴锚点。
  */
 export function buildOdysseyCreature(kind, root, motions) {
+  if (kind === "ladon") return buildLadonHF(root, motions);
+  if (kind === "polyphemus") return buildPolyphemusHF(root, motions);
   if (ODYSSEY_HF_FINAL.has(kind))
     return buildOdysseyFinalHF(kind, root, motions);
   if (ODYSSEY_HF_PEOPLE.has(kind))

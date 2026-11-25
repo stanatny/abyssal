@@ -1,4 +1,17 @@
 export const LORD_REVISION_EN = Object.freeze({
+  "定点巨人在收势期仍可能近身戒备：预警{0}秒后，反击锁定的正前方120度，单轮最多一次。改变深度或离开标记避开；戒备不关闭真实眼部窗口，身体仍没有破绽。":
+    "The stationary giant can still guard at close range during recovery: a {0}s warning precedes a counter in its locked 120-degree front sector, at most once per cycle. Change depth or leave the mark. Guarding does not close the actual-eye opening; the body remains armored.",
+
+  "定点巨人以独眼警戒水域，会踏步转身面向已发现的角色；身体中心不会移动。":
+    "The stationary giant watches with its single eye and takes pivot steps to face a detected player; its body center stays fixed.",
+  "25米可交战 · {0}次分轮眼部命中。只有投石后的收势期，攻击真实独眼才会造成伤害；身体和侧背均不受伤。咬击、鱼雷与尸爆共享每轮一次的眼部窗口，命中后需脱离。":
+    "Fight from 25 m · Land {0} eye hits in separate cycles. Only the actual single eye takes damage during post-throw recovery; body and flanks are armored. Bites, torpedoes and corpse blasts share one eye hit per cycle; disengage after hitting.",
+
+  "收势破绽 · 唯一弱点是独眼，瞄准眼睛":
+    "Recovery opening · The single eye is the only weak point; aim at it",
+  "目标已锁定 · 立刻横移或上下闪避":
+    "Target committed · Dodge sideways, rise or dive now",
+
   "鱼雷命中 {0} · {1}/{2}": "Torpedo hit {0} · {1}/{2}",
   "收势戒备 · 正面将有反击，绕到侧背":
     "Recovery guard · Front counter incoming; circle to a flank",

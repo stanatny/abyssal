@@ -24,6 +24,8 @@ const KINDS = new Set([
   "scylla",
   "charybdis",
   "karkinos",
+  "ladon",
+  "polyphemus",
 ]);
 const point = new THREE.Vector3();
 const matrix = new THREE.Matrix4();

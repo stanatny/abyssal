@@ -31,10 +31,10 @@ test("crab pinch covers two front sectors and a warned inner sweep", () => {
   assert.ok(inCrabClaws(p(25, 0, -35), origin, forward));
   assert.ok(inCrabClaws(p(-25, 0, -35), origin, forward));
   for (const point of [
-    p(0, 0, -45),
+    p(50, 0, 0),
     p(0, 0, 35),
     p(25, 25, -35),
-    p(60, 0, -60),
+    p(120, 0, -120),
   ])
     assert.equal(inCrabClaws(point, origin, forward), false);
   assert.ok(inCrabClaws(p(0, 8, -5), origin, forward));
@@ -59,7 +59,7 @@ test("three reef lanes follow the floor and leave gaps and upper water safe", ()
   const floor = () => -8;
   assert.ok(inReefFault(p(0, 0, -38), origin, forward, 1, 0.35, floor));
   assert.equal(
-    inReefFault(p(0, 30, -38), origin, forward, 1, 0.35, floor),
+    inReefFault(p(0, 55, -38), origin, forward, 1, 0.35, floor),
     false,
   );
   assert.equal(

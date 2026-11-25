@@ -33,6 +33,7 @@ export function recoveryGuardCanStart(boss, distance, playerLength, sight) {
 
 /** 尚未命中的绕位低于普通巡航速度；命中后加快重整，鼓励及时脱离。 */
 export function recoverySpeed(boss) {
+  if (boss.species.stationary) return 0;
   if (boss.timer < LORD_RECOVERY.settle) return 2;
   return boss.openingSpent
     ? Math.min(16, boss.species.speed * 0.45)

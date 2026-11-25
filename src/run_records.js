@@ -8,13 +8,15 @@ export const RUN_RULESET = "survival-2026-10";
 // 变更目标的海域独立分榜，旧成绩仍保留在本机，不与新规则混排。
 const revisedRegions = new Set(["europa", "amazon", "atlantis"]);
 export const runRuleset = (region) =>
-  region === "atlantis"
-    ? "atlantis-mural-2026-10-31"
-    : OCEAN_CURRENT_RULES.regions.includes(region)
-      ? "currents-2026-10-30"
-      : revisedRegions.has(region)
-        ? "expedition-2026-10-14"
-        : RUN_RULESET;
+  region === "odyssey"
+    ? "odyssey-eye-reef-2026-11-25"
+    : region === "atlantis"
+      ? "atlantis-mural-2026-10-31"
+      : OCEAN_CURRENT_RULES.regions.includes(region)
+        ? "currents-2026-10-30"
+        : revisedRegions.has(region)
+          ? "expedition-2026-10-14"
+          : RUN_RULESET;
 export const RUN_RECORD_LIMIT = 10;
 const MAX_TIME_MS = ROUND_DURATION * 1000;
 
@@ -60,6 +62,15 @@ export function createRunRecordStore(
       allowed.has(row.region) &&
       characters.has(row.character) &&
       (row.ruleset === RUN_RULESET ||
+        (row.region === "odyssey" &&
+          [
+            "odyssey-four-winds-2026-11-24",
+            "odyssey-tide-trial-2026-11-25",
+            "odyssey-homeward-arch-2026-11-25",
+            "odyssey-quick-boulder-2026-11-25",
+            "odyssey-fast-flight-2026-11-25",
+            "odyssey-sentinel-2026-11-25",
+          ].includes(row.ruleset)) ||
         (OCEAN_CURRENT_RULES.regions.includes(row.region) &&
           row.ruleset === "currents-2026-10-30") ||
         (revisedRegions.has(row.region) &&

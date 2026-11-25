@@ -1,5 +1,7 @@
 # ABYSSAL
 
+Odyssey eye-and-reef review: only the Cyclops' actual recovering eye takes damage; committed throws and Karkinos' broader pressure attacks have clearer feedback. [Play this candidate](https://abstract-socks-accomplish-buf.trycloudflare.com/?candidate=6b1bc9cb3895fbed) and select Odyssean Sea; [rules and validation](docs/odyssey_eye_reef_revision_20261125.md). This local review preserves formal main and the Amazon candidate.
+
 **English** | [简体中文](readme_zh_cn.md)
 
 **[Play now in your browser →](https://stanatny.github.io/abyssal/)** · No installation or account required
@@ -79,6 +81,7 @@ npm run build
 
 - [Current release — v0.11.32](docs/release_v0_11_32.md)
 - [Odyssean Sea expansion — local review candidate](docs/odyssey_map_expansion_20261124.md)
+- [Four Winds trial — confirmed design](docs/odyssey_four_winds_trial_plan_20261124.md) · [implementation candidate and validation](docs/odyssey_four_winds_implementation_20261124.md)
 - [Development rules](AGENTS.md) · [Asset quality standard](docs/asset_quality_standard.md)
 - [Localization](docs/localization.md) · [Audio sources](docs/audio_sources.md) · [Verification records](docs/verification.md)
 - [Earlier detailed README and development history](https://github.com/stanatny/abyssal/blob/ef6a6a2345329370d553a87d97389b869ac22cfe/README.md)

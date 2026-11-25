@@ -237,11 +237,11 @@ export const REGIONS = Object.freeze(
       world: ODYSSEY_WORLD,
       ecologyKind: "mythic",
       description:
-        "从琥珀色浅湾沿分层洋流深入海妖花园、断桅礁棚与更辽阔的深水峡口。两侧的陶罐遗迹与航海纪念碑指引补给支路；三位守卫分别巡守宽阔礁棚、西侧峡口与东南深潭。",
+        "从琥珀色浅湾深入四位守护者的风门。先击败守卫，再转动石盘接通四个风纹，触碰试潮石验证；四门解开后，成长至30米沿归航洋流穿过完全出水的风神像基座拱门。",
       departureHint:
-        "这里是伊萨卡育幼湾 · 沿海草与贝园觅食\n成长后探索断桅遗迹；25米后挑战海路上的三位守卫",
+        "这里是伊萨卡育幼湾 · 沿海草与贝园觅食\n25米后先击败守卫，再接通风路并试潮；解开四门，30米后沿金色水路归航",
       speciesKinds: REGION_SPECIES_KINDS.odyssey,
-      bossKinds: ["karkinos", "scylla", "charybdis"],
+      bossKinds: ["polyphemus", "karkinos", "scylla", "charybdis"],
       bossInstances: ODYSSEY_BOSS_INSTANCES,
       humanActivity: {
         swimmers: false,

@@ -248,7 +248,7 @@ function compareRegionalRegistry(actual, expected, label, region = label) {
   });
 }
 
-test("All other regional registries retain their independent complete pre-density records", (t) => {
+test("Unmodified regional registries retain their independent complete pre-density records", (t) => {
   assert.equal(
     otherRegionReference.format,
     "full-registry-numeric-reference-v1",
@@ -264,13 +264,35 @@ test("All other regional registries retain their independent complete pre-densit
   ]);
   for (const [region, expected] of Object.entries(
     otherRegionReference.registries,
-  ))
+  )) {
+    // 奥德赛扩图与四风任务有独立授权；保留旧参考，不用新配置反向重生历史快照。
+    if (region === "odyssey") {
+      const actual = getRegionSpecies(region);
+      assert.deepEqual(
+        actual.map((s) => s.kind),
+        expected.map((s) => s.kind),
+      );
+      assert.equal(
+        actual.reduce((n, s) => n + s.population, 0),
+        677,
+      );
+      assert.equal(actual.find((s) => s.kind === "ceto_serpent").population, 3);
+      assert.equal(
+        actual.find((s) => s.kind === "black_sea_nettle").population,
+        6,
+      );
+      t.diagnostic(
+        "Odyssey intentional redesign: independent pre-density fixture retained; current 22-kind/665-stock coverage and actual placement are checked by odyssey_map_ecology_20261124.test.js.",
+      );
+      continue;
+    }
     t.diagnostic(
       JSON.stringify({
         region,
         ...compareRegionalRegistry(getRegionSpecies(region), expected, region),
       }),
     );
+  }
 });
 
 test("Regional reference tolerance permits only tiny coordinate drift and rejects gameplay or structural changes", () => {

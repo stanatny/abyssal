@@ -27,8 +27,8 @@ test("section preserves closed components and excludes inverted cavities and ope
   for (const g of [outer, inner, source, cap]) g.dispose();
 });
 
-test("all registered predators, large animals and all eighteen lords have prepared body sections", () => {
-  assert.equal(BOSS_SPECIES.length, 18);
+test("all registered predators, large animals and all nineteen lords have prepared body sections", () => {
+  assert.equal(BOSS_SPECIES.length, 19);
   const kinds = new Set([
     ...ALL_SPECIES.filter((s) => s.length >= 8 || s.predator).map(
       (s) => s.kind,
@@ -96,6 +96,7 @@ test("HF interior proxies are closed oriented surfaces and do not change or disp
     "siphon_colossus",
     "spiral_grazer",
     "scylla",
+    "polyphemus",
     "charybdis",
     "karkinos",
     "aegis_sturgeon",

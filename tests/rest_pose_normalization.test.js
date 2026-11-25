@@ -60,6 +60,10 @@ for (const [kinds, build, accepted] of [
           "scylla",
           "charybdis",
           "karkinos",
+          // 新拉冬没有旧工厂对应项；由 ladon 模型与四风包络测试独立覆盖。
+          "ladon",
+          // 新巨人的固定双脚与真实投掷由 polyphemus_hf_asset 独立验证。
+          "polyphemus",
           "ambrosia_sprat",
           "moon_scallop",
           "lyre_ray",

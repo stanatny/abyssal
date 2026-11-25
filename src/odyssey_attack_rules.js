@@ -1,3 +1,8 @@
+import {
+  KARKINOS_COMBAT,
+  inKarkinosClaws,
+  inKarkinosFault,
+} from "./karkinos_combat.js";
 /** 神话领主各自的空间判定；特效与伤害共用这些有限、可回避的范围。 */
 export const ODYSSEY_ATTACKS = Object.freeze({
   undertow: Object.freeze({
@@ -13,23 +18,8 @@ export const ODYSSEY_ATTACKS = Object.freeze({
     height: 26,
     thickness: 6,
   }),
-  claw: Object.freeze({
-    range: 65,
-    halfAngle: 0.34,
-    spread: 0.58,
-    height: 17,
-    innerRange: 22,
-    innerHeight: 22,
-    innerHalfAngle: 1.82,
-  }),
-  fault: Object.freeze({
-    range: 105,
-    speed: 48,
-    spread: 0.48,
-    interval: 0.35,
-    radius: 7,
-    height: 14,
-  }),
+  claw: KARKINOS_COMBAT.claw,
+  fault: KARKINOS_COMBAT.fault,
 });
 
 /** 带真实朝向的三维吞潮锥；侧翼不受拉扯，离开锥体即可挣脱。 */
@@ -50,32 +40,15 @@ export function undertowPressure(point, origin, forward) {
 }
 
 /** 双钳仅扫过头前左右两片扇区，内圈近身前侧亦可扫钳；背后和高处保留明确安全空间。 */
-export function inCrabClaws(point, origin, forward, padding = 0) {
-  const r = ODYSSEY_ATTACKS.claw,
-    x = point.x - origin.x,
-    z = point.z - origin.z,
-    d = Math.hypot(x, z);
-  if (
-    d > r.range + padding ||
-    Math.abs(point.y - origin.y) > Math.max(r.height, r.innerHeight) + padding
-  )
-    return false;
-  const angle = Math.atan2(
-    x * -forward.z + z * forward.x,
-    x * forward.x + z * forward.z,
-  );
-  if (
-    d <= r.innerRange + padding &&
-    Math.abs(angle) <= r.innerHalfAngle &&
-    Math.abs(point.y - origin.y) <= r.innerHeight + padding
-  )
-    return true;
-  if (Math.abs(point.y - origin.y) > r.height + padding) return false;
-  return [-1, 1].some(
-    (s) =>
-      Math.abs(angle - s * r.spread) <
-      r.halfAngle + Math.asin(Math.min(0.4, padding / Math.max(1, d))),
-  );
+export function inCrabClaws(
+  point,
+  origin,
+  forward,
+  padding = 0,
+  timer = null,
+  dt = 0,
+) {
+  return inKarkinosClaws(point, origin, forward, padding, timer, dt);
 }
 
 /** 潮墙沿锁定方向推进，按帧扫掠保留低帧率下的真实命中。 */
@@ -106,29 +79,16 @@ export function inReefFault(
   dt,
   heightAt,
   padding = 0,
+  field = null,
 ) {
-  const r = ODYSSEY_ATTACKS.fault;
-  if (Math.abs(point.y - heightAt(point.x, point.z) - 8) > r.height + padding)
-    return false;
-  const base = Math.atan2(forward.x, -forward.z),
-    x = point.x - origin.x,
-    z = point.z - origin.z;
-  for (let i = 0; i < 3; i++) {
-    const age = timer - i * r.interval;
-    if (age < 0) continue;
-    const a = base + (i - 1) * r.spread,
-      fx = Math.sin(a),
-      fz = -Math.cos(a);
-    const axial = x * fx + z * fz,
-      side = x * -fz + z * fx;
-    const front = Math.min(r.range, age * r.speed),
-      previous = Math.max(0, (age - dt) * r.speed);
-    if (
-      axial >= previous - r.radius - padding &&
-      axial <= front + r.radius + padding &&
-      Math.abs(side) < r.radius + padding
-    )
-      return true;
-  }
-  return false;
+  return inKarkinosFault(
+    point,
+    origin,
+    forward,
+    timer,
+    dt,
+    heightAt,
+    padding,
+    field,
+  );
 }

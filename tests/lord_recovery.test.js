@@ -10,9 +10,18 @@ import {
 } from "../src/lord_recovery.js";
 import { t, setLanguage } from "../src/i18n.js";
 
-test("Recovery speed leaves all eighteen unspent openings catchable and bounds post-hit movement", () => {
+test("Recovery preserves stationary roots and bounds mobile unspent/post-hit movement", () => {
   for (const species of BOSS_SPECIES) {
     const boss = createBossState(species);
+    if (species.stationary) {
+      for (const timer of [0, 0.4, 2])
+        for (const spent of [false, true]) {
+          boss.timer = timer;
+          boss.openingSpent = spent;
+          assert.equal(recoverySpeed(boss), 0);
+        }
+      continue;
+    }
     assert.equal(recoverySpeed(boss), 2);
     boss.timer = 0.4;
     assert.ok(recoverySpeed(boss) > 0 && recoverySpeed(boss) < 12);

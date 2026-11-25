@@ -727,7 +727,7 @@ test("Sage pursues a directly vertical target while keeping a nonzero upright he
 
 // 使用完整场景和各自真实技能时钟；不替换移动、地形或接触实现。
 for (const species of BOSS_SPECIES) {
-  test(`${species.kind} recovery keeps moving within the existing punish window and terrain`, (t) => {
+  test(`${species.kind} recovery ${species.stationary ? "keeps its root planted" : "keeps moving"} within the existing punish window and terrain`, (t) => {
     const f = fixture(species.kind, species.groundbound ? 20 : -900);
     t.after(() => f.encounters.dispose());
     finishNextBossAttack(f.entry.state);
@@ -747,6 +747,7 @@ for (const species of BOSS_SPECIES) {
     f.entry.home.copy(f.entry.mesh.position);
     f.position.copy(f.entry.home).add(new THREE.Vector3(0, 0, -85));
     const before = f.entry.mesh.position.clone();
+    const beforeOrientation = f.entry.mesh.quaternion.toArray();
     const duration = f.entry.state.phaseDuration;
     const count = f.entry.state.attackCount;
     for (let i = 0; i < 90; i++) f.step();
@@ -754,7 +755,10 @@ for (const species of BOSS_SPECIES) {
     assert.equal(f.entry.state.phaseDuration, duration);
     assert.equal(f.entry.state.attackCount, count);
     assert.equal(f.entry.state.validatedHits, 0);
-    assert.ok(f.entry.mesh.position.distanceTo(before) > 1);
+    if (species.stationary) {
+      assert.deepEqual(f.entry.mesh.position, before);
+      assert.deepEqual(f.entry.mesh.quaternion.toArray(), beforeOrientation);
+    } else assert.ok(f.entry.mesh.position.distanceTo(before) > 1);
     assert.ok(
       f.entry.mesh.position.distanceTo(before) <= 9 * 1.5 + 1e-6,
       JSON.stringify({
@@ -1053,4 +1057,33 @@ test("Actual protected torpedo feedback stays in the boss entry, preserves succe
   assert.equal(f.entry.attackFeedback, null);
   assert.ok(f.encounters.bosses.every((e) => e.attackFeedback === null));
   f.encounters.dispose();
+});
+
+test("Polyphemus lock prediction stays frontal during a fast real approach and preserves the floor clamp", (t) => {
+  const f = fixture("polyphemus", -450);
+  t.after(() => f.encounters.dispose());
+  f.player.invulnerable = 999;
+  let clamped = 0;
+  for (let i = 0; i < 20; i++) {
+    f.position.set(0, -447, -150 + i * 7);
+    f.step(0.1);
+    if (f.entry.state.phase !== "windup") continue;
+    const flight =
+      f.position.distanceTo(f.entry.mesh.position) /
+      f.entry.state.species.projectileSpeed;
+    const forecast =
+      f.position.z +
+      f.entry.lockedVelocity.z *
+        Math.min(2.2, f.entry.state.species.lockWindow + flight);
+    if (forecast <= 0) continue;
+    clamped++;
+    assert.equal(f.entry.lockTarget.z, f.position.z);
+    assert.equal(f.entry.lockTarget.y, -445);
+    assert.equal(f.entry.mesh.position.z, 0);
+    assert.deepEqual(f.entry.mesh.quaternion.toArray(), [0, 0, 0, 1]);
+  }
+  assert.ok(
+    clamped > 0,
+    "Actual production lockAttack must exercise the behind-body forecast branch",
+  );
 });

@@ -1,3 +1,4 @@
+import { createTideUI } from "./odyssey_tide_ui.js";
 import { createWaterwheelUI } from "./atlantis_waterwheel_ui.js";
 import { createTitanPickupTremor } from "./bermuda_titan_camera.js";
 import { prioritizeTitanEscapeHint } from "./bermuda_titan_hud.js";
@@ -807,6 +808,7 @@ async function selectRegion(region) {
                         },
                       })
                     : createOcean(container);
+    await nextOcean.windEnvironment?.prepare();
     attachDeepVents(nextOcean, region.id, {
       heightAt: nextOcean.heightAt || baseSeabedHeight,
     });
@@ -859,6 +861,15 @@ async function selectRegion(region) {
     loadedRegion = region.id;
     swapped = true;
     refreshRegionState();
+    if (region.id === "odyssey")
+      await Promise.all([
+        encounters.prepareMaterials(),
+        ...encounters.bosses
+          .filter((entry) => entry.enabled)
+          .map((entry) =>
+            entry.mesh.userData.prepareMaterials?.({ priority: 10 }),
+          ),
+      ]);
     for (const entity of populationCache.get(region.id) || []) {
       entities.push(entity);
       scene.add(entity.mesh);
@@ -1193,7 +1204,7 @@ function updateSonar() {
     contacts: scan.contacts,
     sonarActive: visible,
     world: activeWorld(),
-    riverPaths: ocean.radarPaths,
+    riverPaths: ocean.windTrial?.mapPaths(ocean.radarPaths) || ocean.radarPaths,
     currentRoutes: ocean.currents?.routes,
     currentOpacity: ocean.currents?.state.opacity ?? 0,
     rareArea: rareDiscovery.update({
@@ -1203,8 +1214,9 @@ function updateSonar() {
       entity: entities.find((entry) => isRegionalRare(entry.species)),
       regionId: expedition.region.id,
     }),
-    waypoints:
-      ocean.titanQuest && !ocean.titanQuest.state.secured
+    waypoints: ocean.windTrial
+      ? ocean.windTrial.waypoints()
+      : ocean.titanQuest && !ocean.titanQuest.state.secured
         ? titanWaypoints()
         : ocean.guardianWaypoints
           ? ocean.guardianWaypoints
@@ -1889,12 +1901,15 @@ function activeObjectiveHint() {
         : "前爪压护晶核 · 等待睡梦松掌"
       : message`巢穴封印 ${quest.state.completed}/3 · ${phase} ${Math.ceil(quest.state.remaining)}秒`;
   }
-  return expeditionObjectiveHint(objectiveState, player);
+  return (
+    ocean.windTrial?.hint() || expeditionObjectiveHint(objectiveState, player)
+  );
 }
 const keyArrival = createAtlantisKeyArrival();
 let keyClueContact = false;
 let keyNavigationNoticeUntil = 0;
 const waterwheelUI = createWaterwheelUI();
+const tideUI = createTideUI();
 let currentNotification = "";
 let notificationStartedAt = -Infinity;
 let bossHudEntry = null;
@@ -1931,6 +1946,7 @@ function resetExpedition(preserveWorld = false) {
   ocean.configureMechanism?.(objectiveState);
   ocean.relic?.reset();
   ocean.titanQuest?.reset();
+  ocean.windTrial?.reset();
   selectAvatar(expedition.character);
   inkAbility = createInkState();
   position.fromArray(expedition.region.spawn);
@@ -2069,6 +2085,8 @@ function updateLaunch(roundDt) {
 }
 function showOverlay(kind) {
   waterwheelUI.hide();
+  tideUI.hide();
+  ocean.windTrial?.suspend();
   ocean.lightSeal?.hide();
   ocean.muralPath?.hide();
   if (["dead", "won", "timeup"].includes(kind)) {
@@ -2094,7 +2112,7 @@ function showOverlay(kind) {
     contacts: [],
     sonarActive: false,
     world: activeWorld(),
-    riverPaths: ocean.radarPaths,
+    riverPaths: ocean.windTrial?.mapPaths(ocean.radarPaths) || ocean.radarPaths,
     currentRoutes: ocean.currents?.routes,
     currentOpacity: ocean.currents?.state.opacity ?? 0,
   });
@@ -2239,6 +2257,8 @@ function resumeGame() {
   } else startGame();
 }
 function togglePause() {
+  ocean.windTrial?.suspend();
+  tideUI.hide();
   if (mode === "epilogue") return showOverlay("won");
   if (mode === "playing" || mode === "launching") showOverlay("paused");
   else if (mode === "paused") resumeGame();
@@ -2489,10 +2509,17 @@ function updatePlayer(dt, roundDt) {
   const previousPosition = position.clone();
   // 离水后由弹道积分负责全部位移，空格不再产生额外向上推力。
   if (!wasAirborne) position.addScaledVector(forward, speed * dt);
+  const localWind =
+    !wasAirborne && !jet ? ocean.windTrial?.current(previousPosition) : null;
+  if (localWind) position.addScaledVector(localWind, dt);
   const current = ocean.currents?.step(dt, {
     position: previousPosition,
     forward,
-    enabled: mode === "playing" && !wasAirborne && !jet,
+    enabled:
+      mode === "playing" &&
+      !wasAirborne &&
+      !jet &&
+      !(localWind?.lengthSq() > 0),
   });
   if (current && !wasAirborne && !jet)
     position.addScaledVector(current.velocity, dt);
@@ -4163,7 +4190,13 @@ function updateTorpedoAim() {
             : "领主体型门槛 · 需25米",
     );
     $("torpedo-aim").classList.toggle("ineligible", !aimDamageReady);
-    aimProjection.copy(aim.entity.mesh.position).project(camera);
+    aimProjection
+      .copy(
+        aim.boss && species.damageTarget === "eye"
+          ? aim.point
+          : aim.entity.mesh.position,
+      )
+      .project(camera);
     if (
       aimProjection.z >= -1 &&
       aimProjection.z <= 1 &&
@@ -4218,6 +4251,13 @@ function updateHud() {
     mode === "playing",
     !player.dead && !player.timedOut && !player.won,
     player.invulnerable <= 0,
+  );
+  tideUI.update(
+    ocean.windTrial,
+    mode === "playing" && !player.dead && !player.timedOut && !player.won,
+    Boolean(
+      activeBoss && ["windup", "attack"].includes(activeBoss.state.phase),
+    ),
   );
   const cap = vitalLimit(player) === 150 ? "150" : "100";
   if ($("hud").dataset.vitalCap !== cap) $("hud").dataset.vitalCap = cap;
@@ -4758,6 +4798,31 @@ function frame(now) {
       },
     );
     ocean.updateProgress?.(player, position, encounters.bosses, notify);
+    if (ocean.windTrial) {
+      resolvePlayerMotion(beforeEncounter, true);
+      avatar.position.copy(position);
+      avatar.scale.setScalar(player.length);
+    }
+    ocean.windTrial?.update(
+      roundDt,
+      player,
+      position,
+      forward,
+      avatar,
+      encounters.bosses,
+      notify,
+      audio,
+      {
+        blocked: blockedBetween,
+        damage(amount) {
+          if (!takeDamage(player, amount)) return false;
+          effects.hurt(position, player.length);
+          audio.bitten();
+          hitFlash = 0.65;
+          return true;
+        },
+      },
+    );
     const relicPosition = swallowPoint.set(
       ATLANTIS_RELIC.x,
       ATLANTIS_RELIC.y,
@@ -4943,6 +5008,7 @@ function frame(now) {
         clueContact: touchingKeyClue,
         trenchArrived: !!ocean.progress?.arrived,
         titanRelicCollected: !!ocean.titanQuest?.state.secured,
+        windTrial: ocean.windTrial?.status,
       },
     );
     ocean.relic?.setState(objectiveState);
@@ -5134,7 +5200,8 @@ function frame(now) {
       reducedMotionQuery.matches,
     );
     minimap.update({
-      riverPaths: ocean.radarPaths,
+      riverPaths:
+        ocean.windTrial?.mapPaths(ocean.radarPaths) || ocean.radarPaths,
       currentRoutes: ocean.currents?.routes,
       currentOpacity: ocean.currents?.state.opacity ?? 0,
       position,

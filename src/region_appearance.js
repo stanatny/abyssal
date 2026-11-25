@@ -48,7 +48,7 @@ export function regionZone(regionId, depth, position = null) {
       name: row[0],
       code: row[1],
       description:
-        "沿贝园与古代航路成长，寻找三位守卫领域外的丰厚食物，再探索深水峡口。",
+        "沿贝园与古代航路成长；先击败守卫，再转动石盘连接全部四个风纹，到试潮石验证。每解一门，水下风神像升起一级。",
     };
   }
   if (

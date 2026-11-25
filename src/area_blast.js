@@ -1,3 +1,8 @@
+import {
+  findPolyphemusEyeContact,
+  polyphemusEyeImpact,
+  polyphemusEyeTarget,
+} from "./polyphemus_weakpoint.js";
 import * as THREE from "three";
 import { resetFlyingFishFlight } from "./flying_fish.js";
 import { updateLordBody } from "./lord_body.js";
@@ -84,8 +89,22 @@ export function createAreaBlast({
       )
         continue;
       seen.add(b);
+      // 巨人直接撞击必须落在实际眼表面；范围波及也必须真正抵达可见眼部。
       const actual =
-        b === directBoss ? at : bodyPoint(at, b, MECHANICAL_RULES.blastRadius);
+        b.state.species.damageTarget === "eye"
+          ? b === directBoss
+            ? polyphemusEyeImpact(b.mesh, at)
+              ? at
+              : null
+            : findPolyphemusEyeContact(
+                b.mesh,
+                at,
+                MECHANICAL_RULES.blastRadius,
+                { blocked },
+              )
+          : b === directBoss
+            ? at
+            : bodyPoint(at, b, MECHANICAL_RULES.blastRadius);
       if (!actual || blocked(at, actual)) continue;
       if (hitBoss(player, b, actual).hit) {
         result.hits++;
@@ -117,6 +136,13 @@ export function createBlastBodyQuery() {
     )?.point;
   }
   return (origin, boss, range = Infinity) => {
+    if (boss.state.species.damageTarget === "eye") {
+      const eye = polyphemusEyeTarget(boss.mesh, new THREE.Vector3());
+      return eye.distanceTo(origin) <= range &&
+        polyphemusEyeImpact(boss.mesh, eye, { origin })
+        ? eye
+        : null;
+    }
     const contact = boss.mesh.userData.contactRoot || boss.mesh;
     contact.updateWorldMatrix(true, true);
     const direct = cast(origin, boss.mesh.position, contact, range);

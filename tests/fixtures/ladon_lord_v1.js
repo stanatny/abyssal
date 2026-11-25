@@ -1,0 +1,25 @@
+/** 已退役四风 v1 拉冬的固定测试样本；不能由当前领主名单反向生成。 */
+export const LADON_LORD_V1 = Object.freeze({
+  kind: "ladon",
+  label: "Golden-ridged Gatekeeper · Ladon",
+  western: true,
+  mythic: true,
+  length: 70,
+  floorClearance: 70,
+  health: 210,
+  minAttackLength: 25,
+  speed: 22,
+  engageRange: 60,
+  tailSweepYaw: (Math.PI * 170) / 180,
+  lockWindow: 0.8,
+  damage: 28,
+  ability: "tail_sweep",
+  nutrition: 100,
+  growth: 30,
+  tier: 3,
+  windupDuration: 2.6,
+  attackDuration: 1.8,
+  abilityTimings: Object.freeze({
+    tail_sweep: Object.freeze({ windup: 2.6, attack: 1.8, recover: 4.5 }),
+  }),
+});

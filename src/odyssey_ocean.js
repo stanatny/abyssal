@@ -1,3 +1,10 @@
+import {
+  createWindTrialRuntime,
+  FITTED_WIND_GATES,
+  HOMEWARD_FINISH,
+  HOMEWARD_PATH,
+} from "./odyssey_wind_trial.js";
+import { createOdysseyWindEnvironment } from "./odyssey_wind_environment.js";
 import * as THREE from "three";
 import { createTerrainSurface } from "./terrain_surface.js";
 import {
@@ -419,11 +426,24 @@ export function* createOdysseyOceanSteps(parent) {
       name: l.id,
       position: new THREE.Vector3(...l.position),
     })).concat(landmarkKit.landmarks);
+    const windTrial = createWindTrialRuntime();
+    const windEnvironment = createOdysseyWindEnvironment({
+      gateDefs: FITTED_WIND_GATES,
+      finish: HOMEWARD_FINISH,
+      homewardPath: HOMEWARD_PATH,
+      heightAt: odysseySeabedHeight,
+      waterHeightAt: odysseyWaterHeight,
+    });
+    scope.own(windEnvironment);
+    root.add(windEnvironment.group);
+    colliders.push(...windEnvironment.colliders);
     const result = {
       root,
+      windTrial,
+      windEnvironment,
       colliders,
       navigationColliders: colliders,
-      barriers: [],
+      barriers: windEnvironment.dynamicColliders,
       obstacles: [],
       heightAt: odysseySeabedHeight,
       contactSurface,
@@ -457,6 +477,13 @@ export function* createOdysseyOceanSteps(parent) {
       ) {
         if (disposed) return;
         time.value = t;
+        windEnvironment.update(dt, t, {
+          gates: windTrial.state.gates,
+          homewardAvailable: windTrial.status.homewardAvailable,
+        });
+        windTrial.setMonumentReady(
+          windEnvironment.state.homewardReady === true,
+        );
         shallows.update(t, position, highQuality);
         landmarkKit.update(t, cameraPosition, highQuality);
         abyss.update(cameraPosition, highQuality);
@@ -485,6 +512,7 @@ export function* createOdysseyOceanSteps(parent) {
       dispose() {
         if (disposed) return;
         disposed = true;
+        windEnvironment.dispose();
         root.removeFromParent();
         root.traverse((n) => {
           if (n.isInstancedMesh) n.dispose();

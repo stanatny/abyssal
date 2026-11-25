@@ -86,14 +86,15 @@ export function expandOdysseyXZ(x, z) {
 export function odysseyRouteXZ(x, z) {
   return expandOdysseyXZ(...previousRouteXZ(x, z));
 }
-export const ODYSSEY_SITES = Object.freeze(
-  Object.fromEntries(
+export const ODYSSEY_SITES = Object.freeze({
+  ladon: Object.freeze([-430, -950]),
+  ...Object.fromEntries(
     Object.entries(ODYSSEY_PREVIOUS_SITES).map(([kind, point]) => [
       kind,
       Object.freeze(expandOdysseyXZ(...point)),
     ]),
   ),
-);
+});
 /** 逆映射保证海岸接缝连续；向南渐深的海床由渲染、实体和栖地共同使用。 */
 export function odysseySeabedHeight(x, z) {
   if (z >= -200) return odysseyPreviousSeabedHeight(x, z);

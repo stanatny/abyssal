@@ -193,6 +193,11 @@ test("Ocean current runs rank separately while both older record generations sur
     id: "previous-panel",
     ruleset: "waterlevel-2026-10-31",
   });
+  old.push({
+    ...old[3],
+    id: "previous-sentinel",
+    ruleset: "odyssey-sentinel-2026-11-25",
+  });
   disk.setItem(RUN_RECORD_KEY, JSON.stringify({ version: 1, rows: old }));
   const store = createRunRecordStore(disk, ids);
   for (const id of ids) {
@@ -200,7 +205,11 @@ test("Ocean current runs rank separately while both older record generations sur
     store.record(run(`new-${id}`, id, 100));
     assert.equal(
       store.list(id)[0].ruleset,
-      id === "atlantis" ? "atlantis-mural-2026-10-31" : "currents-2026-10-30",
+      id === "atlantis"
+        ? "atlantis-mural-2026-10-31"
+        : id === "odyssey"
+          ? "odyssey-eye-reef-2026-11-25"
+          : "currents-2026-10-30",
     );
   }
   const saved = JSON.parse(disk.getItem(RUN_RECORD_KEY));
