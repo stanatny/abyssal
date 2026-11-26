@@ -1,12 +1,12 @@
 # ABYSSAL
 
-奥德赛眼部弱点与巨蟹攻击候选：独眼巨人仅恢复期真实眼部可受伤，增加投掷锁定反馈，并扩大卡尔基诺斯的水压攻击。[试玩本次候选](https://abstract-socks-accomplish-buf.trycloudflare.com/?candidate=6b1bc9cb3895fbed)，选择“奥德赛迷航海域”；详见[规则与验证记录（英文）](docs/odyssey_eye_reef_revision_20261125.md)。正式主分支与亚马逊候选保留。
-
 [English](README.md) | **简体中文**
 
 **[立即在浏览器中试玩 →](https://stanatny.github.io/abyssal/)** · 无需安装或注册账号
 
 一款单人 3D 生存探索游戏。在八个世界中捕食、成长、躲避猎手并挑战巨兽，从阳光下的珊瑚礁，一路探索外星海洋与神话云海。
+
+**v0.11.33**：探索扩充后的奥德赛海域，破解四座守卫风门，在风神埃俄罗斯脚下开启归航之路。[发布记录（英文）](docs/release_v0_11_33.md)。
 
 [![夏威夷海域实机画面，摄于 ABYSSAL v0.11.28 英文界面](docs/images/abyssal_hawaii_v0_11_28.jpg)](https://stanatny.github.io/abyssal/)
 
@@ -29,7 +29,7 @@
 | **亚马逊河**       | 沿雨林河道捕猎，战胜三位河道领主。                                           |
 | **木卫二冰下海洋** | 探索冰壳下的外星海洋，迎战三位领主。                                         |
 | **蓬莱仙境**       | 在神话山水间游泳、飞行，挑战四象神兽与御剑真君。                             |
-| **奥德赛迷航海域** | 探索希腊神话风格的海域，击败三位守卫。                                       |
+| **奥德赛迷航海域** | 探索神话海域，击败四位守卫、破解风门机关，在风神脚下开启归航之路。           |
 
 | 亚特兰蒂斯遗迹                                                                                                            | 蓬莱仙境                                                                                                               |
 | ------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------- |
@@ -80,8 +80,8 @@ npm run build
 ## 项目资料
 
 - [当前版本 — v0.11.32](docs/release_v0_11_32.md)
-- [奥德赛海域扩充：本地试玩候选](docs/odyssey_map_expansion_20261124.md)
-- [四风试炼：已确认设计（英文）](docs/odyssey_four_winds_trial_plan_20261124.md) · [开发候选与验证记录（英文）](docs/odyssey_four_winds_implementation_20261124.md)
+- [奥德赛海域扩充：设计与验证](docs/odyssey_map_expansion_20261124.md)
+- [四风试炼：已确认设计（英文）](docs/odyssey_four_winds_trial_plan_20261124.md) · [实现与验证记录（英文）](docs/odyssey_four_winds_implementation_20261124.md)
 - [开发规则](AGENTS.md) · [资产质量标准](docs/asset_quality_standard.md)
 - [本地化](docs/localization.md) · [音频来源](docs/audio_sources.md) · [验证记录](docs/verification.md)
 - [此前的完整 README 与开发历史](https://github.com/stanatny/abyssal/blob/ef6a6a2345329370d553a87d97389b869ac22cfe/README.md)
