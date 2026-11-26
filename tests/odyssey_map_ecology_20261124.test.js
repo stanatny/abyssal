@@ -20,6 +20,7 @@ import { canPredatorHunt } from "../src/nursery_rules.js";
 import { canPredatorRetaliate } from "../src/predator_combat.js";
 import { bodyRadius, resolveMotion } from "../src/collision.js";
 import { preyMealReward } from "../src/simulation.js";
+import { assertNumericReference } from "./helpers/bermuda_numeric_reference.js";
 
 import previousTideEcology from "./fixtures/odyssey_tide_ecology_665_20261125.json" with { type: "json" };
 import {
@@ -32,6 +33,15 @@ const roster = getRegionSpecies("odyssey");
 const oldAnchors = (s) =>
   previousTideEcology.species.find((p) => p.kind === s.kind).spawnAnchors;
 const distance = (a, b) => Math.hypot(...a.map((v, i) => v - b[i]));
+
+function assertPriorTideAnchors(actual, expected, label) {
+  return assertNumericReference(actual, expected, {
+    label,
+    // 仅计算得到的非整数坐标允许纳米级libm差异；整数、类型、顺序和形状保持精确。
+    toleranceFor: (path, value) =>
+      /^\/\d+\/[012]$/.test(path) && !Number.isInteger(value) ? 1e-9 : 0,
+  });
+}
 
 test("expanded Odyssey preserves all 22 kinds, reward rules and the exact 144 northern residents", () => {
   assert.deepEqual(
@@ -80,16 +90,54 @@ test("ordinary stock grows with actual wet area rather than just bounding area",
   const stock = roster.reduce((n, s) => n + s.population, 0);
   const oldStock = baseline.species.reduce((n, s) => n + s.population, 0);
   assert.equal(stock, 677);
+  assert.deepEqual(
+    roster.map((s) => s.kind),
+    previousTideEcology.species.map((s) => s.kind),
+    "all prior665 species identities and order",
+  );
   for (const s of roster)
-    assert.deepEqual(
+    assertPriorTideAnchors(
       s.spawnAnchors.slice(0, oldAnchors(s).length),
       oldAnchors(s),
-      `${s.kind}: all prior665 anchors exact`,
+      `${s.kind}: all prior665 anchors preserved`,
     );
   assert.ok(wetArea > baseline.grid.wetArea * 1.7);
   assert.ok(stock / wetArea >= oldStock / baseline.grid.wetArea);
   assert.equal(roster.find((s) => s.kind === "ceto_serpent").population, 3);
   assert.equal(roster.find((s) => s.kind === "black_sea_nettle").population, 6);
+});
+
+test("prior665 anchor preservation accepts the Linux libm witness while rejecting real reference mutations", () => {
+  const expected = oldAnchors({ kind: "naga_huntress" }),
+    linux = structuredClone(expected);
+  assert.equal(expected.length, 12);
+  assert.equal(expected[6][0], -14.136729153913464);
+  linux[6][0] = -14.136729153913455;
+  const report = assertPriorTideAnchors(
+    linux,
+    expected,
+    "actual Linux witness",
+  );
+  assert.equal(report.numbers, 36);
+  assert.equal(report.toleratedDifferences, 1);
+  assert.equal(report.maxAbsoluteDifference, 8.881784197001252e-15);
+  const reject = (label, mutate) => {
+    const changed = structuredClone(linux);
+    mutate(changed);
+    assert.throws(
+      () => assertPriorTideAnchors(changed, expected, label),
+      { name: "AssertionError" },
+      label,
+    );
+  };
+  reject("computed coordinate drift", (a) => (a[6][0] += 1e-6));
+  reject("row reorder", (a) => ([a[0], a[1]] = [a[1], a[0]]));
+  reject("missing prior resident", (a) => a.pop());
+  reject("extra prior resident", (a) => a.push(a[0].slice()));
+  reject("coordinate shape", (a) => a[6].push(0));
+  reject("stringified coordinate", (a) => (a[6][0] = String(a[6][0])));
+  assert.equal(Number.isInteger(expected[0][0]), true);
+  reject("raw integer coordinate stays exact", (a) => (a[0][0] += 1e-10));
 });
 
 test("both side routes offer proportionate food through six descent stages, including the far south", () => {

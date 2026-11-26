@@ -30,3 +30,11 @@ The recorded short populated desktop comparison stays near 60 FPS; High main-thr
 ## Deployment verification
 
 Publication is reported only after fresh release tests, formatting/build, the exact main-push workflow and actual formal-site checks complete. The stable game is <https://stanatny.github.io/abyssal/>. Public checks identify v0.11.33 in both languages, verify compiled resources under the project subpath, inspect both updated guardian Guides, and use native map selection/start/dive/pause/resume/home/refresh without development interfaces or staged quest/player writes. Those startup checks complement the preserved adult/combat evidence, rather than replacing it.
+
+## Linux CI compatibility follow-up
+
+The first exact-main workflow for `b0b3684` executes 2,946 cases: 2,944 pass, one fails and the pre-existing Bermuda TODO remains. It does not deploy. The sole failure compares the complete preserved 665-anchor prefix with its original fixture: one computed Naga x coordinate is `-14.136729153913455` on Linux instead of the captured `-14.136729153913464`, an absolute difference of 8.881784197001252e-15 m. The other 35 values in that species' 12-anchor array match.
+
+The follow-up changes only test comparison and this record. The fixture and all production inputs remain byte-exact. Reuse the existing complete numeric-reference comparator with a maximum 1e-9 m tolerance only for non-integer coordinate slots in the two-dimensional anchor arrays. Integer coordinates, value types, array shape/order/cardinality and all other fields remain exact. Keep all 22-kind/677-stock/144-nursery and actual-world food/placement gates. A real Linux-value witness and deliberate drift/order/count/type/integer mutations verify the boundary rather than removing the preservation requirement.
+
+The follow-up is pushed on the same v0.11.33 release line; no gameplay or artifact change, extra version increment or fixture regeneration is introduced. Exact follow-up CI results and formal deployment/native checks are retained in the ignored release receipts. The failed first run remains part of the evidence history.
